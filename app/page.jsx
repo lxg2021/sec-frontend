@@ -1,6 +1,11 @@
 "use client"
-import LoginForm from "./login/loginform"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Page() {
-  return <LoginForm />
+  const router = useRouter()
+  useEffect(() => {
+    router.replace("/login")
+  }, [])
+  return null
 }

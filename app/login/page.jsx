@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Lock, User } from "lucide-react"                              // 图标组件
 import { useLoginHandlers } from "@/lib/loginHandlers"
 import LoginAnimation from "@/components/loginanimation"
+import { useRouter } from 'next/navigation'
 
 // 使用图片的Cypher LOGO组件
 const CypherLogo = ({ className = "w-8 h-8" }) => {
@@ -23,6 +24,13 @@ export default function LoginForm() {
     handleRegister,
     handleRememberMe,
   } = useLoginHandlers()
+
+  const router = useRouter();
+
+  const handleForgotPassword2 = () => {
+    router.push('/forgot-password')
+  };
+
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black">
@@ -97,9 +105,11 @@ export default function LoginForm() {
                     />
                     <span>记住我</span>
                   </label>
+
+                  {/* 忘记密码链接 */}
                   <button
                     type="button"
-                    onClick={handleForgotPassword}
+                    onClick={handleForgotPassword2}
                     className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     忘记密码？
@@ -122,23 +132,22 @@ export default function LoginForm() {
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
-                <p className="text-slate-400 text-sm">
-                  还没有账户？{" "}
-                  <button onClick={handleRegister} className="text-blue-400 hover:text-blue-300 transition-colors">
-                    立即注册
-                  </button>
-                </p>
-              </div>
+              {/* 注销注册,后续由[用户管理]来添加用户 */}
+              {/*
+                    <div className="mt-6 text-center">
+                      <p className="text-slate-400 text-sm">
+                        还没有账户？{" "}
+                        <button onClick={handleRegister} className="text-blue-400 hover:text-blue-300 transition-colors">
+                          立即注册
+                        </button>
+                      </p>
+                    </div>
+              */}
+
             </CardContent>
           </Card>
         </div>
       </div>
-
-      {/* 装饰性元素 */}
-      <div className="absolute top-10 left-10 w-20 h-20 border border-blue-500/30 rounded-full animate-pulse" />
-      <div className="absolute bottom-10 right-10 w-16 h-16 border border-blue-500/30 rounded-full animate-pulse delay-1000" />
-      <div className="absolute top-1/2 left-5 w-12 h-12 border border-blue-400/20 rounded-full animate-pulse delay-500" />
     </div>
   )
 }
