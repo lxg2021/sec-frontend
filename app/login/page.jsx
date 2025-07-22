@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Lock, User } from "lucide-react"                              // 图标组件
+import { Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react"                              // 图标组件
 import { useLoginHandlers } from "@/lib/loginHandlers"
 import LoginAnimation from "@/components/loginanimation"
-import { useRouter } from 'next/navigation'
 
 // 使用图片的Cypher LOGO组件
 const CypherLogo = ({ className = "w-8 h-8" }) => {
@@ -18,18 +17,16 @@ export default function LoginForm() {
   const {
     showPassword,
     isLoading,
+    rememberMe,
+    message,
+    messageType,
+    username,
+    setUsername,
     handleTogglePassword,
     handleLogin,
     handleForgotPassword,
-    handleRegister,
     handleRememberMe,
   } = useLoginHandlers()
-
-  const router = useRouter();
-
-  const handleForgotPassword2 = () => {
-    router.push('/forgot-password')
-  };
 
 
   return (
@@ -66,6 +63,8 @@ export default function LoginForm() {
                       name="username"
                       type="text"
                       placeholder="请输入用户名"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400"
                       required
                     />
@@ -100,6 +99,7 @@ export default function LoginForm() {
                   <label className="flex items-center space-x-2 text-sm text-slate-300">
                     <input
                       type="checkbox"
+                      checked={rememberMe}
                       onChange={handleRememberMe}
                       className="rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
                     />
@@ -109,12 +109,20 @@ export default function LoginForm() {
                   {/* 忘记密码链接 */}
                   <button
                     type="button"
-                    onClick={handleForgotPassword2}
+                    onClick={handleForgotPassword}
                     className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                   >
                     忘记密码？
                   </button>
                 </div>
+
+                {/* 错误消息 */}
+                {message && messageType === "error" && (
+                  <div className="flex items-center space-x-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                    <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+                    <span className="text-red-300 text-sm">{message}</span>
+                  </div>
+                )}
 
                 <Button
                   type="submit"
