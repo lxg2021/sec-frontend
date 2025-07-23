@@ -17,21 +17,21 @@ import {
   Boxes,
   ShieldCheck,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import DashboardPage from "../dashboard/page"
-import UsersPage from "../users/page"
+import { Button }     from "@/components/ui/button"
+import DashboardPage  from "../dashboard/page"
+import UsersPage      from "../users/page"
+import Image          from "next/image"
 import HardwareAssetsPage from "../hardware-assets/page"
 import SoftwareAssetsPage from "../software-assets/page"
-import Image from "next/image"
 
 /* 常量定义 */
 const SIDEBAR_WIDTH = {
   COLLAPSED: "w-16",
-  EXPANDED:  "w-72",
+  EXPANDED: "w-72",
 }
 
 const ANIMATION_DELAYS = {
-  MENU_ITEM:    50,
+  MENU_ITEM: 50,
   SUBMENU_ITEM: 50,
 }
 
@@ -42,34 +42,35 @@ export default function WatchPointMainFrame() {
 
   /* 菜单项配置 */
   const menuItems = [
-    { id: "dashboard",  icon: LayoutDashboard,  label: "DASHBOARD" },
-    { id: "users",      icon: Users,            label: "用户管理",  },
-    { id: "assets",     icon: Boxes,            label: "资产管理",
+    { id: "dashboard", icon: LayoutDashboard, label: "DASHBOARD" },
+    { id: "users", icon: Users, label: "用户管理", },
+    {
+      id: "assets", icon: Boxes, label: "资产管理",
       submenu: [
-        { id: "hardware", icon: HardDrive,  label: "硬件资产" },
-        { id: "software", icon: Package,    label: "软件资产" },
+        { id: "hardware", icon: HardDrive, label: "硬件资产" },
+        { id: "software", icon: Package, label: "软件资产" },
       ],
     },
-    { id: "baseline",   icon: ShieldCheck,      label: "安全基线", },
-    { id: "vulnerability",icon: AlertTriangle,  label: "漏洞防护", },
-    { id: "attack",     icon: Target,           label: "攻击溯源", },
-    { id: "response",   icon: Shield,           label: "处置响应", },
-    { id: "reports",    icon: FileText,         label: "安全报告", },
-    { id: "control",    icon: Settings,         label: "控制中心", },
+    { id: "baseline", icon: ShieldCheck, label: "安全基线", },
+    { id: "vulnerability", icon: AlertTriangle, label: "漏洞防护", },
+    { id: "attack", icon: Target, label: "攻击溯源", },
+    { id: "response", icon: Shield, label: "处置响应", },
+    { id: "reports", icon: FileText, label: "安全报告", },
+    { id: "control", icon: Settings, label: "控制中心", },
   ]
 
   /* ID到显示名称的映射 */
   const sectionDisplayNames = {
-    dashboard:      "Dashboard",
-    users:          "用户管理",
-    hardware:       "硬件资产",
-    software:       "软件资产",
-    baseline:       "安全基线",
-    vulnerability:  "漏洞防护",
-    attack:         "攻击溯源",
-    response:       "处置响应",
-    reports:        "安全报告",
-    control:        "控制中心",
+    dashboard: "Dashboard",
+    users: "用户管理",
+    hardware: "硬件资产",
+    software: "软件资产",
+    baseline: "安全基线",
+    vulnerability: "漏洞防护",
+    attack: "攻击溯源",
+    response: "处置响应",
+    reports: "安全报告",
+    control: "控制中心",
   }
 
   /* 根据ID获取SectionName */
@@ -145,7 +146,7 @@ export default function WatchPointMainFrame() {
   const renderPageContent = () => {
     const pageComponents = {
       dashboard: <DashboardPage />,
-      users:    <UsersPage />,
+      users: <UsersPage />,
       hardware: <HardwareAssetsPage />,
       software: <SoftwareAssetsPage />,
     }
@@ -182,7 +183,14 @@ export default function WatchPointMainFrame() {
                 <Image src="/logo.svg" alt="WatchPoint Logo" width={36} height={36} className="rounded-lg shadow-lg" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-wider bg-gradient-to-r from-sky-400 via-cyan-400 to-blue-500 via-sky-300 to-cyan-500 bg-clip-text text-transparent bg-[length:400%_400%] animate-[shimmer_2s_ease-in-out_infinite]">
+                <h1
+                  className="text-xl font-bold tracking-wider bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage: 'linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet)',
+                    backgroundSize: '400% 400%',
+                    animation: 'shimmer 2s ease-in-out infinite',
+                  }}
+                >
                   WatchPoint
                 </h1>
               </div>
