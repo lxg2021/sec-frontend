@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 interface CountUpProps {
   end: number
@@ -9,6 +9,7 @@ interface CountUpProps {
   suffix?: string
   className?: string
   decimals?: number
+  start?: number
 }
 
 export default function CountUp({
@@ -18,24 +19,29 @@ export default function CountUp({
   suffix = "",
   className = "",
   decimals = 0,
+  start = 0,
 }: CountUpProps) {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(start)
   const [isAnimating, setIsAnimating] = useState(false)
+  const startTimeRef = useRef<number | null>(null)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    let timer: NodeJS.Timeout
+
+    const startAnimation = () => {
       setIsAnimating(true)
-      const startTime = Date.now()
-      const startValue = 0
+      startTimeRef.current = Date.now()
 
       const animate = () => {
+        if (!startTimeRef.current) return // Ensure startTimeRef is valid
+
         const now = Date.now()
-        const elapsed = now - startTime
+        const elapsed = now - startTimeRef.current
         const progress = Math.min(elapsed / duration, 1)
 
         // 使用缓动函数让动画更自然
         const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-        const currentValue = startValue + (end - startValue) * easeOutQuart
+        const currentValue = start + (end - start) * easeOutQuart
 
         setCount(currentValue)
 
@@ -47,10 +53,19 @@ export default function CountUp({
       }
 
       requestAnimationFrame(animate)
-    }, delay)
+    }
 
-    return () => clearTimeout(timer)
-  }, [end, duration, delay])
+    if (delay > 0) {
+      timer = setTimeout(startAnimation, delay)
+    } else {
+      startAnimation()
+    }
+
+    return () => {
+      clearTimeout(timer)
+      startTimeRef.current = null // Clear the ref on unmount
+    }
+  }, [end, duration, delay, start])
 
   const formatNumber = (num: number) => {
     if (decimals > 0) {

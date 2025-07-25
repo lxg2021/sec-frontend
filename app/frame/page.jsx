@@ -184,7 +184,7 @@ export default function WatchPointMainFrame() {
             <div className={`${sidebarCollapsed ? "hidden" : "flex items-center gap-3"}`}>
               <div className="relative">
                 <Image
-                  src="/placeholder.svg?height=36&width=36"
+                  src="/logo.svg?height=36&width=36"
                   alt="WatchPoint Logo"
                   width={36}
                   height={36}
