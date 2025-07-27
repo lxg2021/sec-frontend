@@ -157,7 +157,7 @@ export default function CategoryTable() {
       category: categoryId,
       item: itemName,
     })
-    router.push(`/baseline/details?${searchParams.toString()}`)
+    router.push(`/frame/baseline/details?${searchParams.toString()}`)
   }
 
   return (
