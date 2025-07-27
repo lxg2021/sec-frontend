@@ -1,8 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import OverviewCards from "./components/OverviewCards"
-import TrendChart from "./components/TrendChart"
-import RiskChart from "./components/RiskChart"
-import CategoryTable from "./components/CategoryTable"
+import OverviewCards from "@/components/dash/OverviewCards"
+import TrendChart from "@/components/dash/TrendChart"
+import RiskChart from "@/components/dash/RiskChart"
+import CategoryTable from "@/components/dash/CategoryTable"
 import { Shield, TrendingUp, BarChart3, Clock } from "lucide-react"
 
 export default function BaselineDashboardPage() {

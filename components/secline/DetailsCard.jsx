@@ -13,7 +13,7 @@ import {
   Calendar,
   Clock,
 } from "lucide-react"
-import FixDropdownMenu from "./FixDropdownMenu"
+import FixDropdownMenu from "@/components/menu/FixDropdownMenu"
 
 export default function DetailsCard({
   itemName,

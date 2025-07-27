@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Shield, Users, Settings, Lock, Monitor, Database } from "lucide-react"
-import DetailsCard from "./DetailsCard"
-import HostList from "./HostList"
+import DetailsCard from "@/components/secline/DetailsCard"
+import HostList from "@/components/secline/HostList"
 
 // 分类映射
 const categoryMap = {
