@@ -101,3 +101,16 @@
 .text-glow {
   text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor, 0 0 20px currentColor;
 }
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2; /* 透明度变化实现闪烁 */
+  }
+}
+
+.animate-blink {
+  animation: blink 1s ease-in-out infinite;
+}
