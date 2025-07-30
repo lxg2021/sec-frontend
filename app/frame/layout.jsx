@@ -16,6 +16,7 @@ import {
   HardDrive,
   Boxes,
   ShieldCheck,
+  Settings2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -57,6 +58,7 @@ export default function BaselineLayout({ children }) {
       label: "安全基线",
       submenu: [
         { id: "baselinedashboard", icon: LayoutDashboard, label: "基线Dashboard", path: "/frame/baseline" },
+		{ id: "baselineconfig", icon: Settings2, label: "基线配置", path: "/frame/baseline/rules" },
       ],
     },
     { id: "vulnerability", icon: AlertTriangle, label: "漏洞防护", path: "/frame/vulnerability" },
