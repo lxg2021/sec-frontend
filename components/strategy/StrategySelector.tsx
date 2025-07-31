@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles, Trash2 } from "lucide-react"
+import classNames from "classnames"
 
 interface Strategy {
   id: string
@@ -174,15 +175,28 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
   const getLevelColor = (level: string) => {
     switch (level) {
       case "高":
-        return "destructive"
+        return "outline"     // 浅红边框
       case "中":
-        return "default"
+        return "ghost"       // 浅灰背景，文字清晰
       case "低":
-        return "secondary"
+        return "secondary"   // 浅灰风格（已够淡）
       default:
-        return "default"
+        return "ghost"
     }
   }
+  
+  const getLevelColorClass = (level: string) => {
+	  switch (level) {
+		case "高":
+		  return "text-red-500 bg-red-100"
+		case "中":
+		  return "text-yellow-600 bg-yellow-100"
+		case "低":
+		  return "text-green-600 bg-green-100"
+		default:
+		  return "text-gray-600 bg-gray-100"
+	  }
+	}
 
   // 获取状态颜色
   const getStatusColor = (status: string) => {
@@ -195,6 +209,19 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
         return "outline"
       default:
         return "default"
+    }
+  }
+
+  const getStatusColorClass = (status: string) => {
+    switch (status) {
+      case "启用":
+        return "bg-green-100 text-green-700"
+      case "禁用":
+        return "bg-gray-200 text-gray-600"
+      case "草稿":
+        return "bg-yellow-100 text-yellow-700"
+      default:
+        return "bg-slate-100 text-slate-700"
     }
   }
 
@@ -338,14 +365,14 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                     </TableHead>
                   )}
                   <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort("name")} className="h-auto p-0 font-semibold">
+                    <Button variant="ghost" onClick={() => handleSort("name")} className="h-auto p-0">
                       策略名称
                       <SortIcon field="name" />
                     </Button>
                   </TableHead>
                   <TableHead>类型</TableHead>
                   <TableHead>
-                    <Button variant="ghost" onClick={() => handleSort("level")} className="h-auto p-0 font-semibold">
+                    <Button variant="ghost" onClick={() => handleSort("level")} className="h-auto p-0">
                       优先级
                       <SortIcon field="level" />
                     </Button>
@@ -356,7 +383,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                     <Button
                       variant="ghost"
                       onClick={() => handleSort("createdAt")}
-                      className="h-auto p-0 font-semibold"
+                      className="h-auto p-0"
                     >
                       创建时间
                       <SortIcon field="createdAt" />
@@ -379,10 +406,16 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                     <TableCell className="font-medium">{strategy.name}</TableCell>
                     <TableCell>{strategy.type}</TableCell>
                     <TableCell>
-                      <Badge variant={getLevelColor(strategy.level)}>{strategy.level}</Badge>
+                      <Badge className={classNames(
+                        "border-none shadow-none hover:bg-inherit cursor-default", // 覆盖默认交互
+                        getLevelColorClass(strategy.level)
+                      )}>{strategy.level}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={getStatusColor(strategy.status)}>{strategy.status}</Badge>
+                      <Badge className={classNames(
+                        "border-none shadow-none hover:bg-inherit cursor-default", // 覆盖默认交互
+                        getStatusColorClass(strategy.status)
+                      )}>{strategy.status}</Badge>
                     </TableCell>
                     <TableCell>{strategy.createdBy}</TableCell>
                     <TableCell>{new Date(strategy.createdAt).toLocaleDateString("zh-CN")}</TableCell>
