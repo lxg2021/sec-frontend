@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles, Trash2 } from "lucide-react"
+import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles, Trash2, Target } from "lucide-react"
 import classNames from "classnames"
 
 interface Strategy {
@@ -235,7 +235,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
       <CardHeader className="pb-4 bg-gradient-to-r from-slate-50/90 to-blue-50/70 rounded-t-lg border-b border-slate-200/60">
         <CardTitle className="flex items-center gap-3 text-slate-700">
           <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md">
-            <Server className="h-5 w-5 text-white" />
+            <Target className="h-5 w-5 text-white" />
           </div>
           <span className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">
             策略选择

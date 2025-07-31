@@ -134,11 +134,14 @@ export default function Page() {
 
   return (
     <div>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <HostSelector data={mockData} onSelectionChange={handleSelectionChange} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
+          <div className="space-y-8">
+            <HostSelector data={mockData} onSelectionChange={handleSelectionChange} />
+          </div>
         </div>
       </div>
+
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-8">
         <div className="max-w-7xl mx-auto space-y-8"></div>
         <StrategySelector data={mockData2} onSelectionChange={handleStrategySelectionChange} multiSelect={true} />

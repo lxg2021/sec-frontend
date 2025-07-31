@@ -5,7 +5,6 @@ import { Building2, Users, Server, Monitor, ChevronRight, ChevronDown, MoreHoriz
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import { HostInfoDialog } from '@/components/hosts/HostInfoDialog';
 import { HostInfoPopover } from '@/components/hosts/HostInfoPopover';
 
 // 图标映射
@@ -88,14 +87,16 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
   }, [checkboxState])
 
   return (
-	 <div
-	  className={cn(
-		"flex items-center gap-3 py-3 px-3 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/60 cursor-pointer border-b border-slate-100/60 transition-all duration-200 group"
-	  )}
-	  style={{ paddingLeft }}
-	>
+    <div
+      className={cn(
+        "flex items-center gap-3 py-3 px-3 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/60 cursor-pointer border-b border-slate-100/60 transition-all duration-200 group min-w-0",
+        (isSelected || checkboxState === "indeterminate") && "bg-gradient-to-r from-blue-50/60 to-indigo-50/40",
+        isSelected && "shadow-sm",
+      )}
+      style={{ paddingLeft }}
+    >
       {/* 展开/折叠按钮 */}
-      <div className="w-5 h-5 flex items-center justify-center">
+      <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
         {node.hasChildren && (
           <Button
             variant="ghost"
@@ -120,16 +121,16 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
         }}
         onClick={(e) => e.stopPropagation()}
         className={cn(
-          "transition-all duration-200 border-slate-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500",
+          "transition-all duration-200 border-slate-300 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 flex-shrink-0",
           checkboxState === "indeterminate" &&
-            "data-[state=unchecked]:bg-blue-500 data-[state=unchecked]:text-white data-[state=unchecked]:border-blue-500",
+          "data-[state=unchecked]:bg-blue-500 data-[state=unchecked]:text-white data-[state=unchecked]:border-blue-500",
         )}
       />
 
       {/* 图标 */}
       <div
         className={cn(
-          "p-1.5 rounded-lg transition-all duration-200",
+          "p-1.5 rounded-lg transition-all duration-200 flex-shrink-0",
           checkboxState === "checked" && "bg-white/80 shadow-sm",
           checkboxState === "indeterminate" && "bg-white/60",
         )}
@@ -149,6 +150,7 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
               ? "text-slate-600"
               : "text-slate-600 group-hover:text-slate-700",
         )}
+        title={node.name}
       >
         {node.name}
       </span>
@@ -164,15 +166,15 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
           <div className="text-xs text-slate-500 bg-slate-100/80 px-2 py-1 rounded-md font-mono">{node.ip}</div>
           <div className="text-xs text-slate-500 bg-slate-100/80 px-2 py-1 rounded-md font-mono">{node.hostId}</div>
           <HostInfoPopover node={node}>
-			  <Button
-				variant="ghost"
-				size="sm"
-				className="h-7 w-7 p-0 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200 rounded-full opacity-0 group-hover:opacity-100"
-				onClick={(e) => e.stopPropagation()}
-			  >
-				<MoreHorizontal className="h-3.5 w-3.5" />
-			  </Button>
-		</HostInfoPopover>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0 hover:bg-blue-100 hover:text-blue-600 transition-colors duration-200 rounded-full opacity-0 group-hover:opacity-100"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+            </Button>
+          </HostInfoPopover>
         </div>
       )}
     </div>

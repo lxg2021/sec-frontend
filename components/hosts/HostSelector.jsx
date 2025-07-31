@@ -197,7 +197,7 @@ export default function HostSelector({ data, onSelectionChange }) {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
+    <div className="w-full">
       <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
         <CardHeader className="pb-4 bg-gradient-to-r from-slate-50/90 to-blue-50/70 rounded-t-lg border-b border-slate-200/60">
           <CardTitle className="flex items-center gap-3 text-slate-700">
@@ -211,9 +211,9 @@ export default function HostSelector({ data, onSelectionChange }) {
           </CardTitle>
 
           {/* 工具栏 */}
-          <div className="flex items-center gap-3 pt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4">
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400 z-10" />
               <Input
                 placeholder="搜索主机名称、IP地址、主机ID、MAC地址、操作系统..."
                 value={searchTerm}
@@ -221,47 +221,51 @@ export default function HostSelector({ data, onSelectionChange }) {
                   console.log("搜索输入变化:", e.target.value)
                   setSearchTerm(e.target.value)
                 }}
-                className="pl-10 pr-10 h-11 border-slate-200/60 bg-white/80 backdrop-blur-sm focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all duration-200 rounded-lg shadow-sm"
+                className="pl-10 pr-10 h-11 border-slate-200/60 bg-white/80 backdrop-blur-sm focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all duration-200 rounded-lg shadow-sm w-full"
               />
               {searchTerm && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearSearch}
-                  className="absolute right-2 top-2 h-7 w-7 p-0 hover:bg-slate-100 rounded-full"
+                  className="absolute right-2 top-2 h-7 w-7 p-0 hover:bg-slate-100 rounded-full z-10"
                 >
                   <X className="h-3 w-3" />
                 </Button>
               )}
             </div>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={selectAll}
-              className="h-11 px-4 border-slate-200/60 bg-white/80 hover:bg-blue-50 hover:border-blue-300 text-slate-600 hover:text-blue-700 transition-all duration-200 shadow-sm"
-            >
-              <SelectAll className="h-4 w-4 mr-2" />
-              全选
-            </Button>
+            <div className="flex gap-3 flex-shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selectAll}
+                className="h-11 px-4 border-slate-200/60 bg-white/80 hover:bg-blue-50 hover:border-blue-300 text-slate-600 hover:text-blue-700 transition-all duration-200 shadow-sm whitespace-nowrap"
+              >
+                <SelectAll className="h-4 w-4 mr-2" />
+                全选
+              </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearSelection}
-              className="h-11 px-4 border-slate-200/60 bg-white/80 hover:bg-rose-50 hover:border-rose-300 text-slate-600 hover:text-rose-700 transition-all duration-200 shadow-sm"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              清空
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearSelection}
+                className="h-11 px-4 border-slate-200/60 bg-white/80 hover:bg-rose-50 hover:border-rose-300 text-slate-600 hover:text-rose-700 transition-all duration-200 shadow-sm whitespace-nowrap"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                清空
+              </Button>
+            </div>
           </div>
 
           {/* 搜索结果提示 */}
           {searchTerm && (
             <div className="pt-2">
-              <div className="text-sm text-slate-600 bg-blue-50/80 px-3 py-2 rounded-lg border border-blue-200/60">
-                搜索 "{searchTerm}" 找到 {flatNodes.length} 个结果
-                <Button variant="ghost" size="sm" onClick={clearSearch} className="ml-2 h-5 px-2 text-xs">
+              <div className="text-sm text-slate-600 bg-blue-50/80 px-3 py-2 rounded-lg border border-blue-200/60 flex items-center justify-between flex-wrap gap-2">
+                <span>
+                  搜索 "{searchTerm}" 找到 {flatNodes.length} 个结果
+                </span>
+                <Button variant="ghost" size="sm" onClick={clearSearch} className="h-6 px-2 text-xs flex-shrink-0">
                   清除搜索
                 </Button>
               </div>
@@ -271,7 +275,7 @@ export default function HostSelector({ data, onSelectionChange }) {
           {/* 选中状态 */}
           {selectionStats.total > 0 && (
             <div className="flex items-center gap-3 pt-4 flex-wrap">
-              <Badge className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md px-3 py-1.5 text-sm font-medium">
+              <Badge className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md px-3 py-1.5 text-sm font-medium flex-shrink-0">
                 已选择 {selectionStats.total} 项
                 {selectionStats.hostCount > 0 && ` (${selectionStats.hostCount} 台主机)`}
                 {selectionStats.groupCount > 0 && ` (${selectionStats.groupCount} 个组)`}
@@ -282,7 +286,7 @@ export default function HostSelector({ data, onSelectionChange }) {
                 variant="ghost"
                 size="sm"
                 onClick={clearSelection}
-                className="h-8 w-8 p-0 hover:bg-rose-100 hover:text-rose-600 transition-colors duration-200 rounded-full"
+                className="h-8 w-8 p-0 hover:bg-rose-100 hover:text-rose-600 transition-colors duration-200 rounded-full flex-shrink-0"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -293,7 +297,7 @@ export default function HostSelector({ data, onSelectionChange }) {
         <Separator className="bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
 
         <CardContent className="p-0 bg-white/60 backdrop-blur-sm">
-          <div className="border-t border-slate-100/80">
+          <div className="border-t border-slate-100/80 w-full">
             <VirtualizedTree
               nodes={flatNodes}
               selectedIds={selectedIds}
