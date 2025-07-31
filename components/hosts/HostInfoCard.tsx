@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import {
   CircleDashed,
   Cpu,
@@ -7,7 +7,7 @@ import {
   Monitor,
   Server,
   Network,
-} from 'lucide-react';
+} from 'lucide-react'
 
 // 字段配置数组，key 与 node 对应字段匹配
 const infoFields = [
@@ -18,14 +18,14 @@ const infoFields = [
   { label: '存储', key: 'disk', icon: HardDrive },
   { label: 'IP地址', key: 'ip', icon: Network },
   { label: 'MAC地址', key: 'mac', icon: Network },
-];
+]
 
-// 状态指示器组件，向左移距离避免和关闭按钮重叠
+// 状态指示器组件
 const StatusIndicator = ({ status }: { status: string }) => {
-  const isOnline = status.toLowerCase() === 'online';
+  const isOnline = status.toLowerCase() === 'online'
 
   return (
-    <div className="flex items-center space-x-1 text-sm font-medium mr-8">
+    <div className="flex items-center space-x-1 text-sm font-normal mr-4">
       <span
         className={`inline-block h-3 w-3 rounded-full ${
           isOnline ? 'bg-green-500 animate-blink' : 'bg-gray-400'
@@ -35,40 +35,38 @@ const StatusIndicator = ({ status }: { status: string }) => {
         {isOnline ? '在线' : '离线'}
       </span>
     </div>
-  );
-};
+  )
+}
 
-// 主组件（接受 node 结构）
 export const HostInfoCard = ({ node }: { node: any }) => {
-  if (!node || node.type !== 'host') return null;
+  if (!node || node.type !== 'host') return null
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white shadow-sm transition-all hover:shadow-md">
-      <div className={`p-4 ${node.status.toLowerCase() === 'online' ? 'bg-blue-50' : 'bg-gray-100'}`}>
+    <div className="inline-block min-w-[420px] bg-white rounded-lg shadow-md border text-sm">
+      <div
+        className={`px-4 py-3 ${
+          node.status.toLowerCase() === 'online' ? 'bg-blue-50' : 'bg-gray-100'
+        }`}
+      >
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex flex-col">
             <div className="flex items-center">
               <Server className="h-5 w-5 text-blue-600 mr-2" />
-              <h3 className="font-bold text-lg">{node.name}</h3>
+              <h3 className="text-base text-gray-800">{node.name}</h3>
             </div>
-            <p className="text-sm text-gray-600 mt-1">{node.hostId}</p>
+            <p className="text-sm text-gray-500 mt-1">{node.hostId}</p>
           </div>
-          {/* 这里状态指示器加了 mr-8，避免和右上关闭按钮重叠 */}
           <StatusIndicator status={node.status} />
         </div>
       </div>
 
-      <div className="p-4 grid grid-cols-2 gap-3">
+      <div className="px-4 py-3 grid grid-cols-2 gap-x-6 gap-y-3">
         {infoFields.map(({ label, key, icon: Icon }) => (
-          <div className="flex items-start" key={key}>
-            {Icon ? (
-              <Icon className="h-4 w-4 text-gray-500 mr-2 mt-1" />
-            ) : (
-              <div className="h-4 w-4 mr-2 flex items-center justify-center text-xs text-gray-500 mt-1">•</div>
-            )}
-            <div>
+          <div className="flex items-start min-w-0" key={key}>
+            <Icon className="h-4 w-4 text-gray-500 mr-2 mt-1 flex-shrink-0" />
+            <div className="min-w-0">
               <p className="text-xs text-gray-500">{label}</p>
-              <p className="font-medium break-all">
+              <p className="text-sm text-gray-800 truncate">
                 {node[key] ?? <span className="text-gray-400">—</span>}
               </p>
             </div>
@@ -76,5 +74,5 @@ export const HostInfoCard = ({ node }: { node: any }) => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
