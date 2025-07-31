@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles } from "lucide-react"
+import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles, Trash2 } from "lucide-react"
 
 interface Strategy {
   id: string
@@ -218,7 +218,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
       </CardHeader>
       <CardContent className="space-y-8 p-6">
         {/* 筛选区域 */}
-        <div>
+        <div className="px-2 lg:px-4 xl:px-6">
           <h3 className="text-lg font-medium mb-4 text-slate-700">筛选条件</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div>
@@ -282,15 +282,15 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
               </Select>
             </div>
 
-            <div>
+            <div className="flex justify-end">
               <Button
                 onClick={clearFilters}
                 variant="outline"
                 size="default"
-                className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-700 hover:border-slate-300 bg-transparent"
+                className="h-11 px-4 border-slate-200/60 bg-white/80 hover:bg-rose-50 hover:border-rose-300 text-slate-600 hover:text-rose-700 transition-all duration-200 shadow-sm"
               >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                清空筛选器
+                <Trash2 className="h-4 w-4 mr-2" />
+                清空
               </Button>
             </div>
           </div>
