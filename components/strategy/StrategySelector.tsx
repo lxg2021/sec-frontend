@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, X, ChevronUp, ChevronDown, RotateCcw } from "lucide-react"
+import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles } from "lucide-react"
 
 interface Strategy {
   id: string
@@ -204,9 +204,17 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
   }
 
   return (
-    <Card className="shadow-sm border-slate-200 bg-white">
-      <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 border-b border-slate-100">
-        <CardTitle className="text-slate-700 font-medium">策略管理</CardTitle>
+    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
+      <CardHeader className="pb-4 bg-gradient-to-r from-slate-50/90 to-blue-50/70 rounded-t-lg border-b border-slate-200/60">
+        <CardTitle className="flex items-center gap-3 text-slate-700">
+          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md">
+            <Server className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">
+            策略选择
+          </span>
+          <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-8 p-6">
         {/* 筛选区域 */}
@@ -415,11 +423,10 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                       variant={currentPage === page ? "default" : "outline"}
                       size="sm"
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 p-0 ${
-                        currentPage === page
-                          ? "bg-blue-500 hover:bg-blue-600 text-white"
-                          : "border-slate-200 text-slate-600 hover:bg-slate-50"
-                      }`}
+                      className={`w-8 h-8 p-0 ${currentPage === page
+                        ? "bg-blue-500 hover:bg-blue-600 text-white"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
                     >
                       {page}
                     </Button>
