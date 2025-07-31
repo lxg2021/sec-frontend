@@ -2,7 +2,7 @@
 
 import { memo, useMemo } from "react"
 import { FixedSizeList as List } from "react-window"
-import { TreeNodeWithState } from "./TreeNodeWithState"
+import { TreeNodeWithState } from "@/components/hosts/TreeNodeWithState"
 
 const TreeItem = memo(function TreeItem({ index, style, data }) {
   const { nodes, selectedIds, onToggleExpanded, onToggleSelected, getNodeSelectionState } = data

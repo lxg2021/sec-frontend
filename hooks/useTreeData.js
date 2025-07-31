@@ -106,76 +106,33 @@ export function useTreeData(initialData) {
     [initialData],
   )
 
-  // 获取节点的父节点ID
-  const getParentId = useCallback(
+  // 计算节点的选择状态 - 使用 memo 缓存结果
+  const getNodeSelectionState = useCallback(
     (nodeId) => {
-      const findParent = (nodes, targetId, parentId = null) => {
-        for (const node of nodes) {
-          if (node.id === targetId) return parentId
-          if (node.children) {
-            const found = findParent(node.children, targetId, node.id)
-            if (found !== null) return found
-          }
-        }
-        return null
+      if (selectedIds.has(nodeId)) {
+        return "checked"
       }
 
-      return findParent(initialData, nodeId)
+      // 检查是否有子节点被选中
+      const directChildrenIds = getDirectChildrenIds(nodeId)
+      if (directChildrenIds.length === 0) {
+        return "unchecked"
+      }
+
+      const selectedChildrenCount = directChildrenIds.filter((id) => selectedIds.has(id)).length
+
+      if (selectedChildrenCount === 0) {
+        return "unchecked"
+      } else if (selectedChildrenCount === directChildrenIds.length) {
+        return "checked"
+      } else {
+        return "indeterminate"
+      }
     },
-    [initialData],
+    [selectedIds, getDirectChildrenIds],
   )
 
-  // 更新父节点状态
-  const updateParentStates = useCallback(
-    (newSelectedIds) => {
-      const updatedIds = new Set(newSelectedIds)
-
-      // 递归更新所有父节点的状态
-      const updateParent = (nodeId) => {
-        const parentId = getParentId(nodeId)
-        if (!parentId) return
-
-        const directChildrenIds = getDirectChildrenIds(parentId)
-        const selectedChildrenCount = directChildrenIds.filter((id) => updatedIds.has(id)).length
-
-        if (selectedChildrenCount === directChildrenIds.length && directChildrenIds.length > 0) {
-          // 所有子节点都选中，父节点也选中
-          updatedIds.add(parentId)
-        } else if (selectedChildrenCount === 0) {
-          // 没有子节点选中，父节点取消选中
-          updatedIds.delete(parentId)
-        } else {
-          // 部分子节点选中，父节点取消选中（但会在UI中显示为indeterminate）
-          updatedIds.delete(parentId)
-        }
-
-        // 递归更新上级父节点
-        updateParent(parentId)
-      }
-
-      // 获取所有需要更新的节点
-      const allNodeIds = new Set()
-      const collectAllNodeIds = (nodes) => {
-        nodes.forEach((node) => {
-          allNodeIds.add(node.id)
-          if (node.children) {
-            collectAllNodeIds(node.children)
-          }
-        })
-      }
-      collectAllNodeIds(initialData)
-
-      // 为每个节点更新其父节点状态
-      allNodeIds.forEach((nodeId) => {
-        updateParent(nodeId)
-      })
-
-      return updatedIds
-    },
-    [getParentId, getDirectChildrenIds],
-  )
-
-  // 选择节点
+  // 选择节点 - 简化逻辑，避免复杂的父节点状态更新
   const toggleSelected = useCallback(
     (nodeId, node) => {
       setSelectedIds((prev) => {
@@ -193,43 +150,10 @@ export function useTreeData(initialData) {
           childrenIds.forEach((id) => newSet.add(id))
         }
 
-        // 更新父节点状态
-        return updateParentStates(newSet)
+        return newSet
       })
     },
-    [getAllChildrenIds, updateParentStates],
-  )
-
-  // 计算节点的选择状态
-  const getNodeSelectionState = useCallback(
-    (nodeId) => {
-      if (selectedIds.has(nodeId)) {
-        return "checked"
-      }
-
-      // 检查是否有子节点被选中
-      const directChildrenIds = getDirectChildrenIds(nodeId)
-      if (directChildrenIds.length === 0) {
-        return "unchecked"
-      }
-
-      const selectedChildrenCount = directChildrenIds.filter((id) => {
-        // 检查直接子节点的状态
-        const childState = getNodeSelectionState(id)
-        return childState === "checked" || childState === "indeterminate"
-      }).length
-
-      if (selectedChildrenCount === 0) {
-        return "unchecked"
-      } else if (selectedChildrenCount === directChildrenIds.length) {
-        // 所有子节点都选中或处于中间态，检查是否真的全部选中
-        const allChildrenSelected = directChildrenIds.every((id) => selectedIds.has(id))
-        return allChildrenSelected ? "checked" : "indeterminate"
-      } else {
-        return "indeterminate"
-      }
-    },
-    [selectedIds, getDirectChildrenIds],
+    [getAllChildrenIds],
   )
 
   // 全选
@@ -254,29 +178,45 @@ export function useTreeData(initialData) {
     setSelectedIds(new Set())
   }, [])
 
-  // 展开所有匹配的节点路径
+  // 展开所有匹配的节点路径 - 修复展开逻辑
   const expandMatchingPaths = useCallback(
     (matchingIds) => {
-      const newExpandedIds = new Set(expandedIds)
+      setExpandedIds((prev) => {
+        const newExpandedIds = new Set(prev)
 
-      const expandPath = (nodes, targetIds) => {
-        for (const node of nodes) {
-          if (targetIds.has(node.id)) {
-            newExpandedIds.add(node.id)
-            return true
+        // 为每个匹配的节点找到并展开其完整的父节点路径
+        const expandNodePath = (nodeId) => {
+          const findNodeAndPath = (nodes, targetId, path = []) => {
+            for (const node of nodes) {
+              const currentPath = [...path, node.id]
+
+              if (node.id === targetId) {
+                // 找到目标节点，展开路径中的所有父节点（不包括自己）
+                path.forEach((parentId) => {
+                  newExpandedIds.add(parentId)
+                })
+                return true
+              }
+
+              if (node.children && findNodeAndPath(node.children, targetId, currentPath)) {
+                return true
+              }
+            }
+            return false
           }
 
-          if (node.children && expandPath(node.children, targetIds)) {
-            newExpandedIds.add(node.id)
-          }
+          findNodeAndPath(initialData, nodeId)
         }
-        return false
-      }
 
-      expandPath(initialData, matchingIds)
-      setExpandedIds(newExpandedIds)
+        // 为所有匹配的节点展开路径
+        matchingIds.forEach((nodeId) => {
+          expandNodePath(nodeId)
+        })
+
+        return newExpandedIds
+      })
     },
-    [initialData, expandedIds],
+    [initialData],
   )
 
   return {
