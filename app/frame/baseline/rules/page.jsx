@@ -1,14 +1,17 @@
 "use client"
 
-import HostSelector from "@/components/hosts/HostSelector"
-import { mockData } from "@/data/mockData"
-import { strategyMockData } from "@/data/strategyMockData"
-import StrategySelector from "@/components/strategy/StrategySelector"
 import { useState, useCallback } from "react"
+import { HelpCircle, Shield, ShieldCheck  } from "lucide-react"
+
+import HostSelector from "@/components/hosts/HostSelector"
+import StrategySelector from "@/components/strategy/StrategySelector"
 import StrategyGuide from "@/components/strategy/StrategyGuide"
 import ReviewCard from "@/components/review/ReviewCard"
+
+import { mockData } from "@/data/mockData"
+import { strategyMockData } from "@/data/strategyMockData"
+
 import { Button } from "@/components/ui/button"
-import { HelpCircle } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -52,51 +55,64 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 p-6 space-y-6">
-      {/* 顶部 Header 区域 */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">基线检查策略下发</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4" />
-              帮助
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle>策略下发指引</DialogTitle>
-            </DialogHeader>
-            <StrategyGuide />
-          </DialogContent>
-        </Dialog>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-6 space-y-6">
+        {/* 顶部：标题与帮助 */}
+        <div className="flex justify-between items-start">
+          {/* 左侧标题 */}
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-blue-50 rounded-lg mt-1">
+              <ShieldCheck className="h-6 w-6 text-blue-300" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">基线策略下发</h1>
+              <p className="text-sm text-gray-500 mt-1">Security Baseline Dispatch</p>
+            </div>
+          </div>
 
-      {/* 中部区域：主机选择 + 策略选择（上下） */}
-      <div className="space-y-6">
-        {/* 主机选择 */}
-        <div>
-          <HostSelector data={mockData} onSelectionChange={handleHostsSelectionChange} />
+          {/* 右侧帮助按钮 */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4" />
+                帮助
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>策略下发指引</DialogTitle>
+              </DialogHeader>
+              <StrategyGuide />
+            </DialogContent>
+          </Dialog>
         </div>
 
-        {/* 策略选择 */}
+        {/* 中部：主机选择和策略选择 */}
+        <div className="space-y-6">
+          <div>
+            <HostSelector
+              data={mockData}
+              onSelectionChange={handleHostsSelectionChange}
+            />
+          </div>
+          <div>
+            <StrategySelector
+              data={strategyMockData}
+              onSelectionChange={handleStrategySelectionChange}
+              multiSelect={true}
+            />
+          </div>
+        </div>
+
+        {/* 底部：预览与下发卡片 */}
         <div>
-          <StrategySelector
-            data={strategyMockData}
-            onSelectionChange={handleStrategySelectionChange}
-            multiSelect={true}
+          <ReviewCard
+            strategies={selectedStrategies}
+            hosts={selectedNodes}
+            onPreview={handlePreview}
+            onDeploy={handleDeploy}
           />
         </div>
-      </div>
-
-      {/* 底部区域：预览和下发 */}
-      <div>
-        <ReviewCard
-          strategies={selectedStrategies}
-          hosts={selectedNodes}
-          onPreview={handlePreview}
-          onDeploy={handleDeploy}
-        />
       </div>
     </div>
   )

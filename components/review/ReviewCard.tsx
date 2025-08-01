@@ -131,15 +131,12 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
             {/* 装饰小图标 */}
             <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
           </CardTitle>
-          <CardDescription className="mt-2 text-slate-600">
-            确认策略信息和目标主机，然后执行下发操作
-          </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">
           {/* 参数检查提示 */}
           {!canDeploy && (
-            <Alert>
+            <Alert className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 {!hasStrategies && !hasHosts && "请选择策略和主机信息"}

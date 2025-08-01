@@ -16,7 +16,7 @@ export default function BaselineDashboardPage() {
               <Shield className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">安全基线监控</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">安全基线概览</h1>
               <p className="text-sm text-gray-500 mt-1">Security Baseline Dashboard</p>
             </div>
           </div>
