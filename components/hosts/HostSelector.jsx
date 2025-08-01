@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { VirtualizedTree } from "@/components/hosts/VirtualizedTree"
 import { useTreeData } from "@/hooks/useTreeData"
+import { badgeBaseClass, badgeButtonClass } from "@/styles/badgeClass";
 
 // 辅助函数：根据ID查找节点
 function findNodeById(nodes, id) {
@@ -196,6 +197,7 @@ export default function HostSelector({ data, onSelectionChange }) {
     setSearchTerm("")
   }
 
+
   return (
     <div className="w-full">
       <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
@@ -275,21 +277,23 @@ export default function HostSelector({ data, onSelectionChange }) {
           {/* 选中状态 */}
           {selectionStats.total > 0 && (
             <div className="flex items-center gap-3 pt-4 flex-wrap">
-              <Badge className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md px-3 py-1.5 text-sm font-medium flex-shrink-0">
+              <Badge className={badgeBaseClass}>
                 已选择 {selectionStats.total} 项
                 {selectionStats.hostCount > 0 && ` (${selectionStats.hostCount} 台主机)`}
                 {selectionStats.groupCount > 0 && ` (${selectionStats.groupCount} 个组)`}
                 {selectionStats.deptCount > 0 && ` (${selectionStats.deptCount} 个部门)`}
                 {selectionStats.companyCount > 0 && ` (${selectionStats.companyCount} 个公司)`}
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                  className={badgeButtonClass}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </Badge>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearSelection}
-                className="h-8 w-8 p-0 hover:bg-rose-100 hover:text-rose-600 transition-colors duration-200 rounded-full flex-shrink-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+
             </div>
           )}
         </CardHeader>

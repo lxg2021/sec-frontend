@@ -10,6 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles, Trash2, Target } from "lucide-react"
 import classNames from "classnames"
+import { badgeBaseClass, badgeButtonClass } from "@/styles/badgeClass";
+import { getStatusColor, getStatusColorClass, getLevelColor, getLevelColorClass } from "@/lib/statusColor";
 
 interface Strategy {
   id: string
@@ -185,60 +187,6 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
     handleSelect(strategyId, false)
   }
 
-  // 获取优先级颜色
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case "高":
-        return "outline"     // 浅红边框
-      case "中":
-        return "ghost"       // 浅灰背景，文字清晰
-      case "低":
-        return "secondary"   // 浅灰风格（已够淡）
-      default:
-        return "ghost"
-    }
-  }
-  
-  const getLevelColorClass = (level: string) => {
-	  switch (level) {
-		case "高":
-		  return "text-red-500 bg-red-100"
-		case "中":
-		  return "text-yellow-600 bg-yellow-100"
-		case "低":
-		  return "text-green-600 bg-green-100"
-		default:
-		  return "text-gray-600 bg-gray-100"
-	  }
-	}
-
-  // 获取状态颜色
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "启用":
-        return "default"
-      case "禁用":
-        return "secondary"
-      case "草稿":
-        return "outline"
-      default:
-        return "default"
-    }
-  }
-
-  const getStatusColorClass = (status: string) => {
-    switch (status) {
-      case "启用":
-        return "bg-green-100 text-green-700"
-      case "禁用":
-        return "bg-gray-200 text-gray-600"
-      case "草稿":
-        return "bg-yellow-100 text-yellow-700"
-      default:
-        return "bg-slate-100 text-slate-700"
-    }
-  }
-
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null
     return sortOrder === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
@@ -346,13 +294,13 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                 <Badge
                   key={strategy.id}
                   variant="secondary"
-                  className="px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-200"
+                  className={badgeBaseClass}
                 >
                   {strategy.name}
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-4 w-4 p-0 ml-2 hover:bg-blue-200 text-blue-600"
+                    className={badgeButtonClass}
                     onClick={() => removeSelected(strategy.id)}
                   >
                     <X className="h-3 w-3" />

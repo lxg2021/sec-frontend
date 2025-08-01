@@ -8,6 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Send, Server, Shield, AlertCircle, CheckCircle2, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
+import classNames from "classnames"
+import { getStatusColor, getStatusColorClass, getLevelColor, getLevelColorClass, getOnlineStatusColor } from "@/lib/statusColor";
 
 interface Strategy {
   id: string
@@ -55,30 +57,6 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
   const hasStrategies = strategies.length > 0
   const hasHosts = hosts.length > 0
   const canDeploy = hasStrategies && hasHosts
-
-  const getLevelColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case "高":
-        return "destructive"
-      case "中":
-        return "default"
-      case "低":
-        return "secondary"
-      default:
-        return "outline"
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "online":
-        return "bg-green-500"
-      case "offline":
-        return "bg-red-500"
-      default:
-        return "bg-gray-500"
-    }
-  }
 
   const handleDeploy = async () => {
     if (!canDeploy) {
@@ -163,14 +141,24 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium">{strategy.name}</span>
-                            <Badge variant={getLevelColor(strategy.level)}>{strategy.level}</Badge>
+
+                            <Badge
+                              className={classNames(
+                                "border-none shadow-none hover:bg-inherit cursor-default", // 覆盖默认交互
+                                getLevelColorClass(strategy.level)
+                              )}
+                            >
+                              {strategy.level}
+                            </Badge>
+
                             <Badge variant="outline">{strategy.type}</Badge>
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">{strategy.description}</p>
                         </div>
-                        <Badge variant={strategy.status === "启用" ? "default" : "secondary"} className="ml-2 shrink-0">
-                          {strategy.status}
-                        </Badge>
+                        <Badge className={classNames(
+                          "border-none shadow-none hover:bg-inherit cursor-default", // 覆盖默认交互
+                          getStatusColorClass(strategy.status)
+                        )}>{strategy.status}</Badge>
                       </div>
                     ))}
                   </div>
@@ -206,7 +194,7 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <div className={`w-2 h-2 rounded-full ${getStatusColor(host.status)}`} />
+                          <div className={`w-2 h-2 rounded-full ${getOnlineStatusColor(host.status)}`} />
                           <span className="text-sm capitalize">{host.status}</span>
                         </div>
                       </div>
@@ -223,12 +211,16 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
           </div>
         </CardContent>
 
-        <CardFooter className="flex justify-end">
-          <Button onClick={handleDeploy} disabled={!canDeploy || isDeploying} className="flex items-center gap-2">
-            {isDeploying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {isDeploying ? "下发中..." : "下发策略"}
-          </Button>
-        </CardFooter>
+		<CardFooter className="flex justify-center">
+		  <Button
+			onClick={handleDeploy}
+			disabled={!canDeploy || isDeploying}
+			className="flex items-center gap-2"
+		  >
+			{isDeploying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+			{isDeploying ? "下发中..." : "下发策略"}
+		  </Button>
+		</CardFooter>
       </Card>
     </div>
   )
