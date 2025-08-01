@@ -4,10 +4,9 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, Send, Server, Shield, AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
+import { Send, Server, Shield, AlertCircle, CheckCircle2, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
 interface Strategy {
@@ -51,7 +50,6 @@ interface ReviewCardProps {
 
 export default function ReviewCard({ strategies = [], hosts = [], onPreview, onDeploy }: ReviewCardProps) {
   const [isDeploying, setIsDeploying] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
 
   // 参数检查
   const hasStrategies = strategies.length > 0
@@ -80,18 +78,6 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
       default:
         return "bg-gray-500"
     }
-  }
-
-  const handlePreview = () => {
-    if (!canDeploy) {
-      toast.error("预览失败", {
-        description: "请确保已选择策略和主机信息",
-      })
-      return
-    }
-
-    setShowPreview(!showPreview)
-    onPreview?.()
   }
 
   const handleDeploy = async () => {
@@ -129,155 +115,124 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
     }
   }
 
-  const parseStrategyContent = (content: string) => {
-    try {
-      return JSON.parse(content)
-    } catch {
-      return null
-    }
-  }
-
   return (
-    <Card className="w-full max-w-4xl">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5" />
-          策略下发预览
-        </CardTitle>
-        <CardDescription>确认策略信息和目标主机，然后执行下发操作</CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* 参数检查提示 */}
-        {!canDeploy && (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {!hasStrategies && !hasHosts && "请选择策略和主机信息"}
-              {!hasStrategies && hasHosts && "请选择策略信息"}
-              {hasStrategies && !hasHosts && "请选择主机信息"}
-            </AlertDescription>
-          </Alert>
-        )}
-
-        {/* 策略信息概览 */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            <h3 className="font-semibold">选择的策略 ({strategies.length})</h3>
-          </div>
-
-          {strategies.length > 0 ? (
-            <div className="grid gap-2">
-              {strategies.map((strategy) => (
-                <div key={strategy.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{strategy.name}</span>
-                      <Badge variant={getLevelColor(strategy.level)}>{strategy.level}</Badge>
-                      <Badge variant="outline">{strategy.type}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">{strategy.description}</p>
-                  </div>
-                  <Badge variant={strategy.status === "启用" ? "default" : "secondary"}>{strategy.status}</Badge>
-                </div>
-              ))}
+    <div className="w-full">
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
+        <CardHeader className="pb-4 bg-gradient-to-r from-slate-50/90 to-blue-50/70 rounded-t-lg border-b border-slate-200/60">
+          <CardTitle className="flex items-center gap-3 text-slate-700">
+            {/* 图标背景块 */}
+            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md">
+              <Shield className="h-5 w-5 text-white" />
             </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>暂未选择策略</p>
-            </div>
+            {/* 渐变文字标题 */}
+            <span className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">
+              下发预览
+            </span>
+            {/* 装饰小图标 */}
+            <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
+          </CardTitle>
+          <CardDescription className="mt-2 text-slate-600">
+            确认策略信息和目标主机，然后执行下发操作
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {/* 参数检查提示 */}
+          {!canDeploy && (
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {!hasStrategies && !hasHosts && "请选择策略和主机信息"}
+                {!hasStrategies && hasHosts && "请选择策略信息"}
+                {hasStrategies && !hasHosts && "请选择主机信息"}
+              </AlertDescription>
+            </Alert>
           )}
-        </div>
 
-        <Separator />
+          {/* 策略和主机信息并排显示 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 策略信息概览 */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4" />
+                <h3 className="font-semibold">选择的策略 ({strategies.length})</h3>
+              </div>
 
-        {/* 主机信息概览 */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Server className="h-4 w-4" />
-            <h3 className="font-semibold">目标主机 ({hosts.length})</h3>
-          </div>
-
-          {hosts.length > 0 ? (
-            <div className="grid gap-2">
-              {hosts.map((host) => (
-                <div key={host.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{host.name}</span>
-                      <span className="text-sm text-muted-foreground">({host.hostname})</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                      <span>IP: {host.ip}</span>
-                      <span>OS: {host.os}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${getStatusColor(host.status)}`} />
-                    <span className="text-sm capitalize">{host.status}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Server className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>暂未选择主机</p>
-            </div>
-          )}
-        </div>
-
-        {/* 详细预览 */}
-        {showPreview && canDeploy && (
-          <>
-            <Separator />
-            <div className="space-y-4">
-              <h3 className="font-semibold">详细信息预览</h3>
-              <ScrollArea className="h-64 border rounded-lg p-4">
-                <div className="space-y-4">
-                  {strategies.map((strategy) => {
-                    const content = parseStrategyContent(strategy.content)
-                    return (
-                      <div key={strategy.id} className="space-y-2">
-                        <h4 className="font-medium">{strategy.name}</h4>
-                        {content?.rules && (
-                          <div className="pl-4 space-y-1">
-                            {content.rules.map((rule: any, index: number) => (
-                              <div key={index} className="text-sm">
-                                <span className="font-medium">{rule.name}:</span>{" "}
-                                <span className="text-muted-foreground">{rule.checkItem}</span>
-                              </div>
-                            ))}
+              {strategies.length > 0 ? (
+                <ScrollArea className="h-64 border rounded-lg p-2">
+                  <div className="space-y-2 pr-4">
+                    {strategies.map((strategy) => (
+                      <div key={strategy.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium">{strategy.name}</span>
+                            <Badge variant={getLevelColor(strategy.level)}>{strategy.level}</Badge>
+                            <Badge variant="outline">{strategy.type}</Badge>
                           </div>
-                        )}
+                          <p className="text-sm text-muted-foreground mt-1">{strategy.description}</p>
+                        </div>
+                        <Badge variant={strategy.status === "启用" ? "default" : "secondary"} className="ml-2 shrink-0">
+                          {strategy.status}
+                        </Badge>
                       </div>
-                    )
-                  })}
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>暂未选择策略</p>
                 </div>
-              </ScrollArea>
+              )}
             </div>
-          </>
-        )}
-      </CardContent>
 
-      <CardFooter className="flex gap-3">
-        <Button
-          variant="outline"
-          onClick={handlePreview}
-          disabled={!canDeploy}
-          className="flex items-center gap-2 bg-transparent"
-        >
-          <Eye className="h-4 w-4" />
-          {showPreview ? "收起预览" : "预览确认"}
-        </Button>
+            {/* 主机信息概览 */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Server className="h-4 w-4" />
+                <h3 className="font-semibold">目标主机 ({hosts.length})</h3>
+              </div>
 
-        <Button onClick={handleDeploy} disabled={!canDeploy || isDeploying} className="flex items-center gap-2">
-          {isDeploying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {isDeploying ? "下发中..." : "下发策略"}
-        </Button>
-      </CardFooter>
-    </Card>
+              {hosts.length > 0 ? (
+                <ScrollArea className="h-64 border rounded-lg p-2">
+                  <div className="space-y-2 pr-4">
+                    {hosts.map((host) => (
+                      <div key={host.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{host.name}</span>
+                            <span className="text-sm text-muted-foreground">({host.hostname})</span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                            <span>IP: {host.ip}</span>
+                            <span>OS: {host.os}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className={`w-2 h-2 rounded-full ${getStatusColor(host.status)}`} />
+                          <span className="text-sm capitalize">{host.status}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Server className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>暂未选择主机</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+
+        <CardFooter className="flex justify-end">
+          <Button onClick={handleDeploy} disabled={!canDeploy || isDeploying} className="flex items-center gap-2">
+            {isDeploying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {isDeploying ? "下发中..." : "下发策略"}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   )
 }

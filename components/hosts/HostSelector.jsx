@@ -205,7 +205,7 @@ export default function HostSelector({ data, onSelectionChange }) {
               <Server className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">
-              主机选择器
+              主机选择
             </span>
             <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
           </CardTitle>

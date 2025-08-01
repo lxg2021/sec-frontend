@@ -57,7 +57,7 @@ export default function BaselineLayout({ children }) {
       icon: ShieldCheck,
       label: "安全基线",
       submenu: [
-        { id: "baselinedashboard", icon: LayoutDashboard, label: "基线Dashboard", path: "/frame/baseline" },
+        { id: "baselinedashboard", icon: LayoutDashboard, label: "基线概览", path: "/frame/baseline" },
 		{ id: "baselineconfig", icon: Settings2, label: "基线配置", path: "/frame/baseline/rules" },
       ],
     },
@@ -69,21 +69,37 @@ export default function BaselineLayout({ children }) {
   ]
 
   // 计算当前激活菜单项ID
-  const activeSectionId = (() => {
-    for (const item of menuItems) {
-      if (item.path && pathname.startsWith(item.path)) {
-        return item.id
-      }
-      if (item.submenu) {
-        for (const sub of item.submenu) {
-          if (sub.path && pathname.startsWith(sub.path)) {
-            return sub.id
-          }
+const activeSectionId = (() => {
+  // 优先匹配完全相等
+  for (const item of menuItems) {
+    if (item.path && pathname === item.path) {
+      return item.id
+    }
+    if (item.submenu) {
+      for (const sub of item.submenu) {
+        if (sub.path && pathname === sub.path) {
+          return sub.id
         }
       }
     }
-    return "dashboard"
-  })()
+  }
+
+  // fallback: 使用 startsWith 以匹配上级菜单
+  for (const item of menuItems) {
+    if (item.path && pathname.startsWith(item.path)) {
+      return item.id
+    }
+    if (item.submenu) {
+      for (const sub of item.submenu) {
+        if (sub.path && pathname.startsWith(sub.path)) {
+          return sub.id
+        }
+      }
+    }
+  }
+
+  return "dashboard"
+})()
 
   // 找到激活菜单对应的父菜单
   const activeParentMenu = menuItems.find((item) =>
