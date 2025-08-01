@@ -4,6 +4,8 @@ import HostSelector from "@/components/hosts/HostSelector"
 import { mockData } from "@/data/mockData"
 import StrategySelector from "@/components/strategy/StrategySelector"
 import { useState, useCallback } from "react"
+import StrategyGuide from "@/components/strategy/StrategyGuide"
+import ReviewCard from "@/components/review/ReviewCard"
 
 // Mock数据
 const mockData2 = [
@@ -104,15 +106,39 @@ export default function Page() {
   const [selectedStrategies, setSelectedStrategies] = useState([])
 
   // 使用 useCallback 包装回调函数，避免每次渲染都重新创建
-  const handleSelectionChange = useCallback((nodes, selectedIds) => {
-    setSelectedNodes(nodes)
-    console.log("选中的节点:", nodes)
+  const handleHostsSelectionChange = useCallback((nodes, selectedIds) => {
+     const newNodes = nodes.filter((node) => node.type === "host")
+    setSelectedNodes(newNodes)
+    console.log("选中的节点:", newNodes)
     console.log("选中的ID集合:", Array.from(selectedIds))
   }, [])
 
   const handleStrategySelectionChange = (strategies) => {
     setSelectedStrategies(strategies)
     console.log("选中的策略:", strategies)
+  }
+
+    // 预览回调
+  const handlePreview = () => {
+    console.log("预览确认")
+    console.log("当前选中的主机:", selectedNodes)
+    console.log("当前选中的策略:", selectedStrategies)
+  }
+
+  // 下发回调
+  const handleDeploy = async (strategies, hosts) => {
+    console.log("开始下发策略...")
+    console.log("策略列表:", strategies)
+    console.log("目标主机:", hosts)
+
+    // 模拟API调用
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
+    // 模拟成功/失败（80%成功率）
+    const success = Math.random() > 0.2
+
+    console.log("下发结果:", success ? "成功" : "失败")
+    return success
   }
 
 
@@ -134,10 +160,11 @@ export default function Page() {
 
   return (
     <div>
+      <StrategyGuide />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
           <div className="space-y-8">
-            <HostSelector data={mockData} onSelectionChange={handleSelectionChange} />
+            <HostSelector data={mockData} onSelectionChange={handleHostsSelectionChange} />
           </div>
         </div>
       </div>
@@ -146,6 +173,13 @@ export default function Page() {
         <div className="max-w-7xl mx-auto space-y-8"></div>
         <StrategySelector data={mockData2} onSelectionChange={handleStrategySelectionChange} multiSelect={true} />
       </div>
+
+      <ReviewCard
+        strategies={selectedStrategies}
+        hosts={selectedNodes}
+        onPreview={handlePreview}
+        onDeploy={handleDeploy}
+      />
     </div>
   );
 }

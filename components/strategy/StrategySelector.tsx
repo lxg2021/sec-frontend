@@ -146,16 +146,25 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
     }
   }
 
-  // 全选/取消全选
+  // 全选/取消全选  
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const allIds = new Set(paginatedData.map((s) => s.id))
-      setSelectedIds((prev) => new Set([...prev, ...allIds]))
-    } else {
-      const currentPageIds = new Set(paginatedData.map((s) => s.id))
-      setSelectedIds((prev) => new Set([...prev].filter((id) => !currentPageIds.has(id))))
-    }
-  }
+	  let newSelectedIds: Set<string>
+
+	  if (checked) {
+		const allIds = new Set(paginatedData.map((s) => s.id))
+		newSelectedIds = new Set([...selectedIds, ...allIds])
+	  } else {
+		const currentPageIds = new Set(paginatedData.map((s) => s.id))
+		newSelectedIds = new Set([...selectedIds].filter((id) => !currentPageIds.has(id)))
+	  }
+
+	  setSelectedIds(newSelectedIds)
+
+	  if (onSelectionChange) {
+		const newSelectedStrategies = data.filter((s) => newSelectedIds.has(s.id))
+		onSelectionChange(newSelectedStrategies)
+	  }
+	}
 
   // 清空筛选器
   const clearFilters = () => {
@@ -164,6 +173,11 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
     setLevelFilter("all")
     setStatusFilter("all")
     setCurrentPage(1)
+	setSelectedIds(new Set())
+
+	if (onSelectionChange) {
+		onSelectionChange([])
+	}
   }
 
   // 移除已选策略
