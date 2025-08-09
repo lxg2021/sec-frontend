@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AttckStage } from "@/lib/attck-utils"
 
@@ -37,9 +37,28 @@ function slugify(name: string) {
     .replace(/^-+|-+$/g, "")
 }
 
-export default function StageHostDistributionChart({ stages, selectedStageSlug, onSelectStage }: Props) {
+export default function StageHostDistributionChart({
+  stages,
+  selectedStageSlug,
+  onSelectStage,
+}: Props) {
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const [tooltip, setTooltip] = useState<TooltipState>(null)
+  const [chartHeight, setChartHeight] = useState(260) // 默认高度
+
+  // 监听父容器高度
+  useEffect(() => {
+    if (!wrapperRef.current?.parentElement) return
+    const parent = wrapperRef.current.parentElement
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = entry.contentRect.height
+        setChartHeight(h - 80) // 留出标题和 padding
+      }
+    })
+    observer.observe(parent)
+    return () => observer.disconnect()
+  }, [])
 
   const data = useMemo(() => {
     return stages.map((s) => {
@@ -53,10 +72,9 @@ export default function StageHostDistributionChart({ stages, selectedStageSlug, 
   const n = data.length || 1
 
   const width = 800
-  const height = 260
   const margin = { top: 20, right: 20, bottom: 60, left: 50 }
   const innerW = width - margin.left - margin.right
-  const innerH = height - margin.top - margin.bottom
+  const innerH = chartHeight - margin.top - margin.bottom
 
   const gap = 12
   const barW = Math.max(8, Math.min(40, (innerW - gap * (n - 1)) / n))
@@ -79,17 +97,17 @@ export default function StageHostDistributionChart({ stages, selectedStageSlug, 
   const truncate = (text: string, max = 6) => (text.length > max ? text.slice(0, max) + "…" : text)
 
   return (
-    <Card className="shadow-md">
+    <Card className="shadow-md h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-base md:text-lg">Stage 感染主机分布图</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div ref={wrapperRef} className="relative w-full">
+      <CardContent className="h-full">
+        <div ref={wrapperRef} className="relative w-full h-full">
           <svg
-            viewBox={`0 0 ${width} ${height}`}
+            viewBox={`0 0 ${width} ${chartHeight}`}
             role="img"
             aria-label="各阶段受影响主机数量柱状图"
-            className="w-full h-auto max-h-[300px] select-none"
+            className="w-full h-full select-none"
           >
             <g transform={`translate(${margin.left},${margin.top})`}>
               {Array.from({ length: 5 }).map((_, i) => {
@@ -157,7 +175,9 @@ export default function StageHostDistributionChart({ stages, selectedStageSlug, 
             </div>
           )}
         </div>
-        <div className="mt-2 text-xs text-muted-foreground">提示：点击条形将选中并定位到对应阶段卡片。</div>
+        <div className="mt-2 text-xs text-muted-foreground">
+          提示：点击条形将选中并定位到对应阶段卡片。
+        </div>
       </CardContent>
     </Card>
   )

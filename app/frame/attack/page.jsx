@@ -59,19 +59,17 @@ export default function AttckDashboardPage() {
         {/* 概览轮播组件 */}
         <AttckHeader data={data} />
 
-
-        {/* 图表区域 */}
+        {/* Attck TOP10 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <StageHostDistributionChart
             stages={stages}
             selectedStageSlug={selectedStageSlug}
             onSelectStage={onSelectStage}
           />
-
           <AttackTop10 top10={data?.top10 ?? []} />
         </div>
 
-        {/* 分类合规统计 - 参考原图的下半部分布局 */}
+        {/* Stage统计、详情 */}
         <div className="grid grid-cols-12 gap-6">
           <div className="col-span-12">
             <Card className="bg-white border-gray-200 shadow-sm">
