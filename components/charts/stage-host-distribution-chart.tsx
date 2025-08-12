@@ -4,31 +4,18 @@ import type React from "react"
 import { useMemo, useRef, useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AttckStage } from "@/lib/attck-utils"
+import { MoreHorizontal } from "lucide-react";
+import { getStageColor } from "@/lib/stageColor"
 
 interface Props {
   stages: AttckStage[]
-  selectedStageSlug: string | null
+  selectedStageSlug: string | null            // 短标签名称
   onSelectStage: (stage: AttckStage) => void
 }
 
+/* 定义提示框的状态类型，包括是否可见、位置和显示内容 */
 type TooltipState = { visible: boolean; x: number; y: number; label: string; value: number } | null
 
-const PALETTE = [
-  "#3b82f6",
-  "#06b6d4",
-  "#22c55e",
-  "#84cc16",
-  "#eab308",
-  "#f59e0b",
-  "#f97316",
-  "#ef4444",
-  "#ec4899",
-  "#a855f7",
-  "#6366f1",
-  "#14b8a6",
-  "#10b981",
-  "#fb7185",
-]
 
 function slugify(name: string) {
   return name
@@ -63,7 +50,7 @@ export default function StageHostDistributionChart({
   const data = useMemo(() => {
     return stages.map((s) => {
       const set = new Set<string>()
-      ;(s.details ?? []).forEach((d) => (d.hosts ?? []).forEach((h) => set.add(h)))
+        ; (s.details ?? []).forEach((d) => (d.hosts ?? []).forEach((h) => set.add(h)))
       return { stage: s, label: s.stage, value: set.size, slug: slugify(s.stage) }
     })
   }, [stages])
@@ -97,9 +84,18 @@ export default function StageHostDistributionChart({
   const truncate = (text: string, max = 6) => (text.length > max ? text.slice(0, max) + "…" : text)
 
   return (
-    <Card className="shadow-md h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base md:text-lg">Stage 感染主机分布图</CardTitle>
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg">
+            <MoreHorizontal className="h-5 w-5 text-white" aria-hidden="true" />
+          </div>
+          <div>
+            <CardTitle className="text-base md:text-lg font-semibold text-slate-800 dark:text-white">
+              Stage主机分布图
+            </CardTitle>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="h-full">
         <div ref={wrapperRef} className="relative w-full h-full">
@@ -135,7 +131,7 @@ export default function StageHostDistributionChart({
                       y={y}
                       width={barW}
                       height={h}
-                      fill={PALETTE[i % PALETTE.length]}
+                      fill={getStageColor(d.slug)}
                       stroke={selected ? "#2563eb" : "transparent"}
                       strokeWidth={selected ? 2 : 0}
                       rx={4}
@@ -151,7 +147,6 @@ export default function StageHostDistributionChart({
                       fontSize="10"
                       fill="#6b7280"
                       className="pointer-events-none"
-                      title={d.label}
                     >
                       {truncate(d.label, 6)}
                     </text>

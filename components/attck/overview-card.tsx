@@ -1,7 +1,25 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye } from "lucide-react"
+import {
+  Eye,
+  Binoculars,
+  Wrench,
+  DoorOpen,
+  Terminal,
+  Anchor,
+  ArrowUp,
+  ShieldOff,
+  Key,
+  Search,
+  ArrowRightLeft,
+  Download,
+  Cast,
+  Upload,
+  Zap,
+} from "lucide-react"
+
+import { getStageColor, slugify } from "@/lib/stageColor"
 
 interface OverviewCardProps {
   title: string
@@ -12,54 +30,80 @@ interface OverviewCardProps {
   selected?: boolean
 }
 
+const iconMap: Record<string, React.ElementType> = {
+  Eye,
+  Binoculars,
+  Wrench,
+  DoorOpen,
+  Terminal,
+  Anchor,
+  ArrowUp,
+  ShieldOff,
+  Key,
+  Search,
+  ArrowRightLeft,
+  Download,
+  Cast,
+  Upload,
+  Zap,
+}
+
 export default function OverviewCard({
   title,
   description,
-  icon = "🧩",
+  icon,
   count,
   onClick,
   selected = false,
 }: OverviewCardProps) {
-  // Build focus classes to avoid double blue border when selected
+  const slug = slugify(title)
+  const color = getStageColor(slug)
+
+  // 这里根据颜色生成 Tailwind 兼容的渐变class
+  // 由于颜色是hex，需要手动写样式，这里用内联渐变背景
+  // 你也可以扩展成动态class映射
+  const iconBgStyle = {
+    background: `linear-gradient(to bottom right, ${color}, ${color}cc)`, // 透明度渐变
+  }
+
   const focusClasses = selected
-    ? "focus:outline-none focus-visible:outline-none"
+    ? "focus:outline-none focus-visible:outline-none ring-2 ring-blue-500"
     : "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+
+  const IconComponent = icon && iconMap[icon] ? iconMap[icon] : Eye
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`text-left rounded-lg w-full ${focusClasses}`}
+      className={`text-left rounded-lg w-full cursor-pointer ${focusClasses}`}
       aria-pressed={selected}
     >
       <Card
-        className={`relative bg-white border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] cursor-pointer h-full ${
+        className={`relative overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 ${
           selected ? "ring-2 ring-blue-500 shadow-lg" : ""
         }`}
       >
-        {/* Eye badge on the top-right of the blue bordered card when selected */}
-        {selected && (
-          <div
-            className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg z-10"
-            aria-label="正在查看"
-          >
-            <Eye className="h-4 w-4" />
-          </div>
-        )}
+        {/* 渐变背景装饰 */}
+        <div
+          className="absolute inset-0 opacity-5 pointer-events-none"
+          style={{ background: `linear-gradient(to bottom right, ${color}, ${color}cc)` }}
+        />
 
-        <CardHeader className="pb-3 p-6">
-          <div className="flex items-start justify-between gap-3">
-            <CardTitle className="text-lg font-semibold leading-tight flex-1">{title}</CardTitle>
-            <div className="text-3xl leading-none flex-shrink-0" aria-hidden="true">
-              {icon}
-            </div>
+        <CardHeader className="flex flex-row items-center justify-between pb-2 px-6 pt-6 relative z-10">
+          <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">{title}</CardTitle>
+          <div
+            className="p-2 rounded-lg flex items-center justify-center"
+            style={iconBgStyle}
+          >
+            <IconComponent className="h-5 w-5 text-white" />
           </div>
         </CardHeader>
-        <CardContent className="px-6 pb-6 space-y-4">
-          <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{description}</p>
-          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <span className="text-xs text-muted-foreground font-medium">计数</span>
-            <span className="text-2xl font-bold tabular-nums text-blue-600">{count}</span>
+
+        <CardContent className="pt-1 px-6 pb-6 space-y-2 relative z-10">
+          <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3">{description}</p>
+          <div className="flex items-baseline justify-between">
+            <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">{count}</div>
           </div>
         </CardContent>
       </Card>

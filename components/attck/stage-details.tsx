@@ -60,7 +60,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
 
   return (
     <>
-      <Card className="shadow-md">
+      <Card className="bg-white border-gray-200 shadow-sm border-l-4 border-l-blue-500">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg md:text-xl font-semibold">{stage.stage} 详情</CardTitle>

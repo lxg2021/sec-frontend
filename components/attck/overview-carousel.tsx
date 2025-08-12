@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button"
 import OverviewCard from "./overview-card"
 import type { AttckStage } from "@/lib/attck-utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { slugify } from "@/lib/stageColor"
 
 function useResponsivePerPage() {
   const [perPage, setPerPage] = useState(4)
   useEffect(() => {
     const compute = () => {
       const w = window.innerWidth
-      if (w < 640) setPerPage(1)
-      else if (w < 1024) setPerPage(2)
-      else if (w < 1280) setPerPage(3)
-      else setPerPage(4)
+      let newPerPage = 4
+      if (w < 640) newPerPage = 1
+      else if (w < 1024) newPerPage = 2
+      else if (w < 1280) newPerPage = 3
+      setPerPage((prev) => (prev !== newPerPage ? newPerPage : prev))
     }
     compute()
     window.addEventListener("resize", compute)
@@ -23,44 +25,39 @@ function useResponsivePerPage() {
   return perPage
 }
 
+interface OverviewCarouselProps {
+  stages: AttckStage[]
+  selectedStageSlug: string | null
+  onSelectStage: (stage: AttckStage) => void
+}
+
 export default function OverviewCarousel({
   stages,
   selectedStageSlug,
   onSelectStage,
-}: {
-  stages: AttckStage[]
-  selectedStageSlug: string | null
-  onSelectStage: (stage: AttckStage) => void
-}) {
+}: OverviewCarouselProps) {
   const perPage = useResponsivePerPage()
-  const totalPages = Math.max(1, Math.ceil((stages?.length || 0) / perPage))
+  const totalPages = Math.max(1, Math.ceil(stages.length / perPage))
   const [activeIndex, setActiveIndex] = useState(0)
 
+  // 保证 activeIndex 不超过最大页数
   useEffect(() => {
-    const maxIndex = Math.max(0, totalPages - 1)
+    const maxIndex = totalPages - 1
     setActiveIndex((idx) => Math.min(idx, maxIndex))
-  }, [perPage, stages, totalPages])
+  }, [totalPages])
 
-  // 新增：当外部选中 stage 时，自动定位到包含该卡片的页
+  // 外部选中时自动定位页
   useEffect(() => {
-    if (!selectedStageSlug || stages.length === 0) return
-    const index = stages.findIndex(
-      (s) =>
-        s.stage
-          .toLowerCase()
-          .replace(/[^\p{L}\p{N}]+/gu, "-")
-          .replace(/^-+|-+$/g, "") === selectedStageSlug,
-    )
+    if (!selectedStageSlug || !stages.length) return
+    const index = stages.findIndex((s) => slugify(s.stage) === selectedStageSlug)
     if (index >= 0) {
-      const targetPage = Math.floor(index / perPage)
-      setActiveIndex(targetPage)
+      setActiveIndex(Math.floor(index / perPage))
     }
   }, [selectedStageSlug, stages, perPage])
 
   const currentPageData = useMemo(() => {
     const start = activeIndex * perPage
-    const end = start + perPage
-    return stages.slice(start, end)
+    return stages.slice(start, start + perPage)
   }, [stages, activeIndex, perPage])
 
   function goToPrevious() {
@@ -115,14 +112,11 @@ export default function OverviewCarousel({
       {/* 阶段卡片轮播 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         {currentPageData.map((stage, idx) => {
-          const slug = stage.stage
-            .toLowerCase()
-            .replace(/[^\p{L}\p{N}]+/gu, "-")
-            .replace(/^-+|-+$/g, "")
+          const slug = slugify(stage.stage)
           const isSelected = selectedStageSlug === slug
           return (
             <OverviewCard
-              key={slug || idx}
+              key={slug || stage.stage || idx}
               title={stage.stage}
               description={stage.description}
               icon={stage.icon}

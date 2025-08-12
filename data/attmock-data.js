@@ -1,8 +1,8 @@
 // ATT&CK overview mock data as a JS module
 // Exported as attckData to be imported in the app.
 export const attckData = {
-  starttime: "2025-08-00T10:00:00Z",
-  endtime: "2025-08-12T10:30:00Z",
+  starttime: "2025-08-00 10:00:00",
+  endtime: "2025-08-12 10:30:00",
   range: "12d",
   "affected-hosts": 46,
   "attck-counts": 39,
@@ -30,7 +30,7 @@ export const attckData = {
       description:
         "攻击者主动或被动的方式收集可用于攻击目标的信息。这些信息可能包括受害组织的详细情况、基础设施或员工/人员信息。攻击者可以利用这些信息来支持其攻击生命周期中的其他阶段，例如：利用收集到的信息来规划并执行初始访问（Initial Access）、确定入侵后的目标范围和优先级，或推动并引导进一步的侦察活动.",
       count: 4,
-      icon: "🔍",
+      icon: "Binoculars",
       details: [
         {
           attck: "T1595",
@@ -62,7 +62,7 @@ export const attckData = {
       stage: "资源开发 (Resource Development)",
       description: "攻击者创建、购买、控制或窃取可用于支持其攻击目标的资源。这些资源可能包括基础设施、账户或攻击能力。",
       count: 3,
-      icon: "🛠️",
+      icon: "Wrench",
       details: [
         {
           attck: "T1583",
@@ -87,7 +87,7 @@ export const attckData = {
       description:
         "攻击者入侵目标网络的第一步，目的是在系统中建立立足点，为后续的攻击活动铺平道路。攻击者可能采用鱼叉式钓鱼邮件、利用对外服务漏洞、恶意链接、恶意附件、供应链攻击等多种技术手段获取访问权限。一旦成功，他们可能通过合法账号、远程服务等方式维持访问，也可能因密码更改等防御手段而失去权限。因此，初始访问是整个攻击链中极其关键的一环，其成功与否直接决定了后续攻击的可行性和深度。",
       count: 6,
-      icon: "🚪",
+      icon: "DoorOpen",
       details: [
         {
           attck: "T1566",
@@ -136,7 +136,7 @@ export const attckData = {
       description:
         "攻击者控制的代码在本地或远程系统上运行的各种技术。这些技术通常与其他攻击阶段配合使用，以实现更广泛的目标，例如探测网络或窃取数据。例如，攻击者可能使用远程访问工具运行 PowerShell 脚本，以执行远程系统发现操作。",
       count: 7,
-      icon: "⚙️",
+      icon: "Terminal",
       details: [
         {
           attck: "T1059",
@@ -177,7 +177,7 @@ export const attckData = {
       description:
         "攻击者通过各种技术手段持续保持对系统的访问，确保即使系统重启或凭证更改也不被切断，例如替换或劫持合法代码，或添加启动时运行的代码。",
       count: 5,
-      icon: "🔒",
+      icon: "Anchor",
       details: [
         {
           attck: "T1543",
@@ -210,7 +210,7 @@ export const attckData = {
       description:
         "权限提升是攻击者通过利用系统漏洞或配置缺陷，将权限从普通用户提升到管理员或系统级别，从而获得更高控制权的过程。",
       count: 2,
-      icon: "⬆️",
+      icon: "ArrowUp",
       details: [
         {
           attck: "T1068",
@@ -235,7 +235,7 @@ export const attckData = {
       description:
         "入侵过程中使用的各种技术,目的是规避安全检测。这些技术包括卸载或禁用安全软件、混淆或加密数据和脚本，以及利用受信任的进程来隐藏和伪装恶意软件。",
       count: 8,
-      icon: "🛡️",
+      icon: "ShieldOff",
       details: [
         {
           attck: "T1027",
@@ -276,7 +276,7 @@ export const attckData = {
       description:
         "通过各种技术手段获取凭证(如账户名和密码),常见方法包括键盘记录和凭证转储.利用合法凭证,攻击者不仅能访问系统，还能提高隐蔽性，并有机会创建更多账户以助其实现攻击目标.",
       count: 1,
-      icon: "🔑",
+      icon: "Key",
       details: [
         {
           attck: "T1003",
@@ -293,7 +293,7 @@ export const attckData = {
       description:
         "发现阶段指攻击者在入侵后，利用多种技术手段搜集目标系统和内部网络的信息，目的是全面了解环境，评估可控资源及潜在利用点。这些信息有助于攻击者确定最佳攻击路径和策略，通常会使用操作系统自带的工具执行信息收集和环境侦察，从而为后续攻击奠定基础。",
       count: 5,
-      icon: "🔎",
+      icon: "Search",
       details: [
         {
           attck: "T1083",
@@ -326,7 +326,7 @@ export const attckData = {
       description:
         "攻击者试图在目标环境内横向移动，通过多种技术进入并控制网络中的远程系统，探索网络以定位并访问目标，通常需要借助远程访问工具或合法凭据配合系统自带工具完成。",
       count: 4,
-      icon: "↔️",
+      icon: "ArrowRightLeft",
       details: [
         {
           attck: "T1021",
@@ -351,7 +351,7 @@ export const attckData = {
       description:
         "攻击者试图收集对其目标有价值的数据，收集阶段包括从各种来源获取信息，以支持后续的数据窃取或环境侦察，常见手段有截屏和记录键盘输入等。",
       count: 4,
-      icon: "📥",
+      icon: "Download",
       details: [
         {
           attck: "T1113",
@@ -384,7 +384,7 @@ export const attckData = {
       description:
         "攻击者试图与被攻陷的系统通信以实现远程控制，通常通过模拟正常流量来避免被检测，采用多种隐蔽手段建立指挥和控制通道.",
       count: 4,
-      icon: "📡",
+      icon: "Cast",
       details: [
         {
           attck: "T1071",
@@ -409,7 +409,7 @@ export const attckData = {
       description:
         "攻击者试图窃取数据，通常通过压缩加密等手段隐藏并传输数据，利用指挥控制通道或其他途径将数据从目标网络中秘密导出。",
       count: 5,
-      icon: "📤",
+      icon: "Upload",
       details: [
         {
           attck: "T1041",
@@ -450,7 +450,7 @@ export const attckData = {
       description:
         "攻击者试图操控、中断或破坏您的系统和数据，通过篡改业务和操作流程来影响系统的可用性或完整性，这些手段可能包括删除或篡改数据，有时业务表面正常但已被修改以利于攻击者目标。",
       count: 5,
-      icon: "💥",
+      icon: "Zap",
       details: [
         {
           attck: "T1485",

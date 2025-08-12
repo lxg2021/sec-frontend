@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Top10Item } from "@/lib/attck-utils"
+import { Trophy } from "lucide-react";
 
 type Row = {
   id: string
@@ -37,9 +38,18 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
 
   return (
     <>
-      <Card className="shadow-md">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base md:text-lg">ATT&amp;CK TOP10</CardTitle>
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
+              <Trophy className="h-5 w-5 text-white" aria-hidden="true" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                ATT&amp;CK TOP10
+              </CardTitle>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
