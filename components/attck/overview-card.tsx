@@ -24,17 +24,13 @@ export default function OverviewCard({
 }: OverviewCardProps) {
   const slug = slugify(title)
   const color = getStageColor(slug)
-  const focusClasses = selected
-    ? "focus:outline-none focus-visible:outline-none ring-2 ring-blue-500"
-    : "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-
   const IconComponent = getStageIconComponent(icon)
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`relative text-left w-full cursor-pointer ${focusClasses}`}
+      className="relative text-left w-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       aria-pressed={selected}
     >
       {/* 选中指示器 */}
