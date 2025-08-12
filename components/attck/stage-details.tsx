@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { type AttckStage, type Severity, badgeSeverityTextColor } from "@/lib/attck-utils"
+import { getStageIconComponent, getStageIconBgStyle } from "@/lib/stageIcon"
+import { getStageColor, slugify } from "@/lib/stageColor"
 
 interface StageDetailsProps {
   stage?: AttckStage | null
@@ -50,6 +52,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
     setHostOpen(true)
   }
 
+
   if (!stage) {
     return (
       <Card className="shadow-md">
@@ -58,18 +61,32 @@ export default function StageDetails({ stage }: StageDetailsProps) {
     )
   }
 
+  const IconComponent = getStageIconComponent(stage?.icon)
+
+  if (!IconComponent) {
+    console.warn("图标组件未找到", stage?.icon)
+  }
+
+  const slug = slugify(stage.stage)
+  const color = getStageColor(slug)
+
   return (
     <>
       <Card className="bg-white border-gray-200 shadow-sm border-l-4 border-l-blue-500">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg md:text-xl font-semibold">{stage.stage} 详情</CardTitle>
-            <div className="text-2xl" aria-hidden="true">
-              {stage.icon ?? "🧩"}
+            <div className="flex items-center space-x-2">
+              <div
+                className="p-2 flex items-center justify-center rounded-lg"
+                style={getStageIconBgStyle(color)}
+              >
+                <IconComponent className="h-5 w-5 text-white" />
+              </div>
+              <CardTitle className="text-lg md:text-xl font-semibold">{stage.stage} 详情</CardTitle>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">{stage.description}</p>
         </CardHeader>
+
         <CardContent className="overflow-x-auto">
           {/* 查找区域：按 技术 与 主机 过滤 */}
           <div className="mb-6 flex flex-col lg:flex-row gap-4">
