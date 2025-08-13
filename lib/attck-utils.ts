@@ -2,6 +2,7 @@ export type Severity = "高" | "中" | "低"
 
 export interface AttckDetail {
   attck: string
+  ruleid: string
   name?: string
   stage: string[]
   indicators: string[]
@@ -25,6 +26,8 @@ export interface SeverityEntry {
 export interface Top10Item {
   attck: string
   name: string
+  ruleid: string
+  hosts: string[]
   "affected-hosts": number
   stage: string
 }

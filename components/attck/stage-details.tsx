@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useMemo, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -7,16 +7,20 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { type AttckStage, type Severity, badgeSeverityTextColor } from "@/lib/attck-utils"
 import { getStageIconComponent, getStageIconBgStyle } from "@/lib/stageIcon"
 import { getStageColor, slugify } from "@/lib/stageColor"
-import { SearchCode, Layers, Inspect } from "lucide-react"
+import { Inspect } from "lucide-react"
+import { RuleInfoPopover } from "@/components/rules/RuleInfoPopover"
 
 interface StageDetailsProps {
   stage?: AttckStage | null
 }
+
+const DISPLAY_COUNT = 3 // 前 N 个显示，其余 +N 弹出
 
 export default function StageDetails({ stage }: StageDetailsProps) {
   const router = useRouter()
@@ -47,12 +51,10 @@ export default function StageDetails({ stage }: StageDetailsProps) {
     setTechId(id)
     setTechOpen(true)
   }
-
-  const handleOpenHost = (name: string) => {
-    setHostName(name)
-    setHostOpen(true)
+  
+  const handleHostClick = (host: string) => {
+    router.push(`/hosts/${host}`)
   }
-
 
   if (!stage) {
     return (
@@ -63,10 +65,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
   }
 
   const IconComponent = getStageIconComponent(stage?.icon)
-
-  if (!IconComponent) {
-    console.warn("图标组件未找到", stage?.icon)
-  }
+  if (!IconComponent) console.warn("图标组件未找到", stage?.icon)
 
   const slug = slugify(stage.stage)
   const color = getStageColor(slug)
@@ -89,7 +88,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
         </CardHeader>
 
         <CardContent className="overflow-x-auto">
-          {/* 查找区域：按 技术 与 主机 过滤 */}
+          {/* 查找区域 */}
           <div className="mb-6 flex flex-col lg:flex-row gap-4">
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="relative">
@@ -138,42 +137,66 @@ export default function StageDetails({ stage }: StageDetailsProps) {
                       const name = d.name || d.attck.replace(/^([A-Z]\d+)\s*-\s*/i, "")
                       return (
                         <TableRow key={idx}>
+
                           <TableCell className="font-medium">
-                            <button
-                              className="text-sm text-gray-800 hover:text-blue-600 underline-offset-4 hover:underline transition-colors"
-                              onClick={() => handleOpenTech(d.attck)}
-                              title={`查看 ${id} 详情`}
-                            >
-                              {id}
-                            </button>
+                            <RuleInfoPopover id={d.ruleid || ""} side="right">
+                              <span className="text-gray-800 underline hover:text-blue-600 cursor-pointer">
+                                {id}
+                              </span>
+                            </RuleInfoPopover>
                           </TableCell>
+
                           <TableCell>
                             <div className="text-sm text-gray-800">{name}</div>
                           </TableCell>
                           <TableCell>
                             <ul className="list-disc list-inside space-y-1">
                               {d.indicators.map((ind, i) => (
-                                <li key={i} className="text-sm">
-                                  {ind}
-                                </li>
+                                <li key={i} className="text-sm">{ind}</li>
                               ))}
                             </ul>
                           </TableCell>
-                          <TableCell>
-                            <ul className="list-disc list-inside space-y-1">
-                              {d.hosts.map((h, i) => (
-                                <li key={i}>
-                                  <button
-                                    className="text-sm text-gray-800 hover:text-blue-600 underline-offset-4 hover:underline transition-colors"
-                                    onClick={() => handleOpenHost(h)}
-                                    title={`查看主机 ${h}`}
-                                  >
-                                    {h}
-                                  </button>
-                                </li>
-                              ))}
-                            </ul>
+                          {/* 主机列改为 Popover 超过 DISPLAY_COUNT */}
+                          <TableCell className="flex flex-wrap gap-2">
+                            {/* 显示前 N 个主机 */}
+                            {d.hosts.slice(0, DISPLAY_COUNT).map((host) => (
+                              <span
+                                key={host}
+                                className="text-sm text-blue-600 underline cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation() // 阻止触发行点击
+                                  handleHostClick(host)
+                                }}
+                                title={`查看主机 ${host}`}
+                              >
+                                {host}
+                              </span>
+                            ))}
+
+                            {/* 超过 N 个主机显示 Popover */}
+                            {d.hosts.length > DISPLAY_COUNT && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <span className="text-sm text-gray-500 cursor-pointer hover:text-blue-600">
+                                    +{d.hosts.length - DISPLAY_COUNT} more
+                                  </span>
+                                </PopoverTrigger>
+                                <PopoverContent className="max-h-60 w-48 overflow-auto rounded-lg shadow-lg p-2 bg-white">
+                                  <div className="text-xs font-medium text-gray-500 mb-1">所有主机</div>
+                                  {d.hosts.map((host) => (
+                                    <div
+                                      key={host}
+                                      className="text-sm text-blue-600 underline cursor-pointer py-1 px-1 rounded hover:bg-blue-50"
+                                      onClick={() => handleHostClick(host)}
+                                    >
+                                      {host}
+                                    </div>
+                                  ))}
+                                </PopoverContent>
+                              </Popover>
+                            )}
                           </TableCell>
+
                           <TableCell>
                             <Badge className={`${badgeSeverityTextColor(d.severity as Severity)} font-normal`}>
                               {d.severity}
@@ -199,26 +222,6 @@ export default function StageDetails({ stage }: StageDetailsProps) {
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={techOpen} onOpenChange={setTechOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>技术详情占位</DialogTitle>
-            <DialogDescription>
-              即将跳转到 {techId ? `${techId}` : "该技术"} 的技术详情页面。当前为占位提示。
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={hostOpen} onOpenChange={setHostOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>主机详情占位</DialogTitle>
-            <DialogDescription>即将跳转到主机 {hostName ?? ""} 的详情页面。当前为占位提示。</DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

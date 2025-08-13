@@ -1,7 +1,7 @@
 // ATT&CK overview mock data as a JS module
 // Exported as attckData to be imported in the app.
 export const attckData = {
-  starttime: "2025-08-00 10:00:00",
+  starttime: "2025-08-01 10:00:00",
   endtime: "2025-08-12 10:30:00",
   range: "12d",
   "affected-hosts": 46,
@@ -13,27 +13,27 @@ export const attckData = {
     { severity: "低", "affected-hosts": 7 },
   ],
   top10: [
-    { attck: "T1021", name: "remote services", "affected-hosts": 4, stage: "execution" },
-    { attck: "T1595", name: "active scanning", "affected-hosts": 2, stage: "reconnaissance" },
-    { attck: "T1585", name: "establish accounts", "affected-hosts": 2, stage: "resource-development" },
-    { attck: "T1566", name: "phishing", "affected-hosts": 2, stage: "initial-access" },
-    { attck: "T1078", name: "valid accounts", "affected-hosts": 2, stage: "initial-access" },
-    { attck: "T1059", name: "command and scripting interpreter", "affected-hosts": 2, stage: "execution" },
-    { attck: "T1204", name: "user execution", "affected-hosts": 2, stage: "execution" },
-    { attck: "T1543", name: "create or modify system process", "affected-hosts": 2, stage: "persistence" },
-    { attck: "T1547", name: "boot or logon autostart execution", "affected-hosts": 2, stage: "persistence" },
-    { attck: "T1027", name: "obfuscated files or information", "affected-hosts": 2, stage: "defense-evasion" },
+    { attck: "T1021", name: "remote services", ruleid: "6fc51473-b179-4c11-8e47-d225cb82f88d", hosts: ["Host01", "Host04", "HostA", "HostB"], "affected-hosts": 4, stage: "execution" },
+    { attck: "T1595", name: "active scanning", ruleid: "ec3ef7be-7dfe-4a72-9ac4-2d162f63de60", hosts: ["Host01", "Host02"], "affected-hosts": 2, stage: "reconnaissance" },
+    { attck: "T1585", name: "establish accounts", ruleid: "17913f85-47d1-4091-8731-784264865e19", hosts: ["GitHub", "Temp Mail Service"], "affected-hosts": 2, stage: "resource-development" },
+    { attck: "T1566", name: "phishing", ruleid: "3a60053d-2c58-4f75-acd9-75892478e441", hosts: ["HR Mailbox", "Employee Laptop"], "affected-hosts": 2, stage: "initial-access" },
+    { attck: "T1078", name: "valid accounts", ruleid: "c206b9d2-ab13-44ee-bd1b-d12b909c152c", hosts: ["VPN Gateway", "Admin Workstation"], "affected-hosts": 2, stage: "initial-access" },
+    { attck: "T1059", name: "command and scripting interpreter", ruleid: "e1d56b01-dd7f-46e4-91bb-62e66aa30f43", hosts: ["Host01", "Host03"], "affected-hosts": 2, stage: "execution" },
+    { attck: "T1204", name: "user execution", ruleid: "c4535a39-3f51-4b40-b11c-442fd0a5eae5", hosts: ["User Laptop", "Email Server"], "affected-hosts": 2, stage: "execution" },
+    { attck: "T1543", name: "create or modify system process", ruleid: "dd7bd2ca-1dba-4324-a47c-2cfbf99abca8", hosts: ["Host01", "Host02"], "affected-hosts": 2, stage: "persistence" },
+    { attck: "T1547", name: "boot or logon autostart execution", ruleid: "58c5b09f-8143-461e-be48-887607e0c3e8", hosts: ["Host04", "Host05"], "affected-hosts": 2, stage: "persistence" },
+    { attck: "T1027", name: "obfuscated files or information", ruleid: "5eb8bd54-1a17-46dc-aba3-52fca512691a", hosts: ["ProxyServer-01", "Admin-PC"], "affected-hosts": 2, stage: "defense-evasion" },
   ],
   stages: [
     {
       stage: "侦察 (reconnaissance)",
-      description:
-        "攻击者主动或被动的方式收集可用于攻击目标的信息。这些信息可能包括受害组织的详细情况、基础设施或员工/人员信息。攻击者可以利用这些信息来支持其攻击生命周期中的其他阶段，例如：利用收集到的信息来规划并执行初始访问（Initial Access）、确定入侵后的目标范围和优先级，或推动并引导进一步的侦察活动.",
+      description: "攻击者主动或被动的方式收集可用于攻击目标的信息。这些信息可能包括受害组织的详细情况、基础设施或员工/人员信息。攻击者可以利用这些信息来支持其攻击生命周期中的其他阶段，例如：利用收集到的信息来规划并执行初始访问（Initial Access）、确定入侵后的目标范围和优先级，或推动并引导进一步的侦察活动。",
       count: 4,
       icon: "Binoculars",
       details: [
         {
           attck: "T1595",
+          ruleid: "ec3ef7be-7dfe-4a72-9ac4-2d162f63de60",
           name: "active scanning",
           stage: ["reconnaissance"],
           indicators: ["SQL injection payload", "Unusual HTTP requests"],
@@ -42,6 +42,7 @@ export const attckData = {
         },
         {
           attck: "T1592",
+          ruleid: "4933aa47-24ff-43b2-8179-cefca10ab72d",
           name: "gather victim identity information",
           stage: ["reconnaissance"],
           indicators: ["LinkedIn scraping", "Email pattern matching"],
@@ -50,6 +51,7 @@ export const attckData = {
         },
         {
           attck: "T1590",
+          ruleid: "81a9e21c-e949-42fb-ae98-b338d0b71db8",
           name: "gather victim network information",
           stage: ["reconnaissance"],
           indicators: ["WHOIS lookup", "DNS enumeration"],
@@ -66,6 +68,7 @@ export const attckData = {
       details: [
         {
           attck: "T1583",
+          ruleid: "dbe20424-f72d-4d32-86cf-f4ff22be6a2a",
           name: "acquire infrastructure",
           stage: ["resource-development"],
           indicators: ["Newly registered domain", "Bulletproof hosting provider"],
@@ -74,6 +77,7 @@ export const attckData = {
         },
         {
           attck: "T1585",
+          ruleid: "17913f85-47d1-4091-8731-784264865e19",
           name: "establish accounts",
           stage: ["resource-development"],
           indicators: ["Multiple GitHub accounts", "Disposable email usage"],
@@ -84,13 +88,13 @@ export const attckData = {
     },
     {
       stage: "初始访问 (initial-access)",
-      description:
-        "攻击者入侵目标网络的第一步，目的是在系统中建立立足点，为后续的攻击活动铺平道路。攻击者可能采用鱼叉式钓鱼邮件、利用对外服务漏洞、恶意链接、恶意附件、供应链攻击等多种技术手段获取访问权限。一旦成功，他们可能通过合法账号、远程服务等方式维持访问，也可能因密码更改等防御手段而失去权限。因此，初始访问是整个攻击链中极其关键的一环，其成功与否直接决定了后续攻击的可行性和深度。",
+      description: "攻击者入侵目标网络的第一步，目的是在系统中建立立足点，为后续的攻击活动铺平道路。攻击者可能采用鱼叉式钓鱼邮件、利用对外服务漏洞、恶意链接、恶意附件、供应链攻击等多种技术手段获取访问权限。一旦成功，他们可能通过合法账号、远程服务等方式维持访问，也可能因密码更改等防御手段而失去权限。因此，初始访问是整个攻击链中极其关键的一环，其成功与否直接决定了后续攻击的可行性和深度。",
       count: 6,
       icon: "DoorOpen",
       details: [
         {
           attck: "T1566",
+          ruleid: "3a60053d-2c58-4f75-acd9-75892478e441",
           name: "phishing",
           stage: ["initial-access"],
           indicators: ["Suspicious email with attachment", "Malicious link"],
@@ -99,6 +103,7 @@ export const attckData = {
         },
         {
           attck: "T1190",
+          ruleid: "fbb34c23-1530-4af8-8533-1986ff70ddc5",
           name: "exploit public-facing application",
           stage: ["initial-access"],
           indicators: ["Unpatched CVE exploitation", "Web shell deployment"],
@@ -107,6 +112,7 @@ export const attckData = {
         },
         {
           attck: "T1078",
+          ruleid: "c206b9d2-ab13-44ee-bd1b-d12b909c152c",
           name: "valid accounts",
           stage: ["initial-access"],
           indicators: ["Brute-force login attempts", "Unusual login hours"],
@@ -115,6 +121,7 @@ export const attckData = {
         },
         {
           attck: "T1195",
+          ruleid: "0514b4da-e051-4956-8ad5-bff63fdd1805",
           name: "supply chain compromise",
           stage: ["initial-access"],
           indicators: ["Compromised software update", "Signed malware"],
@@ -123,6 +130,7 @@ export const attckData = {
         },
         {
           attck: "T1189",
+          ruleid: "897dd4b6-5958-41a7-9e9e-e9e52d66606a",
           name: "drive-by compromise",
           stage: ["initial-access"],
           indicators: ["Exploit kit activity", "Malicious redirect in ad"],
@@ -133,13 +141,13 @@ export const attckData = {
     },
     {
       stage: "执行 (execution)",
-      description:
-        "攻击者控制的代码在本地或远程系统上运行的各种技术。这些技术通常与其他攻击阶段配合使用，以实现更广泛的目标，例如探测网络或窃取数据。例如，攻击者可能使用远程访问工具运行 PowerShell 脚本，以执行远程系统发现操作。",
-      count: 7,
+      description: "攻击者控制的代码在本地或远程系统上运行的各种技术。这些技术通常与其他攻击阶段配合使用，以实现更广泛的目标，例如探测网络或窃取数据。例如，攻击者可能使用远程访问工具运行 PowerShell 脚本，以执行远程系统发现操作。",
+      count: 6, // 修正为实际去重主机数
       icon: "Terminal",
       details: [
         {
           attck: "T1059",
+          ruleid: "e1d56b01-dd7f-46e4-91bb-62e66aa30f43",
           name: "command and scripting interpreter",
           stage: ["execution"],
           indicators: ["PowerShell script execution", "Command-line activity"],
@@ -148,6 +156,7 @@ export const attckData = {
         },
         {
           attck: "T1204",
+          ruleid: "c4535a39-3f51-4b40-b11c-442fd0a5eae5",
           name: "user execution",
           stage: ["execution"],
           indicators: ["Malicious email attachment opened", "User clicked suspicious link"],
@@ -156,6 +165,7 @@ export const attckData = {
         },
         {
           attck: "T1106",
+          ruleid: "87081870-bb26-4fd9-bfc9-5ee4ae27b11a",
           name: "native api",
           stage: ["execution"],
           indicators: ["API calls for process injection", "Unusual system calls"],
@@ -164,6 +174,7 @@ export const attckData = {
         },
         {
           attck: "T1021",
+          ruleid: "6fc51473-b179-4c11-8e47-d225cb82f88d",
           name: "remote services",
           stage: ["execution"],
           indicators: ["Remote PowerShell sessions", "Remote desktop connections"],
@@ -174,13 +185,13 @@ export const attckData = {
     },
     {
       stage: "持久化 (persistence)",
-      description:
-        "攻击者通过各种技术手段持续保持对系统的访问，确保即使系统重启或凭证更改也不被切断，例如替换或劫持合法代码，或添加启动时运行的代码。",
+      description: "攻击者通过各种技术手段持续保持对系统的访问，确保即使系统重启或凭证更改也不被切断，例如替换或劫持合法代码，或添加启动时运行的代码。",
       count: 5,
       icon: "Anchor",
       details: [
         {
           attck: "T1543",
+          ruleid: "dd7bd2ca-1dba-4324-a47c-2cfbf99abca8",
           name: "create or modify system process",
           stage: ["persistence"],
           indicators: ["Service creation", "Scheduled tasks"],
@@ -189,6 +200,7 @@ export const attckData = {
         },
         {
           attck: "T1053",
+          ruleid: "96e82492-7a6a-4e51-9b8a-7f17bbb14104",
           name: "scheduled task/job",
           stage: ["persistence"],
           indicators: ["Cron jobs", "Windows Task Scheduler entries"],
@@ -197,6 +209,7 @@ export const attckData = {
         },
         {
           attck: "T1547",
+          ruleid: "58c5b09f-8143-461e-be48-887607e0c3e8",
           name: "boot or logon autostart execution",
           stage: ["persistence"],
           indicators: ["Registry autorun keys", "Startup folder scripts"],
@@ -207,38 +220,39 @@ export const attckData = {
     },
     {
       stage: "权限提升 (privilege-escalation)",
-      description:
-        "权限提升是攻击者通过利用系统漏洞或配置缺陷，将权限从普通用户提升到管理员或系统级别，从而获得更高控制权的过程。",
+      description: "权限提升是攻击者通过利用系统漏洞或配置缺陷，将权限从普通用户提升到管理员或系统级别，从而获得更高控制权的过程。",
       count: 2,
       icon: "ArrowUp",
       details: [
         {
           attck: "T1068",
+          ruleid: "1fc267b6-f206-4b4a-af72-3e3d33bfdf3f",
           name: "exploitation for privilege escalation",
-          stage: ["privilege-escalation"],
+          stage: ["privilege escalation"], // 修正标识符
           indicators: ["Kernel exploit", "Vulnerable service exploitation"],
           hosts: ["Host03"],
           severity: "高",
         },
         {
           attck: "T1078",
+          ruleid: "c206b9d2-ab13-44ee-bd1b-d12b909c152c",
           name: "valid accounts",
-          stage: ["privilege-escalation"],
+          stage: ["privilege escalation"], // 修正标识符
           indicators: ["Use of compromised admin credentials", "Account misuse"],
           hosts: ["Admin Workstation"],
-          severity: "高",
+          severity: "中",
         },
       ],
     },
     {
       stage: "防御绕过 (defense-evasion)",
-      description:
-        "入侵过程中使用的各种技术,目的是规避安全检测。这些技术包括卸载或禁用安全软件、混淆或加密数据和脚本，以及利用受信任的进程来隐藏和伪装恶意软件。",
+      description: "入侵过程中使用的各种技术,目的是规避安全检测。这些技术包括卸载或禁用安全软件、混淆或加密数据和脚本，以及利用受信任的进程来隐藏和伪装恶意软件。",
       count: 8,
       icon: "ShieldOff",
       details: [
         {
           attck: "T1027",
+          ruleid: "5eb8bd54-1a17-46dc-aba3-52fca512691a",
           name: "obfuscated files or information",
           stage: ["defense-evasion"],
           indicators: ["Base64 encoded payload", "Encrypted script"],
@@ -247,6 +261,7 @@ export const attckData = {
         },
         {
           attck: "T1089",
+          ruleid: "3d7a1c51-6321-4ed8-8aae-5c3f45f734c6",
           name: "disabling security tools",
           stage: ["defense-evasion"],
           indicators: ["Antivirus service stopped", "Firewall disabled"],
@@ -255,6 +270,7 @@ export const attckData = {
         },
         {
           attck: "T1562",
+          ruleid: "5023b517-9266-4eef-adf1-418ffa7d3f04",
           name: "impair defenses",
           stage: ["defense-evasion"],
           indicators: ["Tampered security logs", "Modified system policies"],
@@ -263,6 +279,7 @@ export const attckData = {
         },
         {
           attck: "T1218",
+          ruleid: "bbdcd345-2965-4b18-8f2b-697fb97157ae",
           name: "signed binary proxy execution",
           stage: ["defense-evasion"],
           indicators: ["Using trusted binaries to execute payloads", "Abuse of certutil.exe"],
@@ -273,13 +290,13 @@ export const attckData = {
     },
     {
       stage: "凭证访问 (credential-access)",
-      description:
-        "通过各种技术手段获取凭证(如账户名和密码),常见方法包括键盘记录和凭证转储.利用合法凭证,攻击者不仅能访问系统，还能提高隐蔽性，并有机会创建更多账户以助其实现攻击目标.",
+      description: "通过各种技术手段获取凭证(如账户名和密码),常见方法包括键盘记录和凭证转储.利用合法凭证,攻击者不仅能访问系统，还能提高隐蔽性，并有机会创建更多账户以助其实现攻击目标.",
       count: 1,
       icon: "Key",
       details: [
         {
           attck: "T1003",
+          ruleid: "fc28c5a4-d3e3-4c13-bb6b-52fe311a21b0",
           name: "credential dumping",
           stage: ["credential-access"],
           indicators: ["Dumped SAM database", "LSASS memory access"],
@@ -290,32 +307,34 @@ export const attckData = {
     },
     {
       stage: "发现 (discovery)",
-      description:
-        "发现阶段指攻击者在入侵后，利用多种技术手段搜集目标系统和内部网络的信息，目的是全面了解环境，评估可控资源及潜在利用点。这些信息有助于攻击者确定最佳攻击路径和策略，通常会使用操作系统自带的工具执行信息收集和环境侦察，从而为后续攻击奠定基础。",
+      description: "发现阶段指攻击者在入侵后，利用多种技术手段搜集目标系统和内部网络的信息，目的是全面了解环境，评估可控资源及潜在利用点。这些信息有助于攻击者确定最佳攻击路径和策略，通常会使用操作系统自带的工具执行信息收集和环境侦察，从而为后续攻击奠定基础。",
       count: 5,
       icon: "Search",
       details: [
         {
           attck: "T1083",
+          ruleid: "2a50edcf-7f97-45da-a189-2af20a22bf3e",
           name: "file and directory discovery",
           stage: ["discovery"],
-          indicators: ["目录列表", "文件枚举"],
+          indicators: ["Directory listing", "File enumeration"], // 统一为英文
           hosts: ["Host01", "Host02"],
           severity: "中",
         },
         {
           attck: "T1046",
+          ruleid: "6b9f8f94-c859-400c-b11d-44ee6f6716e7",
           name: "network service discovery",
           stage: ["discovery"],
-          indicators: ["端口扫描", "服务探测"],
+          indicators: ["Port scanning", "Service probing"], // 统一为英文
           hosts: ["Host03", "Host04"],
           severity: "中",
         },
         {
           attck: "T1018",
+          ruleid: "7eb7a7aa-2d41-49bd-95d3-dcf1d10a778c",
           name: "remote system discovery",
           stage: ["discovery"],
-          indicators: ["远程主机扫描", "SNMP查询"],
+          indicators: ["Remote host scanning", "SNMP queries"], // 统一为英文
           hosts: ["Host05"],
           severity: "低",
         },
@@ -323,13 +342,13 @@ export const attckData = {
     },
     {
       stage: "横向移动 (lateral movement)",
-      description:
-        "攻击者试图在目标环境内横向移动，通过多种技术进入并控制网络中的远程系统，探索网络以定位并访问目标，通常需要借助远程访问工具或合法凭据配合系统自带工具完成。",
+      description: "攻击者试图在目标环境内横向移动，通过多种技术进入并控制网络中的远程系统，探索网络以定位并访问目标，通常需要借助远程访问工具或合法凭据配合系统自带工具完成。",
       count: 4,
       icon: "ArrowRightLeft",
       details: [
         {
           attck: "T1021",
+          ruleid: "6fc51473-b179-4c11-8e47-d225cb82f88d",
           name: "remote services",
           stage: ["lateral movement"],
           indicators: ["Remote Desktop Protocol usage", "SMB sessions"],
@@ -338,6 +357,7 @@ export const attckData = {
         },
         {
           attck: "T1075",
+          ruleid: "82f88171-2920-4caa-a668-adfbab003d9a",
           name: "pass the hash",
           stage: ["lateral movement"],
           indicators: ["Use of NTLM hashes", "Authentication using hashed credentials"],
@@ -348,13 +368,13 @@ export const attckData = {
     },
     {
       stage: "收集 (collection)",
-      description:
-        "攻击者试图收集对其目标有价值的数据，收集阶段包括从各种来源获取信息，以支持后续的数据窃取或环境侦察，常见手段有截屏和记录键盘输入等。",
+      description: "攻击者试图收集对其目标有价值的数据，收集阶段包括从各种来源获取信息，以支持后续的数据窃取或环境侦察，常见手段有截屏和记录键盘输入等。",
       count: 4,
       icon: "Download",
       details: [
         {
           attck: "T1113",
+          ruleid: "48f28861-119a-4eb3-9ffb-90e619a90f62",
           name: "screen capture",
           stage: ["collection"],
           indicators: ["Screenshot images", "Remote desktop capture"],
@@ -363,6 +383,7 @@ export const attckData = {
         },
         {
           attck: "T1056",
+          ruleid: "e5f17c5c-db88-4ab5-b43f-d3eacd5ce03d",
           name: "input capture",
           stage: ["collection"],
           indicators: ["Keylogger", "Credential sniffing"],
@@ -371,6 +392,7 @@ export const attckData = {
         },
         {
           attck: "T1074",
+          ruleid: "9f585b9a-1cf3-4a6d-8abd-05b07e542cf6",
           name: "data staged",
           stage: ["collection"],
           indicators: ["Data aggregation on local disk", "Temporary storage of exfiltration data"],
@@ -381,23 +403,24 @@ export const attckData = {
     },
     {
       stage: "命令与控制 (Command and Control)",
-      description:
-        "攻击者试图与被攻陷的系统通信以实现远程控制，通常通过模拟正常流量来避免被检测，采用多种隐蔽手段建立指挥和控制通道.",
+      description: "攻击者试图与被攻陷的系统通信以实现远程控制，通常通过模拟正常流量来避免被检测，采用多种隐蔽手段建立指挥和控制通道.",
       count: 4,
       icon: "Cast",
       details: [
         {
           attck: "T1071",
+          ruleid: "723cb763-3e2f-4e16-8c78-adc28433410e",
           name: "application layer protocol",
-          stage: ["command-and-control"],
+          stage: ["command and control"], // 修正标识符
           indicators: ["HTTP POST requests to suspicious domains", "Unusual DNS queries"],
           hosts: ["Host23", "Host47"],
           severity: "高",
         },
         {
           attck: "T1095",
+          ruleid: "1092bb8e-907c-49c2-8a7d-7022cb3b8b2f",
           name: "non-application layer protocol",
-          stage: ["command-and-control"],
+          stage: ["command and control"], // 修正标识符
           indicators: ["Use of custom C2 protocol over TCP", "Encrypted peer-to-peer traffic"],
           hosts: ["Host12", "Host33"],
           severity: "中",
@@ -406,40 +429,43 @@ export const attckData = {
     },
     {
       stage: "数据泄露 (exfiltration)",
-      description:
-        "攻击者试图窃取数据，通常通过压缩加密等手段隐藏并传输数据，利用指挥控制通道或其他途径将数据从目标网络中秘密导出。",
+      description: "攻击者试图窃取数据，通常通过压缩加密等手段隐藏并传输数据，利用指挥控制通道或其他途径将数据从目标网络中秘密导出。",
       count: 5,
       icon: "Upload",
       details: [
         {
           attck: "T1041",
+          ruleid: "6806bbae-fd97-4e0d-b38b-bab70ea58ecd",
           name: "exfiltration over command and control channel",
           stage: ["exfiltration"],
-          indicators: ["加密流量", "非正常带宽使用"],
+          indicators: ["Encrypted traffic", "Abnormal bandwidth usage"], // 统一为英文
           hosts: ["Server01", "HostA"],
           severity: "高",
         },
         {
           attck: "T1020",
+          ruleid: "4b8a79ff-0391-410e-aaae-9e6208f14b75",
           name: "automated exfiltration",
           stage: ["exfiltration"],
-          indicators: ["定时文件传输", "批量数据导出"],
+          indicators: ["Scheduled file transfer", "Bulk data export"], // 统一为英文
           hosts: ["Database01"],
           severity: "中",
         },
         {
           attck: "T1567",
+          ruleid: "61084c01-1d9d-4290-8a9d-09112dea49a7",
           name: "exfiltration over web service",
           stage: ["exfiltration"],
-          indicators: ["异常HTTP请求", "数据隐藏在合法流量中"],
+          indicators: ["Abnormal HTTP requests", "Data hidden in legitimate traffic"], // 统一为英文
           hosts: ["WebServer01"],
           severity: "中",
         },
         {
           attck: "T1052",
+          ruleid: "50963565-21a6-4c6c-878b-76014edb4b90",
           name: "exfiltration over physical medium",
           stage: ["exfiltration"],
-          indicators: ["USB设备接入", "物理拷贝行为"],
+          indicators: ["USB device access", "Physical copying behavior"], // 统一为英文
           hosts: ["Workstation12"],
           severity: "高",
         },
@@ -447,13 +473,13 @@ export const attckData = {
     },
     {
       stage: "影响破坏 (impact)",
-      description:
-        "攻击者试图操控、中断或破坏您的系统和数据，通过篡改业务和操作流程来影响系统的可用性或完整性，这些手段可能包括删除或篡改数据，有时业务表面正常但已被修改以利于攻击者目标。",
+      description: "攻击者试图操控、中断或破坏您的系统和数据，通过篡改业务和操作流程来影响系统的可用性或完整性，这些手段可能包括删除或篡改数据，有时业务表面正常但已被修改以利于攻击者目标。",
       count: 5,
       icon: "Zap",
       details: [
         {
           attck: "T1485",
+          ruleid: "56ad09e7-28bc-4fa6-a35b-5410af1467f6",
           name: "data destruction",
           stage: ["impact"],
           indicators: ["Deleted critical files", "Wiped databases"],
@@ -462,6 +488,7 @@ export const attckData = {
         },
         {
           attck: "T1490",
+          ruleid: "94e18d8d-5def-44fa-a210-6eb7381b006b",
           name: "inhibit system recovery",
           stage: ["impact"],
           indicators: ["Disabled backups", "Deleted recovery partitions"],
@@ -470,6 +497,7 @@ export const attckData = {
         },
         {
           attck: "T1565",
+          ruleid: "881d8953-6cdc-4621-a8ba-f46956976325",
           name: "data manipulation",
           stage: ["impact"],
           indicators: ["Altered financial records", "Modified log files"],
@@ -479,4 +507,4 @@ export const attckData = {
       ],
     },
   ],
-}
+};
