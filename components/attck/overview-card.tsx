@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getStageIconComponent, getStageIconBgStyle } from "@/lib/stageIcon"
 import { getStageColor, slugify } from "@/lib/stageColor"
 import { Eye } from "lucide-react"
+import CountUp from "@/components/dash/CountUp"
 
 interface OverviewCardProps {
   title: string
@@ -41,9 +42,8 @@ export default function OverviewCard({
       )}
 
       <Card
-        className={`relative overflow-hidden rounded-lg border-0 shadow-md hover:shadow-lg transition-shadow duration-300 ${
-          selected ? "ring-2 ring-blue-500 shadow-lg" : ""
-        }`}
+        className={`relative overflow-hidden rounded-lg border-0 shadow-md hover:shadow-lg transition-shadow duration-300 ${selected ? "ring-2 ring-blue-500 shadow-lg" : ""
+          }`}
       >
         {/* 渐变背景装饰 */}
         <div
@@ -71,7 +71,14 @@ export default function OverviewCard({
           </p>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">
-              {count}
+              <span style={{ color }}>
+                <CountUp
+                  end={count}
+                  duration={1500}
+                  start={0}
+                  className="text-2xl font-bold tabular-nums"
+                />
+              </span>
             </div>
           </div>
         </CardContent>

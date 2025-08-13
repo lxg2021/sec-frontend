@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 import { type AttckStage, type Severity, badgeSeverityTextColor } from "@/lib/attck-utils"
 import { getStageIconComponent, getStageIconBgStyle } from "@/lib/stageIcon"
 import { getStageColor, slugify } from "@/lib/stageColor"
+import { SearchCode, Layers, Inspect } from "lucide-react"
 
 interface StageDetailsProps {
   stage?: AttckStage | null
@@ -179,8 +180,13 @@ export default function StageDetails({ stage }: StageDetailsProps) {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="outline" size="sm" onClick={() => router.push("/drill")} className="px-3">
-                              ...
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => router.push("/drill")}
+                              className="h-8 w-8 p-0 hover:bg-blue-100 transition-colors"
+                            >
+                              <Inspect className="h-4 w-4 text-blue-600 hover:text-blue-800" />
                             </Button>
                           </TableCell>
                         </TableRow>

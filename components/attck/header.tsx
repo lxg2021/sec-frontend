@@ -6,6 +6,7 @@ import type { AttckData, Severity } from "@/lib/attck-utils"
 import { formatDateRange, countsFromSeverityEntries } from "@/lib/attck-utils"
 import { Activity, Server, ShieldAlert, AlertTriangle, Clock } from "lucide-react"
 import dayjs from "dayjs"
+import CountUp from "@/components/dash/CountUp"
 
 interface HeaderProps {
   data: AttckData
@@ -75,8 +76,8 @@ export default function AttckHeader({ data }: HeaderProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold text-slate-800 dark:text-white">
-              {data["attck-counts"]}
+            <div className="text-2xl font-bold bg-gradient-to-br from-blue-400 to-indigo-600 bg-clip-text text-transparent">
+              <CountUp end={data["attck-counts"]} duration={1500} start={0} />
             </div>
           </div>
         </CardContent>
@@ -94,12 +95,13 @@ export default function AttckHeader({ data }: HeaderProps) {
         </CardHeader>
         <CardContent>
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold text-slate-800 dark:text-white">
-              {data["affected-hosts"]}
+            <div className="text-2xl font-bold bg-gradient-to-br from-green-400 to-emerald-600 bg-clip-text text-transparent">
+              <CountUp end={data["affected-hosts"]} duration={1500} start={0} />
             </div>
           </div>
         </CardContent>
       </Card>
+
 
       <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-600 opacity-5 group-hover:opacity-10 transition-opacity" />
