@@ -7,16 +7,22 @@ import OverviewCarousel from "@/components/attck/overview-carousel"
 import StageHostDistributionChart from "@/components/charts/stage-host-distribution-chart"
 import AttackTop10 from "@/components/charts/attack-top10"
 import { attckData } from "@/data/attmock-data"
-import { Shield, TrendingUp, BarChart3, Clock } from "lucide-react"
+import { Shield, BarChart3, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { slugify } from "@/lib/stageColor"
 
+const formatEndTime = (timeString) => {
+  if (!timeString) return "无数据"
+  return timeString.replace(/-/g, '/')
+}
 
 export default function AttckDashboardPage() {
   const data = attckData
-  const [selectedStageSlug, setSelectedStageSlug] = useState(null)    /** 柱状图选择的标签 */
+  const stages = data?.stages || []
 
-  const stages = data?.stages ?? []
+  // 默认选中第一个柱形图
+  const firstStageSlug = stages.length > 0 ? slugify(stages[0].stage) : null
+  const [selectedStageSlug, setSelectedStageSlug] = useState(firstStageSlug)
 
   /**
    * 通过 selectedStageSlug 从 stages 中查找对应的阶段对象。
@@ -26,7 +32,7 @@ export default function AttckDashboardPage() {
    */
   const selectedStage = useMemo(() => {
     if (!selectedStageSlug) return null
-    return stages.find((s) => slugify(s.stage) === selectedStageSlug) ?? null
+    return stages.find(s => slugify(s.stage) === selectedStageSlug) || null
   }, [selectedStageSlug, stages])
 
   /**
@@ -44,7 +50,7 @@ export default function AttckDashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        {/* 页面头部 - 添加最后检查时间 */}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-50 rounded-lg">
@@ -56,15 +62,16 @@ export default function AttckDashboardPage() {
             </div>
           </div>
 
+          {/* 页面头部 - 添加最后检查时间 */}
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Clock className="h-4 w-4 text-blue-300" />
-            <span>最后检查时间: 2025/7/24 18:10:08</span>
+            <span>最后检查时间: {data.endtime}</span>
           </div>
         </div>
 
-        {/* 概览轮播组件 */}
+        {/* 概览Header组件 */}
         <AttckHeader data={data} />
-      
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 攻击阶段主机分布图 */}
           <StageHostDistributionChart
@@ -74,7 +81,7 @@ export default function AttckDashboardPage() {
           />
 
           {/* Attck TOP10 */}
-          <AttackTop10 top10={data?.top10 ?? []} />
+          <AttackTop10 top10={data?.top10 || []} />
         </div>
 
         {/* Stage统计、详情 */}
@@ -93,8 +100,8 @@ export default function AttckDashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* 轮播 */}
                 <div>
+                  {/* 轮播 */}
                   <OverviewCarousel
                     stages={stages}
                     selectedStageSlug={selectedStageSlug}
