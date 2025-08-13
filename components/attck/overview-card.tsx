@@ -42,8 +42,9 @@ export default function OverviewCard({
       )}
 
       <Card
-        className={`relative overflow-hidden rounded-lg border-0 shadow-md hover:shadow-lg transition-shadow duration-300 ${selected ? "ring-2 ring-blue-500 shadow-lg" : ""
-          }`}
+        className={`relative overflow-hidden rounded-lg border-0 shadow-md hover:shadow-lg transition-shadow transition-transform duration-300
+    hover:scale-105 hover:-translate-y-1
+    ${selected ? "ring-2 ring-blue-500 shadow-lg" : ""}`}
       >
         {/* 渐变背景装饰 */}
         <div
@@ -83,6 +84,7 @@ export default function OverviewCard({
           </div>
         </CardContent>
       </Card>
+
     </button>
   )
 }
