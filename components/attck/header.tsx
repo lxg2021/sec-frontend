@@ -6,7 +6,6 @@ import type { AttckData, Severity } from "@/lib/attck-utils"
 import { formatDateRange, countsFromSeverityEntries } from "@/lib/attck-utils"
 import { Activity, Server, ShieldAlert, AlertTriangle, Clock } from "lucide-react"
 import dayjs from "dayjs"
-import CountUp from "@/components/dash/CountUp"
 
 interface HeaderProps {
   data: AttckData
@@ -77,7 +76,7 @@ export default function AttckHeader({ data }: HeaderProps) {
         <CardContent>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold bg-gradient-to-br from-blue-400 to-indigo-600 bg-clip-text text-transparent">
-              <CountUp end={data["attck-counts"]} duration={1500} start={0} />
+              {data["attck-counts"]}
             </div>
           </div>
         </CardContent>
@@ -96,7 +95,7 @@ export default function AttckHeader({ data }: HeaderProps) {
         <CardContent>
           <div className="flex items-baseline justify-between">
             <div className="text-2xl font-bold bg-gradient-to-br from-green-400 to-emerald-600 bg-clip-text text-transparent">
-              <CountUp end={data["affected-hosts"]} duration={1500} start={0} />
+              {data["affected-hosts"]}
             </div>
           </div>
         </CardContent>
