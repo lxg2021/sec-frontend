@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { KillChainNode } from "./kill-chain-node"
 import { KillChainDetails } from "./kill-chain-details"
 import type { KillChainStageData, DynamicKillChainData } from "@/lib/kill-chain"
@@ -37,13 +37,6 @@ export function KillChainTimeline({ dynamicData = [] }: KillChainTimelineProps) 
     )
   }, [dynamicData])
 
-  /** 计算进度条宽度 */
-  const progressWidth = useMemo(() => {
-    const activeIndex = stages.findIndex((stage) => stage.status === "active")
-    const completedCount = stages.filter((stage) => stage.status === "completed").length
-
-    return activeIndex >= 0 ? (completedCount + 0.5) * (100 / stages.length) : completedCount * (100 / stages.length)
-  }, [stages])
 
   return (
     <div className="w-full">
