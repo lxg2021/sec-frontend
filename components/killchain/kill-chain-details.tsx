@@ -4,9 +4,9 @@ import type { KillChainStageData } from "@/lib/kill-chain"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Clock, Workflow } from "lucide-react"
@@ -19,8 +19,6 @@ interface KillChainDetailsProps {
 }
 
 export function KillChainDetails({ stage, isOpen, onClose }: KillChainDetailsProps) {
-  // console.log("当前 stage:", stage)
-
   const getStatusColor = () => {
     switch (stage?.status) {
       case "completed":
@@ -46,7 +44,7 @@ export function KillChainDetails({ stage, isOpen, onClose }: KillChainDetailsPro
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3">
@@ -57,17 +55,20 @@ export function KillChainDetails({ stage, isOpen, onClose }: KillChainDetailsPro
             <div>
               <DialogTitle className="text-xl">{stage?.name || "未选择阶段"}</DialogTitle>
 
-              <DialogDescription className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={cn(getStatusColor())}>
-                  {getStatusText()}
-                </Badge>
-                {stage?.startTime && (
-                  <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    {stage.startTime}
-                    {stage.endTime && ` - ${stage.endTime}`}
-                  </span>
-                )}
+              {/* 使用 asChild + div 避免 <p> 内嵌 <div> */}
+              <DialogDescription asChild>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline" className={cn(getStatusColor())}>
+                    {getStatusText()}
+                  </Badge>
+                  {stage?.startTime && (
+                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Clock className="w-3 h-3" />
+                      {stage.startTime}
+                      {stage.endTime && ` - ${stage.endTime}`}
+                    </span>
+                  )}
+                </div>
               </DialogDescription>
             </div>
           </div>
@@ -97,7 +98,6 @@ export function KillChainDetails({ stage, isOpen, onClose }: KillChainDetailsPro
           {/* ATT&CK Stages */}
           {stage?.attckStages && stage.attckStages.length > 0 ? (
             <div>
-
               {/* MITRE ATT&CK Stages */}
               <div className="flex items-center gap-2 mb-3">
                 <Workflow className={`w-5 h-5 ${cn(getStatusColor())}`} />
@@ -131,7 +131,7 @@ export function KillChainDetails({ stage, isOpen, onClose }: KillChainDetailsPro
                               <span className="font-medium text-sm">{technique.name}</span>
                               <span className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                {technique.time || "未知时间"}
+                                {technique.time ? technique.time : "未知时间"}
                               </span>
                             </div>
 
