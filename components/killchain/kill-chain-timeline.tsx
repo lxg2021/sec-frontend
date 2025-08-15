@@ -37,16 +37,28 @@ export function KillChainTimeline({ dynamicData = [] }: KillChainTimelineProps) 
     )
   }, [dynamicData])
 
+  /** 根据 stage.status 获取颜色 */
+  const getColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "#1D4ED8" // 蓝色
+      case "active":
+        return "rgba(29,78,216,0.6)" // 半透明蓝
+      default:
+        return "#E5E7EB" // 灰色
+    }
+  }
 
   return (
     <div className="w-full">
       <div className="relative">
         {/* Timeline container */}
         <div className="relative px-2 sm:px-4">
-          <div className="flex items-center gap-4 relative">
+          <div className="flex items-start gap-6 relative">
             {/* Stage nodes with arrows */}
             {stages.map((stage, index) => (
-              <div key={stage.id} className="relative z-20 flex flex-col items-center flex-1">
+              <div key={stage.id} className="relative z-20 flex flex-col items-center flex-1 min-w-[100px]">
+                {/* Node */}
                 <div className="flex-shrink-0 mb-2">
                   <KillChainNode
                     stage={stage}
@@ -56,8 +68,9 @@ export function KillChainTimeline({ dynamicData = [] }: KillChainTimelineProps) 
                   />
                 </div>
 
-                <div className="flex flex-col items-center text-center">
-                  <h3 className="text-[10px] sm:text-xs font-medium text-foreground mb-1 leading-tight break-words max-w-full px-1">
+                {/* Stage name + time */}
+                <div className="flex flex-col items-center text-center w-full">
+                  <h3 className="text-[10px] sm:text-xs font-medium text-foreground mb-1 leading-tight break-words px-1">
                     {stage.name}
                   </h3>
                   {stage.startTime && (
@@ -67,7 +80,7 @@ export function KillChainTimeline({ dynamicData = [] }: KillChainTimelineProps) 
                   )}
                 </div>
 
-                {/* Directional arrow (positioned between nodes) */}
+                {/* Directional arrow */}
                 {index < stages.length - 1 && (
                   <div
                     className="absolute top-6 left-full flex items-center justify-center z-10"
@@ -75,28 +88,22 @@ export function KillChainTimeline({ dynamicData = [] }: KillChainTimelineProps) 
                   >
                     {/* Arrow line */}
                     <div
-                      className={`h-0.5 transition-colors duration-500 ${
-                        stage.status === "completed"
-                          ? "bg-primary"
-                          : stage.status === "active"
-                            ? "bg-primary/60"
-                            : "bg-border"
-                      }`}
-                      style={{ width: "40px" }}
+                      style={{
+                        width: "40px",
+                        height: "2px",
+                        backgroundColor: getColor(stage.status),
+                        transition: "background-color 0.5s",
+                      }}
                     />
                     {/* Arrow head */}
                     <div
-                      className={`w-0 h-0 transition-colors duration-500 ${
-                        stage.status === "completed"
-                          ? "border-l-primary"
-                          : stage.status === "active"
-                            ? "border-l-primary/60"
-                            : "border-l-border"
-                      }`}
                       style={{
-                        borderLeft: "8px solid",
+                        width: 0,
+                        height: 0,
                         borderTop: "4px solid transparent",
                         borderBottom: "4px solid transparent",
+                        borderLeft: `8px solid ${getColor(stage.status)}`,
+                        transition: "border-color 0.5s",
                       }}
                     />
                   </div>
@@ -108,7 +115,11 @@ export function KillChainTimeline({ dynamicData = [] }: KillChainTimelineProps) 
       </div>
 
       {/* Details panel */}
-      <KillChainDetails stage={selectedStage} isOpen={!!selectedStage} onClose={() => setSelectedStage(null)} />
+      <KillChainDetails
+        stage={selectedStage}
+        isOpen={!!selectedStage}
+        onClose={() => setSelectedStage(null)}
+      />
     </div>
   )
 }
