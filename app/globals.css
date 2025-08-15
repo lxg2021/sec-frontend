@@ -114,3 +114,38 @@
 .animate-blink {
   animation: blink 1s ease-in-out infinite;
 }
+
+/* Add custom keyframes to prevent ResizeObserver issues */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.ping-animation {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+
+.progress-line {
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 1s ease-out;
+}
