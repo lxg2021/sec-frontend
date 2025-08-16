@@ -44,9 +44,7 @@ const iconMap = {
   ChevronUp,
 }
 
-const getIcon = (iconName: keyof typeof iconMap) => {
-  return iconMap[iconName] || Info
-}
+const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info
 
 interface EventCardProps {
   data: AllEventData
@@ -81,17 +79,11 @@ export function EventCard({ data, eventType, className, cardConfig, headerConfig
     sectionIndex: number,
     fieldIndex: number
   ) => {
-    if (field.customRender) {
-      return field.customRender(value)
-    }
+    if (field.customRender) return field.customRender(value)
 
     const fieldKey = `${sectionIndex}-${fieldIndex}`
     const stringValue = String(value ?? "-")
     const isExpanded = expandedFields.has(fieldKey)
-
-    const shouldTruncate = field.truncate && field.maxLength && stringValue.length > field.maxLength
-    const displayValue =
-      shouldTruncate && !isExpanded ? stringValue.substring(0, field.maxLength) + "..." : stringValue
 
     const classes = [
       field.color || "text-gray-600",
@@ -103,14 +95,27 @@ export function EventCard({ data, eventType, className, cardConfig, headerConfig
       .join(" ")
 
     return (
-      <div className="flex items-center gap-2 flex-1">
-        <span className={classes}>{displayValue}</span>
-        {shouldTruncate && field.showInPopover ? (
+      <div className="flex items-start gap-2 flex-1">
+        <span className={`${classes} break-all whitespace-pre-wrap`}>{stringValue}</span>
+
+        {field.expandable && (
+          <Button variant="ghost" size="sm" onClick={() => toggleExpanded(fieldKey)} className="h-6 px-2 text-xs">
+            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            {isExpanded ? "收起" : "展开"}
+          </Button>
+        )}
+
+        {field.copyable && (
+          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(stringValue)} className="h-6 px-2 text-xs">
+            <Copy className="h-3 w-3" />
+          </Button>
+        )}
+
+        {field.showInPopover && (
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                <ChevronDown className="h-3 w-3" />
-                展开
+                <ChevronDown className="h-3 w-3" /> 查看
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-96 max-h-80 overflow-auto">
@@ -123,8 +128,7 @@ export function EventCard({ data, eventType, className, cardConfig, headerConfig
                     onClick={() => copyToClipboard(stringValue)}
                     className="h-6 px-2 text-xs"
                   >
-                    <Copy className="h-3 w-3" />
-                    复制
+                    <Copy className="h-3 w-3" /> 复制
                   </Button>
                 </div>
                 <div className={`text-xs break-all whitespace-pre-wrap ${field.monospace ? "font-mono" : ""}`}>
@@ -133,19 +137,6 @@ export function EventCard({ data, eventType, className, cardConfig, headerConfig
               </div>
             </PopoverContent>
           </Popover>
-        ) : (
-          shouldTruncate &&
-          field.expandable && (
-            <Button variant="ghost" size="sm" onClick={() => toggleExpanded(fieldKey)} className="h-6 px-2 text-xs">
-              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              {isExpanded ? "收起" : "展开"}
-            </Button>
-          )
-        )}
-        {field.copyable && !field.showInPopover && (
-          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(stringValue)} className="h-6 px-2 text-xs">
-            <Copy className="h-3 w-3" />
-          </Button>
         )}
       </div>
     )
@@ -177,14 +168,15 @@ export function EventCard({ data, eventType, className, cardConfig, headerConfig
           </div>
         </div>
 
+        {/* Header 字段 Grid，多行显示 */}
         <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-600">
           {finalHeaderConfig.fields.map((field, index) => {
             const IconComponent = field.icon ? getIcon(field.icon as keyof typeof iconMap) : null
             return (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex items-start gap-2">
                 {IconComponent && <IconComponent className={`h-4 w-4 ${field.color}`} />}
                 <span className="font-medium">{field.label}:</span>
-                <span className="font-mono text-xs">{String(data[field.key] ?? "-")}</span>
+                <span className="font-mono text-xs break-all whitespace-pre-wrap">{String(data[field.key] ?? "-")}</span>
               </div>
             )
           })}
