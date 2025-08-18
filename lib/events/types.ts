@@ -139,6 +139,138 @@ export interface NetCommunicateData {
   UniqueID: string
 }
 
+export interface ServiceCreateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServiceName: string
+  DisplayName: string
+  ServiceType: number
+  StartType: number
+  ServiceBinaryMD5: string
+  ServiceStartName: string
+  ServiceBinaryPathName: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface ServiceStartData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServiceName: string
+  DisplayName: string
+  ServiceType: number
+  StartType: number
+  ServiceBinaryMD5: string
+  ServiceStartName: string
+  ServiceBinaryPathName: string
+  ServiceStartArgs: string | null
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface ServiceDeleteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServiceName: string
+  DisplayName: string
+  ServiceType: number
+  StartType: number
+  ServiceBinaryMD5: string
+  ServiceStartName: string
+  ServiceBinaryPathName: string
+  ServiceStartArgs: string | null
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface ServiceStopData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServiceName: string
+  DisplayName: string
+  ServiceType: number
+  StartType: number
+  ServiceBinaryMD5: string
+  ServiceStartName: string
+  ServiceBinaryPathName: string
+  ServiceControlCode: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface ServiceConfigData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServiceName: string
+
+  OrgServiceType: number
+  NewServiceType: number
+  OrgStartType: number
+  NewStartType: number
+  OrgServiceBinaryPathName: string
+  OrgServiceBinaryMD5: string
+  NewServiceBinaryPathName: string
+  NewServiceBinaryMD5: string
+  OrgDisplayName: string
+  NewDisplayName: string
+  OrgServiceStartName: string
+  NewServiceStartName: string
+
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface ServicePauseData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServiceName: string
+  DisplayName: string
+  ServiceType: number
+  StartType: number
+  ServiceBinaryMD5: string
+  ServiceStartName: string
+  ServiceBinaryPathName: string
+  ServiceControlCode: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
 
 
 export type AllEventData =
@@ -149,5 +281,11 @@ export type AllEventData =
   | CrossMemoryExecuteData
   | DnsData
   | NetCommunicateData
+  | ServiceCreateData
+  | ServiceStartData
+  | ServiceDeleteData
+  | ServiceStopData
+  | ServiceConfigData
+  | ServicePauseData
 
 export type EventKey = keyof AllEventData

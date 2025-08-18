@@ -39,6 +39,30 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.NET_COMMUNICATE_HEADER,
     card: EventConfigs.NET_COMMUNICATE_CARD,
   },
+  serviceCreate: {
+    header: EventConfigs.SERVICE_CREATE_HEADER,
+    card: EventConfigs.SERVICE_CREATE_CARD,
+  },
+  serviceStart: {
+    header: EventConfigs.SERVICE_START_HEADER,
+    card: EventConfigs.SERVICE_START_CARD,
+  },
+  serviceDelete: {
+    header: EventConfigs.SERVICE_DELETE_HEADER,
+    card: EventConfigs.SERVICE_DELETE_CARD,
+  },
+  serviceStop: {
+    header: EventConfigs.SERVICE_STOP_HEADER,
+    card: EventConfigs.SERVICE_STOP_CARD,
+  },
+  serviceConfig: {
+    header: EventConfigs.SERVICE_CONFIG_HEADER,
+    card: EventConfigs.SERVICE_CONFIG_CARD,
+  },
+  servicePause: {
+    header: EventConfigs.SERVICE_PAUSE_HEADER,
+    card: EventConfigs.SERVICE_PAUSE_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

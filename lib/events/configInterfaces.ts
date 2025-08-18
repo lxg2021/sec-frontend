@@ -48,4 +48,17 @@ export interface SectionConfig {
   fields: FieldConfig[]
 }
 
-export type EventType = "processCreate" | "processExit" | "processAccess" | "remoteThread" | "crossMemoryExecute" | "dns" | "netCommunicate"
+export type EventType =
+  | "processCreate"
+  | "processExit"
+  | "processAccess"
+  | "remoteThread"
+  | "crossMemoryExecute"
+  | "dns"
+  | "netCommunicate"
+  | "serviceCreate"
+  | "serviceDelete"
+  | "serviceStart"
+  | "serviceStop"
+  | "serviceConfig"
+  | "servicePause"
