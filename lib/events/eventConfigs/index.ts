@@ -13,6 +13,7 @@ import { SERVICE_DELETE_HEADER, SERVICE_DELETE_CARD } from "./serviceDeleteConfi
 import { SERVICE_STOP_HEADER, SERVICE_STOP_CARD } from "./serviceStopConfig"
 import { SERVICE_CONFIG_HEADER, SERVICE_CONFIG_CARD } from "./serviceConfigConfig"
 import { SERVICE_PAUSE_HEADER, SERVICE_PAUSE_CARD } from "./servicePauseConfig"
+import { DEVICE_CHANGE_HEADER, DEVICE_CHANGE_CARD } from "./deviceChangeConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -41,4 +42,6 @@ export {
   SERVICE_CONFIG_CARD,
   SERVICE_PAUSE_HEADER,
   SERVICE_PAUSE_CARD,
+  DEVICE_CHANGE_HEADER,
+  DEVICE_CHANGE_CARD,
 }

@@ -63,6 +63,10 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.SERVICE_PAUSE_HEADER,
     card: EventConfigs.SERVICE_PAUSE_CARD,
   },
+  deviceChange: {
+    header: EventConfigs.DEVICE_CHANGE_HEADER,
+    card: EventConfigs.DEVICE_CHANGE_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

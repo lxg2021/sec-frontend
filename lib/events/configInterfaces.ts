@@ -62,3 +62,4 @@ export type EventType =
   | "serviceStop"
   | "serviceConfig"
   | "servicePause"
+  | "deviceChange"

@@ -271,6 +271,18 @@ export interface ServicePauseData {
   UniqueID: string
 }
 
+export interface DeviceChangeData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  DeviceGUID: string
+  HID: string
+  DeviceType: number
+  DeviceDescription: string
+  DeviceFlag: number
+  UniqueID: string
+}
 
 
 export type AllEventData =
@@ -287,5 +299,6 @@ export type AllEventData =
   | ServiceStopData
   | ServiceConfigData
   | ServicePauseData
+  | DeviceChangeData
 
 export type EventKey = keyof AllEventData
