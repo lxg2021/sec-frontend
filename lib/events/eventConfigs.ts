@@ -67,6 +67,14 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.DEVICE_CHANGE_HEADER,
     card: EventConfigs.DEVICE_CHANGE_CARD,
   },
+  driverImageLoad: {
+    header: EventConfigs.DRIVER_IMAGE_LOAD_HEADER,
+    card: EventConfigs.DRIVER_IMAGE_LOAD_CARD,
+  },
+  dllImageLoad: {
+    header: EventConfigs.DLL_IMAGE_LOAD_HEADER,
+    card: EventConfigs.DLL_IMAGE_LOAD_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

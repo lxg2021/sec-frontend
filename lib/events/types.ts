@@ -284,6 +284,38 @@ export interface DeviceChangeData {
   UniqueID: string
 }
 
+export interface DriverImageLoadData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  Image: string
+  ImageMD5: string
+  ProcessID: number
+  ProcessName: string
+  Signature: number
+  SignVendor: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface DllImageLoadData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  Image: string
+  ImageMD5: string
+  Signature: number
+  SignVendor: string
+  ProcessGuid: string
+  OrgFileName: string
+  UniqueID: string
+}
 
 export type AllEventData =
   | ProcessCreateData
@@ -300,5 +332,7 @@ export type AllEventData =
   | ServiceConfigData
   | ServicePauseData
   | DeviceChangeData
+  | DriverImageLoadData
+  | DllImageLoadData
 
 export type EventKey = keyof AllEventData

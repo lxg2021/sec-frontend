@@ -14,6 +14,8 @@ import { SERVICE_STOP_HEADER, SERVICE_STOP_CARD } from "./serviceStopConfig"
 import { SERVICE_CONFIG_HEADER, SERVICE_CONFIG_CARD } from "./serviceConfigConfig"
 import { SERVICE_PAUSE_HEADER, SERVICE_PAUSE_CARD } from "./servicePauseConfig"
 import { DEVICE_CHANGE_HEADER, DEVICE_CHANGE_CARD } from "./deviceChangeConfig"
+import { DRIVER_IMAGE_LOAD_HEADER, DRIVER_IMAGE_LOAD_CARD } from "./driverImageLoadConfig"
+import { DLL_IMAGE_LOAD_HEADER, DLL_IMAGE_LOAD_CARD } from "./dllImageLoadConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -44,4 +46,8 @@ export {
   SERVICE_PAUSE_CARD,
   DEVICE_CHANGE_HEADER,
   DEVICE_CHANGE_CARD,
+  DRIVER_IMAGE_LOAD_HEADER,
+  DRIVER_IMAGE_LOAD_CARD,
+  DLL_IMAGE_LOAD_HEADER,
+  DLL_IMAGE_LOAD_CARD,
 }

@@ -63,3 +63,5 @@ export type EventType =
   | "serviceConfig"
   | "servicePause"
   | "deviceChange"
+  | "driverImageLoad"
+  | "dllImageLoad"
