@@ -103,11 +103,51 @@ export interface CrossMemoryExecuteData {
   UniqueID: string
 }
 
+export interface DnsData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  Domain: string
+  IPS: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface NetCommunicateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  Protocol: string
+  Direction: string
+  SourceIsIPv6: number
+  SourceIP: string
+  SourcePort: number
+  DestinationIsIPv6: number
+  DestinationIP: string
+  DestinationPort: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+
+
 export type AllEventData =
   | ProcessCreateData
   | ProcessExitData
   | ProcessAccessData
   | RemoteThreadData
   | CrossMemoryExecuteData
+  | DnsData
+  | NetCommunicateData
 
 export type EventKey = keyof AllEventData

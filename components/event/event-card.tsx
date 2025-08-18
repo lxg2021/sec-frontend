@@ -21,6 +21,11 @@ import {
   Clock,
   Eye,
   EyeOff,
+  Radio,
+  Globe,
+  ArrowRightLeft,
+  Server,
+  Network,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -42,6 +47,11 @@ const iconMap = {
   Copy,
   ChevronDown,
   ChevronUp,
+  Radio,
+  Globe,
+  ArrowRightLeft,
+  Server,
+  Network,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

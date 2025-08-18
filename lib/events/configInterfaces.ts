@@ -48,4 +48,4 @@ export interface SectionConfig {
   fields: FieldConfig[]
 }
 
-export type EventType = "processCreate" | "processExit" | "processAccess" | "remoteThread" | "crossMemoryExecute"
+export type EventType = "processCreate" | "processExit" | "processAccess" | "remoteThread" | "crossMemoryExecute" | "dns" | "netCommunicate"

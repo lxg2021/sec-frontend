@@ -5,6 +5,8 @@ import { PROCESS_EXIT_HEADER, PROCESS_EXIT_CARD } from "./processExitConfig"
 import { PROCESS_ACCESS_HEADER, PROCESS_ACCESS_CARD } from "./processAccessConfig"
 import { REMOTE_THREAD_HEADER, REMOTE_THREAD_CARD } from "./remoteThreadConfig"
 import { CROSS_MEMORY_EXECUTE_HEADER, CROSS_MEMORY_EXECUTE_CARD } from "./crossMemoryExecuteConfig"
+import { DNS_HEADER, DNS_CARD } from "./dnsConfig"
+import { NET_COMMUNICATE_HEADER, NET_COMMUNICATE_CARD } from "./netComunicateConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -17,4 +19,8 @@ export {
   REMOTE_THREAD_CARD,
   CROSS_MEMORY_EXECUTE_HEADER,
   CROSS_MEMORY_EXECUTE_CARD,
+  DNS_HEADER,
+  DNS_CARD,
+  NET_COMMUNICATE_HEADER,
+  NET_COMMUNICATE_CARD,
 }

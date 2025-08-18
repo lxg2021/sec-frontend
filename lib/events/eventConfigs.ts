@@ -31,6 +31,14 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.CROSS_MEMORY_EXECUTE_HEADER,
     card: EventConfigs.CROSS_MEMORY_EXECUTE_CARD,
   },
+  dns: {
+    header: EventConfigs.DNS_HEADER,
+    card: EventConfigs.DNS_CARD,
+  },
+  netCommunicate: {
+    header: EventConfigs.NET_COMMUNICATE_HEADER,
+    card: EventConfigs.NET_COMMUNICATE_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数
