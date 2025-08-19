@@ -384,6 +384,33 @@ export interface WmiQueryData {
   UniqueID: string
 }
 
+export interface WmiClassAttribute {
+  attrname: string
+  attrvalue: string
+  isbase64: boolean
+}
+
+export interface WmiCreateClassData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServerName: string | null
+  User: string | null
+  Namespace: string | null
+  ClassName: string
+  ClassPath: string | null
+  SuperClassName: string | null
+  ClassAttributes: WmiClassAttribute[]
+  ProcessGuid: string
+  UniqueID: string
+}
+
+
 export type AllEventData =
   | ProcessCreateData
   | ProcessExitData
@@ -406,5 +433,6 @@ export type AllEventData =
   | TaskTriggerItem
   | TaskDeleteData
   | WmiQueryData
+  | WmiCreateClassData
 
 export type EventKey = keyof AllEventData

@@ -20,6 +20,7 @@ import type {
   TaskTriggerItem,
   TaskDeleteData,
   WmiQueryData,
+  WmiCreateClassData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -407,4 +408,38 @@ export const sampleWmiQueryData: WmiQueryData = {
   QueryLanguage: "wql",
   ProcessGuid: "5c67accb12bc163400baa93dd59dda01",
   UniqueID: "00a41e6d-2dc9-4e20-aeb2-dea0d6e655f4"
+}
+
+export const sampleWmiCreateClassData: WmiCreateClassData = {
+  EventID: 57,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:46:51",
+  ProcessID: 5632,
+  ProcessName: "wmicreateclass.exe",
+  ProcessImage: "c:\\users\\lxg\\desktop\\sdb\\wmicreateclass.exe",
+  ProcessMD5: "a1ca720ee3882319a55438bf2991a1fc",
+  ServerName: null,
+  User: null,
+  Namespace: null,
+  ClassName: "example",
+  ClassPath: null,
+  SuperClassName: null,
+  ClassAttributes: [
+    { attrname: "__genus", attrvalue: "1", isbase64: false },
+    { attrname: "__class", attrvalue: "example", isbase64: false },
+    { attrname: "__superclass", attrvalue: "", isbase64: false },
+    { attrname: "__dynasty", attrvalue: "example", isbase64: false },
+    { attrname: "__relpath", attrvalue: "example", isbase64: false },
+    { attrname: "__property_count", attrvalue: "3", isbase64: false },
+    { attrname: "__derivation", attrvalue: "", isbase64: false },
+    { attrname: "__server", attrvalue: "", isbase64: false },
+    { attrname: "__namespace", attrvalue: "", isbase64: false },
+    { attrname: "__path", attrvalue: "", isbase64: false },
+    { attrname: "index", attrvalue: "", isbase64: false },
+    { attrname: "intval", attrvalue: "", isbase64: false },
+    { attrname: "otherinfo", attrvalue: "<default>", isbase64: true },
+  ],
+  ProcessGuid: "5c67accb12bc163400baa93dd59dda01",
+  UniqueID: "00a41e6d-2dc9-4e20-aeb2-dea0d6e655f4",
 }

@@ -34,6 +34,8 @@ import {
   Image,
   File,
   Folder,
+  List,
+  Database,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -68,6 +70,8 @@ const iconMap = {
   Image,
   File,
   Folder,
+  List,
+  Database,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

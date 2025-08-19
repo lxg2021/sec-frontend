@@ -70,3 +70,4 @@ export type EventType =
   | "taskTrigger"
   | "taskDelete"
   | "wmiQuery"
+  | "wmiCreateClass"

@@ -19,6 +19,7 @@ import { DLL_IMAGE_LOAD_HEADER, DLL_IMAGE_LOAD_CARD } from "./dllImageLoadConfig
 import { TASK_CREATE_HEADER, TASK_CREATE_CARD } from "./taskCreateConfig"
 import { TASK_DELETE_HEADER, TASK_DELETE_CARD } from "./taskDeleteConfig"
 import { WMI_QUERY_HEADER, WMI_QUERY_CARD } from "./wmiQueryConfig"
+import { WMI_CREATE_CLASS_HEADER, WMI_CREATE_CLASS_CARD } from "./wmiCreateClassConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -59,4 +60,6 @@ export {
   TASK_DELETE_CARD,
   WMI_QUERY_HEADER,
   WMI_QUERY_CARD,
+  WMI_CREATE_CLASS_HEADER,
+  WMI_CREATE_CLASS_CARD,
 }
