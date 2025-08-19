@@ -45,6 +45,13 @@ export const TOKEN_IMPERSONATION_CARD: SectionConfig[] = [
                             <div><strong>SessionID:</strong> {value.sessionid}</div>
                             <div><strong>SID:</strong> {value.sid}</div>
                             <div><strong>TokenType:</strong> {value.tokentype}</div>
+                            {value.impersonationlevel && (
+                                <div><strong>Impersonationlevel:</strong> {value.impersonationlevel}</div>
+                            )}
+
+                            {value.integritylevel && (
+                                <div><strong>Integritylevel:</strong> {value.integritylevel}</div>
+                            )}
                             <div className="break-all"><strong>Privileges:</strong> {value.privilege}</div>
                         </div>
                     )
@@ -70,6 +77,13 @@ export const TOKEN_IMPERSONATION_CARD: SectionConfig[] = [
                             <div><strong>SessionID:</strong> {value.sessionid}</div>
                             <div><strong>SID:</strong> {value.sid}</div>
                             <div><strong>TokenType:</strong> {value.tokentype}</div>
+                            {value.impersonationlevel && (
+                                <div><strong>Impersonationlevel:</strong> {value.impersonationlevel}</div>
+                            )}
+
+                            {value.integritylevel && (
+                                <div><strong>Integritylevel:</strong> {value.integritylevel}</div>
+                            )}
                             <div className="break-all"><strong>Privileges:</strong> {value.privilege}</div>
                         </div>
                     )
