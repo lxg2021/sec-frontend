@@ -351,6 +351,38 @@ export interface TaskCreateData {
   UniqueID: string
 }
 
+export interface TaskDeleteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TaskName: string
+  TaskPath: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface WmiQueryData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServerName: string | null
+  User: string | null
+  Namespace: string
+  Query: string
+  QueryLanguage: string
+  ProcessGuid: string
+  UniqueID: string
+}
 
 export type AllEventData =
   | ProcessCreateData
@@ -372,5 +404,7 @@ export type AllEventData =
   | TaskCreateData
   | TaskImageItem
   | TaskTriggerItem
+  | TaskDeleteData
+  | WmiQueryData
 
 export type EventKey = keyof AllEventData

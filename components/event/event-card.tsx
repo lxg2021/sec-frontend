@@ -33,6 +33,7 @@ import {
   Barcode,
   Image,
   File,
+  Folder,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -66,6 +67,7 @@ const iconMap = {
   Barcode,
   Image,
   File,
+  Folder,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

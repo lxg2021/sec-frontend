@@ -79,6 +79,14 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.TASK_CREATE_HEADER,
     card: EventConfigs.TASK_CREATE_CARD,
   },
+  taskDelete: {
+    header: EventConfigs.TASK_DELETE_HEADER,
+    card: EventConfigs.TASK_DELETE_CARD,
+  },
+  wmiQuery: {
+    header: EventConfigs.WMI_QUERY_HEADER,
+    card: EventConfigs.WMI_QUERY_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

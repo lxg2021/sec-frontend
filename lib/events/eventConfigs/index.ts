@@ -17,6 +17,8 @@ import { DEVICE_CHANGE_HEADER, DEVICE_CHANGE_CARD } from "./deviceChangeConfig"
 import { DRIVER_IMAGE_LOAD_HEADER, DRIVER_IMAGE_LOAD_CARD } from "./driverImageLoadConfig"
 import { DLL_IMAGE_LOAD_HEADER, DLL_IMAGE_LOAD_CARD } from "./dllImageLoadConfig"
 import { TASK_CREATE_HEADER, TASK_CREATE_CARD } from "./taskCreateConfig"
+import { TASK_DELETE_HEADER, TASK_DELETE_CARD } from "./taskDeleteConfig"
+import { WMI_QUERY_HEADER, WMI_QUERY_CARD } from "./wmiQueryConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -53,4 +55,8 @@ export {
   DLL_IMAGE_LOAD_CARD,
   TASK_CREATE_HEADER,
   TASK_CREATE_CARD,
+  TASK_DELETE_HEADER,
+  TASK_DELETE_CARD,
+  WMI_QUERY_HEADER,
+  WMI_QUERY_CARD,
 }

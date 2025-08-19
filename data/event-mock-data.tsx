@@ -18,6 +18,8 @@ import type {
   TaskCreateData,
   TaskImageItem,
   TaskTriggerItem,
+  TaskDeleteData,
+  WmiQueryData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -372,4 +374,37 @@ export const sampleTaskCreate: TaskCreateData = {
   ],
   ProcessGuid: "29b2e73e12bc154c003ada5bd49dda01",
   UniqueID: "c2ef6ee9-f974-4a1e-9b2d-00b7f7f04510",
+}
+
+export const sampleTaskDelete: TaskDeleteData = {
+  EventID: 52,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:40:35",
+  ProcessID: 5452,
+  ProcessName: "mmc.exe",
+  ProcessImage: "c:\\windows\\system32\\mmc.exe",
+  ProcessMD5: "55e48d7805babf5602d38052bf659930",
+  TaskName: "testtask",
+  TaskPath: "\\microsoft\\windows\\appid",
+  ProcessGuid: "29b2e73e12bc154c003ada5bd49dda01",
+  UniqueID: "1d0fb865-7070-4af4-b656-461b37da9f36"
+}
+
+export const sampleWmiQueryData: WmiQueryData = {
+  EventID: 58,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:44:34",
+  ProcessID: 5684,
+  ProcessName: "wmiquery.exe",
+  ProcessImage: "c:\\users\\lxg\\desktop\\sdb\\wmiquery.exe",
+  ProcessMD5: "cbcaffd9cf1291be46d58f305573f1f4",
+  ServerName: null,
+  User: null,
+  Namespace: "root/cimv2",
+  Query: "select * from win32_operatingsystem",
+  QueryLanguage: "wql",
+  ProcessGuid: "5c67accb12bc163400baa93dd59dda01",
+  UniqueID: "00a41e6d-2dc9-4e20-aeb2-dea0d6e655f4"
 }
