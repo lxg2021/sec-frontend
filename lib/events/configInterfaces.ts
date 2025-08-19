@@ -65,3 +65,6 @@ export type EventType =
   | "deviceChange"
   | "driverImageLoad"
   | "dllImageLoad"
+  | "taskCreate"
+  | "taskImageLoad"
+  | "taskTrigger"

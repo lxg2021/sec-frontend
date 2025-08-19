@@ -15,6 +15,9 @@ import type {
   DeviceChangeData,
   DriverImageLoadData,
   DllImageLoadData,
+  TaskCreateData,
+  TaskImageItem,
+  TaskTriggerItem,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -334,4 +337,39 @@ export const sampleDllImageLoad: DllImageLoadData = {
   ProcessGuid: "d180830b03240524003aaa29d19dda01",
   OrgFileName: "user32",
   UniqueID: "ed7ed908-8141-4a52-9cfc-c202697a6101",
+}
+
+
+export const sampleTaskCreate: TaskCreateData = {
+  EventID: 53,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:37:27",
+  ProcessID: 5452,
+  ProcessName: "mmc.exe",
+  ProcessImage: "c:\\windows\\system32\\mmc.exe",
+  ProcessMD5: "55e48d7805babf5602d38052bf659930",
+  Domain: "desktop-p0mgc81",
+  User: "lxg",
+  ServerName: null,
+  TaskName: "testtask",
+  TaskPath: "\\microsoft\\windows\\appid",
+  TaskImage: [
+    {
+      image: "c:\\windows\\system32\\cmd.exe",
+      imagemd5: "94912c1d73ade68f2486ed4d8ea82de6",
+      parameters: "cls",
+    },
+  ],
+  TaskTrigger: [
+    {
+      endboundry: "2025-05-04T11:36:38",
+      executiontimelimit: "P3D",
+      startboundary: "2024-05-04T11:36:38",
+      trigerid: "",
+      trigertype: "logontrigger",
+    },
+  ],
+  ProcessGuid: "29b2e73e12bc154c003ada5bd49dda01",
+  UniqueID: "c2ef6ee9-f974-4a1e-9b2d-00b7f7f04510",
 }

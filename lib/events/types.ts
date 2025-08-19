@@ -317,6 +317,41 @@ export interface DllImageLoadData {
   UniqueID: string
 }
 
+export interface TaskImageItem {
+  image: string
+  imagemd5: string
+  parameters: string
+}
+
+export interface TaskTriggerItem {
+  endboundry: string
+  executiontimelimit: string
+  startboundary: string
+  trigerid: string
+  trigertype: string
+}
+
+export interface TaskCreateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  Domain: string
+  User: string
+  ServerName: string | null
+  TaskName: string
+  TaskPath: string
+  TaskImage: TaskImageItem[]
+  TaskTrigger: TaskTriggerItem[]
+  ProcessGuid: string
+  UniqueID: string
+}
+
+
 export type AllEventData =
   | ProcessCreateData
   | ProcessExitData
@@ -334,5 +369,8 @@ export type AllEventData =
   | DeviceChangeData
   | DriverImageLoadData
   | DllImageLoadData
+  | TaskCreateData
+  | TaskImageItem
+  | TaskTriggerItem
 
 export type EventKey = keyof AllEventData

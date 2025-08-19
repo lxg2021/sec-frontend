@@ -16,6 +16,7 @@ import { SERVICE_PAUSE_HEADER, SERVICE_PAUSE_CARD } from "./servicePauseConfig"
 import { DEVICE_CHANGE_HEADER, DEVICE_CHANGE_CARD } from "./deviceChangeConfig"
 import { DRIVER_IMAGE_LOAD_HEADER, DRIVER_IMAGE_LOAD_CARD } from "./driverImageLoadConfig"
 import { DLL_IMAGE_LOAD_HEADER, DLL_IMAGE_LOAD_CARD } from "./dllImageLoadConfig"
+import { TASK_CREATE_HEADER, TASK_CREATE_CARD } from "./taskCreateConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -50,4 +51,6 @@ export {
   DRIVER_IMAGE_LOAD_CARD,
   DLL_IMAGE_LOAD_HEADER,
   DLL_IMAGE_LOAD_CARD,
+  TASK_CREATE_HEADER,
+  TASK_CREATE_CARD,
 }

@@ -75,6 +75,10 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.DLL_IMAGE_LOAD_HEADER,
     card: EventConfigs.DLL_IMAGE_LOAD_CARD,
   },
+  taskCreate: {
+    header: EventConfigs.TASK_CREATE_HEADER,
+    card: EventConfigs.TASK_CREATE_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

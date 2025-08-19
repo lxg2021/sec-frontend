@@ -31,6 +31,8 @@ import {
   PauseCircle,
   Flag,
   Barcode,
+  Image,
+  File,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -62,6 +64,8 @@ const iconMap = {
   PauseCircle,
   Flag,
   Barcode,
+  Image,
+  File,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info
