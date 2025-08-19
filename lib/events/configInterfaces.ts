@@ -20,6 +20,7 @@ export interface HeaderBadgeConfig {
 export interface HeaderConfig {
   title: {
     key: EventKey
+    default?: string   // 可选字段，没值时用这个
   }
   badges: HeaderBadgeConfig[]
   fields: HeaderFieldConfig[]
@@ -74,3 +75,8 @@ export type EventType =
   | "wmiFilter"
   | "wmiConsumer"
   | "wmiBinding"
+  | "wmiExecute"
+  | "bitsCreateJob"
+  | "bitsJobAddFile"
+  | "bitsJobChangeState"
+  | "windowsMessageHook"

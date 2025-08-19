@@ -188,7 +188,11 @@ export function EventCard({ data, eventType, className, cardConfig, headerConfig
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            {String(data[finalHeaderConfig.title.key] ?? "-")}
+            {String(
+              data[finalHeaderConfig.title.key] ??
+              finalHeaderConfig.title.default ??
+              "-"
+            )}
           </CardTitle>
           <div className="flex items-center gap-2">
             {finalHeaderConfig.badges.map((badge, index) => (

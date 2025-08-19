@@ -103,6 +103,26 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.WMI_BINDING_HEADER,
     card: EventConfigs.WMI_BINDING_CARD,
   },
+  wmiExecute: {
+    header: EventConfigs.WMI_EXECUTE_HEADER,
+    card: EventConfigs.WMI_EXECUTE_CARD,
+  },
+  bitsCreateJob: {
+    header: EventConfigs.BITS_CREATE_JOB_HEADER,
+    card: EventConfigs.BITS_CREATE_JOB_CARD,
+  },
+  bitsJobAddFile: {
+    header: EventConfigs.BITS_JOB_ADD_FILE_HEADER,
+    card: EventConfigs.BITS_JOB_ADD_FILE_CARD,
+  },
+  bitsJobChangeState: {
+    header: EventConfigs.BITS_JOB_CHANGE_STATE_HEADER,
+    card: EventConfigs.BITS_JOB_CHANGE_STATE_CARD,
+  },
+  windowsMessageHook: {
+    header: EventConfigs.WINDOWS_MESSAGE_HOOK_HEADER,
+    card: EventConfigs.WINDOWS_MESSAGE_HOOK_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

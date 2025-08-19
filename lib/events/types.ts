@@ -476,6 +476,103 @@ export interface WmiBindingEventData {
   UniqueID: string
 }
 
+export interface MethodParameter {
+  parametername: string
+  parametervalue: string
+}
+
+export interface WmiExecuteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServerName: string | null
+  User: string | null
+  Namespace: string
+  Class: string
+  MethodName: string
+  MethodParameters: MethodParameter[]
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface BitsCreateJobData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  JobId: string
+  JobType: number
+  JobTypeDesc: string
+  JobName: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface BitsJobAddFileData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  JobId: string
+  JobType: number
+  JobTypeDesc: string
+  JobName: string
+  JobFileContents: Array<{
+    localname: string
+    remotename: string
+  }>
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface BitsJobChangeStateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  JobId: string
+  JobType: number
+  JobTypeDesc: string
+  JobName: string
+  JobStatus: number
+  JobStatusDesc: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface WindowsMessageHookData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  HookType: number
+  HookTypeDescription: string
+  MessageHookModule: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
 
 
 export type AllEventData =
@@ -504,5 +601,10 @@ export type AllEventData =
   | WmiFilterData
   | WmiConsumerData
   | WmiBindingEventData
+  | WmiExecuteData
+  | BitsCreateJobData
+  | BitsJobAddFileData
+  | BitsJobChangeStateData
+  | WindowsMessageHookData
 
 export type EventKey = keyof AllEventData

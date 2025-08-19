@@ -24,6 +24,11 @@ import type {
   WmiFilterData,
   WmiConsumerData,
   WmiBindingEventData,
+  WmiExecuteData,
+  BitsCreateJobData,
+  BitsJobAddFileData,
+  BitsJobChangeStateData,
+  WindowsMessageHookData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -514,4 +519,103 @@ export const sampleWmiBindingData: WmiBindingEventData = {
   EventFilterName: "defaulteventfilter",
   ProcessGuid: "faa4e6ca12bc1578003a2d44d59dda01",
   UniqueID: "a82b905b-7de6-4b28-a5e8-c0fa069e63b5",
+}
+
+export const sampleWmiExecuteData: WmiExecuteData = {
+  EventID: 59,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:58:07",
+  ProcessID: 6544,
+  ProcessName: "wmiexecmethod.exe",
+  ProcessImage: "c:\\users\\lxg\\desktop\\sdb\\wmiexecmethod.exe",
+  ProcessMD5: "27109762135bc51b2058f10702ded67b",
+  ServerName: null,
+  User: null,
+  Namespace: "root\\cimv2",
+  Class: "win32_process",
+  MethodName: "create",
+  MethodParameters: [
+    {
+      parametername: "commandline",
+      parametervalue: "cmd.exe",
+    },
+  ],
+  ProcessGuid: "448ea72912bc199000fade3dd79dda01",
+  UniqueID: "22ac911b-cb5f-475c-b2ea-1ac0ce3f2276",
+}
+
+export const sampleBitsCreateJobData: BitsCreateJobData = {
+  EventID: 49,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 13:45:26",
+  ProcessID: 7028,
+  ProcessName: "bitsadmin.exe",
+  ProcessImage: "c:\\windows\\system32\\bitsadmin.exe",
+  ProcessMD5: "c0385255f03b226382e7fb72e5ac533a",
+  JobId: "{6d292ca9-ff60-4b63-9bae-fb7e2f605f8a}",
+  JobType: 0,
+  JobTypeDesc: "bg_job_type_download",
+  JobName: "mydownloadjob",
+  ProcessGuid: "434661a41eb81b7400bace8ee69dda01",
+  UniqueID: "12c84231-c2f2-426a-aa28-81ddd37b990a",
+}
+
+export const sampleBitsJobAddFileData: BitsJobAddFileData = {
+  EventID: 51,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 13:46:13",
+  ProcessID: 4532,
+  ProcessName: "bitsadmin.exe",
+  ProcessImage: "c:\\windows\\system32\\bitsadmin.exe",
+  ProcessMD5: "c0385255f03b226382e7fb72e5ac533a",
+  JobId: "{6d292ca9-ff60-4b63-9bae-fb7e2f605f8a}",
+  JobType: 0,
+  JobTypeDesc: "bg_job_type_download",
+  JobName: "mydownloadjob",
+  JobFileContents: [
+    {
+      localname: "c:\\test\\bits\\ydark-master.zip",
+      remotename: "http://20.0.22.148:8080/ydark-master.zip",
+    },
+  ],
+  ProcessGuid: "5f3ce12c1eb811b400bace8ee69dda01",
+  UniqueID: "539ad393-bdb0-4d0e-a9f9-71981f6ed57d",
+}
+
+export const sampleBitsJobChangeStateData: BitsJobChangeStateData = {
+  EventID: 50,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 13:47:12",
+  ProcessID: 5284,
+  ProcessName: "bitsadmin.exe",
+  ProcessImage: "c:\\windows\\system32\\bitsadmin.exe",
+  ProcessMD5: "c0385255f03b226382e7fb72e5ac533a",
+  JobId: "{6d292ca9-ff60-4b63-9bae-fb7e2f605f8a}",
+  JobType: 0,
+  JobTypeDesc: "bg_job_type_download",
+  JobName: "mydownloadjob",
+  JobStatus: 1,
+  JobStatusDesc: "bit_status_resume",
+  ProcessGuid: "82506b7f1eb814a4003a2d44e69dda01",
+  UniqueID: "3f0dc100-5c5a-428f-a2cf-003eb34f6991",
+}
+
+export const sampleWindowsMessageHookData: WindowsMessageHookData = {
+  EventID: 48,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 14:12:14",
+  ProcessID: 7904,
+  ProcessName: "processhacker.exe",
+  ProcessImage: "c:\\program files\\process hacker 2\\processhacker.exe",
+  ProcessMD5: "b365af317ae730a67c936f21432b9c71",
+  HookType: 4,
+  HookTypeDescription: "wh_callwndproc",
+  MessageHookModule: "c:\\windows\\system32\\shcore.dll",
+  ProcessGuid: "fc5849c815801ee0003a5d84e99dda01",
+  UniqueID: "b80f20eb-f175-4ec7-84da-a9ead0ac55db",
 }

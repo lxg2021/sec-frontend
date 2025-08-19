@@ -4,7 +4,7 @@ import type { HeaderConfig, SectionConfig } from "@/lib/events/configInterfaces"
 import { Link } from "lucide-react"
 
 export const WMI_BINDING_HEADER: HeaderConfig = {
-    title: { key: "ProcessName" },
+    title: { default: "Binding" },
     badges: [],
     fields: [
         { key: "AgentID", label: "Agent ID", icon: "Shield", color: "text-gray-500" },
