@@ -83,3 +83,5 @@ export type EventType =
   | "encryptDecrypt"
   | "tokenAdjustPrivilege"
   | "tokenImpersonation"
+  | "createProcessSetToken"
+  | "stealingCredentials"

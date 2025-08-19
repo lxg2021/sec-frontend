@@ -135,6 +135,14 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.TOKEN_IMPERSONATION_HEADER,
     card: EventConfigs.TOKEN_IMPERSONATION_CARD,
   },
+  createProcessSetToken: {
+    header: EventConfigs.CREATE_PROCESS_SET_TOKEN_HEADER,
+    card: EventConfigs.CREATE_PROCESS_SET_TOKEN_CARD,
+  },
+  stealingCredentials: {
+    header: EventConfigs.STEALING_CREDENTIALS_HEADER,
+    card: EventConfigs.STEALING_CREDENTIALS_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

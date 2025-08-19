@@ -628,7 +628,7 @@ export interface TokenImpersonationData {
   }
   TargetToken: {
     accountname: string
-    impersonationlevel: string
+    impersonationlevel?: string
     integritylevel: string
     privilege: string
     sessionid: number
@@ -636,6 +636,58 @@ export interface TokenImpersonationData {
     tokentype: string
   }
   TokenFlag: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface CreateProcessSetTokenData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  OperatorToken?: {
+    accountname: string
+    impersonationlevel?: string
+    integritylevel?: string
+    privilege: string
+    sessionid: number
+    sid: string
+    tokentype: string
+  }
+  TargetToken?: {
+    accountname: string
+    impersonationlevel?: string
+    integritylevel?: string
+    privilege: string
+    sessionid: number
+    sid: string
+    tokentype: string
+  }
+  TokenFlag: number
+  ParentProcessID: number
+  ParentProcessImage: string
+  ParentProcessMD5: string
+  ParentProcessName: string
+  ProcessGuid: string
+  ParentProcessGuid: string
+  UniqueID: string
+}
+
+export interface StealingCredentialsData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  CredType: number
+  CredDesc: string
   ProcessGuid: string
   UniqueID: string
 }
@@ -675,5 +727,7 @@ export type AllEventData =
   | EncryptDecryptData
   | TokenAdjustPrivilegeData
   | TokenImpersonationData
+  | CreateProcessSetTokenData
+  | StealingCredentialsData
 
 export type EventKey = keyof AllEventData

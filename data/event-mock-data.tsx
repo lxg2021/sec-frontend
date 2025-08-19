@@ -32,6 +32,8 @@ import type {
   EncryptDecryptData,
   TokenAdjustPrivilegeData,
   TokenImpersonationData,
+  CreateProcessSetTokenData,
+  StealingCredentialsData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -690,4 +692,90 @@ export const sampleTokenImpersonationData: TokenImpersonationData = {
   TokenFlag: 3,
   ProcessGuid: "03428dde02981920003a1abfea9dda01",
   UniqueID: "3d8d4189-0e65-42b6-9dee-f4c240888d7b",
+}
+
+export const sampleTokenImpersonationData2: TokenImpersonationData = {
+  EventID: 61,
+  BootTime: "2024/05/04 14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:36:01",
+  ProcessID: 4884,
+  ProcessName: "namedpipeserver.exe",
+  ProcessImage: "e:\\test\\namedpipeserver.exe",
+  ProcessMD5: "e62fb22d75575518c7335d43e0454ecd",
+  OperatorToken: {
+    accountname: "lxg",
+    impersonationlevel: "",
+    integritylevel: "high",
+    privilege: "sechangenotifyprivilege;seimpersonateprivilege;secreateglobalprivilege",
+    sessionid: 1,
+    sid: "s-1-5-21-219989340-3751043042-229602202-1000",
+    tokentype: "tokenprimary",
+  },
+  TargetToken: {
+    accountname: "administrator",
+    impersonationlevel: "securityimpersonation",
+    integritylevel: "high",
+    privilege: "sechangenotifyprivilege;seimpersonateprivilege;secreateglobalprivilege",
+    sessionid: 1,
+    sid: "s-1-5-21-219989340-3751043042-229602202-1000",
+    tokentype: "tokenimpersonation",
+  },
+  TokenFlag: 5,
+  ProcessGuid: "03973d7715801314003a4a8dfe9dda01",
+  UniqueID: "38d8a16f-1b38-4f2e-9a0f-56cd37378053",
+}
+
+export const sampleCreateProcessSetTokenData: CreateProcessSetTokenData = {
+  EventID: 60,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 14:18:32",
+  ProcessID: 7364,
+  ProcessName: "notepad.exe",
+  ProcessImage: "c:\\windows\\notepad.exe",
+  ProcessMD5: "f60a9d3a9461f68de0fccebb0c6cb31a",
+  OperatorToken: {
+    accountname: "system",
+    impersonationlevel: "",
+    integritylevel: "system",
+    privilege:
+      "seassignprimarytokenprivilege;selockmemoryprivilege;seincreasequotaprivilege;setcbprivilege;setakeownershipprivilege;seloaddriverprivilege;sesystemprofileprivilege;seprofilesingleprocessprivilege;seincreasebasepriorityprivilege;secreatepagefileprivilege;secreatepermanentprivilege;sebackupprivilege;serestoreprivilege;seshutdownprivilege;sedebugprivilege;seauditprivilege;sechangenotifyprivilege;seimpersonateprivilege;secreateglobalprivilege;seincreaseworkingsetprivilege;setimezoneprivilege;secreatesymboliclinkprivilege;sedelegatesessionuserimpersonateprivilege",
+    sessionid: 0,
+    sid: "s-1-5-18",
+    tokentype: "tokenprimary",
+  },
+  TargetToken: {
+    accountname: "system",
+    impersonationlevel: "",
+    integritylevel: "system",
+    privilege:
+      "seassignprimarytokenprivilege;selockmemoryprivilege;seincreasequotaprivilege;setcbprivilege;setakeownershipprivilege;seloaddriverprivilege;sesystemprofileprivilege;seprofilesingleprocessprivilege;seincreasebasepriorityprivilege;secreatepagefileprivilege;secreatepermanentprivilege;sebackupprivilege;serestoreprivilege;seshutdownprivilege;sedebugprivilege;seauditprivilege;sechangenotifyprivilege;seimpersonateprivilege;secreateglobalprivilege;seincreaseworkingsetprivilege;setimezoneprivilege;secreatesymboliclinkprivilege;sedelegatesessionuserimpersonateprivilege",
+    sessionid: 1,
+    sid: "s-1-5-18",
+    tokentype: "tokenprimary",
+  },
+  TokenFlag: 1,
+  ParentProcessID: 3784,
+  ParentProcessImage: "c:\\program files\\process hacker 2\\processhacker.exe",
+  ParentProcessMD5: "b365af317ae730a67c936f21432b9c71",
+  ParentProcessName: "processhacker.exe",
+  ProcessGuid: "e3708df10ec81cc4003a8daaea9dda01",
+  ParentProcessGuid: "e2cbaf0602980ec8003a0a35ea9dda01",
+  UniqueID: "46d4fa12-8665-4251-9ec7-9a9e6ae8431af",
+}
+
+export const sampleStealingCredentialsData: StealingCredentialsData = {
+  EventID: 71,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 14:27:21",
+  ProcessID: 5524,
+  ProcessName: "mimikatz.exe",
+  ProcessImage: "c:\\test\\bin\\mimikatz.exe",
+  ProcessMD5: "29efd64dd3c7fe1e2b022b7ad73a1ba5",
+  CredType: 12,
+  CredDesc: "[lsass]:read lsass security dll mmeory lsasrv.dll",
+  ProcessGuid: "cce621a515801594003a9dabeb9dda01",
+  UniqueID: "10577fdd-d331-44cf-8288-39874a2414a6",
 }
