@@ -29,6 +29,9 @@ import type {
   BitsJobAddFileData,
   BitsJobChangeStateData,
   WindowsMessageHookData,
+  EncryptDecryptData,
+  TokenAdjustPrivilegeData,
+  TokenImpersonationData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -618,4 +621,73 @@ export const sampleWindowsMessageHookData: WindowsMessageHookData = {
   MessageHookModule: "c:\\windows\\system32\\shcore.dll",
   ProcessGuid: "fc5849c815801ee0003a5d84e99dda01",
   UniqueID: "b80f20eb-f175-4ec7-84da-a9ead0ac55db",
+}
+
+export const sampleEncryptDecryptData: EncryptDecryptData = {
+  EventID: 70,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 14:05:07",
+  ProcessID: 7816,
+  ProcessName: "wermgr.exe",
+  ProcessImage: "c:\\windows\\system32\\wermgr.exe",
+  ProcessMD5: "610b85ea3599e62b479bdeb3c9cbfe69",
+  CryptFlag: 6,
+  ProcessGuid: "01f25227056c1e8800fa9d7fe99dda01",
+  UniqueID: "5e77d763-0a7f-4760-affd-1fa3df28866a",
+}
+
+export const sampleTokenAdjustPrivilegeData: TokenAdjustPrivilegeData = {
+  EventID: 62,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 14:09:54",
+  ProcessID: 1232,
+  ProcessName: "vssvc.exe",
+  ProcessImage: "c:\\windows\\system32\\vssvc.exe",
+  ProcessMD5: "d2aa0b7431fd0efb185cc5aa09c2a11c",
+  Privileges: "sebackupprivilege",
+  TokenFlag: 4,
+  Self: 1,
+  TargetProcessID: 1232,
+  TargetProcessImage: "c:\\windows\\system32\\vssvc.exe",
+  TargetProcessMD5: "d2aa0b7431fd0efb185cc5aa09c2a11c",
+  TargetProcessName: "vssvc.exe",
+  ProcessGuid: "adefc891029804d0003aba89e99dda01",
+  TargetProcessGuid: "adefc891029804d0003aba89e99dda01",
+  UniqueID: "b95e2887-988b-4cb0-9a9e-727abcfb84b0",
+}
+
+export const sampleTokenImpersonationData: TokenImpersonationData = {
+  EventID: 61,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 14:12:17",
+  ProcessID: 6432,
+  ProcessName: "processhacker.exe",
+  ProcessImage: "c:\\program files\\process hacker 2\\processhacker.exe",
+  ProcessMD5: "b365af317ae730a67c936f21432b9c71",
+  OperatorToken: {
+    accountname: "system",
+    impersonationlevel: "",
+    integritylevel: "system",
+    privilege:
+      "seassignprimarytokenprivilege;selockmemoryprivilege;seincreasequotaprivilege;setcbprivilege;setakeownershipprivilege;seloaddriverprivilege;sesystemprofileprivilege;seprofilesingleprocessprivilege;seincreasebasepriorityprivilege;secreatepagefileprivilege;secreatepermanentprivilege;sebackupprivilege;serestoreprivilege;seshutdownprivilege;sedebugprivilege;seauditprivilege;sechangenotifyprivilege;seimpersonateprivilege;secreateglobalprivilege;seincreaseworkingsetprivilege;setimezoneprivilege;secreatesymboliclinkprivilege;sedelegatesessionuserimpersonateprivilege",
+    sessionid: 0,
+    sid: "s-1-5-18",
+    tokentype: "tokenprimary",
+  },
+  TargetToken: {
+    accountname: "system",
+    impersonationlevel: "",
+    integritylevel: "system",
+    privilege:
+      "seassignprimarytokenprivilege;selockmemoryprivilege;seincreasequotaprivilege;setcbprivilege;setakeownershipprivilege;seloaddriverprivilege;sesystemprofileprivilege;seprofilesingleprocessprivilege;seincreasebasepriorityprivilege;secreatepagefileprivilege;secreatepermanentprivilege;sebackupprivilege;serestoreprivilege;seshutdownprivilege;sedebugprivilege;seauditprivilege;sechangenotifyprivilege;seimpersonateprivilege;secreateglobalprivilege;seincreaseworkingsetprivilege;setimezoneprivilege;secreatesymboliclinkprivilege;sedelegatesessionuserimpersonateprivilege",
+    sessionid: 1,
+    sid: "s-1-5-18",
+    tokentype: "tokenprimary",
+  },
+  TokenFlag: 3,
+  ProcessGuid: "03428dde02981920003a1abfea9dda01",
+  UniqueID: "3d8d4189-0e65-42b6-9dee-f4c240888d7b",
 }

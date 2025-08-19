@@ -573,6 +573,72 @@ export interface WindowsMessageHookData {
   UniqueID: string
 }
 
+export interface EncryptDecryptData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  CryptFlag: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface TokenAdjustPrivilegeData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  Privileges: string
+  TokenFlag: number
+  Self: number
+  TargetProcessID: number
+  TargetProcessImage: string
+  TargetProcessMD5: string
+  TargetProcessName: string
+  ProcessGuid: string
+  TargetProcessGuid: string
+  UniqueID: string
+}
+
+export interface TokenImpersonationData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  OperatorToken: {
+    accountname: string
+    impersonationlevel: string
+    integritylevel: string
+    privilege: string
+    sessionid: number
+    sid: string
+    tokentype: string
+  }
+  TargetToken: {
+    accountname: string
+    impersonationlevel: string
+    integritylevel: string
+    privilege: string
+    sessionid: number
+    sid: string
+    tokentype: string
+  }
+  TokenFlag: number
+  ProcessGuid: string
+  UniqueID: string
+}
 
 
 export type AllEventData =
@@ -606,5 +672,8 @@ export type AllEventData =
   | BitsJobAddFileData
   | BitsJobChangeStateData
   | WindowsMessageHookData
+  | EncryptDecryptData
+  | TokenAdjustPrivilegeData
+  | TokenImpersonationData
 
 export type EventKey = keyof AllEventData

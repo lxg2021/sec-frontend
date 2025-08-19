@@ -123,6 +123,18 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.WINDOWS_MESSAGE_HOOK_HEADER,
     card: EventConfigs.WINDOWS_MESSAGE_HOOK_CARD,
   },
+  encryptDecrypt: {
+    header: EventConfigs.ENCRYPT_DECRYPT_HEADER,
+    card: EventConfigs.ENCRYPT_DECRYPT_CARD,
+  },
+  tokenAdjustPrivilege: {
+    header: EventConfigs.TOKEN_ADJUST_PRIVILEGE_HEADER,
+    card: EventConfigs.TOKEN_ADJUST_PRIVILEGE_CARD,
+  },
+  tokenImpersonation: {
+    header: EventConfigs.TOKEN_IMPERSONATION_HEADER,
+    card: EventConfigs.TOKEN_IMPERSONATION_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

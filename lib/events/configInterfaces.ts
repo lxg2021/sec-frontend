@@ -80,3 +80,6 @@ export type EventType =
   | "bitsJobAddFile"
   | "bitsJobChangeState"
   | "windowsMessageHook"
+  | "encryptDecrypt"
+  | "tokenAdjustPrivilege"
+  | "tokenImpersonation"
