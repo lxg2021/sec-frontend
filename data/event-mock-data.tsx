@@ -34,6 +34,7 @@ import type {
   TokenImpersonationData,
   CreateProcessSetTokenData,
   StealingCredentialsData,
+  FileCreateData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -778,4 +779,29 @@ export const sampleStealingCredentialsData: StealingCredentialsData = {
   CredDesc: "[lsass]:read lsass security dll mmeory lsasrv.dll",
   ProcessGuid: "cce621a515801594003a9dabeb9dda01",
   UniqueID: "10577fdd-d331-44cf-8288-39874a2414a6",
+}
+
+export const sampleFileCreateData: FileCreateData = {
+  EventID: 23,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 14:35:48",
+  ProcessID: 5504,
+  ProcessName: "explorer.exe",
+  ProcessImage: "c:\\windows\\explorer.exe",
+  ProcessMD5: "d2af87b360db77e076881938c91fa276",
+  FileName: "e:\\dnsquery.vmp.exe",
+  FileMD5: "3c4b348ab52f5543e4ef225221c5af4f",
+  FileClass: 1,
+  FileClassDescription: "binary",
+  FileFormat: 4,
+  FileFormatDescription: "pe_exe",
+  Signature: 0,
+  SignVendor: null,
+  DriverType: 1,
+  DetectionMajorType: 1,
+  DetectionMinorType: 0,
+  DetectionContent: "vmprotect(2.x)[-]",
+  ProcessGuid: "c1496e8415501580003a4d19e89dda01",
+  UniqueID: "d111def1-87b8-41a7-a3f4-06a751728ff9",
 }

@@ -85,3 +85,4 @@ export type EventType =
   | "tokenImpersonation"
   | "createProcessSetToken"
   | "stealingCredentials"
+  | "fileCreate"

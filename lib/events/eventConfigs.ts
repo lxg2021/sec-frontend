@@ -143,6 +143,10 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.STEALING_CREDENTIALS_HEADER,
     card: EventConfigs.STEALING_CREDENTIALS_CARD,
   },
+  fileCreate: {
+    header: EventConfigs.FILE_CREATE_HEADER,
+    card: EventConfigs.FILE_CREATE_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

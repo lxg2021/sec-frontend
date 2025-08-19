@@ -692,6 +692,31 @@ export interface StealingCredentialsData {
   UniqueID: string
 }
 
+export interface FileCreateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  FileMD5: string
+  FileClass: number
+  FileClassDescription: string
+  FileFormat: number
+  FileFormatDescription: string
+  Signature: number
+  SignVendor: string | null
+  DriverType: number
+  DetectionMajorType: number
+  DetectionMinorType: number
+  DetectionContent: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -729,5 +754,6 @@ export type AllEventData =
   | TokenImpersonationData
   | CreateProcessSetTokenData
   | StealingCredentialsData
+  | FileCreateData
 
 export type EventKey = keyof AllEventData
