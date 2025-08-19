@@ -40,6 +40,7 @@ import {
   Tags,
   Tag,
   Code,
+  HardDrive,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -80,6 +81,7 @@ const iconMap = {
   Tags,
   Tag,
   Code,
+  HardDrive,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

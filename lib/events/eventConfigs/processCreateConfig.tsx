@@ -65,7 +65,7 @@ export const PROCESS_CREATE_CARD: SectionConfig[] = [
         ),
       },
       { key: "SignVendor", label: "Sign Vendor", icon: "Shield", color: "text-red-400" },
-      { key: "DriverType", label: "Driver Type", icon: "Info", color: "text-gray-600" },
+      { key: "DriverType", label: "Driver Type", icon: "HardDrive", color: "text-gray-600" },
       {
         key: "RTLO",
         label: "RTLO",

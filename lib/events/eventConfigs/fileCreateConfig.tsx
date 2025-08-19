@@ -39,10 +39,10 @@ export const FILE_CREATE_CARD: SectionConfig[] = [
         icon: "FileText",
         color: "text-blue-600",
         fields: [
-            { key: "FileName", label: "File Name", icon: "FileText", color: "text-gray-600", monospace: true },
+            { key: "FileName", label: "File Name", icon: "FolderOpen", color: "text-gray-600", monospace: true },
             { key: "FileMD5", label: "File MD5", icon: "Fingerprint", color: "text-red-400", monospace: true },
-            { key: "FileClassDescription", label: "File Class", icon: "FileText", color: "text-gray-600" },
-            { key: "FileFormatDescription", label: "File Format", icon: "FileText", color: "text-gray-600" },
+            { key: "FileClassDescription", label: "File Class", icon: "Tag", color: "text-gray-600" },
+            { key: "FileFormatDescription", label: "File Format", icon: "Tag", color: "text-gray-600" },
             {
                 key: "Signature",
                 label: "Signature Status",
@@ -52,8 +52,8 @@ export const FILE_CREATE_CARD: SectionConfig[] = [
                     <Badge variant={value === 1 ? "default" : "destructive"}>{value === 1 ? "Signed" : "Unsigned"}</Badge>
                 ),
             },
-            { key: "SignVendor", label: "Sign Vendor", icon: "FileText", color: "text-gray-600" },
-            { key: "DriverType", label: "Driver Type", icon: "FileText", color: "text-gray-600" },
+            { key: "SignVendor", label: "Sign Vendor", icon: "User", color: "text-gray-600" },
+            { key: "DriverType", label: "Driver Type", icon: "HardDrive", color: "text-gray-600" },
         ],
     },
     {
