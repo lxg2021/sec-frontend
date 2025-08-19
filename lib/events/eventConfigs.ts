@@ -91,6 +91,18 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.WMI_CREATE_CLASS_HEADER,
     card: EventConfigs.WMI_CREATE_CLASS_CARD,
   },
+  wmiFilter: {
+    header: EventConfigs.WMI_FILTER_HEADER,
+    card: EventConfigs.WMI_FILTER_CARD,
+  },
+  wmiConsumer: {
+    header: EventConfigs.WMI_CONSUMER_HEADER,
+    card: EventConfigs.WMI_CONSUMER_CARD,
+  },
+  wmiBinding: {
+    header: EventConfigs.WMI_BINDING_HEADER,
+    card: EventConfigs.WMI_BINDING_CARD,
+  },
 }
 
 // 按类型获取配置的辅助函数

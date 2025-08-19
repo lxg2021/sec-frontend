@@ -410,6 +410,73 @@ export interface WmiCreateClassData {
   UniqueID: string
 }
 
+export interface WmiFilterData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServerName: string | null
+  User: string | null
+  Password: string | null
+  Namespace: string
+  EventFilterName: string
+  EventFilterAccess: string | null
+  EventFilterClass: string
+  Query: string
+  QueryLanguage: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface WmiConsumerData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServerName: string | null
+  User: string | null
+  Namespace: string
+  Class: string
+  EventConsumerName: string
+  EventConsumerType: number
+  EventConsumerTypeDescription: string
+  EventConsumerContext: {
+    scriptfilemd5: string
+    scriptfilename: string
+    scripttext: string
+    scriptingengine: string
+  }
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface WmiBindingEventData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ServerName: string
+  User: string | null
+  Namespace: string
+  EventConsumerName: string
+  EventFilterName: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -434,5 +501,8 @@ export type AllEventData =
   | TaskDeleteData
   | WmiQueryData
   | WmiCreateClassData
+  | WmiFilterData
+  | WmiConsumerData
+  | WmiBindingEventData
 
 export type EventKey = keyof AllEventData

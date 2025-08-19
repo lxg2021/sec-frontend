@@ -20,6 +20,9 @@ import { TASK_CREATE_HEADER, TASK_CREATE_CARD } from "./taskCreateConfig"
 import { TASK_DELETE_HEADER, TASK_DELETE_CARD } from "./taskDeleteConfig"
 import { WMI_QUERY_HEADER, WMI_QUERY_CARD } from "./wmiQueryConfig"
 import { WMI_CREATE_CLASS_HEADER, WMI_CREATE_CLASS_CARD } from "./wmiCreateClassConfig"
+import { WMI_FILTER_HEADER, WMI_FILTER_CARD } from "./wmiFilterConfig"
+import { WMI_CONSUMER_HEADER, WMI_CONSUMER_CARD } from "./wmiConsumerConfig"
+import { WMI_BINDING_HEADER, WMI_BINDING_CARD } from "./wmiBindingConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -62,4 +65,10 @@ export {
   WMI_QUERY_CARD,
   WMI_CREATE_CLASS_HEADER,
   WMI_CREATE_CLASS_CARD,
+  WMI_FILTER_HEADER,
+  WMI_FILTER_CARD,
+  WMI_CONSUMER_HEADER,
+  WMI_CONSUMER_CARD,
+  WMI_BINDING_HEADER,
+  WMI_BINDING_CARD,
 }

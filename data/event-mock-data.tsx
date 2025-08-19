@@ -21,6 +21,9 @@ import type {
   TaskDeleteData,
   WmiQueryData,
   WmiCreateClassData,
+  WmiFilterData,
+  WmiConsumerData,
+  WmiBindingEventData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -442,4 +445,73 @@ export const sampleWmiCreateClassData: WmiCreateClassData = {
   ],
   ProcessGuid: "5c67accb12bc163400baa93dd59dda01",
   UniqueID: "00a41e6d-2dc9-4e20-aeb2-dea0d6e655f4",
+}
+
+export const sampleWmiFilterData: WmiFilterData = {
+  EventID: 54,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:49:14",
+  ProcessID: 5496,
+  ProcessName: "wmipersistence.exe",
+  ProcessImage: "c:\\users\\lxg\\desktop\\sdb\\wmipersistence.exe",
+  ProcessMD5: "31fe75175f8bcaf06c83d909bdf22365",
+  ServerName: "127.0.0.1",
+  User: null,
+  Password: null,
+  Namespace: "root\\cimv2",
+  EventFilterName: "defaulteventfilter",
+  EventFilterAccess: null,
+  EventFilterClass: "__eventfilter",
+  Query: "select * from win32_processstarttrace where processname = 'notepad.exe'",
+  QueryLanguage: "wql",
+  ProcessGuid: "faa4e6ca12bc1578003a2d44d59dda01",
+  UniqueID: "1cfb12f8-db41-47ef-91db-c8fd5c329471"
+}
+
+export const sampleWmiConsumerData: WmiConsumerData = {
+  EventID: 55,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:49:14",
+  ProcessID: 5496,
+  ProcessName: "wmipersistence.exe",
+  ProcessImage: "c:\\users\\lxg\\desktop\\sdb\\wmipersistence.exe",
+  ProcessMD5: "31fe75175f8bcaf06c83d909bdf22365",
+  ServerName: "127.0.0.1",
+  User: null,
+  Namespace: "root\\cimv2",
+  Class: "activescripteventconsumer",
+  EventConsumerName: "defaulteventconsumer",
+  EventConsumerType: 1,
+  EventConsumerTypeDescription: "activescripteventconsumer",
+  EventConsumerContext: {
+    scriptfilemd5: "",
+    scriptfilename: "",
+    scripttext: `dim oshell
+set oshell = createobject("wscript.shell")
+oshell.run("powershell.exe -executionpolicy bypass -encodedcommand zqbjaggabwagahqazqbzahqa")
+`,
+    scriptingengine: "vbscript"
+  },
+  ProcessGuid: "faa4e6ca12bc1578003a2d44d59dda01",
+  UniqueID: "87ae6221-e045-4dbd-a9fd-22e3158a02a3"
+}
+
+export const sampleWmiBindingData: WmiBindingEventData = {
+  EventID: 56,
+  BootTime: "2024/05/04 10:50:36",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 11:49:14",
+  ProcessID: 5496,
+  ProcessName: "wmipersistence.exe",
+  ProcessImage: "c:\\users\\lxg\\desktop\\sdb\\wmipersistence.exe",
+  ProcessMD5: "31fe75175f8bcaf06c83d909bdf22365",
+  ServerName: "127.0.0.1",
+  User: "NULL",
+  Namespace: "root\\cimv2",
+  EventConsumerName: "defaulteventconsumer",
+  EventFilterName: "defaulteventfilter",
+  ProcessGuid: "faa4e6ca12bc1578003a2d44d59dda01",
+  UniqueID: "a82b905b-7de6-4b28-a5e8-c0fa069e63b5",
 }

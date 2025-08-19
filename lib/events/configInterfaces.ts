@@ -71,3 +71,6 @@ export type EventType =
   | "taskDelete"
   | "wmiQuery"
   | "wmiCreateClass"
+  | "wmiFilter"
+  | "wmiConsumer"
+  | "wmiBinding"
