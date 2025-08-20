@@ -52,6 +52,8 @@ import type {
   RegValueSetData,
   RegValueDeleteData,
   RegValueQueryData,
+  FileMappingCreateData,
+  FileMappingConnectData
 } from "@/lib/events/types"
 
 // 示例数据
@@ -1167,4 +1169,34 @@ export const sampleRegValueQueryData: RegValueQueryData = {
   ProcessGuid: "7575904e19a80acc003aaa49f89dda01",
   ValueExist: 0,
   UniqueID: "3ee41923-e60e-4907-99b2-d542860e8381",
+}
+
+export const sampleFileMappingCreateData: FileMappingCreateData = {
+  EventID: 41,
+  BootTime: "2024/05/04 14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:14:48",
+  ProcessID: 7884,
+  ProcessName: "filemappingserver.exe",
+  ProcessImage: "e:\\test\\filemappingserver.exe",
+  ProcessMD5: "c7d407d3a5b5cfa426653f1e7b4efcca",
+  FileMappingName: "global\\myfilemappingobject",
+  StackModule: "e:\\test\\filemappingserver.exe",
+  ProcessGuid: "20eb4a5d15801ecc003a1afcfb9dda01",
+  UniqueID: "a91954f2-d3a2-4ac1-ba75-5107785b504d",
+}
+
+export const sampleFileMappingConnectData: FileMappingConnectData = {
+  EventID: 42,
+  BootTime: "2024/05/04 14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:16:04",
+  ProcessID: 2296,
+  ProcessName: "filemappingclient.exe",
+  ProcessImage: "e:\\test\\filemappingclient.exe",
+  ProcessMD5: "f49e0107401fd7c3da45048cf0aded48",
+  FileMappingName: "global\\myfilemappingobject",
+  StackModule: "e:\\test\\filemappingclient.exe",
+  ProcessGuid: "17acd3af158008f8003adad3fb9dda01",
+  UniqueID: "488d3066-6e8f-4c8e-bdf9-d756d5dc1d78",
 }

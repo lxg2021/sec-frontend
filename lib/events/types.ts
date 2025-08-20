@@ -1036,6 +1036,36 @@ export interface RegValueQueryData {
   UniqueID: string
 }
 
+export interface FileMappingCreateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileMappingName: string
+  StackModule: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface FileMappingConnectData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileMappingName: string
+  StackModule: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -1091,5 +1121,7 @@ export type AllEventData =
   | RegValueSetData
   | RegValueDeleteData
   | RegValueQueryData
+  | FileMappingCreateData
+  | FileMappingConnectData
 
 export type EventKey = keyof AllEventData

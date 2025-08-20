@@ -44,6 +44,9 @@ import {
   Vault,
   Key,
   ListTree,
+  Link,
+  Link2,
+  Layers,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -88,6 +91,9 @@ const iconMap = {
   Vault,
   Key,
   ListTree,
+  Link,
+  Link2,
+  Layers,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

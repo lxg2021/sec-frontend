@@ -215,6 +215,14 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.REGVALUE_QUERY_HEADER,
     card: EventConfigs.REGVALUE_QUERY_CARD,
   },
+  fileMappingCreate: {
+    header: EventConfigs.FILEMAPPING_CREATE_HEADER,
+    card: EventConfigs.FILEMAPPING_CREATE_CARD,
+  },
+  fileMappingConnect: {
+    header: EventConfigs.FILEMAPPING_CONNECT_HEADER,
+    card: EventConfigs.FILEMAPPING_CONNECT_CARD,
+  },
 }
 
 export function getEventHeaderConfig(eventType: EventType) {

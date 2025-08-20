@@ -103,3 +103,5 @@ export type EventType =
   | "regValueSet"
   | "regValueDelete"
   | "regValueQuery"
+  | "fileMappingCreate"
+  | "fileMappingConnect"
