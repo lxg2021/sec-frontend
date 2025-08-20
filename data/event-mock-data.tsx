@@ -53,7 +53,9 @@ import type {
   RegValueDeleteData,
   RegValueQueryData,
   FileMappingCreateData,
-  FileMappingConnectData
+  FileMappingConnectData,
+  PipeCreateData,
+  PipeConnectData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -1199,4 +1201,32 @@ export const sampleFileMappingConnectData: FileMappingConnectData = {
   StackModule: "e:\\test\\filemappingclient.exe",
   ProcessGuid: "17acd3af158008f8003adad3fb9dda01",
   UniqueID: "488d3066-6e8f-4c8e-bdf9-d756d5dc1d78",
+}
+
+export const samplePipeCreateData: PipeCreateData = {
+  EventID: 35,
+  BootTime: "2024/05/04 14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:23:18",
+  ProcessID: 3992,
+  ProcessName: "pipeserver.exe",
+  ProcessImage: "e:\\test\\pipeserver.exe",
+  ProcessMD5: "c7148c08c28c0137bd8cf5d238c5c8b6",
+  PipeName: "\\??\\pipe\\mynamedpipe",
+  ProcessGuid: "511582d715800f98003a0a9efc9dda01",
+  UniqueID: "3892a025-d547-421b-a56b-b0edd593027a",
+}
+
+export const samplePipeConnectData: PipeConnectData = {
+  EventID: 36,
+  BootTime: "2024/05/04 14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:23:57",
+  ProcessID: 4392,
+  ProcessName: "pipeclient.exe",
+  ProcessImage: "e:\\test\\pipeclient.exe",
+  ProcessMD5: "aa238ebf3f8ad35cdc1e92a108fafcbd",
+  PipeName: "\\??\\pipe\\mynamedpipe",
+  ProcessGuid: "61c34f4315801128003a4a8dfc9dda01",
+  UniqueID: "51341b3d-4a67-42b3-ae3b-6f978f45c1b7",
 }

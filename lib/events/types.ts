@@ -1066,6 +1066,34 @@ export interface FileMappingConnectData {
   UniqueID: string
 }
 
+export interface PipeCreateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  PipeName: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface PipeConnectData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  PipeName: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -1123,5 +1151,7 @@ export type AllEventData =
   | RegValueQueryData
   | FileMappingCreateData
   | FileMappingConnectData
+  | PipeCreateData
+  | PipeConnectData
 
 export type EventKey = keyof AllEventData

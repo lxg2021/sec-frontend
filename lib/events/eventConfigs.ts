@@ -223,6 +223,14 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.FILEMAPPING_CONNECT_HEADER,
     card: EventConfigs.FILEMAPPING_CONNECT_CARD,
   },
+  pipeCreate: {
+    header: EventConfigs.PIPE_CREATE_HEADER,
+    card: EventConfigs.PIPE_CREATE_CARD,
+  },
+  pipeConnect: {
+    header: EventConfigs.PIPE_CONNECT_HEADER,
+    card: EventConfigs.PIPE_CONNECT_CARD,
+  },
 }
 
 export function getEventHeaderConfig(eventType: EventType) {

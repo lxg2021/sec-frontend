@@ -105,3 +105,5 @@ export type EventType =
   | "regValueQuery"
   | "fileMappingCreate"
   | "fileMappingConnect"
+  | "pipeCreate"
+  | "pipeConnect"
