@@ -40,6 +40,18 @@ import type {
   FileRenameData,
   FileMoveData,
   FileReadData,
+  FileWriteData,
+  FileSetEaData,
+  FileStreamCreateData,
+  FileStreamDeleteData,
+  AccessVolumeData,
+  PowershellData,
+  RegKeyCreateData,
+  RegKeyRenameData,
+  RegKeyDeleteData,
+  RegValueSetData,
+  RegValueDeleteData,
+  RegValueQueryData,
 } from "@/lib/events/types"
 
 // 示例数据
@@ -942,4 +954,217 @@ export const sampleFileReadData: FileReadData = {
   Description: "cred",
   FileType: 721,
   UniqueID: "2c08897c-d606-4833-991b-bdd95443c189",
+}
+
+export const sampleFileWriteData: FileWriteData = {
+  EventID: 65,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:05:53",
+  ProcessID: 7320,
+  ProcessName: "notepad.exe",
+  ProcessImage: "c:\\windows\\system32\\notepad.exe",
+  ProcessMD5: "f60a9d3a9461f68de0fccebb0c6cb31a",
+  FileName: "c:\\windows\\system32\\grouppolicy\\gpt.ini",
+  DriverType: 1,
+  ProcessGuid: "729cce0a15801c98003acac3f19dda01",
+  Description: "gpscript",
+  FileType: 603,
+  UniqueID: "01e9c04e-03fd-40b4-8b49-485c14cc2be7",
+}
+
+export const sampleFileSetEaData: FileSetEaData = {
+  EventID: 69,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:11:35",
+  ProcessID: 1360,
+  ProcessName: "filetest.exe",
+  ProcessImage: "c:\\users\\lxg\\desktop\\filetest.exe",
+  ProcessMD5: "ee9f3ca8b8d3219cac805f5b090eea50",
+  FileName: "c:\\users\\lxg\\desktop\\remotedll64.exe",
+  DriverType: 1,
+  ProcessGuid: "1acf6d8115800550003a2a84f29dda01",
+  Description: null,
+  FileType: 0,
+  UniqueID: "24ef055f-eda0-4ff9-be91-4a473f7ca3d4",
+}
+
+export const sampleFileStreamCreateData: FileStreamCreateData = {
+  EventID: 24,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:18:49",
+  ProcessID: 7028,
+  ProcessName: "certutil.exe",
+  ProcessImage: "c:\\windows\\system32\\certutil.exe",
+  ProcessMD5: "806d85b3c89aebb0e99ed3679dd3408f",
+  FileName: "e:\\test\\win-hide-ntfs-ads\\certutil.txt:test.ps1",
+  FileMD5: "40f4058b140b328ada90e9f4815bf639",
+  FileClass: 8,
+  FileClassDescription: "script",
+  FileFormat: 74,
+  FileFormatDescription: "js",
+  DriverType: 1,
+  ProcessGuid: "4e38c769133c1b74003a3a7ef39dda01",
+  UniqueID: "d14f2500-f0cf-4668-97af-e3bcf89fb285",
+}
+
+export const sampleFileStreamDeleteData: FileStreamDeleteData = {
+  EventID: 25,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:49:25",
+  ProcessID: 4728,
+  ProcessName: "streams64.exe",
+  ProcessImage: "e:\\win-hide-ntfs-ads\\streams64.exe",
+  ProcessMD5: "ff73c9cb2ff29f0af030224840c1c451",
+  FileName: "e:\\win-hide-ntfs-ads\\remote-expand.txt:file.bat",
+  FileMD5: "e4bf4bc8cbf735ee9eae8d382dffff4c",
+  FileClass: 8,
+  FileClassDescription: "script",
+  FileFormat: 78,
+  FileFormatDescription: "winbatch",
+  DriverType: 1,
+  ProcessGuid: "95780ec20be41278003addaef79dda01",
+  UniqueID: "632c81e5-9e4a-4114-a340-82a43cfa988f",
+}
+
+export const sampleAccessVolumeData: AccessVolumeData = {
+  EventID: 73,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:29:25",
+  ProcessID: 6112,
+  ProcessName: "powershell.exe",
+  ProcessImage: "c:\\windows\\system32\\windowspowershell\\v1.0\\powershell.exe",
+  ProcessMD5: "f7722b62b4014e0c50adfa9d60cafa1c",
+  FileName: "c:",
+  AccessType: 3,
+  DriverType: 0,
+  ProcessGuid: "bc878528158017e0003a9a96f49dda01",
+  UniqueID: "a145efa1-b68f-4181-96de-4508f7120e13",
+}
+
+export const samplePowershellData: PowershellData = {
+  EventID: 101,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:29:25",
+  UniqueID: "247cfce7-bd39-4470-bb7d-58cac8f8129d",
+  ProcessID: 6112,
+  ProcessName: "powershell.exe",
+  ProcessImage: "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+  ProcessMD5: "f7722b62b4014e0c50adfa9d60cafa1c",
+  ProcessGuid: "bc878528158017e0003a9a96f49dda01",
+  ProcessCommandLine: `"C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"`,
+  FileName: "E:\\test\\win-direct-volume-access.ps1",
+  SessionID: 10,
+  Content: `$buffer = New-Object byte[] 11
+$handle = New-Object IO.FileStream "\\\\.\\C:", 'Open', 'Read', 'ReadWrite'
+$handle.Read($buffer, 0, $buffer.Length)
+$handle.Close()
+Format-Hex -InputObject $buffer`,
+}
+
+export const sampleRegKeyCreateData: RegKeyCreateData = {
+  EventID: 26,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:57:09",
+  ProcessID: 2764,
+  ProcessName: "regedit.exe",
+  ProcessImage: "c:\\windows\\regedit.exe",
+  ProcessMD5: "a3b1fc6c72ea944c2e1b359a19cb40ab",
+  ObjectName: "hkey_local_machine\\software\\microsoft\\terminal server client\\servers\\rdp0\\",
+  Description: "connection histrory",
+  Classification: "rdp",
+  ProcessGuid: "7575904e19a80acc003aaa49f89dda01",
+  UniqueID: "b8401a3e-8ab9-4807-807b-cbb2d46359be",
+}
+
+
+export const sampleRegKeyRenameData: RegKeyRenameData = {
+  EventID: 28,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:57:11",
+  ProcessID: 2764,
+  ProcessName: "regedit.exe",
+  ProcessImage: "c:\\windows\\regedit.exe",
+  ProcessMD5: "a3b1fc6c72ea944c2e1b359a19cb40ab",
+  ObjectName: "hkey_local_machine\\software\\microsoft\\terminal server client\\servers\\rdp0\\",
+  NewName: "test",
+  Description: "connection histrory",
+  Classification: "rdp",
+  ProcessGuid: "7575904e19a80acc003aaa49f89dda01",
+  UniqueID: "302b410f-66bd-48c6-b384-c7732a998b4e",
+}
+
+export const sampleRegKeyDeleteData: RegKeyDeleteData = {
+  EventID: 27,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 15:59:23",
+  ProcessID: 2764,
+  ProcessName: "regedit.exe",
+  ProcessImage: "c:\\windows\\regedit.exe",
+  ProcessMD5: "a3b1fc6c72ea944c2e1b359a19cb40ab",
+  ObjectName: "hkey_local_machine\\software\\microsoft\\terminal server client\\servers\\test\\",
+  Description: "connection histrory",
+  Classification: "rdp",
+  ProcessGuid: "7575904e19a80acc003aaa49f89dda01",
+  UniqueID: "a0f0f4f3-ece7-4cd3-abd0-02b049e8ffd1",
+}
+
+export const sampleRegValueSetData: RegValueSetData = {
+  EventID: 29,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:01:33",
+  ProcessID: 2764,
+  ProcessName: "regedit.exe",
+  ProcessImage: "c:\\windows\\regedit.exe",
+  ProcessMD5: "a3b1fc6c72ea944c2e1b359a19cb40ab",
+  ObjectName: "hkey_local_machine\\system\\currentcontrolset\\control\\lsa\\runasppl",
+  ObjectValue: "0x00000000",
+  Description: "ppl protected",
+  Classification: "lsass",
+  ProcessGuid: "7575904e19a80acc003aaa49f89dda01",
+  ValueExist: 0,
+  UniqueID: "faca7d5e-416a-4720-bcff-a931aa156207",
+}
+
+export const sampleRegValueDeleteData: RegValueDeleteData = {
+  EventID: 30,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:02:32",
+  ProcessID: 2764,
+  ProcessName: "regedit.exe",
+  ProcessImage: "c:\\windows\\regedit.exe",
+  ProcessMD5: "a3b1fc6c72ea944c2e1b359a19cb40ab",
+  ObjectName: "hkey_local_machine\\system\\currentcontrolset\\control\\lsa\\runasppl",
+  Description: "ppl protected",
+  Classification: "lsass",
+  ProcessGuid: "7575904e19a80acc003aaa49f89dda01",
+  UniqueID: "7fc04308-c528-464f-b27a-3155a6cc8235",
+}
+
+export const sampleRegValueQueryData: RegValueQueryData = {
+  EventID: 67,
+  BootTime: "2024/05/04 14:00:41",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:04:54",
+  ProcessID: 2764,
+  ProcessName: "regedit.exe",
+  ProcessImage: "c:\\windows\\regedit.exe",
+  ProcessMD5: "a3b1fc6c72ea944c2e1b359a19cb40ab",
+  ObjectName: "hkey_local_machine\\software\\microsoft\\windows\\currentversion\\app paths\\cmmgr32.exe\\cmstpextensiondll",
+  ObjectValue: "c:\\windows\\system32\\cmcfg32.dll",
+  Description: "cmstp",
+  Classification: "cmstp",
+  ProcessGuid: "7575904e19a80acc003aaa49f89dda01",
+  ValueExist: 0,
+  UniqueID: "3ee41923-e60e-4907-99b2-d542860e8381",
 }

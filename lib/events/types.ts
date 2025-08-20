@@ -828,6 +828,214 @@ export interface FileReadData {
   UniqueID: string
 }
 
+export interface FileWriteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  DriverType: number
+  ProcessGuid: string
+  Description?: string
+  FileType: number
+  UniqueID: string
+}
+
+export interface FileSetEaData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  DriverType: number
+  ProcessGuid: string
+  Description?: string
+  FileType: number
+  UniqueID: string
+}
+
+export interface FileStreamCreateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  FileMD5: string
+  FileClass: number
+  FileClassDescription: string
+  FileFormat: number
+  FileFormatDescription: string
+  DriverType: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface FileStreamDeleteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  FileMD5: string
+  FileClass: number
+  FileClassDescription: string
+  FileFormat: number
+  FileFormatDescription: string
+  DriverType: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface AccessVolumeData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  AccessType: number
+  DriverType: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface PowershellData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  UniqueID: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ProcessGuid: string
+  ProcessCommandLine: string
+  FileName: string
+  SessionID: number
+  Content: string
+}
+
+export interface RegKeyCreateData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ObjectName: string
+  Description: string
+  Classification: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface RegKeyRenameData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ObjectName: string
+  NewName: string
+  Description: string
+  Classification: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface RegKeyDeleteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ObjectName: string
+  Description: string
+  Classification: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface RegValueSetData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ObjectName: string
+  ObjectValue: string | number
+  Description: string | null
+  Classification: string
+  ProcessGuid: string
+  ValueExist: number
+  UniqueID: string
+}
+
+export interface RegValueDeleteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ObjectName: string
+  Description: string | null
+  Classification: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface RegValueQueryData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  ObjectName: string
+  ObjectValue: string
+  Description: string | null
+  Classification: string
+  ProcessGuid: string
+  ValueExist: number
+  UniqueID: string
+}
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -871,5 +1079,17 @@ export type AllEventData =
   | FileRenameData
   | FileMoveData
   | FileReadData
+  | FileWriteData
+  | FileSetEaData
+  | FileStreamCreateData
+  | FileStreamDeleteData
+  | AccessVolumeData
+  | PowershellData
+  | RegKeyCreateData
+  | RegKeyRenameData
+  | RegKeyDeleteData
+  | RegValueSetData
+  | RegValueDeleteData
+  | RegValueQueryData
 
 export type EventKey = keyof AllEventData

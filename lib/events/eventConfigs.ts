@@ -167,7 +167,54 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.FILE_READ_HEADER,
     card: EventConfigs.FILE_READ_CARD,
   },
-
+  fileWrite: {
+    header: EventConfigs.FILE_WRITE_HEADER,
+    card: EventConfigs.FILE_WRITE_CARD,
+  },
+  fileSetEa: {
+    header: EventConfigs.FILE_SET_EA_HEADER,
+    card: EventConfigs.FILE_SET_EA_CARD,
+  },
+  fileStreamCreate: {
+    header: EventConfigs.FILE_STREAM_CREATE_HEADER,
+    card: EventConfigs.FILE_STREAM_CREATE_CARD,
+  },
+  fileStreamDelete: {
+    header: EventConfigs.FILE_STREAM_DELETE_HEADER,
+    card: EventConfigs.FILE_STREAM_DELETE_CARD,
+  },
+  accessVolume: {
+    header: EventConfigs.ACCESS_VOLUME_HEADER,
+    card: EventConfigs.ACCESS_VOLUME_CARD,
+  },
+  powershell: {
+    header: EventConfigs.POWERSHELL_HEADER,
+    card: EventConfigs.POWERSHELL_CARD,
+  },
+  regKeyCreate: {
+    header: EventConfigs.REGKEY_CREATE_HEADER,
+    card: EventConfigs.REGKEY_CREATE_CARD,
+  },
+  regKeyRename: {
+    header: EventConfigs.REGKEY_RENAME_HEADER,
+    card: EventConfigs.REGKEY_RENAME_CARD,
+  },
+  regKeyDelete: {
+    header: EventConfigs.REGKEY_DELETE_HEADER,
+    card: EventConfigs.REGKEY_DELETE_CARD,
+  },
+  regValueSet: {
+    header: EventConfigs.REGVALUE_SET_HEADER,
+    card: EventConfigs.REGVALUE_SET_CARD,
+  },
+  regValueDelete: {
+    header: EventConfigs.REGVALUE_DELETE_HEADER,
+    card: EventConfigs.REGVALUE_DELETE_CARD,
+  },
+  regValueQuery: {  
+    header: EventConfigs.REGVALUE_QUERY_HEADER,
+    card: EventConfigs.REGVALUE_QUERY_CARD,
+  },
 }
 
 export function getEventHeaderConfig(eventType: EventType) {

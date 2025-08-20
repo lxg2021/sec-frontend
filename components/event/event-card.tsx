@@ -43,6 +43,7 @@ import {
   HardDrive,
   Vault,
   Key,
+  ListTree,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -86,6 +87,7 @@ const iconMap = {
   HardDrive,
   Vault,
   Key,
+  ListTree,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info
@@ -138,24 +140,43 @@ export function EventCard({ data, eventType, className, cardConfig, headerConfig
       .filter(Boolean)
       .join(" ")
 
+    // 处理截断文本
+    const displayValue =
+      !isExpanded && field.truncate && field.maxLength && stringValue.length > field.maxLength
+        ? stringValue.slice(0, field.maxLength) + "..."
+        : stringValue
+
     return (
       <div className="flex items-start gap-2 flex-1">
-        <span className={`${classes} break-all whitespace-pre-wrap`}>{stringValue}</span>
+        <span className={`${classes} break-all whitespace-pre-wrap`}>{displayValue}</span>
 
-        {field.expandable && (
-          <Button variant="ghost" size="sm" onClick={() => toggleExpanded(fieldKey)} className="h-6 px-2 text-xs">
+        {/* 可展开/收起 */}
+        {field.expandable && stringValue.length > (field.maxLength || 50) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => toggleExpanded(fieldKey)}
+            className="h-6 px-2 text-xs"
+          >
             {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             {isExpanded ? "收起" : "展开"}
           </Button>
         )}
 
+        {/* 可复制 */}
         {field.copyable && (
-          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(stringValue)} className="h-6 px-2 text-xs">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => copyToClipboard(stringValue)}
+            className="h-6 px-2 text-xs"
+          >
             <Copy className="h-3 w-3" />
           </Button>
         )}
 
-        {field.showInPopover && (
+        {/* 弹出完整内容 */}
+        {field.showInPopover && stringValue.length > (field.maxLength || 50) && (
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">

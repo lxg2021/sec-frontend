@@ -40,7 +40,7 @@ export const FILE_READ_CARD: SectionConfig[] = [
         icon: "FileText",
         color: "text-blue-600",
         fields: [
-            { key: "FileName", label: "File Name", icon: "FolderOpen", color: "text-gray-600", monospace: true, truncate: true, maxLength: 10, showInPopover: true, copyable: true },
+            { key: "FileName", label: "File Name", icon: "FolderOpen", color: "text-gray-600", monospace: true, truncate: true, maxLength: 50, showInPopover: true, copyable: true },
             {
                 key: "Description",
                 label: "Description",
