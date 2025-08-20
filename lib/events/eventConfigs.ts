@@ -147,9 +147,29 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.FILE_CREATE_HEADER,
     card: EventConfigs.FILE_CREATE_CARD,
   },
+  fileDelete: {
+    header: EventConfigs.FILE_DELETE_HEADER,
+    card: EventConfigs.FILE_DELETE_CARD,
+  },
+  fileChangeAttributes: {
+    header: EventConfigs.FILE_CHANGE_ATTRIBUTES_HEADER,
+    card: EventConfigs.FILE_CHANGE_ATTRIBUTES_CARD,
+  },
+  fileRename: {
+    header: EventConfigs.FILE_RENAME_HEADER,
+    card: EventConfigs.FILE_RENAME_CARD,
+  },
+  fileMove: {
+    header: EventConfigs.FILE_MOVE_HEADER,
+    card: EventConfigs.FILE_MOVE_CARD,
+  },
+  fileRead: {
+    header: EventConfigs.FILE_READ_HEADER,
+    card: EventConfigs.FILE_READ_CARD,
+  },
+
 }
 
-// 按类型获取配置的辅助函数
 export function getEventHeaderConfig(eventType: EventType) {
   return EVENT_CONFIG_MAP[eventType].header
 }

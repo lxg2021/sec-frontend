@@ -1,16 +1,17 @@
 "use client"
 import { Badge } from "@/components/ui/badge"
 import type { HeaderConfig, SectionConfig } from "@/lib/events/configInterfaces"
-import { Hash, FileText, FolderOpen, Activity, Info } from "lucide-react"
 
 // Header 配置
-export const FILE_CREATE_HEADER: HeaderConfig = {
-    title: { key: "FileName" },
+export const FILE_MOVE_HEADER: HeaderConfig = {
+    title: { key: "NewFileName" },
     badges: [
         {
             key: "Signature",
             customRender: (value: number) => (
-                <Badge variant={value === 1 ? "default" : "destructive"}>{value === 1 ? "Signed" : "Unsigned"}</Badge>
+                <Badge variant={value === 1 ? "default" : "destructive"}>
+                    {value === 1 ? "Signed" : "Unsigned"}
+                </Badge>
             ),
         },
     ],
@@ -21,7 +22,7 @@ export const FILE_CREATE_HEADER: HeaderConfig = {
 }
 
 // Card 配置
-export const FILE_CREATE_CARD: SectionConfig[] = [
+export const FILE_MOVE_CARD: SectionConfig[] = [
     {
         title: "Process Information",
         icon: "Activity",
@@ -39,7 +40,8 @@ export const FILE_CREATE_CARD: SectionConfig[] = [
         icon: "FileText",
         color: "text-blue-600",
         fields: [
-            { key: "FileName", label: "File Name", icon: "FolderOpen", color: "text-gray-600", monospace: true },
+            { key: "FileName", label: "Original File Name", icon: "FolderOpen", color: "text-gray-600", monospace: true },
+            { key: "NewFileName", label: "New File Path", icon: "FolderOpen", color: "text-blue-600", monospace: true },
             { key: "FileMD5", label: "File MD5", icon: "Fingerprint", color: "text-red-400", monospace: true },
             { key: "FileClassDescription", label: "File Class", icon: "Tag", color: "text-gray-600" },
             { key: "FileFormatDescription", label: "File Format", icon: "Tag", color: "text-gray-600" },
@@ -49,10 +51,11 @@ export const FILE_CREATE_CARD: SectionConfig[] = [
                 icon: "Lock",
                 color: "text-red-400",
                 customRender: (value: number) => (
-                    <Badge variant={value === 1 ? "default" : "destructive"}>{value === 1 ? "Signed" : "Unsigned"}</Badge>
+                    <Badge variant={value === 1 ? "default" : "destructive"}>
+                        {value === 1 ? "Signed" : "Unsigned"}
+                    </Badge>
                 ),
             },
-            { key: "DetectionContent", label: "Detection Content", icon: "FileText", color: "text-red-400", monospace: true },
             { key: "SignVendor", label: "Sign Vendor", icon: "User", color: "text-gray-600" },
             { key: "DriverType", label: "Driver Type", icon: "HardDrive", color: "text-gray-600" },
         ],

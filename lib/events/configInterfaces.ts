@@ -86,3 +86,8 @@ export type EventType =
   | "createProcessSetToken"
   | "stealingCredentials"
   | "fileCreate"
+  | "fileDelete"
+  | "fileChangeAttributes"
+  | "fileRename"
+  | "fileMove"
+  | "fileRead"

@@ -717,6 +717,117 @@ export interface FileCreateData {
   UniqueID: string
 }
 
+export interface FileDeleteData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string | null
+  FileName: string
+  FileMD5: string | null
+  FileClass: number
+  FileClassDescription: string
+  FileFormat: number
+  FileFormatDescription: string
+  DriverType: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+// interfaces/fileChangeAttributes.ts
+export interface FileChangeAttributesData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  FileMD5: string | null
+  FileClass: number
+  FileClassDescription: string
+  FileFormat: number
+  FileFormatDescription: string
+  Flag: number
+  OrgCreateTime: string | null
+  NewCreateTime: string | null
+  Signature: number
+  SignVendor: string | null
+  DriverType: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface FileRenameData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  FileMD5: string | null
+  FileClass: number
+  FileClassDescription: string
+  FileFormat: number
+  FileFormatDescription: string
+  NewFileName: string
+  Signature: number
+  SignVendor: string | null
+  DriverType: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+// interfaces/fileMove.ts
+export interface FileMoveData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  FileMD5: string | null
+  FileClass: number
+  FileClassDescription: string
+  FileFormat: number
+  FileFormatDescription: string
+  NewFileName: string
+  Signature: number
+  SignVendor: string | null
+  DriverType: number
+  ProcessGuid: string
+  UniqueID: string
+}
+
+// interfaces/fileRead.ts
+export interface FileReadData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  FileName: string
+  DriverType: number
+  ProcessGuid: string
+  Description: string
+  FileType: number
+  UniqueID: string
+}
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -755,5 +866,10 @@ export type AllEventData =
   | CreateProcessSetTokenData
   | StealingCredentialsData
   | FileCreateData
+  | FileDeleteData
+  | FileChangeAttributesData
+  | FileRenameData
+  | FileMoveData
+  | FileReadData
 
 export type EventKey = keyof AllEventData
