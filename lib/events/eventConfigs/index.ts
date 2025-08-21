@@ -59,6 +59,7 @@ import { MAILSLOT_CREATE_HEADER, MAILSLOT_CREATE_CARD } from "./mailSlotCreateCo
 import { MAILSLOT_CONNECT_HEADER, MAILSLOT_CONNECT_CARD } from "./mailSlotConnectConfig"
 import { EVENT_CREATE_HEADER, EVENT_CREATE_CARD } from "./eventCreateConfig"
 import { EVENT_OPEN_HEADER, EVENT_OPEN_CARD } from "./eventOpenConfig"
+import { MBR_HEADER, MBR_CARD } from "./mBRConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -179,4 +180,6 @@ export {
   EVENT_CREATE_CARD,
   EVENT_OPEN_HEADER,
   EVENT_OPEN_CARD,
+  MBR_HEADER,
+  MBR_CARD,
 }

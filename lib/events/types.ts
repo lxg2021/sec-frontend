@@ -1154,6 +1154,22 @@ export interface EventOpenData {
   UniqueID: string;
 }
 
+export interface MBRData {
+  EventID: number;
+  BootTime: string; 
+  AgentID: string;
+  Time: string;
+  ProcessID: number;
+  ProcessName: string;
+  ProcessImage: string;
+  ProcessMD5: string;
+  PhysicalName: string;
+  DriverType: number;
+  ProcessGuid: string;
+  UniqueID: string;
+}
+
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -1216,6 +1232,7 @@ export type AllEventData =
   | MailSlotCreateData
   | MailSlotConnectData
   | EventCreateData
-  | EventOpenData;
+  | EventOpenData
+  | MBRData;
 
 export type EventKey = keyof AllEventData

@@ -60,6 +60,7 @@ import type {
   MailSlotConnectData,
   EventCreateData,
   EventOpenData,
+  MBRData
 } from "@/lib/events/types"
 
 
@@ -1293,4 +1294,19 @@ export const sampleEventOpenData: EventOpenData = {
   EventName: "global\\myevent",
   ProcessGuid: "c6f1599f21b81ea8003a1a41069eda01",
   UniqueID: "da15df23-6aa8-4a50-873a-358d75800314",
+};
+
+export const sampleMBRData: MBRData = {
+  EventID: 34,
+  BootTime: "2024-05-04T14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024-05-04T17:42:20",
+  ProcessID: 6376,
+  ProcessName: "mbr.exe",
+  ProcessImage: "e:\\test\\mbr.exe",
+  ProcessMD5: "52959054b63c6b459ccccc8c229d3300",
+  PhysicalName: "\\\\.\\physicaldrive0",
+  DriverType: 0,
+  ProcessGuid: "5c30314921b818e8003abd1a079eda01",
+  UniqueID: "c6f73f49-a3c9-49f5-a97d-fff6db471089",
 };

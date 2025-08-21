@@ -247,6 +247,10 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.EVENT_OPEN_HEADER,
     card: EventConfigs.EVENT_OPEN_CARD,
   },
+  mbr: {
+    header: EventConfigs.MBR_HEADER,
+    card: EventConfigs.MBR_CARD,
+  },
 }
 
 export function getEventHeaderConfig(eventType: EventType) {

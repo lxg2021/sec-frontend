@@ -111,3 +111,4 @@ export type EventType =
   | "mailSlotConnect"
   | "eventCreate"
   | "eventOpen"
+  | "mbr"
