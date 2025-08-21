@@ -56,9 +56,11 @@ import type {
   FileMappingConnectData,
   PipeCreateData,
   PipeConnectData,
+  MailSlotCreateData,
+  MailSlotConnectData,
 } from "@/lib/events/types"
 
-// 示例数据
+
 export const sampleProcessData: ProcessCreateData = {
   EventID: 9,
   BootTime: "2024/05/03 17:09:33",
@@ -1229,4 +1231,32 @@ export const samplePipeConnectData: PipeConnectData = {
   PipeName: "\\??\\pipe\\mynamedpipe",
   ProcessGuid: "61c34f4315801128003a4a8dfc9dda01",
   UniqueID: "51341b3d-4a67-42b3-ae3b-6f978f45c1b7",
+}
+
+export const sampleMailSlotCreateData: MailSlotCreateData = {
+  EventID: 39,
+  BootTime: "2024/05/04 14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:27:26",
+  ProcessID: 7152,
+  ProcessName: "mailslotserver.exe",
+  ProcessImage: "e:\\test\\mailslotserver.exe",
+  ProcessMD5: "6843a69027d79f0121e60cf89d459a27",
+  MailSlotName: "\\??\\mailslot\\sample_mailslot",
+  ProcessGuid: "e46b66e815801bf0003a6d09fc9dda01",
+  UniqueID: "a2a802c0-d4a6-4af0-b80a-e019c464e1bd",
+}
+
+export const sampleMailSlotConnectData: MailSlotConnectData = {
+  EventID: 40,
+  BootTime: "2024/05/04 14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024/05/04 16:27:58",
+  ProcessID: 8,
+  ProcessName: "mailslotclient.exe",
+  ProcessImage: "e:\\test\\mailslotclient.exe",
+  ProcessMD5: "90f352ad410f0a3bd263b58b027ef2d5",
+  MailSlotName: "\\??\\mailslot\\sample_mailslot",
+  ProcessGuid: "f7b2f4e015800008003a6d7efc9dda01",
+  UniqueID: "47c42858-7e23-4e4e-890b-0c2e88fb4b6c",
 }

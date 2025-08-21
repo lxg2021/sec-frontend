@@ -47,6 +47,7 @@ import {
   Link,
   Link2,
   Layers,
+  Mail,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -94,6 +95,7 @@ const iconMap = {
   Link,
   Link2,
   Layers,
+  Mail,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

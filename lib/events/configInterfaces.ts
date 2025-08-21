@@ -107,3 +107,5 @@ export type EventType =
   | "fileMappingConnect"
   | "pipeCreate"
   | "pipeConnect"
+  | "mailSlotCreate"
+  | "mailSlotConnect"
