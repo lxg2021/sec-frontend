@@ -11,7 +11,7 @@ export const REGKEY_RENAME_HEADER: HeaderConfig = {
     { key: "Classification", variant: "default" },
   ],
   fields: [
-    { key: "AgentID", label: "Agent ID", icon: "Shield", color: "text-gray-500" },
+    { key: "AgentID", label: "Agent ID", icon: "Monitor", color: "text-gray-500" },
     { key: "Time", label: "Event Time", icon: "Clock", color: "text-gray-600" },
   ],
 }

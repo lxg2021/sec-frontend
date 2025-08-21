@@ -15,7 +15,7 @@ export const PROCESS_CREATE_HEADER: HeaderConfig = {
     },
   ],
   fields: [
-    { key: "AgentID", label: "Agent ID", icon: "Shield", color: "text-gray-500" },
+    { key: "AgentID", label: "Agent ID", icon: "Monitor", color: "text-gray-500" },
     { key: "UserID", label: "User ID", icon: "Shield", color: "text-gray-500" },
     { key: "Time", label: "Event Time", icon: "Clock", color: "text-gray-600" },
     { key: "Session", label: "Session", icon: "Info", color: "text-gray-600" },

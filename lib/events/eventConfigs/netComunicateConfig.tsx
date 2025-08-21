@@ -12,7 +12,7 @@ export const NET_COMMUNICATE_HEADER: HeaderConfig = {
     { key: "Direction", color: "bg-blue-500 text-white" },
   ],
   fields: [
-    { key: "AgentID", label: "Agent ID", icon: "Shield", color: "text-gray-500" },
+    { key: "AgentID", label: "Agent ID", icon: "Monitor", color: "text-gray-500" },
     { key: "Time", label: "Event Time", icon: "Clock", color: "text-gray-600" },
   ],
 }

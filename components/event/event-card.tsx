@@ -63,6 +63,7 @@ import {
   BadgeInfo,
   Puzzle,
   Computer,
+  Monitor,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -126,6 +127,7 @@ const iconMap = {
   BadgeInfo,
   Puzzle,
   Computer,
+  Monitor,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info
