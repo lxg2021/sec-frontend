@@ -1122,6 +1122,38 @@ export interface MailSlotConnectData {
   UniqueID: string
 }
 
+export interface EventCreateData {
+  EventID: number;
+  BootTime: string;
+  AgentID: string;
+  Time: string;
+  ProcessID: number;
+  ProcessName: string;
+  ProcessImage: string;
+  ProcessMD5: string;
+  ManualReset: string;
+  InitialState: string;
+  EventName: string; 
+  ProcessGuid: string;
+  UniqueID: string;
+}
+
+export interface EventOpenData {
+  EventID: number;
+  BootTime: string;
+  AgentID: string;
+  Time: string;
+  ProcessID: number;
+  ProcessName: string;
+  ProcessImage: string;
+  ProcessMD5: string;
+  DesiredAccess: number;
+  InheritHandle: string; 
+  EventName: string;
+  ProcessGuid: string;
+  UniqueID: string;
+}
+
 
 export type AllEventData =
   | ProcessCreateData
@@ -1183,5 +1215,7 @@ export type AllEventData =
   | PipeConnectData
   | MailSlotCreateData
   | MailSlotConnectData
+  | EventCreateData
+  | EventOpenData;
 
 export type EventKey = keyof AllEventData

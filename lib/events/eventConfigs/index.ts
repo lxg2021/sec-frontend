@@ -57,6 +57,8 @@ import { PIPE_CREATE_HEADER, PIPE_CREATE_CARD } from "./pipeCreateConfig"
 import { PIPE_CONNECT_HEADER, PIPE_CONNECT_CARD } from "./pipeConnectConfig"
 import { MAILSLOT_CREATE_HEADER, MAILSLOT_CREATE_CARD } from "./mailSlotCreateConfig"
 import { MAILSLOT_CONNECT_HEADER, MAILSLOT_CONNECT_CARD } from "./mailSlotConnectConfig"
+import { EVENT_CREATE_HEADER, EVENT_CREATE_CARD } from "./eventCreateConfig"
+import { EVENT_OPEN_HEADER, EVENT_OPEN_CARD } from "./eventOpenConfig"
 
 export {
   PROCESS_CREATE_HEADER,
@@ -173,4 +175,8 @@ export {
   MAILSLOT_CREATE_CARD,
   MAILSLOT_CONNECT_HEADER,
   MAILSLOT_CONNECT_CARD,
+  EVENT_CREATE_HEADER,
+  EVENT_CREATE_CARD,
+  EVENT_OPEN_HEADER,
+  EVENT_OPEN_CARD,
 }

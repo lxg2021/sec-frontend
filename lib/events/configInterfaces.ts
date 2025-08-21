@@ -109,3 +109,5 @@ export type EventType =
   | "pipeConnect"
   | "mailSlotCreate"
   | "mailSlotConnect"
+  | "eventCreate"
+  | "eventOpen"

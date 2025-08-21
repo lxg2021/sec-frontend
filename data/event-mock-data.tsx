@@ -58,6 +58,8 @@ import type {
   PipeConnectData,
   MailSlotCreateData,
   MailSlotConnectData,
+  EventCreateData,
+  EventOpenData,
 } from "@/lib/events/types"
 
 
@@ -1260,3 +1262,35 @@ export const sampleMailSlotConnectData: MailSlotConnectData = {
   ProcessGuid: "f7b2f4e015800008003a6d7efc9dda01",
   UniqueID: "47c42858-7e23-4e4e-890b-0c2e88fb4b6c",
 }
+
+export const sampleEventCreateData: EventCreateData = {
+  EventID: 37,
+  BootTime: "2024-05-04T14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024-05-04T17:34:52",
+  ProcessID: 8916,
+  ProcessName: "tst.exe",
+  ProcessImage: "e:\\test\\tst.exe",
+  ProcessMD5: "b8460351df5c18f883177e1865d54d74",
+  ManualReset: "auto-reset event",
+  InitialState: "nonsignaled",
+  EventName: "global\\myevent",
+  ProcessGuid: "5112bbda21b822d4003aed6b069eda01",
+  UniqueID: "e22a552c-35d0-4eed-9ed8-535eb9880e12",
+};
+
+export const sampleEventOpenData: EventOpenData = {
+  EventID: 38,
+  BootTime: "2024-05-04T14:01:16",
+  AgentID: "d0c951b3b2fe6bba106840972c7c904f",
+  Time: "2024-05-04T17:38:11",
+  ProcessID: 7848,
+  ProcessName: "tst.exe",
+  ProcessImage: "e:\\test\\tst.exe",
+  ProcessMD5: "71b2f979fdbdeb3fc8c9717ded60b316",
+  DesiredAccess: 2031619,
+  InheritHandle: "inherit",
+  EventName: "global\\myevent",
+  ProcessGuid: "c6f1599f21b81ea8003a1a41069eda01",
+  UniqueID: "da15df23-6aa8-4a50-873a-358d75800314",
+};

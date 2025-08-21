@@ -48,6 +48,15 @@ import {
   Link2,
   Layers,
   Mail,
+  RefreshCw,
+  Bell,
+  PlayCircle,
+  Pause,
+  StopCircle,
+  CheckCircle,
+  XCircle,
+  Check,
+  Power,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -96,6 +105,15 @@ const iconMap = {
   Link2,
   Layers,
   Mail,
+  RefreshCw,
+  Bell,
+  PlayCircle,
+  Pause,
+  StopCircle,
+  CheckCircle,
+  XCircle,
+  Check,
+  Power,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

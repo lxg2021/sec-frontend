@@ -239,6 +239,14 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.MAILSLOT_CONNECT_HEADER,
     card: EventConfigs.MAILSLOT_CONNECT_CARD,
   },
+  eventCreate: {
+    header: EventConfigs.EVENT_CREATE_HEADER,
+    card: EventConfigs.EVENT_CREATE_CARD,
+  },
+  eventOpen: {
+    header: EventConfigs.EVENT_OPEN_HEADER,
+    card: EventConfigs.EVENT_OPEN_CARD,
+  },
 }
 
 export function getEventHeaderConfig(eventType: EventType) {
