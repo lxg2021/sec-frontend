@@ -57,6 +57,12 @@ import {
   XCircle,
   Check,
   Power,
+  UserPlus,
+  UserCheck,
+  UserRoundCheck,
+  BadgeInfo,
+  Puzzle,
+  Computer,
 } from "lucide-react"
 import { useState } from "react"
 import type { AllEventData, EventType, SectionConfig, HeaderConfig, FieldConfig } from "@/lib/events/types"
@@ -114,6 +120,12 @@ const iconMap = {
   XCircle,
   Check,
   Power,
+  UserPlus,
+  UserCheck,
+  UserRoundCheck,
+  BadgeInfo,
+  Puzzle,
+  Computer,
 }
 
 const getIcon = (iconName: keyof typeof iconMap) => iconMap[iconName] || Info

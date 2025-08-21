@@ -1169,7 +1169,211 @@ export interface MBRData {
   UniqueID: string;
 }
 
+export interface CreateAccountData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  SamAccountName: string
+  ProcessGuid: string
+  UniqueID: string
+}
 
+export interface EnableAccountData {
+  EventID: number
+  BootTime: string 
+  AgentID: string
+  Time: string 
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface ResetAccountPasswordData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface DisableAccountData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface DeleteAccountData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string 
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface ModifyAccountData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface AddAccountGroupData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  MemberName: string
+  MemberSid: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface DeleteAccountFromGroupData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  MemberName: string
+  MemberSid: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface CreateGroupData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  SamAccountName: string
+  ProcessGuid: string
+  UniqueID: string
+}
+
+export interface DeleteGroupData {
+  EventID: number
+  BootTime: string
+  AgentID: string
+  Time: string
+  ProcessID: number
+  ProcessName: string
+  ProcessImage: string
+  ProcessMD5: string
+  TargetUserName: string
+  TargetDomainName: string
+  TargetSid: string
+  SubjectUserSid: string
+  SubjectUserName: string
+  SubjectDomainName: string
+  SubjectLogonId: string
+  ProcessGuid: string
+  UniqueID: string
+}
 
 export type AllEventData =
   | ProcessCreateData
@@ -1233,6 +1437,16 @@ export type AllEventData =
   | MailSlotConnectData
   | EventCreateData
   | EventOpenData
-  | MBRData;
+  | MBRData
+  | CreateAccountData
+  | EnableAccountData
+  | ResetAccountPasswordData
+  | DisableAccountData
+  | DeleteAccountData
+  | ModifyAccountData
+  | AddAccountGroupData
+  | DeleteAccountFromGroupData
+  | CreateGroupData
+  | DeleteGroupData
 
 export type EventKey = keyof AllEventData

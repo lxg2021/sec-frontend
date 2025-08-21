@@ -251,6 +251,46 @@ export const EVENT_CONFIG_MAP: Record<
     header: EventConfigs.MBR_HEADER,
     card: EventConfigs.MBR_CARD,
   },
+  createAccount: {
+    header: EventConfigs.CREATE_ACCOUNT_HEADER,
+    card: EventConfigs.CREATE_ACCOUNT_CARD,
+  },
+  enableAccount: {
+    header: EventConfigs.ENABLE_ACCOUNT_HEADER,
+    card: EventConfigs.ENABLE_ACCOUNT_CARD,
+  },
+  resetAccountPassword: {
+    header: EventConfigs.RESET_ACCOUNT_PASSWORD_HEADER,
+    card: EventConfigs.RESET_ACCOUNT_PASSWORD_CARD,
+  },
+  disableAccount: {
+    header: EventConfigs.DISABLE_ACCOUNT_HEADER,
+    card: EventConfigs.DISABLE_ACCOUNT_CARD,
+  },
+  deleteAccount: {
+    header: EventConfigs.DELETE_ACCOUNT_HEADER,
+    card: EventConfigs.DELETE_ACCOUNT_CARD,
+  },
+  modifyAccount: {
+    header: EventConfigs.MODIFY_ACCOUNT_HEADER,
+    card: EventConfigs.MODIFY_ACCOUNT_CARD,  
+  },
+  addAccountGroup: {
+    header: EventConfigs.ADD_ACCOUNTGROUP_HEADER,
+    card: EventConfigs.ADD_ACCOUNTGROUP_CARD,   
+  },
+  deleteAccountGroup: {
+    header: EventConfigs.DELETE_ACCOUNTGROUP_HEADER,
+    card: EventConfigs.DELETE_ACCOUNTGROUP_CARD,   
+  },
+  createGroup: {
+    header: EventConfigs.CREATE_GROUP_HEADER,
+    card: EventConfigs.CREATE_GROUP_CARD,      
+  },
+  deleteGroup: {
+    header: EventConfigs.DELETE_GROUP_HEADER,
+    card: EventConfigs.DELETE_GROUP_CARD,  
+  },
 }
 
 export function getEventHeaderConfig(eventType: EventType) {
