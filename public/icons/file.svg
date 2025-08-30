@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+  <!-- 外圆背景 -->
+  <circle cx="24" cy="24" r="22" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"></circle>
+  
+  <!-- 内部小圆 -->
+  <circle cx="24" cy="24" r="10" fill="#2196F3"></circle>
+  
+  <!-- 装饰性小点 -->
+  <circle cx="34" cy="14" r="3" fill="#64B5F6"></circle>
+</svg>
