@@ -91,7 +91,7 @@ export default function App() {
   }, [timer, testPhase, nodes, links]);
 
   return (
-    <div className="w-screen h-screen relative">
+    <div className="w-screen h-screen relative bg-white">
       {/* 计时器显示 */}
       <div className="absolute top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-10">
         {testPhase === 0 ? (
