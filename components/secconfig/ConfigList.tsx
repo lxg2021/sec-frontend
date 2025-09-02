@@ -40,6 +40,7 @@ import {
   Users,
   Cog,
   Radar,
+  SlidersHorizontal,
 } from "lucide-react"
 import type { ConfigCategory } from "@/components/secconfig/types/configItem"
 
@@ -159,7 +160,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
         <div className="flex items-center space-x-3">
           {/* 图标块 */}
           <div className="p-2 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-lg">
-            <Radar className="h-5 w-5 text-white" />
+            <SlidersHorizontal className="h-5 w-5 text-white" />
           </div>
 
           {/* 标题 */}
@@ -180,7 +181,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
           <div className="space-y-1">
             <div className="pt-2">
               <span className="text-sm font-medium">
-                {enabledItems} / {totalItems} 已启用
+                <span className="text-red-500">{enabledItems}</span> / {totalItems} 已启用
               </span>
             </div>
           </div>
@@ -253,13 +254,13 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                     {getCategoryIcon(category.label)}
                     <h3 className="font-medium text-foreground">{category.label}</h3>
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                      {category.items.length} 个事件
+                      {category.items.length} 种事件
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                      {categoryEnabledCount} 个已启用
+                      {categoryEnabledCount} 种启用
                     </span>
                     {isExpanded ? (
                       <ChevronDown className="w-4 h-4 text-muted-foreground" />
