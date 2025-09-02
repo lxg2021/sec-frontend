@@ -102,6 +102,30 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
 
+  // 获取当前选中分类的图标
+  const getSelectedCategoryIcon = () => {
+    if (selectedCategory === "all") {
+      return <Filter className="w-4 h-4 text-muted-foreground" />
+    }
+    
+    const category = categories.find(cat => cat.label === selectedCategory)
+    if (category) {
+      return getCategoryIcon(category.label)
+    }
+    
+    return <Filter className="w-4 h-4 text-muted-foreground" />
+  }
+
+  // 获取当前选中分类的显示名称
+  const getSelectedCategoryName = () => {
+    if (selectedCategory === "all") {
+      return "所有分类"
+    }
+    
+    const category = categories.find(cat => cat.label === selectedCategory)
+    return category ? category.label : "所有分类"
+  }
+
   /** 默认进程组展开，别的都收缩 */
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(
     categories.reduce(
@@ -210,17 +234,27 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
           </div>
           <div className="flex-1">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full [&_[data-role=select-value]]:hidden">
                 <div className="flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  <SelectValue placeholder="所有分类" />
+                  {getSelectedCategoryIcon()}
+                  <span className="text-sm">
+                    {getSelectedCategoryName()}
+                  </span>
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">所有分类</SelectItem>
+                <SelectItem value="all">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4" />
+                    <span>所有分类</span>
+                  </div>
+                </SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.label} value={category.label}>
-                    {category.label}
+                    <div className="flex items-center gap-2">
+                      {getCategoryIcon(category.label)}
+                      <span>{category.label}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
