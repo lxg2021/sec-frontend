@@ -107,12 +107,12 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
     if (selectedCategory === "all") {
       return <Filter className="w-4 h-4 text-muted-foreground" />
     }
-    
+
     const category = categories.find(cat => cat.label === selectedCategory)
     if (category) {
       return getCategoryIcon(category.label)
     }
-    
+
     return <Filter className="w-4 h-4 text-muted-foreground" />
   }
 
@@ -121,7 +121,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
     if (selectedCategory === "all") {
       return "所有分类"
     }
-    
+
     const category = categories.find(cat => cat.label === selectedCategory)
     return category ? category.label : "所有分类"
   }
@@ -319,7 +319,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                       >
                         {allItemsEnabled ? (
                           <>
-                            <SquareCheck className="w-4 h-4" />
+                            <SquareCheck className="w-4 h-4 text-blue-600" />
                             取消全选
                           </>
                         ) : (
