@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   RotateCcw,
   Plus,
@@ -39,6 +39,7 @@ import {
   Cpu,
   Users,
   Cog,
+  Radar,
 } from "lucide-react"
 import type { ConfigCategory } from "@/components/secconfig/types/configItem"
 
@@ -96,7 +97,6 @@ const getCategoryIcon = (categoryLabel: string) => {
   }
 }
 
-
 export function ConfigList({ categories, onConfigChange, onCreateConfig, onResetToDefault }: ConfigListProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -153,13 +153,31 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
     )
 
   return (
-    <TooltipProvider>
-      <div className="space-y-6 p-6 bg-background rounded-lg">
+    <Card className="border-0 shadow-lg">
+
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center space-x-3">
+          {/* 图标块 */}
+          <div className="p-2 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-lg">
+            <Radar className="h-5 w-5 text-white" />
+          </div>
+
+          {/* 标题 */}
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+              Sensor传感器配置
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+              切换各个传感器监控组件的开启或关闭状态
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
         {/* 头部区域 */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-foreground">传感器配置</h1>
-            <p className="text-sm text-muted-foreground">切换各个传感器监控组件的开启或关闭状态</p>
             <div className="pt-2">
               <span className="text-sm font-medium">
                 {enabledItems} / {totalItems} 已启用
@@ -231,8 +249,6 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                   className="flex items-center justify-between p-4 bg-muted/40 hover:bg-muted/60 transition-colors cursor-pointer"
                   onClick={() => toggleCategoryExpansion(category.label)}
                 >
-
-                  {/** ICON Lable XX个项目 */}
                   <div className="flex items-center gap-3">
                     {getCategoryIcon(category.label)}
                     <h3 className="font-medium text-foreground">{category.label}</h3>
@@ -289,7 +305,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                         return (
                           <div
                             key={item.key}
-                            className="flex items-center justify-between p-3 rounded-md border bg-card hover:bg-accent/30 transition-colors group"
+                            className="flex items-center justify-between p-3 rounded-md border bg-card hover:bg-accent/30 transition-colors"
                           >
                             <div className="flex items-start gap-3">
                               <Switch
@@ -298,16 +314,9 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                                 className="mt-0.5 data-[state=checked]:bg-primary"
                               />
                               <div className="space-y-1">
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="font-medium text-sm cursor-help hover:text-primary transition-colors">
-                                      {item.label}
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="max-w-xs">
-                                    <p>{item.description}</p>
-                                  </TooltipContent>
-                                </Tooltip>
+                                <span className="font-medium text-sm">
+                                  {item.label}
+                                </span>
                                 <p className="text-xs text-muted-foreground line-clamp-2">
                                   {item.description}
                                 </p>
@@ -342,7 +351,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
             <p className="text-sm mt-1">尝试调整搜索关键词或筛选条件</p>
           </div>
         )}
-      </div>
-    </TooltipProvider>
+      </CardContent>
+    </Card>
   )
 }

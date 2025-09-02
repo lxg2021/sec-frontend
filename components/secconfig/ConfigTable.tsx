@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Trash2, Eye } from "lucide-react"
 import { configStorage, type SavedConfig } from "@/components/secconfig/data/configStorage"
 import { useToast } from "@/hooks/use-toast"
+import { Archive } from "lucide-react"
 
 interface ConfigTableProps {
   refreshTrigger: number
@@ -57,10 +58,20 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>已保存的配置</CardTitle>
+      <Card className="border-0 shadow-lg">
+
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+              <Archive className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">已保存的配置</CardTitle>
+            </div>
+          </div>
         </CardHeader>
+
+
         <CardContent>
           {configs.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">暂无保存的配置文件</p>

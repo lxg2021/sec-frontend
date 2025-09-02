@@ -39,19 +39,6 @@ export default function ConfigManagementPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        {/* 顶部标题栏 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <SlidersHorizontal className="h-6 w-6 text-blue-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">传感器配置</h1>
-              <p className="text-sm text-gray-500 mt-1">Sensor Configuration</p>
-            </div>
-          </div>
-        </div>
-
         {/* 配置项列表 */}
         <div className="w-full">
           <ConfigList
@@ -63,10 +50,7 @@ export default function ConfigManagementPage() {
         </div>
 
         {/* 已保存的配置 */}
-        <div className="mt-8 sm:mt-10 lg:mt-12 w-full">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">
-            已保存的配置
-          </h2>
+        <div className="w-full">
           <ConfigTable refreshTrigger={refreshTrigger} />
         </div>
       </div>
