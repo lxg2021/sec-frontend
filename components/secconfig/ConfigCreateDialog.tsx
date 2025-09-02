@@ -17,6 +17,7 @@ import { AlertCircle } from "lucide-react"
 import type { ConfigCategory } from "@/components/secconfig/types/configItem"
 import { configStorage } from "@/components/secconfig/data/configStorage"
 import { useToast } from "@/hooks/use-toast"
+import { CheckCircle2 } from "lucide-react"
 
 interface ConfigCreateDialogProps {
   categories: ConfigCategory[]
@@ -84,8 +85,19 @@ export function ConfigCreateDialog({
       configStorage.saveConfig(configData)
 
       toast({
-        title: "创建成功",
-        description: `配置文件 ${name}-${version}-${currentDate}.json 已创建`,
+        duration: 2000, // 2秒自动消失
+        className: "bg-white/90 backdrop-blur-sm text-slate-700 shadow-md rounded-xl flex items-center gap-3 p-4 border border-slate-200",
+        title: (
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-teal-500" />
+            <span className="font-medium">创建成功</span>
+          </div>
+        ),
+        description: (
+          <span className="ml-7 text-slate-600">
+            配置文件 <strong className="text-slate-800">{name}-{version}-{currentDate}.json</strong> 已创建
+          </span>
+        ),
       })
 
       resetForm()

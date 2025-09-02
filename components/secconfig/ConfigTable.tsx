@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Trash2, Eye } from "lucide-react"
 import { configStorage, type SavedConfig } from "@/components/secconfig/data/configStorage"
 import { useToast } from "@/hooks/use-toast"
-import { Archive } from "lucide-react"
+import { Archive, CheckCircle2, AlertCircle } from "lucide-react"
 
 interface ConfigTableProps {
   refreshTrigger: number
@@ -34,14 +34,27 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
       configStorage.deleteConfig(id)
       loadConfigs()
       toast({
-        title: "成功",
+        className: "bg-white/90 backdrop-blur-sm text-slate-700 shadow-md rounded-xl flex items-center gap-3 p-4 border border-slate-200",
+        title: (
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-teal-500" />
+            <span className="font-medium">成功</span>
+          </div>
+        ),
         description: `配置 "${name}" 已删除`,
       })
     } catch (error) {
       toast({
         title: "错误",
         description: "删除配置失败",
-        variant: "destructive",
+        className: "bg-white/90 backdrop-blur-sm text-slate-700 shadow-md rounded-xl flex items-center gap-3 p-4 border border-rose-200",
+        title: (
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-rose-400" />
+            <span className="font-medium">错误</span>
+          </div>
+        ),
+        description: <span className="text-slate-600">删除配置失败</span>,
       })
     }
   }
