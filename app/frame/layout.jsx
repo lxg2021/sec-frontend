@@ -17,6 +17,7 @@ import {
   Boxes,
   ShieldCheck,
   Settings2,
+  SlidersHorizontal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -65,7 +66,14 @@ export default function BaselineLayout({ children }) {
     { id: "attack", icon: Target, label: "攻击溯源", path: "/frame/attack" },
     { id: "response", icon: Shield, label: "处置响应", path: "/frame/response" },
     { id: "reports", icon: FileText, label: "安全报告", path: "/frame/reports" },
-    { id: "control", icon: Settings, label: "控制中心", path: "/frame/control" },
+    { 
+		id: "control", 
+		icon: Settings, 
+		label: "控制中心", 
+		submenu: [
+			{ id: "sensorconfig", icon: SlidersHorizontal, label: "传感器配置", path: "/frame/control/sensor" },
+		],		
+	},
   ]
 
   // 计算当前激活菜单项ID
