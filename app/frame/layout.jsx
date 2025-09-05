@@ -62,8 +62,17 @@ export default function BaselineLayout({ children }) {
 		{ id: "baselineconfig", icon: Settings2, label: "基线配置", path: "/frame/baseline/rules" },
       ],
     },
-    { id: "vulnerability", icon: AlertTriangle, label: "漏洞防护", path: "/frame/vulnerability" },
-    { id: "attack", icon: Target, label: "攻击溯源", path: "/frame/attack" },
+    { 
+		id: "vulnerability", 
+		icon: AlertTriangle, 
+		label: "漏洞防护", 
+		path: "/frame/vulnerability",
+		submenu: [
+			{ id: "patchdash", icon: ShieldCheck, label: "补丁概览", path: "/frame/vulnerability/dashboard" },
+		],
+	},
+    
+	{ id: "attack", icon: Target, label: "攻击溯源", path: "/frame/attack" },
     { id: "response", icon: Shield, label: "处置响应", path: "/frame/response" },
     { id: "reports", icon: FileText, label: "安全报告", path: "/frame/reports" },
     { 

@@ -1,0 +1,165 @@
+import type { SystemType, PatchSeverity, HostRiskLevel } from "./patch"
+
+/**
+ * 系统维度的补丁汇总统计
+ */
+export interface PatchSystemSummary {
+  /** 系统类型 */
+  system: SystemType
+
+  /** 补丁总数（该系统需要管理的补丁数量） */
+  totalPatches: number
+
+  /** 已安装补丁数（覆盖率100%才算已安装） */
+  installedPatches: number
+
+  /** 未安装补丁数（覆盖率 < 100%） */
+  uninstalledPatches: number
+
+  /** 安装失败的补丁数（补丁维度） */
+  failedPatches: number
+
+  /** 覆盖率 = installedPatches / totalPatches */
+  coverageRate: number
+
+  /** 最后一次统计时间（ISO 时间戳） */
+  lastUpdated: string
+}
+
+/**
+ * 补丁概览统计接口响应
+ * 用于 Dashboard 顶部卡片区展示
+ * GET /api/patches/summary
+ */
+export interface PatchSummaryBySystemResponse {
+  /** 各系统汇总统计 */
+  summaries: PatchSystemSummary[]
+
+  /** 全局汇总 */
+  total: {
+    totalPatches: number
+    installedPatches: number
+    uninstalledPatches: number
+    failedPatches: number
+    coverageRate: number
+    lastUpdated: string
+  }
+}
+
+/**
+ * 补丁安全等级分布接口响应
+ * 用于 Dashboard 中部饼图展示
+ * GET /api/patches/distribution/security-level
+ */
+export interface PatchSecurityLevelDistributionResponse {
+  /**
+   * 按系统分类的补丁等级分布
+   */
+  distributions: Array<{
+    /** 系统类型 */
+    system: SystemType
+
+    /** 各安全等级补丁数量 */
+    distribution: Record<PatchSeverity, number>
+  }>
+
+  /** 全局合计（所有系统汇总） */
+  total: Record<PatchSeverity, number>
+}
+
+/**
+ * 单台主机风险信息
+ */
+export interface HostRiskInfo {
+  /** 主机ID */
+  hostId: string
+
+  /** 主机名称 */
+  hostName: string
+
+  /** 主机操作系统 */
+  system: SystemType
+
+  /** 所属部门 */
+  department: string
+
+  /** 所属组 */
+  group: string
+
+  /** 风险等级（HIGH/MEDIUM/LOW/SAFE） */
+  riskLevel: HostRiskLevel
+
+  /** 关键未安装的补丁数量 */
+  criticalCounts: number
+
+  /** 重要未安装的补丁数量 */
+  importantCounts: number
+
+  /** 中等未安装的补丁数量 */
+  moderateCounts: number
+
+  /** 低等未安装的补丁数量 */
+  lowCounts: number
+
+  /** 未安装补丁详细列表 */
+  uninstalledPatches: Array<{
+    /** 补丁ID */
+    patchId: string
+
+    /** 补丁名称 */
+    patchName: string
+
+    /** 补丁严重等级 */
+    severity: PatchSeverity
+  }>
+}
+
+/**
+ * 获取 TOP10 高风险主机
+ *
+ * 用于 PatchDashboard 右侧高风险主机列表 / 热力图快速定位
+ *
+ * GET /api/hosts/top-risk?limit=10
+ *
+ * 返回危险等级最高的前 10 台主机及最后一次统计时间
+ */
+export interface TopHostRiskResponse {
+  /** 危险等级最高的前 10 台主机 */
+  topHosts: HostRiskInfo[]
+
+  /** 最后一次统计时间（ISO 时间戳） */
+  lastUpdated: string
+}
+
+/**
+ * 补丁安装覆盖率趋势接口响应
+ * 用于 Dashboard 中部折线图展示
+ * GET /api/patches/trend/coverage?days=30
+ */
+export interface PatchCoverageTrendResponse {
+  /**
+   * 按时间排序的趋势点数组
+   */
+  trend: Array<{
+    /** 日期（UTC），格式 YYYY-MM-DD */
+    date: string
+
+    /**
+     * 当日补丁安装覆盖率（百分比 0-100）
+     * coverageRate = 已安装补丁的主机数 / 需要安装主机总数 × 100
+     */
+    coverageRate: number
+
+    /** 可选：当日已安装补丁主机数 */
+    installedHosts?: number
+
+    /** 可选：当日需要安装补丁的主机总数 */
+    totalHosts?: number
+
+    /** 可选：当日安装失败主机数 */
+    failedHosts?: number
+
+    /** 可选：按系统统计的覆盖率 */
+    system?: SystemType
+  }>
+}

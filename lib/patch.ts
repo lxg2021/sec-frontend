@@ -1,0 +1,105 @@
+/**
+ * 系统类型枚举
+ */
+export enum SystemType {
+  WINDOWS = "windows",
+  MACOS = "macos",
+  LINUX = "linux",
+}
+
+/**
+ * 补丁严重等级类型
+ */
+export type PatchSeverity = "Critical" | "Important" | "Moderate" | "Low"
+
+/**
+ * 主机风险等级枚举
+ * 直接对应补丁严重等级
+ */
+export enum HostRiskLevel {
+  HIGH = "Critical", // 高风险 = 至少有一个 Critical 补丁未安装
+  MEDIUM = "Important", // 中风险 = 至少有一个 Important 补丁未安装且没有 Critical
+  LOW = "Moderate", // 低风险 = 没有 Critical/Important，但有 Moderate 或 Low
+  SAFE = "Safe", // 安全 = 没有未安装补丁
+}
+
+/**
+ * 补丁信息（带安装统计）
+ */
+export interface IPatchItem {
+  /** 补丁唯一 GUID */
+  patchGuid: string
+
+  /** 补丁在微软 KB 中的 ID（可能有多个） */
+  kbArticleIds: string[]
+
+  /** 补丁标题 */
+  title: string
+
+  /** 补丁描述 */
+  description: string
+
+  /** 补丁类型（数值枚举） */
+  patchType: number
+
+  /** 补丁安全公告 ID（可能有多个） */
+  securityBulletinIds: string[]
+
+  /** 发布记录，可选 */
+  releaseNotes?: string
+
+  /** 补丁详细信息支持链接 */
+  supportURL?: string
+
+  /** 下载链接 */
+  downloadURL: string
+
+  /** 补丁图像 URL，可选 */
+  imageURL?: string
+
+  /** 补丁安全等级 */
+  securityLevel: PatchSeverity
+
+  /** 更多信息 URL，可选 */
+  moreInfoURL?: string
+
+  /** 支持语言，可选 */
+  languages?: string
+
+  /** 是否可卸载 */
+  isUninstallable: boolean
+
+  /** 发布日期（ISO 8601） */
+  publishDate: string
+
+  /** 补丁分类 */
+  patchCategory: string
+
+  /** 补丁适用操作系统 */
+  osPlatform: SystemType | "OTHER"
+}
+
+/**
+ * 单台主机的补丁安装信息
+ *
+ * 表示某台主机上某个补丁的安装状态，用于补丁覆盖统计和详细信息展示。
+ */
+export interface HostPatchInfo {
+  /** 主机唯一标识 */
+  hostId: string
+
+  /** 主机名称 */
+  hostName: string
+
+  /** 主机操作系统 */
+  system: SystemType
+
+  /** 补丁在该主机上的安装状态 */
+  status: "INSTALLED" | "UNINSTALLED" | "RUNNING" | "FAILED"
+
+  /** 安装时间（仅在已安装或正在安装状态下可用，ISO 8601 格式） */
+  installedAt?: string
+
+  /** 安装失败时的错误信息，可用于排查原因 */
+  errorMessage?: string
+}
