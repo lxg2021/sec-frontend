@@ -21,11 +21,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import type { PatchCoverageForInstall } from "@/types/patchInstall"
-import type { SelectedPatchPool, SelectedPatchItem } from "@/types/patchSelection"
-import type { PatchSeverity } from "@/types/patch"
+import type { PatchCoverageForInstall } from "@/lib/patchInstall"
+import type { SelectedPatchPool, SelectedPatchItem } from "@/lib/patchSelection"
+import type { PatchSeverity } from "@/lib/patch"
 import Image from "next/image"
-import { SystemType } from "@/types/patch"
+import { SystemType } from "@/lib/patch"
 
 const systemIcons = {
   [SystemType.WINDOWS]: "/icons/system/windows.svg",

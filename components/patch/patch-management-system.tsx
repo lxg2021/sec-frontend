@@ -6,9 +6,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PatchList } from "./patch-list"
 import { SelectedPatchPanel } from "./selected-patch-panel"
 import { InstallTaskList } from "./install-task-list"
-import type { SelectedPatchPool } from "@/types/patchSelection"
-import type { InstallTask } from "@/types/taskInstall"
-import { SystemType } from "@/types/patch"
+import type { SelectedPatchPool } from "@/lib/patchSelection"
+import type { InstallTask } from "@/lib/taskInstall"
+import { SystemType } from "@/lib/patch"
 import { coverageInstallMockData } from "@/data/coverage-install-mock-data"
 
 const systemIcons = {

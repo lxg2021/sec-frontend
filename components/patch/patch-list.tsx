@@ -11,9 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PatchDetailDialog } from "./patch-detail-dialog"
-import type { PatchCoverageForInstall } from "@/types/patchInstall"
-import type { SelectedPatchPool, SelectedPatchItem } from "@/types/patchSelection"
-import type { PatchSeverity, SystemType } from "@/types/patch"
+import type { PatchCoverageForInstall } from "@/lib/patchInstall"
+import type { SelectedPatchPool, SelectedPatchItem } from "@/lib/patchSelection"
+import type { PatchSeverity, SystemType } from "@/lib/patch"
 
 interface PatchListProps {
   onSelectionChange: (selection: SelectedPatchPool) => void

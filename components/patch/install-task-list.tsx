@@ -17,8 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import type { InstallTask, TaskOperation } from "@/types/taskInstall"
-import type { SendTaskResponse } from "@/types/task"
+import type { InstallTask, TaskOperation, SendTaskResponse } from "@/lib/taskInstall"
 
 interface InstallTaskListProps {
   tasks: InstallTask[]

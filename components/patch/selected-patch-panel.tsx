@@ -8,11 +8,11 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { InstallTaskDialog } from "./install-task-dialog"
-import type { SelectedPatchPool } from "@/types/patchSelection"
-import type { InstallTask } from "@/types/taskInstall"
-import type { PatchSeverity } from "@/types/patch"
+import type { SelectedPatchPool } from "@/lib/patchSelection"
+import type { InstallTask } from "@/lib/taskInstall"
+import type { PatchSeverity } from "@/lib/patch"
 import Image from "next/image"
-import { SystemType } from "@/types/patch"
+import { SystemType } from "@/lib/patch"
 
 const systemIcons = {
   [SystemType.WINDOWS]: "/icons/system/windows.svg",
