@@ -1,0 +1,56 @@
+import type { IPatchItem, HostPatchInfo } from "./patch"
+
+/**
+ * 单个补丁在主机上的覆盖情况
+ *
+ * 用于 PatchInstall 页面展示每台主机的当前状态，
+ * 支持选择补丁和主机进行下发安装。
+ */
+export interface PatchCoverageForInstall {
+  /** 补丁详细信息 */
+  item: IPatchItem
+
+  /** 需要安装该补丁的主机总数 */
+  totalHosts: number
+
+  /** 已安装主机数量（主机上该补丁已完全安装） */
+  installedHosts: number
+
+  /** 已安装主机列表（可直接用于展示） */
+  installedHostList?: HostPatchInfo[]
+
+  /** 未安装主机数量 */
+  pendingHosts: number
+
+  /** 未安装主机列表（可选择下发安装） */
+  pendingHostList?: HostPatchInfo[]
+
+  /** 安装失败主机数量 */
+  failedHosts: number
+
+  /** 安装失败主机列表（可用于重试安装） */
+  failedHostList?: HostPatchInfo[]
+
+  /**
+   * 补丁覆盖率 = 已安装 / 需要安装 × 100 (%)
+   * @example 75 表示 75%
+   */
+  coverageRate: number
+
+  /** 最后一次统计时间（ISO 时间戳） */
+  lastUpdated: string
+}
+
+/**
+ * 获取所有补丁覆盖情况（用于 PatchInstall 页面）
+ * GET /api/patches/coverage/all
+ *
+ * 返回系统中所有补丁及主机的安装状态，前端用于选择补丁和主机下发安装
+ */
+export interface AllPatchCoverageForInstallResponse {
+  /** 补丁覆盖情况数组 */
+  patches: PatchCoverageForInstall[]
+
+  /** 最后一次统计时间（ISO 时间戳） */
+  lastUpdated: string
+}
