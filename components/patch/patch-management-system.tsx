@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, useRef, useCallback } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PatchList } from "./patch-list"
@@ -32,8 +32,8 @@ export function PatchManagementSystem() {
       if (!appendSelection.items || !Array.isArray(appendSelection.items)) return prev
 
       // 用 Map 以 patchGuid 唯一化，后加的覆盖先加的
-      const patchMap = new Map<string, typeof appendSelection.items[0]>(
-        prev.items.map(item => [item.patch.patchGuid, item])
+      const patchMap = new Map<string, (typeof appendSelection.items)[0]>(
+        prev.items.map((item) => [item.patch.patchGuid, item]),
       )
       for (const item of appendSelection.items) {
         patchMap.set(item.patch.patchGuid, item)
@@ -53,7 +53,7 @@ export function PatchManagementSystem() {
   // 事件（操作按钮）驱动的移除，事件里回调（非自动）
   const handleRemoveFromSelection = (patchGuid: string) => {
     setSelectedPatches((prev) => {
-      const filteredItems = prev.items.filter(item => item.patch.patchGuid !== patchGuid)
+      const filteredItems = prev.items.filter((item) => item.patch.patchGuid !== patchGuid)
       const totalPatches = filteredItems.length
       const totalHosts = filteredItems.reduce((sum, item) => sum + item.selectedHosts.length, 0)
       return { totalPatches, totalHosts, items: filteredItems }
@@ -77,13 +77,13 @@ export function PatchManagementSystem() {
   }
 
   // 选中唯一的 patchGuid 列表（补丁列表多选同步）
-  const selectedPatchGuids = new Set(selectedPatches.items.map(item => item.patch.patchGuid))
+  const selectedPatchGuids = new Set(selectedPatches.items.map((item) => item.patch.patchGuid))
 
   return (
     <div className="space-y-6">
       {/* OS Tabs */}
       <div className="flex justify-center mb-6">
-        <Tabs value={activeSystem} onValueChange={v => setActiveSystem(v as SystemType)} className="w-auto">
+        <Tabs value={activeSystem} onValueChange={(v) => setActiveSystem(v as SystemType)} className="w-auto">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value={SystemType.WINDOWS} className="flex items-center gap-2">
               <div className="w-5 h-5 relative">

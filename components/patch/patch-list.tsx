@@ -92,13 +92,16 @@ export function PatchList({
 
   const handlePatchSelection = useCallback(
     (patchGuid: string, checked: boolean) => {
+      if (!checked) {
+        onRemoveSelection(patchGuid)
+      }
+
       setSelectedPatches((prev) => {
         const newSelected = new Set(prev)
         if (checked) {
           newSelected.add(patchGuid)
         } else {
           newSelected.delete(patchGuid)
-          onRemoveSelection(patchGuid)
         }
         return newSelected
       })
@@ -162,9 +165,7 @@ export function PatchList({
             <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
               <ShieldCheck className="h-5 w-5 text-white" />
             </div>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              补丁列表
-            </CardTitle>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">补丁列表</CardTitle>
             <Badge variant="secondary" className="text-sm font-normal">
               {filteredPatches.length} 个补丁
             </Badge>
