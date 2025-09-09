@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect, useRef, useCallback } from "react"
-import { Eye, Search, CheckSquare, Square, Filter, Loader2 } from "lucide-react"
+import { Eye, Search, CheckSquare, Square, Filter, Loader2, ShieldCheck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -153,39 +153,44 @@ export function PatchList({
   }, [])
 
   return (
-    <Card className="shadow-sm border-0">
-      <CardHeader className="pb-3 bg-muted/20">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <span>补丁管理</span>
-            <Badge variant="secondary" className="text-sm font-semibold">
+    <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+      <CardHeader className="pb-4">
+        {/* 第一行：补丁列表标题、数量Badge + 全部选中按钮 */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1">
+            {/* 图标背景块 */}
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+              <ShieldCheck className="h-5 w-5 text-white" />
+            </div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+              补丁列表
+            </CardTitle>
+            <Badge variant="secondary" className="text-sm font-normal">
               {filteredPatches.length} 个补丁
             </Badge>
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={handleSelectAll}
-              className="flex items-center gap-2 bg-background"
-              disabled={filteredPatches.length === 0}
-            >
-              {selectedPatches.size === filteredPatches.length && filteredPatches.length > 0 ? (
-                <>
-                  <CheckSquare className="h-4 w-4 text-blue-600" />
-                  取消全选
-                </>
-              ) : (
-                <>
-                  <Square className="h-4 w-4" />
-                  全部选中
-                </>
-              )}
-            </Button>
           </div>
+          <Button
+            variant="outline"
+            onClick={handleSelectAll}
+            className="flex items-center gap-2 bg-background"
+            disabled={filteredPatches.length === 0}
+          >
+            {selectedPatches.size === filteredPatches.length && filteredPatches.length > 0 ? (
+              <>
+                <CheckSquare className="h-4 w-4 text-blue-600" />
+                取消全选
+              </>
+            ) : (
+              <>
+                <Square className="h-4 w-4" />
+                全部选中
+              </>
+            )}
+          </Button>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col gap-4 pt-4">
+        {/* 第二行：输入框＋筛选器（保留分组，也可以自己分行） */}
+        <div className="flex flex-col gap-3 mt-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
