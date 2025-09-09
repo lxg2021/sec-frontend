@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Play, Trash2, Clock, Calendar, Settings, CheckCircle, XCircle, ClipboardList } from "lucide-react"
+import { Play, Trash2, Clock, Calendar, Settings, CheckCircle, XCircle, ClipboardList, CalendarCheck } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -105,12 +105,23 @@ export function InstallTaskList({ tasks, onDeleteTask }: InstallTaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ClipboardList className="h-5 w-5" />
-            安装任务
-          </CardTitle>
+      <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div className="flex items-center space-x-3">
+            {/* 图标背景块 */}
+            <div className="p-2 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
+              <CalendarCheck className="h-5 w-5 text-white" />
+            </div>
+            {/* 标题 + 副标题 */}
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                安装任务
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                {tasks.length} 个任务
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
@@ -127,15 +138,23 @@ export function InstallTaskList({ tasks, onDeleteTask }: InstallTaskListProps) {
 
   return (
     <TooltipProvider>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              <span>安装任务</span>
+      <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div className="flex items-center space-x-3">
+            {/* 图标背景块 */}
+            <div className="p-2 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
+              <CalendarCheck className="h-5 w-5 text-white" />
             </div>
-            <Badge variant="outline">{tasks.length} 任务</Badge>
-          </CardTitle>
+            {/* 标题 + 副标题 */}
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                安装任务
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                {tasks.length} 个任务
+              </p>
+            </div>
+          </div>
         </CardHeader>
 
         <CardContent>

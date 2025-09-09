@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Trash2, Plus, Package, Server } from "lucide-react"
+import { Trash2, Plus, Package, Server, ClipboardList } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -76,19 +76,31 @@ export function SelectedPatchPanel({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              <span>选中的补丁与主机</span>
+      <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div className="flex items-center space-x-3">
+            {/* 图标背景块 */}
+            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+              <ClipboardList className="h-5 w-5 text-white" />
             </div>
-            {!isEmpty && (
-              <Button variant="ghost" size="sm" onClick={onClearSelection}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </CardTitle>
+
+            {/* 标题 + 副标题 */}
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                选中的补丁与主机
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                已选择 {filteredSelectedPatches.totalPatches} 个补丁，涉及 {filteredSelectedPatches.totalHosts} 台主机
+              </p>
+            </div>
+          </div>
+
+          {/* 清除按钮 */}
+          {!isEmpty && (
+            <Button variant="ghost" size="sm" onClick={onClearSelection}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </CardHeader>
 
         <CardContent className="space-y-4">

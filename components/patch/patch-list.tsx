@@ -162,7 +162,7 @@ export function PatchList({
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1">
             {/* 图标背景块 */}
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+            <div className="p-2 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg">
               <ShieldCheck className="h-5 w-5 text-white" />
             </div>
             <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">补丁列表</CardTitle>
