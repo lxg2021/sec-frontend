@@ -245,7 +245,7 @@ export function PatchList({
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow>
-                      <TableHead className="w-12 text-center">选择</TableHead>
+                      <TableHead className="w-16 text-center">选择</TableHead>
                       <TableHead className="min-w-[260px]">补丁信息</TableHead>
                       <TableHead className="w-36">安全等级</TableHead>
                       <TableHead className="w-40">安装覆盖率</TableHead>

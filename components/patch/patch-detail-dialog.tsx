@@ -169,7 +169,7 @@ export function PatchDetailDialog({ patch, open, onOpenChange, onSelectionChange
                 </div>
                 <div className="flex items-center gap-1">
                   <Badge
-                    className={`${getSeverityColor(patch.item.securityLevel)} text-sm px-2 py-1`}
+                    className={`${getSeverityColor(patch.item.securityLevel)} text-xs px-1.5 py-0 hover:${getSeverityColor(patch.item.securityLevel).replace('bg-', 'bg-')}`}
                     variant="secondary"
                   >
                     {patch.item.securityLevel}
@@ -180,23 +180,23 @@ export function PatchDetailDialog({ patch, open, onOpenChange, onSelectionChange
           </DialogTitle>
 
           {/* 紧跟标题/描述后插入 Badge 行 */}
-          <div className="flex items-center gap-2 flex-wrap mt-0 mb-1">
-            <Badge variant="outline" className="flex items-center gap-1 text-base px-2 py-0.5">
-              <Image src="/icons/system/patchcategory.svg" alt="Patch Category" width={16} height={16} />
+          <div className="flex items-center gap-1.5 flex-wrap mt-0 mb-1">
+            <Badge variant="outline" className="flex items-center gap-1 text-sm px-1.5 py-0">
+              <Image src="/icons/system/patchcategory.svg" alt="Patch Category" width={14} height={14} />
               {patch.item.patchCategory}
             </Badge>
-            <Badge variant="outline" className="flex items-center gap-1 text-base px-2 py-0.5">
+            <Badge variant="outline" className="flex items-center gap-1 text-sm px-1.5 py-0">
               <Image
                 src={systemIcons[patch.item.osPlatform as SystemType] || "/placeholder.svg"}
                 alt={patch.item.osPlatform}
-                width={16}
-                height={16}
+                width={14}
+                height={14}
               />
               <span className="capitalize">{patch.item.osPlatform}</span>
             </Badge>
             {patch.item.isUninstallable && (
-              <Badge variant="outline" className="flex items-center gap-1 text-base px-2 py-0.5">
-                <Image src="/icons/system/uninstall.svg" alt="patch uninstall" width={16} height={16} />
+              <Badge variant="outline" className="flex items-center gap-1 text-sm px-1.5 py-0">
+                <Image src="/icons/system/uninstall.svg" alt="patch uninstall" width={14} height={14} />
                 Uninstallable
               </Badge>
             )}

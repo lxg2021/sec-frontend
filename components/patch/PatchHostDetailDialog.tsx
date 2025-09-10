@@ -170,7 +170,7 @@ export function PatchHostDetailDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[1200px] min-w-[min(600px,95vw)] max-h-[80vh] overflow-hidden">
+      <DialogContent className="w-full sm:max-w-[1100px] max-h-[90vh] overflow-hidden flex flex-col">
         <TooltipProvider>
           <DialogHeader>
             <DialogTitle className="text-xl">{patchProgress.patch.title} - 主机详情</DialogTitle>
