@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Settings2,
   SlidersHorizontal,
+  BarChart,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -70,6 +71,7 @@ export default function BaselineLayout({ children }) {
 		submenu: [
 			{ id: "patchdash", icon: ShieldCheck, label: "补丁概览", path: "/frame/vulnerability/dashboard" },
 			{ id: "patchinstall", icon: Package, label: "安装补丁", path: "/frame/vulnerability/installtask" },
+			{ id: "patchtatus", icon: BarChart, label: "安装状态", path: "/frame/vulnerability/taskstatus" },
 		],
 	},
     
