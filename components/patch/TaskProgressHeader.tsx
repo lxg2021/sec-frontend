@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Clock, Calendar, Settings, CheckCircle, Server, Package, Monitor, RefreshCw, RotateCcw, Undo } from "lucide-react"
+import { Clock, Calendar, Settings, CheckCircle, Server, Package, Monitor, RefreshCw, RotateCcw, Undo, ClipboardList, Play } from "lucide-react"
 import type { InstallTaskProgress } from "@/lib/taskProgress"
 
 interface TaskProgressHeaderProps {
@@ -25,7 +25,7 @@ export function TaskProgressHeader({ taskProgressList, selectedTaskId, onTaskSel
     } else if (progress > 0) {
       return (
         <Badge variant="default" className="bg-blue-500 text-white">
-          <Server className="h-3 w-3 mr-1 text-white" />
+          <Play className="h-3 w-3 mr-1 text-white" />
           进行中
         </Badge>
       )
@@ -60,9 +60,23 @@ export function TaskProgressHeader({ taskProgressList, selectedTaskId, onTaskSel
 
   return (
     <div className="mb-6 space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-foreground">任务进度表</CardTitle>
+      <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div className="flex items-center space-x-3">
+            {/* 图标背景块 */}
+            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+              <ClipboardList className="h-5 w-5 text-white" />
+            </div>
+            {/* 标题+副标题 */}
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                任务进度表
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                 共 {taskProgressList.length} 个任务
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">

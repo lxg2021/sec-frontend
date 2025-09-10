@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle, XCircle, Clock, AlertTriangle, Download, Monitor, Calendar, CheckCircle2 } from "lucide-react"
 import type { PatchInstallProgress } from "@/lib/taskProgress"
 import type { HostPatchInfo } from "@/lib/patch"
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
 import Image from "next/image"
 import { SystemType } from "@/lib/patch";
 
@@ -170,44 +170,46 @@ export function PatchHostDetailDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[1600px] min-w-[896px] max-h-[80vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{patchProgress.patch.title} - 主机详情</DialogTitle>
-          <div className="text-sm text-muted-foreground">
-            KB: {patchProgress.patch.kbArticleIds.join(", ")} • 总计 {patchProgress.totalHosts} 台主机
-          </div>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] max-w-[1200px] min-w-[min(600px,95vw)] max-h-[80vh] overflow-hidden">
+        <TooltipProvider>
+          <DialogHeader>
+            <DialogTitle className="text-xl">{patchProgress.patch.title} - 主机详情</DialogTitle>
+            <div className="text-sm text-muted-foreground">
+              KB: {patchProgress.patch.kbArticleIds.join(", ")} • 总计 {patchProgress.totalHosts} 台主机
+            </div>
+          </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="all">全部 ({allHosts.length})</TabsTrigger>
-            <TabsTrigger value="installed" className="text-chart-2">
-              已安装 ({patchProgress.installedCount})
-            </TabsTrigger>
-            <TabsTrigger value="failed" className="text-destructive">
-              失败 ({patchProgress.failedCount})
-            </TabsTrigger>
-            <TabsTrigger value="pending">未安装 ({patchProgress.pendingCount})</TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="all">全部 ({allHosts.length})</TabsTrigger>
+              <TabsTrigger value="installed" className="text-chart-2">
+                已安装 ({patchProgress.installedCount})
+              </TabsTrigger>
+              <TabsTrigger value="failed" className="text-destructive">
+                失败 ({patchProgress.failedCount})
+              </TabsTrigger>
+              <TabsTrigger value="pending">未安装 ({patchProgress.pendingCount})</TabsTrigger>
+            </TabsList>
 
-          <div className="overflow-y-auto max-h-[50vh] mt-4">
-            <TabsContent value="all" className="mt-0">
-              {renderHostList(allHosts, "所有主机", "暂无主机数据")}
-            </TabsContent>
+            <div className="overflow-y-auto max-h-[50vh] mt-4">
+              <TabsContent value="all" className="mt-0">
+                {renderHostList(allHosts, "所有主机", "暂无主机数据")}
+              </TabsContent>
 
-            <TabsContent value="installed" className="mt-0">
-              {renderHostList(patchProgress.installedHosts, "安装成功的主机", "暂无安装成功的主机")}
-            </TabsContent>
+              <TabsContent value="installed" className="mt-0">
+                {renderHostList(patchProgress.installedHosts, "安装成功的主机", "暂无安装成功的主机")}
+              </TabsContent>
 
-            <TabsContent value="failed" className="mt-0">
-              {renderHostList(patchProgress.failedHosts, "安装失败的主机", "暂无安装失败的主机")}
-            </TabsContent>
+              <TabsContent value="failed" className="mt-0">
+                {renderHostList(patchProgress.failedHosts, "安装失败的主机", "暂无安装失败的主机")}
+              </TabsContent>
 
-            <TabsContent value="pending" className="mt-0">
-              {renderHostList(patchProgress.pendingHosts, "未安装的主机", "暂无未安装的主机")}
-            </TabsContent>
-          </div>
-        </Tabs>
+              <TabsContent value="pending" className="mt-0">
+                {renderHostList(patchProgress.pendingHosts, "未安装的主机", "暂无未安装的主机")}
+              </TabsContent>
+            </div>
+          </Tabs>
+        </TooltipProvider>
       </DialogContent>
     </Dialog>
   )

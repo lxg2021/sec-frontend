@@ -32,12 +32,23 @@ export function PatchProgressTable({ patchProgressList, onViewHosts }: PatchProg
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Eye className="h-5 w-5" />
-          补丁安装明细
-        </CardTitle>
+    <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <div className="flex items-center space-x-3">
+          {/* 图标渐变圆角背景 */}
+          <div className="p-2 bg-gradient-to-br from-orange-400 to-orange-500 rounded-lg">
+            <Eye className="h-5 w-5 text-white" />
+          </div>
+          {/* 标题和副标题 */}
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+              补丁安装明细
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+              共 {patchProgressList.length} 个补丁
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
