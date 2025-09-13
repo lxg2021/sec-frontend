@@ -19,6 +19,7 @@ import {
   Settings2,
   SlidersHorizontal,
   BarChart,
+  Computer,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -44,7 +45,7 @@ export default function BaselineLayout({ children }) {
   // 菜单配置
   const menuItems = [
     { id: "dashboard", icon: LayoutDashboard, label: "DASHBOARD", path: "/frame/dashboard" },
-    { id: "users", icon: Users, label: "用户管理", path: "/frame/users" },
+    { id: "computers", icon: Computer, label: "主机管理", path: "/frame/computers" },
     {
       id: "assets",
       icon: Boxes,
