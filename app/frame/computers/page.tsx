@@ -69,7 +69,7 @@ export default function HomePage() {
             </div>
             {/* 如果需要右上角加操作按钮，可以在这里加入 */}
           </CardHeader>
-          <CardContent className="pb-0">
+          <CardContent className="pb-6">
             <HostListToolbar hosts={mockAgentInfos} onFilter={setFilteredHosts} />
             {/* 可分割线，也可省略 */}
             {/* <div className="my-4 border-b" /> */}

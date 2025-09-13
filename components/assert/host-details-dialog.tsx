@@ -4,6 +4,7 @@ import { HostDetailsTabs } from "@/components/assert/host-details-tabs"
 import type { AgentInfo } from "@/lib/systemInfo"
 import type { AgentHardwareInfo } from "@/lib/hardware"
 import type { AgentSoftInfo } from "@/lib/software"
+import { Computer } from "lucide-react"
 
 interface HostDetailsDialogProps {
   isOpen: boolean
@@ -28,7 +29,10 @@ export function HostDetailsDialog({
         className="w-[80vw] max-w-none overflow-y-auto p-0"
       >
         <DialogHeader className="px-6 pt-6">
-          <DialogTitle>{host.hostname}</DialogTitle>
+          <DialogTitle>
+            <Computer className="inline-block mr-2 h-5 w-5 text-blue-600" />
+            {host.hostname}
+          </DialogTitle>
         </DialogHeader>
         <div className="px-6 pb-6">
           <HostDetailsTabs host={host} hardware={hardware} software={software} />

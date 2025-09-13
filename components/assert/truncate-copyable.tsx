@@ -10,7 +10,7 @@ import { Copy } from "lucide-react"
 function TruncateCopyable({ value }: { value?: string }) {
   const [copied, setCopied] = useState(false)
   if (!value) return <div className="max-w-xs text-xs font-mono">-</div>
-  const show = value.length > 20 ? value.slice(0, 20) + "..." : value
+  const show = value.length > 10 ? value.slice(0, 10) + "..." : value
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value)
