@@ -1,8 +1,6 @@
 "use client"
 
 import { useState } from "react"
-
-import { HostPageLayout } from "@/components/assert/host-page-layout"
 import { HostSummaryCard } from "@/components/assert/host-summary-card"
 import { HostListToolbar } from "@/components/assert/host-list-toolbar"
 import { HostListTable } from "@/components/assert/host-list-table"
@@ -70,9 +68,11 @@ export default function HomePage() {
             {/* 如果需要右上角加操作按钮，可以在这里加入 */}
           </CardHeader>
           <CardContent className="pb-6">
+
+            {/** search */}
             <HostListToolbar hosts={mockAgentInfos} onFilter={setFilteredHosts} />
-            {/* 可分割线，也可省略 */}
-            {/* <div className="my-4 border-b" /> */}
+
+            {/** list */}
             <HostListTable
               hosts={filteredHosts}
               selectedHostId={selectedHostId}
