@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
   BarChart,
   Computer,
+  Trash2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -52,7 +53,8 @@ export default function BaselineLayout({ children }) {
       label: "资产管理",
       submenu: [
         { id: "hardware", icon: HardDrive, label: "硬件资产", path: "/frame/hardware-assets" },
-        { id: "software", icon: Package, label: "软件管理", path: "/frame/software-assets" },
+        { id: "softdetails", icon: Package, label: "软件管理", path: "/frame/software-assets/details" },
+		{ id: "softuninstall", icon: Trash2, label: "软件卸载", path: "/frame/software-assets/uninstall" },
       ],
     },
     {

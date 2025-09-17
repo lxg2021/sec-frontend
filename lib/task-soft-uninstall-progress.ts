@@ -4,6 +4,8 @@ import type { TaskSchedule } from "./task-soft-uninstall"
 interface HostUninstallStatus {
   hostId: string
   hostName: string
+   /** 卸载完成时间，用 ISO8601 格式表示；未完成可为 undefined */
+  uninstalledAt?: string
   status: "SUCCESS" | "FAILED" | "PENDING"
   errorMessage?: string
 }
