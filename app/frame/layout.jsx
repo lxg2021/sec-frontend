@@ -52,7 +52,7 @@ export default function BaselineLayout({ children }) {
       label: "资产管理",
       submenu: [
         { id: "hardware", icon: HardDrive, label: "硬件资产", path: "/frame/hardware-assets" },
-        { id: "software", icon: Package, label: "软件资产", path: "/frame/software-assets" },
+        { id: "software", icon: Package, label: "软件管理", path: "/frame/software-assets" },
       ],
     },
     {
