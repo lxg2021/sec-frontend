@@ -16,11 +16,15 @@ import {
   HardDrive,
   Boxes,
   ShieldCheck,
+  CrossedSwords,
+  Sword,
   Settings2,
   SlidersHorizontal,
   BarChart,
   Computer,
   Trash2,
+  Activity,
+  MapPin,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -78,9 +82,19 @@ export default function BaselineLayout({ children }) {
 		],
 	},
     
-	{ id: "attack", icon: Target, label: "攻击溯源", path: "/frame/attack" },
+	{ 
+		id: "attack", 
+		icon: Target, 
+		label: "攻击溯源", 
+		path: "/frame/attack",
+		submenu: [
+			{ id: "attdash", icon: Sword, label: "攻击概览", path: "/frame/attack/dashboard" },
+			{ id: "attdrill", icon: Activity, label: "溯源详情", path: "/frame/attack/drill" },
+			{ id: "attpositioning", icon: MapPin, label: "全网定位", path: "/frame/attack/positioning" },
+		],
+	},
     { id: "response", icon: Shield, label: "处置响应", path: "/frame/response" },
-    { id: "reports", icon: FileText, label: "安全报告", path: "/frame/reports" },
+    { id: "reports", icon: FileText, label: "审计中心", path: "/frame/reports" },
     { 
 		id: "control", 
 		icon: Settings, 

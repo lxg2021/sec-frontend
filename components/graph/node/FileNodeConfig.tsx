@@ -9,19 +9,19 @@ interface NodeData {
 /** file 节点配置 */
 const fileNodeConfig: NodeConfig<NodeData> = {
   getStyle: () => ({
-    color: "transparent",
+    color: "#F1FBFC",
     width: 32,
     height: 32,
     textColor: "#000",
     borderColor: "transparent",
-    borderWidth: 2,
+    borderWidth: 0,
     fontSize: 8,
     opacity: 1,
-    shape: "circle",
+    shape: "square",
     hoverAnimation: true,
   }),
   getLabel: (data) => data.label,
-  getImage: () => "/icons/file.svg",
+  getImage: () => "/icons/nodes/file-node.svg",
 };
 
 export default fileNodeConfig;

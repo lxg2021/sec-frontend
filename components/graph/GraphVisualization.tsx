@@ -1,6 +1,6 @@
 "use client"
 
-// GraphVisualization.tsx (完整修复版)
+// GraphVisualization.tsx
 import React, { useCallback, useEffect, useMemo } from "react"
 import ReactFlow, {
   Background,
@@ -113,9 +113,22 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
     })
 
     rfNodes.forEach((node) => {
+      // 修改：使用图形部分的大小而不是整个节点大小进行布局计算
+      const nodeData = node.data as any;
+      const config = nodeData?.type ? nodeConfigs[nodeData.type] : null;
+      let nodeWidth = node.width ?? defaultNodeWidth;
+      let nodeHeight = node.height ?? defaultNodeHeight;
+      
+      if (config && nodeData) {
+        const style: NodeStyle = config.getStyle(nodeData);
+        // 只使用图形部分的大小（忽略标签）
+        nodeWidth = style.width ?? 60;
+        nodeHeight = style.height ?? 60;
+      }
+
       dagreGraph.setNode(node.id, {
-        width: node.width ?? defaultNodeWidth,
-        height: node.height ?? defaultNodeHeight,
+        width: nodeWidth,
+        height: nodeHeight,
       })
     })
 
@@ -129,14 +142,27 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const nodeWithPosition = dagreGraph.node(node.id)
       node.targetPosition = dir === "TB" ? Position.Top : Position.Left
       node.sourcePosition = dir === "TB" ? Position.Bottom : Position.Right
+      
+      // 修改：使用图形部分的大小进行位置计算
+      const nodeData = node.data as any;
+      const config = nodeData?.type ? nodeConfigs[nodeData.type] : null;
+      let nodeWidth = node.width ?? defaultNodeWidth;
+      let nodeHeight = node.height ?? defaultNodeHeight;
+      
+      if (config && nodeData) {
+        const style: NodeStyle = config.getStyle(nodeData);
+        nodeWidth = style.width ?? 60;
+        nodeHeight = style.height ?? 60;
+      }
+
       node.position = {
-        x: nodeWithPosition.x - (node.width ?? defaultNodeWidth) / 2,
-        y: nodeWithPosition.y - (node.height ?? defaultNodeHeight) / 2,
+        x: nodeWithPosition.x - nodeWidth / 2,
+        y: nodeWithPosition.y - nodeHeight / 2,
       }
     })
 
     return { nodes: rfNodes, edges: rfEdges }
-  }, [])
+  }, [nodeConfigs])
 
   useEffect(() => {
     const rfNodes: RFNode[] = initialNodes.map((node) => {
@@ -146,7 +172,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       return {
         id: node.id,
         type: node.type,
-        data: node.data,
+        data: { ...node.data, nodeType: node.type }, // 添加 nodeType 以便在布局函数中访问
         position: node.position ?? { x: 0, y: 0 },
         width: style.width ?? 60,
         height: style.height ?? 60,
@@ -169,9 +195,42 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       }
     })
 
+    // 🔍 打印初始转换结果
+    console.log("[GraphVisualization] rfEdges before dedup:", rfEdges);
+
     // 关键：去重 + 自动加后缀
     const uniqueNodes = ensureUniqueItems(rfNodes)
-    const uniqueEdges = ensureUniqueItems(rfEdges)
+    let uniqueEdges = ensureUniqueItems(rfEdges)
+
+    // 处理多重边：分组并计算 index, total, offset
+    const edgeGroups = new Map<string, RFEdge[]>();
+    uniqueEdges.forEach((edge) => {
+      const key = `${edge.source}-${edge.target}`;
+      if (!edgeGroups.has(key)) {
+        edgeGroups.set(key, []);
+      }
+      edgeGroups.get(key)!.push(edge);
+    });
+
+    edgeGroups.forEach((group) => {
+      if (group.length > 1) {
+        // 按 id 排序以确保稳定顺序
+        group.sort((a, b) => a.id.localeCompare(b.id));
+        const total = group.length;
+        group.forEach((edge, i) => {
+          const multiOffset = i - (total - 1) / 2;
+          edge.data = {
+            ...edge.data,
+            multiIndex: i + 1,
+            multiTotal: total,
+            multiOffset,
+          };
+        });
+      }
+    });
+
+    // 🔍 打印去重后的结果
+    console.log("[GraphVisualization] uniqueEdges after dedup:", uniqueEdges);
 
     let layoutedNodes = uniqueNodes
     let layoutedEdges = uniqueEdges
@@ -271,7 +330,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
         onEdgeMouseLeave={handleEdgeMouseLeave}
         fitView
       >
-        <Background color="transparent" />
+        <Background color="#fff" />
         <Controls />
         <MiniMap />
       </ReactFlow>
@@ -301,20 +360,20 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
 
     const contextMenuItems = config.onRightClick?.(data) ?? []
 
-    // 节点大小
-    const width = style.width ?? 60
-    const height = style.height ?? 60
+    // 节点图形部分大小
+    const shapeWidth = style.width ?? 60
+    const shapeHeight = style.height ?? 60
 
     // shape 类型
     const shape = style.shape ?? "square"
 
     // 图形实际宽高
-    let shapeWidth = width
-    let shapeHeight = height
+    let actualShapeWidth = shapeWidth
+    let actualShapeHeight = shapeHeight
     if (shape === "circle" || shape === "square") {
-      const size = Math.min(width, height)
-      shapeWidth = size
-      shapeHeight = size
+      const size = Math.min(shapeWidth, shapeHeight)
+      actualShapeWidth = size
+      actualShapeHeight = size
     }
 
     // label 高度
@@ -329,19 +388,31 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
     const nodeContent = (
       <div
         className="flex flex-col items-center relative"
+        style={{
+          width: `${actualShapeWidth}px`, // 节点宽度只包含图形部分
+          height: `${actualShapeHeight + labelHeight}px`, // 高度包含图形和标签
+        }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         onClick={() => setIsSelected(!isSelected)}
       >
-        {/* target handle */}
-        <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
+        {/* target handle - 定位在图形部分的边缘 */}
+        <Handle 
+          type="target" 
+          position={Position.Left} 
+          style={{ 
+            opacity: 0,
+            top: `${actualShapeHeight / 2}px`,
+            left: 0
+          }} 
+        />
 
         {/* 节点图形容器 */}
         <div
           className="relative flex items-center justify-center"
           style={{
-            width: `${shapeWidth}px`,
-            height: `${shapeHeight}px`,
+            width: `${actualShapeWidth}px`,
+            height: `${actualShapeHeight}px`,
             backgroundColor: style.color,
             borderStyle: "solid",
             borderWidth: style.borderWidth ?? 1,
@@ -360,19 +431,19 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
               animate={hovered && style.hoverAnimation ? { scale: 1.2 } : { scale: 1 }}
               transition={{ type: "spring", stiffness: 200 }}
               style={{
-                width: `${shapeWidth}px`,
-                height: `${shapeHeight}px`,
+                width: `${actualShapeWidth}px`,
+                height: `${actualShapeHeight}px`,
                 objectFit: "contain",
               }}
             />
           )}
         </div>
 
-        {/* label */}
+        {/* label - 修改为基于字符数的宽度 */}
         <div
           style={{
-            width: `${shapeWidth * 1.2}px`,
-            maxWidth: `${shapeWidth * 1.2}px`,
+            width: "20ch",
+            maxWidth: "20ch",
             height: `${labelHeight}px`,
             textAlign: "center",
             lineHeight: `${labelHeight}px`,
@@ -381,6 +452,7 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
             whiteSpace: "nowrap",
             color: style.textColor ?? "#000",
             fontSize: `${style.fontSize ?? 12}px`,
+            marginTop: "4px", // 添加一点间距
           }}
         >
           {label}
@@ -393,8 +465,16 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
           </div>
         )}
 
-        {/* source handle */}
-        <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
+        {/* source handle - 定位在图形部分的边缘 */}
+        <Handle 
+          type="source" 
+          position={Position.Right} 
+          style={{ 
+            opacity: 0,
+            top: `${actualShapeHeight / 2}px`,
+            right: 0
+          }} 
+        />
       </div>
     )
 
@@ -408,8 +488,11 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
                 return <ContextMenuSeparator key={index} className="bg-gray-200" />
               }
               return (
-                <ShadcnContextMenuItem key={index} onClick={item.action} className="flex items-center gap-2">
-                  {item.icon}
+                <ShadcnContextMenuItem
+                  key={index}
+                  onClick={item.action}
+                  className={item.className || "flex items-center gap-2"}
+                >
                   {item.label}
                 </ShadcnContextMenuItem>
               )
@@ -440,7 +523,7 @@ function createCustomEdgeComponent<T>(config: LinkConfig<T>) {
       target,
     } = props
 
-    const data = props.data as T
+    const data = props.data as T & { multiIndex?: number; multiTotal?: number; multiOffset?: number }
     const linkStyle: LinkStyle = config.getStyle(data)
     const label = config.getLabel?.(data)
 
@@ -453,16 +536,71 @@ function createCustomEdgeComponent<T>(config: LinkConfig<T>) {
     else if (linkStyle.curve === "step") getPathFunction = getSmoothStepPath
 
     // 对于自环边，使用自定义路径生成函数
-    const [edgePath, labelX, labelY] = isSelfLoop
-      ? getSelfLoopPath({ sourceX, sourceY, sourcePosition })
-      : getPathFunction({
-          sourceX,
-          sourceY,
-          sourcePosition,
-          targetX,
-          targetY,
-          targetPosition,
-        })
+    let edgePath: string
+    let labelX: number
+    let labelY: number
+
+    if (isSelfLoop) {
+      [edgePath, labelX, labelY] = getSelfLoopPath({ sourceX, sourceY, sourcePosition })
+    } else if (data?.multiTotal && data.multiTotal > 1 && getPathFunction === getBezierPath) {
+      // 动态调整多重边的曲率（平行曲线）
+      const deltaX = targetX - sourceX
+      const deltaY = targetY - sourceY
+      const dist = Math.sqrt(deltaX ** 2 + deltaY ** 2) || 1
+      let perpX = -deltaY / dist
+      let perpY = deltaX / dist
+      const multiOffset = data.multiOffset ?? 0
+
+      // 用于控制调整线间距
+      const spacing = dist * 0.10
+      const offsetAmount = multiOffset * spacing
+
+      const curvature = 0.25
+      const minDimension = Math.min(Math.abs(deltaX), Math.abs(deltaY))
+      let c = minDimension * curvature
+      const minC = dist * 0.15
+
+      c = Math.max(c, minC)
+
+      const sourceControl = getControlWithCurvature({
+        pos: sourcePosition,
+        x1: sourceX,
+        y1: sourceY,
+        x2: targetX,
+        y2: targetY,
+        c,
+      })
+      const targetControl = getControlWithCurvature({
+        pos: targetPosition,
+        x1: targetX,
+        y1: targetY,
+        x2: sourceX,
+        y2: sourceY,
+        c,
+      })
+
+      let [cx1, cy1] = sourceControl
+      let [cx2, cy2] = targetControl
+
+      cx1 += perpX * offsetAmount
+      cy1 += perpY * offsetAmount
+      cx2 += perpX * offsetAmount
+      cy2 += perpY * offsetAmount
+
+      edgePath = `M${sourceX},${sourceY} C${cx1},${cy1} ${cx2},${cy2} ${targetX},${targetY}`
+
+      labelX = (sourceX + cx1 + cx2 + targetX) / 4 + perpX * offsetAmount
+      labelY = (sourceY + cy1 + cy2 + targetY) / 4 + perpY * offsetAmount
+    } else {
+      [edgePath, labelX, labelY] = getPathFunction({
+        sourceX,
+        sourceY,
+        sourcePosition,
+        targetX,
+        targetY,
+        targetPosition,
+      })
+    }
 
     const [hovered, setHovered] = React.useState(false)
 
@@ -555,11 +693,12 @@ function createCustomEdgeComponent<T>(config: LinkConfig<T>) {
               style={{
                 position: "absolute",
                 transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
-                background: "#fff",
+                background: "#fff",   // background: "transparent", 透明
                 padding: 5,
                 borderRadius: 5,
                 fontSize: linkStyle.fontSize ?? 12,
                 color: linkStyle.textColor ?? "#000",
+                textShadow: "0 0 2px #fff, 0 0 2px #fff",
                 pointerEvents: "all",
               }}
               className="nodrag nopan"
@@ -622,6 +761,21 @@ function getSelfLoopPath({ sourceX, sourceY, sourcePosition }) {
   const labelY = (sourceY + controlY + endY) / 3
 
   return [path, labelX, labelY]
+}
+
+function getControlWithCurvature({ pos, x1, y1, x2, y2, c }: { pos: Position, x1: number, y1: number, x2: number, y2: number, c: number }) {
+  switch (pos) {
+    case Position.Left:
+      return [x1 - c, y1]
+    case Position.Right:
+      return [x1 + c, y1]
+    case Position.Top:
+      return [x1, y1 - c]
+    case Position.Bottom:
+      return [x1, y1 + c]
+    default:
+      return [x1, y1]
+  }
 }
 
 export default GraphVisualization
