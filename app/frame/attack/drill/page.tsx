@@ -12,6 +12,16 @@ import "reactflow/dist/base.css";
 // 引入注册中心
 import nodeRegistry, { getNodeRegistry } from "@/components/graph/center/RegisterNodeCenter";
 import edgeRegistry, { getEdgeRegistry } from "@/components/graph/center/RegisterEdgeCenter";
+import { Shield, Clock, Workflow } from "lucide-react"
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription
+} from "@/components/ui/card";
+import { KillChainTimeline } from "@/components/killchain/kill-chain-timeline"
+import type { DynamicKillChainData } from "@/lib/kill-chain"
 
 // 初始节点数据
 const initialNodes: GraphNode<{ label: string }>[] = [
@@ -171,23 +181,266 @@ const initialLinks: GraphLink<{}>[] = [
 
 ];
 
-
+// Demo data for testing dynamic updates
+const demoUpdates: DynamicKillChainData[][] = [
+  // First update - Reconnaissance stage
+  [
+    {
+      id: "recon",
+      name: "侦察 (Reconnaissance)",
+      status: "active",
+      attckStages: [
+        {
+          slug: "reconnaissance",
+          name: "侦察",
+          techniques: [
+            {
+              id: "T1595",
+              name: "主动扫描",
+              time: "09:15:23",
+              description: "攻击者执行主动侦察扫描以收集信息",
+              references: ["https://attack.mitre.org/techniques/T1595/"],
+            },
+            {
+              id: "T1590",
+              name: "收集受害者网络信息",
+              time: "09:25:45",
+              description: "攻击者收集有关受害者网络的信息",
+              references: [
+                "https://attack.mitre.org/techniques/T1590/",
+                "https://attack.mitre.org/techniques/T1590/001"
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  // Second update - Complete recon, start weaponization
+  [
+    {
+      id: "recon",
+      name: "侦察 (Reconnaissance)",
+      status: "completed",
+      attckStages: [
+        {
+          slug: "reconnaissance",
+          name: "侦察",
+          techniques: [
+            {
+              id: "T1595",
+              name: "主动扫描",
+              time: "09:15:23",
+              description: "攻击者执行主动侦察扫描以收集信息",
+              references: ["https://attack.mitre.org/techniques/T1595/"],
+            },
+            {
+              id: "T1590",
+              name: "收集受害者网络信息",
+              time: "09:25:45",
+              references: [
+                "https://attack.mitre.org/techniques/T1590/",
+                "https://attack.mitre.org/techniques/T1590/001"
+              ],
+              description: "攻击者收集有关受害者网络的信息",
+            },
+            {
+              id: "T1596",
+              name: "搜索开放技术数据库",
+              time: "09:45:12",
+              description: "攻击者搜索开放的技术数据库获取信息",
+              references: [
+                "https://attack.mitre.org/techniques/T1596/",
+                "https://attack.mitre.org/techniques/T1596/001",
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "weapon",
+      name: "武器化 (Weaponization)",
+      status: "active",
+      attckStages: [
+        {
+          slug: "resource-development",
+          name: "资源开发",
+          techniques: [
+            {
+              id: "T1587",
+              name: "开发能力",
+              time: "10:22:45",
+              description: "攻击者构建可在目标定位期间使用的能力",
+              references: [
+                "https://attack.mitre.org/techniques/T1587/",
+                "https://attack.mitre.org/techniques/T1587/001",
+              ],
+            },
+          ],
+        },
+        {
+          slug: "resource-development-testing",
+          name: "资源开发testing",
+          techniques: [
+            {
+              id: "T1580",
+              name: "开发能力testing",
+              time: "10:22:45",
+              description: "攻击者构建可在目标定位期间使用的能力testing",
+              references: [
+                "https://attack.mitre.org/techniques/T1580/",
+                "https://attack.mitre.org/techniques/T1580/001",
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  // Third update - Complete weaponization, start delivery
+  [
+    {
+      id: "weapon",
+      name: "武器化 (Weaponization)",
+      status: "completed",
+      attckStages: [
+        {
+          slug: "resource-development",
+          name: "资源开发",
+          techniques: [
+            {
+              id: "T1587",
+              name: "开发能力",
+              time: "10:22:45",
+              description: "攻击者构建可在目标定位期间使用的能力",
+              references: [
+                "https://attack.mitre.org/techniques/T1587/",
+                "https://attack.mitre.org/techniques/T1587/001",
+              ],
+            },
+            {
+              id: "T1588",
+              name: "获取能力",
+              time: "11:15:33",
+              description: "攻击者购买和/或窃取能力",
+              references: [
+                "https://attack.mitre.org/techniques/T1588/",
+                "https://attack.mitre.org/techniques/T1588/001",
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "delivery",
+      name: "投递 (Delivery)",
+      status: "active",
+      attckStages: [
+        {
+          slug: "initial-access",
+          name: "初始访问",
+          techniques: [
+            {
+              id: "T1566",
+              name: "钓鱼攻击",
+              time: "11:30:15",
+              description: "攻击者发送钓鱼消息以获得访问权限",
+              references: [
+                "https://attack.mitre.org/techniques/T1566/",
+                "https://attack.mitre.org/techniques/T1566/001",
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+]
 
 
 export default function App() {
-  const [nodes, setNodes] = useState<GraphNode<{ label: string }>[]>(initialNodes);
-  const [links, setLinks] = useState<GraphLink<{}>[]>(initialLinks);
+  const [nodes, setNodes] = useState<GraphNode<{ label: string }>[]>(initialNodes)
+  const [links, setLinks] = useState<GraphLink<{}>[]>(initialLinks)
+  const [currentData, setCurrentData] = useState<DynamicKillChainData[]>(demoUpdates[2])
+  const [resetKey, setResetKey] = useState(0)
 
   return (
-    <div className="w-screen h-screen relative bg-white">
-      <GraphVisualization
-        nodes={nodes}
-        links={links}
-        nodeConfigs={getNodeRegistry()}
-        edgeConfigs={getEdgeRegistry()}
-        direction="LR"
-        forceLayout={true}
-      />
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-6 space-y-6">
+        {/* 页面标题 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              {/* 这里可以换成 Graph 图标 */}
+              <Shield className="h-6 w-6 text-blue-300" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">溯源详情</h1>
+              <p className="text-sm text-gray-500 mt-1">Attack Investigation Details</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Kill Chain Timeline */}
+        <Card className="bg-white border-gray-200 shadow-sm">
+          <CardHeader className="pb-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Workflow className="h-5 w-5 text-blue-400" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-gray-900">攻击时间线</CardTitle>
+                <CardDescription className="text-sm text-gray-500">
+                  APT Timeline
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            <div className="w-full">
+              {/* Kill Chain Timeline */}
+              <KillChainTimeline key={resetKey} dynamicData={currentData} />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Graph 可视化 */}
+        <Card className="bg-white border border-gray-200 shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="p-2 flex items-center justify-center rounded-lg bg-blue-500">
+                  <Shield className="h-5 w-5 text-white" />
+                </div>
+                <CardTitle className="text-lg md:text-xl font-semibold">
+                  溯源图谱
+                </CardTitle>
+              </div>
+            </div>
+          </CardHeader>
+
+          {/* 分割线 */}
+          <div className="border-t border-gray-100" />
+
+          <CardContent>
+            <div className="w-full h-[700px]">
+              <GraphVisualization
+                nodes={nodes}
+                links={links}
+                nodeConfigs={getNodeRegistry()}
+                edgeConfigs={getEdgeRegistry()}
+                direction="LR"
+                forceLayout={true}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+
+      </div>
     </div>
-  );
+  )
 }
