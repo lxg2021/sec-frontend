@@ -2,6 +2,31 @@
 import React from "react";
 import { NodeConfig } from "@/components/graph/interface";
 
+/**
+ * FileMappingNode
+ * 表示一个文件映射节点
+ */
+export interface FileMappingNode {
+  /** 元素 ID (唯一标识) */
+  ElementId: string;
+
+  /** 启动时间 (ISO 8601 字符串) */
+  BootTime: string;
+
+  /** 代理 ID */
+  AgentID: string;
+
+  /** 记录时间 (ISO 8601 字符串) */
+  Time: string;
+
+  /** 文件映射名称 */
+  FileMappingName: string;
+
+  /** 对象哈希 */
+  ObjHash: string;
+}
+
+
 interface NodeData {
   label: string;
 }   

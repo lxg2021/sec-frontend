@@ -2,6 +2,31 @@
 import React from "react";
 import { NodeConfig } from "@/components/graph/interface";
 
+/**
+ * UrlNode
+ * 表示 URL 节点
+ */
+export interface UrlNode {
+  /** 元素 ID (唯一标识) */
+  ElementId: string;
+
+  /** 启动时间 (ISO 8601 字符串) */
+  BootTime: string;
+
+  /** 代理 ID */
+  AgentID: string;
+
+  /** 记录时间 (ISO 8601 字符串) */
+  Time: string;
+
+  /** URL 地址 */
+  URL: string;
+
+  /** 对象哈希 */
+  ObjHash: string;
+}
+
+
 interface NodeData {
   label: string;
 }

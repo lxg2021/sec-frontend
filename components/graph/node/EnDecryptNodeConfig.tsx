@@ -2,6 +2,34 @@
 import React from "react";
 import { NodeConfig } from "@/components/graph/interface";
 
+/**
+ * EnDecryptNode
+ * 表示加解密操作节点
+ */
+export interface EnDecryptNode {
+  /** 元素 ID (唯一标识) */
+  ElementId: string;
+
+  /** 启动时间 (ISO 8601 字符串) */
+  BootTime: string;
+
+  /** 代理 ID */
+  AgentID: string;
+
+  /** 记录时间 (ISO 8601 字符串) */
+  Time: string;
+
+  /** 加密/解密标志 */
+  CryptFlag: number;
+
+  /** 加密/解密标志描述 */
+  CryptFlagDescription: string;
+
+  /** 唯一 ID */
+  UniqueID: string;
+}
+
+
 interface NodeData {
   label: string;
 }

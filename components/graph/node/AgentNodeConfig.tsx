@@ -2,6 +2,34 @@
 import React from "react";
 import { NodeConfig } from "@/components/graph/interface";
 
+/**
+ * AgentNode
+ * 表示一个代理节点
+ */
+export interface AgentNode {
+  /** 元素 ID (唯一标识) */
+  ElementId: string;
+
+  /** 代理 ID */
+  AgentID: string;
+
+  /** 记录时间 (ISO 8601 字符串) */
+  Time: string;
+
+  /** 域名 */
+  Domain: string;
+
+  /** 计算机名 */
+  ComputerName: string;
+
+  /** IP 地址列表 */
+  IPS: string[];
+
+  /** 唯一 ID */
+  UniqueID: string;
+}
+
+
 interface NodeData {
   label: string;
 }

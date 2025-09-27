@@ -2,6 +2,76 @@
 import React from "react";
 import { NodeConfig } from "@/components/graph/interface";
 
+/**
+ * FileNode
+ * 表示一个文件节点
+ */
+export interface FileNode {
+  /** 元素 ID (唯一标识) */
+  ElementId: string;
+
+  /** 启动时间 (ISO 8601 字符串) */
+  BootTime: string;
+
+  /** 代理 ID */
+  AgentID: string;
+
+  /** 记录时间 (ISO 8601 字符串) */
+  Time: string;
+
+  /** 进程 GUID */
+  ProcessGuid: string;
+
+  /** 文件名称 */
+  FileName: string;
+
+  /** 文件 MD5 */
+  FileMD5: string;
+
+  /** 文件分类代码 */
+  FileClass: number;
+
+  /** 文件分类描述 */
+  FileClassDescription: string;
+
+  /** 文件格式代码 */
+  FileFormat: number;
+
+  /** 文件格式描述 */
+  FileFormatDescription: string;
+
+  /** 签名状态 */
+  Signature: number;
+
+  /** 签名厂商 */
+  SignVendor: string;
+
+  /** 驱动类型 */
+  DriverType: number;
+
+  /** 检测主类型 */
+  DetectionMajorType: number;
+
+  /** 检测次类型 */
+  DetectionMinorType: number;
+
+  /** 检测内容 */
+  DetectionContent: string;
+
+  /** 文件描述，例如 FileRead, FileWrite */
+  Description: string;
+
+  /** 文件类型，例如 FileRead, FileWrite */
+  FileType: number;
+
+  /** 唯一标识 ID */
+  UniqueID: string;
+
+  /** 对象哈希 */
+  ObjHash: string;
+}
+
+
 interface NodeData {
   label: string;
 }

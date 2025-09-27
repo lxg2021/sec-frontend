@@ -2,6 +2,40 @@
 import React from "react";
 import { NodeConfig } from "@/components/graph/interface";
 
+/**
+ * DriverImageNode
+ * 表示驱动镜像节点
+ */
+export interface DriverImageNode {
+  /** 元素 ID (唯一标识) */
+  ElementId: string;
+
+  /** 启动时间 (ISO 8601 字符串) */
+  BootTime: string;
+
+  /** 代理 ID */
+  AgentID: string;
+
+  /** 记录时间 (ISO 8601 字符串) */
+  Time: string;
+
+  /** 驱动文件路径或名称 */
+  Image: string;
+
+  /** 驱动文件 MD5 */
+  ImageMD5: string;
+
+  /** 签名状态 */
+  Signature: number;
+
+  /** 签名供应商 */
+  SignVendor: string;
+
+  /** 唯一 ID */
+  UniqueID: string;
+}
+
+
 interface NodeData {
   label: string;
 }

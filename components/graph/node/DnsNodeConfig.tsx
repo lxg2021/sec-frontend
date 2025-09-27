@@ -3,6 +3,40 @@ import React from "react";
 import { NodeConfig } from "@/components/graph/interface";
 import netNodeConfig from "./NetNodeConfig";
 
+/**
+ * DnsNode
+ * 表示 DNS 节点
+ */
+export interface DnsNode {
+  /** 元素 ID (唯一标识) */
+  ElementId: string;
+
+  /** 启动时间 (ISO 8601 字符串) */
+  BootTime: string;
+
+  /** 代理 ID */
+  AgentID: string;
+
+  /** 记录时间 (ISO 8601 字符串) */
+  Time: string;
+
+  /** 进程 GUID */
+  ProcessGuid: string;
+
+  /** 域名 */
+  Domain: string;
+
+  /** IP 地址列表 */
+  IPS: string[];
+
+  /** 唯一 ID */
+  UniqueID: string;
+
+  /** 对象哈希 */
+  ObjHash: string;
+}
+
+
 interface NodeData {
   label: string;
 }
