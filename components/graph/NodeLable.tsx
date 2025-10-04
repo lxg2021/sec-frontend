@@ -87,19 +87,19 @@ interface NodeConfig {
 const NODE_CONFIGS: Record<string, NodeConfig> = {
   ProcessNode: {
     label: "进程节点",
-    icon: "icons/nodes/process-node.svg",
+    icon: "/icons/nodes/process-node.svg",
     color: "#4CAF50",
     getDisplayText: (node: ProcessNode) => node.ProcessName || '--'
   },
   FileNode: {
     label: "文件节点",
-    icon: "icons/nodes/file-node.svg",
+    icon: "/icons/nodes/file-node.svg",
     color: "#FF9800",
     getDisplayText: (node: FileNode) => getFileName(node.FileName)
   },
   NetNode: {
     label: "网络节点",
-    icon: "icons/nodes/net-node.svg",
+    icon: "/icons/nodes/net-node.svg",
     color: "#2196F3",
     getDisplayText: (node: NetNode) => `${node.SourceIP}-${node.DestinationIP}`,
     additionalBadge: {
@@ -109,187 +109,187 @@ const NODE_CONFIGS: Record<string, NodeConfig> = {
   },
   DnsNode: {
     label: "DNS节点",
-    icon: "icons/nodes/dns-node.svg",
+    icon: "/icons/nodes/dns-node.svg",
     color: "#03A9F4",
     getDisplayText: (node: DnsNode) => node.Domain || '--'
   },
   VolumeNode: {
     label: "卷节点",
-    icon: "icons/nodes/volume-node.svg",
+    icon: "/icons/nodes/volume-node.svg",
     color: "#8BC34A",
     getDisplayText: (node: VolumeNode) => node.FileName || '--'
   },
   FileStreamNode: {
     label: "文件流节点",
-    icon: "icons/nodes/file-stream-node.svg",
+    icon: "/icons/nodes/file-stream-node.svg",
     color: "#FFB74D",
     getDisplayText: (node: FileStreamNode) => getFileName(node.FileName)
   },
   BitsJobNode: {
     label: "BitsJob节点",
-    icon: "icons/nodes/bits-job-node.svg",
+    icon: "/icons/nodes/bits-job-node.svg",
     color: "#F57C00",
     getDisplayText: (node: BitsJobNode) => node.JobName || '--'
   },
   TaskNode: {
     label: "计划任务节点",
-    icon: "icons/nodes/task-node.svg",
+    icon: "/icons/nodes/task-node.svg",
     color: "#9C27B0",
     getDisplayText: (node: TaskNode) => node.TaskName || '--'
   },
   DllImageNode: {
     label: "DLL节点",
-    icon: "icons/nodes/dll-node.svg",
+    icon: "/icons/nodes/dll-node.svg",
     color: "#434260",
     getDisplayText: (node: DllImageNode) => node.Image ? getFileName(node.Image) : "未知DLL"
   },
   DriverImageNode: {
     label: "驱动节点",
-    icon: "icons/nodes/driver-image-node.svg",
+    icon: "/icons/nodes/driver-image-node.svg",
     color: "#434260",
     getDisplayText: (node: DriverImageNode) => node.Image ? getFileName(node.Image) : "未知驱动"
   },
   EnDecryptNode: {
     label: "加解密节点",
-    icon: "icons/nodes/endecrypt-node.svg",
+    icon: "/icons/nodes/endecrypt-node.svg",
     color: "#E91E63",
     getDisplayText: (node: EnDecryptNode) => node.CryptFlagDescription || '--'
   },
   EventNode: {
     label: "事件节点",
-    icon: "icons/nodes/event-node.svg",
+    icon: "/icons/nodes/event-node.svg",
     color: "#795548",
     getDisplayText: (node: EventNode) => node.EventName || '--'
   },
   FileMappingNode: {
     label: "FileMapping",
-    icon: "icons/nodes/file-mapping-node.svg",
+    icon: "/icons/nodes/file-mapping-node.svg",
     color: "#6D4C41",
     getDisplayText: (node: FileMappingNode) => node.FileMappingName || '--'
   },
   MailSlotNode: {
     label: "油槽节点",
-    icon: "icons/nodes/mail-slot-node.svg",
+    icon: "/icons/nodes/mail-slot-node.svg",
     color: "#FF5722",
     getDisplayText: (node: MailSlotNode) => node.MailSlotName || '--'
   },
   MbrNode: {
     label: "引导节点",
-    icon: "icons/nodes/mbr-node.svg",
+    icon: "/icons/nodes/mbr-node.svg",
     color: "#B71C1C",
     getDisplayText: (node: MbrNode) => node.PhysicalName || '--'
   },
   PipeNode: {
     label: "PIPE节点",
-    icon: "icons/nodes/pipe-node.svg",
+    icon: "/icons/nodes/pipe-node.svg",
     color: "#607D8B",
     getDisplayText: (node: PipeNode) => node.PipeName || '--'
   },
   PowershellNode: {
     label: "PowerShell节点",
-    icon: "icons/nodes/powershell-node.svg",
+    icon: "/icons/nodes/powershell-node.svg",
     color: "#5391FE",
     getDisplayText: (node: PowershellNode) => node.FileName ? getFileName(node.FileName) : "未知脚本"
   },
   RegKeyNode: {
     label: "注册表键节点",
-    icon: "icons/nodes/reg-key-node.svg",
+    icon: "/icons/nodes/reg-key-node.svg",
     color: "#53B7B7",
     getDisplayText: (node: RegKeyNode) => node.ObjectName || '--'
   },
   RegValueNode: {
     label: "注册表值节点",
-    icon: "icons/nodes/reg-value-node.svg",
+    icon: "/icons/nodes/reg-value-node.svg",
     color: "#8E24AA",
     getDisplayText: (node: RegValueNode) => node.ObjectName || '--'
   },
   CredentialsNode: {
     label: "凭据节点",
-    icon: "icons/nodes/credentials-node.svg",
+    icon: "/icons/nodes/credentials-node.svg",
     color: "#C2185B",
     getDisplayText: (node: CredentialsNode) => node.CredDesc || '--'
   },
   ImpersonationTokenNode: {
     label: "令牌节点",
-    icon: "icons/nodes/impersonation-token-node.svg",
+    icon: "/icons/nodes/impersonation-token-node.svg",
     color: "#AD1457",
     getDisplayText: (node: ImpersonationTokenNode) => node.TokenFlagDescription || '--'
   },
   MessageNode: {
     label: "MessageHook节点",
-    icon: "icons/nodes/message-node.svg",
+    icon: "/icons/nodes/message-node.svg",
     color: "#CDDC39",
     getDisplayText: (node: MessageNode) => node.HookTypeDescription || '--'
   },
   UrlNode: {
     label: "URL节点",
-    icon: "icons/nodes/url-node.svg",
+    icon: "/icons/nodes/url-node.svg",
     color: "#00BCD4",
     getDisplayText: (node: UrlNode) => node.URL || '--'
   },
   WmiClassNode: {
     label: "WMI类节点",
-    icon: "icons/nodes/wmi-class-node.svg",
+    icon: "/icons/nodes/wmi-class-node.svg",
     color: "#26A69A",
     getDisplayText: (node: WmiClassNode) => node.ClassName || '--'
   },
   WmiQueryNode: {
     label: "WMI查询节点",
-    icon: "icons/nodes/wmi-query-node.svg",
+    icon: "/icons/nodes/wmi-query-node.svg",
     color: "#BA68C8",
     getDisplayText: (node: WmiQueryNode) => node.Query || '--'
   },
   WmiExecuteNode: {
     label: "WMI执行节点",
-    icon: "icons/nodes/wmi-execute-node.svg",
+    icon: "/icons/nodes/wmi-execute-node.svg",
     color: "#BA68C8",
     getDisplayText: (node: WmiExecuteNode) => node.ClassName || '--'
   },
   WmiConsumerNode: {
     label: "WmiConsumer节点",
-    icon: "icons/nodes/wmi-consumer-node.svg",
+    icon: "/icons/nodes/wmi-consumer-node.svg",
     color: "#4396F0",
     getDisplayText: (node: WmiConsumerNode) => node.EventConsumerName || '--'
   },
   WmiFilterNode: {
     label: "WmiFilter节点",
-    icon: "icons/nodes/wmi-filter-node.svg",
+    icon: "/icons/nodes/wmi-filter-node.svg",
     color: "#6A1B9A",
     getDisplayText: (node: WmiFilterNode) => node.EventFilterName || '--'
   },
   AgentNode: {
     label: "主机节点",
-    icon: "icons/nodes/agent-node.svg",
+    icon: "/icons/nodes/agent-node.svg",
     color: "#388E3C",
     getDisplayText: (node: AgentNode) => node.ComputerName || '--'
   },
   DeviceChangeNode: {
     label: "设备节点",
-    icon: "icons/nodes/device-change-node.svg",
+    icon: "/icons/nodes/device-change-node.svg",
     color: "#FFA000",
     getDisplayText: (node: DeviceChangeNode) => node.DeviceDescription || '--'
   },
   ServiceNode: {
     label: "服务节点",
-    icon: "icons/nodes/service-node.svg",
+    icon: "/icons/nodes/service-node.svg",
     color: "#FF7043",
     getDisplayText: (node: ServiceNode) => node.ServiceName || '--'
   },
   AccountGroupNode: {
     label: "账户组节点",
-    icon: "icons/nodes/account-group-node.svg",
+    icon: "/icons/nodes/account-group-node.svg",
     color: "#0288D1",
     getDisplayText: (node: AccountGroupNode) => node.GroupName || '--'
   },
   AccountNode: {
     label: "账户节点",
-    icon: "icons/nodes/account-node.svg",
+    icon: "/icons/nodes/account-node.svg",
     color: "#039BE5",
     getDisplayText: (node: AccountNode) => node.UserName || '--'
   },
   AttackNode: {
     label: "ATTACK节点",
-    icon: "icons/nodes/attack-node.svg",
+    icon: "/icons/nodes/attack-node.svg",
     color: "#D32F2F",
     getDisplayText: (node: AttackNode) => node.ID || '--'
   }
