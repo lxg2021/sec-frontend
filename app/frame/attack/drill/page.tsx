@@ -53,7 +53,7 @@ export default function App() {
   const handleEdgeClick = useCallback((event: React.MouseEvent, edge: any) => {
   }, []);
 
-   /* 关闭抽屉 */
+  /* 关闭抽屉 */
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
     setTreeRootId(null);
@@ -133,7 +133,7 @@ export default function App() {
           </CardHeader>
 
           <CardContent>
-            <div className="w-full">
+            <div className="w-full overflow-x-auto">  {/* Added overflow-x-auto for horizontal scrolling */}
               {/* Kill Chain Timeline */}
               <KillChainTimeline key={resetKey} dynamicData={demoUpdates[2]} />
             </div>
@@ -142,7 +142,7 @@ export default function App() {
 
         {/* Graph 可视化 */}
         <Card className="bg-white border border-gray-200 shadow-sm">
-          <CardHeader>
+          <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <div className="p-2 flex items-center justify-center rounded-lg bg-blue-500">
@@ -174,9 +174,8 @@ export default function App() {
           </CardContent>
         </Card>
 
-
         {/* 使用 Sheet 组件 */}
-        <div className="w-screen h-screen relative bg-white">
+        <div className="bg-white border border-gray-200 shadow-sm mb-6">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen} modal={false}>
             <SheetContent
               side="right"
@@ -184,9 +183,9 @@ export default function App() {
               style={{
                 width: `${Math.max(240, sheetWidth)}px`,
                 minWidth: '240px',
-                maxWidth: 'none'
+                maxWidth: 'none',
+                marginTop: '48px',
               }}
-              // 阻止点击外部关闭
               onInteractOutside={(e) => e.preventDefault()}
             >
               {/* 添加隐藏的 SheetTitle 用于可访问性 */}
@@ -198,7 +197,7 @@ export default function App() {
                 onMouseDown={handleMouseDown}
               />
 
-              {/* NodeEdgeAccordion 组件 - 移除不再需要的回调函数 */}
+              {/* NodeEdgeAccordion 组件 */}
               <NodeEdgeAccordion
                 nodes={nodes}
                 links={links}
