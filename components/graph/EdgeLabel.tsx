@@ -4,7 +4,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, ArrowLeft, Minus, ArrowLeftRight } from "lucide-react";
-import { GetNodeLabel, GetNodeDisplayString } from "@/components/graph/NodeLable";
+import { GetNodeDisplayString } from "@/components/graph/NodeLable";
 
 interface GraphNode<T> {
   id: string;
@@ -26,8 +26,9 @@ interface EdgeLabelProps {
   sourcenode: GraphNode<any>;
   targetnode: GraphLink<{}>;
   className?: string;
-  lineHeight?: number; // 连接线高度（像素）
-  lineWidth?: number;  // 连接线宽度（像素）
+  lineHeight?: number;
+  lineWidth?: number;
+  width?: number;
 }
 
 // 边类型配置
@@ -151,8 +152,9 @@ const EdgeLabel: React.FC<EdgeLabelProps> = ({
   sourcenode,
   targetnode,
   className = "",
-  lineHeight = 3.5, // 默认高度 3.5px
-  lineWidth = 20,   // 默认宽度 20px
+  lineHeight = 3.5,
+  lineWidth = 20,
+  width = 720,
 }) => {
 
   const sourceLabel = GetNodeDisplayString(sourcenode.type, sourcenode.data);
@@ -182,47 +184,38 @@ const EdgeLabel: React.FC<EdgeLabelProps> = ({
 
   return (
     <div
-      className={`w-160 flex items-center justify-between gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow ${className}`}
+      className={`flex items-center justify-between gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow ${className}`}
+      style={{ width: `${width}px` }}
       title={`${sourceLabel} ${direction === "forward" ? "→" : direction === "backward" ? "←" : "↔"} ${targetLabel} (${config.label})`}
     >
-      {/* 源节点标签 */}
+      {/* 左节点，占剩余空间 */}
       <div className="flex-1 min-w-0">
-        <span
-          className="text-xs font-medium truncate block text-gray-700"
-        >
-          {truncateText(sourceLabel)}
+        <span className="text-xs font-medium truncate block text-gray-700">
+          {sourceLabel}
         </span>
       </div>
 
-      {/* 连接线和类型 */}
+      {/* 中间连接线 + Badge */}
       <div className="flex items-center gap-1 flex-shrink-0">
-        {/* 左连接线 */}
         <div style={lineStyle} />
         <div style={lineStyle} />
-
-        {/* 边类型徽章 */}
+        
         <Badge
-          className="flex-shrink-0 w-20 h-5 text-white border-0 text-xs font-medium px-2 py-0 text-center"
-          style={{ backgroundColor: config.color }}
+          className="h-5 text-white border-0 text-xs font-medium flex items-center justify-center"
+          style={{ width: '120px', backgroundColor: config.color }}
           title={config.description}
         >
           {config.label}
         </Badge>
 
-
-        {/* 右连接线 */}
         <div style={lineStyle} />
         <div style={lineStyle} />
-
-        {/* 方向箭头 */}
         {renderArrow()}
       </div>
 
-      {/* 目标节点标签 */}
+      {/* 右节点，占剩余空间 */}
       <div className="flex-1 min-w-0 text-right">
-        <span
-          className="text-xs font-medium truncate block text-gray-700"
-        >
+        <span className="text-xs font-medium truncate block text-gray-700">
           {truncateText(targetLabel)}
         </span>
       </div>

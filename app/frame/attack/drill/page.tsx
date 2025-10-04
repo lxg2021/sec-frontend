@@ -47,17 +47,13 @@ export default function App() {
     setCurrentNodeId(node.id);
     setTreeRootId(node.id);
     setIsSheetOpen(true);
-
-    console.log("node id =", node.id);
-    console.log("node data = ", node.data);
   }, []);
 
-  // 边点击处理函数
+  /* 边点击处理函数 */
   const handleEdgeClick = useCallback((event: React.MouseEvent, edge: any) => {
-    // 边点击处理逻辑
   }, []);
 
-  // 关闭抽屉
+   /* 关闭抽屉 */
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
     setTreeRootId(null);
