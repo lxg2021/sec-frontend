@@ -182,7 +182,7 @@ export default function App() {
               className="p-0 flex flex-col"
               style={{
                 width: `${Math.max(240, sheetWidth)}px`,
-                minWidth: '240px',
+                minWidth: '680px',
                 maxWidth: 'none',
                 marginTop: '48px',
               }}
