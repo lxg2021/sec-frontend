@@ -26,12 +26,9 @@ export interface PipeNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 /** pipe 节点配置 */
-const pipeNodeConfig: NodeConfig<NodeData> = {
+const pipeNodeConfig: NodeConfig<PipeNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -44,7 +41,7 @@ const pipeNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.PipeName,
   getImage: () => "/icons/nodes/pipe-node.svg",
 };
 

@@ -20,6 +20,8 @@ import ReactFlow, {
   EdgeLabelRenderer,
   Handle,
   type NodeProps,
+  NodeChange,
+  EdgeChange,
 } from "reactflow"
 import "reactflow/dist/style.css"
 import dagre from "dagre"
@@ -51,6 +53,11 @@ interface GraphVisualizationProps<TNodeData = any, TEdgeData = any> {
   edgeConfigs: EdgeTypeMap<TEdgeData>
   direction?: "LR" | "TB"
   forceLayout?: boolean
+  // 新增默认参数
+  onNodeClick?: (event: React.MouseEvent, node: RFNode) => void
+  onEdgeClick?: (event: React.MouseEvent, edge: RFEdge) => void
+  onNodesChange?: (changes: NodeChange[]) => void
+  onEdgesChange?: (changes: EdgeChange[]) => void
 }
 
 const defaultNodeWidth = 150
@@ -91,6 +98,22 @@ function ensureUniqueItems<T extends { id: string }>(items: T[]): T[] {
   return result
 }
 
+// 默认的节点点击处理函数
+const defaultOnNodeClick = (event: React.MouseEvent, node: RFNode) => {
+}
+
+// 默认的边点击处理函数
+const defaultOnEdgeClick = (event: React.MouseEvent, edge: RFEdge) => {
+}
+
+// 默认的节点变化处理函数
+const defaultOnNodesChange = (changes: NodeChange[]) => {
+}
+
+// 默认的边变化处理函数
+const defaultOnEdgesChange = (changes: EdgeChange[]) => {
+}
+
 const GraphVisualization: React.FC<GraphVisualizationProps> = ({
   nodes: initialNodes,
   links: initialLinks,
@@ -98,9 +121,26 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
   edgeConfigs,
   direction = "LR",
   forceLayout = false,
+  // 新增的默认参数
+  onNodeClick = defaultOnNodeClick,
+  onEdgeClick = defaultOnEdgeClick,
+  onNodesChange = defaultOnNodesChange,
+  onEdgesChange = defaultOnEdgesChange,
 }) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState<RFNode>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<RFEdge>([])
+  const [nodes, setNodes, onInternalNodesChange] = useNodesState<RFNode>([])
+  const [edges, setEdges, onInternalEdgesChange] = useEdgesState<RFEdge>([])
+
+  // 包装节点变化处理函数
+  const handleNodesChange = useCallback((changes: NodeChange[]) => {
+    onInternalNodesChange(changes)
+    onNodesChange(changes)
+  }, [onInternalNodesChange, onNodesChange])
+
+  // 包装边变化处理函数
+  const handleEdgesChange = useCallback((changes: EdgeChange[]) => {
+    onInternalEdgesChange(changes)
+    onEdgesChange(changes)
+  }, [onInternalEdgesChange, onEdgesChange])
 
   const getLayoutedElements = useCallback((rfNodes: RFNode[], rfEdges: RFEdge[], dir: "LR" | "TB") => {
     const dagreGraph = new dagre.graphlib.Graph()
@@ -195,8 +235,8 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       }
     })
 
-    // 🔍 打印初始转换结果
-    console.log("[GraphVisualization] rfEdges before dedup:", rfEdges);
+    // 打印初始转换结果
+    // console.log("[GraphVisualization] rfEdges before dedup:", rfEdges);
 
     // 关键：去重 + 自动加后缀
     const uniqueNodes = ensureUniqueItems(rfNodes)
@@ -229,8 +269,8 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       }
     });
 
-    // 🔍 打印去重后的结果
-    console.log("[GraphVisualization] uniqueEdges after dedup:", uniqueEdges);
+    // 打印去重后的结果
+    // console.log("[GraphVisualization] uniqueEdges after dedup:", uniqueEdges);
 
     let layoutedNodes = uniqueNodes
     let layoutedEdges = uniqueEdges
@@ -273,9 +313,12 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
 
   const handleNodeClick = useCallback(
     (event: React.MouseEvent, node: RFNode) => {
+      // 先调用 NodeConfig 中的 onClick 回调（如果存在）
       nodeConfigs[node.type]?.onClick?.(node.data)
+      // 然后调用默认的 onNodeClick 回调
+      onNodeClick(event, node)
     },
-    [nodeConfigs],
+    [nodeConfigs, onNodeClick],
   )
 
   const handleNodeMouseEnter = useCallback(
@@ -294,9 +337,12 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
 
   const handleEdgeClick = useCallback(
     (event: React.MouseEvent, edge: RFEdge) => {
+      // 先调用 LinkConfig 中的 onClick 回调（如果存在）
       edgeConfigs[edge.type]?.onClick?.(edge.data)
+      // 然后调用默认的 onEdgeClick 回调
+      onEdgeClick(event, edge)
     },
-    [edgeConfigs],
+    [edgeConfigs, onEdgeClick],
   )
 
   const handleEdgeMouseEnter = useCallback(
@@ -318,8 +364,8 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        onNodesChange={handleNodesChange}
+        onEdgesChange={handleEdgesChange}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}
@@ -614,10 +660,10 @@ function createCustomEdgeComponent<T>(config: LinkConfig<T>) {
     const dashPeriod = dashArray ? dashArray.reduce((a, b) => a + b, 0) : 0
     const isAnimated = hovered && !!dashArray
 
-    // 修复：确保路径颜色正确设置
+    // 确保路径颜色正确设置
     const strokeColor = linkStyle.color || "#3366ff"
 
-    // 修复：确保标记颜色与线条颜色一致
+    // 确保标记颜色与线条颜色一致
     const markerColor = linkStyle.markerEnd?.color || strokeColor
 
     const basePathProps = {
@@ -673,7 +719,7 @@ function createCustomEdgeComponent<T>(config: LinkConfig<T>) {
           )}
         </defs>
 
-        {/* 修复：增加悬停检测区域透明度，但保持足够大以便检测 */}
+        {/* 增加悬停检测区域透明度，但保持足够大以便检测 */}
         <path
           d={edgePath}
           fill="none"

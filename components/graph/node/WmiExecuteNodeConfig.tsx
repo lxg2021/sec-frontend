@@ -53,12 +53,8 @@ export interface WmiExecuteNode {
   UniqueID: string;
 }
 
-interface NodeData {
-  label: string;
-}
-
 /** wmiExecuteNode 节点配置 */
-const wmiExecuteNodeConfig: NodeConfig<NodeData> = {
+const wmiExecuteNodeConfig: NodeConfig<WmiExecuteNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -71,7 +67,7 @@ const wmiExecuteNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => "WmiExecute",
   getImage: () => "/icons/nodes/wmi-execute-node.svg",
 };
 

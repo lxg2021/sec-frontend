@@ -52,7 +52,7 @@ const processMoveFileShipConfig: LinkConfig<any> = {
     };
     return style;
   },
-  getLabel: () => "RENAME_FILE",
+  getLabel: () => "MOVE_FILE",
   onClick: (data) => {
     alert(`Clicked edge: ${data}`);
   },

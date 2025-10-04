@@ -8,6 +8,8 @@ import { MarkerType } from "reactflow";
  * FileDriverImageMd5PeerShip 表示文件节点与驱动镜像节点之间通过 MD5 建立的关联 (FileNode -> DriverImageNode)
  */
 export interface FileDriverImageMd5PeerShip {
+  ShipElementID: ShipElementID;
+
   /** 关系发生时间 (ISO 8601 字符串) */
   Time: string;
 
@@ -25,6 +27,8 @@ export interface FileDriverImageMd5PeerShip {
  * ReverseFileDriverImageMd5PeerShip 表示驱动镜像节点反向关联到文件 MD5 的关系 (DriverImageNode -> FileNode)
  */
 export interface ReverseFileDriverImageMd5PeerShip {
+  ShipElementID: ShipElementID;
+
   /** 关系发生时间 (ISO 8601 字符串) */
   Time: string;
 

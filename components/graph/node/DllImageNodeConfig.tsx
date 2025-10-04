@@ -38,13 +38,8 @@ export interface DllImageNode {
   UniqueID: string;
 }
 
-
-interface NodeData {
-  label: string;
-}
-
 /** DllImageNode 节点配置 */
-const dllImageNodeConfig: NodeConfig<NodeData> = {
+const dllImageNodeConfig: NodeConfig<DllImageNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -57,7 +52,11 @@ const dllImageNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => {
+    const fileName = data.Image;
+    const lastSlashIndex = Math.max(fileName.lastIndexOf("\\"), fileName.lastIndexOf("/"));
+    return lastSlashIndex >= 0 ? fileName.slice(lastSlashIndex + 1) : fileName;
+  },
   getImage: () => "/icons/nodes/dll-node.svg",
 };
 

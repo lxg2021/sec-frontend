@@ -29,13 +29,8 @@ export interface EnDecryptNode {
   UniqueID: string;
 }
 
-
-interface NodeData {
-  label: string;
-}
-
 /** endecryptNode 节点配置 */
-const endecryptNodeConfig: NodeConfig<NodeData> = {
+const endecryptNodeConfig: NodeConfig<EnDecryptNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -48,7 +43,7 @@ const endecryptNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => "EnDecrypt",
   getImage: () => "/icons/nodes/endecrypt-node.svg",
 };
 

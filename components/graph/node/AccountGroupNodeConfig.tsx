@@ -35,13 +35,10 @@ export interface AccountGroupNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 
 /** accountGroupNode 节点配置 */
-const accountGroupNodeConfig: NodeConfig<NodeData> = {
+const accountGroupNodeConfig: NodeConfig<AccountGroupNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -54,7 +51,7 @@ const accountGroupNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.GroupName,
   getImage: () => "/icons/nodes/account-group-node.svg",
 };
 

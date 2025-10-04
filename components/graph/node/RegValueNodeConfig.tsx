@@ -36,12 +36,8 @@ export interface RegValueNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** regValueNode 节点配置 */
-const regValueNodeConfig: NodeConfig<NodeData> = {
+const regValueNodeConfig: NodeConfig<RegValueNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -54,7 +50,7 @@ const regValueNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.ObjectName,
   getImage: () => "/icons/nodes/reg-value-node.svg",
 };
 

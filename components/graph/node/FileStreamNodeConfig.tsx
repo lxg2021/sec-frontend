@@ -53,13 +53,8 @@ export interface FileStreamNode {
   ObjHash: string;
 }
 
-
-interface NodeData {
-  label: string;
-}
-
 /** fileStream 节点配置 */
-const fileStreamNodeConfig: NodeConfig<NodeData> = {
+const fileStreamNodeConfig: NodeConfig<FileStreamNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -72,7 +67,12 @@ const fileStreamNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+
+  getLabel: (data) => {
+    const fileName = data.FileName;
+    const lastSlashIndex = Math.max(fileName.lastIndexOf("\\"), fileName.lastIndexOf("/"));
+    return lastSlashIndex >= 0 ? fileName.slice(lastSlashIndex + 1) : fileName;
+  },
   getImage: () => "/icons/nodes/file-stream-node.svg",
 };
 

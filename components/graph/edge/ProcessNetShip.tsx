@@ -49,8 +49,6 @@ const processNetShipConfig: LinkConfig<any> = {
     return style;
   },
   getLabel: () => "PROCESS_NET",
-  onClick: (data) => {
-  },
 };
 
 export default processNetShipConfig;

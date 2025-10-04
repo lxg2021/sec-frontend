@@ -26,13 +26,8 @@ export interface FileMappingNode {
   ObjHash: string;
 }
 
-
-interface NodeData {
-  label: string;
-}   
-
 /** fileMapping 节点配置 */
-const fileMappingNodeConfig: NodeConfig<NodeData> = {
+const fileMappingNodeConfig: NodeConfig<FileMappingNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -45,7 +40,7 @@ const fileMappingNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.FileMappingName,
   getImage: () => "/icons/nodes/file-mapping-node.svg",
 };
 

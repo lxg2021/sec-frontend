@@ -47,13 +47,8 @@ export interface AttackNode {
   Conditions?: string[];
 }
 
-
-interface NodeData {
-  label: string;
-}
-
 /** attackNode 节点配置 */
-const attackNodeConfig: NodeConfig<NodeData> = {
+const attackNodeConfig: NodeConfig<AttackNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -66,7 +61,7 @@ const attackNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.Title,
   getImage: () => "/icons/nodes/attack-node.svg",
 };
 

@@ -62,12 +62,9 @@ export interface ImpersonationTokenNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 /** impersonationTokenNode 节点配置 */
-const impersonationTokenNodeConfig: NodeConfig<NodeData> = {
+const impersonationTokenNodeConfig: NodeConfig<ImpersonationTokenNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -80,7 +77,7 @@ const impersonationTokenNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => "Token",
   getImage: () => "/icons/nodes/impersonation-token-node.svg",
 };
 

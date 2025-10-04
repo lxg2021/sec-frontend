@@ -83,12 +83,9 @@ export interface TaskNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 /** task 节点配置 */
-const taskNodeConfig: NodeConfig<NodeData> = {
+const taskNodeConfig: NodeConfig<TaskNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -101,7 +98,7 @@ const taskNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.TaskName,
   getImage: () => "/icons/nodes/task-node.svg",
 };
 

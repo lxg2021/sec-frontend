@@ -9,6 +9,9 @@ import { MarkerType } from "reactflow";
  * (ServiceNode -> FileNode)
  */
 export interface FileServiceImageMd5PeerShip {
+  /** 关系元素 ID */
+  ShipElementID: ShipElementID;
+
   /** 关系时间 (ISO 8601 字符串) */
   Time: string;
 
@@ -23,6 +26,9 @@ export interface FileServiceImageMd5PeerShip {
  * ReverseFileServiceImageMd5PeerShip 表示 FileNode -> ServiceNode 的逆向 MD5 对等关系
  */
 export interface ReverseFileServiceImageMd5PeerShip {
+  /** 关系元素 ID */
+  ShipElementID: ShipElementID;
+
   /** 关系时间 (ISO 8601 字符串) */
   Time: string;
 

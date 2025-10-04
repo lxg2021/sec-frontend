@@ -42,12 +42,8 @@ export interface DeviceChangeNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** deviceChangeNode 节点配置 */
-const deviceChangeNodeConfig: NodeConfig<NodeData> = {
+const deviceChangeNodeConfig: NodeConfig<DeviceChangeNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -60,7 +56,7 @@ const deviceChangeNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => "DeviceChange",
   getImage: () => "/icons/nodes/device-change-node.svg",
 };
 

@@ -36,12 +36,8 @@ export interface AccountNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** accountNode 节点配置 */
-const accountNodeConfig: NodeConfig<NodeData> = {
+const accountNodeConfig: NodeConfig<AccountNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -54,7 +50,7 @@ const accountNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.UserName,
   getImage: () => "/icons/nodes/account-node.svg",
 };
 

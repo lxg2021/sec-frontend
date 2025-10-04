@@ -30,12 +30,8 @@ export interface AgentNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** agentNode 节点配置 */
-const agentNodeConfig: NodeConfig<NodeData> = {
+const agentNodeConfig: NodeConfig<AgentNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -48,7 +44,7 @@ const agentNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.Domain,
   getImage: () => "/icons/nodes/agent-node.svg",
 };
 

@@ -36,12 +36,8 @@ export interface DriverImageNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** DriverImageNode 节点配置 */
-const driverImageNodeConfig: NodeConfig<NodeData> = {
+const driverImageNodeConfig: NodeConfig<DriverImageNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -54,7 +50,11 @@ const driverImageNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => {
+    const fileName = data.Image;
+    const lastSlashIndex = Math.max(fileName.lastIndexOf("\\"), fileName.lastIndexOf("/"));
+    return lastSlashIndex >= 0 ? fileName.slice(lastSlashIndex + 1) : fileName;
+  },
   getImage: () => "/icons/nodes/driver-image-node.svg",
 };
 

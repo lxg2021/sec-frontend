@@ -30,12 +30,8 @@ export interface MbrNode {
 }
 
 
-interface NodeData {
-  label: string;
-}   
-
 /** mbr 节点配置 */
-const mbrNodeConfig: NodeConfig<NodeData> = {
+const mbrNodeConfig: NodeConfig<MbrNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -48,7 +44,7 @@ const mbrNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.PhysicalName,
   getImage: () => "/icons/nodes/mbr-node.svg",
 };
 

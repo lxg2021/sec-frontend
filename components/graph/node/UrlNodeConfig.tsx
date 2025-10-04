@@ -27,12 +27,8 @@ export interface UrlNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** urlNode 节点配置 */
-const urlNodeConfig: NodeConfig<NodeData> = {
+const urlNodeConfig: NodeConfig<UrlNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -45,7 +41,7 @@ const urlNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.URL,
   getImage: () => "/icons/nodes/url-node.svg",
 };
 

@@ -26,12 +26,9 @@ export interface MailSlotNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}   
 
 /** mailSlot 节点配置 */
-const mailSlotNodeConfig: NodeConfig<NodeData> = {
+const mailSlotNodeConfig: NodeConfig<MailSlotNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -44,7 +41,7 @@ const mailSlotNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.MailSlotName,
   getImage: () => "/icons/nodes/mail-slot-node.svg",
 };
 

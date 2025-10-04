@@ -32,12 +32,8 @@ export interface RegKeyNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}
-
 /** regKeyNode 节点配置 */
-const regKeyNodeConfig: NodeConfig<NodeData> = {
+const regKeyNodeConfig: NodeConfig<RegKeyNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -50,7 +46,7 @@ const regKeyNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.ObjectName,
   getImage: () => "/icons/nodes/reg-key-node.svg",
 };
 

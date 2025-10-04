@@ -56,13 +56,8 @@ export interface NetNode {
   ObjHash: string;
 }
 
-
-interface NodeData {
-  label: string;
-}
-
 /** net 节点配置 */
-const netNodeConfig: NodeConfig<NodeData> = {
+const netNodeConfig: NodeConfig<NetNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -75,7 +70,7 @@ const netNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => `${data.SourceIP}-${data.DestinationIP}`,
   getImage: () => "/icons/nodes/net-node.svg",
 };
 

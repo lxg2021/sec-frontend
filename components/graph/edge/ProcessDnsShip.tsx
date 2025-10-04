@@ -28,7 +28,7 @@ export interface ProcessDnsShip {
 /**
  * Process Dns 边配置
  */
-const processDnsShipConfig: LinkConfig<any> = {
+const processDnsShipConfig: LinkConfig<ProcessDnsShip> = {
   getStyle: () => {
     const style: LinkStyle = {
       color: "#03A9F4",
@@ -47,9 +47,6 @@ const processDnsShipConfig: LinkConfig<any> = {
     return style;
   },
   getLabel: () => "PROCESS_DNS",
-  onClick: (data) => {
-    alert(`Clicked edge: ${data}`);
-  },
 };
 
 export default processDnsShipConfig;

@@ -56,12 +56,9 @@ export interface BitsJobNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 /** bitsJob 节点配置 */
-const bitsJobNodeConfig: NodeConfig<NodeData> = {
+const bitsJobNodeConfig: NodeConfig<BitsJobNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -74,7 +71,7 @@ const bitsJobNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.JobName,
   getImage: () => "/icons/nodes/bits-job-node.svg",
 };
 

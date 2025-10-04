@@ -32,7 +32,7 @@ export interface ReverseProcessCreateFileShip {
 /**
  * Process Create File Ship 配置
  */
-const processCreateFileShipConfig: LinkConfig<any> = {
+const processCreateFileShipConfig: LinkConfig<ReverseProcessCreateFileShip> = {
   getStyle: () => {
     const style: LinkStyle = {
       color: "#FF9800",
@@ -51,9 +51,6 @@ const processCreateFileShipConfig: LinkConfig<any> = {
     return style;
   },
   getLabel: () => "CREATE_FILE",
-  onClick: (data) => {
-    alert(`Clicked edge: ${data}`);
-  },
 };
 
 export default processCreateFileShipConfig;

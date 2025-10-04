@@ -40,12 +40,8 @@ export interface VolumeNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** volume 节点配置 */
-const volumeNodeConfig: NodeConfig<NodeData> = {
+const volumeNodeConfig: NodeConfig<VolumeNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -58,7 +54,7 @@ const volumeNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.FileName,
   getImage: () => "/icons/nodes/volume-node.svg",
 };
 

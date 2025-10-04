@@ -45,12 +45,8 @@ export interface WmiConsumerNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** wmiConsumerNode 节点配置 */
-const wmiConsumerNodeConfig: NodeConfig<NodeData> = {
+const wmiConsumerNodeConfig: NodeConfig<WmiConsumerNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -63,7 +59,7 @@ const wmiConsumerNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.EventConsumerName,
   getImage: () => "/icons/nodes/wmi-consumer-node.svg",
 };
 

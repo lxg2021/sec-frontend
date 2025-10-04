@@ -33,12 +33,8 @@ export interface MessageNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** message 节点配置 */
-const messageNodeConfig: NodeConfig<NodeData> = {
+const messageNodeConfig: NodeConfig<MessageNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -51,7 +47,7 @@ const messageNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.HookTypeDescription,
   getImage: () => "/icons/nodes/message-node.svg",
 };
 

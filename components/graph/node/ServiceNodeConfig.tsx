@@ -45,12 +45,8 @@ export interface ServiceNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** serviceNode 节点配置 */
-const serviceNodeConfig: NodeConfig<NodeData> = {
+const serviceNodeConfig: NodeConfig<ServiceNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -63,7 +59,7 @@ const serviceNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.ServiceName,
   getImage: () => "/icons/nodes/service-node.svg",
 };
 

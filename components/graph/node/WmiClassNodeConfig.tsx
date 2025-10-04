@@ -59,12 +59,9 @@ export interface WmiClassNode {
   UniqueID: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 /** wmiClassNode 节点配置 */
-const wmiClassNodeConfig: NodeConfig<NodeData> = {
+const wmiClassNodeConfig: NodeConfig<WmiClassNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -77,7 +74,7 @@ const wmiClassNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => "WmiClass",
   getImage: () => "/icons/nodes/wmi-class-node.svg",
 };
 

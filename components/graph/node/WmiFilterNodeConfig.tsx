@@ -48,12 +48,8 @@ export interface WmiFilterNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** wmiFilterNode 节点配置 */
-const wmiFilterNodeConfig: NodeConfig<NodeData> = {
+const wmiFilterNodeConfig: NodeConfig<WmiFilterNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -66,7 +62,7 @@ const wmiFilterNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.EventFilterName,
   getImage: () => "/icons/nodes/wmi-filter-node.svg",
 };
 

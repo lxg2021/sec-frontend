@@ -58,10 +58,10 @@ export interface FileNode {
   /** 检测内容 */
   DetectionContent: string;
 
-  /** 文件描述，例如 FileRead, FileWrite */
+  /** 文件描述 */
   Description: string;
 
-  /** 文件类型，例如 FileRead, FileWrite */
+  /** 文件类型 */
   FileType: number;
 
   /** 唯一标识 ID */
@@ -71,13 +71,8 @@ export interface FileNode {
   ObjHash: string;
 }
 
-
-interface NodeData {
-  label: string;
-}
-
 /** file 节点配置 */
-const fileNodeConfig: NodeConfig<NodeData> = {
+const fileNodeConfig: NodeConfig<FileNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -90,7 +85,12 @@ const fileNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+
+  getLabel: (data) => {
+    const fileName = data.FileName;
+    const lastSlashIndex = Math.max(fileName.lastIndexOf("\\"), fileName.lastIndexOf("/"));
+    return lastSlashIndex >= 0 ? fileName.slice(lastSlashIndex + 1) : fileName;
+  },
   getImage: () => "/icons/nodes/file-node.svg",
 };
 

@@ -30,7 +30,7 @@ export interface ProcessCreateShip {
 /**
  * Process Create Process 边配置
  */
-const processCreateShipConfig: LinkConfig<any> = {
+const processCreateShipConfig: LinkConfig<ProcessCreateShip> = {
   getStyle: () => {
     const style: LinkStyle = {
       color: "#4CAF50",
@@ -49,9 +49,6 @@ const processCreateShipConfig: LinkConfig<any> = {
     return style;
   },
   getLabel: () => "CREATE_PROCESS",
-  onClick: (data) => {
-    alert(`Clicked edge: ${data}`);
-  },
 };
 
 export default processCreateShipConfig;

@@ -26,12 +26,9 @@ export interface EventNode {
   ObjHash: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 /** eventNode 节点配置 */
-const eventNodeConfig: NodeConfig<NodeData> = {
+const eventNodeConfig: NodeConfig<EventNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -44,7 +41,7 @@ const eventNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.EventName,
   getImage: () => "/icons/nodes/event-node.svg",
 };
 

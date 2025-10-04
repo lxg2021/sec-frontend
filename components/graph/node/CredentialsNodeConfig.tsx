@@ -29,13 +29,8 @@ export interface CredentialsNode {
   ObjHash: string;
 }
 
-
-interface NodeData {
-  label: string;
-}
-
 /** credentialsNode 节点配置 */
-const credentialsNodeConfig: NodeConfig<NodeData> = {
+const credentialsNodeConfig: NodeConfig<CredentialsNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -48,7 +43,7 @@ const credentialsNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.CredDesc,
   getImage: () => "/icons/nodes/credentials-node.svg",
 };
 

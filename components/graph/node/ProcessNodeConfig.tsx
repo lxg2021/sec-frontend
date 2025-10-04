@@ -6,7 +6,8 @@ import { getProcessNodeMenu } from "@/components/graph/menu/processNodeMenu"
  * 表示一个进程节点
  */
 export interface ProcessNode {
-  /** 元素 ID (唯一标识) */
+
+  /** 元素 GraphID  */
   ElementId: string;
 
   /** 启动时间 (ISO 8601 字符串) */
@@ -79,13 +80,8 @@ export interface ProcessNode {
   UniqueID: string;
 }
 
-interface NodeData {
-  label: string
-  nodeId?: string
-}
-
 /** process 节点配置 */
-export const processNodeConfig: NodeConfig<NodeData> = {
+export const processNodeConfig: NodeConfig<ProcessNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -98,9 +94,8 @@ export const processNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.ProcessName,
   getImage: () => "/icons/nodes/process-node.svg",
-  onClick: (data) => alert(`Clicked process node: ${data.label}`),
   onMouseEnter: (data) => { },
   onRightClick: (data) => getProcessNodeMenu(data),
 }

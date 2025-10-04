@@ -37,12 +37,9 @@ export interface DnsNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
 
 /** dns 节点配置 */
-const dnsNodeConfig: NodeConfig<NodeData> = {
+const dnsNodeConfig: NodeConfig<DnsNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -55,7 +52,7 @@ const dnsNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => data.Domain,
   getImage: () => "/icons/nodes/dns-node.svg",
 };
 

@@ -8,6 +8,9 @@ import { MarkerType } from "reactflow";
  * FileDllImageMd5PeerShip 表示文件节点与 DLL 镜像节点之间通过 MD5 建立的关联 (FileNode -> DllImageNode)
  */
 export interface FileDllImageMd5PeerShip {
+  
+  ShipElementID: ShipElementID;
+
   /** 关系发生时间 (ISO 8601 字符串) */
   Time: string;
 
@@ -25,6 +28,9 @@ export interface FileDllImageMd5PeerShip {
  * ReverseFileDllImageMd5PeerShip 表示 DLL 镜像节点反向关联到文件 MD5 的关系 (DllImageNode -> FileNode)
  */
 export interface ReverseFileDllImageMd5PeerShip {
+
+  ShipElementID: ShipElementID;
+
   /** 关系发生时间 (ISO 8601 字符串) */
   Time: string;
 

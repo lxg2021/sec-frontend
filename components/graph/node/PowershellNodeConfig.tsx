@@ -36,12 +36,8 @@ export interface PowershellNode {
 }
 
 
-interface NodeData {
-  label: string;
-}
-
 /** powershellNode 节点配置 */
-const powershellNodeConfig: NodeConfig<NodeData> = {
+const powershellNodeConfig: NodeConfig<PowershellNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -54,7 +50,11 @@ const powershellNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => {
+    const fileName = data.FileName;
+    const lastSlashIndex = Math.max(fileName.lastIndexOf("\\"), fileName.lastIndexOf("/"));
+    return lastSlashIndex >= 0 ? fileName.slice(lastSlashIndex + 1) : fileName;
+  },
   getImage: () => "/icons/nodes/powershell-node.svg",
 };
 

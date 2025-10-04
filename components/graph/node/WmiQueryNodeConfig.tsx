@@ -38,12 +38,9 @@ export interface WmiQueryNode {
   UniqueID: string;
 }
 
-interface NodeData {
-  label: string;
-}
 
 /** wmiQueryNode 节点配置 */
-const wmiQueryNodeConfig: NodeConfig<NodeData> = {
+const wmiQueryNodeConfig: NodeConfig<WmiQueryNode> = {
   getStyle: () => ({
     color: "#F1FBFC",
     width: 32,
@@ -56,7 +53,7 @@ const wmiQueryNodeConfig: NodeConfig<NodeData> = {
     shape: "square",
     hoverAnimation: true,
   }),
-  getLabel: (data) => data.label,
+  getLabel: (data) => "WmiQuery",
   getImage: () => "/icons/nodes/wmi-query-node.svg",
 };
 
