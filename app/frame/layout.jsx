@@ -58,7 +58,7 @@ export default function BaselineLayout({ children }) {
       submenu: [
         { id: "hardware", icon: HardDrive, label: "硬件资产", path: "/frame/hardware-assets" },
         { id: "softdetails", icon: Package, label: "软件管理", path: "/frame/software-assets/details" },
-		{ id: "softuninstall", icon: Trash2, label: "软件卸载", path: "/frame/software-assets/uninstall" },
+        { id: "softuninstall", icon: Trash2, label: "软件卸载", path: "/frame/software-assets/uninstall" },
       ],
     },
     {
@@ -67,76 +67,86 @@ export default function BaselineLayout({ children }) {
       label: "安全基线",
       submenu: [
         { id: "baselinedashboard", icon: LayoutDashboard, label: "基线概览", path: "/frame/baseline" },
-		{ id: "baselineconfig", icon: Settings2, label: "基线配置", path: "/frame/baseline/rules" },
+        { id: "baselineconfig", icon: Settings2, label: "基线配置", path: "/frame/baseline/rules" },
       ],
     },
-    { 
-		id: "vulnerability", 
-		icon: AlertTriangle, 
-		label: "漏洞防护", 
-		path: "/frame/vulnerability",
-		submenu: [
-			{ id: "patchdash", icon: ShieldCheck, label: "补丁概览", path: "/frame/vulnerability/dashboard" },
-			{ id: "patchinstall", icon: Package, label: "安装补丁", path: "/frame/vulnerability/installtask" },
-			{ id: "patchtatus", icon: BarChart, label: "安装状态", path: "/frame/vulnerability/taskstatus" },
-		],
-	},
-    
-	{ 
-		id: "attack", 
-		icon: Target, 
-		label: "攻击溯源", 
-		path: "/frame/attack",
-		submenu: [
-			{ id: "attdash", icon: Sword, label: "攻击概览", path: "/frame/attack/dashboard" },
-			{ id: "attdrill", icon: Activity, label: "溯源详情", path: "/frame/attack/drill" },
-			{ id: "attpositioning", icon: MapPin, label: "全网定位", path: "/frame/attack/positioning" },
-		],
-	},
-    { id: "response", icon: Shield, label: "处置响应", path: "/frame/response" },
+    {
+      id: "vulnerability",
+      icon: AlertTriangle,
+      label: "漏洞防护",
+      path: "/frame/vulnerability",
+      submenu: [
+        { id: "patchdash", icon: ShieldCheck, label: "补丁概览", path: "/frame/vulnerability/dashboard" },
+        { id: "patchinstall", icon: Package, label: "安装补丁", path: "/frame/vulnerability/installtask" },
+        { id: "patchtatus", icon: BarChart, label: "安装状态", path: "/frame/vulnerability/taskstatus" },
+      ],
+    },
+
+    {
+      id: "attack",
+      icon: Target,
+      label: "攻击溯源",
+      path: "/frame/attack",
+      submenu: [
+        { id: "attdash", icon: Sword, label: "攻击概览", path: "/frame/attack/dashboard" },
+        { id: "attdrill", icon: Activity, label: "溯源详情", path: "/frame/attack/drill" },
+        { id: "attpositioning", icon: MapPin, label: "全网定位", path: "/frame/attack/positioning" },
+      ],
+    },
+    {
+      id: "response",
+      icon: Shield,
+      label: "处置响应",
+      path: "/frame/response",
+      submenu: [
+        { id: "orchestration", icon: Sword, label: "处置编排", path: "/frame/response/orchestration" },
+        { id: "dacpolicy", icon: Activity, label: "DAC控制", path: "/frame/response/dac" },
+      ],
+    },
+
     { id: "reports", icon: FileText, label: "审计中心", path: "/frame/reports" },
-    { 
-		id: "control", 
-		icon: Settings, 
-		label: "控制中心", 
-		submenu: [
-			{ id: "sensorconfig", icon: SlidersHorizontal, label: "传感器配置", path: "/frame/control/sensor" },
-		],		
-	},
+    {
+      id: "control",
+      icon: Settings,
+      label: "控制中心",
+      submenu: [
+        { id: "sensorconfig", icon: SlidersHorizontal, label: "传感器配置", path: "/frame/control/sensor" },
+      ],
+    },
   ]
 
   // 计算当前激活菜单项ID
-const activeSectionId = (() => {
-  // 优先匹配完全相等
-  for (const item of menuItems) {
-    if (item.path && pathname === item.path) {
-      return item.id
-    }
-    if (item.submenu) {
-      for (const sub of item.submenu) {
-        if (sub.path && pathname === sub.path) {
-          return sub.id
+  const activeSectionId = (() => {
+    // 优先匹配完全相等
+    for (const item of menuItems) {
+      if (item.path && pathname === item.path) {
+        return item.id
+      }
+      if (item.submenu) {
+        for (const sub of item.submenu) {
+          if (sub.path && pathname === sub.path) {
+            return sub.id
+          }
         }
       }
     }
-  }
 
-  // fallback: 使用 startsWith 以匹配上级菜单
-  for (const item of menuItems) {
-    if (item.path && pathname.startsWith(item.path)) {
-      return item.id
-    }
-    if (item.submenu) {
-      for (const sub of item.submenu) {
-        if (sub.path && pathname.startsWith(sub.path)) {
-          return sub.id
+    // fallback: 使用 startsWith 以匹配上级菜单
+    for (const item of menuItems) {
+      if (item.path && pathname.startsWith(item.path)) {
+        return item.id
+      }
+      if (item.submenu) {
+        for (const sub of item.submenu) {
+          if (sub.path && pathname.startsWith(sub.path)) {
+            return sub.id
+          }
         }
       }
     }
-  }
 
-  return "dashboard"
-})()
+    return "dashboard"
+  })()
 
   // 找到激活菜单对应的父菜单
   const activeParentMenu = menuItems.find((item) =>
@@ -205,11 +215,9 @@ const activeSectionId = (() => {
     <div className="flex h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-neutral-900">
       {/* 左侧导航栏 */}
       <div
-        className={`${
-          sidebarCollapsed ? SIDEBAR_WIDTH.COLLAPSED : SIDEBAR_WIDTH.EXPANDED
-        } bg-gradient-to-b from-slate-900/95 to-neutral-900/95 backdrop-blur-xl border-r border-slate-700/50 transition-all duration-300 fixed md:relative z-50 md:z-auto h-full md:h-auto ${
-          !sidebarCollapsed ? "md:block" : ""
-        } shadow-2xl`}
+        className={`${sidebarCollapsed ? SIDEBAR_WIDTH.COLLAPSED : SIDEBAR_WIDTH.EXPANDED
+          } bg-gradient-to-b from-slate-900/95 to-neutral-900/95 backdrop-blur-xl border-r border-slate-700/50 transition-all duration-300 fixed md:relative z-50 md:z-auto h-full md:h-auto ${!sidebarCollapsed ? "md:block" : ""
+          } shadow-2xl`}
       >
         <div className="p-4">
           {/* Logo */}
@@ -259,7 +267,7 @@ const activeSectionId = (() => {
                 <div
                   key={item.id}
                   style={{ animationDelay: `${index * ANIMATION_DELAYS.MENU_ITEM}ms` }}
-                  // 去掉动画类名
+                // 去掉动画类名
                 >
                   <button
                     onClick={() => handleMenuItemClick(item)}
@@ -272,9 +280,8 @@ const activeSectionId = (() => {
                     )}
                     <div className={`relative ${sidebarCollapsed ? "" : "ml-2"}`}>
                       <IconComponent
-                        className={`${
-                          sidebarCollapsed ? "w-6 h-6" : "w-5 h-5"
-                        } transition-all duration-200 ${isActive ? "drop-shadow-lg" : ""}`}
+                        className={`${sidebarCollapsed ? "w-6 h-6" : "w-5 h-5"
+                          } transition-all duration-200 ${isActive ? "drop-shadow-lg" : ""}`}
                       />
                       {isActive && <div className="absolute inset-0 bg-sky-400/20 rounded-lg blur-sm -z-10" />}
                     </div>
@@ -283,9 +290,8 @@ const activeSectionId = (() => {
                         <span className="text-sm font-medium tracking-wide">{item.label}</span>
                         {item.submenu && (
                           <ChevronRight
-                            className={`w-4 h-4 ml-auto transition-transform duration-300 ${
-                              expandedMenu === item.id ? "rotate-90" : ""
-                            }`}
+                            className={`w-4 h-4 ml-auto transition-transform duration-300 ${expandedMenu === item.id ? "rotate-90" : ""
+                              }`}
                           />
                         )}
                       </>
@@ -311,9 +317,8 @@ const activeSectionId = (() => {
                             )}
                             <div className="relative ml-1">
                               <SubIconComponent
-                                className={`w-4 h-4 transition-all duration-200 ${
-                                  isSubActive ? "text-blue-300 drop-shadow-md" : "text-slate-400 group-hover:text-white"
-                                }`}
+                                className={`w-4 h-4 transition-all duration-200 ${isSubActive ? "text-blue-300 drop-shadow-md" : "text-slate-400 group-hover:text-white"
+                                  }`}
                               />
                               {isSubActive && <div className="absolute inset-0 bg-blue-300/20 rounded-lg blur-sm -z-10" />}
                             </div>
