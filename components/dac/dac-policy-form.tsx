@@ -18,6 +18,7 @@ import { mockData } from "@/data/mockData"
 import { useToast } from "@/hooks/use-toast"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Shield } from "lucide-react"
+import { Toaster } from "@/components/ui/toaster"
 
 interface DacPolicyFormProps {
   onPolicyGenerate?: (policy: FilePolicy | RegistryPolicy | ProcessPolicy | NetworkPolicy) => void
@@ -1106,6 +1107,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
           </DialogContent>
         </Dialog>
       </div>
+      <Toaster />
     </TooltipProvider >
   )
 }
