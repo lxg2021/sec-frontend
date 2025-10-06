@@ -1,7 +1,7 @@
 "use client"
 
 import { DacPolicyForm } from "@/components/dac/dac-policy-form"
-import type { FilePolicy, RegistryPolicy, ProcessPolicy, NetworkPolicy } from "@/components/dacpolicy"
+import type { FilePolicy, RegistryPolicy, ProcessPolicy, NetworkPolicy } from "@/components/dac/dacpolicy"
 
 export default function Home() {
   const handlePolicyGenerate = (policy: FilePolicy | RegistryPolicy | ProcessPolicy | NetworkPolicy) => {
