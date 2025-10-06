@@ -61,6 +61,48 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
   const { toast } = useToast()
 
+  // 重置表单函数
+  const resetForm = () => {
+    setPolicyType("fs")
+    setVersion("v1.0")
+    setPolicyName("")
+    setLevel("50")
+    setExceptSource("")
+    setSubjectSource("")
+    setObjectSource("")
+
+    setSelectedHosts([])
+    setSelectedHostIds(new Set())
+
+    setFsPromptActions([])
+    setFsRejectActions([])
+    setFsAuditActions([])
+
+    setRegPromptActions([])
+    setRegRejectActions([])
+    setRegAuditActions([])
+
+    setPsPromptActions([])
+    setPsRejectActions([])
+    setPsAuditActions([])
+
+    // 重置网络策略状态
+    setNetDirection("in")
+    setNetAction("allow")
+    setNetProfile("any")
+    setNetProtocol("tcp")
+    setLocalPort("80,443,8080")
+    setRemotePort("any")
+    setLocalAddress("any")
+    setRemoteAddress("192.168.1.0/24")
+    setProgramPath("C:\\Program Files\\App\\app.exe")
+
+    toast({
+      title: "表单已重置",
+      description: "所有字段已恢复到初始状态",
+    })
+  }
+
   const handleHostSelectionChange = (nodes: any[], ids: Set<string>) => {
     setSelectedHosts(nodes)
     setSelectedHostIds(ids)
@@ -939,7 +981,12 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-3 pt-6 border-t">
-        <Button variant="outline" size="lg" className="min-w-24">
+        <Button 
+          variant="outline" 
+          size="lg" 
+          className="min-w-24"
+          onClick={resetForm}
+        >
           重置
         </Button>
         <Button onClick={handleExport} size="lg" className="min-w-24 bg-primary hover:bg-primary/90">
