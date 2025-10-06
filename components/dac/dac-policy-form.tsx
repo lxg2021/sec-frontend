@@ -10,12 +10,13 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Server } from "lucide-react"
+import { Server, HelpCircle, AlertCircle } from "lucide-react"
 import type { PolicyType, NetworkPolicy, FilePolicy, RegistryPolicy, ProcessPolicy } from "@/components/dac/dacpolicy"
 import { ActionCard, type ActionOption } from "@/components/dac/action-card"
 import HostSelector from "@/components/hosts/HostSelector"
 import { mockData } from "@/data/mockData"
 import { useToast } from "@/hooks/use-toast"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface DacPolicyFormProps {
   onPolicyGenerate?: (policy: FilePolicy | RegistryPolicy | ProcessPolicy | NetworkPolicy) => void
@@ -221,7 +222,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
     // Validate common required fields
     if (!policyName.trim()) {
-      console.log("策略名称为空") 
+      console.log("策略名称为空")
       toast({
         title: "验证失败",
         description: "策略名称不能为空",
@@ -335,381 +336,636 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
     { value: "w", label: "写内存", description: "写入进程内存" },
   ]
 
+  const getPolicyTypeLabel = (type: PolicyType) => {
+    switch (type) {
+      case "fs": return "文件系统"
+      case "reg": return "注册表"
+      case "ps": return "进程"
+      case "net": return "网络"
+      default: return type
+    }
+  }
+
   return (
-    <div className="w-full mx-auto p-4 md:p-6 lg:p-8 space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">访问控制策略配置</h1>
-        <p className="text-muted-foreground">创建和管理 DAC (Discretionary Access Control) 策略</p>
-      </div>
+    <TooltipProvider>
+      <div className="w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-8">
+        {/* Header Section */}
+        <div className="space-y-3 text-center">
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            访问控制策略配置
+          </h1>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            创建和管理 DAC (Discretionary Access Control) 策略，保护您的系统资源
+          </p>
+        </div>
 
-      <Tabs value={policyType} onValueChange={(v) => setPolicyType(v as PolicyType)}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="fs">文件策略</TabsTrigger>
-          <TabsTrigger value="reg">注册表策略</TabsTrigger>
-          <TabsTrigger value="ps">进程策略</TabsTrigger>
-          <TabsTrigger value="net">网络策略</TabsTrigger>
-        </TabsList>
+        {/* Policy Type Tabs */}
+        <Tabs value={policyType} onValueChange={(v) => setPolicyType(v as PolicyType)} className="space-y-8">
+          <div className="flex justify-center">
+            <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger value="fs" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <img
+                  src="/icons/nodes/file-node.svg"
+                  alt="file"
+                  className="w-4 h-4"
+                />
+                文件策略
+              </TabsTrigger>
+              <TabsTrigger value="reg" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <img
+                  src="/icons/nodes/reg-key-node.svg"
+                  alt="file"
+                  className="w-4 h-4"
+                />
+                注册表策略
+              </TabsTrigger>
+              <TabsTrigger value="ps" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <img
+                  src="/icons/nodes/process-node.svg"
+                  alt="file"
+                  className="w-4 h-4"
+                />
+                进程策略
+              </TabsTrigger>
+              <TabsTrigger value="net" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                <img
+                  src="/icons/nodes/net-node.svg"
+                  alt="file"
+                  className="w-4 h-4"
+                />
+                网络策略
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* Common Header Section for fs, reg, ps */}
-        {policyType !== "net" && (
-          <TabsContent value={policyType} className="space-y-6 mt-6">
-            <Card className="p-6">
+          {/* Common Policy Form for fs, reg, ps */}
+          {policyType !== "net" && (
+            <TabsContent value={policyType} className="space-y-6">
+              {/* Policy Header Card */}
+              <Card className="p-6 border-l-4 border-l-primary shadow-sm">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-semibold">策略基础信息</h2>
+                    </div>
+                  </div>
+                  <Separator />
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="version" className="text-sm font-medium">版本</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            策略版本号，例如 v1.0
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Input
+                        id="version"
+                        placeholder="v1.0"
+                        value={version}
+                        onChange={(e) => setVersion(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="name" className="text-sm font-medium">策略名称</Label>
+                        <span className="text-red-500 text-sm">*</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            策略的友好名称，用于识别和管理
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Input
+                        id="name"
+                        placeholder={`${getPolicyTypeLabel(policyType)}访问控制策略`}
+                        value={policyName}
+                        onChange={(e) => setPolicyName(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="level" className="text-sm font-medium">优先级</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            策略优先级，数值越小优先级越高，范围 1-254
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <div className="relative">
+                        <Input
+                          id="level"
+                          type="number"
+                          min="1"
+                          max="254"
+                          value={level}
+                          onChange={(e) => setLevel(e.target.value)}
+                          className="bg-background pr-12"
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <Badge variant="outline" className="text-xs bg-muted">
+                            1-254
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="target-host" className="text-sm font-medium">目标主机</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            应用此策略的目标主机
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Button
+                        id="target-host"
+                        variant="outline"
+                        className="w-full justify-between h-10 bg-background hover:bg-muted/50"
+                        onClick={() => setIsHostDialogOpen(true)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Server className="h-4 w-4" />
+                          <span className={selectedHostIds.size > 0 ? "font-medium" : "text-muted-foreground"}>
+                            {selectedHostIds.size > 0 ? `${selectedHostIds.size} 台主机` : "选择主机"}
+                          </span>
+                        </div>
+                        {selectedHostIds.size > 0 && (
+                          <Badge variant="secondary" className="ml-2">
+                            {selectedHostIds.size}
+                          </Badge>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Policy Body Card */}
+              <Card className="p-6 border-l-4 border-l-blue-500 shadow-sm">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold">策略主体配置</h2>
+                  </div>
+                  <Separator />
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="except" className="text-sm font-medium">例外进程</Label>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            不受此策略限制的进程
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Input
+                        id="except"
+                        placeholder="例如: *\rcSvc.exe (支持 * # ? 通配符，多项用分号分隔)"
+                        value={exceptSource}
+                        onChange={(e) => setExceptSource(e.target.value)}
+                        className="bg-background"
+                      />
+
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="subject" className="text-sm font-medium">主体进程</Label>
+                        <span className="text-red-500 text-sm">*</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            执行操作的进程路径，支持 * # ? 通配符
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Input
+                        id="subject"
+                        placeholder={
+                          policyType === "fs"
+                            ? "例如: *\\notepad.exe 或 C:\\Windows\\System32\\*.exe"
+                            : policyType === "reg"
+                              ? "例如: *\\regedit.exe 或 *\\powershell.exe"
+                              : "例如: *\\taskmgr.exe 或 C:\\Program Files\\**\\*.exe"
+                        }
+                        value={subjectSource}
+                        onChange={(e) => setSubjectSource(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-1">
+                        <Label htmlFor="object" className="text-sm font-medium">
+                          客体{policyType === "fs" ? "文件" : policyType === "reg" ? "注册表" : "进程"}
+                        </Label>
+                        <span className="text-red-500 text-sm">*</span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            被操作的目标路径，支持 * # ? 通配符
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
+                      <Input
+                        id="object"
+                        placeholder={
+                          policyType === "fs"
+                            ? "例如: C:\\Data\\*.txt 或 D:\\**\\*.log"
+                            : policyType === "reg"
+                              ? "例如: HKEY_CURRENT_USER\\Software\\* 或 HKEY_LOCAL_MACHINE\\**\\Run"
+                              : "例如: *\\calc.exe 或 C:\\Windows\\System32\\*.exe"
+                        }
+                        value={objectSource}
+                        onChange={(e) => setObjectSource(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Action Control Card */}
+              <Card className="p-6 border-l-4 border-l-green-500 shadow-sm">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold">行为控制配置</h2>
+                  </div>
+                  <Separator />
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <ActionCard
+                        title="用户决断"
+                        description="需要用户确认的敏感操作"
+                        actions={getCurrentActionStates().promptActions}
+                        availableActions={getCurrentActions()}
+                        onActionToggle={handlePromptActionToggle}
+                        disabledActions={getCurrentActionStates().rejectActions}
+                        badgeColor="outline"
+                        className="border-yellow-200 bg-yellow-50/50"
+                      />
+
+                      <ActionCard
+                        title="拒绝行为"
+                        description="直接阻止的危险操作"
+                        actions={getCurrentActionStates().rejectActions}
+                        availableActions={getCurrentActions()}
+                        onActionToggle={handleRejectActionToggle}
+                        disabledActions={getCurrentActionStates().promptActions}
+                        badgeColor="destructive"
+                        className="border-red-200 bg-red-50/50"
+                      />
+
+                      <ActionCard
+                        title="审计行为"
+                        description="仅记录日志的监控操作"
+                        actions={getCurrentActionStates().auditActions}
+                        availableActions={getCurrentActions()}
+                        onActionToggle={handleAuditActionToggle}
+                        badgeColor="secondary"
+                        className="border-blue-200 bg-blue-50/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </TabsContent>
+          )}
+
+          {/* Network Policy Tab */}
+          <TabsContent value="net" className="space-y-6">
+            {/* Network Policy Header */}
+            <Card className="p-6 border-l-4 border-l-primary shadow-sm">
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">策略头部</h2>
-                  <Badge variant="outline">{policyType.toUpperCase()}</Badge>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold">网络策略基础信息</h2>
+                    <Badge variant="secondary" className="text-xs">
+                      网络控制
+                    </Badge>
+                  </div>
                 </div>
                 <Separator />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="version">版本</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="net-version" className="text-sm font-medium">版本</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          策略版本号，例如 v1.0
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
-                      id="version"
+                      id="net-version"
                       placeholder="v1.0"
                       value={version}
                       onChange={(e) => setVersion(e.target.value)}
+                      className="bg-background"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="name">策略名称 *</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="net-name" className="text-sm font-medium">策略名称</Label>
+                      <span className="text-red-500 text-sm">*</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          策略的友好名称，用于识别和管理
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
-                      id="name"
-                      placeholder="输入策略友好名称"
+                      id="net-name"
+                      placeholder="网络访问控制策略"
                       value={policyName}
                       onChange={(e) => setPolicyName(e.target.value)}
+                      className="bg-background"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="level">优先级 (1-254)</Label>
-                    <Input
-                      id="level"
-                      type="number"
-                      min="1"
-                      max="254"
-                      value={level}
-                      onChange={(e) => setLevel(e.target.value)}
-                    />
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="net-level" className="text-sm font-medium">优先级</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          策略优先级，数值越小优先级越高，范围 1-254
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        id="net-level"
+                        type="number"
+                        min="1"
+                        max="254"
+                        value={level}
+                        onChange={(e) => setLevel(e.target.value)}
+                        className="bg-background pr-12"
+                      />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <Badge variant="outline" className="text-xs bg-muted">
+                          1-254
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="target-host">目标主机</Label>
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="net-target-host" className="text-sm font-medium">目标主机</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          应用此策略的目标主机
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Button
-                      id="target-host"
+                      id="net-target-host"
                       variant="outline"
-                      className="w-full justify-start text-left font-normal bg-transparent"
+                      className="w-full justify-between h-10 bg-background hover:bg-muted/50"
                       onClick={() => setIsHostDialogOpen(true)}
                     >
-                      <Server className="mr-2 h-4 w-4" />
-                      {selectedHostIds.size > 0 ? `已选择 ${selectedHostIds.size} 台主机` : "点击选择目标主机"}
+                      <div className="flex items-center gap-2">
+                        <Server className="h-4 w-4" />
+                        <span className={selectedHostIds.size > 0 ? "font-medium" : "text-muted-foreground"}>
+                          {selectedHostIds.size > 0 ? `${selectedHostIds.size} 台主机` : "选择主机"}
+                        </span>
+                      </div>
+                      {selectedHostIds.size > 0 && (
+                        <Badge variant="secondary" className="ml-2">
+                          {selectedHostIds.size}
+                        </Badge>
+                      )}
                     </Button>
                   </div>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">策略主体</h2>
-                <Separator />
+            {/* Network Rule Configuration */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="p-6 border-l-4 border-l-blue-500 shadow-sm">
                 <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="except">例外进程 (可选)</Label>
-                    <Input
-                      id="except"
-                      placeholder="例如: *\rcSvc.exe (支持 * # ? 通配符，多项用分号分隔)"
-                      value={exceptSource}
-                      onChange={(e) => setExceptSource(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">不受此策略限制的进程</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">主体进程 *</Label>
-                    <Input
-                      id="subject"
-                      placeholder={
-                        policyType === "fs"
-                          ? "例如: *\\notepad.exe;*"
-                          : policyType === "reg"
-                            ? "例如: *\\regedit.exe;*"
-                            : "例如: *\\taskmgr.exe;*"
-                      }
-                      value={subjectSource}
-                      onChange={(e) => setSubjectSource(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">执行操作的进程 (支持通配符)</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="object">
-                      客体{policyType === "fs" ? "文件" : policyType === "reg" ? "注册表" : "进程"} *
-                    </Label>
-                    <Input
-                      id="object"
-                      placeholder={
-                        policyType === "fs"
-                          ? "例如: c:\\a.txt;*\\b.txt"
-                          : policyType === "reg"
-                            ? "例如: HKEY_CURRENT_USER\\AppEvents\\*"
-                            : "例如: *\\calc.exe"
-                      }
-                      value={objectSource}
-                      onChange={(e) => setObjectSource(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">被操作的目标 (支持通配符)</p>
+                  <h2 className="text-xl font-semibold">规则配置</h2>
+                  <Separator />
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <Label htmlFor="direction" className="text-sm font-medium">流量方向</Label>
+                      <Select value={netDirection} onValueChange={(v) => setNetDirection(v as any)}>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="in">入站 (Inbound)</SelectItem>
+                          <SelectItem value="out">出站 (Outbound)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="action" className="text-sm font-medium">处理动作</Label>
+                      <Select value={netAction} onValueChange={(v) => setNetAction(v as any)}>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="allow">允许 (Allow)</SelectItem>
+                          <SelectItem value="block">阻止 (Block)</SelectItem>
+                          <SelectItem value="bypass">绕过 (Bypass)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="profile" className="text-sm font-medium">网络配置文件</Label>
+                      <Select value={netProfile} onValueChange={(v) => setNetProfile(v as any)}>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="domain">域网络 (Domain)</SelectItem>
+                          <SelectItem value="private">专用网络 (Private)</SelectItem>
+                          <SelectItem value="public">公用网络 (Public)</SelectItem>
+                          <SelectItem value="any">所有网络 (Any)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
 
-            <Card className="p-6">
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">行为控制</h2>
-                <Separator />
+              <Card className="p-6 border-l-4 border-l-green-500 shadow-sm">
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <ActionCard
-                      title="用户决断"
-                      description="需要用户确认的操作"
-                      actions={getCurrentActionStates().promptActions}
-                      availableActions={getCurrentActions()}
-                      onActionToggle={handlePromptActionToggle}
-                      disabledActions={getCurrentActionStates().rejectActions}
-                      badgeColor="outline"
-                    />
-
-                    <ActionCard
-                      title="拒绝行为"
-                      description="直接拒绝的操作"
-                      actions={getCurrentActionStates().rejectActions}
-                      availableActions={getCurrentActions()}
-                      onActionToggle={handleRejectActionToggle}
-                      disabledActions={getCurrentActionStates().promptActions}
-                      badgeColor="destructive"
-                    />
-
-                    <ActionCard
-                      title="审计行为"
-                      description="仅记录日志的操作"
-                      actions={getCurrentActionStates().auditActions}
-                      availableActions={getCurrentActions()}
-                      onActionToggle={handleAuditActionToggle}
-                      badgeColor="secondary"
-                    />
+                  <h2 className="text-xl font-semibold">协议和端口</h2>
+                  <Separator />
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <Label htmlFor="protocol" className="text-sm font-medium">协议类型</Label>
+                      <Select value={netProtocol} onValueChange={(v) => setNetProtocol(v as any)}>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="tcp">TCP</SelectItem>
+                          <SelectItem value="udp">UDP</SelectItem>
+                          <SelectItem value="icmp">ICMP</SelectItem>
+                          <SelectItem value="any">所有协议 (Any)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="localport" className="text-sm font-medium">本地端口</Label>
+                      <Input
+                        id="localport"
+                        placeholder="80,443,8080 或 any"
+                        value={localPort}
+                        onChange={(e) => setLocalPort(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="remoteport" className="text-sm font-medium">远程端口</Label>
+                      <Input
+                        id="remoteport"
+                        placeholder="any 或具体端口"
+                        value={remotePort}
+                        onChange={(e) => setRemotePort(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+
+              <Card className="p-6 border-l-4 border-l-purple-500 shadow-sm">
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold">地址范围</h2>
+                  <Separator />
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <Label htmlFor="localaddr" className="text-sm font-medium">本地地址</Label>
+                      <Input
+                        id="localaddr"
+                        placeholder="any 或 IP/CIDR"
+                        value={localAddress}
+                        onChange={(e) => setLocalAddress(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label htmlFor="remoteaddr" className="text-sm font-medium">远程地址</Label>
+                      <Input
+                        id="remoteaddr"
+                        placeholder="192.168.1.0/24"
+                        value={remoteAddress}
+                        onChange={(e) => setRemoteAddress(e.target.value)}
+                        className="bg-background"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 border-l-4 border-l-orange-500 shadow-sm">
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold">程序关联</h2>
+                  <Separator />
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1">
+                      <Label htmlFor="program" className="text-sm font-medium">程序路径</Label>
+                      <span className="text-red-500 text-sm">*</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          应用此网络规则的进程路径，支持通配符匹配多个程序
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Input
+                      id="program"
+                      placeholder="C:\\Program Files\\App\\app.exe"
+                      value={programPath}
+                      onChange={(e) => setProgramPath(e.target.value)}
+                      className="bg-background"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      应用此网络规则的进程路径，支持通配符匹配多个程序
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
-        )}
+        </Tabs>
 
-        {/* Network Policy Tab */}
-        <TabsContent value="net" className="space-y-6 mt-6">
-          <Card className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold">策略头部</h2>
-                <Badge variant="outline">NET</Badge>
-              </div>
-              <Separator />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="net-version">版本</Label>
-                  <Input
-                    id="net-version"
-                    placeholder="v1.0"
-                    value={version}
-                    onChange={(e) => setVersion(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="net-name">策略名称 *</Label>
-                  <Input
-                    id="net-name"
-                    placeholder="输入网络策略名称"
-                    value={policyName}
-                    onChange={(e) => setPolicyName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="net-level">优先级 (1-254)</Label>
-                  <Input
-                    id="net-level"
-                    type="number"
-                    min="1"
-                    max="254"
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="net-target-host">目标主机</Label>
-                  <Button
-                    id="net-target-host"
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal bg-transparent"
-                    onClick={() => setIsHostDialogOpen(true)}
-                  >
-                    <Server className="mr-2 h-4 w-4" />
-                    {selectedHostIds.size > 0 ? `已选择 ${selectedHostIds.size} 台主机` : "点击选择目标主机"}
-                  </Button>
-                </div>
-              </div>
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 pt-6 border-t">
+          <Button variant="outline" size="lg" className="min-w-24">
+            重置
+          </Button>
+          <Button onClick={handleExport} size="lg" className="min-w-24 bg-primary hover:bg-primary/90">
+            生成策略
+          </Button>
+        </div>
+
+        {/* Host Selection Dialog */}
+        <Dialog open={isHostDialogOpen} onOpenChange={setIsHostDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                选择目标主机
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-auto min-h-[400px]">
+              <HostSelector data={mockData} onSelectionChange={handleHostSelectionChange} />
             </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">规则配置</h2>
-              <Separator />
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="direction">方向</Label>
-                  <Select value={netDirection} onValueChange={(v) => setNetDirection(v as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in">入站 (in)</SelectItem>
-                      <SelectItem value="out">出站 (out)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="action">动作</Label>
-                  <Select value={netAction} onValueChange={(v) => setNetAction(v as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="allow">允许 (allow)</SelectItem>
-                      <SelectItem value="block">阻止 (block)</SelectItem>
-                      <SelectItem value="bypass">绕过 (bypass)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="profile">网络配置文件</Label>
-                  <Select value={netProfile} onValueChange={(v) => setNetProfile(v as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="domain">域网络</SelectItem>
-                      <SelectItem value="private">专用网络</SelectItem>
-                      <SelectItem value="public">公用网络</SelectItem>
-                      <SelectItem value="any">所有网络</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <DialogFooter className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                {selectedHostIds.size > 0 ? `已选择 ${selectedHostIds.size} 台主机` : "未选择任何主机"}
               </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">协议和端口</h2>
-              <Separator />
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="protocol">协议类型</Label>
-                  <Select value={netProtocol} onValueChange={(v) => setNetProtocol(v as any)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="tcp">TCP</SelectItem>
-                      <SelectItem value="udp">UDP</SelectItem>
-                      <SelectItem value="icmp">ICMP</SelectItem>
-                      <SelectItem value="any">所有协议</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="localport">本地端口</Label>
-                  <Input
-                    id="localport"
-                    placeholder="80,443,8080 或 any"
-                    value={localPort}
-                    onChange={(e) => setLocalPort(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="remoteport">远程端口</Label>
-                  <Input
-                    id="remoteport"
-                    placeholder="any 或具体端口"
-                    value={remotePort}
-                    onChange={(e) => setRemotePort(e.target.value)}
-                  />
-                </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setIsHostDialogOpen(false)}>
+                  取消
+                </Button>
+                <Button onClick={handleConfirmHostSelection}>
+                  确认选择
+                </Button>
               </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">地址范围</h2>
-              <Separator />
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="localaddr">本地地址</Label>
-                  <Input
-                    id="localaddr"
-                    placeholder="any 或 IP/CIDR"
-                    value={localAddress}
-                    onChange={(e) => setLocalAddress(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="remoteaddr">远程地址</Label>
-                  <Input
-                    id="remoteaddr"
-                    placeholder="192.168.1.0/24"
-                    value={remoteAddress}
-                    onChange={(e) => setRemoteAddress(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">程序关联</h2>
-              <Separator />
-              <div className="space-y-2">
-                <Label htmlFor="program">程序路径</Label>
-                <Input
-                  id="program"
-                  placeholder="C:\\Program Files\\App\\app.exe"
-                  value={programPath}
-                  onChange={(e) => setProgramPath(e.target.value)}
-                />
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end gap-3">
-        <Button variant="outline">重置</Button>
-        <Button onClick={handleExport}>生成策略</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <Dialog open={isHostDialogOpen} onOpenChange={setIsHostDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>选择目标主机</DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-auto">
-            <HostSelector data={mockData} onSelectionChange={handleHostSelectionChange} />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsHostDialogOpen(false)}>
-              取消
-            </Button>
-            <Button onClick={handleConfirmHostSelection}>确认选择</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </TooltipProvider>
   )
 }
