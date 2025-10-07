@@ -176,7 +176,7 @@ export default function App() {
         </Card>
 
         {/* 使用 Sheet 组件 */}
-        <div className="bg-white border border-gray-200 shadow-sm mb-6">
+        <div className="bg-white shadow-sm mb-6">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen} modal={false}>
             <SheetContent
               side="right"

@@ -158,7 +158,7 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const config = nodeData?.type ? nodeConfigs[nodeData.type] : null;
       let nodeWidth = node.width ?? defaultNodeWidth;
       let nodeHeight = node.height ?? defaultNodeHeight;
-      
+
       if (config && nodeData) {
         const style: NodeStyle = config.getStyle(nodeData);
         // 只使用图形部分的大小（忽略标签）
@@ -182,13 +182,13 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
       const nodeWithPosition = dagreGraph.node(node.id)
       node.targetPosition = dir === "TB" ? Position.Top : Position.Left
       node.sourcePosition = dir === "TB" ? Position.Bottom : Position.Right
-      
+
       // 修改：使用图形部分的大小进行位置计算
       const nodeData = node.data as any;
       const config = nodeData?.type ? nodeConfigs[nodeData.type] : null;
       let nodeWidth = node.width ?? defaultNodeWidth;
       let nodeHeight = node.height ?? defaultNodeHeight;
-      
+
       if (config && nodeData) {
         const style: NodeStyle = config.getStyle(nodeData);
         nodeWidth = style.width ?? 60;
@@ -375,10 +375,10 @@ const GraphVisualization: React.FC<GraphVisualizationProps> = ({
         onEdgeMouseEnter={handleEdgeMouseEnter}
         onEdgeMouseLeave={handleEdgeMouseLeave}
         fitView
+        proOptions={{ hideAttribution: true }}  // 隐藏版权标识
       >
         <Background color="#fff" />
         <Controls />
-        <MiniMap />
       </ReactFlow>
     </div>
   )
@@ -443,14 +443,14 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
         onClick={() => setIsSelected(!isSelected)}
       >
         {/* target handle - 定位在图形部分的边缘 */}
-        <Handle 
-          type="target" 
-          position={Position.Left} 
-          style={{ 
+        <Handle
+          type="target"
+          position={Position.Left}
+          style={{
             opacity: 0,
             top: `${actualShapeHeight / 2}px`,
             left: 0
-          }} 
+          }}
         />
 
         {/* 节点图形容器 */}
@@ -512,14 +512,14 @@ function createCustomNodeComponent<T>(config: NodeConfig<T>) {
         )}
 
         {/* source handle - 定位在图形部分的边缘 */}
-        <Handle 
-          type="source" 
-          position={Position.Right} 
-          style={{ 
+        <Handle
+          type="source"
+          position={Position.Right}
+          style={{
             opacity: 0,
             top: `${actualShapeHeight / 2}px`,
             right: 0
-          }} 
+          }}
         />
       </div>
     )

@@ -166,17 +166,17 @@ export function Search({ onSearch }: SearchProps) {
   }
 
   return (
-    <div className="w-full p-4 md:p-6 space-y-6 bg-card rounded-lg border">
-      <div className="space-y-2">
-        <Label htmlFor="search">搜索内容</Label>
+    <div className="w-full p-3 md:p-4 space-y-4 bg-card rounded-lg border">
+      <div className="space-y-1.5">
+        <Label htmlFor="search" className="text-sm">搜索内容</Label>
         <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             id="search"
             placeholder="输入 IP (192.168.1.1) / DNS (example.com) / MD5 (32位) / 端口 (8080)"
             value={searchValue}
             onChange={(e) => handleSearchInputChange(e.target.value)}
-            className="pl-10"
+            className="pl-9 h-9 text-sm"
           />
         </div>
         {detectedType && (
@@ -186,19 +186,19 @@ export function Search({ onSearch }: SearchProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>开始时间</Label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-sm">开始时间</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal h-9 text-sm",
                   !searchParams.startTime && "text-muted-foreground",
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-3.5 w-3.5" />
                 {searchParams.startTime ? format(searchParams.startTime, "yyyy-MM-dd") : <span>选择开始时间</span>}
               </Button>
             </PopoverTrigger>
@@ -213,18 +213,18 @@ export function Search({ onSearch }: SearchProps) {
           </Popover>
         </div>
 
-        <div className="space-y-2">
-          <Label>结束时间</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">结束时间</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-full justify-start text-left font-normal h-9 text-sm",
                   !searchParams.endTime && "text-muted-foreground",
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-2 h-3.5 w-3.5" />
                 {searchParams.endTime ? format(searchParams.endTime, "yyyy-MM-dd") : <span>选择结束时间</span>}
               </Button>
             </PopoverTrigger>
@@ -241,16 +241,16 @@ export function Search({ onSearch }: SearchProps) {
       </div>
 
       {error && (
-        <div className="p-3 text-sm text-destructive bg-destructive/10 border-l-4 border-destructive rounded-r-md">
+        <div className="p-2 text-xs text-destructive bg-destructive/10 border-l-4 border-destructive rounded-r-md">
           {error}
         </div>
       )}
 
-      <div className="flex gap-3">
-        <Button onClick={handleSearch} className="flex-1">
+      <div className="flex gap-2">
+        <Button onClick={handleSearch} className="flex-1 h-9 text-sm">
           搜索
         </Button>
-        <Button onClick={handleReset} variant="outline">
+        <Button onClick={handleReset} variant="outline" className="h-9 text-sm">
           重置
         </Button>
       </div>

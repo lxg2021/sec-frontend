@@ -99,7 +99,7 @@ export default function Home() {
               <Search
                 onSearch={(params) => {
                   console.log("Search params:", params)
-                  // Handle search logic here
+                  // 完成后台数据库搜素，设置nodes, links
                 }}
               />
             </div>
@@ -125,7 +125,7 @@ export default function Home() {
           <div className="border-t border-gray-100" />
 
           <CardContent>
-            <div className="w-full h-[700px]">
+            <div className="w-full h-[500px]">
               <GraphVisualization
                 nodes={nodes}
                 links={links}
@@ -142,7 +142,7 @@ export default function Home() {
 
 
         {/* 使用 Sheet 组件 */}
-        <div className="bg-white border border-gray-200 shadow-sm mb-6">
+        <div className="bg-white shadow-sm mb-6">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen} modal={false}>
             <SheetContent
               side="right"
