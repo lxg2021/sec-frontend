@@ -90,7 +90,7 @@ export default function BaselineLayout({ children }) {
       submenu: [
         { id: "attdash", icon: Sword, label: "攻击概览", path: "/frame/attack/dashboard" },
         { id: "attdrill", icon: Activity, label: "溯源详情", path: "/frame/attack/drill" },
-        { id: "attpositioning", icon: MapPin, label: "全网定位", path: "/frame/attack/positioning" },
+        { id: "attpositioning", icon: MapPin, label: "数据定位", path: "/frame/attack/positioning" },
       ],
     },
     {

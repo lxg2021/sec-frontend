@@ -1,20 +1,7 @@
-// page.tsx
-"use client";
+"use client"
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import GraphVisualization from "@/components/graph/GraphVisualization";
-import {
-  GraphNode,
-  GraphLink,
-} from "@/components/graph/interface";
-import "reactflow/dist/base.css";
-
-// 引入注册中心
-import nodeRegistry, { getNodeRegistry } from "@/components/graph/center/RegisterNodeCenter";
-import edgeRegistry, { getEdgeRegistry } from "@/components/graph/center/RegisterEdgeCenter";
-import NodeEdgeAccordion from "@/components/graph/NodeEdgeAccordion";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { Shield, Clock, Workflow } from "lucide-react"
+import { Search } from "@/components/search/Search"
+import { Shield, Workflow } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -22,16 +9,23 @@ import {
   CardTitle,
   CardDescription
 } from "@/components/ui/card";
-import { KillChainTimeline } from "@/components/killchain/kill-chain-timeline"
-import { initialNodes, initialLinks, demoUpdates } from "@/data/drill-mock-data";
+import GraphVisualization from "@/components/graph/GraphVisualization";
+import {
+  GraphNode,
+  GraphLink,
+} from "@/components/graph/interface";
+import "reactflow/dist/base.css";
+import { initPositionNodes, initPositionLinks } from "@/data/drill-mock-data";
+import React, { useState, useCallback, useRef, useEffect } from "react";
+import nodeRegistry, { getNodeRegistry } from "@/components/graph/center/RegisterNodeCenter";
+import edgeRegistry, { getEdgeRegistry } from "@/components/graph/center/RegisterEdgeCenter";
+import NodeEdgeAccordion from "@/components/graph/NodeEdgeAccordion";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 
-
-export default function App() {
-
-  const [resetKey, setResetKey] = useState(0)
-  const [nodes, setNodes] = useState<GraphNode<any>[]>(initialNodes);
-  const [links, setLinks] = useState<GraphLink<{}>[]>(initialLinks);
+export default function Home() {
+  const [nodes, setNodes] = useState<GraphNode<any>[]>(initPositionNodes);
+  const [links, setLinks] = useState<GraphLink<{}>[]>(initPositionLinks);
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [treeRootId, setTreeRootId] = useState<string | null>(null);
@@ -67,57 +61,24 @@ export default function App() {
     startWidthRef.current = sheetWidth;
   };
 
-  /* 处理鼠标移动，更新宽度 */
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-    const delta = startXRef.current - e.clientX;
-    const newWidth = startWidthRef.current + delta;
-
-    /* 限制宽度范围，比如最小800px，最大1200px */
-    if (newWidth >= 800 && newWidth <= 1200) {
-      setSheetWidth(newWidth);
-    }
-  }, [isDragging]);
-
-  /* 处理鼠标抬起，结束拖拽 */
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  /* 添加全局鼠标事件监听器 */
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    } else {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        {/* 页面标题 */}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-50 rounded-lg">
-              {/* 这里可以换成 Graph 图标 */}
               <Shield className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">溯源详情</h1>
-              <p className="text-sm text-gray-500 mt-1">Attack Investigation Details</p>
+              <h1 className="text-2xl font-semibold text-gray-900">数据定位</h1>
+              <p className="text-sm text-gray-500 mt-1">Pinpoint Data Source</p>
             </div>
           </div>
         </div>
 
-        {/* Kill Chain Timeline */}
+        {/* 搜索组件 */}
         <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center space-x-3">
@@ -125,18 +86,22 @@ export default function App() {
                 <Workflow className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <CardTitle className="text-lg font-bold text-gray-900">攻击时间线</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-900">搜索查询</CardTitle>
                 <CardDescription className="text-sm text-gray-500">
-                  APT Timeline
+                  输入 IP、DNS、MD5 或端口进行查询
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
 
           <CardContent>
-            <div className="w-full overflow-x-auto">  {/* Added overflow-x-auto for horizontal scrolling */}
-              {/* Kill Chain Timeline */}
-              <KillChainTimeline key={resetKey} dynamicData={demoUpdates[2]} />
+            <div className="w-full overflow-x-auto">
+              <Search
+                onSearch={(params) => {
+                  console.log("Search params:", params)
+                  // Handle search logic here
+                }}
+              />
             </div>
           </CardContent>
         </Card>
@@ -150,7 +115,7 @@ export default function App() {
                   <Shield className="h-5 w-5 text-white" />
                 </div>
                 <CardTitle className="text-lg md:text-xl font-semibold">
-                  溯源图谱
+                  数据图谱
                 </CardTitle>
               </div>
             </div>
@@ -174,6 +139,7 @@ export default function App() {
             </div>
           </CardContent>
         </Card>
+
 
         {/* 使用 Sheet 组件 */}
         <div className="bg-white border border-gray-200 shadow-sm mb-6">
@@ -214,6 +180,6 @@ export default function App() {
         </div>
 
       </div>
-    </div >
+    </div>
   )
 }
