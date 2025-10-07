@@ -125,7 +125,7 @@ export default function Home() {
           <div className="border-t border-gray-100" />
 
           <CardContent>
-            <div className="w-full h-[500px]">
+            <div className="w-full h-[640px]">
               <GraphVisualization
                 nodes={nodes}
                 links={links}

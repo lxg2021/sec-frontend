@@ -160,7 +160,7 @@ export default function App() {
           <div className="border-t border-gray-100" />
 
           <CardContent>
-            <div className="w-full h-[700px]">
+            <div className="w-full h-[760px]">
               <GraphVisualization
                 nodes={nodes}
                 links={links}
