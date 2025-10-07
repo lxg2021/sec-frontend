@@ -126,16 +126,31 @@ export function Search({ onSearch }: SearchProps) {
   }
 
   const handleSearch = () => {
-    if (!searchValue.trim() && !searchParams.startTime && !searchParams.endTime) {
-      setError("请输入搜索内容或选择时间范围")
+    // 检查搜索内容是否为空
+    if (!searchValue.trim()) {
+      setError("请输入搜索内容")
       return
     }
 
-    if (searchValue.trim() && !detectSearchType(searchValue)) {
+    // 检查开始时间是否为空
+    if (!searchParams.startTime) {
+      setError("请选择开始时间")
+      return
+    }
+
+    // 检查结束时间是否为空
+    if (!searchParams.endTime) {
+      setError("请选择结束时间")
+      return
+    }
+
+    // 检查搜索内容类型
+    if (!detectSearchType(searchValue)) {
       setError("无法识别输入类型，请输入有效的 IP、DNS、MD5 或端口")
       return
     }
 
+    // 验证时间范围
     if (!validateTimeRange()) {
       return
     }
@@ -226,7 +241,7 @@ export function Search({ onSearch }: SearchProps) {
       </div>
 
       {error && (
-        <div className="p-3 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-md">
+        <div className="p-3 text-sm text-destructive bg-destructive/10 border-l-4 border-destructive rounded-r-md">
           {error}
         </div>
       )}
