@@ -25,6 +25,7 @@ import {
   Trash2,
   Activity,
   MapPin,
+  Terminal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -103,7 +104,7 @@ export default function BaselineLayout({ children }) {
         { id: "dacpolicy", icon: Activity, label: "DAC控制", path: "/frame/response/dac" },
       ],
     },
-
+    { id: "evidence", icon: Terminal, label: "远程运维", path: "/frame/evidence" },
     { id: "reports", icon: FileText, label: "审计中心", path: "/frame/reports" },
     {
       id: "control",
