@@ -112,6 +112,7 @@ export default function BaselineLayout({ children }) {
       label: "控制中心",
       submenu: [
         { id: "sensorconfig", icon: SlidersHorizontal, label: "传感器配置", path: "/frame/control/sensor" },
+        { id: "controltask", icon: SlidersHorizontal, label: "任务配置", path: "/frame/control/task" },
       ],
     },
   ]
