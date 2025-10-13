@@ -7,6 +7,7 @@ import type { Task, TaskType } from "@/lib/task/task-types"
 import { createTask, mockCreateTask, mockUpdateTask, updateTask } from "@/lib/task/api"
 import { useToast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
+import { ClipboardList, Clock } from "lucide-react"
 
 export default function Home() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -14,12 +15,12 @@ export default function Home() {
   const { toast } = useToast()
 
   const handleTaskCreated = async (task: Task) => {
-    console.log("[v0] handleTaskCreated called with task:", task)
+    console.log("handleTaskCreated called with task:", task)
 
     try {
       if (editingTask) {
         // 更新现有任务
-//      const updatedTask = await updateTask(task.id, task)
+        //      const updatedTask = await updateTask(task.id, task)
         const updatedTask = await mockUpdateTask(task.id, task)
         setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)))
         toast({
@@ -29,7 +30,7 @@ export default function Home() {
         setEditingTask(undefined)
       } else {
         // 创建新任务
-//      const createdTask = await createTask(task)
+        //      const createdTask = await createTask(task)
         const createdTask = await mockCreateTask(task)
         setTasks((prev) => [...prev, createdTask])
         toast({
@@ -62,18 +63,38 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold">任务管理系统</h1>
-        <p className="mt-2 text-muted-foreground">创建和管理扫描任务</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-6 space-y-6">
+        {/* 页面头部 */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-50 rounded-lg">
+              <ClipboardList className="h-6 w-6 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">任务管理</h1>
+              <p className="text-sm text-gray-500 mt-1">Task Management System</p>
+            </div>
+          </div>
+        </div>
 
-      <div className="space-y-8">
-        <TaskCreator onTaskCreated={handleTaskCreated} editingTask={editingTask} onCancelEdit={handleCancelEdit} />
-        <TaskList tasks={tasks} onEdit={handleEdit} onDelete={handleDelete} />
-      </div>
+        {/* 内容区域 */}
+        <div className="space-y-8">
+          <TaskCreator
+            onTaskCreated={handleTaskCreated}
+            editingTask={editingTask}
+            onCancelEdit={handleCancelEdit}
+          />
 
-      <Toaster />
+          <TaskList
+            tasks={tasks}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </div>
+
+        <Toaster />
+      </div>
     </div>
   )
 }

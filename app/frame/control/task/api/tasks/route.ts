@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
-import type { Task } from "@/types/task-types"
-import { taskStore } from "@/lib/task-store"
+import type { Task } from "@/lib/task/task-types"
+import { taskStore } from "@/lib/task/task-store"
 
 /** GET /api/tasks - 获取所有任务 */
 export async function GET() {
   const tasks = taskStore.getAll()
-  console.log("[v0] GET /api/tasks - returning tasks:", tasks)
+  console.log("[GET /api/tasks - returning tasks:", tasks)
   return NextResponse.json(tasks)
 }
 
@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const task: Task = await request.json()
-    console.log("[v0] POST /api/tasks - received task:", task)
+    console.log("POST /api/tasks - received task:", task)
 
     // 确保任务有必要的字段
     const newTask: Task = {
@@ -25,12 +25,12 @@ export async function POST(request: Request) {
     }
 
     taskStore.create(newTask)
-    console.log("[v0] POST /api/tasks - task created:", newTask)
-    console.log("[v0] POST /api/tasks - total tasks:", taskStore.count())
+    console.log("POST /api/tasks - task created:", newTask)
+    console.log("POST /api/tasks - total tasks:", taskStore.count())
 
     return NextResponse.json(newTask, { status: 201 })
   } catch (error) {
-    console.error("[v0] POST /api/tasks - error:", error)
+    console.error("POST /api/tasks - error:", error)
     return NextResponse.json({ error: "Failed to create task" }, { status: 500 })
   }
 }

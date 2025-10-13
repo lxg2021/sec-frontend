@@ -19,6 +19,7 @@ import { type Task, type TaskType, getTaskType } from "@/lib/task/task-types"
 import { deleteTask, mockDeleteTask } from "@/lib/task/api"
 import { useToast } from "@/hooks/use-toast"
 import type { BaselinePolicyType } from "@/lib/task/baseline-scan-task"
+import { ClipboardList } from "lucide-react"
 
 interface TaskListProps {
   tasks: Task[]
@@ -116,34 +117,67 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <Card className="w-full">
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">任务列表</CardTitle>
-          <CardDescription>暂无任务</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="rounded-full bg-muted p-4 mb-4">
-              <Calendar className="h-8 w-8 text-muted-foreground" />
+      <Card className="border-0 shadow-lg w-full">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          {/* 左侧图标 + 标题 */}
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+              <ClipboardList className="h-5 w-5 text-white" aria-hidden="true" />
             </div>
-            <p className="text-lg font-medium text-muted-foreground mb-2">还没有创建任何任务</p>
-            <p className="text-sm text-muted-foreground">使用上方的表单创建您的第一个扫描任务</p>
+            <div>
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                任务列表
+              </CardTitle>
+              <CardDescription className="text-sm text-gray-500">
+                暂无任务
+              </CardDescription>
+            </div>
+          </div>
+
+          {/* 可选右上角占位 */}
+          <div className="text-sm text-gray-500">
+            {/* 可以显示最后更新时间或者留空 */}
+          </div>
+        </CardHeader>
+
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-12 space-y-2 text-center">
+            <p className="text-lg font-medium text-gray-700">还没有创建任何任务</p>
+            <p className="text-sm text-gray-500">
+              使用上方的表单创建您的第一个扫描任务
+            </p>
           </div>
         </CardContent>
+        
       </Card>
     )
   }
 
   return (
     <>
-      <Card className="w-full">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          {/* 标题左侧区域 */}
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+              <ClipboardList className="h-5 w-5 text-white" aria-hidden="true" />
+            </div>
             <div>
-              <CardTitle className="text-2xl">任务列表</CardTitle>
-              <CardDescription>共 {tasks.length} 个任务</CardDescription>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                任务列表
+              </CardTitle>
+              <CardDescription className="text-sm text-gray-500">
+                共 {tasks.length} 个任务
+              </CardDescription>
             </div>
           </div>
+
+          {/* 可选的右上角统计 / 操作区域 */}
+          {tasks.length > 0 && (
+            <div className="text-sm text-gray-500">
+              最后更新时间：{new Date().toLocaleString()}
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           <div className="space-y-4 p-6 pt-0">
@@ -308,7 +342,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >

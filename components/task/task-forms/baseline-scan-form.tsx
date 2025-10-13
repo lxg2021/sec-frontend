@@ -210,7 +210,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       <div 
         className={`flex items-center space-x-2 p-3 border rounded-lg transition-colors cursor-pointer ${
           isSelected 
-            ? "border-primary bg-primary/5" 
+            ? "bg-primary/4" 
             : "hover:bg-accent/50"
         }`}
         onClick={handleClick}
@@ -358,7 +358,6 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
             />
             <Label htmlFor="select-all" className="font-medium cursor-pointer flex items-center">
-              <ListChecks className="h-4 w-4 mr-2 text-muted-foreground" />
               全选策略
             </Label>
           </div>

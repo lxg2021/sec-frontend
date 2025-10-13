@@ -26,6 +26,7 @@ import {
   Activity,
   MapPin,
   Terminal,
+  Timer,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -112,7 +113,7 @@ export default function BaselineLayout({ children }) {
       label: "控制中心",
       submenu: [
         { id: "sensorconfig", icon: SlidersHorizontal, label: "传感器配置", path: "/frame/control/sensor" },
-        { id: "controltask", icon: SlidersHorizontal, label: "任务配置", path: "/frame/control/task" },
+        { id: "controltask", icon: Timer, label: "任务配置", path: "/frame/control/task" },
       ],
     },
   ]

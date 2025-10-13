@@ -28,15 +28,47 @@ export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCr
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{editingTask ? "编辑任务" : "创建任务"}</CardTitle>
-        <CardDescription>{editingTask ? "修改任务配置并保存" : "选择任务类型并配置扫描参数"}</CardDescription>
+        {/* <CardTitle>{editingTask ? "编辑任务" : "创建任务"}</CardTitle> */}
+        {/* <CardDescription>{editingTask ? "修改任务配置并保存" : "选择任务类型并配置扫描参数"}</CardDescription> */}
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TaskType)}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="vulnerability">漏洞扫描</TabsTrigger>
-            <TabsTrigger value="attck">ATT&CK 扫描</TabsTrigger>
-            <TabsTrigger value="baseline">基线扫描</TabsTrigger>
+            <TabsTrigger
+              value="vulnerability"
+              className="flex items-center justify-center gap-2"
+            >
+              <img
+                src="/icons/system/vulnerability.svg"
+                alt="漏洞扫描"
+                className="w-4 h-4"
+              />
+              漏洞扫描
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="attck"
+              className="flex items-center justify-center gap-2"
+            >
+              <img
+                src="/icons/system/attack.svg"
+                alt="ATT&CK 扫描"
+                className="w-4 h-4"
+              />
+              ATT&CK 扫描
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="baseline"
+              className="flex items-center justify-center gap-2"
+            >
+              <img
+                src="/icons/system/baseline.svg"
+                alt="基线扫描"
+                className="w-4 h-4"
+              />
+              基线扫描
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="vulnerability" className="mt-6">
