@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Pencil, Trash2, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { Pencil, Trash2, Clock, CheckCircle2, XCircle, Loader2, Server, Shield, Database, Calendar } from "lucide-react"
 import { type Task, type TaskType, getTaskType } from "@/lib/task/task-types"
 import { deleteTask, mockDeleteTask } from "@/lib/task/api"
 import { useToast } from "@/hooks/use-toast"
@@ -29,7 +29,10 @@ interface TaskListProps {
 const POLICY_LABELS: Record<BaselinePolicyType, string> = {
   SECURITY_CONFIG: "安全配置",
   PATCH_COMPLIANCE: "补丁合规",
-  CUSTOM_POLICY: "自定义策略",
+  ACCOUNT_POLICY: "账号合规",
+  ATTCK_POLICY: "ATTCK预检",
+  SYSTEM_COMPLIANCE: "系统合规",
+  PREEXECUTION_CHECK: "运行预检",
 }
 
 export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
@@ -48,10 +51,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
     setDeletingTaskId(taskToDelete)
     try {
- //   await deleteTask(taskToDelete)
- //   mock模拟接口
       await mockDeleteTask(taskToDelete)
-
       onDelete(taskToDelete)
       toast({
         title: "任务已删除",
@@ -116,15 +116,18 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
   if (tasks.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>任务列表</CardTitle>
+      <Card className="w-full">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">任务列表</CardTitle>
           <CardDescription>暂无任务</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-muted-foreground">还没有创建任何任务</p>
-            <p className="mt-2 text-sm text-muted-foreground">使用上方的表单创建您的第一个扫描任务</p>
+            <div className="rounded-full bg-muted p-4 mb-4">
+              <Calendar className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-lg font-medium text-muted-foreground mb-2">还没有创建任何任务</p>
+            <p className="text-sm text-muted-foreground">使用上方的表单创建您的第一个扫描任务</p>
           </div>
         </CardContent>
       </Card>
@@ -133,13 +136,17 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>任务列表</CardTitle>
-          <CardDescription>共 {tasks.length} 个任务</CardDescription>
+      <Card className="w-full">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-2xl">任务列表</CardTitle>
+              <CardDescription>共 {tasks.length} 个任务</CardDescription>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="p-0">
+          <div className="space-y-4 p-6 pt-0">
             {tasks.map((task) => {
               const taskType = getTaskType(task)
               const isDeleting = deletingTaskId === task.id
@@ -147,70 +154,142 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
               return (
                 <div
                   key={task.id}
-                  className="flex items-start justify-between rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                  className="group relative rounded-lg border bg-card p-6 transition-all hover:shadow-md hover:border-primary/20"
                 >
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{task.name}</h3>
-                      {getTaskTypeBadge(taskType)}
-                      {getStatusBadge(task.status)}
-                    </div>
-
-                    <div className="grid gap-2 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">任务 ID:</span>
-                        <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{task.id}</code>
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                    {/* 左侧：任务信息 */}
+                    <div className="flex-1 space-y-4">
+                      {/* 标题行 */}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <h3 className="font-semibold text-lg truncate">{task.name}</h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {getTaskTypeBadge(taskType)}
+                          {getStatusBadge(task.status)}
+                        </div>
                       </div>
 
-                      {"targetHosts" in task && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">目标主机:</span>
-                          <span>{task.targetHosts.join(", ")}</span>
-                        </div>
-                      )}
+                      {/* 任务详情网格 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 基础信息 */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium min-w-20 text-muted-foreground">任务 ID:</span>
+                            <code className="rounded bg-muted px-2 py-1 text-xs font-mono truncate">
+                              {task.id}
+                            </code>
+                          </div>
 
-                      {"policy" in task && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">基线策略:</span>
-                          <span>{Array.isArray(task.policy) ? formatPolicies(task.policy) : task.policy}</span>
-                        </div>
-                      )}
+                          {"targetHosts" in task && task.targetHosts && (
+                            <div className="flex items-start gap-2 text-sm">
+                              <Server className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                              <div>
+                                <span className="font-medium text-muted-foreground">目标主机:</span>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {task.targetHosts.slice(0, 3).map((host, index) => (
+                                    <Badge key={index} variant="secondary" className="text-xs">
+                                      {host}
+                                    </Badge>
+                                  ))}
+                                  {task.targetHosts.length > 3 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{task.targetHosts.length - 3} 更多
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
-                      {"dataSources" in task && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">数据源:</span>
-                          <span>{task.dataSources}</span>
+                          {"policy" in task && task.policy && (
+                            <div className="flex items-start gap-2 text-sm">
+                              <Shield className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                              <div>
+                                <span className="font-medium text-muted-foreground">基线策略:</span>
+                                <div className="mt-1">
+                                  {Array.isArray(task.policy) ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {task.policy.slice(0, 3).map((policy, index) => (
+                                        <Badge key={index} variant="outline" className="text-xs">
+                                          {POLICY_LABELS[policy]}
+                                        </Badge>
+                                      ))}
+                                      {task.policy.length > 3 && (
+                                        <Badge variant="outline" className="text-xs">
+                                          +{task.policy.length - 3} 更多
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <Badge variant="outline" className="text-xs">
+                                      {task.policy}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      )}
 
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">创建时间:</span>
-                        <span>{formatDate(task.createdAt)}</span>
+                        {/* 时间信息 */}
+                        <div className="space-y-3">
+                          {"dataSources" in task && task.dataSources && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Database className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              <div>
+                                <span className="font-medium text-muted-foreground">数据源:</span>
+                                <span className="ml-2">{task.dataSources}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 text-sm">
+                            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <div>
+                              <span className="font-medium text-muted-foreground">创建时间:</span>
+                              <span className="ml-2">{formatDate(task.createdAt)}</span>
+                            </div>
+                          </div>
+
+                          {task.updatedAt && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              <div>
+                                <span className="font-medium text-muted-foreground">更新时间:</span>
+                                <span className="ml-2">{formatDate(task.updatedAt)}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
-
-                      {task.updatedAt && (
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">更新时间:</span>
-                          <span>{formatDate(task.updatedAt)}</span>
-                        </div>
-                      )}
                     </div>
-                  </div>
 
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => onEdit(taskType, task)} disabled={isDeleting}>
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">编辑任务</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleDeleteClick(task.id)}
-                      disabled={isDeleting}
-                    >
-                      {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                      <span className="sr-only">删除任务</span>
-                    </Button>
+                    {/* 右侧：操作按钮 */}
+                    <div className="flex lg:flex-col gap-2 lg:self-start">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2 lg:w-full"
+                        onClick={() => onEdit(taskType, task)}
+                        disabled={isDeleting}
+                      >
+                        <Pencil className="h-4 w-4" />
+                        <span className="lg:sr-only">编辑</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex items-center gap-2 lg:w-full text-destructive hover:text-destructive"
+                        onClick={() => handleDeleteClick(task.id)}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        <span className="lg:sr-only">删除</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )
@@ -223,11 +302,18 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>确认删除</AlertDialogTitle>
-            <AlertDialogDescription>此操作无法撤销。确定要删除这个任务吗？</AlertDialogDescription>
+            <AlertDialogDescription>
+              此操作无法撤销。确定要删除这个任务吗？
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm}>删除</AlertDialogAction>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              删除
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

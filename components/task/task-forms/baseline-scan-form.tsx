@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import HostSelector from "@/components/hosts/HostSelector"
 import { mockData } from "@/data/mockData"
 import { type BaselineScanTask, createBaselineScanTask, type BaselinePolicyType } from "@/lib/task/baseline-scan-task"
-import type { PeriodUnit } from "@/lib/task/task-base"
+import type { PeriodUnit, ScheduleMode } from "@/lib/task/task-base"
 
 // 导入 lucide-react 图标
 import {
@@ -28,7 +29,10 @@ import {
   X,
   Plus,
   RotateCcw,
-  ListChecks
+  ListChecks,
+  Zap,
+  CalendarClock,
+  Repeat
 } from "lucide-react"
 
 interface BaselineScanFormProps {
@@ -57,13 +61,23 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
   const [enabled, setEnabled] = useState(initialData?.enabled ?? true)
   const [targetHosts, setTargetHosts] = useState(initialData?.targetHosts.join("; ") || "")
   const [policies, setPolicies] = useState<BaselinePolicyType[]>([])
-  const [periodValue, setPeriodValue] = useState(initialData?.schedule.period.value || 1)
-  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(initialData?.schedule.period.unit || "days")
-  const [timezone, setTimezone] = useState(initialData?.schedule.timezone || "")
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(initialData?.scheduled.mode || "IMMEDIATE")
+  const [startTime, setStartTime] = useState(
+    initialData?.scheduled.mode === "SCHEDULED" ? initialData.scheduled.startTime : "",
+  )
+  const [periodValue, setPeriodValue] = useState(
+    initialData?.scheduled.mode === "SCHEDULED" ? initialData.scheduled.period.value : 1,
+  )
+  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(
+    initialData?.scheduled.mode === "SCHEDULED" ? initialData.scheduled.period.unit : "days",
+  )
+  const [timezone, setTimezone] = useState(
+    initialData?.scheduled.mode === "SCHEDULED" ? initialData.scheduled.timezone || "" : "",
+  )
   const [isHostSelectorOpen, setIsHostSelectorOpen] = useState(false)
   const [formErrors, setFormErrors] = useState<string[]>([])
 
-  // 修复：在初始化时验证和过滤策略
+  // 在初始化时验证和过滤策略
   useEffect(() => {
     if (initialData?.policy) {
       const validPolicies = initialData.policy.filter(policy => 
@@ -85,24 +99,24 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
   const policiesRef = useRef(policies)
   policiesRef.current = policies
 
-  // 修复：使用 useCallback 并确保依赖项正确
+  // 使用 useCallback 并确保依赖项正确
   const handleHostsSelectionChange = useCallback((nodes: any[], selectedIds: Set<string>) => {
     const hostNodes = nodes.filter((node) => node.type === "host")
     const hostIds = hostNodes.map((node) => node.hostId || node.id)
     setTargetHosts(hostIds.join("; "))
   }, [])
 
-  // 修复：使用函数式更新避免直接依赖 policies
+  // 使用函数式更新避免直接依赖 policies
   const togglePolicy = useCallback((policy: BaselinePolicyType) => {
     setPolicies((prev) => (prev.includes(policy) ? prev.filter((p) => p !== policy) : [...prev, policy]))
   }, [])
 
-  // 修复：使用 useCallback 包装全选函数
+  // 使用 useCallback 包装全选函数
   const toggleSelectAll = useCallback(() => {
     setPolicies((prev) => (prev.length === POLICY_OPTIONS.length ? [] : POLICY_OPTIONS.map((opt) => opt.value)))
   }, [])
 
-  // 修复：验证表单数据
+  // 验证表单数据
   const validateForm = useCallback(() => {
     const errors: string[] = []
     
@@ -124,13 +138,18 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       errors.push(`发现无效的策略类型: ${invalidPolicies.join(", ")}`)
     }
     
-    if (periodValue < 1) {
-      errors.push("周期数值必须大于0")
+    if (scheduleMode === "SCHEDULED") {
+      if (!startTime) {
+        errors.push("开始时间不能为空")
+      }
+      if (periodValue < 1) {
+        errors.push("周期数值必须大于0")
+      }
     }
     
     setFormErrors(errors)
     return errors.length === 0
-  }, [name, targetHosts, policies, periodValue])
+  }, [name, targetHosts, policies, scheduleMode, startTime, periodValue])
 
   // 修复：使用 useCallback 包装提交函数
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -154,10 +173,15 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
           .map((h) => h.trim())
           .filter(Boolean),
         policy: validPolicies,
-        schedule: {
-          period: { value: periodValue, unit: periodUnit },
-          timezone: timezone || undefined,
-        },
+        scheduled:
+          scheduleMode === "IMMEDIATE"
+            ? { mode: "IMMEDIATE" }
+            : {
+              mode: "SCHEDULED",
+              startTime,
+              period: { value: periodValue, unit: periodUnit },
+              timezone: timezone || undefined,
+            },
         status: initialData?.status || "pending",
         createdAt: initialData?.createdAt,
         updatedAt: initialData?.updatedAt,
@@ -169,12 +193,12 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       console.error('创建任务失败:', error)
       setFormErrors([`创建任务失败: ${error instanceof Error ? error.message : '未知错误'}`])
     }
-  }, [name, enabled, targetHosts, policies, periodValue, periodUnit, timezone, initialData, onSubmit, validateForm])
+  }, [name, enabled, targetHosts, policies, scheduleMode, startTime, periodValue, periodUnit, timezone, initialData, onSubmit, validateForm])
 
   const allSelected = policies.length === POLICY_OPTIONS.length
   const someSelected = policies.length > 0 && policies.length < POLICY_OPTIONS.length
 
-  // 修复：单独定义策略项点击处理函数
+  // 创建独立的策略项组件以避免渲染循环
   const PolicyItem = useCallback(({ option }: { option: typeof POLICY_OPTIONS[0] }) => {
     const isSelected = policies.includes(option.value)
     
@@ -221,7 +245,6 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
         </div>
       )}
 
-      {/* 其余表单内容保持不变 */}
       {/* 基础信息卡片 */}
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
@@ -230,14 +253,17 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
-            <Input
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="输入任务名称"
-              required
-              className="w-full"
-            />
+            <div className="relative">
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="输入任务名称"
+                required
+                className="w-full pl-9"
+              />
+              <Scan className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
 
           <div className="flex items-center space-x-2 md:col-span-2">
@@ -332,11 +358,12 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
             />
             <Label htmlFor="select-all" className="font-medium cursor-pointer flex items-center">
+              <ListChecks className="h-4 w-4 mr-2 text-muted-foreground" />
               全选策略
             </Label>
           </div>
 
-          {/* 策略选项网格 */}
+          {/* 策略选项网格 - 使用独立的 PolicyItem 组件 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {POLICY_OPTIONS.map((option) => (
               <PolicyItem key={option.value} option={option} />
@@ -345,73 +372,128 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
         </div>
       </div>
 
-      {/* 扫描周期卡片 */}
+      {/* 调度设置卡片 */}
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
-          <Calendar className="h-5 w-5 mr-2 text-orange-500" />
-          <h3 className="text-lg font-semibold">扫描周期</h3>
+          <Calendar className="h-5 w-5 mr-2 text-purple-500" />
+          <h3 className="text-lg font-semibold">调度设置</h3>
         </div>
 
         <div className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="periodValue" className="text-sm font-medium flex items-center">
-                <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-                周期数值 <span className="text-red-500 ml-1">*</span>
+          <RadioGroup 
+            value={scheduleMode} 
+            onValueChange={(v) => setScheduleMode(v as ScheduleMode)} 
+            className="flex flex-col sm:flex-row gap-4"
+          >
+            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent/50 transition-colors flex-1">
+              <RadioGroupItem value="IMMEDIATE" id="immediate" className="sr-only" />
+              <Label htmlFor="immediate" className="font-normal cursor-pointer flex items-start w-full">
+                <Zap className="h-5 w-5 mr-3 text-yellow-500 mt-0.5" />
+                <div>
+                  <div className="font-medium">立即执行</div>
+                  <div className="text-xs text-muted-foreground mt-1">提交后立即开始执行扫描任务</div>
+                </div>
               </Label>
-              <div className="relative">
-                <Input
-                  id="periodValue"
-                  type="number"
-                  min="1"
-                  value={periodValue}
-                  onChange={(e) => setPeriodValue(Number.parseInt(e.target.value) || 1)}
-                  required
-                  className="w-full pl-9"
-                />
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent/50 transition-colors flex-1">
+              <RadioGroupItem value="SCHEDULED" id="scheduled" className="sr-only" />
+              <Label htmlFor="scheduled" className="font-normal cursor-pointer flex items-start w-full">
+                <CalendarClock className="h-5 w-5 mr-3 text-blue-500 mt-0.5" />
+                <div>
+                  <div className="font-medium">定时执行</div>
+                  <div className="text-xs text-muted-foreground mt-1">在指定时间开始执行，并可设置重复周期</div>
+                </div>
+              </Label>
+            </div>
+          </RadioGroup>
+
+          {scheduleMode === "SCHEDULED" && (
+            <div className="mt-6 space-y-6 rounded-lg p-4 border">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="startTime" className="text-sm font-medium flex items-center">
+                    <CalendarClock className="h-4 w-4 mr-1 text-muted-foreground" />
+                    开始时间 <span className="text-red-500 ml-1">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="startTime"
+                      type="datetime-local"
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
+                      required
+                      className="w-full pl-9"
+                    />
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timezone" className="text-sm font-medium flex items-center">
+                    <Globe className="h-4 w-4 mr-1 text-muted-foreground" />
+                    时区
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="timezone"
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      placeholder="例如: Asia/Shanghai"
+                      className="w-full pl-9"
+                    />
+                    <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <Label className="text-sm font-medium mb-3 block flex items-center">
+                  <Repeat className="h-4 w-4 mr-1 text-muted-foreground" />
+                  重复设置
+                </Label>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="periodValue" className="text-sm font-medium">
+                      周期数值 <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="periodValue"
+                        type="number"
+                        min="1"
+                        value={periodValue}
+                        onChange={(e) => setPeriodValue(Number.parseInt(e.target.value) || 1)}
+                        required
+                        className="w-full pl-9"
+                      />
+                      <Repeat className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="periodUnit" className="text-sm font-medium">
+                      周期单位 <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Select value={periodUnit} onValueChange={(v) => setPeriodUnit(v as PeriodUnit)}>
+                        <SelectTrigger id="periodUnit" className="w-full pl-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="minutes">分钟</SelectItem>
+                          <SelectItem value="hours">小时</SelectItem>
+                          <SelectItem value="days">天</SelectItem>
+                          <SelectItem value="weeks">周</SelectItem>
+                          <SelectItem value="months">月</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="periodUnit" className="text-sm font-medium flex items-center">
-                <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                周期单位 <span className="text-red-500 ml-1">*</span>
-              </Label>
-              <div className="relative">
-                <Select value={periodUnit} onValueChange={(v) => setPeriodUnit(v as PeriodUnit)}>
-                  <SelectTrigger id="periodUnit" className="w-full pl-9">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="minutes">分钟</SelectItem>
-                    <SelectItem value="hours">小时</SelectItem>
-                    <SelectItem value="days">天</SelectItem>
-                    <SelectItem value="weeks">周</SelectItem>
-                    <SelectItem value="months">月</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="timezone" className="text-sm font-medium flex items-center">
-              <Globe className="h-4 w-4 mr-1 text-muted-foreground" />
-              时区（可选）
-            </Label>
-            <div className="relative">
-              <Input
-                id="timezone"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                placeholder="例如: Asia/Shanghai"
-                className="w-full pl-9"
-              />
-              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -431,7 +513,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
         <Button
           type="submit"
           className="sm:flex-1 max-sm:w-full"
-          disabled={!name.trim() || !targetHosts.trim() || policies.length === 0}
+          disabled={!name.trim() || !targetHosts.trim() || policies.length === 0 || (scheduleMode === "SCHEDULED" && !startTime)}
         >
           {initialData ? (
             <>

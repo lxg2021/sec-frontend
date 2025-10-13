@@ -1,6 +1,6 @@
 // baseline-scan-task.ts
 
-import { type ScanSchedule, type TaskStatus, validatePeriod } from "./task-base"
+import { type ScanSchedule, type TaskStatus, validatePeriod, ScheduledConfig } from "./task-base"
 
 /** 基线策略类型 */
 export type BaselinePolicyType = "SECURITY_CONFIG" | "PATCH_COMPLIANCE" | "ACCOUNT_POLICY" | "ATTCK_POLICY" | "SYSTEM_COMPLIANCE" | "PREEXECUTION_CHECK"
@@ -16,8 +16,8 @@ export interface BaselineScanTask {
   /** 是否启用 */
   enabled: boolean
 
-  /** 调度（周期） */
-  schedule: ScanSchedule
+  /** 调度配置 */
+  scheduled: ScheduledConfig
 
   /** 目标主机 ID 列表 */
   targetHosts: string[]
@@ -35,16 +35,23 @@ export interface BaselineScanTask {
   updatedAt?: string
 }
 
-/* 校验函数 */
-export function validateBaselineScanTask(t: Partial<BaselineScanTask>): { ok: true } | { ok: false; reason: string } {
+/** 校验函数 */
+export function validateBaselineScanTask(
+  t: Partial<BaselineScanTask>
+): { ok: true } | { ok: false; reason: string } {
   if (!t) return { ok: false, reason: "task is empty" }
   if (!t.id || typeof t.id !== "string") return { ok: false, reason: "missing or invalid id" }
   if (!t.name || typeof t.name !== "string") return { ok: false, reason: "missing or invalid name" }
   if (typeof t.enabled !== "boolean") return { ok: false, reason: "missing enabled flag" }
-  if (!t.schedule || typeof t.schedule !== "object") return { ok: false, reason: "missing schedule" }
+  if (!t.scheduled || typeof t.scheduled !== "object") return { ok: false, reason: "missing scheduled" }
 
-  const schedule = t.schedule as ScanSchedule
-  if (!schedule || !validatePeriod(schedule.period)) return { ok: false, reason: "invalid schedule.period" }
+  const scheduled = t.scheduled as ScheduledConfig
+  if (scheduled.mode === "SCHEDULED") {
+    if (!scheduled.startTime || typeof scheduled.startTime !== "string")
+      return { ok: false, reason: "missing or invalid startTime for SCHEDULED mode" }
+    if (!scheduled.period || !validatePeriod(scheduled.period))
+      return { ok: false, reason: "invalid period for SCHEDULED mode" }
+  }
 
   if (!Array.isArray(t.targetHosts) || t.targetHosts.length === 0)
     return { ok: false, reason: "missing or empty targetHosts" }
@@ -58,7 +65,7 @@ export function validateBaselineScanTask(t: Partial<BaselineScanTask>): { ok: tr
   return { ok: true }
 }
 
-/* 工厂函数 */
+/** 工厂函数 */
 export function createBaselineScanTask(partial: Partial<BaselineScanTask>): BaselineScanTask {
   const v = validateBaselineScanTask(partial)
   if (!v.ok) throw new Error(`Invalid task: ${v.reason}`)
@@ -69,7 +76,7 @@ export function createBaselineScanTask(partial: Partial<BaselineScanTask>): Base
     id: partial.id as string,
     name: partial.name as string,
     enabled: partial.enabled ?? true,
-    schedule: partial.schedule as ScanSchedule,
+    scheduled: partial.scheduled as ScheduledConfig,
     targetHosts: partial.targetHosts ?? [],
     policy: partial.policy as BaselinePolicyType[],
     status: "pending",
@@ -78,15 +85,20 @@ export function createBaselineScanTask(partial: Partial<BaselineScanTask>): Base
   }
 }
 
-/* -----------------------------
-   示例
------------------------------ */
+/** -----------------------------
+ * 示例
+ * ----------------------------- */
 
 export const hourlyBaselineScanExample: BaselineScanTask = createBaselineScanTask({
   id: "baseline-hourly-001",
   name: "Hourly Security Config Scan",
   enabled: true,
-  schedule: { period: { value: 1, unit: "hours" }, timezone: "Asia/Singapore" },
+  scheduled: {
+    mode: "SCHEDULED",
+    startTime: new Date().toISOString(),
+    period: { value: 1, unit: "hours" },
+    timezone: "Asia/Singapore",
+  },
   policy: ["SECURITY_CONFIG"],
   targetHosts: ["host-001", "host-002"],
 })
@@ -95,7 +107,12 @@ export const dailyPatchComplianceScanExample: BaselineScanTask = createBaselineS
   id: "baseline-daily-001",
   name: "Daily Patch Compliance Scan",
   enabled: true,
-  schedule: { period: { value: 1, unit: "days" }, timezone: "Asia/Singapore" },
-  policy: ["PATCH_COMPLIANCE", "CUSTOM_POLICY"],
+  scheduled: {
+    mode: "SCHEDULED",
+    startTime: new Date().toISOString(),
+    period: { value: 1, unit: "days" },
+    timezone: "Asia/Singapore",
+  },
+  policy: ["PATCH_COMPLIANCE"],
   targetHosts: ["group-001"],
 })
