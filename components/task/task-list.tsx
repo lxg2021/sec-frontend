@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Pencil, Trash2, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react"
 import { type Task, type TaskType, getTaskType } from "@/lib/task/task-types"
-import { deleteTask } from "@/lib/task/api"
+import { deleteTask, mockDeleteTask } from "@/lib/task/api"
 import { useToast } from "@/hooks/use-toast"
 import type { BaselinePolicyType } from "@/lib/task/baseline-scan-task"
 
@@ -48,7 +48,10 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
     setDeletingTaskId(taskToDelete)
     try {
-      await deleteTask(taskToDelete)
+ //   await deleteTask(taskToDelete)
+ //   mock模拟接口
+      await mockDeleteTask(taskToDelete)
+
       onDelete(taskToDelete)
       toast({
         title: "任务已删除",

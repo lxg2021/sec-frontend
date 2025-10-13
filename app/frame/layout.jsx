@@ -104,7 +104,7 @@ export default function BaselineLayout({ children }) {
         { id: "dacpolicy", icon: Activity, label: "DAC控制", path: "/frame/response/dac" },
       ],
     },
-    { id: "evidence", icon: Terminal, label: "远程运维", path: "/frame/evidence" },
+    { id: "evidence", icon: Terminal, label: "远程取证", path: "/frame/evidence" },
     { id: "reports", icon: FileText, label: "审计中心", path: "/frame/reports" },
     {
       id: "control",

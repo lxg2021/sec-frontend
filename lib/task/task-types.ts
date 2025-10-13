@@ -16,14 +16,14 @@ export interface TaskWithType {
 
 /** 判断任务类型的辅助函数 */
 export function getTaskType(task: Task): TaskType {
+  if ("targetHosts" in task && "policy" in task) {
+    return "baseline"
+  }
   if ("targetHosts" in task && "scheduled" in task) {
     return "vulnerability"
   }
   if ("dataSources" in task) {
     return "attck"
-  }
-  if ("policy" in task) {
-    return "baseline"
   }
   throw new Error("Unknown task type")
 }

@@ -3,7 +3,7 @@
 import { type ScanSchedule, type TaskStatus, validatePeriod } from "./task-base"
 
 /** 基线策略类型 */
-export type BaselinePolicyType = "SECURITY_CONFIG" | "PATCH_COMPLIANCE" | "CUSTOM_POLICY"
+export type BaselinePolicyType = "SECURITY_CONFIG" | "PATCH_COMPLIANCE" | "ACCOUNT_POLICY" | "ATTCK_POLICY" | "SYSTEM_COMPLIANCE" | "PREEXECUTION_CHECK"
 
 /* 基线扫描任务类型 */
 export interface BaselineScanTask {

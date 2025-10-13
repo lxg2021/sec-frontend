@@ -106,14 +106,23 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
         <p className="mt-2 text-sm text-muted-foreground">ATT&CK 扫描任务将定期对 EDR 事件数据进行威胁检测分析</p>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex gap-2">
+        <Button type="submit" className="flex-1">
+          {initialData ? "更新任务" : "创建任务"}
+        </Button>
+
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1"
+          >
             取消
           </Button>
         )}
-        <Button type="submit">{initialData ? "更新任务" : "创建任务"}</Button>
       </div>
+      
     </form>
   )
 }

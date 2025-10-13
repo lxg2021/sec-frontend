@@ -2,13 +2,16 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import HostSelector from "@/components/hosts/HostSelector"
+import { mockData } from "@/data/mockData"
 import { type BaselineScanTask, createBaselineScanTask, type BaselinePolicyType } from "@/lib/task/baseline-scan-task"
 import type { PeriodUnit } from "@/lib/task/task-base"
 
@@ -21,17 +24,29 @@ interface BaselineScanFormProps {
 const POLICY_OPTIONS: { value: BaselinePolicyType; label: string }[] = [
   { value: "SECURITY_CONFIG", label: "安全配置" },
   { value: "PATCH_COMPLIANCE", label: "补丁合规" },
-  { value: "CUSTOM_POLICY", label: "自定义策略" },
+  { value: "ACCOUNT_POLICY", label: "账号合规" },
+  { value: "ATTCK_POLICY", label: "ATTCK预检" },
+  { value: "SYSTEM_COMPLIANCE", label: "系统合规" },
+  { value: "PREEXECUTION_CHECK", label: "运行预检" },
 ]
 
 export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineScanFormProps) {
   const [name, setName] = useState(initialData?.name || "")
   const [enabled, setEnabled] = useState(initialData?.enabled ?? true)
-  const [targetHosts, setTargetHosts] = useState(initialData?.targetHosts.join(", ") || "")
+  const [targetHosts, setTargetHosts] = useState(initialData?.targetHosts.join("; ") || "")
   const [policies, setPolicies] = useState<BaselinePolicyType[]>(initialData?.policy || [])
   const [periodValue, setPeriodValue] = useState(initialData?.schedule.period.value || 1)
   const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(initialData?.schedule.period.unit || "days")
   const [timezone, setTimezone] = useState(initialData?.schedule.timezone || "")
+  const [isHostSelectorOpen, setIsHostSelectorOpen] = useState(false)
+
+  const handleHostsSelectionChange = useCallback((nodes: any[], selectedIds: Set<string>) => {
+    const hostNodes = nodes.filter((node) => node.type === "host")
+    const hostIds = hostNodes.map((node) => node.hostId || node.id)
+    setTargetHosts(hostIds.join("; "))
+    console.log("[v0] 选中的节点:", hostNodes)
+    console.log("[v0] 选中的ID集合:", Array.from(selectedIds))
+  }, [])
 
   const togglePolicy = (policy: BaselinePolicyType) => {
     setPolicies((prev) => (prev.includes(policy) ? prev.filter((p) => p !== policy) : [...prev, policy]))
@@ -53,7 +68,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       name,
       enabled,
       targetHosts: targetHosts
-        .split(",")
+        .split(";")
         .map((h) => h.trim())
         .filter(Boolean),
       policy: policies,
@@ -86,19 +101,46 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
 
       <div className="space-y-2">
         <Label htmlFor="targetHosts">目标主机</Label>
-        <Input
-          id="targetHosts"
-          value={targetHosts}
-          onChange={(e) => setTargetHosts(e.target.value)}
-          placeholder="输入主机 ID，用逗号分隔"
-          required
-        />
-        <p className="text-sm text-muted-foreground">例如: host-001, host-002</p>
+        <div className="flex gap-2">
+          <Input
+            id="targetHosts"
+            value={targetHosts}
+            onChange={(e) => setTargetHosts(e.target.value)}
+            placeholder="输入主机 ID，用分号分隔"
+            required
+            className="flex-1"
+          />
+          <Dialog open={isHostSelectorOpen} onOpenChange={setIsHostSelectorOpen}>
+            <DialogTrigger asChild>
+              <Button type="button" variant="outline">
+                选择主机
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+              <DialogHeader>
+                <DialogTitle>选择目标主机</DialogTitle>
+              </DialogHeader>
+              <div className="overflow-y-auto">
+                <HostSelector data={mockData} onSelectionChange={handleHostsSelectionChange} />
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={() => setIsHostSelectorOpen(false)}>
+                  取消
+                </Button>
+                <Button type="button" onClick={() => setIsHostSelectorOpen(false)}>
+                  确认
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <p className="text-sm text-muted-foreground">例如: WEB-001; WEB-002</p>
       </div>
 
       <div className="space-y-3">
         <Label>基线策略（可多选）</Label>
         <div className="rounded-lg border p-4 space-y-3">
+          {/* 全选 */}
           <div className="flex items-center space-x-2 pb-2 border-b">
             <Checkbox
               id="select-all"
@@ -111,21 +153,29 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
             </Label>
           </div>
 
-          {POLICY_OPTIONS.map((option) => (
-            <div key={option.value} className="flex items-center space-x-2">
-              <Checkbox
-                id={option.value}
-                checked={policies.includes(option.value)}
-                onCheckedChange={() => togglePolicy(option.value)}
-              />
-              <Label htmlFor={option.value} className="cursor-pointer">
-                {option.label}
-              </Label>
-            </div>
-          ))}
+          {/* 策略选项网格，每行3个 */}
+          <div className="grid grid-cols-3 gap-2">
+            {POLICY_OPTIONS.map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <Checkbox
+                  id={option.value}
+                  checked={policies.includes(option.value)}
+                  onCheckedChange={() => togglePolicy(option.value)}
+                />
+                <Label htmlFor={option.value} className="cursor-pointer">
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </div>
         </div>
-        {policies.length === 0 && <p className="text-sm text-destructive">请至少选择一个基线策略</p>}
+
+        {/* 提示信息 */}
+        {policies.length === 0 && (
+          <p className="text-sm text-destructive">请至少选择一个基线策略</p>
+        )}
       </div>
+
 
       <div className="space-y-4 rounded-lg border p-4">
         <h3 className="font-medium">扫描周期</h3>
@@ -171,16 +221,23 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex gap-2">
+        <Button type="submit" className="flex-1">
+          {initialData ? "更新任务" : "创建任务"}
+        </Button>
+
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1"
+          >
             取消
           </Button>
         )}
-        <Button type="submit" disabled={policies.length === 0}>
-          {initialData ? "更新任务" : "创建任务"}
-        </Button>
       </div>
+
     </form>
   )
 }
