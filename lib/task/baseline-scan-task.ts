@@ -52,9 +52,6 @@ export function validateBaselineScanTask(t: Partial<BaselineScanTask>): { ok: tr
   if (!Array.isArray(t.policy) || t.policy.length === 0)
     return { ok: false, reason: "policy must be a non-empty array" }
 
-  const validPolicies = ["SECURITY_CONFIG", "PATCH_COMPLIANCE", "CUSTOM_POLICY"]
-  if (!t.policy.every((p) => validPolicies.includes(p))) return { ok: false, reason: "invalid policy type in array" }
-
   if (t.status && !["pending", "running", "completed", "failed"].includes(t.status))
     return { ok: false, reason: "invalid status" }
 
