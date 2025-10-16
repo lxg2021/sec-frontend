@@ -31,6 +31,16 @@ import {
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
+import {
+  getUserProfile,
+  updateUserProfile,
+  updatePassword,
+  enableTwoFactor,
+  disableTwoFactor,
+  deleteAccount,
+  logout,
+} from "@/lib/user/user"
+import { SidebarUser } from "@/components/user/sidebar-user"
 
 const SIDEBAR_WIDTH = {
   COLLAPSED: "w-16",
@@ -222,7 +232,7 @@ export default function BaselineLayout({ children }) {
           } bg-gradient-to-b from-slate-900/95 to-neutral-900/95 backdrop-blur-xl border-r border-slate-700/50 transition-all duration-300 fixed md:relative z-50 md:z-auto h-full md:h-auto ${!sidebarCollapsed ? "md:block" : ""
           } shadow-2xl`}
       >
-        <div className="p-4">
+        <div className="p-4 flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-700/30">
             <div className={`${sidebarCollapsed ? "hidden" : "flex items-center gap-3"}`}>
@@ -262,7 +272,7 @@ export default function BaselineLayout({ children }) {
           </div>
 
           {/* 菜单导航 */}
-          <nav className="space-y-2" role="navigation" aria-label="主导航">
+          <nav className="space-y-2 flex-1" role="navigation" aria-label="主导航">
             {menuItems.map((item, index) => {
               const IconComponent = item.icon
               const isActive = activeSectionId === item.id
@@ -335,6 +345,21 @@ export default function BaselineLayout({ children }) {
               )
             })}
           </nav>
+
+          {/* 用户侧边栏 - 添加在菜单下方 */}
+          <div className="mt-auto mb-8">
+            <SidebarUser
+              collapsed={sidebarCollapsed}
+              getUserProfile={getUserProfile}
+              updateUserProfile={updateUserProfile}
+              updatePassword={updatePassword}
+              enableTwoFactor={enableTwoFactor}
+              disableTwoFactor={disableTwoFactor}
+              deleteAccount={deleteAccount}
+              logout={logout}
+            />
+          </div>
+
         </div>
       </div>
 
@@ -390,6 +415,7 @@ export default function BaselineLayout({ children }) {
         <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-gray-50 to-neutral-100 dark:from-slate-900 dark:via-gray-900 dark:to-neutral-900">
           {children}
         </main>
+
       </div>
     </div>
   )
