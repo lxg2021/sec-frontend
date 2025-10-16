@@ -261,8 +261,6 @@ export function SidebarUser({
         </ContextMenuTrigger>
         <ContextMenuContent
           className="w-56"
-          side="bottom"        // 垂直方向在点击点下方
-          align="start"        // 水平靠左对齐
           collisionPadding={8} // 避免边缘贴边
         >
           <ContextMenuItem onClick={() => setDialogOpen("profile")}>
