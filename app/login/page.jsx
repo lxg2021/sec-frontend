@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react"                              // 图标组件
 import { useLoginHandlers } from "@/lib/loginHandlers"
 import LoginAnimation from "@/components/loginanimation"
+import Link from 'next/link'
 
 // 使用图片的Cypher LOGO组件
 const CypherLogo = ({ className = "w-8 h-8" }) => {
@@ -151,6 +152,19 @@ export default function LoginForm() {
                       </p>
                     </div>
               */}
+
+              {/* 信息采集页面 - 优化后的版本 */}
+              <div className="mt-8 pt-4 border-t border-white/10">
+                <p className="text-center text-slate-400 text-sm">
+                  需要采集主机信息？{" "}
+                  <Link
+                    href="/collection"
+                    className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+                  >
+                    前往信息采集页面
+                  </Link>
+                </p>
+              </div>
 
             </CardContent>
           </Card>
