@@ -1,0 +1,44 @@
+- name: 总公司
+  type: company
+  children:
+    - name: IT部
+      type: department
+      children:
+        - name: 服务器组
+          type: group
+        - name: 网络组
+          type: group
+        - name: 安全组
+          type: group
+    - name: 财务部
+      type: department
+      children:
+        - name: 会计组
+          type: group
+        - name: 审计组
+          type: group
+    - name: 人力资源部
+      type: department
+      children:
+        - name: 招聘组
+          type: group
+        - name: 培训组
+          type: group
+
+- name: 分公司A
+  type: company
+  children:
+    - name: 技术部
+      type: department
+      children:
+        - name: 开发组
+          type: group
+        - name: 测试组
+          type: group
+    - name: 运营部
+      type: department
+      children:
+        - name: 市场组
+          type: group
+        - name: 客服组
+          type: group
