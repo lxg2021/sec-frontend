@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { flattenUserLogicGroups } from "@/lib/computer/user-logic-groups"
-import type { UserInfoTableProps } from "@/lib/computer/asset"
+import { flattenUserLogicGroups, UserInfoTableProps } from "@/lib/computer/user-info-table-props"
 
 export function UserInfoTable({
   assets,

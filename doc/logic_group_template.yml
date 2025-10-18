@@ -17,7 +17,7 @@
           type: group
           children:
             - name: 数据库子组
-              type: subgroup   # 用户可自定义类型
+              type: subgroup
             - name: 应用子组
               type: subgroup
         - name: 网络组

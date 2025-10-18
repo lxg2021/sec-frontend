@@ -1,8 +1,8 @@
-import type { AssetData } from "@/lib/computer/asset"
+import { UiAssetData } from "./ui-asset-data"
 
 export interface FileUploaderProps {
   /** 上传成功后的回调（必填） */
-  onFileUploaded: (data: AssetData[], fileName: string) => void
+  onFileUploaded: (data: UiAssetData[], fileName: string) => void
 
   /** 上传前验证回调（可选），返回false则阻止上传 */
   onBeforeUpload?: (file: File) => Promise<boolean> | boolean

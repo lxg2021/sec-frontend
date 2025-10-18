@@ -1,3 +1,14 @@
+import { UiAssetData, UserInfo } from "./ui-asset-data"
+
+/**
+ * 整个资产文件的数据结构
+ */
+export interface AssetFileData {
+  /** 源资产数据数组 */
+  source_data: UiAssetData[]
+}
+
+
 /**
  * 用户逻辑组（公司/部门/组）的数据结构
  */
@@ -15,6 +26,34 @@ export interface UserLogicGroup {
   /** 子级列表 */
   children?: UserLogicGroup[]
 }
+
+
+/**
+ * UserInfoTable组件的Props接口
+ */
+export interface UserInfoTableProps {
+  /** 资产数据列表 */
+  assets: UiAssetData[]
+
+  /** 用户信息映射（以host_id为key） */
+  userInfos: Record<string, UserInfo>
+
+  /** 错误信息映射 */
+  errors: Record<string, Record<string, string>>
+
+  /** 用户逻辑组数据（公司/部门/组） */
+  userLogicGroups: UserLogicGroup[]
+
+  /** 用户信息变更回调 */
+  onUserInfoChange: (hostId: string, field: keyof UserInfo, value: string) => void
+
+  /** 字段失焦回调（用于验证） */
+  onFieldBlur: (hostId: string, field: keyof UserInfo, value: string) => void
+
+  /** 保存回调 */
+  onSave: () => void
+}
+
 
 /**
  * 模拟的用户逻辑组数据

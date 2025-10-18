@@ -7,14 +7,14 @@ import { FileUploader } from "@/components/computer/file-uploader"
 import { UserInfoTable } from "@/components/computer/user-info-table"
 import { AssetCollectorFooter } from "@/components/computer/footer"
 import { platforms } from "@/lib/computer/platforms"
-import { mockUserLogicGroups } from "@/lib/computer/user-logic-groups"
-import { defaultTemplateData } from "@/lib/computer/uploader"
+import { mockUserLogicGroups } from "@/lib/computer/user-info-table-props"
+import { defaultTemplateData } from "@/lib/computer/file-uploader-props"
 import { validateEmail, validatePhone } from "@/lib/computer/utils/validation"
-import type { AssetData, UserInfo } from "@/lib/computer/asset"
+import type { UiAssetData, UserInfo } from "@/lib/computer/ui-asset-data"
 import { Computer } from "lucide-react"
 
 export default function AssetCollectorPage() {
-  const [uploadedAssets, setUploadedAssets] = useState<AssetData[]>([])
+  const [uploadedAssets, setUploadedAssets] = useState<UiAssetData[]>([])
   const [userInfos, setUserInfos] = useState<Record<string, UserInfo>>({})
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>({})
 
@@ -49,7 +49,7 @@ export default function AssetCollectorPage() {
     return true
   }
 
-  const handleFileUploaded = (data: AssetData[], fileName: string) => {
+  const handleFileUploaded = (data: UiAssetData[], fileName: string) => {
     console.log("[v0] 文件上传成功:", fileName, "资产数量:", data.length)
     setUploadedAssets(data)
   }

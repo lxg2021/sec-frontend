@@ -1,4 +1,4 @@
-import type { AssetData } from "@/lib/computer/asset"
+import type { UiAssetData } from "@/lib/computer/ui-asset-data"
 
 /**
  * 解析资产文件内容
@@ -6,7 +6,7 @@ import type { AssetData } from "@/lib/computer/asset"
  * @returns 解析后的资产数据数组
  * @throws 如果文件格式不正确或数据验证失败
  */
-export function parseAssetFile(content: string): AssetData[] {
+export function parseAssetFile(content: string): UiAssetData[] {
   try {
     const data = JSON.parse(content)
 
@@ -26,7 +26,7 @@ export function parseAssetFile(content: string): AssetData[] {
       throw new Error("文件中没有资产数据")
     }
 
-    const assets: AssetData[] = assetsArray.map((asset: any, index: number) => {
+    const assets: UiAssetData[] = assetsArray.map((asset: any, index: number) => {
       const rowNumber = index + 1
 
       // 验证必填字段
