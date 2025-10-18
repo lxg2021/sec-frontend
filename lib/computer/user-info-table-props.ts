@@ -1,4 +1,4 @@
-import { UiAssetData, UserInfo } from "./ui-asset-data"
+import { UiAssetData, UserInfo, UserLogicGroup } from "./ui-asset-data"
 
 /**
  * 整个资产文件的数据结构
@@ -6,25 +6,6 @@ import { UiAssetData, UserInfo } from "./ui-asset-data"
 export interface AssetFileData {
   /** 源资产数据数组 */
   source_data: UiAssetData[]
-}
-
-
-/**
- * 用户逻辑组（公司/部门/组）的数据结构
- */
-export interface UserLogicGroup {
-  /** 唯一标识 */
-  id: string
-  /** 显示名称 */
-  name: string
-  /** 完整路径（例如：总公司/IT部/服务器组） */
-  path: string
-  /** 层级类型 */
-  type: "company" | "department" | "group"
-  /** 父级ID */
-  parentId?: string
-  /** 子级列表 */
-  children?: UserLogicGroup[]
 }
 
 

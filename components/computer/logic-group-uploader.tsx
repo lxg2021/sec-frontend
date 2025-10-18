@@ -2,29 +2,25 @@
 
 import type React from "react"
 import { useState, useCallback } from "react"
-import { Upload, FileJson, Download, CheckCircle2, AlertCircle, X } from "lucide-react"
+import { FileText, Download, CheckCircle2, AlertCircle, X, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { parseAssetFile } from "@/lib/computer/utils/file-parser"
-import type { FileUploaderProps } from "@/lib/computer/file-uploader-props"
+import { parseLogicGroupFile, generateLogicGroupTemplate } from "@/lib/computer/utils/logic-group-parser"
+import type { LogicGroupUploaderProps } from "@/lib/computer/logic-group-uploader-props"
 
-export function FileUploader({
-  onFileUploaded,
+export function LogicGroupUploader({
+  onGroupsUploaded,
   onBeforeUpload,
-  templateData,
-  templateFileName = "asset-template.json",
-  accept = [".json"],
-  acceptDisplay = "JSON 格式文件",
   disabled = false,
   texts = {},
-}: FileUploaderProps) {
+}: LogicGroupUploaderProps) {
   const defaultTexts = {
-    title: "上传资产文件",
-    description: "上传扫描器生成的资产文件，或下载模板手动填写",
+    title: "上传逻辑组织结构",
+    description: "上传YAML格式的组织结构文件，或下载模板手动填写",
     dragDropText: "拖拽文件到此处或点击选择文件",
-    dragDropHint: `支持 ${acceptDisplay}`,
+    dragDropHint: "支持 YAML 格式文件 (.yml, .yaml)",
     uploadingText: "上传中...",
     successText: "上传成功！",
     errorText: "上传失败",
@@ -71,6 +67,12 @@ export function FileUploader({
     setFileName(file.name)
     setErrorMessage("")
 
+    if (!file.name.endsWith(".yml") && !file.name.endsWith(".yaml")) {
+      setUploadStatus("error")
+      setErrorMessage("文件格式错误：仅支持 .yml 或 .yaml 文件")
+      return
+    }
+
     if (onBeforeUpload) {
       try {
         const isValid = await onBeforeUpload(file)
@@ -102,13 +104,13 @@ export function FileUploader({
 
     try {
       const text = await file.text()
-      const parsedData = parseAssetFile(text)
+      const parsedGroups = parseLogicGroupFile(text)
 
       clearInterval(progressInterval)
       setUploadProgress(100)
       setUploadStatus("success")
 
-      onFileUploaded(parsedData, file.name)
+      onGroupsUploaded(parsedGroups, file.name)
     } catch (error) {
       clearInterval(progressInterval)
       setUploadStatus("error")
@@ -117,12 +119,12 @@ export function FileUploader({
   }
 
   const handleDownloadTemplate = () => {
-    const data = templateData || { assets: [] }
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
+    const template = generateLogicGroupTemplate()
+    const blob = new Blob([template], { type: "text/yaml" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = templateFileName
+    a.download = "logic-group-template.yml"
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -135,32 +137,21 @@ export function FileUploader({
   }
 
   return (
-    <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg">
-            <Upload className="h-8 w-8 text-primary" />
-          </div>
-
-          <div>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              {defaultTexts.title}
-            </CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-              {defaultTexts.description}
-            </p>
-          </div>
-        </div>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Building2 className="h-5 w-5 text-primary" />
+          {defaultTexts.title}
+        </CardTitle>
+        <CardDescription>{defaultTexts.description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {templateData && (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2 bg-transparent">
-              <Download className="h-4 w-4" />
-              {defaultTexts.downloadTemplateText}
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2 bg-transparent">
+            <Download className="h-4 w-4" />
+            {defaultTexts.downloadTemplateText}
+          </Button>
+        </div>
 
         <div
           onDragOver={handleDragOver}
@@ -175,7 +166,7 @@ export function FileUploader({
         >
           <input
             type="file"
-            accept={accept.join(",")}
+            accept=".yml,.yaml"
             onChange={handleFileInput}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={uploadStatus === "uploading" || disabled}
@@ -184,7 +175,7 @@ export function FileUploader({
           <div className="flex flex-col items-center justify-center gap-4 text-center">
             {uploadStatus === "idle" && (
               <>
-                <FileJson className="h-12 w-12 text-muted-foreground" />
+                <FileText className="h-12 w-12 text-muted-foreground" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium">{defaultTexts.dragDropText}</p>
                   <p className="text-xs text-muted-foreground">{defaultTexts.dragDropHint}</p>
