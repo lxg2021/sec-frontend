@@ -27,6 +27,8 @@ import {
   MapPin,
   Terminal,
   Timer,
+  ComputerIcon,
+  Monitor,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
@@ -67,7 +69,7 @@ export default function BaselineLayout({ children }) {
       icon: Computer,
       label: "主机管理",
       submenu: [
-        { id: "agentinfo", icon: Trash2, label: "主机信息", path: "/frame/computers/agentinfo" },
+        { id: "agentinfo", icon: Monitor, label: "主机信息", path: "/frame/computers/agentinfo" },
         { id: "approve", icon: Package, label: "主机审批", path: "/frame/computers/approve" },
       ],
     },
