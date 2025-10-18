@@ -62,7 +62,15 @@ export default function BaselineLayout({ children }) {
   // 菜单配置
   const menuItems = [
     { id: "dashboard", icon: LayoutDashboard, label: "DASHBOARD", path: "/frame/dashboard" },
-    { id: "computers", icon: Computer, label: "主机管理", path: "/frame/computers" },
+    {
+      id: "computers",
+      icon: Computer,
+      label: "主机管理",
+      submenu: [
+        { id: "agentinfo", icon: Trash2, label: "主机信息", path: "/frame/computers/agentinfo" },
+        { id: "approve", icon: Package, label: "主机审批", path: "/frame/computers/approve" },
+      ],
+    },
     {
       id: "assets",
       icon: Boxes,
