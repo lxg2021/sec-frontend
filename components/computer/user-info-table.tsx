@@ -23,13 +23,22 @@ export function UserInfoTable({
 
   if (assets.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            用户信息填写
-          </CardTitle>
-          <CardDescription>上传文件后，在此填写资产相关的用户信息</CardDescription>
+      <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg">
+              <Users className="h-8 w-8 text-primary" />
+            </div>
+
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                用户信息填写
+              </CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                上传文件后，在此填写资产相关的用户信息
+              </p>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
