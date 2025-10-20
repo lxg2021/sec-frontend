@@ -29,6 +29,9 @@ import {
   Search,
   X,
   Check,
+  GitBranch,
+  FolderTree,
+  SquarePen,
 } from "lucide-react"
 import type { UserLogicGroup } from "@/lib/computer/ui-asset-data"
 import type { TableLogicGroup } from "@/lib/computer/table"
@@ -372,7 +375,7 @@ export function TreeLogicGroup({
 
     // 转换为TableLogicGroup
     const tableGroups = convertToTableLogicGroups(groups, tenantId, createdBy)
-    console.log("[v0] 转换后的TableLogicGroup数据:", tableGroups)
+    console.log("转换后的TableLogicGroup数据:", tableGroups)
 
     // 调用回调
     onSave?.(tableGroups)
@@ -448,9 +451,13 @@ export function TreeLogicGroup({
           ) : (
             <>
               <span className="font-medium flex-1">{node.name}</span>
-              <Badge variant="outline" className="text-xs">
+              <Badge
+                variant="outline"
+                className="text-xs font-medium text-primary border-primary/30 px-2 py-0.5 rounded-md bg-transparent"
+              >
                 {getTypeLabel()}
               </Badge>
+
 
               {/* 操作按钮 */}
               {!readOnly && !disabled && (
@@ -471,10 +478,17 @@ export function TreeLogicGroup({
                     variant="ghost"
                     className="h-8 w-8 p-0"
                     onClick={() => startEdit(node.id, node.name)}
+                    title={"编辑名称"}
                   >
-                    <Edit2 className="h-4 w-4" />
+                    <SquarePen className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => confirmDelete(node.id)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    onClick={() => confirmDelete(node.id)}
+                    title={"删除节点"}
+                  >
                     <Trash2 className="h-4 w-4 text-red-600" />
                   </Button>
                 </div>
@@ -496,30 +510,48 @@ export function TreeLogicGroup({
   return (
     <>
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          {/* 左侧标题区 */}
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+              <FolderTree className="h-5 w-5 text-white" />
+            </div>
             <div>
-              <CardTitle>组织结构树</CardTitle>
-              <CardDescription>
-                {readOnly ? "查看组织结构" : "编辑组织结构（支持新增、编辑、删除节点）"}
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                组织结构
+              </CardTitle>
+              <CardDescription className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                {readOnly ? "查看组织结构" : "编辑组织结构(支持添加、编辑、删除节点)"}
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              {!readOnly && !disabled && (
-                <Button onClick={addRootNode} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  添加公司
-                </Button>
-              )}
-              {!readOnly && (
-                <Button onClick={handleSave} size="sm" variant="default">
-                  <Save className="h-4 w-4 mr-2" />
-                  保存
-                </Button>
-              )}
-            </div>
+          </div>
+
+          {/* 右侧操作按钮区 */}
+          <div className="flex items-center gap-2">
+            {!readOnly && !disabled && (
+              <Button
+                onClick={addRootNode}
+                size="sm"
+                className="flex items-center justify-center gap-1 w-28"
+              >
+                <Plus className="h-4 w-4" />
+                添加公司
+              </Button>
+            )}
+            {!readOnly && (
+              <Button
+                onClick={handleSave}
+                size="sm"
+                variant="default"
+                className="flex items-center justify-center gap-1 w-28"
+              >
+                <Save className="h-4 w-4" />
+                保存
+              </Button>
+            )}
           </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {/* 搜索框 */}
           <div className="relative">

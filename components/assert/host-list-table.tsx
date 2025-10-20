@@ -31,7 +31,7 @@ function getSystemIcon(osType: SystemType) {
 export function HostListTable({ hosts, selectedHostId, onSelectHost }: {
   hosts: AgentInfo[]
   selectedHostId: string | null
-  onSelectHost: (hostId: string) => void
+  onSelectHost: (hostId: string | null) => void
 }) {
   return (
     <div className="flex-1 overflow-auto rounded-lg border">

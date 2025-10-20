@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS host (
     board_serial VARCHAR(100) NOT NULL COMMENT '主板序列号',
     macs JSON NOT NULL COMMENT 'MAC 地址列表',
     group_id CHAR(36) DEFAULT NULL COMMENT '当前所属逻辑组 ID',
+	owner_id CHAR(36) DEFAULT NULL COMMENT '当前所属于用户 ID',
     heartbeat_time DATETIME NOT NULL COMMENT '最近心跳时间',
     status ENUM('online','offline','inactive') NOT NULL COMMENT '主机状态',
     PRIMARY KEY (host_id),

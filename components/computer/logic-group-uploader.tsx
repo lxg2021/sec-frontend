@@ -138,12 +138,21 @@ export function LogicGroupUploader({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-primary" />
-          {defaultTexts.title}
-        </CardTitle>
-        <CardDescription>{defaultTexts.description}</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
+            <Building2 className="h-5 w-5 text-white" />
+          </div>
+
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+              {defaultTexts.title}
+            </CardTitle>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+              {defaultTexts.description}
+            </p>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-2">

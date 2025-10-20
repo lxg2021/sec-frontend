@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useCallback } from "react"
-import { Upload, FileJson, Download, CheckCircle2, AlertCircle, X } from "lucide-react"
+import { Upload, FileJson, FileText, Download, CheckCircle2, AlertCircle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -184,7 +184,7 @@ export function FileUploader({
           <div className="flex flex-col items-center justify-center gap-4 text-center">
             {uploadStatus === "idle" && (
               <>
-                <FileJson className="h-12 w-12 text-muted-foreground" />
+                <FileText className="h-12 w-12 text-muted-foreground" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium">{defaultTexts.dragDropText}</p>
                   <p className="text-xs text-muted-foreground">{defaultTexts.dragDropHint}</p>
