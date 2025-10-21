@@ -37,16 +37,18 @@ export function HostTable({
   const getStatusBadge = (status: Host["status"]) => {
     const statusConfig = {
       online: { label: "在线", variant: "default" as const, color: "bg-green-500" },
-      offline: { label: "离线", variant: "destructive" as const, color: "bg-red-500" },
-      inactive: { label: "不活跃", variant: "secondary" as const, color: "bg-yellow-500" },
+      offline: { label: "离线", variant: "destructive" as const, color: "bg-gray-500" },
     }
 
     const config = statusConfig[status]
     return (
-      <Badge variant={config.variant} className="gap-1.5">
-        <span className={`h-1.5 w-1.5 rounded-full ${config.color}`} />
+      <div className="flex items-center gap-2">
+        {/* 圆点 */}
+        <span className={`h-3.5 w-3.5 rounded-full ${config.color}`} />
+
+        {/* Badge */}
         {config.label}
-      </Badge>
+      </div>
     )
   }
 
@@ -54,13 +56,14 @@ export function HostTable({
     const date = new Date(heartbeat)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
-    const minutes = Math.floor(diff / 60000)
+    const seconds = Math.floor(diff / 1000)
+    const minutes = Math.floor(seconds / 60)
     const hours = Math.floor(minutes / 60)
     const days = Math.floor(hours / 24)
 
-    if (days > 0) return `${days}天前`
-    if (hours > 0) return `${hours}小时前`
-    if (minutes > 0) return `${minutes}分钟前`
+    if (days > 0) return `${days} 天前`
+    if (hours > 0) return `${hours} 小时前`
+    if (minutes > 0) return `${minutes} 分钟前`
     return "刚刚"
   }
 
@@ -144,8 +147,7 @@ export function HostTable({
                   <TableCell>
                     {host.group ? (
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{host.group.name}</span>
-                        <span className="text-xs text-muted-foreground">{host.group.company_name}</span>
+                        <span className="text-sm font-medium">{host.group.full_path}</span>
                       </div>
                     ) : (
                       <Badge variant="outline" className="text-muted-foreground">
@@ -167,7 +169,7 @@ export function HostTable({
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-sm text-muted-foreground font-mono w-20 text-left">
                     {formatHeartbeat(host.heartbeat_time)}
                   </TableCell>
                   <TableCell className="text-right">

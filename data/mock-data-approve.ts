@@ -76,7 +76,7 @@ export const mockHosts: Host[] = [
     board_serial: "BOARD-004",
     macs: ["00:1B:44:11:3A:BA"],
     heartbeat_time: "2025-10-15T10:00:00Z",
-    status: "inactive",
+    status: "offline",
     group: {
       id: "2",
       name: "研发部",

@@ -2,7 +2,7 @@
  * 主机状态类型
  * @typedef {"online" | "offline" | "inactive"} HostStatus
  */
-export type HostStatus = "online" | "offline" | "inactive"
+export type HostStatus = "online" | "offline"
 
 /**
  * 逻辑组接口

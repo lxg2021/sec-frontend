@@ -20,8 +20,7 @@ interface HostFilterProps {
 export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, filteredHosts }: HostFilterProps) {
   const statusOptions: { value: HostStatus; label: string; color: string }[] = [
     { value: "online", label: "在线", color: "bg-green-500" },
-    { value: "offline", label: "离线", color: "bg-red-500" },
-    { value: "inactive", label: "不活跃", color: "bg-yellow-500" },
+    { value: "offline", label: "离线", color: "bg-gray-500" },
   ]
 
   const handleStatusToggle = (status: HostStatus) => {
@@ -139,7 +138,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
               onClick={() => handleStatusToggle(status.value)}
               className="flex-1 h-10"
             >
-              <span className={`mr-2 h-2 w-2 rounded-full ${status.color}`} />
+              <span className={`mr-2 h-4 w-4 rounded-full ${status.color}`} />
               <span className="text-xs">{status.label}</span>
             </Button>
           ))}

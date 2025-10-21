@@ -30,7 +30,7 @@ export default function LogicGroupsPage() {
     // 验证文件大小（最大5MB）
     const maxSize = 5 * 1024 * 1024
     if (file.size > maxSize) {
-      throw new Error("文件大小超过限制（最大5MB）")
+      throw new Error("文件大小超过限制(最大5MB)")
     }
     return true
   }
