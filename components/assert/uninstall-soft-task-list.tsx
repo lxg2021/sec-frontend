@@ -120,7 +120,7 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
   }
 
   const handleExecuteTask = (task: CreateUninstallTaskRequest) => {
-    console.log("[v0] Submitting uninstall task to backend:", task)
+    console.log("Submitting uninstall task to backend:", task)
 
     setTimeout(() => {
       const isSuccess = Math.random() > 0.2

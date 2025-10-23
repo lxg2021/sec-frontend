@@ -18,7 +18,7 @@ export default function Home() {
   const [policies, setPolicies] = useState<PolicyWithMetadata[]>([])
 
   const handlePolicyGenerate = (policy: FilePolicy | RegistryPolicy | ProcessPolicy | NetworkPolicy) => {
-    console.log("[v0] Policy received in parent component:", policy)
+    console.log("Policy received in parent component:", policy)
 
     const newPolicy: PolicyWithMetadata = {
       id: crypto.randomUUID(),
@@ -31,17 +31,17 @@ export default function Home() {
   }
 
   const handleEdit = (id: string, policy: FilePolicy | RegistryPolicy | ProcessPolicy | NetworkPolicy) => {
-    console.log("[v0] Edit policy:", id, policy)
+    console.log("Edit policy:", id, policy)
     // TODO: Implement edit functionality - could open form with pre-filled data
   }
 
   const handleDelete = (id: string) => {
-    console.log("[v0] Delete policy:", id)
+    console.log("Delete policy:", id)
     setPolicies((prev) => prev.filter((p) => p.id !== id))
   }
 
   const handleDeploy = (id: string) => {
-    console.log("[v0] Deploy policy:", id)
+    console.log("Deploy policy:", id)
 
     // Update status to deploying
     setPolicies((prev) => prev.map((p) => (p.id === id ? { ...p, status: "deploying" as const } : p)))

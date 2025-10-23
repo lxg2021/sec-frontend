@@ -4,7 +4,7 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'sensor frontend',
   description: 'endpoint security',
-  generator: 'v0.dev',
+  generator: 'lxg',
 }
 
 export default function RootLayout({children,}: Readonly<{children: React.ReactNode}>) {

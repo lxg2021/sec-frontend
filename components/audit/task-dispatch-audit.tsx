@@ -47,7 +47,7 @@ export function TaskDispatchAudit({
 
       // Validate date
       if (isNaN(reportDate.getTime())) {
-        console.error("[v0] Invalid timestamp:", report.createdAt)
+        console.error("Invalid timestamp:", report.createdAt)
         return false
       }
 

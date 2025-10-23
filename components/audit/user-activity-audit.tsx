@@ -47,7 +47,7 @@ export function UserActivityAudit({
 
       // Validate date
       if (isNaN(auditDate.getTime())) {
-        console.error("[v0] Invalid timestamp:", audit.timestamp)
+        console.error("Invalid timestamp:", audit.timestamp)
         return false
       }
 

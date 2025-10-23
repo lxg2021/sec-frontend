@@ -50,7 +50,7 @@ export default function AssetCollectorPage() {
   }
 
   const handleFileUploaded = (data: UiAssetData[], fileName: string) => {
-    console.log("[v0] 文件上传成功:", fileName, "资产数量:", data.length)
+    console.log("文件上传成功:", fileName, "资产数量:", data.length)
     setUploadedAssets(data)
   }
 
@@ -139,7 +139,7 @@ export default function AssetCollectorPage() {
     setErrors(newErrors)
 
     if (!hasError) {
-      console.log("[v0] 保存数据:", { assets: uploadedAssets, userInfos })
+      console.log("保存数据:", { assets: uploadedAssets, userInfos })
       alert("保存成功！")
     }
   }

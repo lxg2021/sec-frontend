@@ -72,7 +72,7 @@ export function InstallTaskList({ tasks, onDeleteTask }: InstallTaskListProps) {
   }
 
   const handleExecuteTask = (task: InstallTask) => {
-    console.log("[v0] Submitting task to backend:", task)
+    console.log("Submitting task to backend:", task)
 
     setTimeout(() => {
       const isSuccess = Math.random() > 0.2

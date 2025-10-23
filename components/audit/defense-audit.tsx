@@ -40,7 +40,7 @@ export function DefenseAudit({ data, globalSearch, dateRange, customDateFrom, cu
 
       // Validate date
       if (isNaN(auditDate.getTime())) {
-        console.error("[v0] Invalid timestamp:", audit.triggeredAt)
+        console.error("Invalid timestamp:", audit.triggeredAt)
         return false
       }
 

@@ -7,8 +7,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
   try {
     const { id } = params
     const updatedTask: Task = await request.json()
-    console.log("[v0] PUT /api/tasks/[id] - updating task:", id)
-    console.log("[v0] PUT /api/tasks/[id] - current tasks count:", taskStore.count())
+    console.log("PUT /api/tasks/[id] - updating task:", id)
+    console.log("PUT /api/tasks/[id] - current tasks count:", taskStore.count())
 
     const result = taskStore.update(id, {
       ...updatedTask,
@@ -17,14 +17,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     })
 
     if (!result) {
-      console.error("[v0] PUT /api/tasks/[id] - task not found:", id)
+      console.error("PUT /api/tasks/[id] - task not found:", id)
       return NextResponse.json({ error: "Task not found" }, { status: 404 })
     }
 
-    console.log("[v0] PUT /api/tasks/[id] - task updated:", result)
+    console.log("PUT /api/tasks/[id] - task updated:", result)
     return NextResponse.json(result)
   } catch (error) {
-    console.error("[v0] PUT /api/tasks/[id] - error:", error)
+    console.error("PUT /api/tasks/[id] - error:", error)
     return NextResponse.json({ error: "Failed to update task" }, { status: 500 })
   }
 }
@@ -33,19 +33,19 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
     const { id } = params
-    console.log("[v0] DELETE /api/tasks/[id] - deleting task:", id)
+    console.log("DELETE /api/tasks/[id] - deleting task:", id)
 
     const success = taskStore.delete(id)
 
     if (!success) {
-      console.error("[v0] DELETE /api/tasks/[id] - task not found:", id)
+      console.error("DELETE /api/tasks/[id] - task not found:", id)
       return NextResponse.json({ error: "Task not found" }, { status: 404 })
     }
 
-    console.log("[v0] DELETE /api/tasks/[id] - task deleted, remaining:", taskStore.count())
+    console.log("DELETE /api/tasks/[id] - task deleted, remaining:", taskStore.count())
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[v0] DELETE /api/tasks/[id] - error:", error)
+    console.error("DELETE /api/tasks/[id] - error:", error)
     return NextResponse.json({ error: "Failed to delete task" }, { status: 500 })
   }
 }
