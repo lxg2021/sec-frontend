@@ -17,58 +17,58 @@
   "shell": {
     "brand": "WatchPoint",
     "breadcrumbRoot": "WatchPoint",
-    "fallbackPage": "Dashboard",
+    "fallbackPage": "仪表盘",
     "collapseSidebar": "折叠侧边栏",
     "expandSidebar": "展开侧边栏",
     "user": {
-      "loadFailed": "????????",
-      "updateFailed": "????",
-      "passwordMismatch": "??????????",
-      "passwordUpdateFailed": "??????",
-      "operationFailed": "????",
-      "confirmTextInvalid": "??????????",
-      "deleteFailed": "??????",
-      "logoutFailed": "??????",
-      "viewProfile": "????",
-      "editProfile": "????",
-      "changePassword": "????",
-      "disable2fa": "??????",
-      "enable2fa": "??????",
-      "logout": "????",
-      "deleteAccount": "????",
-      "profileTitle": "????",
-      "profileDescription": "????????",
-      "userId": "??ID:",
-      "phone": "???:",
-      "email": "??:",
-      "twoFactor": "????:",
-      "enabled": "???",
-      "disabled": "???",
-      "createdAt": "????:",
-      "updatedAt": "????:",
-      "editTitle": "????",
-      "editDescription": "????????",
-      "nickname": "??",
-      "nicknamePlaceholder": "?????",
-      "emailPlaceholder": "?????",
-      "phonePlaceholder": "??????",
-      "cancel": "??",
-      "save": "??",
-      "passwordTitle": "????",
-      "passwordDescription": "??????????",
-      "oldPassword": "???",
-      "oldPasswordPlaceholder": "??????",
-      "newPassword": "???",
-      "newPasswordPlaceholder": "??????(??6?,???????)",
-      "confirmPassword": "?????",
-      "confirmPasswordPlaceholder": "????????",
-      "confirmChange": "????",
-      "deleteTitle": "????",
-      "deleteDescription": "??????,?????????",
-      "deleteDescriptionTail": "??????",
-      "confirmText": "????",
-      "confirmTextPlaceholder": "??? CONFIRM_DELETE",
-      "confirmDelete": "????"
+      "loadFailed": "加载用户信息失败",
+      "updateFailed": "更新失败",
+      "passwordMismatch": "两次输入的密码不一致",
+      "passwordUpdateFailed": "修改密码失败",
+      "operationFailed": "操作失败",
+      "confirmTextInvalid": "请输入正确的确认文本",
+      "deleteFailed": "删除账户失败",
+      "logoutFailed": "退出登录失败",
+      "viewProfile": "查看资料",
+      "editProfile": "编辑资料",
+      "changePassword": "修改密码",
+      "disable2fa": "关闭两步验证",
+      "enable2fa": "开启两步验证",
+      "logout": "退出登录",
+      "deleteAccount": "删除账户",
+      "profileTitle": "用户资料",
+      "profileDescription": "查看个人信息",
+      "userId": "用户ID:",
+      "phone": "手机号:",
+      "email": "邮箱:",
+      "twoFactor": "两步验证:",
+      "enabled": "已启用",
+      "disabled": "已禁用",
+      "createdAt": "创建时间:",
+      "updatedAt": "更新时间:",
+      "editTitle": "编辑资料",
+      "editDescription": "更新你的个人信息",
+      "nickname": "昵称",
+      "nicknamePlaceholder": "输入昵称",
+      "emailPlaceholder": "输入邮箱",
+      "phonePlaceholder": "输入手机号",
+      "cancel": "取消",
+      "save": "保存",
+      "passwordTitle": "修改密码",
+      "passwordDescription": "输入旧密码和新密码",
+      "oldPassword": "旧密码",
+      "oldPasswordPlaceholder": "输入旧密码",
+      "newPassword": "新密码",
+      "newPasswordPlaceholder": "输入新密码（至少6位，包含字母和数字）",
+      "confirmPassword": "确认新密码",
+      "confirmPasswordPlaceholder": "再次输入新密码",
+      "confirmChange": "确认修改",
+      "deleteTitle": "删除账户",
+      "deleteDescription": "此操作不可撤销，请输入",
+      "deleteDescriptionTail": "以确认删除。",
+      "confirmText": "确认文本",
+      "confirmTextPlaceholder": "输入 CONFIRM_DELETE",
+      "confirmDelete": "确认删除"
     }
   },
   "navigation": {
@@ -103,7 +103,7 @@
   "pages": {
     "collection": {
       "title": "信息采集",
-      "subtitle": "Information Collection",
+      "subtitle": "信息采集",
       "logoAlt": "信息采集",
       "validation": {
         "jsonFileOnly": "请上传 JSON 格式的文件",
@@ -225,7 +225,7 @@
     "assets": {
       "hardware": {
         "title": "主机信息",
-        "subtitle": "Host Information",
+        "subtitle": "主机信息",
         "hostList": "主机列表",
         "hostListDescription": "注册主机，可筛选、点击查看硬件、软件信息",
         "host": {
@@ -354,13 +354,13 @@
       },
       "softwareDetails": {
         "title": "软件管理",
-        "subtitle": "Software Management",
+        "subtitle": "软件管理",
         "softwareList": "软件清单",
         "softwareCount": "{count} 个软件"
       },
       "softwareUninstall": {
         "title": "软件卸载状态",
-        "subtitle": "Software Uninstall Status"
+        "subtitle": "软件卸载状态"
       },
       "software": {
         "taskDialog": {
@@ -488,7 +488,7 @@
     "attack": {
       "dashboard": {
         "title": "攻击溯源概览",
-        "subtitle": "Attack Traceability Dashboard",
+        "subtitle": "攻击溯源仪表盘",
         "lastChecked": "最后检查时间: {time}",
         "stageStats": "ATT&CK Stage 分类统计",
         "stageStatsDescription": "按 Stage 分类查看详细情况",
@@ -510,7 +510,7 @@
       },
       "drill": {
         "title": "溯源详情",
-        "subtitle": "Attack Investigation Details",
+        "subtitle": "攻击调查详情",
         "timeline": "攻击时间线",
         "timelineDescription": "APT Timeline",
         "graph": "溯源图谱",
@@ -518,7 +518,7 @@
       },
       "positioning": {
         "title": "数据定位",
-        "subtitle": "Pinpoint Data Source",
+        "subtitle": "定位数据源",
         "searchTitle": "搜索查询",
         "searchDescription": "输入 IP、DNS、MD5 或端口进行查询",
         "graph": "数据图谱",
@@ -901,109 +901,109 @@
         }
       },
       "demo": {
-        "title": "????",
-        "description": "??????????",
-        "selectedRange": "?????"
+        "title": "攻击演示",
+        "description": "日期选择器组件示例。",
+        "selectedRange": "已选择范围"
       }
     },
     "baseline": {
       "dashboard": {
         "title": "安全基线概览",
-        "subtitle": "Security Baseline Dashboard",
+        "subtitle": "安全基线仪表盘",
         "lastChecked": "最后检查时间: {time}",
         "categoryStats": "分类合规统计",
         "categoryStatsDescription": "按检查分类查看详细合规情况",
         "categoryTable": {
-          "viewing": "????: {name}",
-          "pageSummary": "{current} / {total} ? ? ? {count} ???",
-          "complianceRate": "???",
-          "total": "??: {total}",
-          "compliant": "??: {count}",
+          "viewing": "正在查看: {name}",
+          "pageSummary": "{current} / {total} 页 · 共 {count} 个分类",
+          "complianceRate": "合规率",
+          "total": "总数: {total}",
+          "compliant": "合规: {count}",
           "rating": {
-            "excellent": "??",
-            "good": "??",
-            "average": "??",
-            "poor": "??",
-            "needsImprovement": "???"
+            "excellent": "优秀",
+            "good": "良好",
+            "average": "一般",
+            "poor": "较差",
+            "needsImprovement": "需改进"
           },
-          "collapseDetails": "??????",
-          "viewDetails": "??????",
-          "details": "????",
-          "detailSummary": "? {items} ??????{compliant} ???",
-          "checkItemName": "?????",
-          "complianceStatus": "????",
-          "securityScore": "????",
-          "scoreProgress": "????",
-          "detailAction": "????",
-          "emptyTitle": "??????????",
-          "emptyDescription": "?????????????????????????????",
+          "collapseDetails": "点击收起详情",
+          "viewDetails": "点击查看详情",
+          "details": "详细信息",
+          "detailSummary": "共 {items} 个检查项目，{compliant} 项合规",
+          "checkItemName": "检查项名称",
+          "complianceStatus": "合规状态",
+          "securityScore": "安全评分",
+          "scoreProgress": "评分进度",
+          "detailAction": "详情操作",
+          "emptyTitle": "选择分类查看详细信息",
+          "emptyDescription": "点击上方任意分类卡片，查看该分类下的详细检查项目和合规状况",
           "status": {
-            "compliant": "? ?",
-            "nonCompliant": "???"
+            "compliant": "合 规",
+            "nonCompliant": "不合规"
           },
           "categories": {
-            "account": "????",
-            "system": "????",
-            "permission": "????",
-            "service": "????",
-            "network": "????",
-            "database": "?????"
+            "account": "账号策略",
+            "system": "系统设置",
+            "permission": "权限控制",
+            "service": "服务配置",
+            "network": "网络安全",
+            "database": "数据库安全"
           },
           "items": {
             "account": {
-              "passwordComplexity": "???????",
-              "accountLockout": "??????",
-              "passwordExpiration": "??????",
-              "mfa": "?????",
-              "accountAudit": "??????"
+              "passwordComplexity": "密码复杂度策略",
+              "accountLockout": "账号锁定策略",
+              "passwordExpiration": "密码过期策略",
+              "mfa": "多因素认证",
+              "accountAudit": "账号权限审计"
             },
             "system": {
-              "systemLogging": "??????",
-              "firewallRules": "?????",
-              "systemUpdate": "??????",
-              "timeSync": "??????",
-              "systemMonitoring": "??????"
+              "systemLogging": "系统日志配置",
+              "firewallRules": "防火墙规则",
+              "systemUpdate": "系统更新策略",
+              "timeSync": "时间同步配置",
+              "systemMonitoring": "系统监控配置"
             },
             "permission": {
-              "filePermissions": "??????",
-              "directoryAccess": "??????",
-              "privilegedAccounts": "??????",
-              "sudoPermissions": "sudo????",
-              "sshAccess": "SSH????"
+              "filePermissions": "文件权限设置",
+              "directoryAccess": "目录访问控制",
+              "privilegedAccounts": "特权账号管理",
+              "sudoPermissions": "sudo权限配置",
+              "sshAccess": "SSH访问控制"
             },
             "service": {
-              "webService": "Web????",
-              "databaseService": "???????",
-              "mailService": "??????",
-              "dnsService": "DNS????",
-              "ftpService": "FTP????"
+              "webService": "Web服务配置",
+              "databaseService": "数据库服务配置",
+              "mailService": "邮件服务配置",
+              "dnsService": "DNS服务配置",
+              "ftpService": "FTP服务配置"
             },
             "network": {
-              "networkSegmentation": "??????",
-              "ids": "??????",
-              "trafficMonitoring": "??????",
-              "vpnConfig": "VPN??",
-              "networkAccess": "??????"
+              "networkSegmentation": "网络分段配置",
+              "ids": "入侵检测系统",
+              "trafficMonitoring": "网络流量监控",
+              "vpnConfig": "VPN配置",
+              "networkAccess": "网络访问控制"
             },
             "database": {
-              "databaseAccess": "???????",
-              "dataEncryption": "??????",
-              "databaseAudit": "?????",
-              "backupPolicy": "????",
-              "databaseVersion": "???????"
+              "databaseAccess": "数据库访问控制",
+              "dataEncryption": "数据加密配置",
+              "databaseAudit": "数据库审计",
+              "backupPolicy": "备份策略",
+              "databaseVersion": "数据库版本管理"
             }
           }
         }
       },
       "rules": {
         "title": "基线策略下发",
-        "subtitle": "Security Baseline Dispatch",
+        "subtitle": "安全基线下发",
         "help": "帮助",
         "guideTitle": "策略下发指引"
       },
       "details": {
         "title": "基线检查详情",
-        "subtitle": "Security Baseline Check Details",
+        "subtitle": "安全基线检查详情",
         "defaultItemName": "密码复杂度策略",
         "defaultFixMethod": "自动修复",
         "expandCard": "展开卡片",
@@ -1131,7 +1131,7 @@
     "vulnerability": {
       "dashboard": {
         "title": "补丁管理仪表板",
-        "subtitle": "Security Patch Dashboard",
+        "subtitle": "安全补丁仪表盘",
         "lastChecked": "最后检查时间: {time}",
         "windowsAlt": "Windows 系统",
         "linuxAlt": "Linux 系统"
@@ -1194,152 +1194,152 @@
           "no": "否"
         },
         "patchList": {
-          "title": "????",
-          "count": "{count} ???",
-          "selectAll": "????",
-          "clearAll": "????",
-          "searchPlaceholder": "??????? KB ID...",
-          "filterLabel": "??:",
-          "severityPlaceholder": "????",
-          "allSeverities": "????",
+          "title": "补丁列表",
+          "count": "{count} 个补丁",
+          "selectAll": "全选",
+          "clearAll": "清空选择",
+          "searchPlaceholder": "搜索补丁标题或 KB ID...",
+          "filterLabel": "筛选:",
+          "severityPlaceholder": "严重等级",
+          "allSeverities": "全部等级",
           "severity": {
-            "critical": "??",
-            "important": "??",
-            "moderate": "??",
-            "low": "?"
+            "critical": "严重",
+            "important": "重要",
+            "moderate": "中等",
+            "low": "低"
           },
-          "coveragePlaceholder": "????",
-          "allCoverage": "????",
-          "incomplete": "???",
-          "complete": "???",
-          "loading": "????????...",
+          "coveragePlaceholder": "覆盖状态",
+          "allCoverage": "全部状态",
+          "incomplete": "未完成",
+          "complete": "已完成",
+          "loading": "正在加载补丁数据...",
           "columns": {
-            "select": "??",
-            "patchInfo": "????",
-            "securityLevel": "????",
-            "coverage": "?????",
-            "installed": "???",
-            "pending": "???",
-            "failed": "??",
-            "actions": "??"
+            "select": "选择",
+            "patchInfo": "补丁信息",
+            "securityLevel": "安全等级",
+            "coverage": "安装覆盖率",
+            "installed": "已安装",
+            "pending": "待处理",
+            "failed": "失败",
+            "actions": "操作"
           },
-          "selectPatchAria": "???? {title}",
-          "viewDetails": "????",
-          "noMatch": "????????????????????????",
-          "empty": "??????"
+          "selectPatchAria": "选择补丁 {title}",
+          "viewDetails": "查看详情",
+          "noMatch": "未找到匹配的补丁，请调整搜索或筛选条件",
+          "empty": "暂无补丁数据"
         },
         "patchDetail": {
-          "description": "??????????????",
-          "showLess": "??",
-          "showMore": "????",
-          "downloadUrl": "????:",
-          "releaseNotes": "????:",
-          "moreInfoUrl": "?? URL:",
-          "imageUrl": "????:",
-          "supportUrl": "????:",
-          "securityBulletin": "????:",
-          "hostInstallStatus": "??????",
-          "pending": "??? ({count})",
-          "installed": "??? ({count})",
-          "failed": "???? ({count})",
-          "selectAll": "????",
-          "clearAll": "????",
-          "addHosts": "?? {count} ??????",
+          "description": "补丁详细信息和主机部署状态",
+          "showLess": "收起",
+          "showMore": "展开更多",
+          "downloadUrl": "下载地址:",
+          "releaseNotes": "发布说明:",
+          "moreInfoUrl": "更多信息 URL:",
+          "imageUrl": "镜像地址:",
+          "supportUrl": "支持地址:",
+          "securityBulletin": "安全公告:",
+          "hostInstallStatus": "主机安装状态",
+          "pending": "待处理 ({count})",
+          "installed": "已安装 ({count})",
+          "failed": "安装失败 ({count})",
+          "selectAll": "全选",
+          "clearAll": "清空选择",
+          "addHosts": "添加 {count} 台主机到资源池",
           "columns": {
-            "select": "??",
-            "hostName": "???",
-            "system": "??",
-            "status": "??",
-            "installTime": "????",
-            "error": "????"
+            "select": "选择",
+            "hostName": "主机名",
+            "system": "系统",
+            "status": "状态",
+            "installTime": "安装时间",
+            "error": "错误信息"
           }
         }
       },
       "installTaskPage": {
-        "title": "??????",
-        "subtitle": "Patch Task Deployment"
+        "title": "补丁任务部署",
+        "subtitle": "补丁任务部署"
       },
       "taskStatusPage": {
-        "title": "??????",
-        "subtitle": "Patch Task Status",
-        "refresh": "????",
-        "refreshing": "???..."
+        "title": "补丁任务状态",
+        "subtitle": "补丁任务状态",
+        "refresh": "刷新进度",
+        "refreshing": "刷新中..."
       },
       "taskStatus": {
-        "headerTitle": "?????",
-        "taskCount": "? {count} ???",
-        "rankAria": "??? {rank}",
-        "operationLabel": "??:",
-        "createdLabel": "??:",
-        "patchesLabel": "??:",
-        "hostsLabel": "??:",
-        "install": "??",
-        "uninstall": "??",
-        "overallProgress": "????",
-        "successHosts": "{success}/{total} ???? ({progress}%)",
-        "rebootAfterInstall": "?????",
-        "rollbackOnFailure": "?????",
-        "retryCount": "??: {count} ?",
-        "tableTitle": "??????",
-        "patchCount": "? {count} ???",
-        "viewDetails": "????",
-        "exportList": "????",
-        "hostDetailTitle": "{title} - ????",
-        "hostDetailSummary": "KB: {kb} ? ?? {count} ???",
+        "headerTitle": "任务进度",
+        "taskCount": "{count} 个任务",
+        "rankAria": "排名 {rank}",
+        "operationLabel": "操作:",
+        "createdLabel": "创建:",
+        "patchesLabel": "补丁:",
+        "hostsLabel": "主机:",
+        "install": "安装",
+        "uninstall": "卸载",
+        "overallProgress": "总体进度",
+        "successHosts": "{success}/{total} 主机成功 ({progress}%)",
+        "rebootAfterInstall": "安装后重启",
+        "rollbackOnFailure": "失败时回滚",
+        "retryCount": "重试: {count}",
+        "tableTitle": "补丁安装详情",
+        "patchCount": "{count} 个补丁",
+        "viewDetails": "查看详情",
+        "exportList": "导出列表",
+        "hostDetailTitle": "{title} - 主机详情",
+        "hostDetailSummary": "KB: {kb} · 共 {count} 台主机",
         "status": {
-          "completed": "???",
-          "running": "???",
-          "pending": "???",
-          "installed": "???",
-          "installFailed": "????",
-          "notInstalled": "???",
-          "unknown": "????"
+          "completed": "已完成",
+          "running": "进行中",
+          "pending": "待处理",
+          "installed": "已安装",
+          "installFailed": "安装失败",
+          "notInstalled": "未安装",
+          "unknown": "未知"
         },
         "schedule": {
-          "immediate": "????",
-          "scheduled": "????: {time}",
-          "unknown": "????"
+          "immediate": "立即执行",
+          "scheduled": "定时执行: {time}",
+          "unknown": "未知调度"
         },
         "columns": {
-          "patchInfo": "????",
-          "securityLevel": "????",
-          "success": "??",
-          "failed": "??",
-          "pending": "???",
-          "progress": "??",
-          "actions": "??"
+          "patchInfo": "补丁信息",
+          "securityLevel": "安全等级",
+          "success": "成功",
+          "failed": "失败",
+          "pending": "未应用",
+          "progress": "进度",
+          "actions": "操作"
         },
         "hostColumns": {
-          "hostId": "??ID",
-          "hostName": "???",
-          "system": "??",
-          "installTime": "????",
-          "status": "??"
+          "hostId": "主机ID",
+          "hostName": "主机名",
+          "system": "系统",
+          "installTime": "安装时间",
+          "status": "状态"
         },
         "tabs": {
-          "all": "?? ({count})",
-          "installed": "??? ({count})",
-          "failed": "?? ({count})",
-          "pending": "??? ({count})"
+          "all": "全部 ({count})",
+          "installed": "已安装 ({count})",
+          "failed": "失败 ({count})",
+          "pending": "待处理 ({count})"
         },
         "lists": {
-          "all": "????",
-          "installed": "???????",
-          "failed": "???????",
-          "pending": "??????"
+          "all": "全部主机",
+          "installed": "安装成功的主机",
+          "failed": "安装失败的主机",
+          "pending": "待处理主机"
         },
         "empty": {
-          "all": "??????",
-          "installed": "?????????",
-          "failed": "?????????",
-          "pending": "????????"
+          "all": "暂无主机数据",
+          "installed": "暂无安装成功主机",
+          "failed": "暂无安装失败主机",
+          "pending": "暂无待处理主机"
         }
       }
     },
     "computers": {
       "approve": {
         "title": "主机审批",
-        "subtitle": "Host Approval",
+        "subtitle": "主机审批",
         "uploadAlt": "上传",
         "editAlt": "编辑",
         "uploadFile": "上传文件",
@@ -1415,7 +1415,7 @@
     "control": {
       "task": {
         "title": "任务管理",
-        "subtitle": "Task Management System",
+        "subtitle": "任务管理系统",
         "taskUpdated": "任务已更新",
         "taskUpdatedDescription": "任务 \"{name}\" 已成功更新",
         "taskCreated": "任务已创建",
@@ -1556,12 +1556,12 @@
     },
     "reports": {
       "title": "审计中心",
-      "subtitle": "Audit Center"
+      "subtitle": "审计中心"
     },
     "response": {
       "dac": {
         "title": "访问控制",
-        "subtitle": "Discretionary Access Control",
+        "subtitle": "自主访问控制",
         "filePolicy": "文件策略",
         "registryPolicy": "注册表策略",
         "processPolicy": "进程策略",
@@ -1598,164 +1598,164 @@
         "actions": {
           "file": {
             "n": {
-              "label": "??",
-              "description": "?????"
+              "label": "新建",
+              "description": "创建新文件"
             },
             "d": {
-              "label": "??",
-              "description": "????"
+              "label": "删除",
+              "description": "删除文件"
             },
             "m": {
-              "label": "??",
-              "description": "????"
+              "label": "移动",
+              "description": "移动文件"
             },
             "t": {
-              "label": "???",
-              "description": "?????"
+              "label": "重命名",
+              "description": "重命名文件"
             },
             "s": {
-              "label": "??",
-              "description": "??????"
+              "label": "设置",
+              "description": "设置文件属性"
             },
             "o": {
-              "label": "??",
-              "description": "????"
+              "label": "打开",
+              "description": "打开文件"
             },
             "x": {
-              "label": "??",
-              "description": "????"
+              "label": "执行",
+              "description": "执行文件"
             },
             "r": {
-              "label": "??",
-              "description": "??????"
+              "label": "读取",
+              "description": "读取文件内容"
             },
             "w": {
-              "label": "??",
-              "description": "??????"
+              "label": "写入",
+              "description": "写入文件内容"
             }
           },
           "registry": {
             "n": {
-              "label": "???",
-              "description": "???????"
+              "label": "新建键",
+              "description": "创建新注册表键"
             },
             "d": {
-              "label": "???/?",
-              "description": "????????"
+              "label": "删除键/值",
+              "description": "删除注册表键或值"
             },
             "q": {
-              "label": "???/?",
-              "description": "?????"
+              "label": "查询键/值",
+              "description": "查询注册表"
             },
             "t": {
-              "label": "????",
-              "description": "???????"
+              "label": "重命名键",
+              "description": "重命名注册表键"
             },
             "s": {
-              "label": "???",
-              "description": "??????"
+              "label": "设置值",
+              "description": "设置注册表值"
             },
             "o": {
-              "label": "???",
-              "description": "??????"
+              "label": "打开键",
+              "description": "打开注册表键"
             },
             "e": {
-              "label": "???/?",
-              "description": "?????"
+              "label": "枚举键/值",
+              "description": "枚举注册表数据"
             }
           },
           "process": {
             "n": {
-              "label": "????",
-              "description": "?????"
+              "label": "创建进程",
+              "description": "创建新进程"
             },
             "d": {
-              "label": "????",
-              "description": "????"
+              "label": "终止进程",
+              "description": "终止进程"
             },
             "o": {
-              "label": "????",
-              "description": "??????"
+              "label": "打开进程",
+              "description": "打开进程句柄"
             },
             "l": {
-              "label": "????",
-              "description": "??????"
+              "label": "分配内存",
+              "description": "分配进程内存"
             },
             "w": {
-              "label": "???",
-              "description": "??????"
+              "label": "写入内存",
+              "description": "写入进程内存"
             }
           }
         },
         "networkForm": {
-          "ruleConfig": "????",
-          "direction": "????",
-          "inbound": "?? (Inbound)",
-          "outbound": "?? (Outbound)",
-          "action": "????",
-          "allow": "?? (Allow)",
-          "block": "?? (Block)",
-          "bypass": "?? (Bypass)",
-          "profile": "??????",
-          "domain": "??? (Domain)",
-          "private": "???? (Private)",
-          "public": "???? (Public)",
-          "anyNetwork": "???? (Any)",
-          "protocolAndPorts": "?????",
-          "protocol": "????",
-          "anyProtocol": "???? (Any)",
-          "localPort": "????",
-          "localPortPlaceholder": "80,443,8080 ? any",
-          "remotePort": "????",
-          "remotePortPlaceholder": "any ?????",
-          "addressRange": "????",
-          "localAddress": "????",
-          "localAddressPlaceholder": "any ? IP/CIDR",
-          "remoteAddress": "????",
-          "programAssociation": "????",
-          "programPath": "????",
-          "programHelp": "????????????????????????"
+          "ruleConfig": "规则配置",
+          "direction": "流量方向",
+          "inbound": "入站",
+          "outbound": "出站",
+          "action": "执行动作",
+          "allow": "允许",
+          "block": "阻断",
+          "bypass": "绕过",
+          "profile": "网络配置文件",
+          "domain": "域网络",
+          "private": "专用网络",
+          "public": "公共网络",
+          "anyNetwork": "任意网络",
+          "protocolAndPorts": "协议和端口",
+          "protocol": "协议类型",
+          "anyProtocol": "任意协议",
+          "localPort": "本地端口",
+          "localPortPlaceholder": "80,443,8080 或 any",
+          "remotePort": "远程端口",
+          "remotePortPlaceholder": "any 或指定端口",
+          "addressRange": "地址范围",
+          "localAddress": "本地地址",
+          "localAddressPlaceholder": "any 或 IP/CIDR",
+          "remoteAddress": "远程地址",
+          "programAssociation": "程序关联",
+          "programPath": "程序路径",
+          "programHelp": "此网络规则适用的进程路径，支持通配符匹配多个程序"
         },
         "bodyForm": {
-          "title": "??????",
-          "file": "??",
-          "registry": "???",
-          "process": "??",
-          "object": "??",
-          "subjectPlaceholderFs": "??: *\\notepad.exe ? C:\\Windows\\System32\\*.exe",
-          "subjectPlaceholderReg": "??: *\\regedit.exe ? *\\powershell.exe",
-          "subjectPlaceholderPs": "??: *\\taskmgr.exe ? C:\\Program Files\\**\\*.exe",
-          "subjectPlaceholder": "?????????",
-          "objectPlaceholderFs": "??: C:\\Data\\*.txt ? D:\\**\\*.log",
-          "objectPlaceholderReg": "??: HKEY_CURRENT_USER\\Software\\* ? HKEY_LOCAL_MACHINE\\**\\Run",
-          "objectPlaceholderPs": "??: *\\calc.exe ? C:\\Windows\\System32\\*.exe",
-          "objectPlaceholder": "???????",
-          "exceptProcess": "????",
-          "exceptHelp": "??????????",
-          "exceptPlaceholder": "??: *\\rcSvc.exe (?? * # ? ???????????)",
-          "subjectProcess": "????",
-          "subjectHelp": "???????????? * # ? ???",
-          "targetPrefix": "??",
-          "objectHelp": "??????????? * # ? ???"
+          "title": "策略主体配置",
+          "file": "文件",
+          "registry": "注册表",
+          "process": "进程",
+          "object": "对象",
+          "subjectPlaceholderFs": "示例: *\\notepad.exe 或 C:\\Windows\\System32\\*.exe",
+          "subjectPlaceholderReg": "示例: *\\regedit.exe 或 *\\powershell.exe",
+          "subjectPlaceholderPs": "示例: *\\taskmgr.exe 或 C:\\Program Files\\**\\*.exe",
+          "subjectPlaceholder": "输入主体进程路径",
+          "objectPlaceholderFs": "示例: C:\\Data\\*.txt 或 D:\\**\\*.log",
+          "objectPlaceholderReg": "示例: HKEY_CURRENT_USER\\Software\\* 或 HKEY_LOCAL_MACHINE\\**\\Run",
+          "objectPlaceholderPs": "示例: *\\calc.exe 或 C:\\Windows\\System32\\*.exe",
+          "objectPlaceholder": "输入对象路径",
+          "exceptProcess": "排除进程",
+          "exceptHelp": "不受此策略限制的进程",
+          "exceptPlaceholder": "示例: *\\rcSvc.exe（支持 * # ? 通配符，多个值用分号分隔）",
+          "subjectProcess": "主体进程",
+          "subjectHelp": "执行操作的进程路径，支持 * # ? 通配符",
+          "targetPrefix": "目标",
+          "objectHelp": "被操作的目标路径，支持 * # ? 通配符"
         },
         "review": {
-          "filePolicy": "????",
-          "registryPolicy": "?????",
-          "processPolicy": "????",
-          "networkPolicy": "????",
-          "notDeployed": "???",
-          "deploying": "???",
-          "deployed": "???",
-          "failed": "??",
-          "empty": "????",
-          "policyName": "????",
-          "type": "??",
-          "version": "??",
-          "priority": "???",
-          "createdAt": "????",
-          "status": "??",
-          "actions": "??",
-          "policyDetailsJson": "???? (JSON)"
+          "filePolicy": "文件策略",
+          "registryPolicy": "注册表策略",
+          "processPolicy": "进程策略",
+          "networkPolicy": "网络策略",
+          "notDeployed": "未下发",
+          "deploying": "下发中",
+          "deployed": "已下发",
+          "failed": "失败",
+          "empty": "暂无策略",
+          "policyName": "策略名称",
+          "type": "类型",
+          "version": "版本",
+          "priority": "优先级",
+          "createdAt": "创建时间",
+          "status": "状态",
+          "actions": "操作",
+          "policyDetailsJson": "策略详情 (JSON)"
         }
       }
     },
@@ -1795,94 +1795,94 @@
         "next": "下一页"
       },
       "userActivity": {
-        "filterTitle": "????????",
-        "actionType": "????:",
-        "actionTypePlaceholder": "????",
-        "result": "????:",
-        "resultPlaceholder": "????",
-        "target": "????:",
-        "targetPlaceholder": "????",
-        "listTitle": "????????",
-        "empty": "????",
-        "all": "??",
-        "success": "??",
-        "failed": "??",
-        "login": "??",
-        "logout": "??",
-        "failedLogin": "????",
-        "createTask": "????",
-        "updateTask": "????",
-        "dispatchTask": "????",
-        "createConfig": "????",
-        "updateConfig": "????",
-        "manualBlock": "????",
-        "addUser": "????",
-        "deleteUser": "????",
-        "roleChange": "????",
-        "task": "??",
-        "policy": "??",
-        "host": "??",
-        "user": "??",
-        "system": "??"
+        "filterTitle": "用户活动筛选",
+        "actionType": "操作类型:",
+        "actionTypePlaceholder": "操作类型",
+        "result": "结果:",
+        "resultPlaceholder": "结果",
+        "target": "目标:",
+        "targetPlaceholder": "目标",
+        "listTitle": "用户活动审计记录",
+        "empty": "暂无数据",
+        "all": "全部",
+        "success": "成功",
+        "failed": "失败",
+        "login": "登录",
+        "logout": "退出",
+        "failedLogin": "登录失败",
+        "createTask": "创建任务",
+        "updateTask": "更新任务",
+        "dispatchTask": "下发任务",
+        "createConfig": "创建配置",
+        "updateConfig": "更新配置",
+        "manualBlock": "手动阻断",
+        "addUser": "添加用户",
+        "deleteUser": "删除用户",
+        "roleChange": "角色变更",
+        "task": "任务",
+        "policy": "策略",
+        "host": "主机",
+        "user": "用户",
+        "system": "系统"
       },
       "defense": {
-        "filterTitle": "????????",
-        "actionType": "????:",
-        "actionTypePlaceholder": "????",
-        "severity": "????:",
-        "severityPlaceholder": "????",
-        "status": "????:",
-        "statusPlaceholder": "????",
-        "source": "????:",
-        "sourcePlaceholder": "????",
-        "listTitle": "????????",
-        "empty": "????",
-        "all": "??",
-        "success": "??",
-        "failed": "??",
-        "alert": "??",
-        "block": "??",
-        "prompt": "??",
-        "endpoint": "????",
-        "firewall": "???",
-        "hids": "??????"
+        "filterTitle": "防御动作筛选",
+        "actionType": "防御类型:",
+        "actionTypePlaceholder": "防御类型",
+        "severity": "严重等级:",
+        "severityPlaceholder": "严重等级",
+        "status": "状态:",
+        "statusPlaceholder": "状态",
+        "source": "来源:",
+        "sourcePlaceholder": "来源",
+        "listTitle": "防御动作审计记录",
+        "empty": "暂无数据",
+        "all": "全部",
+        "success": "成功",
+        "failed": "失败",
+        "alert": "告警",
+        "block": "阻断",
+        "prompt": "提示",
+        "endpoint": "端点防护",
+        "firewall": "防火墙",
+        "hids": "主机入侵检测"
       },
       "disposition": {
-        "filterTitle": "????????",
-        "actionType": "????:",
-        "actionTypePlaceholder": "????",
-        "severity": "????:",
-        "severityPlaceholder": "????",
-        "status": "????:",
-        "statusPlaceholder": "????",
-        "handler": "???:",
-        "handlerPlaceholder": "???",
-        "listTitle": "????????",
-        "empty": "????",
-        "all": "??",
-        "success": "??",
-        "failed": "??",
-        "isolate": "??",
-        "terminate": "??",
-        "disconnect": "??",
-        "quarantine": "??"
+        "filterTitle": "处置动作筛选",
+        "actionType": "处置类型:",
+        "actionTypePlaceholder": "处置类型",
+        "severity": "严重等级:",
+        "severityPlaceholder": "严重等级",
+        "status": "状态:",
+        "statusPlaceholder": "状态",
+        "handler": "处理人:",
+        "handlerPlaceholder": "处理人",
+        "listTitle": "处置动作审计记录",
+        "empty": "暂无数据",
+        "all": "全部",
+        "success": "成功",
+        "failed": "失败",
+        "isolate": "隔离",
+        "terminate": "终止",
+        "disconnect": "断开连接",
+        "quarantine": "隔离区"
       },
       "taskDispatch": {
-        "filterTitle": "????????",
-        "taskType": "????:",
-        "taskTypePlaceholder": "????",
-        "priority": "???:",
-        "priorityPlaceholder": "???",
-        "status": "????:",
-        "statusPlaceholder": "????",
-        "operator": "???:",
-        "operatorPlaceholder": "???",
-        "listTitle": "??????",
-        "empty": "????",
-        "all": "??",
-        "success": "??",
-        "failed": "??",
-        "pending": "???"
+        "filterTitle": "任务下发筛选",
+        "taskType": "任务类型:",
+        "taskTypePlaceholder": "任务类型",
+        "priority": "优先级:",
+        "priorityPlaceholder": "优先级",
+        "status": "下发状态:",
+        "statusPlaceholder": "下发状态",
+        "operator": "操作人:",
+        "operatorPlaceholder": "操作人",
+        "listTitle": "任务下发记录",
+        "empty": "暂无数据",
+        "all": "全部",
+        "success": "成功",
+        "failed": "失败",
+        "pending": "待处理"
       }
     },
     "sensorConfig": {
@@ -1956,31 +1956,31 @@
   "shared": {
     "kibanaDatePicker": {
       "quick": {
-        "last15Minutes": "?? 15 ??",
-        "last30Minutes": "?? 30 ??",
-        "last1Hour": "?? 1 ??",
-        "last4Hours": "?? 4 ??",
-        "last12Hours": "?? 12 ??",
-        "last24Hours": "?? 24 ??",
-        "last7Days": "?? 7 ?",
-        "last30Days": "?? 30 ?",
-        "last90Days": "?? 90 ?"
+        "last15Minutes": "最近 15 分钟",
+        "last30Minutes": "最近 30 分钟",
+        "last1Hour": "最近 1 小时",
+        "last4Hours": "最近 4 小时",
+        "last12Hours": "最近 12 小时",
+        "last24Hours": "最近 24 小时",
+        "last7Days": "最近 7 天",
+        "last30Days": "最近 30 天",
+        "last90Days": "最近 90 天"
       },
-      "errorEndAfterStart": "????????????",
-      "errorMaxDays": "???????? {maxDays} ?",
-      "rangeMinutes": "?? {minutes} ??",
-      "rangeHours": "?? {hours} ??",
-      "rangeDays": "?? {days} ?",
-      "errorCompleteRange": "??????????????",
-      "errorTimeFormat": "???????",
-      "quickTitle": "????",
-      "customTitle": "???????",
-      "startTime": "????",
-      "endTime": "????",
-      "selectStartDate": "???????",
-      "selectEndDate": "???????",
-      "cancel": "??",
-      "apply": "??"
+      "errorEndAfterStart": "结束时间必须晚于开始时间",
+      "errorMaxDays": "时间范围不能超过 {maxDays} 天",
+      "rangeMinutes": "最近 {minutes} 分钟",
+      "rangeHours": "最近 {hours} 小时",
+      "rangeDays": "最近 {days} 天",
+      "errorCompleteRange": "请完整填写开始和结束时间",
+      "errorTimeFormat": "时间格式无效",
+      "quickTitle": "快捷选择",
+      "customTitle": "自定义时间范围",
+      "startTime": "开始时间",
+      "endTime": "结束时间",
+      "selectStartDate": "选择开始日期",
+      "selectEndDate": "选择结束日期",
+      "cancel": "取消",
+      "apply": "应用"
     }
   }
 }
