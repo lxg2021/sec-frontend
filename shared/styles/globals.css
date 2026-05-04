@@ -93,6 +93,65 @@ body {
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(30deg);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+}
+
+@keyframes flash {
+  0%,
+  20%,
+  100% {
+    opacity: 0;
+    background-position: -100% 0;
+  }
+  5% {
+    opacity: 0.8;
+    background-position: 200% 0;
+  }
+}
+
+.text-glow {
+  text-shadow: 0 0 5px currentColor, 0 0 10px currentColor, 0 0 15px currentColor, 0 0 20px currentColor;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.ping-animation {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -104,4 +163,10 @@ body {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.progress-line {
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 1s ease-out;
 }
