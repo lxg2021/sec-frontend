@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import {
   ChevronRight,
   Bell,
-  Languages,
+  Globe,
   Moon,
   RefreshCw,
   Sun,
@@ -353,7 +353,7 @@ export function FrameLayout({ children }) {
               aria-label={tLanguage("switchTo")}
               title={tLanguage("switchTo")}
             >
-              <Languages className="w-4 h-4" />
+              <Globe className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"

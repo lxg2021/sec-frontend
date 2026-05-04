@@ -1,6 +1,6 @@
 "use client"
 
-import { Languages } from "lucide-react"
+import { Globe } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
 import { useLocaleSwitch } from "@/shared/i18n/use-locale-switch"
@@ -23,7 +23,7 @@ export function LanguageSwitch({ className }: LanguageSwitchProps) {
       aria-label={t("switchTo")}
       title={t("switchTo")}
     >
-      <Languages className="w-4 h-4" />
+      <Globe className="w-4 h-4" />
     </Button>
   )
 }
