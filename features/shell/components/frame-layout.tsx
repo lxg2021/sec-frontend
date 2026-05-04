@@ -4,7 +4,9 @@ import { useState, useEffect } from "react"
 import {
   ChevronRight,
   Bell,
+  Moon,
   RefreshCw,
+  Sun,
 } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import Image from "next/image"
@@ -31,12 +33,23 @@ const ANIMATION_DELAYS = {
   SUBMENU_ITEM: 50,
 }
 
+const VISUAL_STYLE_STORAGE_KEY = "watchpoint-visual-style"
+
 export function FrameLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [expandedMenu, setExpandedMenu] = useState(null)
+  const [visualStyle, setVisualStyle] = useState("cyber")
+  const isClassicStyle = visualStyle === "classic"
+
+  useEffect(() => {
+    const savedStyle = window.localStorage.getItem(VISUAL_STYLE_STORAGE_KEY)
+    if (savedStyle === "classic" || savedStyle === "cyber") {
+      setVisualStyle(savedStyle)
+    }
+  }, [])
 
   // 计算当前激活菜单项ID
   const activeSectionId = (() => {
@@ -83,6 +96,14 @@ export function FrameLayout({ children }) {
 
   const toggleSidebar = () => setSidebarCollapsed(!sidebarCollapsed)
 
+  const toggleVisualStyle = () => {
+    setVisualStyle((currentStyle) => {
+      const nextStyle = currentStyle === "cyber" ? "classic" : "cyber"
+      window.localStorage.setItem(VISUAL_STYLE_STORAGE_KEY, nextStyle)
+      return nextStyle
+    })
+  }
+
   const handleMenuItemClick = (item) => {
     if (item.submenu) {
       setExpandedMenu(expandedMenu === item.id ? null : item.id)
@@ -100,10 +121,12 @@ export function FrameLayout({ children }) {
   const getMenuItemClassName = (isActive) => {
     const baseClasses =
       "w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative overflow-hidden border"
-    const activeClasses =
-      "bg-gradient-to-r from-blue-300/20 to-blue-200/20 text-blue-300 border-blue-300/30 shadow-lg shadow-blue-300/10"
-    const inactiveClasses =
-      "text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 hover:border-slate-600/30 border-transparent"
+    const activeClasses = isClassicStyle
+      ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
+      : "bg-gradient-to-r from-blue-300/20 to-blue-200/20 text-blue-300 border-blue-300/30 shadow-lg shadow-blue-300/10"
+    const inactiveClasses = isClassicStyle
+      ? "text-slate-600 hover:text-slate-950 hover:bg-slate-100 hover:border-slate-200 border-transparent"
+      : "text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 hover:border-slate-600/30 border-transparent"
     const collapsedClasses = sidebarCollapsed ? "justify-center" : ""
     return `${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${collapsedClasses}`
   }
@@ -111,10 +134,12 @@ export function FrameLayout({ children }) {
   const getSubMenuItemClassName = (isActive) => {
     const baseClasses =
       "w-full flex items-center gap-2 p-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden border"
-    const activeClasses =
-      "bg-gradient-to-r from-blue-300/20 to-blue-200/20 text-blue-300 border-blue-300/30 shadow-md shadow-blue-300/10"
-    const inactiveClasses =
-      "text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 hover:border-slate-600/30 border-transparent"
+    const activeClasses = isClassicStyle
+      ? "bg-blue-50 text-blue-700 border-blue-200 shadow-sm"
+      : "bg-gradient-to-r from-blue-300/20 to-blue-200/20 text-blue-300 border-blue-300/30 shadow-md shadow-blue-300/10"
+    const inactiveClasses = isClassicStyle
+      ? "text-slate-500 hover:text-slate-900 hover:bg-slate-100 hover:border-slate-200 border-transparent"
+      : "text-slate-400 hover:text-white hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 hover:border-slate-600/30 border-transparent"
     return `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`
   }
 
@@ -135,16 +160,16 @@ export function FrameLayout({ children }) {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-neutral-900">
+    <div className={isClassicStyle ? "flex h-screen bg-slate-100" : "flex h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-neutral-900"}>
       {/* 左侧导航栏 */}
       <div
         className={`${sidebarCollapsed ? SIDEBAR_WIDTH.COLLAPSED : SIDEBAR_WIDTH.EXPANDED
-          } bg-gradient-to-b from-slate-900/95 to-neutral-900/95 backdrop-blur-xl border-r border-slate-700/50 transition-all duration-300 fixed md:relative z-50 md:z-auto h-full md:h-auto ${!sidebarCollapsed ? "md:block" : ""
+          } ${isClassicStyle ? "bg-white border-r border-slate-200" : "bg-gradient-to-b from-slate-900/95 to-neutral-900/95 backdrop-blur-xl border-r border-slate-700/50"} transition-all duration-300 fixed md:relative z-50 md:z-auto h-full md:h-auto ${!sidebarCollapsed ? "md:block" : ""
           } shadow-2xl`}
       >
         <div className="p-4 flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-700/30">
+          <div className={`flex items-center justify-between mb-8 pb-4 ${isClassicStyle ? "border-b border-slate-200" : "border-b border-slate-700/30"}`}>
             <div className={`${sidebarCollapsed ? "hidden" : "flex items-center gap-3"}`}>
               <div className="relative">
                 <Image
@@ -172,7 +197,7 @@ export function FrameLayout({ children }) {
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"
+              className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"}
               aria-label={sidebarCollapsed ? "展开侧边栏" : "折叠侧边栏"}
             >
               <ChevronRight
@@ -199,14 +224,14 @@ export function FrameLayout({ children }) {
                     aria-label={item.label}
                   >
                     {isActive && (
-                      <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-sky-400 to-cyan-400 rounded-r-full" />
+                      <div className={isClassicStyle ? "absolute left-0 top-0 w-1 h-full bg-blue-600 rounded-r-full" : "absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-sky-400 to-cyan-400 rounded-r-full"} />
                     )}
                     <div className={`relative ${sidebarCollapsed ? "" : "ml-2"}`}>
                       <IconComponent
                         className={`${sidebarCollapsed ? "w-6 h-6" : "w-5 h-5"
                           } transition-all duration-200 ${isActive ? "drop-shadow-lg" : ""}`}
                       />
-                      {isActive && <div className="absolute inset-0 bg-sky-400/20 rounded-lg blur-sm -z-10" />}
+                      {isActive && !isClassicStyle && <div className="absolute inset-0 bg-sky-400/20 rounded-lg blur-sm -z-10" />}
                     </div>
                     {!sidebarCollapsed && (
                       <>
@@ -219,7 +244,7 @@ export function FrameLayout({ children }) {
                         )}
                       </>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+                    {!isClassicStyle && <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />}
                   </button>
 
                   {item.submenu && expandedMenu === item.id && !sidebarCollapsed && (
@@ -236,14 +261,14 @@ export function FrameLayout({ children }) {
                             aria-label={subItem.label}
                           >
                             {isSubActive && (
-                              <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-blue-300 to-blue-200 rounded-r-full" />
+                              <div className={isClassicStyle ? "absolute left-0 top-0 w-1 h-full bg-blue-600 rounded-r-full" : "absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-blue-300 to-blue-200 rounded-r-full"} />
                             )}
                             <div className="relative ml-1">
                               <SubIconComponent
-                                className={`w-4 h-4 transition-all duration-200 ${isSubActive ? "text-blue-300 drop-shadow-md" : "text-slate-400 group-hover:text-white"
+                                className={`w-4 h-4 transition-all duration-200 ${isSubActive ? (isClassicStyle ? "text-blue-700" : "text-blue-300 drop-shadow-md") : (isClassicStyle ? "text-slate-500 group-hover:text-slate-900" : "text-slate-400 group-hover:text-white")
                                   }`}
                               />
-                              {isSubActive && <div className="absolute inset-0 bg-blue-300/20 rounded-lg blur-sm -z-10" />}
+                              {isSubActive && !isClassicStyle && <div className="absolute inset-0 bg-blue-300/20 rounded-lg blur-sm -z-10" />}
                             </div>
                             <span className="text-xs font-medium tracking-wide">{subItem.label}</span>
                           </button>
@@ -276,7 +301,7 @@ export function FrameLayout({ children }) {
       {/* 移动端遮罩 */}
       {!sidebarCollapsed && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
+          className={isClassicStyle ? "fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300" : "fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"}
           onClick={() => setSidebarCollapsed(true)}
           aria-hidden="true"
         />
@@ -285,15 +310,15 @@ export function FrameLayout({ children }) {
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col">
         {/* 头部栏 */}
-        <header className="h-12 bg-gradient-to-r from-slate-800/90 to-neutral-800/90 backdrop-blur-xl border-b border-slate-700/50 flex items-center justify-between px-6 shadow-lg">
+        <header className={isClassicStyle ? "h-12 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm" : "h-12 bg-gradient-to-r from-slate-800/90 to-neutral-800/90 backdrop-blur-xl border-b border-slate-700/50 flex items-center justify-between px-6 shadow-lg"}>
           <div className="flex items-center gap-4">
             {/* 面包屑 */}
             <nav className="flex items-center gap-2 text-sm" aria-label="面包屑导航">
               {getBreadcrumbPath().map((crumb, index, array) => (
                 <div key={crumb.id} className="flex items-center gap-2">
-                  <span className="font-medium tracking-wide text-white">{crumb.label}</span>
+                  <span className={isClassicStyle ? "font-medium tracking-wide text-slate-700" : "font-medium tracking-wide text-white"}>{crumb.label}</span>
                   {index < array.length - 1 && (
-                    <ChevronRight className="w-3 h-3 text-slate-400" aria-hidden="true" />
+                    <ChevronRight className={isClassicStyle ? "w-3 h-3 text-slate-400" : "w-3 h-3 text-slate-400"} aria-hidden="true" />
                   )}
                 </div>
               ))}
@@ -304,7 +329,17 @@ export function FrameLayout({ children }) {
             <Button
               variant="ghost"
               size="icon"
-              className="text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20 relative group"
+              onClick={toggleVisualStyle}
+              className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"}
+              aria-label={isClassicStyle ? "切换到科技风格" : "切换到专业风格"}
+              title={isClassicStyle ? "切换到科技风格" : "切换到专业风格"}
+            >
+              {isClassicStyle ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200 relative group" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20 relative group"}
               aria-label="通知"
             >
               <Bell className="w-4 h-4" />
@@ -313,7 +348,7 @@ export function FrameLayout({ children }) {
             <Button
               variant="ghost"
               size="icon"
-              className="text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"
+              className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"}
               aria-label="刷新"
             >
               <RefreshCw className="w-4 h-4" />
@@ -322,7 +357,7 @@ export function FrameLayout({ children }) {
         </header>
 
         {/* 内容区 */}
-        <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-gray-50 to-neutral-100 dark:from-slate-900 dark:via-gray-900 dark:to-neutral-900">
+        <main className={isClassicStyle ? "flex-1 overflow-auto bg-slate-50" : "flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-gray-50 to-neutral-100 dark:from-slate-900 dark:via-gray-900 dark:to-neutral-900"}>
           {children}
         </main>
 
