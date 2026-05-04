@@ -6,16 +6,10 @@ import { Button } from "@/shared/ui/button"
 import { ArrowLeft, Shield, Users, Settings, Lock, Monitor, Database } from "lucide-react"
 import DetailsCard from "@/features/baseline/details/components/details-card"
 import HostList from "@/features/baseline/details/components/host-list"
+import { useTranslations } from "next-intl"
 
-// 分类映射
-const categoryMap = {
-  account: "账号策略",
-  system: "系统设置",
-  permission: "权限控制",
-  service: "服务配置",
-  network: "网络安全",
-  database: "数据库安全",
-}
+const categoryKeys = ["account", "system", "permission", "service", "network", "database"] as const
+type CategoryKey = (typeof categoryKeys)[number]
 
 // 分类图标映射
 const categoryIconMap = {
@@ -87,6 +81,7 @@ const mockHostData = [
 ]
 
 export default function BaselineDetailsPage() {
+  const t = useTranslations("pages.baseline.details")
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -96,14 +91,15 @@ export default function BaselineDetailsPage() {
   const [filterDepartment, setFilterDepartment] = useState("")
   const [filterOS, setFilterOS] = useState("")
   const [filterHostId, setFilterHostId] = useState("")
-  const [selectedFixMethod, setSelectedFixMethod] = useState("自动修复")
-  const [batchFixMethod, setBatchFixMethod] = useState("自动修复")
+  const [selectedFixMethod, setSelectedFixMethod] = useState(t("defaultFixMethod"))
+  const [batchFixMethod, setBatchFixMethod] = useState(t("defaultFixMethod"))
   const [hostFixMethods, setHostFixMethods] = useState({})
 
   // 从URL参数获取分类和项目信息
   const categoryId = searchParams.get("category") || "account"
-  const itemName = searchParams.get("item") || "密码复杂度策略"
-  const categoryName = categoryMap[categoryId] || "账号策略"
+  const categoryKey = categoryKeys.includes(categoryId as CategoryKey) ? (categoryId as CategoryKey) : "account"
+  const itemName = searchParams.get("item") || t("defaultItemName")
+  const categoryName = t(`categories.${categoryKey}`)
   const CategoryIcon = categoryIconMap[categoryId] || Users
 
   // 获取唯一的筛选选项
@@ -186,7 +182,7 @@ export default function BaselineDetailsPage() {
 
   // 获取单个主机的修复方式
   const getHostFixMethod = (hostId) => {
-    return hostFixMethods[hostId] || "自动修复"
+    return hostFixMethods[hostId] || t("defaultFixMethod")
   }
 
   // 用useCallback避免多次重新创建函数（可选）
@@ -213,8 +209,8 @@ export default function BaselineDetailsPage() {
                 <Shield className="h-6 w-6 text-blue-300" />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold text-gray-900">基线检查详情</h1>
-                <p className="text-sm text-gray-500 mt-1">Security Baseline Check Details</p>
+                <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+                <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
               </div>
             </div>
           </div>

@@ -20,6 +20,7 @@ import { Skeleton } from "@/shared/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import type { SoftItem, SoftwareInstallation } from "@/features/assets/software/types/software-aggregate"
 import type { CreateUninstallTaskRequest } from "@/features/assets/software/types/task-soft-uninstall"
+import { useLocale, useTranslations } from "next-intl"
 
 interface SoftInventoryTableProps {
   data: SoftItem[]
@@ -31,6 +32,8 @@ const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100]
 const DEFAULT_ITEMS_PER_PAGE = 10
 
 export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: SoftInventoryTableProps) {
+  const t = useTranslations("pages.assets.software.table")
+  const locale = useLocale()
   const [searchTerm, setSearchTerm] = useState("")
   const [vendorFilter, setVendorFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
@@ -171,11 +174,11 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
       <Card>
         <CardHeader className="pb-3">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle></CardTitle>
+            <CardTitle className="text-lg font-semibold">{t("title")}</CardTitle>
             {(searchTerm !== "" || vendorFilter !== "all") && (
               <Button variant="outline" size="sm" onClick={clearFilters} className="flex items-center gap-1">
                 <X className="h-4 w-4" />
-                清除筛选
+                {t("clearFilters")}
               </Button>
             )}
           </div>
@@ -185,7 +188,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="搜索软件名称、厂商或版本..."
+                placeholder={t("searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value)
@@ -204,11 +207,11 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
               <SelectTrigger className="w-full sm:w-48">
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="选择厂商" />
+                  <SelectValue placeholder={t("selectVendor")} />
                 </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">所有厂商</SelectItem>
+                <SelectItem value="all">{t("allVendors")}</SelectItem>
                 {vendors.map((vendor) => (
                   <SelectItem key={vendor} value={vendor}>
                     {vendor}
@@ -224,18 +227,20 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="text-sm text-muted-foreground">
           {filteredData.length === 0 ? (
-            "未找到匹配的软件"
+            t("noMatch")
           ) : (
             <>
-              共找到 {filteredData.length} 个软件，显示第{" "}
-              {Math.min((currentPage - 1) * itemsPerPage + 1, filteredData.length)} -{" "}
-              {Math.min(currentPage * itemsPerPage, filteredData.length)} 个
+              {t("summary", {
+                count: filteredData.length,
+                start: Math.min((currentPage - 1) * itemsPerPage + 1, filteredData.length),
+                end: Math.min(currentPage * itemsPerPage, filteredData.length),
+              })}
             </>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">每页显示:</span>
+          <span className="text-sm text-muted-foreground">{t("itemsPerPage")}</span>
           <Select
             value={itemsPerPage.toString()}
             onValueChange={(value) => {
@@ -279,9 +284,9 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                 <Package className="h-6 w-6 text-muted-foreground" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold">未找到软件</h3>
+              <h3 className="mt-4 text-lg font-semibold">{t("emptyTitle")}</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                尝试调整搜索条件或筛选条件
+                {t("emptyDescription")}
               </p>
             </div>
           ) : (
@@ -291,17 +296,17 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                   <TableHead className="w-12"></TableHead>
                   <TableHead className="w-60">
                     <div className="flex items-center gap-1">
-                      软件指纹
+                      {t("fingerprint")}
                       <Fingerprint className="w-4 h-4 text-blue-600" />
                     </div>
                   </TableHead>
-                  <TableHead>软件名称</TableHead>
-                  <TableHead className="hidden md:table-cell">版本</TableHead>
-                  <TableHead className="hidden lg:table-cell">厂商</TableHead>
-                  <TableHead className="hidden xl:table-cell">SKU</TableHead>
-                  <TableHead>官网</TableHead>
-                  <TableHead className="text-center">安装数</TableHead>
-                  <TableHead className="text-center">操作</TableHead>
+                  <TableHead>{t("name")}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t("version")}</TableHead>
+                  <TableHead className="hidden lg:table-cell">{t("vendor")}</TableHead>
+                  <TableHead className="hidden xl:table-cell">{t("sku")}</TableHead>
+                  <TableHead>{t("website")}</TableHead>
+                  <TableHead className="text-center">{t("installCount")}</TableHead>
+                  <TableHead className="text-center">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -343,7 +348,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>访问官网</p>
+                                <p>{t("visitWebsite")}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -365,7 +370,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>详情</DropdownMenuItem>
+                            <DropdownMenuItem>{t("details")}</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={() => handleBatchUninstall(item)}
@@ -376,7 +381,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                               className="text-destructive"
                             >
                               <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-                              <span className="text-black">批量正常卸载</span>
+                              <span className="text-black">{t("batchNormalUninstall")}</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleBatchSilentUninstall(item)}
@@ -387,7 +392,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                               className="text-destructive"
                             >
                               <EyeOff className="h-4 w-4 mr-2 text-orange-500" />
-                              <span className="text-black">批量静默卸载</span>
+                              <span className="text-black">{t("batchSilentUninstall")}</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -403,10 +408,10 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                           <div className="p-4">
                             <div className="flex justify-between items-center mb-3">
                               <h4 className="font-bold">
-                                安装详情 - {item.displayName}
+                                {t("installDetail")} - {item.displayName}
                               </h4>
                               <Badge variant="outline" className="ml-2">
-                                {item.installations.length} 台主机
+                                {t("hostCount", { count: item.installations.length })}
                               </Badge>
                             </div>
                             <div className="overflow-x-auto">
@@ -416,34 +421,34 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                                     <th className="text-left p-2">
                                       <div className="flex items-center gap-2">
                                         <Monitor className="h-4 w-4 text-blue-500" />
-                                        主机名
+                                        {t("hostName")}
                                       </div>
                                     </th>
                                     <th className="text-left p-2">
                                       <div className="flex items-center gap-2">
                                         <Fingerprint className="h-4 w-4 text-blue-500" />
-                                        主机ID
+                                        {t("hostId")}
                                       </div>
                                     </th>
                                     <th className="text-left p-2">
                                       <div className="flex items-center gap-2">
                                         <CalendarDays className="h-4 w-4 text-blue-500" />
-                                        安装日期
+                                        {t("installDate")}
                                       </div>
                                     </th>
                                     <th className="text-left p-2">
                                       <div className="flex items-center gap-2">
                                         <Folder className="h-4 w-4 text-blue-500" />
-                                        安装路径
+                                        {t("installPath")}
                                       </div>
                                     </th>
                                     <th className="text-left p-2">
                                       <div className="flex items-center gap-2">
                                         <Package className="h-4 w-4 text-blue-500" />
-                                        包路径
+                                        {t("packagePath")}
                                       </div>
                                     </th>
-                                    <th className="text-center p-2">操作</th>
+                                    <th className="text-center p-2">{t("operation")}</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -453,7 +458,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                                       <td className="font-mono text-xs p-2">{installation.hostId}</td>
                                       <td className="p-2">
                                         {installation.installDate
-                                          ? new Date(installation.installDate).toLocaleDateString("zh-CN")
+                                          ? new Date(installation.installDate).toLocaleDateString(locale)
                                           : "-"}
                                       </td>
                                       <td className="text-xs max-w-48 truncate p-2" title={installation.installLocation}>
@@ -476,7 +481,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                                               className="flex items-center gap-1"
                                             >
                                               <Trash2 className="h-3 w-3 text-red-500" />
-                                              普通卸载
+                                              {t("normalUninstall")}
                                             </Button>
                                           )}
                                           {installation.quietUninstallString && (
@@ -487,7 +492,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                                               className="flex items-center gap-1"
                                             >
                                               <EyeOff className="h-3 w-3 text-orange-500" />
-                                              静默卸载
+                                              {t("quietUninstall")}
                                             </Button>
                                           )}
                                         </div>
@@ -514,7 +519,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
-            第 {currentPage} 页，共 {totalPages} 页，{filteredData.length} 条记录
+            {t("showingPage", { current: currentPage, total: totalPages, count: filteredData.length })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -523,7 +528,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
             >
-              首页
+              {t("home")}
             </Button>
             <Button
               variant="outline"
@@ -531,7 +536,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
-              上一页
+              {t("prev")}
             </Button>
 
             <div className="flex items-center gap-1">
@@ -558,7 +563,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
               onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
-              下一页
+              {t("next")}
             </Button>
             <Button
               variant="outline"
@@ -566,7 +571,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
             >
-              末页
+              {t("last")}
             </Button>
           </div>
         </div>

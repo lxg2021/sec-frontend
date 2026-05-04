@@ -18,6 +18,7 @@ import { Badge } from "@/shared/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { validateHostData, validateField } from "@/features/assets/approval/utils"
 import { Edit3, Server, Users, User } from "lucide-react";
+import { useTranslations } from "next-intl"
 
 export interface HostEditModalProps {
   visible: boolean
@@ -28,11 +29,29 @@ export interface HostEditModalProps {
 }
 
 export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: HostEditModalProps) {
+  const t = useTranslations("pages.computers.approve")
+  const validationMessages = {
+    ownerName: {
+      required: t("validation.ownerNameRequired"),
+      minLength: t("validation.ownerNameMinLength"),
+      maxLength: t("validation.ownerNameMaxLength"),
+      pattern: t("validation.ownerNamePattern"),
+    },
+    ownerPhone: {
+      pattern: t("validation.ownerPhonePattern"),
+    },
+    ownerEmail: {
+      pattern: t("validation.ownerEmailPattern"),
+    },
+    ownerRole: {
+      required: t("validation.ownerRoleRequired"),
+    },
+  }
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(host.group?.id)
   const [ownerName, setOwnerName] = useState(host.owner?.owner_name || "")
   const [ownerPhone, setOwnerPhone] = useState(host.owner?.phone || "")
   const [ownerEmail, setOwnerEmail] = useState(host.owner?.email || "")
-  const [ownerRole, setOwnerRole] = useState(host.owner?.owner_role || "使用者")
+  const [ownerRole, setOwnerRole] = useState(host.owner?.owner_role || t("ownerUser"))
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   // 实时验证字段
@@ -49,13 +68,16 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
 
   const handleSave = () => {
     // 执行完整验证
-    const validation = validateHostData({
-      ownerName,
-      ownerPhone,
-      ownerEmail,
-      ownerRole,
-      selectedGroupId,
-    })
+    const validation = validateHostData(
+      {
+        ownerName,
+        ownerPhone,
+        ownerEmail,
+        ownerRole,
+        selectedGroupId,
+      },
+      validationMessages,
+    )
 
     if (!validation.isValid) {
       setFieldErrors(validation.errors)
@@ -105,12 +127,12 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                编辑主机信息
+                {t("editHostTitle")}
               </DialogTitle>
               <DialogDescription className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                为主机{" "}
+                {t("editHostDescriptionPrefix")}{" "}
                 <code className="text-foreground font-medium">{host.hostname}</code>{" "}
-                分配逻辑组和负责人
+                {t("editHostDescriptionSuffix")}
               </DialogDescription>
             </div>
           </div>
@@ -122,37 +144,37 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-2">
                 <Server className="h-4 w-4 text-blue-500" />
-                <CardTitle className="text-sm font-semibold">主机基本信息</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t("baseInfoTitle")}</CardTitle>
               </div>
               <CardDescription className="text-xs">
-                主机的核心身份信息和系统配置
+                {t("baseInfoDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div className="flex flex-col space-y-1">
-                  <span className="text-xs text-muted-foreground">主机名</span>
+                  <span className="text-xs text-muted-foreground">{t("hostname")}</span>
                   <code className="font-mono text-sm font-medium text-foreground bg-muted px-2 py-1 rounded">
                     {host.hostname}
                   </code>
                 </div>
 
                 <div className="flex flex-col space-y-1">
-                  <span className="text-xs text-muted-foreground">操作系统</span>
+                  <span className="text-xs text-muted-foreground">{t("os")}</span>
                   <span className="text-sm text-foreground font-medium">
                     {host.os_name} {host.os_version}
                   </span>
                 </div>
 
                 <div className="flex flex-col space-y-1">
-                  <span className="text-xs text-muted-foreground">MAC地址</span>
+                  <span className="text-xs text-muted-foreground">{t("macAddress")}</span>
                   <code className="font-mono text-xs text-foreground bg-muted px-2 py-1 rounded">
                     {host.macs[0]}
                   </code>
                 </div>
 
                 <div className="flex flex-col space-y-1">
-                  <span className="text-xs text-muted-foreground">IP地址</span>
+                  <span className="text-xs text-muted-foreground">{t("ipAddress")}</span>
                   <div className="flex flex-wrap gap-1">
                     {host.ip.map((ip, idx) => (
                       <Badge key={idx} variant="secondary" className="text-xs">
@@ -170,21 +192,21 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-green-500" />
-                <CardTitle className="text-sm font-semibold">逻辑组分配</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t("logicGroupTitle")}</CardTitle>
               </div>
               <CardDescription className="text-xs">
-                选择主机所属的逻辑组织单元
+                {t("logicGroupDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Label htmlFor="group" className="text-sm">逻辑组</Label>
+                <Label htmlFor="group" className="text-sm">{t("logicGroup")}</Label>
                 <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
                   <SelectTrigger id="group" className={fieldErrors.selectedGroupId ? "border-destructive" : ""}>
-                    <SelectValue placeholder="选择逻辑组" />
+                    <SelectValue placeholder={t("selectLogicGroup")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">不分配组</SelectItem>
+                    <SelectItem value="none">{t("noGroup")}</SelectItem>
                     {logicGroups.map((group) => (
                       <SelectItem key={group.id} value={group.id}>
                         {group.full_path}
@@ -204,21 +226,21 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-purple-500" />
-                <CardTitle className="text-sm font-semibold">负责人信息</CardTitle>
+                <CardTitle className="text-sm font-semibold">{t("ownerTitle")}</CardTitle>
               </div>
               <CardDescription className="text-xs">
-                设置主机的负责人及其联系信息
+                {t("ownerDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="ownerName" className="text-sm">姓名 *</Label>
+                  <Label htmlFor="ownerName" className="text-sm">{t("ownerName")} *</Label>
                   <Input
                     id="ownerName"
                     value={ownerName}
                     onChange={(e) => handleFieldChange('ownerName', e.target.value, setOwnerName)}
-                    placeholder="输入负责人姓名"
+                    placeholder={t("ownerNamePlaceholder")}
                     className={fieldErrors.ownerName ? "border-destructive" : ""}
                   />
                   {fieldErrors.ownerName && (
@@ -227,15 +249,15 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ownerRole" className="text-sm">角色</Label>
+                  <Label htmlFor="ownerRole" className="text-sm">{t("ownerRole")}</Label>
                   <Select value={ownerRole} onValueChange={(value) => handleFieldChange('ownerRole', value, setOwnerRole)}>
                     <SelectTrigger id="ownerRole" className={fieldErrors.ownerRole ? "border-destructive" : ""}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="管理员">管理员</SelectItem>
-                      <SelectItem value="使用者">使用者</SelectItem>
-                      <SelectItem value="维护者">维护者</SelectItem>
+                      <SelectItem value={t("ownerAdmin")}>{t("ownerAdmin")}</SelectItem>
+                      <SelectItem value={t("ownerUser")}>{t("ownerUser")}</SelectItem>
+                      <SelectItem value={t("ownerMaintainer")}>{t("ownerMaintainer")}</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldErrors.ownerRole && (
@@ -244,12 +266,12 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ownerPhone" className="text-sm">电话</Label>
+                  <Label htmlFor="ownerPhone" className="text-sm">{t("phone")}</Label>
                   <Input
                     id="ownerPhone"
                     value={ownerPhone}
                     onChange={(e) => handleFieldChange('ownerPhone', e.target.value, setOwnerPhone)}
-                    placeholder="输入电话号码"
+                    placeholder={t("phonePlaceholder")}
                     className={fieldErrors.ownerPhone ? "border-destructive" : ""}
                   />
                   {fieldErrors.ownerPhone && (
@@ -258,13 +280,13 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="ownerEmail" className="text-sm">邮箱</Label>
+                  <Label htmlFor="ownerEmail" className="text-sm">{t("email")}</Label>
                   <Input
                     id="ownerEmail"
                     type="email"
                     value={ownerEmail}
                     onChange={(e) => handleFieldChange('ownerEmail', e.target.value, setOwnerEmail)}
-                    placeholder="输入邮箱地址"
+                    placeholder={t("emailPlaceholder")}
                     className={fieldErrors.ownerEmail ? "border-destructive" : ""}
                   />
                   {fieldErrors.ownerEmail && (
@@ -282,14 +304,14 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
             onClick={handleCancel}
             className="w-full"
           >
-            取消
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleSave}
             disabled={ownerName.trim() === ""}
             className="w-full"
           >
-            保存
+            {t("save")}
           </Button>
         </DialogFooter>
         

@@ -12,6 +12,7 @@ import { Badge } from "@/shared/ui/badge"
 import { Separator } from "@/shared/ui/separator"
 import type { TaskSchedule, CreateUninstallTaskRequest } from "@/features/assets/software/types/task-soft-uninstall"
 import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
+import { useTranslations } from "next-intl"
 
 interface UninstallTaskDialogProps {
   /** 选中的软件项目 */
@@ -30,6 +31,7 @@ export function UninstallSoftTaskDialog({
   onOpenChange,
   onTaskCreated,
 }: UninstallTaskDialogProps) {
+  const t = useTranslations("pages.assets.software.taskDialog")
   const [taskName, setTaskName] = useState(`${uninstallType}-task-${Date.now()}`)
   const [scheduleType, setScheduleType] = useState<"IMMEDIATE" | "SCHEDULED">("IMMEDIATE")
   const [scheduledTime, setScheduledTime] = useState("")
@@ -78,10 +80,10 @@ export function UninstallSoftTaskDialog({
         <DialogHeader className="pb-4">
           <DialogTitle className="flex items-center gap-2">
             <Trash2 className="h-5 w-5 text-red-600" />
-            创建{uninstallType === "uninstall" ? "卸载" : "静默卸载"}任务
+            {t("createTitle", { type: uninstallType === "uninstall" ? "卸载" : "静默卸载" })}
           </DialogTitle>
           <DialogDescription>
-            已选择 {selectedSoftware.length} 个软件，适用于 {getTotalHosts()} 台主机
+            {t("selectedSummary", { software: selectedSoftware.length, hosts: getTotalHosts() })}
           </DialogDescription>
         </DialogHeader>
 
@@ -91,7 +93,7 @@ export function UninstallSoftTaskDialog({
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-1">
                 <Settings className="h-4 w-4 text-blue-500" />
-                <h3 className="text-base font-medium">任务信息</h3>
+                <h3 className="text-base font-medium">{t("taskInfo")}</h3>
               </div>
 
               <div className="space-y-3">
@@ -101,39 +103,39 @@ export function UninstallSoftTaskDialog({
                     className="h-10 leading-10 px-2 whitespace-nowrap font-medium text-sm text-[#333]"
                     style={{ minWidth: 60, textAlign: "right" }}
                   >
-                    任务名
+                    {t("taskName")}
                   </Label>
                   <Input
                     id="taskName"
                     value={taskName}
                     onChange={(e) => setTaskName(e.target.value)}
-                    placeholder="请输入任务名"
+                    placeholder={t("taskNamePlaceholder")}
                     className="flex-1 h-10"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>执行方式</Label>
+                  <Label>{t("executionMode")}</Label>
                   <RadioGroup value={scheduleType} onValueChange={(value) => setScheduleType(value as any)}>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="IMMEDIATE" id="immediate" />
                       <Label htmlFor="immediate" className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-green-500" />
-                        立即执行
+                        {t("immediate")}
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="SCHEDULED" id="scheduled" />
                       <Label htmlFor="scheduled" className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-orange-500" />
-                        计划执行
+                        {t("scheduled")}
                       </Label>
                     </div>
                   </RadioGroup>
 
                   {scheduleType === "SCHEDULED" && (
                     <div className="ml-6 space-y-1">
-                      <Label htmlFor="scheduledTime">执行时间</Label>
+                      <Label htmlFor="scheduledTime">{t("executeTime")}</Label>
                       <Input
                         id="scheduledTime"
                         type="datetime-local"
@@ -152,12 +154,12 @@ export function UninstallSoftTaskDialog({
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-3">
                 <Settings className="h-4 w-4 text-purple-500" />
-                <h3 className="text-base font-medium">卸载策略</h3>
+                <h3 className="text-base font-medium">{t("taskPolicy")}</h3>
               </div>
 
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <Label htmlFor="retryCount">最多重试次数</Label>
+                  <Label htmlFor="retryCount">{t("retryCount")}</Label>
                   <Input
                     id="retryCount"
                     type="number"
@@ -176,18 +178,18 @@ export function UninstallSoftTaskDialog({
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-3">
                 <CalendarCheck className="h-4 w-4 text-cyan-500" />
-                <h3 className="text-base font-medium">任务摘要</h3>
+                <h3 className="text-base font-medium">{t("summary")}</h3>
               </div>
 
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center p-2 bg-muted rounded-lg">
                     <div className="text-xl font-bold">{selectedSoftware.length}</div>
-                    <div className="text-xs text-muted-foreground">软件</div>
+                    <div className="text-xs text-muted-foreground">{t("software")}</div>
                   </div>
                   <div className="text-center p-2 bg-muted rounded-lg">
                     <div className="text-xl font-bold">{getTotalHosts()}</div>
-                    <div className="text-xs text-muted-foreground">主机</div>
+                    <div className="text-xs text-muted-foreground">{t("hosts")}</div>
                   </div>
                 </div>
 
@@ -199,7 +201,7 @@ export function UninstallSoftTaskDialog({
                           {software.name} v{software.version}
                         </span>
                         <Badge variant="outline" className="text-xs">
-                          {software.installations.length} 台主机
+                          {software.installations.length} {t("hosts")}
                         </Badge>
                       </div>
                     ))}
@@ -213,11 +215,11 @@ export function UninstallSoftTaskDialog({
         {/* Action Buttons */}
         <div className="flex justify-end gap-2 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            取消任务
+            {t("cancel")}
           </Button>
           <Button onClick={handleCreateTask} disabled={!isValid}>
             <Save className="h-4 w-4 mr-2" />
-            创建任务
+            {t("create")}
           </Button>
         </div>
       </DialogContent>

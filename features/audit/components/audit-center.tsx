@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { Button } from "@/shared/ui/button"
-import { Download, Shield } from "lucide-react"
+import { Download } from "lucide-react"
 import { TaskDispatchAudit } from "./task-dispatch-audit"
 import { UserActivityAudit } from "./user-activity-audit"
 import { DefenseAudit } from "./defense-audit"
@@ -14,10 +14,12 @@ import { mockTaskDispatchReports } from "@/features/audit/mock/task-dispatch-rep
 import { mockUserAuditData } from "@/features/audit/mock/user-audit"
 import { mockDefenseAudits } from "@/features/audit/mock/defense-audit"
 import { mockDispositionAudits } from "@/features/audit/mock/disposition-audit"
+import { useTranslations } from "next-intl"
 
 export type AuditTab = "task" | "user" | "defense" | "disposition"
 
 export function AuditCenter() {
+  const t = useTranslations("pages.audit.center")
   const [activeTab, setActiveTab] = useState<AuditTab>("task")
   const [globalSearch, setGlobalSearch] = useState("")
   const [dateRange, setDateRange] = useState<string>("7d")
@@ -26,7 +28,6 @@ export function AuditCenter() {
 
   const handleExport = () => {
     console.log("Exporting audit report...")
-    // Export logic would go here
   }
 
   return (
@@ -36,7 +37,7 @@ export function AuditCenter() {
           <div className="flex items-center justify-between">
             <Button onClick={handleExport} variant="outline">
               <Download className="h-4 w-4 mr-2" />
-              导出报告
+              {t("exportReport")}
             </Button>
           </div>
         </CardHeader>
@@ -56,20 +57,20 @@ export function AuditCenter() {
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AuditTab)}>
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="task" className="flex items-center justify-center gap-2">
-                <img src="/icons/audit/task-dispatch.svg" className="h-4 w-4" alt="任务下发图标" />
-                任务下发审计
+                <img src="/icons/audit/task-dispatch.svg" className="h-4 w-4" alt={t("taskIconAlt")} />
+                {t("taskDispatch")}
               </TabsTrigger>
               <TabsTrigger value="user" className="flex items-center justify-center gap-2">
-                <img src="/icons/audit/user-activity.svg" className="h-4 w-4" alt="用户行为图标" />
-                用户行为审计
+                <img src="/icons/audit/user-activity.svg" className="h-4 w-4" alt={t("userIconAlt")} />
+                {t("userActivity")}
               </TabsTrigger>
               <TabsTrigger value="defense" className="flex items-center justify-center gap-2">
-                <img src="/icons/audit/defense.svg" className="h-4 w-4" alt="防御动作图标" />
-                防御动作审计
+                <img src="/icons/audit/defense.svg" className="h-4 w-4" alt={t("defenseIconAlt")} />
+                {t("defense")}
               </TabsTrigger>
               <TabsTrigger value="disposition" className="flex items-center justify-center gap-2">
-                <img src="/icons/audit/disposition.svg" className="h-4 w-4" alt="处置动作图标" />
-                处置动作审计
+                <img src="/icons/audit/disposition.svg" className="h-4 w-4" alt={t("dispositionIconAlt")} />
+                {t("disposition")}
               </TabsTrigger>
             </TabsList>
 

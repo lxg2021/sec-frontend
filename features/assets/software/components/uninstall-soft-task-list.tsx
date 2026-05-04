@@ -18,6 +18,7 @@ import {
 } from "@/shared/ui/alert-dialog"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import type { CreateUninstallTaskRequest, CreateUninstallTaskResponse } from "@/features/assets/software/types/task-soft-uninstall"
+import { useLocale, useTranslations } from "next-intl"
 
 interface UninstallSoftTaskListProps {
   tasks: CreateUninstallTaskRequest[]
@@ -29,12 +30,13 @@ function TargetHostList({
 }: {
   targets: { hostId: string; hostName: string }[]
 }) {
+  const t = useTranslations("pages.assets.software.taskList")
   const [expanded, setExpanded] = useState(false)
   const visibleTargets = expanded ? targets : targets.slice(0, 5)
 
   return (
     <div className="space-y-2">
-      <div className="font-bold text-sm">目标主机:</div>
+      <div className="font-bold text-sm">{t("targetHosts")}</div>
 
       <div className={expanded ? "space-y-1 max-h-64 overflow-y-auto pr-2" : "space-y-1"}>
         {visibleTargets.map((target) => (
@@ -60,7 +62,7 @@ function TargetHostList({
           className="text-xs text-primary hover:underline"
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? "收起" : `展开更多 (${targets.length - 5})`}
+          {expanded ? t("collapse") : t("more", { count: targets.length - 5 })}
         </Button>
       )}
     </div>
@@ -69,6 +71,8 @@ function TargetHostList({
 
 
 export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTaskListProps) {
+  const t = useTranslations("pages.assets.software.taskList")
+  const locale = useLocale()
   const [submissionStatuses, setSubmissionStatuses] = useState<Map<string, CreateUninstallTaskResponse>>(new Map())
 
   const getTypeColor = (type: "uninstall" | "quietUninstall") => {
@@ -76,7 +80,7 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
   }
 
   const getTypeLabel = (type: "uninstall" | "quietUninstall") => {
-    return type === "uninstall" ? "卸载" : "静默卸载"
+    return type === "uninstall" ? t("uninstall") : t("quietUninstall")
   }
 
   const getScheduleDisplay = (task: CreateUninstallTaskRequest) => {
@@ -84,14 +88,14 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
       return (
         <div className="flex items-center gap-1 text-sm">
           <Clock className="h-3 w-3" />
-          <span>立即执行</span>
+          <span>{t("immediate")}</span>
         </div>
       )
     } else {
       return (
         <div className="flex items-center gap-1 text-sm">
           <Calendar className="h-3 w-3" />
-          <span>{new Date(task.schedule.executeAt).toLocaleString()}</span>
+          <span>{new Date(task.schedule.executeAt).toLocaleString(locale)}</span>
         </div>
       )
     }
@@ -158,8 +162,8 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
             </div>
             {/* 标题 + 副标题 */}
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">卸载任务</CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{tasks.length} 个任务</p>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{t("title")}</CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{t("count", { count: tasks.length })}</p>
             </div>
           </div>
         </CardHeader>
@@ -167,8 +171,8 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
           <div className="text-center py-8 text-muted-foreground">
             <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <div className="flex flex-col space-y-2">
-              <p className="text-sm">暂无卸载任务</p>
-              <p className="text-xs">请从软件清单创建卸载任务以管理软件移除</p>
+              <p className="text-sm">{t("emptyTitle")}</p>
+              <p className="text-xs">{t("emptyDescription")}</p>
             </div>
           </div>
         </CardContent>
@@ -187,8 +191,8 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
             </div>
             {/* 标题 + 副标题 */}
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">卸载任务</CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{tasks.length} 个任务</p>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{t("title")}</CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{t("count", { count: tasks.length })}</p>
             </div>
           </div>
         </CardHeader>
@@ -210,15 +214,15 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
                           <Badge className={getStatusColor(submissionStatus.status)}>
                             <div className="flex items-center gap-1">
                               {getStatusIcon(submissionStatus.status)}
-                              <span>{submissionStatus.status === "SUCCESS" ? "提交成功" : "提交失败"}</span>
+                              <span>{submissionStatus.status === "SUCCESS" ? t("submitSuccess") : t("submitFailed")}</span>
                             </div>
                           </Badge>
                         )}
                       </div>
 
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>任务ID: {task.taskId}</span>
-                        <span>创建时间: {new Date(task.createdAt).toLocaleString()}</span>
+                        <span>{t("taskId")} {task.taskId}</span>
+                        <span>{t("createdAt")} {new Date(task.createdAt).toLocaleString(locale)}</span>
                       </div>
                     </div>
 
@@ -230,7 +234,7 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
                               <Play className="h-4 w-4" />
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent>提交任务</TooltipContent>
+                          <TooltipContent>{t("submitTask")}</TooltipContent>
                         </Tooltip>
                       )}
 
@@ -242,14 +246,14 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>删除任务</AlertDialogTitle>
+                            <AlertDialogTitle>{t("deleteConfirmTitle")}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              确定要删除任务 "{task.taskName}" 吗？此操作无法撤销!
+                              {t("deleteConfirmDescription", { name: task.taskName })}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>取消</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteTask(task.taskId)}>删除</AlertDialogAction>
+                            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteTask(task.taskId)}>{t("delete")}</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -258,19 +262,19 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
-                      <div className="font-bold mb-1">执行计划</div>
+                      <div className="font-bold mb-1">{t("plan")}</div>
                       {getScheduleDisplay(task)}
                     </div>
                     <div>
-                      <div className="font-bold mb-1">目标</div>
+                      <div className="font-bold mb-1">{t("target")}</div>
                       <div className="text-muted-foreground">
-                        <div>{task.targets.length}台主机</div>
+                        <div>{t("hostCount", { count: task.targets.length })}</div>
                       </div>
                     </div>
                     <div>
-                      <div className="font-bold mb-1">策略</div>
+                      <div className="font-bold mb-1">{t("policy")}</div>
                       <div className="space-y-1 text-muted-foreground">
-                        <div>重试: {task.retryCount}</div>
+                        <div>{t("retry")}: {task.retryCount}</div>
                       </div>
                     </div>
                   </div>
@@ -281,34 +285,34 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                     <div>
                       <div className="font-bold mb-1 flex items-center gap-1">
-                        软件名称
+                        {t("softwareName")}
                       </div>
                       {task.name ? (
                         <div className="text-muted-foreground">{task.name}</div>
                       ) : (
-                        <div className="text-muted-foreground">无</div>
+                        <div className="text-muted-foreground">{t("none")}</div>
                       )}
                     </div>
 
                     <div>
                       <div className="font-bold mb-1 flex items-center gap-1">
-                        软件版本
+                        {t("softwareVersion")}
                       </div>
                       {task.version ? (
                         <div className="text-muted-foreground">{task.version}</div>
                       ) : (
-                        <div className="text-muted-foreground">无</div>
+                        <div className="text-muted-foreground">{t("none")}</div>
                       )}
                     </div>
 
                     <div>
                       <div className="font-bold mb-1 flex items-center gap-1">
-                        软件厂商
+                        {t("softwareVendor")}
                       </div>
                       {task.vendor ? (
                         <div className="text-muted-foreground">{task.vendor}</div>
                       ) : (
-                        <div className="text-muted-foreground">无</div>
+                        <div className="text-muted-foreground">{t("none")}</div>
                       )}
                     </div>
                   </div>
@@ -320,7 +324,7 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
                     <div className="bg-red-50 border border-red-200 rounded p-3">
                       <div className="flex items-center gap-2 text-red-800 text-sm">
                         <XCircle className="h-4 w-4" />
-                        <span className="font-medium">任务提交失败</span>
+                        <span className="font-medium">{t("taskFailed")}</span>
                       </div>
                       <p className="text-red-700 text-sm mt-1">{submissionStatus.errorMessage}</p>
                     </div>
@@ -330,9 +334,9 @@ export function UninstallSoftTaskList({ tasks, onDeleteTask }: UninstallSoftTask
                     <div className="bg-green-50 border border-green-200 rounded p-3">
                       <div className="flex items-center gap-2 text-green-800 text-sm">
                         <CheckCircle className="h-4 w-4" />
-                        <span className="font-medium">任务提交成功</span>
+                        <span className="font-medium">{t("taskSuccess")}</span>
                       </div>
-                      <p className="text-green-700 text-sm mt-1">任务已成功提交到后台服务器</p>
+                      <p className="text-green-700 text-sm mt-1">{t("taskSuccessDescription")}</p>
                     </div>
                   )}
 

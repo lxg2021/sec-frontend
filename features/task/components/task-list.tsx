@@ -20,6 +20,7 @@ import { deleteTask, mockDeleteTask } from "@/features/task/api"
 import { useToast } from "@/shared/hooks/use-toast"
 import type { BaselinePolicyType } from "@/features/task/models/baseline-scan-task"
 import { ClipboardList } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 interface TaskListProps {
   tasks: Task[]
@@ -37,6 +38,8 @@ const POLICY_LABELS: Record<BaselinePolicyType, string> = {
 }
 
 export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
+  const t = useTranslations("pages.control.task.list")
+  const locale = useLocale()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null)
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null)
@@ -55,13 +58,13 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
       await mockDeleteTask(taskToDelete)
       onDelete(taskToDelete)
       toast({
-        title: "任务已删除",
-        description: "任务已成功从系统中删除",
+        title: t("deleted"),
+        description: t("deletedDescription"),
       })
     } catch (error) {
       toast({
-        title: "删除失败",
-        description: error instanceof Error ? error.message : "删除任务时发生错误",
+        title: t("deleteFailed"),
+        description: error instanceof Error ? error.message : t("deleteFailedDescription"),
         variant: "destructive",
       })
     } finally {
@@ -73,10 +76,10 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      pending: { label: "待执行", variant: "secondary" as const, icon: Clock },
-      running: { label: "运行中", variant: "default" as const, icon: Loader2 },
-      completed: { label: "已完成", variant: "outline" as const, icon: CheckCircle2 },
-      failed: { label: "失败", variant: "destructive" as const, icon: XCircle },
+      pending: { label: t("statusPending"), variant: "secondary" as const, icon: Clock },
+      running: { label: t("statusRunning"), variant: "default" as const, icon: Loader2 },
+      completed: { label: t("statusCompleted"), variant: "outline" as const, icon: CheckCircle2 },
+      failed: { label: t("statusFailed"), variant: "destructive" as const, icon: XCircle },
     }
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
@@ -92,9 +95,9 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
   const getTaskTypeBadge = (type: TaskType) => {
     const typeConfig = {
-      vulnerability: { label: "漏洞扫描", className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
-      attck: { label: "ATT&CK", className: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200" },
-      baseline: { label: "基线扫描", className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
+      vulnerability: { label: t("typeVulnerability"), className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
+      attck: { label: t("typeAttack"), className: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200" },
+      baseline: { label: t("typeBaseline"), className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" },
     }
 
     const config = typeConfig[type]
@@ -102,7 +105,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("zh-CN", {
+    return new Date(dateString).toLocaleString(locale, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -126,10 +129,10 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
             </div>
             <div>
               <CardTitle className="text-lg font-semibold text-gray-900">
-                任务列表
+                {t("title")}
               </CardTitle>
               <CardDescription className="text-sm text-gray-500">
-                暂无任务
+                {t("emptySubtitle")}
               </CardDescription>
             </div>
           </div>
@@ -142,10 +145,8 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
 
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 space-y-2 text-center">
-            <p className="text-lg font-medium text-gray-700">还没有创建任何任务</p>
-            <p className="text-sm text-gray-500">
-              使用上方的表单创建您的第一个扫描任务
-            </p>
+            <p className="text-lg font-medium text-gray-700">{t("emptyTitle")}</p>
+            <p className="text-sm text-gray-500">{t("emptyDescription")}</p>
           </div>
         </CardContent>
         
@@ -164,10 +165,10 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
             </div>
             <div>
               <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                任务列表
+                {t("title")}
               </CardTitle>
               <CardDescription className="text-sm text-gray-500">
-                共 {tasks.length} 个任务
+                {t("count", { count: tasks.length })}
               </CardDescription>
             </div>
           </div>
@@ -175,7 +176,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
           {/* 可选的右上角统计 / 操作区域 */}
           {tasks.length > 0 && (
             <div className="text-sm text-gray-500">
-              最后更新时间：{new Date().toLocaleString()}
+              {t("lastUpdated", { time: new Date().toLocaleString(locale) })}
             </div>
           )}
         </CardHeader>
@@ -207,7 +208,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                         {/* 基础信息 */}
                         <div className="space-y-3">
                           <div className="flex items-center gap-2 text-sm">
-                            <span className="font-medium min-w-20 text-muted-foreground">任务 ID:</span>
+                            <span className="font-medium min-w-20 text-muted-foreground">{t("taskId")}</span>
                             <code className="rounded bg-muted px-2 py-1 text-xs font-mono truncate">
                               {task.id}
                             </code>
@@ -217,7 +218,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                             <div className="flex items-start gap-2 text-sm">
                               <Server className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                               <div>
-                                <span className="font-medium text-muted-foreground">目标主机:</span>
+                                <span className="font-medium text-muted-foreground">{t("targetHosts")}</span>
                                 <div className="mt-1 flex flex-wrap gap-1">
                                   {task.targetHosts.slice(0, 3).map((host, index) => (
                                     <Badge key={index} variant="secondary" className="text-xs">
@@ -226,7 +227,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                                   ))}
                                   {task.targetHosts.length > 3 && (
                                     <Badge variant="secondary" className="text-xs">
-                                      +{task.targetHosts.length - 3} 更多
+                                      {t("more", { count: task.targetHosts.length - 3 })}
                                     </Badge>
                                   )}
                                 </div>
@@ -238,7 +239,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                             <div className="flex items-start gap-2 text-sm">
                               <Shield className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                               <div>
-                                <span className="font-medium text-muted-foreground">基线策略:</span>
+                                <span className="font-medium text-muted-foreground">{t("baselinePolicy")}</span>
                                 <div className="mt-1">
                                   {Array.isArray(task.policy) ? (
                                     <div className="flex flex-wrap gap-1">
@@ -249,7 +250,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                                       ))}
                                       {task.policy.length > 3 && (
                                         <Badge variant="outline" className="text-xs">
-                                          +{task.policy.length - 3} 更多
+                                          {t("more", { count: task.policy.length - 3 })}
                                         </Badge>
                                       )}
                                     </div>
@@ -270,7 +271,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                             <div className="flex items-center gap-2 text-sm">
                               <Database className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <div>
-                                <span className="font-medium text-muted-foreground">数据源:</span>
+                                <span className="font-medium text-muted-foreground">{t("dataSource")}</span>
                                 <span className="ml-2">{task.dataSources}</span>
                               </div>
                             </div>
@@ -279,7 +280,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <div>
-                              <span className="font-medium text-muted-foreground">创建时间:</span>
+                              <span className="font-medium text-muted-foreground">{t("createdAt")}</span>
                               <span className="ml-2">{formatDate(task.createdAt)}</span>
                             </div>
                           </div>
@@ -288,7 +289,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                               <div>
-                                <span className="font-medium text-muted-foreground">更新时间:</span>
+                                <span className="font-medium text-muted-foreground">{t("updatedAt")}</span>
                                 <span className="ml-2">{formatDate(task.updatedAt)}</span>
                               </div>
                             </div>
@@ -307,7 +308,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                         disabled={isDeleting}
                       >
                         <Pencil className="h-4 w-4" />
-                        <span className="lg:sr-only">编辑</span>
+                        <span className="lg:sr-only">{t("edit")}</span>
                       </Button>
                       <Button
                         variant="outline"
@@ -321,7 +322,7 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
                         ) : (
                           <Trash2 className="h-4 w-4" />
                         )}
-                        <span className="lg:sr-only">删除</span>
+                        <span className="lg:sr-only">{t("delete")}</span>
                       </Button>
                     </div>
                   </div>
@@ -335,18 +336,18 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogTitle>{t("confirmDelete")}</AlertDialogTitle>
             <AlertDialogDescription>
-              此操作无法撤销。确定要删除这个任务吗？
+              {t("confirmDeleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              删除
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

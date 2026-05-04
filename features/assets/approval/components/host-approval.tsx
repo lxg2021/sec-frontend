@@ -8,6 +8,7 @@ import { HostEditModal } from "./host-edit-modal"
 import { filterHosts } from "@/features/assets/approval/utils"
 import { Button } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
+import { useTranslations } from "next-intl"
 
 export interface HostApprovalProps {
   hosts: Host[]
@@ -26,6 +27,7 @@ export function HostApproval({
   onSubmit,
   onCancel,
 }: HostApprovalProps) {
+  const t = useTranslations("pages.computers.approve")
   const [hosts, setHosts] = useState<Host[]>(initialHosts)
   const [filters, setFilters] = useState<HostFilterOptions>(initialFilters)
   const [currentPage, setCurrentPage] = useState(1)
@@ -122,15 +124,15 @@ export function HostApproval({
 
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          显示 {filteredHosts.length} 个主机中的 {paginatedHosts.length} 个
+          {t("approvalPageSummary", { filtered: filteredHosts.length, shown: paginatedHosts.length })}
         </div>
         <div className="flex gap-3">
           {onCancel && (
             <Button variant="outline" onClick={onCancel}>
-              取消
+              {t("cancel")}
             </Button>
           )}
-          <Button onClick={handleSubmit}>保存更改</Button>
+          <Button onClick={handleSubmit}>{t("saveChanges")}</Button>
         </div>
       </div>
 

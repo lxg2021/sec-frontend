@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/shared/ui/badge"
 import { Progress } from "@/shared/ui/progress"
 import type { AgentHardwareInfo } from "@/features/assets/host/types/hardware"
+import { useTranslations } from "next-intl"
 
 interface HostHardwareAccordionProps {
   hardware: AgentHardwareInfo | null
@@ -24,11 +25,13 @@ function formatMiB(mib: number): string {
 }
 
 export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) {
+  const t = useTranslations("pages.assets.hardware.host.hardwarePanel")
+
   if (!hardware) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <p className="text-muted-foreground">暂无硬件信息</p>
+          <p className="text-muted-foreground">{t("empty")}</p>
         </CardContent>
       </Card>
     )
@@ -41,20 +44,20 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
         <AccordionTrigger className="flex items-center gap-2 hover:no-underline">
           <div className="flex items-center gap-2">
             <Cpu className="h-5 w-5" />
-            <span>CPU 信息</span>
-            <Badge variant="secondary">{hardware.cpu.sockets.length} 个插槽</Badge>
+            <span>{t("cpuInfo")}</span>
+            <Badge variant="secondary">{t("socketCount", { count: hardware.cpu.sockets.length })}</Badge>
           </div>
         </AccordionTrigger>
         <AccordionContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>插槽</TableHead>
-                <TableHead>厂商</TableHead>
-                <TableHead>型号</TableHead>
-                <TableHead>核心数</TableHead>
-                <TableHead>频率 (MHz)</TableHead>
-                <TableHead>缓存</TableHead>
+                <TableHead>{t("socket")}</TableHead>
+                <TableHead>{t("vendor")}</TableHead>
+                <TableHead>{t("model")}</TableHead>
+                <TableHead>{t("cores")}</TableHead>
+                <TableHead>{t("frequency")}</TableHead>
+                <TableHead>{t("cache")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -67,14 +70,14 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div>物理: {socket.physicalCores}</div>
-                      <div>逻辑: {socket.logicalCores}</div>
+                      <div>{t("physical")}: {socket.physicalCores}</div>
+                      <div>{t("logical")}: {socket.logicalCores}</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="space-y-1">
-                      <div>当前: {socket.currentFrequencyMHz}</div>
-                      <div>最大: {socket.maxFrequencyMHz}</div>
+                      <div>{t("current")}: {socket.currentFrequencyMHz}</div>
+                      <div>{t("max")}: {socket.maxFrequencyMHz}</div>
                     </div>
                   </TableCell>
                   <TableCell>{formatBytes(socket.cacheSizeBytes)}</TableCell>
@@ -90,20 +93,20 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
         <AccordionTrigger className="flex items-center gap-2 hover:no-underline">
           <div className="flex items-center gap-2">
             <MemoryStick className="h-5 w-5" />
-            <span>内存信息</span>
-            <Badge variant="secondary">{hardware.rams.length} 个模块</Badge>
+            <span>{t("memoryInfo")}</span>
+            <Badge variant="secondary">{t("moduleCount", { count: hardware.rams.length })}</Badge>
           </div>
         </AccordionTrigger>
         <AccordionContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>厂商</TableHead>
-                <TableHead>型号</TableHead>
-                <TableHead>名称</TableHead>
-                <TableHead>容量</TableHead>
-                <TableHead>使用情况</TableHead>
-                <TableHead>序列号</TableHead>
+                <TableHead>{t("vendor")}</TableHead>
+                <TableHead>{t("model")}</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("capacity")}</TableHead>
+                <TableHead>{t("usage")}</TableHead>
+                <TableHead>{t("serialNumber")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -118,7 +121,7 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
                     <TableCell>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span>已用: {formatMiB(ram.usedMiB)}</span>
+                          <span>{t("used")}: {formatMiB(ram.usedMiB)}</span>
                           <span>{usagePercent.toFixed(1)}%</span>
                         </div>
                         <Progress value={usagePercent} className="h-2" />
@@ -138,18 +141,18 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
         <AccordionTrigger className="flex items-center gap-2 hover:no-underline">
           <div className="flex items-center gap-2">
             <HardDrive className="h-5 w-5" />
-            <span>存储信息</span>
-            <Badge variant="secondary">{hardware.disks.disks.length} 个硬盘</Badge>
+            <span>{t("storageInfo")}</span>
+            <Badge variant="secondary">{t("diskCount", { count: hardware.disks.disks.length })}</Badge>
           </div>
         </AccordionTrigger>
         <AccordionContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>厂商</TableHead>
-                <TableHead>型号</TableHead>
-                <TableHead>容量</TableHead>
-                <TableHead>序列号</TableHead>
+                <TableHead>{t("vendor")}</TableHead>
+                <TableHead>{t("model")}</TableHead>
+                <TableHead>{t("capacity")}</TableHead>
+                <TableHead>{t("serialNumber")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -172,8 +175,8 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
           <AccordionTrigger className="flex items-center gap-2 hover:no-underline">
             <div className="flex items-center gap-2">
               <Monitor className="h-5 w-5" />
-              <span>显卡信息</span>
-              <Badge variant="secondary">{hardware.gpus.gpus.length} 个显卡</Badge>
+              <span>{t("gpuInfo")}</span>
+              <Badge variant="secondary">{t("gpuCount", { count: hardware.gpus.gpus.length })}</Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -181,11 +184,11 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>厂商</TableHead>
-                  <TableHead>型号</TableHead>
-                  <TableHead>显存</TableHead>
-                  <TableHead>频率 (MHz)</TableHead>
-                  <TableHead>驱动版本</TableHead>
+                  <TableHead>{t("vendor")}</TableHead>
+                  <TableHead>{t("model")}</TableHead>
+                  <TableHead>{t("memory")}</TableHead>
+                  <TableHead>{t("frequency")}</TableHead>
+                  <TableHead>{t("driverVersion")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -199,8 +202,8 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
                     <TableCell>{formatMiB(gpu.memoryMiB)}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <div>当前: {gpu.currentFrequencyMHz}</div>
-                        <div>最大: {gpu.maxFrequencyMHz}</div>
+                        <div>{t("current")}: {gpu.currentFrequencyMHz}</div>
+                        <div>{t("max")}: {gpu.maxFrequencyMHz}</div>
                       </div>
                     </TableCell>
                     <TableCell>{gpu.driverVersion}</TableCell>
@@ -218,8 +221,8 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
           <AccordionTrigger className="flex items-center gap-2 hover:no-underline">
             <div className="flex items-center gap-2">
               <Wifi className="h-5 w-5" />
-              <span>网络信息</span>
-              <Badge variant="secondary">{hardware.networkInterfaces.interfaces.length} 个网卡</Badge>
+              <span>{t("networkInfo")}</span>
+              <Badge variant="secondary">{t("nicCount", { count: hardware.networkInterfaces.interfaces.length })}</Badge>
             </div>
           </AccordionTrigger>
           <AccordionContent>
@@ -227,12 +230,12 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>名称</TableHead>
-                  <TableHead>厂商</TableHead>
-                  <TableHead>MAC地址</TableHead>
-                  <TableHead>IP地址</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>速度</TableHead>
+                  <TableHead>{t("name")}</TableHead>
+                  <TableHead>{t("vendor")}</TableHead>
+                  <TableHead>{t("macAddress")}</TableHead>
+                  <TableHead>{t("ipAddress")}</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead>{t("speed")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -254,9 +257,11 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={nic.enabled ? "default" : "secondary"}>{nic.enabled ? "启用" : "禁用"}</Badge>
+                      <Badge variant={nic.enabled ? "default" : "secondary"}>
+                        {nic.enabled ? t("enabled") : t("disabled")}
+                      </Badge>
                     </TableCell>
-                    <TableCell>{nic.speedMbps > 0 ? `${nic.speedMbps} Mbps` : "未知"}</TableCell>
+                    <TableCell>{nic.speedMbps > 0 ? `${nic.speedMbps} Mbps` : t("unknown")}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -270,7 +275,7 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
         <AccordionTrigger className="flex items-center gap-2 hover:no-underline">
           <div className="flex items-center gap-2">
             <Motherboard className="h-5 w-5" />
-            <span>主板信息</span>
+            <span>{t("motherboardInfo")}</span>
           </div>
         </AccordionTrigger>
         <AccordionContent>
@@ -278,19 +283,19 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
             <CardContent className="pt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">厂商</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t("vendor")}</label>
                   <p className="text-sm">{hardware.mainBoard.vendor}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">型号</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t("model")}</label>
                   <p className="text-sm">{hardware.mainBoard.name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">版本</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t("version")}</label>
                   <p className="text-sm">{hardware.mainBoard.version}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">序列号</label>
+                  <label className="text-sm font-medium text-muted-foreground">{t("serialNumber")}</label>
                   <p className="text-sm font-mono">{hardware.mainBoard.serialNumber}</p>
                 </div>
               </div>

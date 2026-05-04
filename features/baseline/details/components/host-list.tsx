@@ -29,6 +29,7 @@ import {
   Clock,
 } from "lucide-react"
 import FixDropdownMenu from "@/shared/components/menu/fix-dropdown-menu"
+import { useTranslations } from "next-intl"
 
 // 表头图标+文字组件，减少重复
 const HeaderCell = ({ icon: Icon, children }) => (
@@ -63,6 +64,7 @@ export default function HostList({
   handleHostFixMethodSelect,
   getHostFixMethod,
 }) {
+  const t = useTranslations("pages.baseline.details")
   const selectedAll =
     selectedHosts.length === filteredData.length && filteredData.length > 0
   const failedCount = filteredData.filter((h) => h.status === "failed").length
@@ -72,14 +74,14 @@ export default function HostList({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium text-gray-900">
-            影响主机列表
+            {t("hostListTitle")}
           </CardTitle>
           <div className="flex items-center space-x-2">
             <Badge variant="outline" className="bg-gray-50 text-gray-700">
-              共 {filteredData.length} 台主机
+              {t("hostCount", { count: filteredData.length })}
             </Badge>
             <Badge variant="outline" className="bg-red-50 text-red-700">
-              {failedCount} 台不合规
+              {t("nonCompliantCount", { count: failedCount })}
             </Badge>
           </div>
         </div>
@@ -91,7 +93,7 @@ export default function HostList({
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="搜索主机ID、使用者或邮箱..."
+                placeholder={t("searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -103,17 +105,17 @@ export default function HostList({
               className="text-gray-600 hover:text-gray-800 bg-transparent"
             >
               <RefreshCw className="h-4 w-4 mr-2" />
-              清空筛选
+              {t("clearFilters")}
             </Button>
           </div>
 
           <div className="grid grid-cols-4 gap-4">
             <Select value={filterUser} onValueChange={setFilterUser}>
               <SelectTrigger>
-                <SelectValue placeholder="筛选使用者" />
+                <SelectValue placeholder={t("filterUser")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部使用者</SelectItem>
+                <SelectItem value="all">{t("allUsers")}</SelectItem>
                 {uniqueUsers.map((user) => (
                   <SelectItem key={user} value={user}>
                     {user}
@@ -124,10 +126,10 @@ export default function HostList({
 
             <Select value={filterDepartment} onValueChange={setFilterDepartment}>
               <SelectTrigger>
-                <SelectValue placeholder="筛选部门" />
+                <SelectValue placeholder={t("filterDepartment")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部部门</SelectItem>
+                <SelectItem value="all">{t("allDepartments")}</SelectItem>
                 {uniqueDepartments.map((dept) => (
                   <SelectItem key={dept} value={dept}>
                     {dept}
@@ -138,10 +140,10 @@ export default function HostList({
 
             <Select value={filterOS} onValueChange={setFilterOS}>
               <SelectTrigger>
-                <SelectValue placeholder="筛选操作系统" />
+                <SelectValue placeholder={t("filterOs")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部系统</SelectItem>
+                <SelectItem value="all">{t("allSystems")}</SelectItem>
                 {uniqueOS.map((os) => (
                   <SelectItem key={os} value={os}>
                     {os}
@@ -151,7 +153,7 @@ export default function HostList({
             </Select>
 
             <Input
-              placeholder="筛选主机ID"
+              placeholder={t("filterHostId")}
               value={filterHostId}
               onChange={(e) => setFilterHostId(e.target.value)}
             />
@@ -162,7 +164,7 @@ export default function HostList({
           <div className="flex items-center space-x-4">
             <Checkbox checked={selectedAll} onCheckedChange={handleSelectAll} />
             <span className="text-sm text-gray-700">
-              已选择 {selectedHosts.length} 台主机
+              {t("selectedHosts", { count: selectedHosts.length })}
             </span>
           </div>
 
@@ -183,28 +185,28 @@ export default function HostList({
                   <Checkbox checked={selectedAll} onCheckedChange={handleSelectAll} />
                 </th>
                 <th className="text-left py-3 px-4">
-                  <HeaderCell icon={Hash}>主机ID</HeaderCell>
+                  <HeaderCell icon={Hash}>{t("hostId")}</HeaderCell>
                 </th>
                 <th className="text-left py-3 px-4">
-                  <HeaderCell icon={Users}>使用者</HeaderCell>
+                  <HeaderCell icon={Users}>{t("user")}</HeaderCell>
                 </th>
                 <th className="text-left py-3 px-4">
                   <HeaderCell icon={Mail}>Email</HeaderCell>
                 </th>
                 <th className="text-left py-3 px-4">
-                  <HeaderCell icon={Phone}>电话</HeaderCell>
+                  <HeaderCell icon={Phone}>{t("phone")}</HeaderCell>
                 </th>
                 <th className="text-left py-3 px-4">
-                  <HeaderCell icon={Building}>所属部门</HeaderCell>
+                  <HeaderCell icon={Building}>{t("department")}</HeaderCell>
                 </th>
                 <th className="text-left py-3 px-4">
-                  <HeaderCell icon={Monitor}>操作系统</HeaderCell>
+                  <HeaderCell icon={Monitor}>{t("os")}</HeaderCell>
                 </th>
                 <th className="text-left py-3 px-4">
-                  <HeaderCell icon={Clock}>最近上线时间</HeaderCell>
+                  <HeaderCell icon={Clock}>{t("lastOnline")}</HeaderCell>
                 </th>
-                <th className="text-left py-3 px-4">检查结果</th>
-                <th className="text-left py-3 px-4">操作</th>
+                <th className="text-left py-3 px-4">{t("checkResult")}</th>
+                <th className="text-left py-3 px-4">{t("actions")}</th>
               </tr>
             </thead>
 
@@ -271,10 +273,8 @@ export default function HostList({
         {filteredData.length === 0 && (
           <div className="text-center py-12">
             <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              未找到匹配的主机
-            </h3>
-            <p className="text-gray-500">请尝试调整筛选条件或搜索关键词</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t("noMatchTitle")}</h3>
+            <p className="text-gray-500">{t("noMatchDescription")}</p>
           </div>
         )}
       </CardContent>

@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronUp
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function DetailsCard({
   itemName = "密码复杂度策略",
@@ -19,6 +20,7 @@ export default function DetailsCard({
   riskLevel = "中风险",
   CategoryIcon = FileText,
 }) {
+  const t = useTranslations("pages.baseline.details")
   const [isCollapsed, setIsCollapsed] = useState(false)
 
   const toggleCollapse = () => {
@@ -52,7 +54,7 @@ export default function DetailsCard({
               <button
                 onClick={toggleCollapse}
                 className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-                aria-label={isCollapsed ? "展开卡片" : "收起卡片"}
+                aria-label={isCollapsed ? t("expandCard") : t("collapseCard")}
               >
                 {isCollapsed ? (
                   <ChevronDown className="h-5 w-5 text-gray-600" />
@@ -72,7 +74,7 @@ export default function DetailsCard({
                 <div className="p-2 bg-blue-100 rounded-lg shadow-inner">
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800">详细描述</h3>
+                <h3 className="text-xl font-semibold text-gray-800">{t("descriptionTitle")}</h3>
               </div>
               <div className="pl-11 space-y-4">
                 <p className="text-gray-700 leading-relaxed">
@@ -83,7 +85,7 @@ export default function DetailsCard({
                   <div className="flex items-start space-x-3">
                     <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-amber-800 font-semibold">安全风险</p>
+                      <p className="text-amber-800 font-semibold">{t("riskTitle")}</p>
                       <p className="text-amber-700 text-sm mt-1 leading-relaxed">
                         未启用密码复杂度策略可能导致账户被恶意攻击者轻易破解，进而获取系统访问权限。
                       </p>
@@ -99,7 +101,7 @@ export default function DetailsCard({
                 <div className="p-2 bg-green-100 rounded-lg shadow-inner">
                   <Lightbulb className="h-5 w-5 text-green-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800">修复建议</h3>
+                <h3 className="text-xl font-semibold text-gray-800">{t("fixTitle")}</h3>
               </div>
               <div className="pl-11 space-y-6">
                 <p className="text-gray-700 leading-relaxed">
@@ -110,15 +112,15 @@ export default function DetailsCard({
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-200 shadow-sm">
                   <h4 className="font-semibold text-green-800 mb-4 flex items-center space-x-2">
                     <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span>具体修复步骤</span>
+                    <span>{t("stepsTitle")}</span>
                   </h4>
                   <ol className="list-decimal list-inside space-y-3 text-green-700 text-sm leading-relaxed marker:font-semibold marker:text-green-600">
-                    <li className="pl-2">登录系统管理控制台</li>
-                    <li className="pl-2">导航至"安全策略" → "密码策略"</li>
-                    <li className="pl-2">启用"密码复杂度要求"选项</li>
-                    <li className="pl-2">设置最小密码长度为8位</li>
-                    <li className="pl-2">要求包含大写、小写、数字、特殊字符中至少3种</li>
-                    <li className="pl-2">保存配置并重启相关服务</li>
+                    <li className="pl-2">{t("step1")}</li>
+                    <li className="pl-2">{t("step2")}</li>
+                    <li className="pl-2">{t("step3")}</li>
+                    <li className="pl-2">{t("step4")}</li>
+                    <li className="pl-2">{t("step5")}</li>
+                    <li className="pl-2">{t("step6")}</li>
                   </ol>
                 </div>
 
@@ -126,15 +128,15 @@ export default function DetailsCard({
                 <div className="flex flex-wrap gap-3 pt-2">
                   <a href="#" className="inline-flex items-center px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-all duration-200 group shadow-sm hover:shadow-md">
                     <ExternalLink className="h-4 w-4 mr-2 group-hover:translate-x-0.5 transition-transform" />
-                    <span className="font-medium text-sm">详细配置指南</span>
+                    <span className="font-medium text-sm">{t("guideLink")}</span>
                   </a>
                   <a href="#" className="inline-flex items-center px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg border border-purple-200 transition-all duration-200 group shadow-sm hover:shadow-md">
                     <BookOpen className="h-4 w-4 mr-2 group-hover:scale-105 transition-transform" />
-                    <span className="font-medium text-sm">最佳实践</span>
+                    <span className="font-medium text-sm">{t("bestPracticeLink")}</span>
                   </a>
                   <a href="#" className="inline-flex items-center px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 transition-all duration-200 group shadow-sm hover:shadow-md">
                     <Video className="h-4 w-4 mr-2 group-hover:scale-105 transition-transform" />
-                    <span className="font-medium text-sm">视频教程</span>
+                    <span className="font-medium text-sm">{t("videoLink")}</span>
                   </a>
                 </div>
               </div>

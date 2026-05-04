@@ -4,10 +4,12 @@ import { useState, useEffect } from "react"
 import {
   ChevronRight,
   Bell,
+  Languages,
   Moon,
   RefreshCw,
   Sun,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
@@ -22,6 +24,7 @@ import {
 } from "@/features/user/api"
 import { SidebarUser } from "@/features/shell/components/sidebar-user"
 import { menuItems } from "@/features/shell/navigation"
+import { useLocaleSwitch } from "@/shared/i18n/use-locale-switch"
 
 const SIDEBAR_WIDTH = {
   COLLAPSED: "w-16",
@@ -38,6 +41,12 @@ const VISUAL_STYLE_STORAGE_KEY = "watchpoint-visual-style"
 export function FrameLayout({ children }) {
   const pathname = usePathname()
   const router = useRouter()
+  const tShell = useTranslations("shell")
+  const tNav = useTranslations("navigation")
+  const tCommon = useTranslations("common")
+  const tTheme = useTranslations("theme")
+  const tLanguage = useTranslations("language")
+  const { toggleLocale } = useLocaleSwitch()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [expandedMenu, setExpandedMenu] = useState(null)
@@ -144,19 +153,19 @@ export function FrameLayout({ children }) {
   }
 
   const getBreadcrumbPath = () => {
-    const basePath = [{ label: "WatchPoint", id: "root" }]
+    const basePath = [{ label: tShell("breadcrumbRoot"), id: "root" }]
     for (const item of menuItems) {
       if (item.id === activeSectionId) {
-        return [...basePath, { label: item.label, id: item.id }]
+        return [...basePath, { label: tNav(item.labelKey), id: item.id }]
       }
       if (item.submenu) {
         const subItem = item.submenu.find((sub) => sub.id === activeSectionId)
         if (subItem) {
-          return [...basePath, { label: item.label, id: item.id }, { label: subItem.label, id: subItem.id }]
+          return [...basePath, { label: tNav(item.labelKey), id: item.id }, { label: tNav(subItem.labelKey), id: subItem.id }]
         }
       }
     }
-    return [...basePath, { label: "Dashboard", id: "dashboard" }]
+    return [...basePath, { label: tShell("fallbackPage"), id: "dashboard" }]
   }
 
   return (
@@ -198,7 +207,7 @@ export function FrameLayout({ children }) {
               size="icon"
               onClick={toggleSidebar}
               className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"}
-              aria-label={sidebarCollapsed ? "展开侧边栏" : "折叠侧边栏"}
+              aria-label={sidebarCollapsed ? tShell("expandSidebar") : tShell("collapseSidebar")}
             >
               <ChevronRight
                 className={`w-5 h-5 transition-transform duration-300 ${sidebarCollapsed ? "" : "rotate-180"}`}
@@ -221,7 +230,7 @@ export function FrameLayout({ children }) {
                     onClick={() => handleMenuItemClick(item)}
                     className={getMenuItemClassName(isActive)}
                     aria-expanded={item.submenu ? expandedMenu === item.id : undefined}
-                    aria-label={item.label}
+                    aria-label={tNav(item.labelKey)}
                   >
                     {isActive && (
                       <div className={isClassicStyle ? "absolute left-0 top-0 w-1 h-full bg-blue-600 rounded-r-full" : "absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-sky-400 to-cyan-400 rounded-r-full"} />
@@ -235,7 +244,7 @@ export function FrameLayout({ children }) {
                     </div>
                     {!sidebarCollapsed && (
                       <>
-                        <span className="text-sm font-medium tracking-wide">{item.label}</span>
+                        <span className="text-sm font-medium tracking-wide">{tNav(item.labelKey)}</span>
                         {item.submenu && (
                           <ChevronRight
                             className={`w-4 h-4 ml-auto transition-transform duration-300 ${expandedMenu === item.id ? "rotate-90" : ""
@@ -258,7 +267,7 @@ export function FrameLayout({ children }) {
                             onClick={() => handleSubMenuItemClick(subItem)}
                             style={{ animationDelay: `${subIndex * ANIMATION_DELAYS.SUBMENU_ITEM}ms` }}
                             className={getSubMenuItemClassName(isSubActive)}
-                            aria-label={subItem.label}
+                            aria-label={tNav(subItem.labelKey)}
                           >
                             {isSubActive && (
                               <div className={isClassicStyle ? "absolute left-0 top-0 w-1 h-full bg-blue-600 rounded-r-full" : "absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-blue-300 to-blue-200 rounded-r-full"} />
@@ -270,7 +279,7 @@ export function FrameLayout({ children }) {
                               />
                               {isSubActive && !isClassicStyle && <div className="absolute inset-0 bg-blue-300/20 rounded-lg blur-sm -z-10" />}
                             </div>
-                            <span className="text-xs font-medium tracking-wide">{subItem.label}</span>
+                            <span className="text-xs font-medium tracking-wide">{tNav(subItem.labelKey)}</span>
                           </button>
                         )
                       })}
@@ -331,16 +340,26 @@ export function FrameLayout({ children }) {
               size="icon"
               onClick={toggleVisualStyle}
               className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"}
-              aria-label={isClassicStyle ? "切换到科技风格" : "切换到专业风格"}
-              title={isClassicStyle ? "切换到科技风格" : "切换到专业风格"}
+              aria-label={isClassicStyle ? tTheme("switchToCyber") : tTheme("switchToClassic")}
+              title={isClassicStyle ? tTheme("switchToCyber") : tTheme("switchToClassic")}
             >
               {isClassicStyle ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
             <Button
               variant="ghost"
               size="icon"
+              onClick={toggleLocale}
+              className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"}
+              aria-label={tLanguage("switchTo")}
+              title={tLanguage("switchTo")}
+            >
+              <Languages className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200 relative group" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20 relative group"}
-              aria-label="通知"
+              aria-label={tCommon("notifications")}
             >
               <Bell className="w-4 h-4" />
               <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse" aria-hidden="true" />
@@ -349,7 +368,7 @@ export function FrameLayout({ children }) {
               variant="ghost"
               size="icon"
               className={isClassicStyle ? "text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200 border border-transparent hover:border-blue-200" : "text-slate-400 hover:text-sky-400 hover:bg-sky-400/10 rounded-lg transition-all duration-200 border border-transparent hover:border-sky-400/20"}
-              aria-label="刷新"
+              aria-label={tCommon("refresh")}
             >
               <RefreshCw className="w-4 h-4" />
             </Button>

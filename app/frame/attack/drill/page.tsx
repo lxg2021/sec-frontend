@@ -24,10 +24,12 @@ import {
 } from "@/shared/ui/card";
 import { KillChainTimeline } from "@/features/attack/kill-chain/components/kill-chain-timeline"
 import { initialNodes, initialLinks, demoUpdates } from "@/features/attack/mock/drill";
+import { useTranslations } from "next-intl"
 
 
 
 export default function App() {
+  const t = useTranslations("pages.attack.drill")
 
   const [resetKey, setResetKey] = useState(0)
   const [nodes, setNodes] = useState<GraphNode<any>[]>(initialNodes);
@@ -111,8 +113,8 @@ export default function App() {
               <Shield className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">溯源详情</h1>
-              <p className="text-sm text-gray-500 mt-1">Attack Investigation Details</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
         </div>
@@ -125,9 +127,9 @@ export default function App() {
                 <Workflow className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <CardTitle className="text-lg font-bold text-gray-900">攻击时间线</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-900">{t("timeline")}</CardTitle>
                 <CardDescription className="text-sm text-gray-500">
-                  APT Timeline
+                  {t("timelineDescription")}
                 </CardDescription>
               </div>
             </div>
@@ -150,7 +152,7 @@ export default function App() {
                   <Shield className="h-5 w-5 text-white" />
                 </div>
                 <CardTitle className="text-lg md:text-xl font-semibold">
-                  溯源图谱
+                  {t("graph")}
                 </CardTitle>
               </div>
             </div>
@@ -190,7 +192,7 @@ export default function App() {
               onInteractOutside={(e) => e.preventDefault()}
             >
               {/* 添加隐藏的 SheetTitle 用于可访问性 */}
-              <SheetTitle className="sr-only">节点详情面板</SheetTitle>
+              <SheetTitle className="sr-only">{t("sheetTitle")}</SheetTitle>
 
               {/* 拖拽条 */}
               <div

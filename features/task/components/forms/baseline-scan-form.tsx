@@ -15,6 +15,7 @@ import HostSelector from "@/features/baseline/dispatch/components/host-selector"
 import { mockData } from "@/features/baseline/dispatch/mock/host-tree"
 import { type BaselineScanTask, createBaselineScanTask, type BaselinePolicyType } from "@/features/task/models/baseline-scan-task"
 import type { PeriodUnit, ScheduleMode } from "@/features/task/models/task-base"
+import { useTranslations } from "next-intl"
 
 // 导入 lucide-react 图标
 import {
@@ -57,6 +58,7 @@ const isValidPolicyType = (value: string): value is BaselinePolicyType => {
 }
 
 export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineScanFormProps) {
+  const t = useTranslations("pages.control.task.forms.baseline")
   const [name, setName] = useState(initialData?.name || "")
   const [enabled, setEnabled] = useState(initialData?.enabled ?? true)
   const [targetHosts, setTargetHosts] = useState(initialData?.targetHosts.join("; ") || "")
@@ -121,35 +123,35 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
     const errors: string[] = []
     
     if (!name.trim()) {
-      errors.push("任务名称不能为空")
+      errors.push(t("taskNameRequired"))
     }
     
     if (!targetHosts.trim()) {
-      errors.push("目标主机不能为空")
+      errors.push(t("targetHostsRequired"))
     }
     
     if (policies.length === 0) {
-      errors.push("请至少选择一个基线策略")
+      errors.push(t("policyRequired"))
     }
     
     // 验证策略类型
     const invalidPolicies = policies.filter(policy => !isValidPolicyType(policy))
     if (invalidPolicies.length > 0) {
-      errors.push(`发现无效的策略类型: ${invalidPolicies.join(", ")}`)
+      errors.push(`${t("invalidPolicy")}: ${invalidPolicies.join(", ")}`)
     }
     
     if (scheduleMode === "SCHEDULED") {
       if (!startTime) {
-        errors.push("开始时间不能为空")
+        errors.push(t("startTimeRequired"))
       }
       if (periodValue < 1) {
-        errors.push("周期数值必须大于0")
+        errors.push(t("periodValueInvalid"))
       }
     }
     
     setFormErrors(errors)
     return errors.length === 0
-  }, [name, targetHosts, policies, scheduleMode, startTime, periodValue])
+  }, [name, targetHosts, policies, scheduleMode, startTime, periodValue, t])
 
   // 修复：使用 useCallback 包装提交函数
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -235,7 +237,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
           <div className="flex items-center mb-2">
             <X className="h-5 w-5 text-destructive mr-2" />
-            <h3 className="text-lg font-semibold text-destructive">表单验证失败</h3>
+            <h3 className="text-lg font-semibold text-destructive">{t("validationFailed")}</h3>
           </div>
           <ul className="list-disc list-inside space-y-1">
             {formErrors.map((error, index) => (
@@ -249,7 +251,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
           <Scan className="h-5 w-5 mr-2 text-blue-500" />
-          <h3 className="text-lg font-semibold">基础信息</h3>
+          <h3 className="text-lg font-semibold">{t("basicInfo")}</h3>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
@@ -258,7 +260,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="输入任务名称"
+                placeholder={t("namePlaceholder")}
                 required
                 className="w-full pl-9"
               />
@@ -273,7 +275,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               onCheckedChange={setEnabled} 
             />
             <Label htmlFor="enabled" className="text-sm font-medium flex items-center">
-              启用任务
+              {t("enableTask")}
             </Label>
           </div>
         </div>
@@ -283,7 +285,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
           <Server className="h-5 w-5 mr-2 text-green-500" />
-          <h3 className="text-lg font-semibold">扫描目标</h3>
+          <h3 className="text-lg font-semibold">{t("targetTitle")}</h3>
         </div>
         <div className="space-y-3">
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -292,7 +294,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
                 id="targetHosts"
                 value={targetHosts}
                 onChange={(e) => setTargetHosts(e.target.value)}
-                placeholder="输入主机 ID，用分号分隔。例如：host-001; host-002"
+                placeholder={t("targetPlaceholder")}
                 required
                 className="w-full pl-9"
               />
@@ -302,14 +304,14 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               <DialogTrigger asChild>
                 <Button type="button" variant="outline" className="whitespace-nowrap">
                   <Scan className="mr-2 h-4 w-4" />
-                  选择主机
+                  {t("selectHosts")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader className="flex-shrink-0">
                   <div className="flex items-center">
                     <Server className="h-5 w-5 mr-2 text-green-500" />
-                    <DialogTitle>选择目标主机</DialogTitle>
+                    <DialogTitle>{t("selectTargetHosts")}</DialogTitle>
                   </div>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto min-h-0">
@@ -325,14 +327,14 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
                     onClick={() => setIsHostSelectorOpen(false)}
                   >
                     <X className="mr-2 h-4 w-4" />
-                    取消
+                    {t("cancel")}
                   </Button>
                   <Button 
                     type="button" 
                     onClick={() => setIsHostSelectorOpen(false)}
                   >
                     <Save className="mr-2 h-4 w-4" />
-                    确认选择
+                    {t("confirmSelection")}
                   </Button>
                 </div>
               </DialogContent>
@@ -345,7 +347,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
           <Shield className="h-5 w-5 mr-2 text-purple-500" />
-          <h3 className="text-lg font-semibold">基线策略</h3>
+          <h3 className="text-lg font-semibold">{t("policyTitle")}</h3>
         </div>
         
         <div className="space-y-4">
@@ -358,7 +360,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
             />
             <Label htmlFor="select-all" className="font-medium cursor-pointer flex items-center">
-              全选策略
+              {t("selectAllPolicies")}
             </Label>
           </div>
 
@@ -375,7 +377,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
           <Calendar className="h-5 w-5 mr-2 text-purple-500" />
-          <h3 className="text-lg font-semibold">调度设置</h3>
+          <h3 className="text-lg font-semibold">{t("scheduleTitle")}</h3>
         </div>
 
         <div className="space-y-4">
@@ -389,8 +391,8 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               <Label htmlFor="immediate" className="font-normal cursor-pointer flex items-start w-full">
                 <Zap className="h-5 w-5 mr-3 text-yellow-500 mt-0.5" />
                 <div>
-                  <div className="font-medium">立即执行</div>
-                  <div className="text-xs text-muted-foreground mt-1">提交后立即开始执行扫描任务</div>
+                  <div className="font-medium">{t("immediate")}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{t("immediateDescription")}</div>
                 </div>
               </Label>
             </div>
@@ -399,8 +401,8 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               <Label htmlFor="scheduled" className="font-normal cursor-pointer flex items-start w-full">
                 <CalendarClock className="h-5 w-5 mr-3 text-blue-500 mt-0.5" />
                 <div>
-                  <div className="font-medium">定时执行</div>
-                  <div className="text-xs text-muted-foreground mt-1">在指定时间开始执行，并可设置重复周期</div>
+                  <div className="font-medium">{t("scheduled")}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{t("scheduledDescription")}</div>
                 </div>
               </Label>
             </div>
@@ -412,7 +414,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
                 <div className="space-y-2">
                   <Label htmlFor="startTime" className="text-sm font-medium flex items-center">
                     <CalendarClock className="h-4 w-4 mr-1 text-muted-foreground" />
-                    开始时间 <span className="text-red-500 ml-1">*</span>
+                    {t("startTime")} <span className="text-red-500 ml-1">*</span>
                   </Label>
                   <div className="relative">
                     <Input
@@ -430,14 +432,14 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
                 <div className="space-y-2">
                   <Label htmlFor="timezone" className="text-sm font-medium flex items-center">
                     <Globe className="h-4 w-4 mr-1 text-muted-foreground" />
-                    时区
+                    {t("timezone")}
                   </Label>
                   <div className="relative">
                     <Input
                       id="timezone"
                       value={timezone}
                       onChange={(e) => setTimezone(e.target.value)}
-                      placeholder="例如: Asia/Shanghai"
+                      placeholder={t("timezonePlaceholder")}
                       className="w-full pl-9"
                     />
                     <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -448,12 +450,12 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
               <div className="border-t pt-4">
                 <Label className="text-sm font-medium mb-3 block flex items-center">
                   <Repeat className="h-4 w-4 mr-1 text-muted-foreground" />
-                  重复设置
+                  {t("repeatSettings")}
                 </Label>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="periodValue" className="text-sm font-medium">
-                      周期数值 <span className="text-red-500">*</span>
+                      {t("periodValue")} <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Input
@@ -471,7 +473,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
 
                   <div className="space-y-2">
                     <Label htmlFor="periodUnit" className="text-sm font-medium">
-                      周期单位 <span className="text-red-500">*</span>
+                      {t("periodUnit")} <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                       <Select value={periodUnit} onValueChange={(v) => setPeriodUnit(v as PeriodUnit)}>
@@ -479,11 +481,11 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="minutes">分钟</SelectItem>
-                          <SelectItem value="hours">小时</SelectItem>
-                          <SelectItem value="days">天</SelectItem>
-                          <SelectItem value="weeks">周</SelectItem>
-                          <SelectItem value="months">月</SelectItem>
+                          <SelectItem value="minutes">{t("unitMinutes")}</SelectItem>
+                          <SelectItem value="hours">{t("unitHours")}</SelectItem>
+                          <SelectItem value="days">{t("unitDays")}</SelectItem>
+                          <SelectItem value="weeks">{t("unitWeeks")}</SelectItem>
+                          <SelectItem value="months">{t("unitMonths")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
@@ -506,7 +508,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
             className="sm:flex-1 max-sm:w-full"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
-            取消
+            {t("cancelAction")}
           </Button>
         )}
         <Button
@@ -517,12 +519,12 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
           {initialData ? (
             <>
               <Save className="mr-2 h-4 w-4" />
-              更新任务
+              {t("updateTask")}
             </>
           ) : (
             <>
               <Plus className="mr-2 h-4 w-4" />
-              创建任务
+              {t("createTask")}
             </>
           )}
         </Button>

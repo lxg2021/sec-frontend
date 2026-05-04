@@ -21,9 +21,11 @@ import nodeRegistry, { getNodeRegistry } from "@/features/attack/graph/center/re
 import edgeRegistry, { getEdgeRegistry } from "@/features/attack/graph/center/register-edge-center";
 import NodeEdgeAccordion from "@/features/attack/graph/components/node-edge-accordion";
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet";
+import { useTranslations } from "next-intl";
 
 
 export default function Home() {
+  const t = useTranslations("pages.attack.positioning")
   const [nodes, setNodes] = useState<GraphNode<any>[]>(initPositionNodes);
   const [links, setLinks] = useState<GraphLink<{}>[]>(initPositionLinks);
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
@@ -72,8 +74,8 @@ export default function Home() {
               <Shield className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">数据定位</h1>
-              <p className="text-sm text-gray-500 mt-1">Pinpoint Data Source</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
         </div>
@@ -86,9 +88,9 @@ export default function Home() {
                 <Workflow className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <CardTitle className="text-lg font-bold text-gray-900">搜索查询</CardTitle>
+                <CardTitle className="text-lg font-bold text-gray-900">{t("searchTitle")}</CardTitle>
                 <CardDescription className="text-sm text-gray-500">
-                  输入 IP、DNS、MD5 或端口进行查询
+                  {t("searchDescription")}
                 </CardDescription>
               </div>
             </div>
@@ -115,7 +117,7 @@ export default function Home() {
                   <Shield className="h-5 w-5 text-white" />
                 </div>
                 <CardTitle className="text-lg md:text-xl font-semibold">
-                  数据图谱
+                  {t("graph")}
                 </CardTitle>
               </div>
             </div>
@@ -156,7 +158,7 @@ export default function Home() {
               onInteractOutside={(e) => e.preventDefault()}
             >
               {/* 添加隐藏的 SheetTitle 用于可访问性 */}
-              <SheetTitle className="sr-only">节点详情面板</SheetTitle>
+              <SheetTitle className="sr-only">{t("sheetTitle")}</SheetTitle>
 
               {/* 拖拽条 */}
               <div

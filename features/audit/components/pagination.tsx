@@ -2,6 +2,7 @@
 
 import { Button } from "@/shared/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface PaginationProps {
   currentPage: number
@@ -12,6 +13,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ currentPage, totalPages, setPage, totalItems, itemsPerPage }: PaginationProps) {
+  const t = useTranslations("pages.audit.pagination")
   const startItem = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1
   const endItem = Math.min(currentPage * itemsPerPage, totalItems)
 
@@ -23,28 +25,26 @@ export function Pagination({ currentPage, totalPages, setPage, totalItems, items
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i)
       }
-    } else {
-      if (currentPage <= 4) {
-        for (let i = 1; i <= 5; i++) {
-          pages.push(i)
-        }
-        pages.push("...")
-        pages.push(totalPages)
-      } else if (currentPage >= totalPages - 3) {
-        pages.push(1)
-        pages.push("...")
-        for (let i = totalPages - 4; i <= totalPages; i++) {
-          pages.push(i)
-        }
-      } else {
-        pages.push(1)
-        pages.push("...")
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i)
-        }
-        pages.push("...")
-        pages.push(totalPages)
+    } else if (currentPage <= 4) {
+      for (let i = 1; i <= 5; i++) {
+        pages.push(i)
       }
+      pages.push("...")
+      pages.push(totalPages)
+    } else if (currentPage >= totalPages - 3) {
+      pages.push(1)
+      pages.push("...")
+      for (let i = totalPages - 4; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      pages.push(1)
+      pages.push("...")
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        pages.push(i)
+      }
+      pages.push("...")
+      pages.push(totalPages)
     }
 
     return pages
@@ -55,12 +55,12 @@ export function Pagination({ currentPage, totalPages, setPage, totalItems, items
   return (
     <div className="flex items-center justify-between border-t pt-4">
       <div className="text-sm text-muted-foreground">
-        显示 {startItem} - {endItem} 条，共 {totalItems} 条
+        {t("showing", { start: startItem, end: endItem, total: totalItems })}
       </div>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={() => setPage(currentPage - 1)} disabled={currentPage === 1}>
           <ChevronLeft className="h-4 w-4" />
-          上一页
+          {t("prev")}
         </Button>
 
         <div className="flex items-center gap-1">
@@ -89,7 +89,7 @@ export function Pagination({ currentPage, totalPages, setPage, totalItems, items
           onClick={() => setPage(currentPage + 1)}
           disabled={currentPage === totalPages}
         >
-          下一页
+          {t("next")}
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

@@ -8,8 +8,10 @@ import { createTask, mockCreateTask, mockUpdateTask, updateTask } from "@/featur
 import { useToast } from "@/shared/hooks/use-toast"
 import { Toaster } from "@/shared/ui/toaster"
 import { ClipboardList, Clock } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function Home() {
+  const t = useTranslations("pages.control.task")
   const [tasks, setTasks] = useState<Task[]>([])
   const [editingTask, setEditingTask] = useState<{ type: TaskType; task: Task } | undefined>()
   const { toast } = useToast()
@@ -24,8 +26,8 @@ export default function Home() {
         const updatedTask = await mockUpdateTask(task.id, task)
         setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)))
         toast({
-          title: "任务已更新",
-          description: `任务 "${task.name}" 已成功更新`,
+          title: t("taskUpdated"),
+          description: t("taskUpdatedDescription", { name: task.name }),
         })
         setEditingTask(undefined)
       } else {
@@ -34,15 +36,15 @@ export default function Home() {
         const createdTask = await mockCreateTask(task)
         setTasks((prev) => [...prev, createdTask])
         toast({
-          title: "任务已创建",
-          description: `任务 "${task.name}" 已成功创建`,
+          title: t("taskCreated"),
+          description: t("taskCreatedDescription", { name: task.name }),
         })
       }
     } catch (error) {
       console.error("Error in handleTaskCreated:", error)
       toast({
-        title: editingTask ? "更新失败" : "创建失败",
-        description: error instanceof Error ? error.message : "操作任务时发生错误",
+        title: editingTask ? t("updateFailed") : t("createFailed"),
+        description: error instanceof Error ? error.message : t("operationFailed"),
         variant: "destructive",
       })
     }
@@ -72,8 +74,8 @@ export default function Home() {
               <ClipboardList className="h-6 w-6 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">任务管理</h1>
-              <p className="text-sm text-gray-500 mt-1">Task Management System</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
         </div>

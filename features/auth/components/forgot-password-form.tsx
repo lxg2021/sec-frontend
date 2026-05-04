@@ -6,11 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
 import { Mail, CircleArrowLeft, CheckCircle, AlertCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { authAPI } from "@/features/auth/api"
+import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import { useRouter } from 'next/navigation'
 
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth")
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)       // 控制提交按钮显示和是否可用
   const [message, setMessage] = useState("")              // 重置返回的消息,控制显示
@@ -37,7 +40,7 @@ export default function ForgotPasswordPage() {
       }
     } catch (error) {
       setMessageType("error")
-      setMessage("发送重置邮件失败，请稍后重试")
+      setMessage(t("resetFailed"))
     } finally {
       setIsLoading(false)
     }
@@ -63,11 +66,15 @@ export default function ForgotPasswordPage() {
         <button
           onClick={handleBackToLogin}
           className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-all duration-200 backdrop-blur-sm"
-          title="返回登录页面"
+          title={t("backToLoginTitle")}
         >
           <CircleArrowLeft className="w-6 h-6" />
-          <span className="text-sm">返回登录</span>
+          <span className="text-sm">{t("backToLogin")}</span>
         </button>
+      </div>
+
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSwitch className="text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg" />
       </div>
 
       {/* 主要内容 */}
@@ -77,9 +84,9 @@ export default function ForgotPasswordPage() {
           {/* 忘记密码卡片 */}
           <Card className="backdrop-blur-xl bg-white/10 border-white/20 shadow-2xl">
             <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl text-white">{isSubmitted ? "邮件已发送" : "忘记密码"}</CardTitle>
+              <CardTitle className="text-2xl text-white">{isSubmitted ? t("mailSentTitle") : t("forgotTitle")}</CardTitle>
               <p className="text-slate-300 text-sm">
-                {isSubmitted ? "请检查您的邮箱并按照说明重置密码" : "输入您的邮箱地址，我们将发送重置密码的链接"}
+                {isSubmitted ? t("mailSentDescription") : t("forgotDescription")}
               </p>
             </CardHeader>
             <CardContent>
@@ -87,7 +94,7 @@ export default function ForgotPasswordPage() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-white">
-                      邮箱地址
+                      {t("email")}
                     </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -97,7 +104,7 @@ export default function ForgotPasswordPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="请输入您的邮箱地址"
+                        placeholder={t("emailPlaceholder")}
                         className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400"
                         style={{
                           "--tw-ring-color": `rgb(var(--focus-color))`,
@@ -138,10 +145,10 @@ export default function ForgotPasswordPage() {
                     {isLoading ? (
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>发送中...</span>
+                        <span>{t("sending")}</span>
                       </div>
                     ) : (
-                      "发送重置邮件"
+                      t("sendResetEmail")
                     )}
                   </Button>
                 </form>
@@ -152,21 +159,23 @@ export default function ForgotPasswordPage() {
                   <div className="flex items-center space-x-2 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
                     <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
                     <div className="text-green-300">
-                      <p className="font-medium">重置邮件已发送！</p>
+                      <p className="font-medium">{t("resetMailSent")}</p>
                       <p className="text-sm text-green-400 mt-1">
-                        我们已向 <span className="font-medium">{email}</span> 发送了密码重置链接
+                        {t.rich("resetMailSentTo", {
+                          email: () => <span className="font-medium">{email}</span>,
+                        })}
                       </p>
                     </div>
                   </div>
 
                   {/* 提示信息 */}
                   <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                    <h4 className="text-white font-medium mb-2">接下来该怎么做？</h4>
+                    <h4 className="text-white font-medium mb-2">{t("nextSteps")}</h4>
                     <ul className="text-slate-300 text-sm space-y-1">
-                      <li>• 检查您的邮箱收件箱</li>
-                      <li>• 如果没有收到，请检查垃圾邮件文件夹</li>
-                      <li>• 点击邮件中的重置链接</li>
-                      <li>• 按照说明设置新密码</li>
+                      <li>• {t("checkInbox")}</li>
+                      <li>• {t("checkSpam")}</li>
+                      <li>• {t("clickResetLink")}</li>
+                      <li>• {t("setNewPassword")}</li>
                     </ul>
                   </div>
 
@@ -177,13 +186,13 @@ export default function ForgotPasswordPage() {
                       variant="outline"
                       className="flex-1 bg-white/5 border-white/20 text-white hover:bg-white/10"
                     >
-                      重新发送
+                      {t("resend")}
                     </Button>
                     <Button
                       onClick={handleBackToLogin}
                       className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium py-2.5 transition-all duration-200 transform hover:scale-[1.02] shadow-lg"
                     >
-                      返回登录
+                      {t("backToLogin")}
                     </Button>
                   </div>
                 </div>

@@ -11,8 +11,10 @@ import { mockAgentSoftInfos } from "@/features/assets/host/mock/software-info"
 import { mockHostSummary } from "@/features/assets/host/mock/host-summary"
 import { Computer, List } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card"
+import { useTranslations } from "next-intl"
 
 export default function HardwareAssetsPage() {
+  const t = useTranslations("pages.assets.hardware")
   const [selectedHostId, setSelectedHostId] = useState<string | null>(null)
   const [filteredHosts, setFilteredHosts] = useState(mockAgentInfos)
 
@@ -37,8 +39,8 @@ export default function HardwareAssetsPage() {
               <Computer className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">主机信息</h1>
-              <p className="text-sm text-gray-500 mt-1">Host Information</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
         </div>
@@ -53,10 +55,10 @@ export default function HardwareAssetsPage() {
               </div>
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                  主机列表
+                  {t("hostList")}
                 </CardTitle>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                  注册主机，可筛选、点击查看硬件、软件信息
+                  {t("hostListDescription")}
                 </p>
               </div>
             </div>

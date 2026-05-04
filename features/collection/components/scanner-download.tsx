@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Badge } from "@/shared/ui/badge"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
+import { useTranslations } from "next-intl"
 
 interface Platform {
   name: string
@@ -21,6 +22,7 @@ interface ScannerDownloadProps {
 }
 
 export function ScannerDownload({ platforms }: ScannerDownloadProps) {
+  const t = useTranslations("pages.collection.download")
   const [downloading, setDownloading] = useState<string | null>(null)
 
   const handleDownload = (platform: string, url: string) => {
@@ -42,10 +44,10 @@ export function ScannerDownload({ platforms }: ScannerDownloadProps) {
 
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              下载采集器
+              {t("title")}
             </CardTitle>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-              选择适合您的采集器版本进行下载
+              {t("description")}
             </p>
           </div>
         </div>
@@ -76,7 +78,7 @@ export function ScannerDownload({ platforms }: ScannerDownloadProps) {
                   </div>
 
                   <div className="space-y-1 text-sm text-muted-foreground">
-                    <p>文件大小: {platform.size}</p>
+                    <p>{t("fileSize", { size: platform.size })}</p>
                     <p className="text-xs break-all">
                       SHA256: {platform.sha256.slice(0, 32)}...
                     </p>
@@ -92,12 +94,12 @@ export function ScannerDownload({ platforms }: ScannerDownloadProps) {
                     {isDownloading ? (
                       <>
                         <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                        下载中...
+                        {t("downloading")}
                       </>
                     ) : (
                       <>
                         <Download className="h-4 w-4 mr-2" />
-                        下载
+                        {t("download")}
                       </>
                     )}
                   </Button>
@@ -111,12 +113,12 @@ export function ScannerDownload({ platforms }: ScannerDownloadProps) {
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
             <div className="space-y-2">
-              <p className="font-medium">使用说明：</p>
+              <p className="font-medium">{t("instructionsTitle")}</p>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Windows: 以管理员权限运行 scanner.exe</li>
-                <li>macOS: 打开终端，运行 sudo ./scanner</li>
-                <li>Linux: 使用 sudo 权限执行 ./scanner.sh</li>
-                <li>扫描完成后会生成 assets.json 文件，请上传该文件</li>
+                <li>{t("windowsInstruction")}</li>
+                <li>{t("macosInstruction")}</li>
+                <li>{t("linuxInstruction")}</li>
+                <li>{t("uploadInstruction")}</li>
               </ul>
             </div>
           </AlertDescription>

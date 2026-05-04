@@ -8,6 +8,7 @@ import type { AgentInfo } from "@/features/assets/host/types/system-info"
 import type { AgentHardwareInfo } from "@/features/assets/host/types/hardware"
 import type { AgentSoftInfo } from "@/features/assets/host/types/software"
 import { Info, Cpu, Package, Monitor, Computer } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface HostDetailsTabsProps {
   host: AgentInfo
@@ -16,20 +17,22 @@ interface HostDetailsTabsProps {
 }
 
 export function HostDetailsTabs({ host, hardware, software }: HostDetailsTabsProps) {
+  const t = useTranslations("pages.assets.hardware.host.tabs")
+
   return (
     <Tabs defaultValue="basic" className="h-full flex flex-col">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="basic" className="flex items-center gap-2">
           <Info className="w-4 h-4 text-gray-500" />
-          基础信息
+          {t("basic")}
         </TabsTrigger>
         <TabsTrigger value="hardware" className="flex items-center gap-2">
           <Monitor className="w-4 h-4 text-gray-500" />
-          硬件信息
+          {t("hardware")}
         </TabsTrigger>
         <TabsTrigger value="software" className="flex items-center gap-2">
           <Package className="w-4 h-4 text-gray-500" />
-          软件信息
+          {t("software")}
         </TabsTrigger>
       </TabsList>
 

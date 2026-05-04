@@ -1,9 +1,12 @@
 import { AuditCenter } from "@/features/audit/components/audit-center"
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card"
 import { ShieldCheck } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 
-export default function AuditPage() {
+export default async function AuditPage() {
+  const t = await getTranslations("pages.reports")
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="p-6 space-y-6">
@@ -16,10 +19,10 @@ export default function AuditPage() {
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                审计中心
+                {t("title")}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Audit Center
+                {t("subtitle")}
               </p>
             </div>
           </div>

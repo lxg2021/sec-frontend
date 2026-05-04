@@ -1,4 +1,5 @@
 "use client"
+
 import { Input } from "@/shared/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover"
@@ -8,6 +9,7 @@ import { Search, CalendarIcon, Filter } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/shared/lib/utils"
 import type { AuditTab } from "./audit-center"
+import { useTranslations } from "next-intl"
 
 interface GlobalFiltersProps {
   activeTab: AuditTab
@@ -32,18 +34,20 @@ export function GlobalFilters({
   customDateTo,
   setCustomDateTo,
 }: GlobalFiltersProps) {
+  const t = useTranslations("pages.audit.filters")
+
   const getSearchPlaceholder = () => {
     switch (activeTab) {
       case "task":
-        return "搜索任务名称、任务ID、操作人、标签..."
+        return t("searchTask")
       case "user":
-        return "搜索用户名、用户ID、操作对象、来源IP..."
+        return t("searchUser")
       case "defense":
-        return "搜索主机名称、规则名称、规则ID..."
+        return t("searchDefense")
       case "disposition":
-        return "搜索主机名称、规则名称、处理人..."
+        return t("searchDisposition")
       default:
-        return "搜索..."
+        return t("searchDefault")
     }
   }
 
@@ -51,22 +55,22 @@ export function GlobalFilters({
     <div className="space-y-4 p-4 bg-muted/50 rounded-lg">
       <h3 className="text-sm font-medium flex items-center gap-2">
         <Filter className="h-4 w-4 text-blue-500" />
-        全局筛选条件
+        {t("title")}
       </h3>
       <div className="flex gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium whitespace-nowrap">时间范围:</label>
+          <label className="text-sm font-medium whitespace-nowrap">{t("timeRange")}</label>
           <Select value={dateRange} onValueChange={setDateRange}>
             <SelectTrigger className="w-[150px] flex items-center gap-2">
               <CalendarIcon className="h-4 w-4 text-blue-500" />
-              <SelectValue placeholder="时间范围" />
+              <SelectValue placeholder={t("timeRangePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="1d">最近1天</SelectItem>
-              <SelectItem value="7d">最近7天</SelectItem>
-              <SelectItem value="30d">最近30天</SelectItem>
-              <SelectItem value="90d">最近90天</SelectItem>
-              <SelectItem value="custom">自定义</SelectItem>
+              <SelectItem value="1d">{t("last1d")}</SelectItem>
+              <SelectItem value="7d">{t("last7d")}</SelectItem>
+              <SelectItem value="30d">{t("last30d")}</SelectItem>
+              <SelectItem value="90d">{t("last90d")}</SelectItem>
+              <SelectItem value="custom">{t("custom")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -74,7 +78,7 @@ export function GlobalFilters({
         {dateRange === "custom" && (
           <>
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">开始日期:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("startDate")}</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -85,7 +89,7 @@ export function GlobalFilters({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {customDateFrom ? format(customDateFrom, "yyyy-MM-dd") : "选择日期"}
+                    {customDateFrom ? format(customDateFrom, "yyyy-MM-dd") : t("chooseDate")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -95,7 +99,7 @@ export function GlobalFilters({
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">结束日期:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("endDate")}</label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -106,7 +110,7 @@ export function GlobalFilters({
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {customDateTo ? format(customDateTo, "yyyy-MM-dd") : "选择日期"}
+                    {customDateTo ? format(customDateTo, "yyyy-MM-dd") : t("chooseDate")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">

@@ -18,8 +18,10 @@ import type { DacPolicyFormProps, FilePolicy, RegistryPolicy, ProcessPolicy, Net
 import HostSelector from "@/features/baseline/dispatch/components/host-selector"
 import { mockData } from "@/features/baseline/dispatch/mock/host-tree"
 import { useToast } from "@/shared/hooks/use-toast"
+import { useTranslations } from "next-intl"
 
 export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
+  const t = useTranslations("pages.response.dac")
   const [isHostDialogOpen, setIsHostDialogOpen] = useState(false)
   const [isPolicyDetailOpen, setIsPolicyDetailOpen] = useState(false)
   const [generatedPolicy, setGeneratedPolicy] = useState<FilePolicy | RegistryPolicy | ProcessPolicy | NetworkPolicy | null>(null)
@@ -101,8 +103,8 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
     // Validate common required fields
     if (!form.policyName.trim()) {
       toast({
-        title: "验证失败",
-        description: "策略名称不能为空",
+        title: t("validationFailed"),
+        description: t("policyNameRequired"),
         variant: "destructive",
       })
       return
@@ -110,8 +112,8 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
     if (!form.version.trim()) {
       toast({
-        title: "验证失败",
-        description: "版本不能为空",
+        title: t("validationFailed"),
+        description: t("versionRequired"),
         variant: "destructive",
       })
       return
@@ -119,8 +121,8 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
     if (!form.level.trim() || Number.parseInt(form.level) < 1 || Number.parseInt(form.level) > 254) {
       toast({
-        title: "验证失败",
-        description: "优先级必须在 1-254 之间",
+        title: t("validationFailed"),
+        description: t("levelInvalid"),
         variant: "destructive",
       })
       return
@@ -130,8 +132,8 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
     if (form.policyType !== "net") {
       if (!form.subjectSource.trim()) {
         toast({
-          title: "验证失败",
-          description: "主体进程不能为空",
+          title: t("validationFailed"),
+          description: t("subjectRequired"),
           variant: "destructive",
         })
         return
@@ -139,8 +141,8 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
       if (!form.objectSource.trim()) {
         toast({
-          title: "验证失败",
-          description: "客体不能为空",
+          title: t("validationFailed"),
+          description: t("objectRequired"),
           variant: "destructive",
         })
         return
@@ -149,8 +151,8 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
       const { promptActions, rejectActions, auditActions } = form.getCurrentActionStates()
       if (promptActions.length === 0 && rejectActions.length === 0 && auditActions.length === 0) {
         toast({
-          title: "验证失败",
-          description: "行为控制不能为空，请至少选择一个操作",
+          title: t("validationFailed"),
+          description: t("actionsRequired"),
           variant: "destructive",
         })
         return
@@ -158,8 +160,8 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
     } else {
       if (!form.programPath.trim()) {
         toast({
-          title: "验证失败",
-          description: "程序路径不能为空",
+          title: t("validationFailed"),
+          description: t("programPathRequired"),
           variant: "destructive",
         })
         return
@@ -175,16 +177,16 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
     }
 
     toast({
-      title: "策略生成成功",
-      description: "策略已生成，请查看控制台输出",
+      title: t("policyGenerated"),
+      description: t("policyGeneratedDescription"),
     })
   }
 
   const handleViewPolicyDetail = () => {
     if (!generatedPolicy) {
       toast({
-        title: "暂无策略",
-        description: "请先生成策略后再查看详情",
+        title: t("noPolicyTitle"),
+        description: t("noPolicyDescription"),
         variant: "destructive",
       })
       return
@@ -194,10 +196,10 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
   const getPolicyTypeLabel = (type: string) => {
     switch (type) {
-      case "fs": return "文件系统"
-      case "reg": return "注册表"
-      case "ps": return "进程"
-      case "net": return "网络"
+      case "fs": return t("filePolicy")
+      case "reg": return t("registryPolicy")
+      case "ps": return t("processPolicy")
+      case "net": return t("networkPolicy")
       default: return type
     }
   }
@@ -213,10 +215,10 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">
-                访问控制
+                {t("title")}
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Discretionary Access Control
+                {t("subtitle")}
               </p>
             </div>
           </div>
@@ -227,20 +229,20 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
           <div className="flex justify-center">
             <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-muted/50 p-1 rounded-lg">
               <TabsTrigger value="fs" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <img src="/icons/nodes/file-node.svg" alt="file" className="w-4 h-4" />
-                文件策略
+                <img src="/icons/nodes/file-node.svg" alt={t("filePolicy")} className="w-4 h-4" />
+                {t("filePolicy")}
               </TabsTrigger>
               <TabsTrigger value="reg" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <img src="/icons/nodes/reg-key-node.svg" alt="file" className="w-4 h-4" />
-                注册表策略
+                <img src="/icons/nodes/reg-key-node.svg" alt={t("registryPolicy")} className="w-4 h-4" />
+                {t("registryPolicy")}
               </TabsTrigger>
               <TabsTrigger value="ps" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <img src="/icons/nodes/process-node.svg" alt="file" className="w-4 h-4" />
-                进程策略
+                <img src="/icons/nodes/process-node.svg" alt={t("processPolicy")} className="w-4 h-4" />
+                {t("processPolicy")}
               </TabsTrigger>
               <TabsTrigger value="net" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                <img src="/icons/nodes/net-node.svg" alt="file" className="w-4 h-4" />
-                网络策略
+                <img src="/icons/nodes/net-node.svg" alt={t("networkPolicy")} className="w-4 h-4" />
+                {t("networkPolicy")}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -294,7 +296,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
               onPolicyNameChange={form.setPolicyName}
               onLevelChange={form.setLevel}
               onHostSelect={() => setIsHostDialogOpen(true)}
-              title="网络策略基础信息"
+              title={t("networkPolicyBasicInfo")}
               showBadge={true}
             />
 
@@ -329,7 +331,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
             onClick={handleExport}
           >
             <Download className="w-4 h-4" />
-            生成策略
+            {t("generatePolicy")}
           </Button>
 
           <Button
@@ -339,7 +341,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
             onClick={form.resetForm}
           >
             <RefreshCw className="w-4 h-4" />
-            重置
+            {t("reset")}
           </Button>
 
           <Button
@@ -350,7 +352,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
             disabled={!generatedPolicy}
           >
             <FileText className="w-4 h-4" />
-            策略详情
+            {t("policyDetails")}
           </Button>
         </div>
 
@@ -360,7 +362,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Server className="h-5 w-5" />
-                选择目标主机
+                {t("selectTargetHosts")}
               </DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-auto min-h-[400px]">
@@ -368,14 +370,14 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
             </div>
             <DialogFooter className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                {form.selectedHostIds.size > 0 ? `已选择 ${form.selectedHostIds.size} 台主机` : "未选择任何主机"}
+                {form.selectedHostIds.size > 0 ? t("selectedHosts", { count: form.selectedHostIds.size }) : t("noHostsSelected")}
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setIsHostDialogOpen(false)}>
-                  取消
+                  {t("cancel")}
                 </Button>
                 <Button onClick={handleConfirmHostSelection}>
-                  确认选择
+                  {t("confirmSelection")}
                 </Button>
               </div>
             </DialogFooter>
@@ -388,17 +390,17 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                策略详情 - JSON 格式
+                {t("policyDetailsJson")}
               </DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-auto bg-gray-50 rounded-md p-4">
               <pre className="text-sm whitespace-pre-wrap break-words">
-                {generatedPolicy ? JSON.stringify(generatedPolicy, null, 2) : "暂无策略数据"}
+                {generatedPolicy ? JSON.stringify(generatedPolicy, null, 2) : t("noPolicyData")}
               </pre>
             </div>
             <DialogFooter className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                {generatedPolicy ? `策略类型: ${getPolicyTypeLabel(generatedPolicy.header.type)}` : "无策略"}
+                {generatedPolicy ? t("policyType", { type: getPolicyTypeLabel(generatedPolicy.header.type) }) : t("noPolicy")}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -407,16 +409,16 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
                     if (generatedPolicy) {
                       navigator.clipboard.writeText(JSON.stringify(generatedPolicy, null, 2))
                       toast({
-                        title: "已复制",
-                        description: "策略JSON已复制到剪贴板",
+                        title: t("copied"),
+                        description: t("copiedDescription"),
                       })
                     }
                   }}
                 >
-                  复制JSON
+                  {t("copyJson")}
                 </Button>
                 <Button onClick={() => setIsPolicyDetailOpen(false)}>
-                  关闭
+                  {t("close")}
                 </Button>
               </div>
             </DialogFooter>

@@ -10,6 +10,7 @@ import type { VulnerabilityScanTask } from "@/features/task/models/vulnerability
 import type { AttckScanTask } from "@/features/task/models/attck-scan-task"
 import type { BaselineScanTask } from "@/features/task/models/baseline-scan-task"
 import type { Task, TaskType } from "@/features/task/types"
+import { useTranslations } from "next-intl"
 
 interface TaskCreatorProps {
   onTaskCreated: (task: Task) => void
@@ -18,6 +19,7 @@ interface TaskCreatorProps {
 }
 
 export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCreatorProps) {
+  const t = useTranslations("pages.control.task.creator")
   const [activeTab, setActiveTab] = useState<TaskType>(editingTask?.type || "vulnerability")
 
   // 当有编辑任务时，自动切换到对应的 Tab
@@ -40,10 +42,10 @@ export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCr
             >
               <img
                 src="/icons/system/vulnerability.svg"
-                alt="漏洞扫描"
+                alt={t("vulnerabilityScan")}
                 className="w-4 h-4"
               />
-              漏洞扫描
+              {t("vulnerabilityScan")}
             </TabsTrigger>
 
             <TabsTrigger
@@ -52,10 +54,10 @@ export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCr
             >
               <img
                 src="/icons/system/attack.svg"
-                alt="ATT&CK 扫描"
+                alt={t("attckScan")}
                 className="w-4 h-4"
               />
-              ATT&CK 扫描
+              {t("attckScan")}
             </TabsTrigger>
 
             <TabsTrigger
@@ -64,10 +66,10 @@ export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCr
             >
               <img
                 src="/icons/system/baseline.svg"
-                alt="基线扫描"
+                alt={t("baselineScan")}
                 className="w-4 h-4"
               />
-              基线扫描
+              {t("baselineScan")}
             </TabsTrigger>
           </TabsList>
 

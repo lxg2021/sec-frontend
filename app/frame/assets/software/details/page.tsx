@@ -7,8 +7,10 @@ import { mockSoftwareData } from "@/features/assets/software/mock/software-aggre
 import type { CreateUninstallTaskRequest } from "@/features/assets/software/types/task-soft-uninstall"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { CalendarCheck, Computer } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function Home() {
+  const t = useTranslations("pages.assets.softwareDetails")
   const [uninstallTasks, setUninstallTasks] = useState<CreateUninstallTaskRequest[]>([])
 
   const handleTaskCreated = (task: CreateUninstallTaskRequest) => {
@@ -28,8 +30,8 @@ export default function Home() {
               <Computer className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">软件管理</h1>
-              <p className="text-sm text-gray-500 mt-1">Software Management</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
         </div>
@@ -42,10 +44,10 @@ export default function Home() {
               </div>
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                  软件清单
+                  {t("softwareList")}
                 </CardTitle>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                  {mockSoftwareData.length} 个软件
+                  {t("softwareCount", { count: mockSoftwareData.length })}
                 </p>
               </div>
             </div>

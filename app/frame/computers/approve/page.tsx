@@ -13,9 +13,11 @@ import { HostApproval } from "@/features/assets/approval/components/host-approva
 import type { Host, LogicGroup } from "@/features/assets/approval/types"
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card"
 import { mockHosts, mockLogicGroups } from '@/features/assets/approval/mock/approve';
+import { useTranslations } from "next-intl"
 
 
 export default function LogicGroupsPage() {
+  const t = useTranslations("pages.computers.approve")
   const [uploadedGroups, setUploadedGroups] = useState<UserLogicGroup[]>([])
   const [uploadedFileName, setUploadedFileName] = useState<string>("")
 
@@ -30,7 +32,7 @@ export default function LogicGroupsPage() {
     // 验证文件大小（最大5MB）
     const maxSize = 5 * 1024 * 1024
     if (file.size > maxSize) {
-      throw new Error("文件大小超过限制(最大5MB)")
+      throw new Error(t("fileTooLarge"))
     }
     return true
   }
@@ -39,7 +41,7 @@ export default function LogicGroupsPage() {
     console.log("保存的TableLogicGroup数据:", tableGroups)
     console.log("数据条数:", tableGroups.length)
     // TODO: 这里可以调用API将数据发送到后台
-    alert(`成功保存 ${tableGroups.length} 条组织结构数据！`)
+    alert(t("saveSuccess", { count: tableGroups.length }))
   }
 
   const handleSubmit = (updatedHosts: Host[]) => {
@@ -56,8 +58,8 @@ export default function LogicGroupsPage() {
               <Computer className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">主机审批</h1>
-              <p className="text-sm text-gray-500 mt-1">Host Approval</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
         </div>
@@ -66,16 +68,16 @@ export default function LogicGroupsPage() {
         <Tabs defaultValue="upload" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upload" className="flex items-center gap-2">
-              <Image src="/icons/computer/upload.svg" alt="上传" width={16} height={16} />
-              上传文件
+              <Image src="/icons/computer/upload.svg" alt={t("uploadAlt")} width={16} height={16} />
+              {t("uploadFile")}
             </TabsTrigger>
             <TabsTrigger
               value="edit"
               disabled={uploadedGroups.length === 0}
               className="flex items-center gap-2"
             >
-              <Image src="/icons/computer/organization.svg" alt="编辑" width={16} height={16} />
-              编辑结构
+              <Image src="/icons/computer/organization.svg" alt={t("editAlt")} width={16} height={16} />
+              {t("editStructure")}
             </TabsTrigger>
           </TabsList>
 
@@ -104,10 +106,10 @@ export default function LogicGroupsPage() {
               </div>
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                  主机审批
+                  {t("approvalTitle")}
                 </CardTitle>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                  可筛选、编辑、主机所属组与使用者
+                  {t("approvalDescription")}
                 </p>
               </div>
             </div>

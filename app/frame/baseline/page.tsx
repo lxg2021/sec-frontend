@@ -4,8 +4,12 @@ import TrendChart from "@/features/baseline/dashboard/components/trend-chart"
 import RiskChart from "@/features/baseline/dashboard/components/risk-chart"
 import CategoryTable from "@/features/baseline/dashboard/components/category-table"
 import { Shield, TrendingUp, BarChart3, Clock } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
-export default function BaselineDashboardPage() {
+export default async function BaselineDashboardPage() {
+  const t = await getTranslations("pages.baseline.dashboard")
+  const lastCheckedTime = "2025/7/24 18:10:08"
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
@@ -16,14 +20,14 @@ export default function BaselineDashboardPage() {
               <Shield className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">安全基线概览</h1>
-              <p className="text-sm text-gray-500 mt-1">Security Baseline Dashboard</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Clock className="h-4 w-4 text-blue-300" />
-            <span>最后检查时间: 2025/7/24 18:10:08</span>
+            <span>{t("lastChecked", { time: lastCheckedTime })}</span>
           </div>
         </div>
 
@@ -49,8 +53,8 @@ export default function BaselineDashboardPage() {
                     <BarChart3 className="h-5 w-5 text-purple-300" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-medium text-gray-900">分类合规统计</CardTitle>
-                    <CardDescription className="text-sm text-gray-500">按检查分类查看详细合规情况</CardDescription>
+                    <CardTitle className="text-lg font-medium text-gray-900">{t("categoryStats")}</CardTitle>
+                    <CardDescription className="text-sm text-gray-500">{t("categoryStatsDescription")}</CardDescription>
                   </div>
                 </div>
               </CardHeader>

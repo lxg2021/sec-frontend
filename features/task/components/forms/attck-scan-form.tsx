@@ -10,6 +10,7 @@ import { Switch } from "@/shared/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { type AttckScanTask, createAttckScanTask } from "@/features/task/models/attck-scan-task"
 import type { PeriodUnit } from "@/features/task/models/task-base"
+import { useTranslations } from "next-intl"
 
 // 导入 lucide-react 图标
 import {
@@ -32,6 +33,7 @@ interface AttckScanFormProps {
 }
 
 export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanFormProps) {
+  const t = useTranslations("pages.control.task.forms.attck")
   const [name, setName] = useState(initialData?.name || "")
   const [enabled, setEnabled] = useState(initialData?.enabled ?? true)
   const [periodValue, setPeriodValue] = useState(initialData?.schedule.period.value || 1)
@@ -63,7 +65,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
           <Shield className="h-5 w-5 mr-2 text-red-500" />
-          <h3 className="text-lg font-semibold">基础信息</h3>
+          <h3 className="text-lg font-semibold">{t("basicInfo")}</h3>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
@@ -72,7 +74,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="输入任务名称"
+                placeholder={t("namePlaceholder")}
                 required
                 className="w-full pl-9"
               />
@@ -87,7 +89,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
               onCheckedChange={setEnabled} 
             />
             <Label htmlFor="enabled" className="text-sm font-medium flex items-center">
-              启用任务
+              {t("enableTask")}
             </Label>
           </div>
         </div>
@@ -97,7 +99,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-center mb-4">
           <Calendar className="h-5 w-5 mr-2 text-orange-500" />
-          <h3 className="text-lg font-semibold">扫描周期</h3>
+          <h3 className="text-lg font-semibold">{t("scanCycle")}</h3>
         </div>
 
         <div className="space-y-4">
@@ -105,7 +107,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
             <div className="space-y-2">
               <Label htmlFor="periodValue" className="text-sm font-medium flex items-center">
                 <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
-                周期数值 <span className="text-red-500 ml-1">*</span>
+                {t("periodValue")} <span className="text-red-500 ml-1">*</span>
               </Label>
               <div className="relative">
                 <Input
@@ -124,7 +126,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
             <div className="space-y-2">
               <Label htmlFor="periodUnit" className="text-sm font-medium flex items-center">
                 <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                周期单位 <span className="text-red-500 ml-1">*</span>
+                {t("periodUnit")} <span className="text-red-500 ml-1">*</span>
               </Label>
               <div className="relative">
                 <Select value={periodUnit} onValueChange={(v) => setPeriodUnit(v as PeriodUnit)}>
@@ -132,11 +134,11 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="minutes">分钟</SelectItem>
-                    <SelectItem value="hours">小时</SelectItem>
-                    <SelectItem value="days">天</SelectItem>
-                    <SelectItem value="weeks">周</SelectItem>
-                    <SelectItem value="months">月</SelectItem>
+                    <SelectItem value="minutes">{t("unitMinutes")}</SelectItem>
+                    <SelectItem value="hours">{t("unitHours")}</SelectItem>
+                    <SelectItem value="days">{t("unitDays")}</SelectItem>
+                    <SelectItem value="weeks">{t("unitWeeks")}</SelectItem>
+                    <SelectItem value="months">{t("unitMonths")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
@@ -147,14 +149,14 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
           <div className="space-y-2">
             <Label htmlFor="timezone" className="text-sm font-medium flex items-center">
               <Globe className="h-4 w-4 mr-1 text-muted-foreground" />
-              时区（可选）
+              {t("timezone")}
             </Label>
             <div className="relative">
               <Input
                 id="timezone"
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
-                placeholder="例如: Asia/Shanghai"
+                placeholder={t("timezonePlaceholder")}
                 className="w-full pl-9"
               />
               <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -167,7 +169,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
       <div className="rounded-lg border bg-blue-50/50 p-4 shadow-sm">
         <div className="flex items-center mb-3">
           <Database className="h-5 w-5 mr-2 text-blue-500" />
-          <h3 className="text-lg font-semibold">数据源配置</h3>
+          <h3 className="text-lg font-semibold">{t("dataSource")}</h3>
         </div>
         
         <div className="space-y-3">
@@ -175,12 +177,12 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
             <div className="flex items-center">
               <Zap className="h-4 w-4 mr-2 text-green-500" />
               <div>
-                <p className="text-sm font-medium">EDR 事件数据</p>
-                <p className="text-xs text-muted-foreground">端点检测与响应系统事件</p>
+                <p className="text-sm font-medium">{t("sourceTitle")}</p>
+                <p className="text-xs text-muted-foreground">{t("sourceDescription")}</p>
               </div>
             </div>
             <div className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-              默认
+              {t("sourceDefault")}
             </div>
           </div>
           
@@ -197,7 +199,7 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
             className="sm:flex-1 max-sm:w-full"
           >
             <RotateCcw className="mr-2 h-4 w-4" />
-            取消
+            {t("cancelAction")}
           </Button>
         )}
         <Button
@@ -208,12 +210,12 @@ export function AttckScanForm({ initialData, onSubmit, onCancel }: AttckScanForm
           {initialData ? (
             <>
               <Save className="mr-2 h-4 w-4" />
-              更新任务
+              {t("updateTask")}
             </>
           ) : (
             <>
               <Plus className="mr-2 h-4 w-4" />
-              创建任务
+              {t("createTask")}
             </>
           )}
         </Button>

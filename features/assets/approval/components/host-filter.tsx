@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, X, Filter } from "lucide-react"
 import { Checkbox } from "@/shared/ui/checkbox"
 import { Label } from "@/shared/ui/label"
+import { useTranslations } from "next-intl"
 
 interface HostFilterProps {
   filters: HostFilterOptions
@@ -18,9 +19,10 @@ interface HostFilterProps {
 }
 
 export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, filteredHosts }: HostFilterProps) {
+  const t = useTranslations("pages.computers.approve")
   const statusOptions: { value: HostStatus; label: string; color: string }[] = [
-    { value: "online", label: "在线", color: "bg-green-500" },
-    { value: "offline", label: "离线", color: "bg-gray-500" },
+    { value: "online", label: t("statusOnline"), color: "bg-green-500" },
+    { value: "offline", label: t("statusOffline"), color: "bg-gray-500" },
   ]
 
   const handleStatusToggle = (status: HostStatus) => {
@@ -69,18 +71,18 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-lg font-semibold text-foreground">主机筛选</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t("filterTitle")}</h3>
           </div>
           {activeFilterCount > 0 && (
             <Badge variant="secondary" className="px-2 py-1">
-              {activeFilterCount} 个筛选条件
+              {t("activeFilters", { count: activeFilterCount })}
             </Badge>
           )}
         </div>
         
         <div className="flex items-center gap-3">
           <div className="text-sm text-muted-foreground">
-            显示 <span className="font-semibold text-foreground">{filteredHosts}</span> / {totalHosts} 台主机
+            {t("displayHosts", { filtered: filteredHosts, total: totalHosts })}
           </div>
           {activeFilterCount > 0 && (
             <Button
@@ -90,7 +92,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
               className="h-8 text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4 mr-1" />
-              清除全部
+              {t("clearAll")}
             </Button>
           )}
         </div>
@@ -103,7 +105,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="搜索主机名、IP、MAC地址..."
+              placeholder={t("searchPlaceholder")}
               value={filters.searchText || ""}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-9 h-10"
@@ -115,10 +117,10 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         <div>
           <Select value={filters.groupIds?.[0] || "all"} onValueChange={handleGroupChange}>
             <SelectTrigger className="h-10">
-              <SelectValue placeholder="选择逻辑组" />
+              <SelectValue placeholder={t("selectLogicGroup")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">所有逻辑组</SelectItem>
+              <SelectItem value="all">{t("allLogicGroups")}</SelectItem>
               {logicGroups.map((group) => (
                 <SelectItem key={group.id} value={group.id}>
                   {group.full_path}
@@ -156,7 +158,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
                 onCheckedChange={(checked) => onFiltersChange({ ...filters, ungrouped: checked as boolean })}
               />
               <Label htmlFor="ungrouped" className="cursor-pointer text-sm font-medium text-foreground">
-                未分组主机
+                {t("ungroupedHosts")}
               </Label>
             </div>
 
@@ -167,7 +169,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
                 onCheckedChange={(checked) => onFiltersChange({ ...filters, unowned: checked as boolean })}
               />
               <Label htmlFor="unowned" className="cursor-pointer text-sm font-medium text-foreground">
-                无负责人主机
+                {t("unownedHosts")}
               </Label>
             </div>
           </div>

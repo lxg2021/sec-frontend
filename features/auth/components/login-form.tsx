@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
 import { Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react"                              // 图标组件
+import { useTranslations } from "next-intl"
 import { useLoginHandlers } from "@/features/auth/hooks/use-login-handlers"
 import LoginAnimation from "@/features/auth/components/login-animation"
+import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import Link from 'next/link'
 
 // 使用图片的Cypher LOGO组件
@@ -15,6 +17,7 @@ const CypherLogo = ({ className = "w-8 h-8" }) => {
 }
 
 export default function LoginForm() {
+  const t = useTranslations("auth")
   const {
     showPassword,
     isLoading,
@@ -35,6 +38,10 @@ export default function LoginForm() {
       {/* 动态背景画布 */}
       <LoginAnimation />
 
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSwitch className="text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 rounded-lg" />
+      </div>
+
       {/* 主要内容 */}
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md">
@@ -49,13 +56,13 @@ export default function LoginForm() {
           {/* 登录卡片 */}
           <Card className="backdrop-blur-xl bg-white/10 border-white/20 shadow-2xl">
             <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl text-center text-white">登录账户</CardTitle>
+              <CardTitle className="text-2xl text-center text-white">{t("loginTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="username" className="text-white">
-                    用户名
+                    {t("username")}
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -63,7 +70,7 @@ export default function LoginForm() {
                       id="username"
                       name="username"
                       type="text"
-                      placeholder="请输入用户名"
+                      placeholder={t("usernamePlaceholder")}
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400"
@@ -74,7 +81,7 @@ export default function LoginForm() {
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-white">
-                    密码
+                    {t("password")}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
@@ -82,7 +89,7 @@ export default function LoginForm() {
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="请输入密码"
+                      placeholder={t("passwordPlaceholder")}
                       className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400"
                       required
                     />
@@ -104,7 +111,7 @@ export default function LoginForm() {
                       onChange={handleRememberMe}
                       className="rounded border-white/20 bg-white/10 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
                     />
-                    <span>记住我</span>
+                    <span>{t("rememberMe")}</span>
                   </label>
 
                   {/* 忘记密码链接 */}
@@ -113,7 +120,7 @@ export default function LoginForm() {
                     onClick={handleForgotPassword}
                     className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
                   >
-                    忘记密码？
+                    {t("forgotPassword")}
                   </button>
                 </div>
 
@@ -133,10 +140,10 @@ export default function LoginForm() {
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>登录中...</span>
+                      <span>{t("loggingIn")}</span>
                     </div>
                   ) : (
-                    "登录"
+                    t("login")
                   )}
                 </Button>
               </form>
@@ -156,12 +163,12 @@ export default function LoginForm() {
               {/* 信息采集页面 - 优化后的版本 */}
               <div className="mt-8 pt-4 border-t border-white/10">
                 <p className="text-center text-slate-400 text-sm">
-                  需要采集主机信息？{" "}
+                  {t("needCollectHostInfo")}{" "}
                   <Link
                     href="/collection"
                     className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
                   >
-                    前往信息采集页面
+                    {t("goCollection")}
                   </Link>
                 </p>
               </div>

@@ -7,6 +7,7 @@ import { Button } from "@/shared/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { cn } from "@/shared/lib/utils"
 import type { AgentInfo, SystemType } from "@/features/assets/host/types/system-info"
+import { useTranslations } from "next-intl"
 
 // 系统图标
 const systemIcons: Record<string, string> = {
@@ -33,20 +34,22 @@ export function HostListTable({ hosts, selectedHostId, onSelectHost }: {
   selectedHostId: string | null
   onSelectHost: (hostId: string | null) => void
 }) {
+  const t = useTranslations("pages.assets.hardware.host.list")
+
   return (
     <div className="flex-1 overflow-auto rounded-lg border">
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead className="font-medium">主机信息</TableHead>
-            <TableHead className="font-medium">状态</TableHead>
-            <TableHead className="font-medium">系统</TableHead>
-            <TableHead className="font-medium">操作系统</TableHead>
-            <TableHead className="font-medium">版本</TableHead>
-            <TableHead className="font-medium">架构</TableHead>
-            <TableHead className="font-medium">硬件信息</TableHead>
-            <TableHead className="font-medium">组织信息</TableHead>
-            <TableHead className="font-medium">安装日期</TableHead>
+            <TableHead className="font-medium">{t("hostInfo")}</TableHead>
+            <TableHead className="font-medium">{t("status")}</TableHead>
+            <TableHead className="font-medium">{t("system")}</TableHead>
+            <TableHead className="font-medium">{t("os")}</TableHead>
+            <TableHead className="font-medium">{t("version")}</TableHead>
+            <TableHead className="font-medium">{t("architecture")}</TableHead>
+            <TableHead className="font-medium">{t("hardwareInfo")}</TableHead>
+            <TableHead className="font-medium">{t("organization")}</TableHead>
+            <TableHead className="font-medium">{t("installDate")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -55,7 +58,7 @@ export function HostListTable({ hosts, selectedHostId, onSelectHost }: {
               <TableCell colSpan={9} className="h-24 text-center">
                 <div className="flex flex-col items-center justify-center text-muted-foreground">
                   <Server className="h-12 w-12 mb-2 opacity-30" />
-                  <p>暂无主机数据</p>
+                  <p>{t("empty")}</p>
                 </div>
               </TableCell>
             </TableRow>
@@ -99,7 +102,7 @@ export function HostListTable({ hosts, selectedHostId, onSelectHost }: {
                       )}
                     />
                     <span className="text-sm">
-                      {host.status === "online" ? "在线" : "离线"}
+                      {host.status === "online" ? t("online") : t("offline")}
                     </span>
                   </div>
                 </TableCell>

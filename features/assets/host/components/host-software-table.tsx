@@ -7,31 +7,15 @@ import { Card, CardContent } from "@/shared/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import type { AgentSoftInfo } from "@/features/assets/host/types/software"
-import { InstallState } from "@/features/assets/host/types/software" // Import InstallState
 import TruncateCopyable from "@/features/assets/software/components/truncate-copyable"
+import { useTranslations } from "next-intl"
 
 interface HostSoftwareTableProps {
   software: AgentSoftInfo | null
 }
 
-function getInstallStateText(state: InstallState): string {
-  switch (state) {
-    case InstallState.Advertised:
-      return "已发布"
-    case InstallState.Absent:
-      return "未安装"
-    case InstallState.Local:
-      return "已安装"
-    case InstallState.Source:
-      return "从源运行"
-    case InstallState.Default:
-      return "默认"
-    default:
-      return "未知"
-  }
-}
-
 export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
+  const t = useTranslations("pages.assets.hardware.host.softwarePanel")
   const [searchTerm, setSearchTerm] = useState("")
   const [vendorFilter, setVendorFilter] = useState<string>("all")
 
@@ -68,7 +52,7 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <p className="text-muted-foreground">暂无软件信息</p>
+          <p className="text-muted-foreground">{t("empty")}</p>
         </CardContent>
       </Card>
     )
@@ -81,7 +65,7 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="搜索软件名称、厂商..."
+            placeholder={t("searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -90,10 +74,10 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
 
         <Select value={vendorFilter} onValueChange={setVendorFilter}>
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="筛选厂商" />
+            <SelectValue placeholder={t("selectVendor")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">全部厂商</SelectItem>
+            <SelectItem value="all">{t("allVendors")}</SelectItem>
             {vendors.map((vendor) => (
               <SelectItem key={vendor} value={vendor}>
                 {vendor}
@@ -107,9 +91,9 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4" />
-          <span>共 {filteredSoftware.length} 个软件</span>
+          <span>{t("count", { count: filteredSoftware.length })}</span>
         </div>
-        {(searchTerm || vendorFilter !== "all") && <div>(从 {software.softwareList.length} 个中筛选)</div>}
+        {(searchTerm || vendorFilter !== "all") && <div>({t("filteredFrom", { count: software.softwareList.length })})</div>}
       </div>
 
       {/* Table */}
@@ -117,45 +101,45 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>软件名称</TableHead>
-              <TableHead>描述</TableHead>
+              <TableHead>{t("name")}</TableHead>
+              <TableHead>{t("description")}</TableHead>
               <TableHead>
                 <div className="flex items-left gap-2">
                   <Calendar className="h-4 w-4" />
-                  安装日期
+                  {t("installDate")}
                 </div>
               </TableHead>
               <TableHead>
                 <div className="flex items-center gap-2">
                   <FolderOpen className="h-4 w-4" />
-                  安装路径
+                  {t("installPath")}
                 </div>
               </TableHead>
-              <TableHead>内部名称</TableHead>
+              <TableHead>{t("internalName")}</TableHead>
               <TableHead>
                 <div className="flex items-center gap-2">
                   <Archive className="h-4 w-4" />
-                  包缓存
+                  {t("packageCache")}
                 </div>
               </TableHead>
-              <TableHead>厂商</TableHead>
-              <TableHead>版本</TableHead>
+              <TableHead>{t("vendor")}</TableHead>
+              <TableHead>{t("version")}</TableHead>
               <TableHead>
                 <div className="flex items-center gap-2">
                   <Trash2 className="h-4 w-4" />
-                  卸载命令
+                  {t("uninstallCommand")}
                 </div>
               </TableHead>
               <TableHead>
                 <div className="flex items-center gap-2">
                   <VolumeX className="h-4 w-4" />
-                  静默卸载
+                  {t("quietUninstall")}
                 </div>
               </TableHead>
               <TableHead>
                 <div className="flex items-center gap-2">
                   <ExternalLink className="h-4 w-4" />
-                  信息网址
+                  {t("infoUrl")}
                 </div>
               </TableHead>
             </TableRow>
@@ -164,7 +148,7 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
             {filteredSoftware.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
-                  {searchTerm || vendorFilter !== "all" ? "未找到匹配的软件" : "暂无软件信息"}
+                  {searchTerm || vendorFilter !== "all" ? t("noMatch") : t("empty")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -230,7 +214,7 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
                           className="text-blue-600 hover:text-blue-800 text-xs truncate max-w-xs block"
                           title={sw.urlInfoAbout}
                         >
-                          查看详情
+                          {t("details")}
                         </a>
                       </div>
                     ) : (

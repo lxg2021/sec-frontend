@@ -10,6 +10,7 @@ import { attckData } from "@/features/attack/mock/dashboard"
 import { Shield, BarChart3, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { slugify } from "@/features/attack/utils/stage-color"
+import { useTranslations } from "next-intl"
 
 const formatEndTime = (timeString) => {
   if (!timeString) return "无数据"
@@ -17,6 +18,7 @@ const formatEndTime = (timeString) => {
 }
 
 export default function AttckDashboardPage() {
+  const t = useTranslations("pages.attack.dashboard")
   const data = attckData
   const stages = data?.stages || []
 
@@ -57,15 +59,15 @@ export default function AttckDashboardPage() {
               <Shield className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">攻击溯源概览</h1>
-              <p className="text-sm text-gray-500 mt-1">Attack Traceability Dashboard</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
 
           {/* 页面头部 - 添加最后检查时间 */}
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Clock className="h-4 w-4 text-blue-300" />
-            <span>最后检查时间: {data.endtime}</span>
+            <span>{t("lastChecked", { time: data.endtime })}</span>
           </div>
         </div>
 
@@ -94,8 +96,8 @@ export default function AttckDashboardPage() {
                     <BarChart3 className="h-5 w-5 text-purple-300" />
                   </div>
                   <div>
-                    <CardTitle className="text-lg font-medium text-gray-900">Attck Stage分类统计</CardTitle>
-                    <CardDescription className="text-sm text-gray-500">按Stage分类查看详细情况</CardDescription>
+                    <CardTitle className="text-lg font-medium text-gray-900">{t("stageStats")}</CardTitle>
+                    <CardDescription className="text-sm text-gray-500">{t("stageStatsDescription")}</CardDescription>
                   </div>
                 </div>
               </CardHeader>

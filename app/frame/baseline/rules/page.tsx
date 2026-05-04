@@ -19,8 +19,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog"
+import { useTranslations } from "next-intl"
 
 export default function Page() {
+  const t = useTranslations("pages.baseline.rules")
   const [selectedNodes, setSelectedNodes] = useState([])
   const [selectedStrategies, setSelectedStrategies] = useState([])
 
@@ -65,8 +67,8 @@ export default function Page() {
               <ShieldCheck className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">基线策略下发</h1>
-              <p className="text-sm text-gray-500 mt-1">Security Baseline Dispatch</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
 
@@ -75,12 +77,12 @@ export default function Page() {
             <DialogTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <HelpCircle className="w-4 h-4" />
-                帮助
+                {t("help")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl">
               <DialogHeader>
-                <DialogTitle>策略下发指引</DialogTitle>
+                <DialogTitle>{t("guideTitle")}</DialogTitle>
               </DialogHeader>
               <StrategyGuide />
             </DialogContent>

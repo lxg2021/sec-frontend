@@ -8,6 +8,7 @@ import { Badge } from "@/shared/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { ChevronLeft, ChevronRight, ArrowUpDown, Edit, AlertCircle } from "lucide-react"
 import { cn } from "@/shared/lib/utils"
+import { useTranslations } from "next-intl"
 
 export interface HostTableProps {
   hosts: Host[]
@@ -34,10 +35,11 @@ export function HostTable({
   sortDirection,
   onSort,
 }: HostTableProps) {
+  const t = useTranslations("pages.computers.approve")
   const getStatusBadge = (status: Host["status"]) => {
     const statusConfig = {
-      online: { label: "在线", variant: "default" as const, color: "bg-green-500" },
-      offline: { label: "离线", variant: "destructive" as const, color: "bg-gray-500" },
+      online: { label: t("statusOnline"), variant: "default" as const, color: "bg-green-500" },
+      offline: { label: t("statusOffline"), variant: "destructive" as const, color: "bg-gray-500" },
     }
 
     const config = statusConfig[status]
@@ -61,10 +63,10 @@ export function HostTable({
     const hours = Math.floor(minutes / 60)
     const days = Math.floor(hours / 24)
 
-    if (days > 0) return `${days} 天前`
-    if (hours > 0) return `${hours} 小时前`
-    if (minutes > 0) return `${minutes} 分钟前`
-    return "刚刚"
+    if (days > 0) return t("dayAgo", { count: days })
+    if (hours > 0) return t("hourAgo", { count: hours })
+    if (minutes > 0) return t("minuteAgo", { count: minutes })
+    return t("justNow")
   }
 
   const SortableHeader = ({
@@ -90,15 +92,15 @@ export function HostTable({
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <SortableHeader field="hostname">主机名</SortableHeader>
-              <TableHead>IP地址</TableHead>
-              <TableHead>MAC地址</TableHead>
-              <SortableHeader field="os_name">操作系统</SortableHeader>
-              <SortableHeader field="status">状态</SortableHeader>
-              <TableHead>逻辑组</TableHead>
-              <TableHead>负责人</TableHead>
-              <SortableHeader field="heartbeat_time">最近心跳</SortableHeader>
-              <TableHead className="text-right">操作</TableHead>
+              <SortableHeader field="hostname">{t("hostname")}</SortableHeader>
+              <TableHead>{t("ipAddress")}</TableHead>
+              <TableHead>{t("macAddress")}</TableHead>
+              <SortableHeader field="os_name">{t("os")}</SortableHeader>
+              <SortableHeader field="status">{t("status")}</SortableHeader>
+              <TableHead>{t("logicGroup")}</TableHead>
+              <TableHead>{t("owner")}</TableHead>
+              <SortableHeader field="heartbeat_time">{t("heartbeat")}</SortableHeader>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -151,7 +153,7 @@ export function HostTable({
                       </div>
                     ) : (
                       <Badge variant="outline" className="text-muted-foreground">
-                        未分组
+                        {t("ungrouped")}
                       </Badge>
                     )}
                   </TableCell>
@@ -165,7 +167,7 @@ export function HostTable({
                       </div>
                     ) : (
                       <Badge variant="outline" className="text-muted-foreground">
-                        未指定
+                        {t("unowned")}
                       </Badge>
                     )}
                   </TableCell>
@@ -187,7 +189,7 @@ export function HostTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-border px-6 py-4">
           <div className="text-sm text-muted-foreground">
-            第 {currentPage} 页，共 {totalPages} 页
+            {t("pageInfo", { current: currentPage, total: totalPages })}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -197,7 +199,7 @@ export function HostTable({
               disabled={currentPage === 1}
             >
               <ChevronLeft className="h-4 w-4" />
-              上一页
+              {t("prevPage")}
             </Button>
             <Button
               variant="ghost"
@@ -205,7 +207,7 @@ export function HostTable({
               onClick={() => onPageChange?.(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
-              下一页
+              {t("nextPage")}
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

@@ -9,6 +9,7 @@ import { Progress } from "@/shared/ui/progress"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { parseAssetFile } from "@/features/collection/lib/file-parser"
 import type { FileUploaderProps } from "@/features/collection/mock/file-uploader-props"
+import { useTranslations } from "next-intl"
 
 export function FileUploader({
   onFileUploaded,
@@ -16,21 +17,22 @@ export function FileUploader({
   templateData,
   templateFileName = "asset-template.json",
   accept = [".json"],
-  acceptDisplay = "JSON 格式文件",
+  acceptDisplay = "JSON files",
   disabled = false,
   texts = {},
 }: FileUploaderProps) {
+  const t = useTranslations("pages.collection.uploader")
   const defaultTexts = {
-    title: "上传资产文件",
-    description: "上传扫描器生成的资产文件，或下载模板手动填写",
-    dragDropText: "拖拽文件到此处或点击选择文件",
-    dragDropHint: `支持 ${acceptDisplay}`,
-    uploadingText: "上传中...",
-    successText: "上传成功！",
-    errorText: "上传失败",
-    retryButtonText: "重试",
-    resetButtonText: "重新上传",
-    downloadTemplateText: "下载模板",
+    title: t("title"),
+    description: t("description"),
+    dragDropText: t("dragDropText"),
+    dragDropHint: t("dragDropHint", { acceptDisplay }),
+    uploadingText: t("uploadingText"),
+    successText: t("successText"),
+    errorText: t("errorText"),
+    retryButtonText: t("retryButtonText"),
+    resetButtonText: t("resetButtonText"),
+    downloadTemplateText: t("downloadTemplateText"),
     ...texts,
   }
 
@@ -76,12 +78,12 @@ export function FileUploader({
         const isValid = await onBeforeUpload(file)
         if (!isValid) {
           setUploadStatus("error")
-          setErrorMessage("文件验证失败")
+          setErrorMessage(t("validationFailed"))
           return
         }
       } catch (error) {
         setUploadStatus("error")
-        setErrorMessage(error instanceof Error ? error.message : "文件验证失败")
+        setErrorMessage(error instanceof Error ? error.message : t("validationFailed"))
         return
       }
     }
@@ -102,7 +104,15 @@ export function FileUploader({
 
     try {
       const text = await file.text()
-      const parsedData = parseAssetFile(text)
+      const parsedData = parseAssetFile(text, {
+        invalidShape: t("parser.invalidShape"),
+        emptyAssets: t("parser.emptyAssets"),
+        requiredString: (values) => t("parser.requiredString", values),
+        requiredArray: (values) => t("parser.requiredArray", values),
+        invalidIp: (values) => t("parser.invalidIp", values),
+        invalidMac: (values) => t("parser.invalidMac", values),
+        invalidJson: t("parser.invalidJson"),
+      })
 
       clearInterval(progressInterval)
       setUploadProgress(100)
@@ -112,7 +122,7 @@ export function FileUploader({
     } catch (error) {
       clearInterval(progressInterval)
       setUploadStatus("error")
-      setErrorMessage(error instanceof Error ? error.message : "文件解析失败，请检查文件格式")
+      setErrorMessage(error instanceof Error ? error.message : t("parseFailed"))
     }
   }
 

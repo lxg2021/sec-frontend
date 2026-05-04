@@ -5,8 +5,10 @@ import { SoftUninstallProgressHeader } from "@/features/assets/software/componen
 import { SoftHostUninstallDetail } from "@/features/assets/software/components/soft-host-uninstall-detail"
 import { mockUninstallProgressList } from "@/features/assets/software/mock/soft-uninstall-progress"
 import { PackageMinus } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 export default function Home() {
+  const t = useTranslations("pages.assets.softwareUninstall")
   const [selectedTaskId, setSelectedTaskId] = useState<string>("")
   const selectedTask = selectedTaskId
     ? mockUninstallProgressList.find((task) => task.taskId === selectedTaskId)
@@ -21,8 +23,8 @@ export default function Home() {
               <PackageMinus className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">软件卸载状态</h1>
-              <p className="text-sm text-gray-500 mt-1">Software Uninstall Status</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
             </div>
           </div>
         </div>

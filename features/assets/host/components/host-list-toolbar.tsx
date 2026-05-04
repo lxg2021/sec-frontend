@@ -15,6 +15,7 @@ import {
 } from "@/shared/ui/select"
 import type { AgentInfo, AgentStatus, SystemType } from "@/features/assets/host/types/system-info"
 import { cn } from "@/shared/lib/utils"
+import { useTranslations } from "next-intl"
 
 const systemIcons: Record<string, string> = {
   windows: "/icons/system/windows.svg",
@@ -22,19 +23,9 @@ const systemIcons: Record<string, string> = {
   macos: "/icons/system/macos.svg",
 }
 
-const statusMeta: Record<string, { label: string; icon: React.ReactNode }> = {
-  online: {
-    label: "在线",
-    icon: (
-      <span className="inline-block w-4 h-4 rounded-full bg-green-500 align-middle" />
-    ),
-  },
-  offline: {
-    label: "离线",
-    icon: (
-      <span className="inline-block w-4 h-4 rounded-full bg-gray-400 align-middle" />
-    ),
-  },
+const statusIcons: Record<string, React.ReactNode> = {
+  online: <span className="inline-block w-4 h-4 rounded-full bg-green-500 align-middle" />,
+  offline: <span className="inline-block w-4 h-4 rounded-full bg-gray-400 align-middle" />,
 }
 
 const osMeta: Record<string, { label: string; icon: React.ReactNode }> = {
@@ -99,6 +90,8 @@ interface HostListToolbarProps {
 }
 
 export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
+  const t = useTranslations("pages.assets.hardware.host.toolbar")
+  const listT = useTranslations("pages.assets.hardware.host.list")
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<AgentStatus | "all">("all")
   const [osTypeFilter, setOsTypeFilter] = useState<SystemType | "all">("all")
@@ -150,6 +143,11 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
     osTypeFilter !== "all" ||
     manufacturerFilter !== "all"
 
+  const statusLabels = {
+    online: listT("online"),
+    offline: listT("offline"),
+  }
+
   return (
     <div className="border-b bg-card p-4">
       <div className="flex flex-wrap gap-4">
@@ -157,7 +155,7 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
         <div className="relative flex-1 min-w-64">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="搜索主机名或主机ID..."
+            placeholder={t("searchPlaceholder")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -171,33 +169,33 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
         >
           <SelectTrigger className="w-32">
             <SelectValue
-              placeholder="状态"
+              placeholder={t("status")}
               aria-label={statusFilter !== "all" ? statusFilter : undefined}
             >
               {statusFilter !== "all" ? (
                 <OptionWithIcon
-                  icon={statusMeta[statusFilter]?.icon}
-                  text={statusMeta[statusFilter]?.label ?? ""}
+                  icon={statusIcons[statusFilter]}
+                  text={statusLabels[statusFilter] ?? ""}
                 />
               ) : (
-                "状态"
+                t("status")
               )}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">
-              <OptionWithIcon text="全部状态" />
+              <OptionWithIcon text={t("allStatus")} />
             </SelectItem>
             <SelectItem value="online">
               <OptionWithIcon
-                icon={statusMeta.online.icon}
-                text={statusMeta.online.label}
+                icon={statusIcons.online}
+                text={statusLabels.online}
               />
             </SelectItem>
             <SelectItem value="offline">
               <OptionWithIcon
-                icon={statusMeta.offline.icon}
-                text={statusMeta.offline.label}
+                icon={statusIcons.offline}
+                text={statusLabels.offline}
               />
             </SelectItem>
           </SelectContent>
@@ -210,7 +208,7 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
         >
           <SelectTrigger className="w-32">
             <SelectValue
-              placeholder="系统"
+              placeholder={t("system")}
               aria-label={osTypeFilter !== "all" ? osTypeFilter : undefined}
             >
               {osTypeFilter !== "all" ? (
@@ -219,13 +217,13 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
                   text={osMeta[osTypeFilter]?.label ?? ""}
                 />
               ) : (
-                "系统"
+                t("system")
               )}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">
-              <OptionWithIcon text="全部系统" />
+              <OptionWithIcon text={t("allSystems")} />
             </SelectItem>
             <SelectItem value="windows">
               <OptionWithIcon
@@ -248,10 +246,10 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
           onValueChange={setManufacturerFilter}
         >
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="厂商" />
+            <SelectValue placeholder={t("vendor")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">全部厂商</SelectItem>
+            <SelectItem value="all">{t("allVendors")}</SelectItem>
             {manufacturers.map((manufacturer) => (
               <SelectItem key={manufacturer} value={manufacturer}>
                 {manufacturer}
@@ -264,7 +262,7 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
         {hasActiveFilters && (
           <Button variant="outline" size="sm" onClick={clearFilters}>
             <X className="h-4 w-4 mr-2" />
-            清除筛选
+            {t("clearFilters")}
           </Button>
         )}
       </div>
@@ -273,13 +271,13 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mt-3">
           {searchTerm && (
-            <Badge variant="secondary">搜索: {searchTerm}</Badge>
+            <Badge variant="secondary">{t("searchBadge", { value: searchTerm })}</Badge>
           )}
           {statusFilter !== "all" && (
             <Badge variant="secondary">
               <span className="inline-flex items-center gap-1">
-                {statusMeta[statusFilter]?.icon}
-                状态: {statusMeta[statusFilter]?.label}
+                {statusIcons[statusFilter]}
+                {t("statusBadge", { value: statusLabels[statusFilter] })}
               </span>
             </Badge>
           )}
@@ -287,13 +285,13 @@ export function HostListToolbar({ hosts, onFilter }: HostListToolbarProps) {
             <Badge variant="secondary">
               <span className="inline-flex items-center gap-1">
                 {osMeta[osTypeFilter]?.icon}
-                系统: {osMeta[osTypeFilter]?.label}
+                {t("systemBadge", { value: osMeta[osTypeFilter]?.label })}
               </span>
             </Badge>
           )}
           {manufacturerFilter !== "all" && (
             <Badge variant="secondary">
-              厂商: {manufacturerFilter}
+              {t("vendorBadge", { value: manufacturerFilter })}
             </Badge>
           )}
         </div>
