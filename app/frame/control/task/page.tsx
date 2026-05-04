@@ -1,12 +1,12 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
-import { TaskCreator } from "@/components/task/task-creator"
-import { TaskList } from "@/components/task/task-list"
-import type { Task, TaskType } from "@/lib/task/task-types"
-import { createTask, mockCreateTask, mockUpdateTask, updateTask } from "@/lib/task/api"
-import { useToast } from "@/hooks/use-toast"
-import { Toaster } from "@/components/ui/toaster"
+import { TaskCreator } from "@/features/task/components/task-creator"
+import { TaskList } from "@/features/task/components/task-list"
+import type { Task, TaskType } from "@/features/task/types"
+import { createTask, mockCreateTask, mockUpdateTask, updateTask } from "@/features/task/api"
+import { useToast } from "@/shared/hooks/use-toast"
+import { Toaster } from "@/shared/ui/toaster"
 import { ClipboardList, Clock } from "lucide-react"
 
 export default function Home() {

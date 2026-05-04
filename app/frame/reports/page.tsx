@@ -1,5 +1,5 @@
-import { AuditCenter } from "@/components/audit/audit-center"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { AuditCenter } from "@/features/audit/components/audit-center"
+import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card"
 import { ShieldCheck } from "lucide-react"
 
 

@@ -1,10 +1,10 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
-import { DacPolicyForm } from "@/components/dac/dac-policy-form"
-import { DacReviewCard } from "@/components/dac/DacReviewCard"
-import type { FilePolicy, RegistryPolicy, ProcessPolicy, NetworkPolicy } from "@/components/dac/dacpolicy"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { DacPolicyForm } from "@/features/dac/components/dac-policy-form"
+import { DacReviewCard } from "@/features/dac/components/dac-review-card"
+import type { FilePolicy, RegistryPolicy, ProcessPolicy, NetworkPolicy } from "@/features/dac/types"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/shared/ui/card"
 
 
 type PolicyWithMetadata = {

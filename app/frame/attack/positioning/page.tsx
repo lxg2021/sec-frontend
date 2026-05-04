@@ -1,6 +1,6 @@
-"use client"
+﻿"use client"
 
-import { Search } from "@/components/search/Search"
+import { Search } from "@/features/attack/search/components/search"
 import { Shield, Workflow } from "lucide-react";
 import {
   Card,
@@ -8,19 +8,19 @@ import {
   CardContent,
   CardTitle,
   CardDescription
-} from "@/components/ui/card";
-import GraphVisualization from "@/components/graph/GraphVisualization";
+} from "@/shared/ui/card";
+import GraphVisualization from "@/features/attack/graph/components/graph-visualization";
 import {
   GraphNode,
   GraphLink,
-} from "@/components/graph/interface";
+} from "@/features/attack/graph/interface";
 import "reactflow/dist/base.css";
-import { initPositionNodes, initPositionLinks } from "@/data/drill-mock-data";
+import { initPositionNodes, initPositionLinks } from "@/features/attack/mock/drill";
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import nodeRegistry, { getNodeRegistry } from "@/components/graph/center/RegisterNodeCenter";
-import edgeRegistry, { getEdgeRegistry } from "@/components/graph/center/RegisterEdgeCenter";
-import NodeEdgeAccordion from "@/components/graph/NodeEdgeAccordion";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import nodeRegistry, { getNodeRegistry } from "@/features/attack/graph/center/register-node-center";
+import edgeRegistry, { getEdgeRegistry } from "@/features/attack/graph/center/register-edge-center";
+import NodeEdgeAccordion from "@/features/attack/graph/components/node-edge-accordion";
+import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet";
 
 
 export default function Home() {

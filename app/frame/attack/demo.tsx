@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import KibanaDatePicker from "@/components/kibana-date-picker"
+import KibanaDatePicker from "@/shared/components/kibana-date-picker"
 
 interface DateRange {
   startTime: Date

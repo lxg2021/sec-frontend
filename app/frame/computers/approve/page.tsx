@@ -1,18 +1,18 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
-import { LogicGroupUploader } from "@/components/computer/logic-group-uploader"
-import { TreeLogicGroup } from "@/components/computer/tree-logic-group"
-import type { UserLogicGroup } from "@/lib/computer/ui-asset-data"
-import type { TableLogicGroup } from "@/lib/computer/table"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Toaster } from "@/components/ui/toaster"
+import { LogicGroupUploader } from "@/features/collection/components/logic-group-uploader"
+import { TreeLogicGroup } from "@/features/collection/components/tree-logic-group"
+import type { UserLogicGroup } from "@/features/collection/types"
+import type { TableLogicGroup } from "@/features/collection/table-types"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
+import { Toaster } from "@/shared/ui/toaster"
 import Image from "next/image";
 import { Computer, FileUp } from "lucide-react"
-import { HostApproval } from "@/components/hostapproval/HostApproval"
-import type { Host, LogicGroup } from "@/components/hostapproval/computer"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { mockHosts, mockLogicGroups } from '@/data/mock-data-approve';
+import { HostApproval } from "@/features/assets/approval/components/host-approval"
+import type { Host, LogicGroup } from "@/features/assets/approval/types"
+import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card"
+import { mockHosts, mockLogicGroups } from '@/features/assets/approval/mock/approve';
 
 
 export default function LogicGroupsPage() {

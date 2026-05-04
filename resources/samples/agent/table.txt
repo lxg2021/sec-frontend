@@ -1,0 +1,43 @@
+| 字段名             | 类型           | 说明                     |
+| --------------- | ------------ | ---------------------- |
+| id              | UUID         | 主键                     |
+| parent_id       | UUID / NULL  | 父节点 ID（NULL 表示顶层公司）    |
+| tenant_id       | UUID         | 所属租户（可选）               |
+| name            | VARCHAR(255) | 节点名称                   |
+| full_path       | VARCHAR(512) | 例如：`AcmeCorp/安全部/终端组`  |
+| full_path_ids   | JSONB        | 例如：`[1,2,3]`（用于层级快速过滤） |
+| company_name    | VARCHAR(255) | 冗余字段                   |
+| department_name | VARCHAR(255) | 冗余字段                   |
+| description     | TEXT         | 描述                     |
+| created_by      | UUID         | 创建者用户ID                |
+| created_at      | DATETIME     | 创建时间                   |
+| updated_at      | DATETIME     | 更新时间                   |
+
+
+| 字段             | 类型                                  | 说明              |
+| -------------- | ----------------------------------- | --------------- |
+| host_id        | string                              | 主机唯一 ID         |
+| hostname       | string                              | 主机名             |
+| ip             | string                              | IP 地址           |
+| os_name        | string                              | 操作系统            |
+| os_version     | string 							   | 系统版本
+| product_id     | string 							   | 系统产品ID         |
+| cpu_id		 | string 							   | cpuid			  |
+| harddisk_id    | []string 						   | 硬盘ids           |
+| board_serial   | string 							   | 主板序列号  		  |
+| macs           | []string                            | MACs 地址          |
+| group_id       | UUID                                | 当前所属逻辑组         |
+| heartbeat_time | datetime                            | 最近心跳时间          |
+| status         | enum('online','offline','inactive') | 主机状态            |
+
+
+| 字段          | 类型       | 说明          |
+| ----------- | -------- | ----------- |
+| host_id     | UUID     | 主机 ID       |
+| user_id     | UUID     | 用户唯一 ID     |
+| owner_name  | VARCHAR  | 用户名         |
+| phone       | VARCHAR  | 电话          |
+| email       | VARCHAR  | 邮箱          |
+| owner_role  | VARCHAR  | 角色（管理员/使用者） |
+| assigned_at | DATETIME | 分配时间        |
+| expired_at  | DATETIME | 到期时间（可选）    |

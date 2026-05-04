@@ -182,7 +182,7 @@ app/
       approve/
         page.tsx
 
-    assets/
+    resources/
       hardware/
         page.tsx
       software/
@@ -283,7 +283,7 @@ features/
       platforms.ts
     types.ts
 
-  assets/
+  resources/
     host/
       components/
       mock/
@@ -370,7 +370,7 @@ shared/
   styles/
   types/
 
-assets/
+resources/
   docs/
   samples/
 
@@ -436,8 +436,8 @@ frame/dashboard
 frame/computers/agentinfo
 frame/computers/approve
 frame/hardware-assets
-frame/software-assets/details
-frame/software-assets/uninstall
+frame/software-resources/details
+frame/software-resources/uninstall
 frame/baseline
 frame/baseline/details
 frame/baseline/hosts
@@ -460,9 +460,9 @@ frame/users
 建议长期统一命名：
 
 ```txt
-frame/assets/hardware
-frame/assets/software/details
-frame/assets/software/uninstall
+frame/resources/hardware
+frame/resources/software/details
+frame/resources/software/uninstall
 ```
 
 但如果菜单和外部链接已经依赖现有 URL，可以先不改 URL，只调整内部实现目录。
@@ -700,7 +700,7 @@ features/collection/
 
 说明：
 
-- `computer` 这个命名在当前工程中同时指“信息采集”和“主机管理”，建议 `collection` 与 `assets/host` 拆开。
+- `computer` 这个命名在当前工程中同时指“信息采集”和“主机管理”，建议 `collection` 与 `resources/host` 拆开。
 
 ### 5.8 assets 资产模块
 
@@ -711,9 +711,9 @@ features/collection/
 ```txt
 app/frame/computers/agentinfo/page.tsx
 app/frame/computers/approve/page.tsx
-app/frame/hardware-assets/page.jsx
-app/frame/software-assets/details/page.tsx
-app/frame/software-assets/uninstall/page.tsx
+app/frame/hardware-resources/page.jsx
+app/frame/software-resources/details/page.tsx
+app/frame/software-resources/uninstall/page.tsx
 ```
 
 当前组件：
@@ -798,7 +798,7 @@ features/assets/
 说明：
 
 - 当前目录名 `components/assert` 疑似想表达 `asset`，建议改成 `features/assets`，避免拼写误导。
-- `hardware-assets/page.jsx` 当前几乎为空，后续可以并入 `assets/host` 或单独建立 `assets/hardware`。
+- `hardware-resources/page.jsx` 当前几乎为空，后续可以并入 `resources/host` 或单独建立 `resources/hardware`。
 
 ### 5.9 baseline 安全基线模块
 
@@ -1300,12 +1300,12 @@ doc/
   table/
   frontend-directory-refactor-plan.md
 
-assets/docs/
+resources/docs/
   logic_group_template.yml
   logic_group_test.yml
   self-agent-template.json
 
-assets/samples/
+resources/samples/
   agent/
     agent.rar
     import.yaml
@@ -1329,7 +1329,7 @@ assets/samples/
 目标：
 
 - 修复 task API route 构建错误。
-- 建立 `features/`、`shared/`、`assets/` 目录。
+- 建立 `features/`、`shared/`、`resources/` 目录。
 - 不大规模改业务逻辑。
 
 动作：
@@ -1424,8 +1424,8 @@ components/search -> features/attack/search
 
 ```txt
 data/* -> features/*/mock/*
-components/agent/* -> assets/samples/agent/*
-data/*.rar -> assets/samples/*
+components/agent/* -> resources/samples/agent/*
+data/*.rar -> resources/samples/*
 styles/* -> shared/styles/*
 ```
 
@@ -1454,7 +1454,7 @@ styles/* -> shared/styles/*
   "@/app/*": ["./app/*"],
   "@/features/*": ["./features/*"],
   "@/shared/*": ["./shared/*"],
-  "@/assets/*": ["./assets/*"]
+  "@/resources/*": ["./resources/*"]
 }
 ```
 
@@ -1551,7 +1551,7 @@ components/agent/table.txt
 components/agent/思路.md
 ```
 
-这些文件在迁移前需要确认是否纳入版本管理。如果是资料，建议移动到 `assets/samples/agent` 后再决定是否提交。
+这些文件在迁移前需要确认是否纳入版本管理。如果是资料，建议移动到 `resources/samples/agent` 后再决定是否提交。
 
 ## 10. 最终效果
 
@@ -1579,7 +1579,7 @@ features/vulnerability/types.ts
 - `features` 管业务能力。
 - `shared` 管跨业务复用。
 - `public` 管浏览器直接访问的静态资源。
-- `assets` 管样例、归档、非运行时代码资料。
+- `resources` 管样例、归档、非运行时代码资料。
 - `doc` 管工程和外部系统文档。
 
-这套结构适合当前项目规模，尤其适合现在已经比较重的 `attack/graph/event`、`assets/software/host`、`vulnerability/patch` 这些模块。
+这套结构适合当前项目规模，尤其适合现在已经比较重的 `attack/graph/event`、`resources/software/host`、`vulnerability/patch` 这些模块。

@@ -1,12 +1,12 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
-import { ConfigList } from "@/components/secconfig/ConfigList"
-import { ConfigCreateDialog } from "@/components/secconfig/ConfigCreateDialog"
-import { ConfigTable } from "@/components/secconfig/ConfigTable"
-import { defaultConfigCategory } from "@/components/secconfig/data/defaultConfigCategory"
-import type { ConfigCategory } from "@/components/secconfig/types/configItem"
-import { Toaster } from "@/components/ui/toaster"
+import { ConfigList } from "@/features/sensor-config/config-list"
+import { ConfigCreateDialog } from "@/features/sensor-config/config-create-dialog"
+import { ConfigTable } from "@/features/sensor-config/config-table"
+import { defaultConfigCategory } from "@/features/sensor-config/data/default-config-category"
+import type { ConfigCategory } from "@/features/sensor-config/types/config-item"
+import { Toaster } from "@/shared/ui/toaster"
 import { SlidersHorizontal } from "lucide-react"
 
 export default function ConfigManagementPage() {

@@ -1,19 +1,19 @@
-// page.tsx
+﻿// page.tsx
 "use client";
 
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import GraphVisualization from "@/components/graph/GraphVisualization";
+import GraphVisualization from "@/features/attack/graph/components/graph-visualization";
 import {
   GraphNode,
   GraphLink,
-} from "@/components/graph/interface";
+} from "@/features/attack/graph/interface";
 import "reactflow/dist/base.css";
 
 // 引入注册中心
-import nodeRegistry, { getNodeRegistry } from "@/components/graph/center/RegisterNodeCenter";
-import edgeRegistry, { getEdgeRegistry } from "@/components/graph/center/RegisterEdgeCenter";
-import NodeEdgeAccordion from "@/components/graph/NodeEdgeAccordion";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import nodeRegistry, { getNodeRegistry } from "@/features/attack/graph/center/register-node-center";
+import edgeRegistry, { getEdgeRegistry } from "@/features/attack/graph/center/register-edge-center";
+import NodeEdgeAccordion from "@/features/attack/graph/components/node-edge-accordion";
+import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet";
 import { Shield, Clock, Workflow } from "lucide-react"
 import {
   Card,
@@ -21,9 +21,9 @@ import {
   CardContent,
   CardTitle,
   CardDescription
-} from "@/components/ui/card";
-import { KillChainTimeline } from "@/components/killchain/kill-chain-timeline"
-import { initialNodes, initialLinks, demoUpdates } from "@/data/drill-mock-data";
+} from "@/shared/ui/card";
+import { KillChainTimeline } from "@/features/attack/kill-chain/components/kill-chain-timeline"
+import { initialNodes, initialLinks, demoUpdates } from "@/features/attack/mock/drill";
 
 
 
