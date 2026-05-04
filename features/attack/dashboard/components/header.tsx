@@ -6,6 +6,7 @@ import type { AttckData, Severity } from "@/features/attack/utils/attck-utils"
 import { formatDateRange, countsFromSeverityEntries } from "@/features/attack/utils/attck-utils"
 import { Activity, Server, ShieldAlert, AlertTriangle, Clock } from "lucide-react"
 import dayjs from "dayjs"
+import { useTranslations } from "next-intl"
 
 interface HeaderProps {
   data: AttckData
@@ -17,7 +18,9 @@ const colorMap: Record<Severity, { chip: string; bar: string }> = {
   低: { chip: "bg-green-100 text-green-700", bar: "bg-green-500" },
 }
 
-function renderRange(rangeText: string) {
+type HeaderTranslator = ReturnType<typeof useTranslations>
+
+function renderRange(rangeText: string, t: HeaderTranslator) {
   try {
     const [startRaw, endRaw] = rangeText.split(" — ");
     if (!startRaw || !endRaw) throw new Error("Invalid time range format");
@@ -29,11 +32,11 @@ function renderRange(rangeText: string) {
       <div className="mt-1 flex flex-col space-y-2 text-sm text-slate-800 dark:text-white">
         <div className="flex items-center gap-2 font-medium">
           <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-          <span>开始 : {start}</span>
+          <span>{t("start")}: {start}</span>
         </div>
         <div className="flex items-center gap-2 font-medium">
           <span className="inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
-          <span>结束 : {end}</span>
+          <span>{t("end")}: {end}</span>
         </div>
       </div>
     );
@@ -44,21 +47,22 @@ function renderRange(rangeText: string) {
         className="mt-1 text-sm text-rose-600 dark:text-rose-400 italic"
         title="Invalid time format"
       >
-        时间格式错误: {rangeText}
+        {t("timeFormatError", { rangeText })}
       </div>
     );
   }
 }
 
 export default function AttckHeader({ data }: HeaderProps) {
+  const t = useTranslations("pages.attack.dashboard.header")
   const rangeText = formatDateRange(data.starttime, data.endtime)
   const sevCounts = countsFromSeverityEntries(data.severity)
   const total = (sevCounts["高"] ?? 0) + (sevCounts["中"] ?? 0) + (sevCounts["低"] ?? 0) || 1
 
-  const segments: { key: Severity; value: number }[] = [
-    { key: "高", value: sevCounts["高"] ?? 0 },
-    { key: "中", value: sevCounts["中"] ?? 0 },
-    { key: "低", value: sevCounts["低"] ?? 0 },
+  const segments: { key: Severity; labelKey: "high" | "medium" | "low"; value: number }[] = [
+    { key: "高", labelKey: "high", value: sevCounts["高"] ?? 0 },
+    { key: "中", labelKey: "medium", value: sevCounts["中"] ?? 0 },
+    { key: "低", labelKey: "low", value: sevCounts["低"] ?? 0 },
   ]
 
   return (
@@ -67,7 +71,7 @@ export default function AttckHeader({ data }: HeaderProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            ATT&CK 技术
+            {t("attckTechniques")}
           </CardTitle>
           <div className="p-2 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-600">
             <Activity className="h-4 w-4 text-white" aria-hidden="true" />
@@ -86,7 +90,7 @@ export default function AttckHeader({ data }: HeaderProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            受影响主机
+            {t("affectedHosts")}
           </CardTitle>
           <div className="p-2 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600">
             <Server className="h-4 w-4 text-white" aria-hidden="true" />
@@ -106,14 +110,14 @@ export default function AttckHeader({ data }: HeaderProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-600 opacity-5 group-hover:opacity-10 transition-opacity" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            风险等级
+            {t("riskLevel")}
           </CardTitle>
           <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-400 to-red-500">
             <AlertTriangle className="h-4 w-4 text-white" aria-hidden="true" />
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-xs text-muted-foreground mb-2">总计 {total}</div>
+          <div className="text-xs text-muted-foreground mb-2">{t("total", { total })}</div>
           <div className="w-full h-2 rounded-full bg-muted overflow-hidden flex mb-2">
             {segments.map((seg) => {
               const widthPct = `${Math.round((seg.value / total) * 100)}%`
@@ -122,7 +126,7 @@ export default function AttckHeader({ data }: HeaderProps) {
                   key={seg.key}
                   className={`${colorMap[seg.key].bar}`}
                   style={{ width: widthPct }}
-                  title={`${seg.key}: ${seg.value}`}
+                  title={`${t(`severity.${seg.labelKey}`)}: ${seg.value}`}
                 />
               )
             })}
@@ -132,9 +136,9 @@ export default function AttckHeader({ data }: HeaderProps) {
               <span
                 key={seg.key}
                 className={`text-xs px-2 py-0.5 rounded-full ${colorMap[seg.key].chip}`}
-                title={`${seg.key}: ${seg.value}`}
+                title={`${t(`severity.${seg.labelKey}`)}: ${seg.value}`}
               >
-                {seg.key} {seg.value}
+                {t(`severity.${seg.labelKey}`)} {seg.value}
               </span>
             ))}
           </div>
@@ -145,14 +149,14 @@ export default function AttckHeader({ data }: HeaderProps) {
         <div className="absolute inset-0 bg-gradient-to-br from-teal-200 to-cyan-400 opacity-5 group-hover:opacity-10 transition-opacity" />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            检测周期
+            {t("detectionPeriod")}
           </CardTitle>
           <div className="p-2 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-600">
             <Clock className="h-4 w-4 text-white" aria-hidden="true" />
           </div>
         </CardHeader>
         <CardContent>
-          {renderRange(rangeText)}
+          {renderRange(rangeText, t)}
         </CardContent>
       </Card>
 

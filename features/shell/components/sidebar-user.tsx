@@ -23,6 +23,7 @@ import { Button } from "@/shared/ui/button"
 import { useToast } from "@/shared/hooks/use-toast"
 import type { UserProfile } from "@/features/user/api"
 import { User, Settings, Key, LogOut, Trash2, ShieldCheck, ShieldOff } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 type DialogType = "profile" | "edit" | "password" | "delete" | null
 
@@ -54,6 +55,9 @@ export function SidebarUser({
   deleteAccount,
   logout,
 }: SidebarUserProps) {
+  const t = useTranslations("shell.user")
+  const tCommon = useTranslations("common")
+  const locale = useLocale()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState<DialogType>(null)
@@ -81,8 +85,8 @@ export function SidebarUser({
       }))
     } catch (error) {
       toast({
-        title: "错误",
-        description: error instanceof Error ? error.message : "加载用户信息失败",
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("loadFailed"),
         variant: "destructive",
       })
     } finally {
@@ -103,14 +107,14 @@ export function SidebarUser({
       })
       setUser(result.data!)
       toast({
-        title: "成功",
+        title: tCommon("success"),
         description: result.message,
       })
       setDialogOpen(null)
     } catch (error) {
       toast({
-        title: "错误",
-        description: error instanceof Error ? error.message : "更新失败",
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("updateFailed"),
         variant: "destructive",
       })
     }
@@ -119,8 +123,8 @@ export function SidebarUser({
   const handleUpdatePassword = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
       toast({
-        title: "错误",
-        description: "两次输入的密码不一致",
+        title: tCommon("error"),
+        description: t("passwordMismatch"),
         variant: "destructive",
       })
       return
@@ -132,7 +136,7 @@ export function SidebarUser({
         newPassword: formData.newPassword,
       })
       toast({
-        title: "成功",
+        title: tCommon("success"),
         description: result.message,
       })
       setDialogOpen(null)
@@ -144,8 +148,8 @@ export function SidebarUser({
       }))
     } catch (error) {
       toast({
-        title: "错误",
-        description: error instanceof Error ? error.message : "修改密码失败",
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("passwordUpdateFailed"),
         variant: "destructive",
       })
     }
@@ -158,13 +162,13 @@ export function SidebarUser({
       const result = user.twoFactorEnabled ? await disableTwoFactor() : await enableTwoFactor()
       setUser(result.data!)
       toast({
-        title: "成功",
+        title: tCommon("success"),
         description: result.message,
       })
     } catch (error) {
       toast({
-        title: "错误",
-        description: error instanceof Error ? error.message : "操作失败",
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("operationFailed"),
         variant: "destructive",
       })
     }
@@ -173,8 +177,8 @@ export function SidebarUser({
   const handleDeleteAccount = async () => {
     if (formData.deleteConfirm !== "CONFIRM_DELETE") {
       toast({
-        title: "错误",
-        description: "请输入正确的确认文本",
+        title: tCommon("error"),
+        description: t("confirmTextInvalid"),
         variant: "destructive",
       })
       return
@@ -183,15 +187,15 @@ export function SidebarUser({
     try {
       const result = await deleteAccount(formData.deleteConfirm)
       toast({
-        title: "成功",
+        title: tCommon("success"),
         description: result.message,
       })
       setDialogOpen(null)
       await loadUserProfile()
     } catch (error) {
       toast({
-        title: "错误",
-        description: error instanceof Error ? error.message : "注销账户失败",
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("deleteFailed"),
         variant: "destructive",
       })
     }
@@ -201,14 +205,14 @@ export function SidebarUser({
     try {
       const result = await logout()
       toast({
-        title: "成功",
+        title: tCommon("success"),
         description: result.message,
       })
       window.location.href = "/login"
     } catch (error) {
       toast({
-        title: "错误",
-        description: error instanceof Error ? error.message : "退出登录失败",
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("logoutFailed"),
         variant: "destructive",
       })
     }
@@ -265,41 +269,41 @@ export function SidebarUser({
         >
           <ContextMenuItem onClick={() => setDialogOpen("profile")}>
             <User className="mr-2 h-4 w-4" />
-            查看资料
+            {t("viewProfile")}
           </ContextMenuItem>
           <ContextMenuItem onClick={() => setDialogOpen("edit")}>
             <Settings className="mr-2 h-4 w-4" />
-            编辑信息
+            {t("editProfile")}
           </ContextMenuItem>
           <ContextMenuItem onClick={() => setDialogOpen("password")}>
             <Key className="mr-2 h-4 w-4" />
-            修改密码
+            {t("changePassword")}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem onClick={handleToggleTwoFactor}>
             {user.twoFactorEnabled ? (
               <>
                 <ShieldOff className="mr-2 h-4 w-4" />
-                关闭双重认证
+                {t("disable2fa")}
               </>
             ) : (
               <>
                 <ShieldCheck className="mr-2 h-4 w-4" />
-                开启双重认证
+                {t("enable2fa")}
               </>
             )}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
-            退出登录
+            {t("logout")}
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => setDialogOpen("delete")}
             className="text-red-400 focus:text-red-400"
           >
             <Trash2 className="mr-2 h-4 w-4" />
-            注销账户
+            {t("deleteAccount")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
@@ -308,8 +312,8 @@ export function SidebarUser({
       <Dialog open={dialogOpen === "profile"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>用户资料</DialogTitle>
-            <DialogDescription>查看您的个人信息</DialogDescription>
+            <DialogTitle>{t("profileTitle")}</DialogTitle>
+            <DialogDescription>{t("profileDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
@@ -324,32 +328,32 @@ export function SidebarUser({
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">用户ID:</span>
+                <span className="text-muted-foreground">{t("userId")}</span>
                 <span className="font-mono">{user.id}</span>
               </div>
               {user.phone && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">手机号:</span>
+                  <span className="text-muted-foreground">{t("phone")}</span>
                   <span>{user.phone}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">邮箱:</span>
+                <span className="text-muted-foreground">{t("email")}</span>
                 <span>{user.email}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">双重认证:</span>
+                <span className="text-muted-foreground">{t("twoFactor")}</span>
                 <span className={user.twoFactorEnabled ? "text-green-600" : ""}>
-                  {user.twoFactorEnabled ? "已开启" : "未开启"}
+                  {user.twoFactorEnabled ? t("enabled") : t("disabled")}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">创建时间:</span>
-                <span>{new Date(user.createdAt).toLocaleDateString("zh-CN")}</span>
+                <span className="text-muted-foreground">{t("createdAt")}</span>
+                <span>{new Date(user.createdAt).toLocaleDateString(locale)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">更新时间:</span>
-                <span>{new Date(user.updatedAt).toLocaleDateString("zh-CN")}</span>
+                <span className="text-muted-foreground">{t("updatedAt")}</span>
+                <span>{new Date(user.updatedAt).toLocaleDateString(locale)}</span>
               </div>
             </div>
           </div>
@@ -360,44 +364,44 @@ export function SidebarUser({
       <Dialog open={dialogOpen === "edit"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>编辑信息</DialogTitle>
-            <DialogDescription>修改您的个人信息</DialogDescription>
+            <DialogTitle>{t("editTitle")}</DialogTitle>
+            <DialogDescription>{t("editDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nickname">昵称</Label>
+              <Label htmlFor="nickname">{t("nickname")}</Label>
               <Input
                 id="nickname"
                 value={formData.nickname}
                 onChange={(e) => setFormData((prev) => ({ ...prev, nickname: e.target.value }))}
-                placeholder="请输入昵称"
+                placeholder={t("nicknamePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
+              <Label htmlFor="email">{t("email")}</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                placeholder="请输入邮箱"
+                placeholder={t("emailPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">手机号</Label>
+              <Label htmlFor="phone">{t("phone")}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder="请输入手机号"
+                placeholder={t("phonePlaceholder")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(null)}>
-              取消
+              {t("cancel")}
             </Button>
-            <Button onClick={handleUpdateProfile}>保存</Button>
+            <Button onClick={handleUpdateProfile}>{t("save")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -406,46 +410,46 @@ export function SidebarUser({
       <Dialog open={dialogOpen === "password"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>修改密码</DialogTitle>
-            <DialogDescription>请输入旧密码和新密码</DialogDescription>
+            <DialogTitle>{t("passwordTitle")}</DialogTitle>
+            <DialogDescription>{t("passwordDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="oldPassword">旧密码</Label>
+              <Label htmlFor="oldPassword">{t("oldPassword")}</Label>
               <Input
                 id="oldPassword"
                 type="password"
                 value={formData.oldPassword}
                 onChange={(e) => setFormData((prev) => ({ ...prev, oldPassword: e.target.value }))}
-                placeholder="请输入旧密码"
+                placeholder={t("oldPasswordPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newPassword">新密码</Label>
+              <Label htmlFor="newPassword">{t("newPassword")}</Label>
               <Input
                 id="newPassword"
                 type="password"
                 value={formData.newPassword}
                 onChange={(e) => setFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
-                placeholder="请输入新密码(至少6位,包含字母和数字)"
+                placeholder={t("newPasswordPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">确认新密码</Label>
+              <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                placeholder="请再次输入新密码"
+                placeholder={t("confirmPasswordPlaceholder")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(null)}>
-              取消
+              {t("cancel")}
             </Button>
-            <Button onClick={handleUpdatePassword}>确认修改</Button>
+            <Button onClick={handleUpdatePassword}>{t("confirmChange")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -454,28 +458,28 @@ export function SidebarUser({
       <Dialog open={dialogOpen === "delete"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-destructive">注销账户</DialogTitle>
+            <DialogTitle className="text-destructive">{t("deleteTitle")}</DialogTitle>
             <DialogDescription>
-              此操作不可逆,请谨慎操作。请输入 <code className="font-mono font-bold">CONFIRM_DELETE</code> 以确认注销。
+              {t("deleteDescription")} <code className="font-mono font-bold">CONFIRM_DELETE</code> {t("deleteDescriptionTail")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="deleteConfirm">确认文本</Label>
+              <Label htmlFor="deleteConfirm">{t("confirmText")}</Label>
               <Input
                 id="deleteConfirm"
                 value={formData.deleteConfirm}
                 onChange={(e) => setFormData((prev) => ({ ...prev, deleteConfirm: e.target.value }))}
-                placeholder="请输入 CONFIRM_DELETE"
+                placeholder={t("confirmTextPlaceholder")}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(null)}>
-              取消
+              {t("cancel")}
             </Button>
             <Button variant="destructive" onClick={handleDeleteAccount}>
-              确认注销
+              {t("confirmDelete")}
             </Button>
           </DialogFooter>
         </DialogContent>

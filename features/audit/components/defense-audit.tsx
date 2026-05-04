@@ -7,6 +7,7 @@ import type { DefenseAudit as DefenseAuditType } from "@/features/audit/types"
 import { DefenseAuditCard } from "./defense-audit-card"
 import { Pagination } from "./pagination"
 import { Filter, ClipboardList } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface DefenseAuditProps {
   data: DefenseAuditType[]
@@ -17,6 +18,7 @@ interface DefenseAuditProps {
 }
 
 export function DefenseAudit({ data, globalSearch, dateRange, customDateFrom, customDateTo }: DefenseAuditProps) {
+  const t = useTranslations("pages.audit.defense")
   const [actionType, setActionType] = useState<string>("all")
   const [severity, setSeverity] = useState<string>("all")
   const [status, setStatus] = useState<string>("all")
@@ -106,34 +108,34 @@ export function DefenseAudit({ data, globalSearch, dateRange, customDateFrom, cu
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Filter className="h-4 w-4 text-blue-500" />
-            防御动作筛选条件
+            {t("filterTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">防御类型:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("actionType")}</label>
               <Select value={actionType} onValueChange={setActionType}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="防御类型" />
+                  <SelectValue placeholder={t("actionTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="ALERT">告警</SelectItem>
-                  <SelectItem value="BLOCK">阻断</SelectItem>
-                  <SelectItem value="PROMPT">提示</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="ALERT">{t("alert")}</SelectItem>
+                  <SelectItem value="BLOCK">{t("block")}</SelectItem>
+                  <SelectItem value="PROMPT">{t("prompt")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">严重等级:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("severity")}</label>
               <Select value={severity} onValueChange={setSeverity}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="严重等级" />
+                  <SelectValue placeholder={t("severityPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
                   <SelectItem value="LOW">LOW</SelectItem>
                   <SelectItem value="MEDIUM">MEDIUM</SelectItem>
                   <SelectItem value="HIGH">HIGH</SelectItem>
@@ -143,30 +145,30 @@ export function DefenseAudit({ data, globalSearch, dateRange, customDateFrom, cu
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">执行状态:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("status")}</label>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="执行状态" />
+                  <SelectValue placeholder={t("statusPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="SUCCESS">成功</SelectItem>
-                  <SelectItem value="FAILED">失败</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="SUCCESS">{t("success")}</SelectItem>
+                  <SelectItem value="FAILED">{t("failed")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">执行来源:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("source")}</label>
               <Select value={source} onValueChange={setSource}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="执行来源" />
+                  <SelectValue placeholder={t("sourcePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="ENDPOINT">终端防护</SelectItem>
-                  <SelectItem value="FIREWALL">防火墙</SelectItem>
-                  <SelectItem value="HIDS">主机入侵检测</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="ENDPOINT">{t("endpoint")}</SelectItem>
+                  <SelectItem value="FIREWALL">{t("firewall")}</SelectItem>
+                  <SelectItem value="HIDS">{t("hids")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -178,12 +180,12 @@ export function DefenseAudit({ data, globalSearch, dateRange, customDateFrom, cu
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-blue-500" />
-            防御动作审计记录
+            {t("listTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {filteredAudits.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">暂无数据</div>
+            <div className="text-center py-8 text-muted-foreground">{t("empty")}</div>
           ) : (
             <>
               {paginatedAudits.map((audit) => (

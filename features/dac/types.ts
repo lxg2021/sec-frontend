@@ -78,6 +78,8 @@ export interface ActionOption {
   value: string;
   label: string;
   description: string;
+  labelKey?: string;
+  descriptionKey?: string;
 }
 
 export interface DacPolicyFormProps {

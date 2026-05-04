@@ -33,6 +33,7 @@ import type { AccountGroupNode } from "@/features/attack/graph/node/account-grou
 import type { AccountNode } from "@/features/attack/graph/node/account-node-config";
 import type { AttackNode } from "@/features/attack/graph/node/attack-node-config";
 import { Badge } from "@/shared/ui/badge";
+import { useTranslations } from "next-intl";
 
 // 所有 Node 类型联合
 export type AnyNode =
@@ -73,7 +74,7 @@ export type AnyNode =
 
 // 节点配置类型
 interface NodeConfig {
-  label: string;
+  labelKey: string;
   icon: string;
   color: string;
   getDisplayText: (node: any) => string;
@@ -86,19 +87,19 @@ interface NodeConfig {
 // 节点配置映射
 const NODE_CONFIGS: Record<string, NodeConfig> = {
   ProcessNode: {
-    label: "进程节点",
+    labelKey: "ProcessNode",
     icon: "/icons/nodes/process-node.svg",
     color: "#4CAF50",
     getDisplayText: (node: ProcessNode) => node.ProcessName || '--'
   },
   FileNode: {
-    label: "文件节点",
+    labelKey: "FileNode",
     icon: "/icons/nodes/file-node.svg",
     color: "#FF9800",
     getDisplayText: (node: FileNode) => getFileName(node.FileName)
   },
   NetNode: {
-    label: "网络节点",
+    labelKey: "NetNode",
     icon: "/icons/nodes/net-node.svg",
     color: "#2196F3",
     getDisplayText: (node: NetNode) => `${node.SourceIP}-${node.DestinationIP}`,
@@ -108,187 +109,187 @@ const NODE_CONFIGS: Record<string, NodeConfig> = {
     }
   },
   DnsNode: {
-    label: "DNS节点",
+    labelKey: "DnsNode",
     icon: "/icons/nodes/dns-node.svg",
     color: "#03A9F4",
     getDisplayText: (node: DnsNode) => node.Domain || '--'
   },
   VolumeNode: {
-    label: "卷节点",
+    labelKey: "VolumeNode",
     icon: "/icons/nodes/volume-node.svg",
     color: "#8BC34A",
     getDisplayText: (node: VolumeNode) => node.FileName || '--'
   },
   FileStreamNode: {
-    label: "文件流节点",
+    labelKey: "FileStreamNode",
     icon: "/icons/nodes/file-stream-node.svg",
     color: "#FFB74D",
     getDisplayText: (node: FileStreamNode) => getFileName(node.FileName)
   },
   BitsJobNode: {
-    label: "BitsJob节点",
+    labelKey: "BitsJobNode",
     icon: "/icons/nodes/bits-job-node.svg",
     color: "#F57C00",
     getDisplayText: (node: BitsJobNode) => node.JobName || '--'
   },
   TaskNode: {
-    label: "计划任务节点",
+    labelKey: "TaskNode",
     icon: "/icons/nodes/task-node.svg",
     color: "#9C27B0",
     getDisplayText: (node: TaskNode) => node.TaskName || '--'
   },
   DllImageNode: {
-    label: "DLL节点",
+    labelKey: "DllImageNode",
     icon: "/icons/nodes/dll-node.svg",
     color: "#434260",
-    getDisplayText: (node: DllImageNode) => node.Image ? getFileName(node.Image) : "未知DLL"
+    getDisplayText: (node: DllImageNode) => node.Image ? getFileName(node.Image) : "Unknown DLL"
   },
   DriverImageNode: {
-    label: "驱动节点",
+    labelKey: "DriverImageNode",
     icon: "/icons/nodes/driver-image-node.svg",
     color: "#434260",
-    getDisplayText: (node: DriverImageNode) => node.Image ? getFileName(node.Image) : "未知驱动"
+    getDisplayText: (node: DriverImageNode) => node.Image ? getFileName(node.Image) : "Unknown Driver"
   },
   EnDecryptNode: {
-    label: "加解密节点",
+    labelKey: "EnDecryptNode",
     icon: "/icons/nodes/endecrypt-node.svg",
     color: "#E91E63",
     getDisplayText: (node: EnDecryptNode) => node.CryptFlagDescription || '--'
   },
   EventNode: {
-    label: "事件节点",
+    labelKey: "EventNode",
     icon: "/icons/nodes/event-node.svg",
     color: "#795548",
     getDisplayText: (node: EventNode) => node.EventName || '--'
   },
   FileMappingNode: {
-    label: "FileMapping",
+    labelKey: "FileMappingNode",
     icon: "/icons/nodes/file-mapping-node.svg",
     color: "#6D4C41",
     getDisplayText: (node: FileMappingNode) => node.FileMappingName || '--'
   },
   MailSlotNode: {
-    label: "油槽节点",
+    labelKey: "MailSlotNode",
     icon: "/icons/nodes/mail-slot-node.svg",
     color: "#FF5722",
     getDisplayText: (node: MailSlotNode) => node.MailSlotName || '--'
   },
   MbrNode: {
-    label: "引导节点",
+    labelKey: "MbrNode",
     icon: "/icons/nodes/mbr-node.svg",
     color: "#B71C1C",
     getDisplayText: (node: MbrNode) => node.PhysicalName || '--'
   },
   PipeNode: {
-    label: "PIPE节点",
+    labelKey: "PipeNode",
     icon: "/icons/nodes/pipe-node.svg",
     color: "#607D8B",
     getDisplayText: (node: PipeNode) => node.PipeName || '--'
   },
   PowershellNode: {
-    label: "PowerShell节点",
+    labelKey: "PowershellNode",
     icon: "/icons/nodes/powershell-node.svg",
     color: "#5391FE",
-    getDisplayText: (node: PowershellNode) => node.FileName ? getFileName(node.FileName) : "未知脚本"
+    getDisplayText: (node: PowershellNode) => node.FileName ? getFileName(node.FileName) : "Unknown Script"
   },
   RegKeyNode: {
-    label: "注册表键节点",
+    labelKey: "RegKeyNode",
     icon: "/icons/nodes/reg-key-node.svg",
     color: "#53B7B7",
     getDisplayText: (node: RegKeyNode) => node.ObjectName || '--'
   },
   RegValueNode: {
-    label: "注册表值节点",
+    labelKey: "RegValueNode",
     icon: "/icons/nodes/reg-value-node.svg",
     color: "#8E24AA",
     getDisplayText: (node: RegValueNode) => node.ObjectName || '--'
   },
   CredentialsNode: {
-    label: "凭据节点",
+    labelKey: "CredentialsNode",
     icon: "/icons/nodes/credentials-node.svg",
     color: "#C2185B",
     getDisplayText: (node: CredentialsNode) => node.CredDesc || '--'
   },
   ImpersonationTokenNode: {
-    label: "令牌节点",
+    labelKey: "ImpersonationTokenNode",
     icon: "/icons/nodes/impersonation-token-node.svg",
     color: "#AD1457",
     getDisplayText: (node: ImpersonationTokenNode) => node.TokenFlagDescription || '--'
   },
   MessageNode: {
-    label: "MessageHook节点",
+    labelKey: "MessageNode",
     icon: "/icons/nodes/message-node.svg",
     color: "#CDDC39",
     getDisplayText: (node: MessageNode) => node.HookTypeDescription || '--'
   },
   UrlNode: {
-    label: "URL节点",
+    labelKey: "UrlNode",
     icon: "/icons/nodes/url-node.svg",
     color: "#00BCD4",
     getDisplayText: (node: UrlNode) => node.URL || '--'
   },
   WmiClassNode: {
-    label: "WMI类节点",
+    labelKey: "WmiClassNode",
     icon: "/icons/nodes/wmi-class-node.svg",
     color: "#26A69A",
     getDisplayText: (node: WmiClassNode) => node.ClassName || '--'
   },
   WmiQueryNode: {
-    label: "WMI查询节点",
+    labelKey: "WmiQueryNode",
     icon: "/icons/nodes/wmi-query-node.svg",
     color: "#BA68C8",
     getDisplayText: (node: WmiQueryNode) => node.Query || '--'
   },
   WmiExecuteNode: {
-    label: "WMI执行节点",
+    labelKey: "WmiExecuteNode",
     icon: "/icons/nodes/wmi-execute-node.svg",
     color: "#BA68C8",
     getDisplayText: (node: WmiExecuteNode) => node.ClassName || '--'
   },
   WmiConsumerNode: {
-    label: "WmiConsumer节点",
+    labelKey: "WmiConsumerNode",
     icon: "/icons/nodes/wmi-consumer-node.svg",
     color: "#4396F0",
     getDisplayText: (node: WmiConsumerNode) => node.EventConsumerName || '--'
   },
   WmiFilterNode: {
-    label: "WmiFilter节点",
+    labelKey: "WmiFilterNode",
     icon: "/icons/nodes/wmi-filter-node.svg",
     color: "#6A1B9A",
     getDisplayText: (node: WmiFilterNode) => node.EventFilterName || '--'
   },
   AgentNode: {
-    label: "主机节点",
+    labelKey: "AgentNode",
     icon: "/icons/nodes/agent-node.svg",
     color: "#388E3C",
     getDisplayText: (node: AgentNode) => node.ComputerName || '--'
   },
   DeviceChangeNode: {
-    label: "设备节点",
+    labelKey: "DeviceChangeNode",
     icon: "/icons/nodes/device-change-node.svg",
     color: "#FFA000",
     getDisplayText: (node: DeviceChangeNode) => node.DeviceDescription || '--'
   },
   ServiceNode: {
-    label: "服务节点",
+    labelKey: "ServiceNode",
     icon: "/icons/nodes/service-node.svg",
     color: "#FF7043",
     getDisplayText: (node: ServiceNode) => node.ServiceName || '--'
   },
   AccountGroupNode: {
-    label: "账户组节点",
+    labelKey: "AccountGroupNode",
     icon: "/icons/nodes/account-group-node.svg",
     color: "#0288D1",
     getDisplayText: (node: AccountGroupNode) => node.GroupName || '--'
   },
   AccountNode: {
-    label: "账户节点",
+    labelKey: "AccountNode",
     icon: "/icons/nodes/account-node.svg",
     color: "#039BE5",
     getDisplayText: (node: AccountNode) => node.UserName || '--'
   },
   AttackNode: {
-    label: "ATTACK节点",
+    labelKey: "AttackNode",
     icon: "/icons/nodes/attack-node.svg",
     color: "#D32F2F",
     getDisplayText: (node: AttackNode) => node.ID || '--'
@@ -297,7 +298,7 @@ const NODE_CONFIGS: Record<string, NodeConfig> = {
 
 // 提取文件名工具函数
 const getFileName = (fileName: string): string => {
-  if (!fileName) return "未知文件";
+  if (!fileName) return "Unknown File";
   const lastSlashIndex = Math.max(fileName.lastIndexOf("\\"), fileName.lastIndexOf("/"));
   return lastSlashIndex >= 0 ? fileName.slice(lastSlashIndex + 1) : fileName;
 };
@@ -317,6 +318,8 @@ interface NodeLabelLayoutProps {
 }
 
 const NodeLabelLayout: React.FC<NodeLabelLayoutProps> = ({ config, nodeId, node }) => {
+  const t = useTranslations("pages.attack.graph.nodes");
+  const label = t(config.labelKey);
   const displayText = config.getDisplayText(node);
   const lightBgColor = getLightBackgroundColor(config.color);
 
@@ -327,7 +330,7 @@ const NodeLabelLayout: React.FC<NodeLabelLayoutProps> = ({ config, nodeId, node 
         className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full"
         style={{ backgroundColor: lightBgColor }}
       >
-        <img src={config.icon} alt={config.label} className="w-4 h-4" />
+        <img src={config.icon} alt={label} className="w-4 h-4" />
       </div>
 
       {/* 节点类型徽章 */}
@@ -335,10 +338,10 @@ const NodeLabelLayout: React.FC<NodeLabelLayoutProps> = ({ config, nodeId, node 
         className="flex-shrink-0 text-white border-0 text-xs font-medium text-center"
         style={{
           backgroundColor: config.color,
-          minWidth: `${Math.max(config.label.length * 12, 48)}px`
+          minWidth: `${Math.max(label.length * 12, 48)}px`
         }}
       >
-        {config.label}
+        {label}
       </Badge>
 
       {/* 节点ID 
@@ -389,7 +392,7 @@ export function GetNodeLabel(nodeId: string, nodeKind: string, node: AnyNode): J
     console.warn(`Unknown node kind: ${nodeKind}`);
     return (
       <div className="w-80 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg">
-        <span className="text-sm text-gray-500">未知节点：{nodeId}</span>
+        <span className="text-sm text-gray-500">Unknown node: {nodeId}</span>
       </div>
     );
   }
@@ -403,7 +406,7 @@ export function GetNodeDisplayString(nodeKind: string, node: AnyNode): string {
 
   if (!config) {
     console.warn(`Unknown node kind: ${nodeKind}`);
-    return `未知节点`;
+    return `Unknown node`;
   }
 
   return config.getDisplayText(node);

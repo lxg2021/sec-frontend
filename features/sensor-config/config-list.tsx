@@ -1,5 +1,6 @@
 ﻿"use client"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { Switch } from "@/shared/ui/switch"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
@@ -99,6 +100,7 @@ const getCategoryIcon = (categoryLabel: string) => {
 }
 
 export function ConfigList({ categories, onConfigChange, onCreateConfig, onResetToDefault }: ConfigListProps) {
+  const t = useTranslations("pages.sensorConfig.list")
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
 
@@ -119,11 +121,11 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
   // 获取当前选中分类的显示名称
   const getSelectedCategoryName = () => {
     if (selectedCategory === "all") {
-      return "所有分类"
+      return t("allCategories")
     }
 
     const category = categories.find(cat => cat.label === selectedCategory)
-    return category ? category.label : "所有分类"
+    return category ? category.label : t("allCategories")
   }
 
   /** 默认进程组展开，别的都收缩 */
@@ -190,10 +192,10 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
           {/* 标题 */}
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              Sensor传感器配置
+              {t("title")}
             </CardTitle>
             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-              切换各个传感器监控组件的开启或关闭状态
+              {t("description")}
             </p>
           </div>
         </div>
@@ -205,18 +207,18 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
           <div className="space-y-1">
             <div className="pt-2">
               <span className="text-sm font-medium">
-                <span className="text-red-500">{enabledItems}</span> / {totalItems} 已启用
+                <span className="text-red-500">{enabledItems}</span> / {totalItems} {t("enabled")}
               </span>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <Button variant="outline" size="sm" onClick={onResetToDefault} className="gap-2">
               <RotateCcw className="w-4 h-4" />
-              重置为默认
+              {t("reset")}
             </Button>
             <Button size="sm" onClick={onCreateConfig} className="gap-2 bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4" />
-              创建配置
+              {t("create")}
             </Button>
           </div>
         </div>
@@ -226,7 +228,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="搜索配置项..."
+              placeholder={t("searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 w-full"
@@ -246,7 +248,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                 <SelectItem value="all">
                   <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4" />
-                    <span>所有分类</span>
+                    <span>{t("allCategories")}</span>
                   </div>
                 </SelectItem>
                 {categories.map((category) => (
@@ -288,13 +290,13 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                     {getCategoryIcon(category.label)}
                     <h3 className="font-medium text-foreground">{category.label}</h3>
                     <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full">
-                      {category.items.length} 种事件
+                      {t("eventCount", { count: category.items.length })}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                      {categoryEnabledCount} 种启用
+                      {t("enabledCount", { count: categoryEnabledCount })}
                     </span>
                     {isExpanded ? (
                       <ChevronDown className="w-4 h-4 text-muted-foreground" />
@@ -320,12 +322,12 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                         {allItemsEnabled ? (
                           <>
                             <SquareCheck className="w-4 h-4 text-blue-600" />
-                            取消全选
+                            {t("deselectAll")}
                           </>
                         ) : (
                           <>
                             <Square className="w-4 h-4" />
-                            全选所有
+                            {t("selectAll")}
                           </>
                         )}
                       </Button>
@@ -365,7 +367,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                                   : "bg-muted text-muted-foreground"
                                   }`}
                               >
-                                {item.enabled ? "已启用" : "已禁用"}
+                                {item.enabled ? t("itemEnabled") : t("itemDisabled")}
                               </span>
                             </div>
                           </div>
@@ -382,8 +384,8 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
         {filteredCategories.length === 0 && (
           <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg">
             <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p className="font-medium">未找到匹配的配置项目</p>
-            <p className="text-sm mt-1">尝试调整搜索关键词或筛选条件</p>
+            <p className="font-medium">{t("noMatchTitle")}</p>
+            <p className="text-sm mt-1">{t("noMatchDescription")}</p>
           </div>
         )}
       </CardContent>

@@ -16,6 +16,7 @@ import {
   Fingerprint,
 } from "lucide-react"
 import type { SoftwareUninstallProgress } from "@/features/assets/software/types/task-soft-uninstall-progress"
+import { useLocale, useTranslations } from "next-intl"
 
 interface SoftUninstallProgressHeaderProps {
   data: SoftwareUninstallProgress[]
@@ -28,33 +29,36 @@ export function SoftUninstallProgressHeader({
   selectedTaskId,
   onTaskSelect,
 }: SoftUninstallProgressHeaderProps) {
+  const t = useTranslations("pages.assets.software.uninstallProgress")
+  const locale = useLocale()
+
   const getStatusBadge = (progress: number) => {
     if (progress === 100) {
       return (
         <Badge variant="default" className="bg-chart-2 text-white">
           <CheckCircle className="h-3 w-3 mr-1" />
-          已完成
+          {t("completed")}
         </Badge>
       )
     } else if (progress > 0) {
       return (
         <Badge variant="default" className="bg-blue-500 text-white">
           <Play className="h-3 w-3 mr-1 text-white" />
-          进行中
+          {t("inProgress")}
         </Badge>
       )
     } else {
       return (
         <Badge variant="default" className="bg-gray-400 text-white">
           <Clock className="h-3 w-3 mr-1 text-white" />
-          等待中
+          {t("waiting")}
         </Badge>
       )
     }
   }
 
   const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString("zh-CN", {
+    return new Date(dateString).toLocaleString(locale, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -65,15 +69,15 @@ export function SoftUninstallProgressHeader({
 
   const getScheduleText = (schedule: any) => {
     if (schedule.type === "IMMEDIATE") {
-      return "立即执行"
+      return t("immediate")
     } else if (schedule.type === "SCHEDULED") {
-      return `定时执行: ${formatDateTime(schedule.executeAt)}`
+      return t("scheduled", { time: formatDateTime(schedule.executeAt) })
     }
-    return "未知调度"
+    return t("unknownSchedule")
   }
 
   const getTypeText = (type: string) => {
-    return type === "quietUninstall" ? "静默卸载" : "普通卸载"
+    return type === "quietUninstall" ? t("quietUninstall") : t("normalUninstall")
   }
 
   return (
@@ -85,8 +89,8 @@ export function SoftUninstallProgressHeader({
               <ClipboardList className="h-5 w-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">软件卸载任务进度</CardTitle>
-              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">共 {data.length} 个任务</p>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{t("title")}</CardTitle>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{t("taskCount", { count: data.length })}</p>
             </div>
           </div>
         </CardHeader>
@@ -107,7 +111,7 @@ export function SoftUninstallProgressHeader({
                       <div className="flex items-center gap-3">
                         <div
                           className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center"
-                          aria-label={`排名第${index + 1}`}
+                          aria-label={t("rank", { rank: index + 1 })}
                         >
                           {index + 1}
                         </div>
@@ -122,22 +126,22 @@ export function SoftUninstallProgressHeader({
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Settings className="h-4 w-4 text-blue-500" />
-                        <span className="text-muted-foreground">类型:</span>
+                        <span className="text-muted-foreground">{t("type")}:</span>
                         <span className="font-medium">{getTypeText(task.type)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-green-500" />
-                        <span className="text-muted-foreground">创建:</span>
+                        <span className="text-muted-foreground">{t("createdAt")}:</span>
                         <span className="font-medium">{formatDateTime(task.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4 text-orange-500" />
-                        <span className="text-muted-foreground">软件:</span>
-                        <span className="font-medium">{task.name || "未知软件"}</span>
+                        <span className="text-muted-foreground">{t("software")}:</span>
+                        <span className="font-medium">{task.name || t("unknownSoftware")}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Monitor className="h-4 w-4 text-purple-500" />
-                        <span className="text-muted-foreground">主机:</span>
+                        <span className="text-muted-foreground">{t("hosts")}:</span>
                         <span className="font-medium">{task.totalHosts}</span>
                       </div>
                     </div>
@@ -145,29 +149,29 @@ export function SoftUninstallProgressHeader({
                     {(task.name || task.version || task.vendor) && (
                       <div className="bg-slate-50 p-3 rounded-lg mb-3">
                         {/* 标题加大与下方内容的间距 */}
-                        <span className="block font-semibold text-gray-700 mb-4">软件信息</span>
+                        <span className="block font-semibold text-gray-700 mb-4">{t("softwareInfo")}</span>
 
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           <div className="flex items-center gap-1">
                             <Fingerprint className="h-3 w-3 text-blue-500" />
-                            <span className="text-gray-600">指纹:</span>
+                            <span className="text-gray-600">{t("fingerprint")}:</span>
                             <span className="font-mono text-gray-800">{task.hash.slice(0, 16)}...</span>
                           </div>
                           {task.name && (
                             <div className="flex items-center gap-1">
-                              <span className="text-gray-600">名称:</span>
+                              <span className="text-gray-600">{t("name")}:</span>
                               <span className="font-medium text-gray-800">{task.name}</span>
                             </div>
                           )}
                           {task.version && (
                             <div className="flex items-center gap-1">
-                              <span className="text-gray-600">版本:</span>
+                              <span className="text-gray-600">{t("version")}:</span>
                               <span className="font-medium text-gray-800">{task.version}</span>
                             </div>
                           )}
                           {task.vendor && (
                             <div className="flex items-center gap-1">
-                              <span className="text-gray-600">厂商:</span>
+                              <span className="text-gray-600">{t("vendor")}:</span>
                               <span className="font-medium text-gray-800">{task.vendor}</span>
                             </div>
                           )}
@@ -177,9 +181,13 @@ export function SoftUninstallProgressHeader({
 
                     <div className="space-y-3 bg-slate-50 p-4 rounded-lg">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-semibold text-gray-700">卸载进度</span>
+                        <span className="font-semibold text-gray-700">{t("uninstallProgress")}</span>
                         <span className="text-gray-600 bg-white px-2 py-1 rounded text-xs">
-                          {task.successCount}/{task.totalHosts} 主机成功 ({task.overallProgress}%)
+                          {t("hostSuccess", {
+                            success: task.successCount,
+                            total: task.totalHosts,
+                            progress: task.overallProgress,
+                          })}
                         </span>
                       </div>
                       <div className="relative">
@@ -204,7 +212,7 @@ export function SoftUninstallProgressHeader({
                         className="text-xs flex items-center gap-1 border-gray-300 bg-gray-50 text-gray-700"
                       >
                         <RefreshCw className="h-3 w-3 mr-1 text-purple-500" />
-                        重试: {task.retryCount}次
+                        {t("retry", { count: task.retryCount })}
                       </Badge>
                     </div>
                   </CardContent>

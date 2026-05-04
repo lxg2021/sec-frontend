@@ -36,6 +36,7 @@ import {
 import type { UserLogicGroup } from "@/features/collection/types"
 import type { TableLogicGroup } from "@/features/collection/table-types"
 import { convertToTableLogicGroups, validateUserLogicGroups } from "@/features/collection/lib/logic-group-converter"
+import { useTranslations } from "next-intl"
 
 export interface TreeLogicGroupProps {
   /** 输入的用户逻辑组数据 */
@@ -67,6 +68,7 @@ export function TreeLogicGroup({
   tenantId,
   createdBy = "system",
 }: TreeLogicGroupProps) {
+  const t = useTranslations("pages.collection.tree")
   const { toast } = useToast()
   const [groups, setGroups] = useState<UserLogicGroup[]>(initialGroups)
   const [nodeState, setNodeState] = useState<TreeNodeState>({
@@ -103,14 +105,14 @@ export function TreeLogicGroup({
   ): { isDuplicate: boolean; message: string } => {
     const trimmedName = name.trim()
     if (!trimmedName) {
-      return { isDuplicate: true, message: "名称不能为空" }
+      return { isDuplicate: true, message: t("nameRequired") }
     }
 
     // 检查根级别（公司）
     if (!parentId) {
       const duplicate = groups.find((g) => g.id !== excludeId && g.name === trimmedName)
       if (duplicate) {
-        return { isDuplicate: true, message: `公司名称"${trimmedName}"已存在` }
+        return { isDuplicate: true, message: t("companyExists", { name: trimmedName }) }
       }
       return { isDuplicate: false, message: "" }
     }
@@ -121,8 +123,6 @@ export function TreeLogicGroup({
         if (node.id === parentId) {
           const duplicate = node.children?.find((child) => child.id !== excludeId && child.name === trimmedName)
           if (duplicate) {
-            const parentType = node.type === "company" ? "公司" : "部门"
-            const childType = duplicate.type === "department" ? "部门" : "组"
             return true
           }
           return false
@@ -136,7 +136,7 @@ export function TreeLogicGroup({
 
     const hasDuplicate = findParentAndCheckChildren(groups)
     if (hasDuplicate) {
-      return { isDuplicate: true, message: `同级别下已存在名称"${trimmedName}"` }
+      return { isDuplicate: true, message: t("siblingExists", { name: trimmedName }) }
     }
 
     return { isDuplicate: false, message: "" }
@@ -203,7 +203,7 @@ export function TreeLogicGroup({
     const validation = checkDuplicateName(nodeState.editValue, currentParentId, nodeState.editing)
     if (validation.isDuplicate) {
       toast({
-        title: "名称重复",
+        title: t("duplicateName"),
         description: validation.message,
         duration: 2000,
         className: "bg-black text-white border-none",
@@ -263,12 +263,12 @@ export function TreeLogicGroup({
       childType = "group"
     }
 
-    const newName = `新${childType === "department" ? "部门" : "组"}`
+    const newName = childType === "department" ? t("newDepartment") : t("newGroup")
 
     const validation = checkDuplicateName(newName, parentId)
     if (validation.isDuplicate) {
       toast({
-        title: "名称重复",
+        title: t("duplicateName"),
         description: validation.message,
         duration: 2000,
         className: "bg-black text-white border-none",
@@ -316,12 +316,12 @@ export function TreeLogicGroup({
   const addRootNode = () => {
     if (readOnly || disabled) return
 
-    const newName = "新公司"
+    const newName = t("newCompany")
 
     const validation = checkDuplicateName(newName, undefined)
     if (validation.isDuplicate) {
       toast({
-        title: "名称重复",
+        title: t("duplicateName"),
         description: validation.message,
         duration: 2000,
         className: "bg-black text-white border-none",
@@ -375,7 +375,7 @@ export function TreeLogicGroup({
 
     // 转换为TableLogicGroup
     const tableGroups = convertToTableLogicGroups(groups, tenantId, createdBy)
-    console.log("转换后的TableLogicGroup数据:", tableGroups)
+    console.log("Converted TableLogicGroup data:", tableGroups)
 
     // 调用回调
     onSave?.(tableGroups)
@@ -397,9 +397,9 @@ export function TreeLogicGroup({
     }
 
     const getTypeLabel = () => {
-      if (node.type === "company") return "公司"
-      if (node.type === "department") return "部门"
-      return "组"
+      if (node.type === "company") return t("company")
+      if (node.type === "department") return t("department")
+      return t("group")
     }
 
     return (
@@ -468,7 +468,7 @@ export function TreeLogicGroup({
                       variant="ghost"
                       className="h-8 w-8 p-0"
                       onClick={() => addChild(node.id)}
-                      title={node.type === "company" ? "添加部门" : "添加组"}
+                      title={node.type === "company" ? t("addDepartment") : t("addGroup")}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -478,7 +478,7 @@ export function TreeLogicGroup({
                     variant="ghost"
                     className="h-8 w-8 p-0"
                     onClick={() => startEdit(node.id, node.name)}
-                    title={"编辑名称"}
+                    title={t("editName")}
                   >
                     <SquarePen className="h-4 w-4" />
                   </Button>
@@ -487,7 +487,7 @@ export function TreeLogicGroup({
                     variant="ghost"
                     className="h-8 w-8 p-0"
                     onClick={() => confirmDelete(node.id)}
-                    title={"删除节点"}
+                    title={t("deleteNode")}
                   >
                     <Trash2 className="h-4 w-4 text-red-600" />
                   </Button>
@@ -518,10 +518,10 @@ export function TreeLogicGroup({
             </div>
             <div>
               <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                组织结构
+                {t("title")}
               </CardTitle>
               <CardDescription className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                {readOnly ? "查看组织结构" : "编辑组织结构(支持添加、编辑、删除节点)"}
+                {readOnly ? t("readonlyDescription") : t("editDescription")}
               </CardDescription>
             </div>
           </div>
@@ -535,7 +535,7 @@ export function TreeLogicGroup({
                 className="flex items-center justify-center gap-1 w-28"
               >
                 <Plus className="h-4 w-4" />
-                添加公司
+                {t("addCompany")}
               </Button>
             )}
             {!readOnly && (
@@ -546,7 +546,7 @@ export function TreeLogicGroup({
                 className="flex items-center justify-center gap-1 w-28"
               >
                 <Save className="h-4 w-4" />
-                保存
+                {t("save")}
               </Button>
             )}
           </div>
@@ -557,7 +557,7 @@ export function TreeLogicGroup({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="搜索节点名称..."
+              placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -567,7 +567,7 @@ export function TreeLogicGroup({
           {/* 验证错误 */}
           {validationErrors.length > 0 && (
             <div className="bg-destructive/10 border border-destructive rounded-md p-4">
-              <p className="font-semibold text-destructive mb-2">验证错误：</p>
+              <p className="font-semibold text-destructive mb-2">{t("validationError")}</p>
               <ul className="list-disc list-inside space-y-1">
                 {validationErrors.map((error, index) => (
                   <li key={index} className="text-sm text-destructive">
@@ -583,11 +583,11 @@ export function TreeLogicGroup({
             {groups.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>暂无组织结构</p>
+                <p>{t("empty")}</p>
                 {!readOnly && !disabled && (
                   <Button onClick={addRootNode} size="sm" variant="outline" className="mt-4 bg-transparent">
                     <Plus className="h-4 w-4 mr-2" />
-                    添加第一个公司
+                    {t("addFirstCompany")}
                   </Button>
                 )}
               </div>
@@ -601,18 +601,18 @@ export function TreeLogicGroup({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认删除</AlertDialogTitle>
+            <AlertDialogTitle>{t("confirmDeleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              确定要删除此节点吗？如果该节点有子节点，所有子节点也会被删除。此操作无法撤销。
+              {t("confirmDeleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setNodeToDelete(null)}>取消</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setNodeToDelete(null)}>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={deleteNode}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              删除
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

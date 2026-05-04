@@ -5,6 +5,7 @@ import { Separator } from "@/shared/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { HelpCircle } from "lucide-react";
 import type { PolicyType } from "@/features/dac/types";
+import { useTranslations } from "next-intl";
 
 interface PolicyBodyFormProps {
   policyType: PolicyType;
@@ -25,38 +26,40 @@ export function PolicyBodyForm({
   onSubjectSourceChange,
   onObjectSourceChange,
 }: PolicyBodyFormProps) {
+  const t = useTranslations("pages.response.dac.bodyForm");
+
   const getObjectLabel = () => {
     switch (policyType) {
-      case "fs": return "文件";
-      case "reg": return "注册表";
-      case "ps": return "进程";
-      default: return "对象";
+      case "fs": return t("file");
+      case "reg": return t("registry");
+      case "ps": return t("process");
+      default: return t("object");
     }
   };
 
   const getSubjectPlaceholder = () => {
     switch (policyType) {
       case "fs":
-        return "例如: *\\notepad.exe 或 C:\\Windows\\System32\\*.exe";
+        return t("subjectPlaceholderFs");
       case "reg":
-        return "例如: *\\regedit.exe 或 *\\powershell.exe";
+        return t("subjectPlaceholderReg");
       case "ps":
-        return "例如: *\\taskmgr.exe 或 C:\\Program Files\\**\\*.exe";
+        return t("subjectPlaceholderPs");
       default:
-        return "请输入主体进程路径";
+        return t("subjectPlaceholder");
     }
   };
 
   const getObjectPlaceholder = () => {
     switch (policyType) {
       case "fs":
-        return "例如: C:\\Data\\*.txt 或 D:\\**\\*.log";
+        return t("objectPlaceholderFs");
       case "reg":
-        return "例如: HKEY_CURRENT_USER\\Software\\* 或 HKEY_LOCAL_MACHINE\\**\\Run";
+        return t("objectPlaceholderReg");
       case "ps":
-        return "例如: *\\calc.exe 或 C:\\Windows\\System32\\*.exe";
+        return t("objectPlaceholderPs");
       default:
-        return "请输入客体路径";
+        return t("objectPlaceholder");
     }
   };
 
@@ -64,25 +67,25 @@ export function PolicyBodyForm({
     <Card className="p-6 border-l-4 border-l-blue-500 shadow-sm">
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold">策略主体配置</h2>
+          <h2 className="text-xl font-semibold">{t("title")}</h2>
         </div>
         <Separator />
         <div className="space-y-6">
           <div className="space-y-3">
             <div className="flex items-center gap-1">
-              <Label htmlFor="except" className="text-sm font-medium">例外进程</Label>
+              <Label htmlFor="except" className="text-sm font-medium">{t("exceptProcess")}</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
-                  不受此策略限制的进程
+                  {t("exceptHelp")}
                 </TooltipContent>
               </Tooltip>
             </div>
             <Input
               id="except"
-              placeholder="例如: *\rcSvc.exe (支持 * # ? 通配符，多项用分号分隔)"
+              placeholder={t("exceptPlaceholder")}
               value={exceptSource}
               onChange={(e) => onExceptSourceChange(e.target.value)}
               className="bg-background"
@@ -90,14 +93,14 @@ export function PolicyBodyForm({
           </div>
           <div className="space-y-3">
             <div className="flex items-center gap-1">
-              <Label htmlFor="subject" className="text-sm font-medium">主体进程</Label>
+              <Label htmlFor="subject" className="text-sm font-medium">{t("subjectProcess")}</Label>
               <span className="text-red-500 text-sm">*</span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
-                  执行操作的进程路径，支持 * # ? 通配符
+                  {t("subjectHelp")}
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -112,7 +115,7 @@ export function PolicyBodyForm({
           <div className="space-y-3">
             <div className="flex items-center gap-1">
               <Label htmlFor="object" className="text-sm font-medium">
-                客体{getObjectLabel()}
+                {t("targetPrefix")}{getObjectLabel()}
               </Label>
               <span className="text-red-500 text-sm">*</span>
               <Tooltip>
@@ -120,7 +123,7 @@ export function PolicyBodyForm({
                   <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
-                  被操作的目标路径，支持 * # ? 通配符
+                  {t("objectHelp")}
                 </TooltipContent>
               </Tooltip>
             </div>

@@ -3,13 +3,14 @@
 import { useState, useRef, useMemo } from "react"
 import { CalendarIcon, Clock, ChevronDown, RefreshCw } from "lucide-react"
 import { format, isAfter, differenceInDays, differenceInMinutes } from "date-fns"
-import { zhCN } from "date-fns/locale"
+import { enUS, zhCN } from "date-fns/locale"
 import { Button } from "@/shared/ui/button"
 import { Calendar } from "@/shared/ui/calendar"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover"
 import { ScrollArea } from "@/shared/ui/scroll-area"
+import { useLocale, useTranslations } from "next-intl"
 
 interface DateRange {
   startTime: Date
@@ -17,7 +18,8 @@ interface DateRange {
 }
 
 interface QuickOption {
-  label: string
+  label?: string
+  labelKey?: string
   value: string
   getRange: () => DateRange
 }
@@ -33,7 +35,7 @@ interface KibanaDatePickerProps {
 // 默认快捷选项
 const defaultQuickOptions: QuickOption[] = [
   {
-    label: "最近 15 分钟",
+    labelKey: "last15Minutes",
     value: "15m",
     getRange: () => {
       const now = new Date()
@@ -44,7 +46,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 30 分钟",
+    labelKey: "last30Minutes",
     value: "30m",
     getRange: () => {
       const now = new Date()
@@ -55,7 +57,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 1 小时",
+    labelKey: "last1Hour",
     value: "1h",
     getRange: () => {
       const now = new Date()
@@ -66,7 +68,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 4 小时",
+    labelKey: "last4Hours",
     value: "4h",
     getRange: () => {
       const now = new Date()
@@ -77,7 +79,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 12 小时",
+    labelKey: "last12Hours",
     value: "12h",
     getRange: () => {
       const now = new Date()
@@ -88,7 +90,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 24 小时",
+    labelKey: "last24Hours",
     value: "24h",
     getRange: () => {
       const now = new Date()
@@ -99,7 +101,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 7 天",
+    labelKey: "last7Days",
     value: "7d",
     getRange: () => {
       const now = new Date()
@@ -110,7 +112,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 30 天",
+    labelKey: "last30Days",
     value: "30d",
     getRange: () => {
       const now = new Date()
@@ -121,7 +123,7 @@ const defaultQuickOptions: QuickOption[] = [
     },
   },
   {
-    label: "最近 90 天",
+    labelKey: "last90Days",
     value: "90d",
     getRange: () => {
       const now = new Date()
@@ -140,6 +142,18 @@ export default function KibanaDatePicker({
   maxDays = 90,
   className,
 }: KibanaDatePickerProps) {
+  const t = useTranslations("shared.kibanaDatePicker")
+  const locale = useLocale()
+  const dateLocale = locale === "zh-CN" ? zhCN : enUS
+  const dateFormat = locale === "zh-CN" ? "yyyy\u5e74MM\u6708dd\u65e5" : "MMM dd, yyyy"
+  const dateTimeFormat = locale === "zh-CN" ? "yyyy\u5e74MM\u6708dd\u65e5 HH:mm" : "MMM dd, yyyy HH:mm"
+
+  const getQuickOptionLabel = (option?: QuickOption) => {
+    if (!option) return ""
+    if (option.label) return option.label
+    return option.labelKey ? t(`quick.${option.labelKey}`) : option.value
+  }
+
   // 过滤快捷选项，确保范围不超过 maxDays
   const availableQuickOptions = useMemo(() => 
     quickOptions.filter(option => {
@@ -171,12 +185,12 @@ export default function KibanaDatePicker({
   // 验证时间范围
   const validateRange = (start: Date, end: Date): string => {
     if (!isAfter(end, start)) {
-      return "结束时间必须晚于开始时间"
+      return t("errorEndAfterStart")
     }
 
     const daysDiff = differenceInDays(end, start)
     if (daysDiff > maxDays) {
-      return `时间跨度不能超过 ${maxDays} 天`
+      return t("errorMaxDays", { maxDays })
     }
 
     return ""
@@ -187,13 +201,13 @@ export default function KibanaDatePicker({
     const minutesDiff = differenceInMinutes(range.endTime, range.startTime)
 
     if (minutesDiff < 60) {
-      return `最近 ${minutesDiff} 分钟`
+      return t("rangeMinutes", { minutes: minutesDiff })
     } else if (minutesDiff < 1440) {
       const hours = Math.floor(minutesDiff / 60)
-      return `最近 ${hours} 小时`
+      return t("rangeHours", { hours })
     } else {
       const days = Math.floor(minutesDiff / 1440)
-      return `最近 ${days} 天`
+      return t("rangeDays", { days })
     }
   }
 
@@ -232,7 +246,7 @@ export default function KibanaDatePicker({
     // 检查所有必需的值是否存在
     if (!customStartDate || !customEndDate || !customStartTime || !customEndTime) {
       if (customStartDate || customEndDate || customStartTime || customEndTime) {
-        setError("请完整填写开始时间和结束时间")
+        setError(t("errorCompleteRange"))
       }
       return
     }
@@ -253,7 +267,7 @@ export default function KibanaDatePicker({
         setSelectedQuick("") // 清除快捷选择
       }
     } catch (err) {
-      setError("时间格式不正确")
+      setError(t("errorTimeFormat"))
     }
 
     isUpdatingRef.current = false
@@ -311,7 +325,7 @@ export default function KibanaDatePicker({
               <Clock className="h-4 w-4" />
               <span className="truncate">
                 {selectedQuick
-                  ? quickOptions.find((opt) => opt.value === selectedQuick)?.label
+                  ? getQuickOptionLabel(quickOptions.find((opt) => opt.value === selectedQuick))
                   : formatDisplayRange(currentRange)}
               </span>
             </div>
@@ -336,7 +350,7 @@ export default function KibanaDatePicker({
             {/* 左侧快捷选项 */}
             <div className="w-48 border-r">
               <div className="p-3 border-b">
-                <h4 className="font-medium text-sm">快速选择</h4>
+                <h4 className="font-medium text-sm">{t("quickTitle")}</h4>
               </div>
               <ScrollArea className="h-[320px]">
                 <div className="p-2">
@@ -347,7 +361,7 @@ export default function KibanaDatePicker({
                       className="w-full justify-start text-sm h-8 mb-1"
                       onClick={() => handleQuickSelect(option)}
                     >
-                      {option.label}
+                      {getQuickOptionLabel(option)}
                     </Button>
                   ))}
                 </div>
@@ -357,13 +371,13 @@ export default function KibanaDatePicker({
             {/* 右侧自定义选择 */}
             <div className="flex-1">
               <div className="p-3 border-b">
-                <h4 className="font-medium text-sm">自定义时间范围</h4>
+                <h4 className="font-medium text-sm">{t("customTitle")}</h4>
               </div>
 
               <div className="p-4 space-y-4">
                 {/* 开始时间 */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">开始时间</Label>
+                  <Label className="text-xs font-medium">{t("startTime")}</Label>
                   <div className="flex gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
@@ -373,8 +387,8 @@ export default function KibanaDatePicker({
                         >
                           <CalendarIcon className="mr-2 h-3 w-3" />
                           {customStartDate
-                            ? format(customStartDate, "yyyy年MM月dd日", { locale: zhCN })
-                            : "请选择开始日期"}
+                            ? format(customStartDate, dateFormat, { locale: dateLocale })
+                            : t("selectStartDate")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -382,7 +396,7 @@ export default function KibanaDatePicker({
                           mode="single"
                           selected={customStartDate}
                           onSelect={handleStartDateChange}
-                          locale={zhCN}
+                          locale={dateLocale}
                           initialFocus
                         />
                       </PopoverContent>
@@ -399,7 +413,7 @@ export default function KibanaDatePicker({
 
                 {/* 结束时间 */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-medium">结束时间</Label>
+                  <Label className="text-xs font-medium">{t("endTime")}</Label>
                   <div className="flex gap-2">
                     <Popover>
                       <PopoverTrigger asChild>
@@ -408,7 +422,7 @@ export default function KibanaDatePicker({
                           className="flex-1 justify-start text-left font-normal text-xs bg-transparent"
                         >
                           <CalendarIcon className="mr-2 h-3 w-3" />
-                          {customEndDate ? format(customEndDate, "yyyy年MM月dd日", { locale: zhCN }) : "请选择结束日期"}
+                          {customEndDate ? format(customEndDate, dateFormat, { locale: dateLocale }) : t("selectEndDate")}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
@@ -416,7 +430,7 @@ export default function KibanaDatePicker({
                           mode="single"
                           selected={customEndDate}
                           onSelect={handleEndDateChange}
-                          locale={zhCN}
+                          locale={dateLocale}
                           initialFocus
                         />
                       </PopoverContent>
@@ -442,15 +456,15 @@ export default function KibanaDatePicker({
           <div className="border-t p-3">
             <div className="flex items-center justify-between">
               <div className="text-xs text-muted-foreground">
-                {format(currentRange.startTime, "yyyy年MM月dd日 HH:mm", { locale: zhCN })} →{" "}
-                {format(currentRange.endTime, "yyyy年MM月dd日 HH:mm", { locale: zhCN })}
+                {format(currentRange.startTime, dateTimeFormat, { locale: dateLocale })} →{" "}
+                {format(currentRange.endTime, dateTimeFormat, { locale: dateLocale })}
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setIsOpen(false)}>
-                  取消
+                  {t("cancel")}
                 </Button>
                 <Button size="sm" onClick={handleApply}>
-                  应用
+                  {t("apply")}
                 </Button>
               </div>
             </div>

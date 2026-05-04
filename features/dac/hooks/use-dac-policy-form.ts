@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { PolicyType, FilePolicy, RegistryPolicy, ProcessPolicy, NetworkPolicy, ActionOption } from "@/features/dac/types";
 import { FILE_ACTIONS, REGISTRY_ACTIONS, PROCESS_ACTIONS } from "@/features/dac/constants";
+import { useTranslations } from "next-intl";
 
 export function useDacPolicyForm() {
+  const t = useTranslations("pages.response.dac");
   const [policyType, setPolicyType] = useState<PolicyType>("fs");
   const [version, setVersion] = useState("v1.0");
   const [policyName, setPolicyName] = useState("");
@@ -37,14 +39,21 @@ export function useDacPolicyForm() {
   const [remoteAddress, setRemoteAddress] = useState("192.168.1.0/24");
   const [programPath, setProgramPath] = useState("C:\\Program Files\\App\\app.exe");
 
+  const localizeActions = (group: "file" | "registry" | "process", actions: ActionOption[]): ActionOption[] =>
+    actions.map((action) => ({
+      ...action,
+      label: t(`actions.${group}.${action.value}.label`),
+      description: t(`actions.${group}.${action.value}.description`),
+    }));
+
   const getCurrentActions = (): ActionOption[] => {
     switch (policyType) {
       case "fs":
-        return FILE_ACTIONS;
+        return localizeActions("file", FILE_ACTIONS);
       case "reg":
-        return REGISTRY_ACTIONS;
+        return localizeActions("registry", REGISTRY_ACTIONS);
       case "ps":
-        return PROCESS_ACTIONS;
+        return localizeActions("process", PROCESS_ACTIONS);
       default:
         return [];
     }

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Badge } from "@/shared/ui/badge"
 import { Progress } from "@/shared/ui/progress"
@@ -20,11 +21,11 @@ const categoryData = [
     compliant: 210,
     nonCompliant: 35,
     items: [
-      { name: "密码复杂度策略", status: "合 规", score: 95 },
-      { name: "账号锁定策略", status: "合 规", score: 92 },
-      { name: "密码过期策略", status: "不合规", score: 68 },
-      { name: "多因素认证", status: "不合规", score: 45 },
-      { name: "账号权限审计", status: "合 规", score: 88 },
+      { id: "passwordComplexity", name: "密码复杂度策略", status: "合 规", score: 95 },
+      { id: "accountLockout", name: "账号锁定策略", status: "合 规", score: 92 },
+      { id: "passwordExpiration", name: "密码过期策略", status: "不合规", score: 68 },
+      { id: "mfa", name: "多因素认证", status: "不合规", score: 45 },
+      { id: "accountAudit", name: "账号权限审计", status: "合 规", score: 88 },
     ],
   },
   {
@@ -37,11 +38,11 @@ const categoryData = [
     compliant: 165,
     nonCompliant: 24,
     items: [
-      { name: "系统日志配置", status: "合 规", score: 90 },
-      { name: "防火墙规则", status: "合 规", score: 85 },
-      { name: "系统更新策略", status: "不合规", score: 42 },
-      { name: "时间同步配置", status: "合 规", score: 94 },
-      { name: "系统监控配置", status: "合 规", score: 91 },
+      { id: "systemLogging", name: "系统日志配置", status: "合 规", score: 90 },
+      { id: "firewallRules", name: "防火墙规则", status: "合 规", score: 85 },
+      { id: "systemUpdate", name: "系统更新策略", status: "不合规", score: 42 },
+      { id: "timeSync", name: "时间同步配置", status: "合 规", score: 94 },
+      { id: "systemMonitoring", name: "系统监控配置", status: "合 规", score: 91 },
     ],
   },
   {
@@ -54,11 +55,11 @@ const categoryData = [
     compliant: 134,
     nonCompliant: 22,
     items: [
-      { name: "文件权限设置", status: "合 规", score: 89 },
-      { name: "目录访问控制", status: "合 规", score: 82 },
-      { name: "特权账号管理", status: "不合规", score: 38 },
-      { name: "sudo权限配置", status: "合 规", score: 76 },
-      { name: "SSH访问控制", status: "不合规", score: 41 },
+      { id: "filePermissions", name: "文件权限设置", status: "合 规", score: 89 },
+      { id: "directoryAccess", name: "目录访问控制", status: "合 规", score: 82 },
+      { id: "privilegedAccounts", name: "特权账号管理", status: "不合规", score: 38 },
+      { id: "sudoPermissions", name: "sudo权限配置", status: "合 规", score: 76 },
+      { id: "sshAccess", name: "SSH访问控制", status: "不合规", score: 41 },
     ],
   },
   {
@@ -71,11 +72,11 @@ const categoryData = [
     compliant: 267,
     nonCompliant: 31,
     items: [
-      { name: "Web服务配置", status: "合 规", score: 93 },
-      { name: "数据库服务配置", status: "合 规", score: 87 },
-      { name: "邮件服务配置", status: "不合规", score: 64 },
-      { name: "DNS服务配置", status: "合 规", score: 96 },
-      { name: "FTP服务配置", status: "不合规", score: 35 },
+      { id: "webService", name: "Web服务配置", status: "合 规", score: 93 },
+      { id: "databaseService", name: "数据库服务配置", status: "合 规", score: 87 },
+      { id: "mailService", name: "邮件服务配置", status: "不合规", score: 64 },
+      { id: "dnsService", name: "DNS服务配置", status: "合 规", score: 96 },
+      { id: "ftpService", name: "FTP服务配置", status: "不合规", score: 35 },
     ],
   },
   {
@@ -88,11 +89,11 @@ const categoryData = [
     compliant: 142,
     nonCompliant: 25,
     items: [
-      { name: "网络分段配置", status: "合 规", score: 91 },
-      { name: "入侵检测系统", status: "合 规", score: 84 },
-      { name: "网络流量监控", status: "不合规", score: 62 },
-      { name: "VPN配置", status: "合 规", score: 88 },
-      { name: "网络访问控制", status: "不合规", score: 47 },
+      { id: "networkSegmentation", name: "网络分段配置", status: "合 规", score: 91 },
+      { id: "ids", name: "入侵检测系统", status: "合 规", score: 84 },
+      { id: "trafficMonitoring", name: "网络流量监控", status: "不合规", score: 62 },
+      { id: "vpnConfig", name: "VPN配置", status: "合 规", score: 88 },
+      { id: "networkAccess", name: "网络访问控制", status: "不合规", score: 47 },
     ],
   },
   {
@@ -105,16 +106,17 @@ const categoryData = [
     compliant: 173,
     nonCompliant: 19,
     items: [
-      { name: "数据库访问控制", status: "合 规", score: 92 },
-      { name: "数据加密配置", status: "合 规", score: 86 },
-      { name: "数据库审计", status: "不合规", score: 71 },
-      { name: "备份策略", status: "合 规", score: 95 },
-      { name: "数据库版本管理", status: "合 规", score: 89 },
+      { id: "databaseAccess", name: "数据库访问控制", status: "合 规", score: 92 },
+      { id: "dataEncryption", name: "数据加密配置", status: "合 规", score: 86 },
+      { id: "databaseAudit", name: "数据库审计", status: "不合规", score: 71 },
+      { id: "backupPolicy", name: "备份策略", status: "合 规", score: 95 },
+      { id: "databaseVersion", name: "数据库版本管理", status: "合 规", score: 89 },
     ],
   },
 ]
 
 export default function CategoryTable() {
+  const t = useTranslations("pages.baseline.dashboard.categoryTable")
   const router = useRouter()
   const [activeIndex, setActiveIndex] = useState(0)
   const [selectedCategory, setSelectedCategory] = useState(categoryData[0]) // 改为默认选择第一个分类
@@ -160,6 +162,17 @@ export default function CategoryTable() {
     router.push(`/frame/baseline/details?${searchParams.toString()}`)
   }
 
+  const getCategoryName = (category) => t(`categories.${category.id}`)
+  const getItemName = (category, item) => t(`items.${category.id}.${item.id}`)
+  const getStatusLabel = (status) => (status === "合 规" ? t("status.compliant") : t("status.nonCompliant"))
+  const getRatingLabel = (rate) => {
+    if (rate >= 90) return t("rating.excellent")
+    if (rate >= 80) return t("rating.good")
+    if (rate >= 70) return t("rating.average")
+    if (rate >= 60) return t("rating.poor")
+    return t("rating.needsImprovement")
+  }
+
   return (
     <div className="w-full space-y-6">
       {/* 轮播图导航 */}
@@ -199,11 +212,11 @@ export default function CategoryTable() {
           {selectedCategory && (
             <div className="flex items-center space-x-2 text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
               <Eye className="h-4 w-4" />
-              <span>正在查看: {selectedCategory.name}</span>
+              <span>{t("viewing", { name: getCategoryName(selectedCategory) })}</span>
             </div>
           )}
           <div className="text-sm text-gray-500">
-            {activeIndex + 1} / {totalPages} 页 · 共 {categoryData.length} 个分类
+            {t("pageSummary", { current: activeIndex + 1, total: totalPages, count: categoryData.length })}
           </div>
         </div>
       </div>
@@ -246,7 +259,7 @@ export default function CategoryTable() {
                       className={`text-sm font-medium text-center transition-colors ${isSelected ? "text-blue-900" : "text-gray-900"
                         }`}
                     >
-                      {category.name}
+                      {getCategoryName(category)}
                     </h3>
                   </div>
 
@@ -269,15 +282,15 @@ export default function CategoryTable() {
                               : "bg-orange-50 text-orange-700 border-orange-200"
                         }`}
                     >
-                      合规率
+                      {t("complianceRate")}
                     </Badge>
                   </div>
 
                   {/* 统计信息 */}
                   <div className="w-full space-y-2">
                     <div className="flex justify-between text-xs text-gray-600">
-                      <span>总数: {category.total}</span>
-                      <span>合规: {category.compliant}</span>
+                      <span>{t("total", { total: category.total })}</span>
+                      <span>{t("compliant", { count: category.compliant })}</span>
                     </div>
                     <Progress value={complianceRate} className="w-full h-2 bg-gray-200">
                       <div
@@ -299,15 +312,7 @@ export default function CategoryTable() {
 
                   {/* 状态评级 */}
                   <div className="text-xs text-gray-500 text-center">
-                    {complianceRate >= 90
-                      ? "优秀"
-                      : complianceRate >= 80
-                        ? "良好"
-                        : complianceRate >= 70
-                          ? "一般"
-                          : complianceRate >= 60
-                            ? "较差"
-                            : "需改进"}
+                    {getRatingLabel(complianceRate)}
                   </div>
 
                   {/* 点击提示 */}
@@ -315,7 +320,7 @@ export default function CategoryTable() {
                     className={`text-xs transition-opacity ${isSelected ? "text-blue-600 opacity-100" : "text-gray-400 opacity-0 group-hover:opacity-100"
                       }`}
                   >
-                    {isSelected ? "点击收起详情" : "点击查看详情"}
+                    {isSelected ? t("collapseDetails") : t("viewDetails")}
                   </div>
                 </div>
               </CardContent>
@@ -338,13 +343,13 @@ export default function CategoryTable() {
                   </div>
                   <div>
                     <CardTitle className="text-lg text-gray-900 font-medium flex items-center space-x-2">
-                      <span>{selectedCategory.name}</span>
+                      <span>{getCategoryName(selectedCategory)}</span>
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        详细信息
+                        {t("details")}
                       </Badge>
                     </CardTitle>
                     <p className="text-sm text-gray-500 mt-1">
-                      共 {selectedCategory.items.length} 个检查项目，{selectedCategory.compliant} 项合规
+                      {t("detailSummary", { items: selectedCategory.items.length, compliant: selectedCategory.compliant })}
                     </p>
                   </div>
                 </div>
@@ -359,7 +364,7 @@ export default function CategoryTable() {
                         className="text-blue-900"
                       />
                     </div>
-                    <div className="text-sm text-gray-500">合规率</div>
+                    <div className="text-sm text-gray-500">{t("complianceRate")}</div>
                   </div>
                   <Button
                     variant="ghost"
@@ -376,11 +381,11 @@ export default function CategoryTable() {
               <div className="space-y-1">
                 {/* 表头 - 5列布局，详情按钮在独立的第5列 */}
                 <div className="grid grid-cols-5 gap-4 text-xs text-gray-500 uppercase tracking-wide py-3 px-4 bg-gray-50 rounded-lg border-b border-gray-200">
-                  <div className="col-span-1">检查项名称</div>
-                  <div className="col-span-1">合规状态</div>
-                  <div className="col-span-1">安全评分</div>
-                  <div className="col-span-1">评分进度</div>
-                  <div className="col-span-1 text-center">详情操作</div>
+                  <div className="col-span-1">{t("checkItemName")}</div>
+                  <div className="col-span-1">{t("complianceStatus")}</div>
+                  <div className="col-span-1">{t("securityScore")}</div>
+                  <div className="col-span-1">{t("scoreProgress")}</div>
+                  <div className="col-span-1 text-center">{t("detailAction")}</div>
                 </div>
 
                 {/* 数据行 - 5列布局，详情按钮在独立的第5列 */}
@@ -391,7 +396,7 @@ export default function CategoryTable() {
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     {/* 第1列：检查项名称 */}
-                    <div className="col-span-1 text-sm text-gray-900 font-medium">{item.name}</div>
+                    <div className="col-span-1 text-sm text-gray-900 font-medium">{getItemName(selectedCategory, item)}</div>
 
                     {/* 第2列：合规状态 */}
                     <div className="col-span-1 flex items-center">
@@ -404,7 +409,7 @@ export default function CategoryTable() {
                           lineHeight: "1",
                         }}
                       >
-                        {item.status}
+                        {getStatusLabel(item.status)}
                       </Badge>
                     </div>
 
@@ -435,7 +440,7 @@ export default function CategoryTable() {
                         onClick={() => handleItemDetail(selectedCategory.id, item.name)}
                         className="h-7 px-3 text-xs bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 hover:text-blue-700 transition-colors duration-200 font-medium"
                       >
-                        详情
+                        {t("details")}
                       </Button>
                     </div>
                   </div>
@@ -453,9 +458,9 @@ export default function CategoryTable() {
             <div className="p-4 bg-gray-100 rounded-full">
               <Eye className="h-8 w-8 text-gray-400" />
             </div>
-            <div className="text-lg font-medium text-gray-900">选择分类查看详细信息</div>
+            <div className="text-lg font-medium text-gray-900">{t("emptyTitle")}</div>
             <div className="text-sm text-gray-500 max-w-md">
-              点击上方任意分类卡片，查看该分类下的详细检查项目和合规状况
+              {t("emptyDescription")}
             </div>
           </div>
         </div>

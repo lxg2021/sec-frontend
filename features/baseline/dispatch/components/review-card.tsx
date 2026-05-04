@@ -9,7 +9,8 @@ import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { Send, Server, Shield, AlertCircle, CheckCircle2, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 import classNames from "classnames"
-import { getStatusColor, getStatusColorClass, getLevelColor, getLevelColorClass, getOnlineStatusColor } from "@/shared/lib/status-color";
+import { getStatusColorClass, getLevelColorClass, getOnlineStatusColor } from "@/shared/lib/status-color";
+import { useTranslations } from "next-intl"
 
 interface Strategy {
   id: string
@@ -51,7 +52,38 @@ interface ReviewCardProps {
 }
 
 export default function ReviewCard({ strategies = [], hosts = [], onPreview, onDeploy }: ReviewCardProps) {
+  const t = useTranslations("pages.baseline.dispatch.reviewCard")
   const [isDeploying, setIsDeploying] = useState(false)
+
+  const formatType = (type: string) => {
+    const typeMap: Record<string, string> = {
+      "\u57fa\u7ebf": "baseline",
+      "\u8865\u4e01": "patch",
+      "\u56de\u6eaf": "rollback",
+    }
+    const key = typeMap[type]
+    return key ? t(`types.${key}`) : type
+  }
+
+  const formatLevel = (level: string) => {
+    const levelMap: Record<string, string> = {
+      "\u9ad8": "high",
+      "\u4e2d": "medium",
+      "\u4f4e": "low",
+    }
+    const key = levelMap[level]
+    return key ? t(`levels.${key}`) : level
+  }
+
+  const formatStatus = (status: string) => {
+    const statusMap: Record<string, string> = {
+      "\u542f\u7528": "enabled",
+      "\u7981\u7528": "disabled",
+      "\u8349\u7a3f": "draft",
+    }
+    const key = statusMap[status]
+    return key ? t(`statuses.${key}`) : status
+  }
 
   // 参数检查
   const hasStrategies = strategies.length > 0
@@ -60,8 +92,8 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
 
   const handleDeploy = async () => {
     if (!canDeploy) {
-      toast.error("下发失败", {
-        description: "请确保已选择策略和主机信息",
+      toast.error(t("deployFailed"), {
+        description: t("selectStrategiesAndHosts"),
       })
       return
     }
@@ -73,19 +105,19 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
       const success = onDeploy ? await onDeploy(strategies, hosts) : Math.random() > 0.3 // 模拟70%成功率
 
       if (success) {
-        toast.success("下发成功", {
-          description: `已成功向 ${hosts.length} 台主机下发 ${strategies.length} 个策略`,
+        toast.success(t("deploySuccess"), {
+          description: t("deploySuccessDescription", { hosts: hosts.length, strategies: strategies.length }),
           icon: <CheckCircle2 className="h-4 w-4" />,
         })
       } else {
-        toast.error("下发失败", {
-          description: "策略下发过程中出现错误，请重试",
+        toast.error(t("deployFailed"), {
+          description: t("deployErrorDescription"),
           icon: <AlertCircle className="h-4 w-4" />,
         })
       }
     } catch (error) {
-      toast.error("下发失败", {
-        description: "网络错误或服务异常，请稍后重试",
+      toast.error(t("deployFailed"), {
+        description: t("networkErrorDescription"),
         icon: <AlertCircle className="h-4 w-4" />,
       })
     } finally {
@@ -104,7 +136,7 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
             </div>
             {/* 渐变文字标题 */}
             <span className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">
-              下发预览
+              {t("title")}
             </span>
             {/* 装饰小图标 */}
             <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
@@ -117,9 +149,9 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
             <Alert className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                {!hasStrategies && !hasHosts && "请选择策略和主机信息"}
-                {!hasStrategies && hasHosts && "请选择策略信息"}
-                {hasStrategies && !hasHosts && "请选择主机信息"}
+                {!hasStrategies && !hasHosts && t("selectStrategiesAndHosts")}
+                {!hasStrategies && hasHosts && t("selectStrategies")}
+                {hasStrategies && !hasHosts && t("selectHosts")}
               </AlertDescription>
             </Alert>
           )}
@@ -130,7 +162,7 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
-                <h3 className="font-semibold">选择的策略 ({strategies.length})</h3>
+                <h3 className="font-semibold">{t("selectedStrategies", { count: strategies.length })}</h3>
               </div>
 
               {strategies.length > 0 ? (
@@ -148,17 +180,17 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
                                 getLevelColorClass(strategy.level)
                               )}
                             >
-                              {strategy.level}
+                              {formatLevel(strategy.level)}
                             </Badge>
 
-                            <Badge variant="outline">{strategy.type}</Badge>
+                            <Badge variant="outline">{formatType(strategy.type)}</Badge>
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">{strategy.description}</p>
                         </div>
                         <Badge className={classNames(
                           "border-none shadow-none hover:bg-inherit cursor-default", // 覆盖默认交互
                           getStatusColorClass(strategy.status)
-                        )}>{strategy.status}</Badge>
+                        )}>{formatStatus(strategy.status)}</Badge>
                       </div>
                     ))}
                   </div>
@@ -166,7 +198,7 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Shield className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>暂未选择策略</p>
+                  <p>{t("noStrategies")}</p>
                 </div>
               )}
             </div>
@@ -175,7 +207,7 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Server className="h-4 w-4" />
-                <h3 className="font-semibold">目标主机 ({hosts.length})</h3>
+                <h3 className="font-semibold">{t("targetHosts", { count: hosts.length })}</h3>
               </div>
 
               {hosts.length > 0 ? (
@@ -204,7 +236,7 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Server className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>暂未选择主机</p>
+                  <p>{t("noHosts")}</p>
                 </div>
               )}
             </div>
@@ -218,7 +250,7 @@ export default function ReviewCard({ strategies = [], hosts = [], onPreview, onD
 			className="flex items-center gap-2"
 		  >
 			{isDeploying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-			{isDeploying ? "下发中..." : "下发策略"}
+			{isDeploying ? t("deploying") : t("deploy")}
 		  </Button>
 		</CardFooter>
       </Card>

@@ -12,11 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { slugify } from "@/features/attack/utils/stage-color"
 import { useTranslations } from "next-intl"
 
-const formatEndTime = (timeString) => {
-  if (!timeString) return "无数据"
-  return timeString.replace(/-/g, '/')
-}
-
 export default function AttckDashboardPage() {
   const t = useTranslations("pages.attack.dashboard")
   const data = attckData

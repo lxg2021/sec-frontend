@@ -7,6 +7,7 @@ import type { UserActivityAudit as UserActivityAuditType } from "@/features/audi
 import { UserActivityCard } from "./user-activity-card"
 import { Pagination } from "./pagination"
 import { Filter, ClipboardList } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface UserActivityAuditProps {
   data: UserActivityAuditType[]
@@ -23,6 +24,7 @@ export function UserActivityAudit({
   customDateFrom,
   customDateTo,
 }: UserActivityAuditProps) {
+  const t = useTranslations("pages.audit.userActivity")
   const [actionType, setActionType] = useState<string>("all")
   const [result, setResult] = useState<string>("all")
   const [targetType, setTargetType] = useState<string>("all")
@@ -110,62 +112,62 @@ export function UserActivityAudit({
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Filter className="h-4 w-4 text-blue-500" />
-            用户行为筛选条件
+            {t("filterTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">操作类型:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("actionType")}</label>
               <Select value={actionType} onValueChange={setActionType}>
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="操作类型" />
+                  <SelectValue placeholder={t("actionTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="LOGIN">登录</SelectItem>
-                  <SelectItem value="LOGOUT">登出</SelectItem>
-                  <SelectItem value="FAILED_LOGIN">登录失败</SelectItem>
-                  <SelectItem value="CREATE_TASK">创建任务</SelectItem>
-                  <SelectItem value="UPDATE_TASK">更新任务</SelectItem>
-                  <SelectItem value="DISPATCH_TASK">下发任务</SelectItem>
-                  <SelectItem value="CREATE_CONFIG">创建配置</SelectItem>
-                  <SelectItem value="UPDATE_CONFIG">更新配置</SelectItem>
-                  <SelectItem value="MANUAL_BLOCK">手动阻断</SelectItem>
-                  <SelectItem value="ADD_USER">添加用户</SelectItem>
-                  <SelectItem value="DELETE_USER">删除用户</SelectItem>
-                  <SelectItem value="ROLE_CHANGE">角色变更</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="LOGIN">{t("login")}</SelectItem>
+                  <SelectItem value="LOGOUT">{t("logout")}</SelectItem>
+                  <SelectItem value="FAILED_LOGIN">{t("failedLogin")}</SelectItem>
+                  <SelectItem value="CREATE_TASK">{t("createTask")}</SelectItem>
+                  <SelectItem value="UPDATE_TASK">{t("updateTask")}</SelectItem>
+                  <SelectItem value="DISPATCH_TASK">{t("dispatchTask")}</SelectItem>
+                  <SelectItem value="CREATE_CONFIG">{t("createConfig")}</SelectItem>
+                  <SelectItem value="UPDATE_CONFIG">{t("updateConfig")}</SelectItem>
+                  <SelectItem value="MANUAL_BLOCK">{t("manualBlock")}</SelectItem>
+                  <SelectItem value="ADD_USER">{t("addUser")}</SelectItem>
+                  <SelectItem value="DELETE_USER">{t("deleteUser")}</SelectItem>
+                  <SelectItem value="ROLE_CHANGE">{t("roleChange")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">操作结果:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("result")}</label>
               <Select value={result} onValueChange={setResult}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="操作结果" />
+                  <SelectValue placeholder={t("resultPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="SUCCESS">成功</SelectItem>
-                  <SelectItem value="FAILED">失败</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="SUCCESS">{t("success")}</SelectItem>
+                  <SelectItem value="FAILED">{t("failed")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">操作对象:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("target")}</label>
               <Select value={targetType} onValueChange={setTargetType}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="操作对象" />
+                  <SelectValue placeholder={t("targetPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="TASK">任务</SelectItem>
-                  <SelectItem value="POLICY">策略</SelectItem>
-                  <SelectItem value="HOST">主机</SelectItem>
-                  <SelectItem value="USER">用户</SelectItem>
-                  <SelectItem value="SYSTEM">系统</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="TASK">{t("task")}</SelectItem>
+                  <SelectItem value="POLICY">{t("policy")}</SelectItem>
+                  <SelectItem value="HOST">{t("host")}</SelectItem>
+                  <SelectItem value="USER">{t("user")}</SelectItem>
+                  <SelectItem value="SYSTEM">{t("system")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -177,12 +179,12 @@ export function UserActivityAudit({
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-blue-500" />
-            用户行为审计记录
+            {t("listTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {filteredAudits.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">暂无数据</div>
+            <div className="text-center py-8 text-muted-foreground">{t("empty")}</div>
           ) : (
             <>
               {paginatedAudits.map((audit) => (

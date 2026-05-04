@@ -11,7 +11,8 @@ import { Checkbox } from "@/shared/ui/checkbox"
 import { Eye, X, ChevronUp, ChevronDown, RotateCcw, Server, Sparkles, Trash2, Target } from "lucide-react"
 import classNames from "classnames"
 import { badgeBaseClass, badgeButtonClass } from "@/shared/styles/badge-class";
-import { getStatusColor, getStatusColorClass, getLevelColor, getLevelColorClass } from "@/shared/lib/status-color";
+import { getStatusColorClass, getLevelColorClass } from "@/shared/lib/status-color";
+import { useLocale, useTranslations } from "next-intl"
 
 interface Strategy {
   id: string
@@ -38,6 +39,36 @@ type SortField = "name" | "createdAt" | "level"
 type SortOrder = "asc" | "desc"
 
 export default function StrategySelector({ data, onSelectionChange, multiSelect = true }: StrategySelectorProps) {
+  const t = useTranslations("pages.baseline.dispatch.strategySelector")
+  const locale = useLocale()
+
+  const formatType = (type: Strategy["type"]) => {
+    const typeMap: Record<Strategy["type"], "baseline" | "patch" | "rollback"> = {
+      基线: "baseline",
+      补丁: "patch",
+      回溯: "rollback",
+    }
+    return t(`types.${typeMap[type]}`)
+  }
+
+  const formatLevel = (level: Strategy["level"]) => {
+    const levelMap: Record<Strategy["level"], "high" | "medium" | "low"> = {
+      高: "high",
+      中: "medium",
+      低: "low",
+    }
+    return t(`levels.${levelMap[level]}`)
+  }
+
+  const formatStatus = (status: Strategy["status"]) => {
+    const statusMap: Record<Strategy["status"], "enabled" | "disabled" | "draft"> = {
+      启用: "enabled",
+      禁用: "disabled",
+      草稿: "draft",
+    }
+    return t(`statuses.${statusMap[status]}`)
+  }
+
   // 动态获取筛选选项
   const availableTypes = useMemo(() => {
     const types = [...new Set(data.map((item) => item.type))]
@@ -200,7 +231,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
             <Target className="h-5 w-5 text-white" />
           </div>
           <span className="text-xl font-semibold bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">
-            策略选择
+            {t("title")}
           </span>
           <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
         </CardTitle>
@@ -208,12 +239,12 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
       <CardContent className="space-y-8 p-6">
         {/* 筛选区域 */}
         <div className="px-2 lg:px-4 xl:px-6">
-          <h3 className="text-lg font-medium mb-4 text-slate-700">筛选条件</h3>
+          <h3 className="text-lg font-medium mb-4 text-slate-700">{t("filters")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-600">策略名称</label>
+              <label className="text-sm font-medium mb-2 block text-slate-600">{t("strategyName")}</label>
               <Input
-                placeholder="输入策略名称..."
+                placeholder={t("strategyNamePlaceholder")}
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
                 className="border-slate-200 focus:border-blue-300 focus:ring-blue-100"
@@ -221,16 +252,16 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-600">策略类型</label>
+              <label className="text-sm font-medium mb-2 block text-slate-600">{t("strategyType")}</label>
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="border-slate-200 focus:border-blue-300 focus:ring-blue-100">
-                  <SelectValue placeholder="选择类型" />
+                  <SelectValue placeholder={t("selectType")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
                   {availableTypes.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {type}
+                      {formatType(type)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -238,16 +269,16 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-600">优先等级</label>
+              <label className="text-sm font-medium mb-2 block text-slate-600">{t("priorityLevel")}</label>
               <Select value={levelFilter} onValueChange={setLevelFilter}>
                 <SelectTrigger className="border-slate-200 focus:border-blue-300 focus:ring-blue-100">
-                  <SelectValue placeholder="选择等级" />
+                  <SelectValue placeholder={t("selectLevel")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
                   {availableLevels.map((level) => (
                     <SelectItem key={level} value={level}>
-                      {level}
+                      {formatLevel(level)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -255,16 +286,16 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block text-slate-600">状态</label>
+              <label className="text-sm font-medium mb-2 block text-slate-600">{t("status")}</label>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="border-slate-200 focus:border-blue-300 focus:ring-blue-100">
-                  <SelectValue placeholder="选择状态" />
+                  <SelectValue placeholder={t("selectStatus")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
                   {availableStatuses.map((status) => (
                     <SelectItem key={status} value={status}>
-                      {status}
+                      {formatStatus(status)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -279,7 +310,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                 className="h-11 px-4 border-slate-200/60 bg-white/80 hover:bg-rose-50 hover:border-rose-300 text-slate-600 hover:text-rose-700 transition-all duration-200 shadow-sm"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                清空
+                {t("clear")}
               </Button>
             </div>
           </div>
@@ -288,7 +319,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
         {/* 已选策略标签 */}
         {multiSelect && selectedStrategies.length > 0 && (
           <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-100">
-            <h3 className="text-lg font-medium mb-4 text-slate-700">已选策略 ({selectedStrategies.length})</h3>
+            <h3 className="text-lg font-medium mb-4 text-slate-700">{t("selectedStrategies", { count: selectedStrategies.length })}</h3>
             <div className="flex flex-wrap gap-2">
               {selectedStrategies.map((strategy) => (
                 <Badge
@@ -313,7 +344,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
 
         {/* 策略表格 */}
         <div className="bg-slate-50/30 rounded-lg p-4 border border-slate-100">
-          <h3 className="text-lg font-medium mb-4 text-slate-700">策略列表 ({filteredAndSortedData.length} 条记录)</h3>
+          <h3 className="text-lg font-medium mb-4 text-slate-700">{t("strategyList", { count: filteredAndSortedData.length })}</h3>
           <div className="bg-white rounded-md border border-slate-200 overflow-hidden">
             <Table>
               <TableHeader>
@@ -328,30 +359,30 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                   )}
                   <TableHead>
                     <Button variant="ghost" onClick={() => handleSort("name")} className="h-auto p-0">
-                      策略名称
+                      {t("strategyName")}
                       <SortIcon field="name" />
                     </Button>
                   </TableHead>
-                  <TableHead>类型</TableHead>
+                  <TableHead>{t("type")}</TableHead>
                   <TableHead>
                     <Button variant="ghost" onClick={() => handleSort("level")} className="h-auto p-0">
-                      优先级
+                      {t("priority")}
                       <SortIcon field="level" />
                     </Button>
                   </TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead>创建人</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead>{t("creator")}</TableHead>
                   <TableHead>
                     <Button
                       variant="ghost"
                       onClick={() => handleSort("createdAt")}
                       className="h-auto p-0"
                     >
-                      创建时间
+                      {t("createdAt")}
                       <SortIcon field="createdAt" />
                     </Button>
                   </TableHead>
-                  <TableHead>操作</TableHead>
+                  <TableHead>{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -366,25 +397,25 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                       </TableCell>
                     )}
                     <TableCell className="font-medium">{strategy.name}</TableCell>
-                    <TableCell>{strategy.type}</TableCell>
+                    <TableCell>{formatType(strategy.type)}</TableCell>
                     <TableCell>
                       <Badge className={classNames(
                         "border-none shadow-none hover:bg-inherit cursor-default", // 覆盖默认交互
                         getLevelColorClass(strategy.level)
-                      )}>{strategy.level}</Badge>
+                      )}>{formatLevel(strategy.level)}</Badge>
                     </TableCell>
                     <TableCell>
                       <Badge className={classNames(
                         "border-none shadow-none hover:bg-inherit cursor-default", // 覆盖默认交互
                         getStatusColorClass(strategy.status)
-                      )}>{strategy.status}</Badge>
+                      )}>{formatStatus(strategy.status)}</Badge>
                     </TableCell>
                     <TableCell>{strategy.createdBy}</TableCell>
-                    <TableCell>{new Date(strategy.createdAt).toLocaleDateString("zh-CN")}</TableCell>
+                    <TableCell>{new Date(strategy.createdAt).toLocaleDateString(locale)}</TableCell>
                     <TableCell>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4 mr-1" />
-                        预览
+                        {t("preview")}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -397,9 +428,11 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
               <div className="text-sm text-slate-500">
-                显示 {(currentPage - 1) * pageSize + 1} 到{" "}
-                {Math.min(currentPage * pageSize, filteredAndSortedData.length)} 条， 共 {filteredAndSortedData.length}{" "}
-                条记录
+                {t("pagination", {
+                  start: (currentPage - 1) * pageSize + 1,
+                  end: Math.min(currentPage * pageSize, filteredAndSortedData.length),
+                  count: filteredAndSortedData.length,
+                })}
               </div>
               <div className="flex items-center space-x-2">
                 <Button
@@ -409,7 +442,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                   disabled={currentPage === 1}
                   className="border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  上一页
+                  {t("previousPage")}
                 </Button>
                 <div className="flex items-center space-x-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -434,7 +467,7 @@ export default function StrategySelector({ data, onSelectionChange, multiSelect 
                   disabled={currentPage === totalPages}
                   className="border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  下一页
+                  {t("nextPage")}
                 </Button>
               </div>
             </div>

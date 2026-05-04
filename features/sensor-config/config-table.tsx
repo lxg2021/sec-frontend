@@ -9,12 +9,14 @@ import { Trash2, Eye } from "lucide-react"
 import { configStorage, type SavedConfig } from "@/features/sensor-config/data/config-storage"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Archive, CheckCircle2, AlertCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface ConfigTableProps {
   refreshTrigger: number
 }
 
 export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
+  const t = useTranslations("pages.sensorConfig.table")
   const [configs, setConfigs] = useState<SavedConfig[]>([])
   const [selectedConfig, setSelectedConfig] = useState<any>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
@@ -38,23 +40,23 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
         title: (
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-5 h-5 text-teal-500" />
-            <span className="font-medium">成功</span>
+            <span className="font-medium">{t("success")}</span>
           </div>
         ),
-        description: `配置 "${name}" 已删除`,
+        description: t("deleteSuccess", { name }),
       })
     } catch (error) {
       toast({
-        title: "错误",
-        description: "删除配置失败",
+        title: t("error"),
+        description: t("deleteFailed"),
         className: "bg-white/90 backdrop-blur-sm text-slate-700 shadow-md rounded-xl flex items-center gap-3 p-4 border border-rose-200",
         title: (
           <div className="flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-rose-400" />
-            <span className="font-medium">错误</span>
+            <span className="font-medium">{t("error")}</span>
           </div>
         ),
-        description: <span className="text-slate-600">删除配置失败</span>,
+        description: <span className="text-slate-600">{t("deleteFailed")}</span>,
       })
     }
   }
@@ -79,7 +81,7 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
               <Archive className="h-5 w-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">已保存的配置</CardTitle>
+              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{t("title")}</CardTitle>
             </div>
           </div>
         </CardHeader>
@@ -87,16 +89,16 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
 
         <CardContent>
           {configs.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">暂无保存的配置文件</p>
+            <p className="text-muted-foreground text-center py-8">{t("empty")}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>名称</TableHead>
-                  <TableHead>版本</TableHead>
-                  <TableHead>日期</TableHead>
-                  <TableHead>文件路径</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
+                  <TableHead>{t("name")}</TableHead>
+                  <TableHead>{t("version")}</TableHead>
+                  <TableHead>{t("date")}</TableHead>
+                  <TableHead>{t("filePath")}</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -129,8 +131,8 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div>
-                <DialogTitle>配置详情</DialogTitle>
-                <DialogDescription>查看配置文件的详细内容</DialogDescription>
+                <DialogTitle>{t("detailsTitle")}</DialogTitle>
+                <DialogDescription>{t("detailsDescription")}</DialogDescription>
               </div>
             </div>
           </DialogHeader>
@@ -138,21 +140,21 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-6 p-4 bg-muted/50 rounded-lg">
                 <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">名称</div>
+                  <div className="text-sm font-medium text-muted-foreground">{t("name")}</div>
                   <div className="font-medium">{selectedConfig.name}</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">版本</div>
+                  <div className="text-sm font-medium text-muted-foreground">{t("version")}</div>
                   <div className="font-medium">{selectedConfig.version}</div>
                 </div>
                 <div className="space-y-1">
-                  <div className="text-sm font-medium text-muted-foreground">日期</div>
+                  <div className="text-sm font-medium text-muted-foreground">{t("date")}</div>
                   <div className="font-medium">{selectedConfig.date}</div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <div className="text-sm font-medium">配置内容</div>
+                <div className="text-sm font-medium">{t("configContent")}</div>
                 <div className="border rounded-lg overflow-hidden bg-slate-900">
                   <pre className="p-6 text-sm text-slate-100 overflow-auto max-h-96 whitespace-pre-wrap">
                     {JSON.stringify(selectedConfig, null, 2)}

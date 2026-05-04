@@ -5,6 +5,7 @@ import React from "react";
 import { Badge } from "@/shared/ui/badge";
 import { ArrowRight, ArrowLeft, Minus, ArrowLeftRight } from "lucide-react";
 import { GetNodeDisplayString } from "@/features/attack/graph/components/node-label";
+import { useTranslations } from "next-intl";
 
 interface GraphNode<T> {
   id: string;
@@ -33,99 +34,97 @@ interface EdgeLabelProps {
 
 // 边类型配置
 interface EdgeConfig {
-  label: string;
   color: string;
-  description?: string;
 }
 
 // 边类型配置映射
 const EDGE_CONFIGS: Record<string, EdgeConfig> = {
-  "CREATE_PROCESS": { label: "创建进程", color: "#4CAF50", description: "创建进程" },
-  "CREATE_FILE": { label: "创建文件", color: "#FF9800", description: "创建文件" },
-  "PROCESS_NET": { label: "网络连接", color: "#2196F3", description: "网络连接" },
-  "PROCESS_DNS": { label: "域名解析", color: "#03A9F4", description: "域名解析" },
-  "TERMINATE_PROCESS": { label: "结束进程", color: "#4CAF50", description: "结束进程" },
-  "ACCESS_PROCESS": { label: "跨进程访问", color: "#4CAF50", description: "跨进程访问" },
-  "NET_DNS": { label: "对等网络", color: "#2196F3", description: "对等网络" },
-  "NET_LATERAL_MOVEMENT": { label: "横向移动", color: "#388E3C", description: "横向移动" },
-  "ACCESS_VOLUME": { label: "访问卷", color: "#8BC34A", description: "卷访问" },
-  "DELETE_FILE": { label: "删除文件", color: "#FF9800", description: "删除文件" },
-  "READ_FILE": { label: "读取文件", color: "#FF9800", description: "读取文件" },
-  "WRITE_FILE": { label: "写入文件", color: "#FF9800", description: "写入操作" },
-  "SET_FILE_EA": { label: "文件扩展", color: "#FF9800", description: "写入文件扩展" },
-  "RENAME_FILE": { label: "重命名文件", color: "#FF9800", description: "重命名操作" },
-  "RENAME_PEER_FILE": { label: "重命名对等文件", color: "#FF9800", description: "重命名对等文件" },
-  "MOVE_FILE": { label: "移动文件", color: "#FF9800", description: "移动文件" },
-  "MOVE_PEER_FILE": { label: "移动对等文件", color: "#FF9800", description: "移动对等文件" },
-  "CHANGE_FILE_ATTRIBUTES": { label: "修改文件属性", color: "#FF9800", description: "修改文件属性" },
-  "CREATE_FILE_STREAM": { label: "创建文件流", color: "#FFB74D", description: "创建文件流" },
-  "DELETE_FILE_STREAM": { label: "删除文件流", color: "#FFB74D", description: "删除文件流" },
-  "STREAM_PEER_FILE": { label: "对等文件流", color: "#FFB74D", description: "对等文件流" },
-  "NEW_FILE_PEER_STREAM": { label: "对等文件流", color: "#FFB74D", description: "对等文件流" },
-  "CREATE_BITS": { label: "创建BITS任务", color: "#F57C00", description: "创建BITS任务" },
-  "BITS_ADD_FILE": { label: "BITS添加文件", color: "#F57C00", description: "BITS添加文件" },
-  "BITS_STATUS_CHANGE": { label: "BITS状态变更", color: "#F57C00", description: "BITS状态变更" },
-  "CREATE_TASK": { label: "创建计划任务", color: "#9C27B0", description: "创建计划任务" },
-  "FILE_MD5_PEER_SHIP": { label: "文件HASH对等", color: "#9C27B0", description: "文件HASH对等" },
-  "TASK_LATERAL_MOVEMENT": { label: "任务横向移动", color: "#388E3C", description: "任务横向移动" },
-  "DELETE_TASK": { label: "删除计划任务", color: "#9C27B0", description: "删除计划任务" },
-  "CROSS_MEMORY_EXECUTE": { label: "跨进程内存", color: "#4CAF50", description: "跨进程内存" },
-  "LOAD_DLL": { label: "加载DLL", color: "#434260", description: "加载DLL" },
-  "DLL_MD5_PEER_SHIP": { label: "文件HASH对等", color: "#434260", description: "文件HASH对等" },
-  "LOAD_DRIVER": { label: "加载驱动", color: "#434260", description: "加载驱动" },
-  "DRIVER_MD5_PEER_SHIP": { label: "文件HASH对等", color: "#434260", description: "文件HASH对等" },
-  "ENCRYPT_DECRYPT": { label: "加解密", color: "#E91E63", description: "加解密" },
-  "CREATE_EVENT": { label: "创建事件", color: "#795548", description: "创建事件" },
-  "OPEN_EVENT": { label: "打开事件", color: "#795548", description: "打开事件" },
-  "CREATE_FILE_MAPPING": { label: "创建文件映射", color: "#6D4C41", description: "创建文件映射" },
-  "CONNECT_FILE_MAPPING": { label: "连接文件映射", color: "#6D4C41", description: "连接文件映射" },
-  "CREATE_MAILSLOT": { label: "创建MailSlot", color: "#FF5722", description: "MailSlot创建" },
-  "CONNECT_MAILSLOT": { label: "连接MailSlot", color: "#FF5722", description: "MailSlot连接" },
-  "MODIFY_MBR": { label: "修改MBR", color: "#B71C1C", description: "修改MBR" },
-  "CREATE_PIPE": { label: "创建管道", color: "#607D8B", description: "创建管道" },
-  "CONNECT_PIPE": { label: "连接管道", color: "#607D8B", description: "连接管道" },
-  "POWERSHELL": { label: "PowerShell", color: "#3F51B5", description: "PowerShell执行" },
-  "CREATE_REGKEY": { label: "创建注册表键", color: "#009688", description: "注册表创建" },
-  "DELETE_REGKEY": { label: "删除注册表键", color: "#009688", description: "注册表删除" },
-  "RENAME_REGKEY": { label: "重命名注册表键", color: "#009688", description: "重命名注册表键" },
-  "RENAME_REGKEY_PEER": { label: "注册表键对等", color: "#009688", description: "注册表键对等" },
-  "SET_REGVALUE": { label: "设置注册表值", color: "#8E24AA", description: "设置注册表值" },
-  "DELETE_REGVALUE": { label: "删除注册表值", color: "#8E24AA", description: "删除注册表值" },
-  "QUERY_REGVALUE": { label: "查询注册表值", color: "#8E24AA", description: "查询注册表值" },
-  "STEALING_CREDENTIALS": { label: "窃取凭据", color: "#C2185B", description: "凭据窃取" },
-  "ADJUST_PRIVILEGE": { label: "调整权限", color: "#4CAF50", description: "调整权限" },
-  "IMPERSONATION_TOKEN": { label: "模拟令牌", color: "#AD1457", description: "模拟令牌" },
-  "SET_TOKEN": { label: "设置令牌", color: "#AD1457", description: "设置令牌" },
-  "HOOK_MESSAGE": { label: "Message钩子", color: "#CDDC39", description: "Message钩子" },
-  "ACCESS_URL": { label: "访问URL", color: "#00BCD4", description: "访问URL" },
-  "CREATE_WMI_CLASS": { label: "创建WMI类", color: "#26A69A", description: "创建WMI类" },
-  "WMI_QUERY": { label: "WMI查询", color: "#BA68C8", description: "WMI查询" },
-  "WMI_EXECUTE": { label: "WMI执行", color: "#CE93D8", description: "WMI执行" },
-  "WMI_CONSUMER": { label: "WmiConsumer", color: "#4396F0", description: "WmiConsumer" },
-  "WMI_FILTER": { label: "WmiFilter", color: "#6A1B9A", description: "WmiFilter" },
-  "CONSUMER_FILTER_BINDING": { label: "WmiBinding", color: "#6A1B9A", description: "WmiBinding" },
-  "WMI_LATERAL_MOVEMENT": { label: "横向移动", color: "#388E3C", description: "WMI横向移动" },
-  "DEVICE_CHANGE": { label: "设备变更", color: "#388E3C", description: "设备变更" },
-  "CREATE_SERVICE": { label: "创建服务", color: "#FF7043", description: "创建服务" },
-  "START_SERVICE": { label: "启动服务", color: "#FF7043", description: "启动服务" },
-  "DELETE_SERVICE": { label: "删除服务", color: "#FF7043", description: "删除服务" },
-  "STOP_SERVICE": { label: "停止服务", color: "#FF7043", description: "停止服务" },
-  "PAUSE_RESTORE_SERVICE": { label: "暂停/恢复服务", color: "#FF7043", description: "暂停/恢复服务" },
-  "CHANGE_SERVICE": { label: "修改服务", color: "#FF7043", description: "修改服务" },
-  "SERVICE_MD5_PEER_SHIP": { label: "文件HASH对等", color: "#434260", description: "文件HASH对等" },
-  "CREATE_ACCOUNT": { label: "创建账户", color: "#039BE5", description: "账户创建" },
-  "ENABLE_ACCOUNT": { label: "启用账户", color: "#039BE5", description: "启用账户" },
-  "RESET_ACCOUNT_PASSWORD": { label: "重置密码", color: "#039BE5", description: "重置密码" },
-  "DISABLE_ACCOUNT": { label: "禁用账户", color: "#039BE5", description: "账户禁用" },
-  "DELETE_ACCOUNT": { label: "删除账户", color: "#039BE5", description: "删除账户" },
-  "MODIFY_ACCOUNT": { label: "修改账户", color: "#039BE5", description: "修改账户" },
-  "ADD_ACCOUNT_GROUP": { label: "向组内添加账户", color: "#0288D1", description: "向组内添加账户" },
-  "DELETE_ACCOUNT_GROUP": { label: "从组内移除账户", color: "#0288D1", description: "从组内移除账户" },
-  "CREATE_GROUP": { label: "创建账户组", color: "#0288D1", description: "创建账户组" },
-  "DELETE_GROUP": { label: "删除账户组", color: "#0288D1", description: "删除账户组" },
+  "CREATE_PROCESS": { color: "#4CAF50" },
+  "CREATE_FILE": { color: "#FF9800" },
+  "PROCESS_NET": { color: "#2196F3" },
+  "PROCESS_DNS": { color: "#03A9F4" },
+  "TERMINATE_PROCESS": { color: "#4CAF50" },
+  "ACCESS_PROCESS": { color: "#4CAF50" },
+  "NET_DNS": { color: "#2196F3" },
+  "NET_LATERAL_MOVEMENT": { color: "#388E3C" },
+  "ACCESS_VOLUME": { color: "#8BC34A" },
+  "DELETE_FILE": { color: "#FF9800" },
+  "READ_FILE": { color: "#FF9800" },
+  "WRITE_FILE": { color: "#FF9800" },
+  "SET_FILE_EA": { color: "#FF9800" },
+  "RENAME_FILE": { color: "#FF9800" },
+  "RENAME_PEER_FILE": { color: "#FF9800" },
+  "MOVE_FILE": { color: "#FF9800" },
+  "MOVE_PEER_FILE": { color: "#FF9800" },
+  "CHANGE_FILE_ATTRIBUTES": { color: "#FF9800" },
+  "CREATE_FILE_STREAM": { color: "#FFB74D" },
+  "DELETE_FILE_STREAM": { color: "#FFB74D" },
+  "STREAM_PEER_FILE": { color: "#FFB74D" },
+  "NEW_FILE_PEER_STREAM": { color: "#FFB74D" },
+  "CREATE_BITS": { color: "#F57C00" },
+  "BITS_ADD_FILE": { color: "#F57C00" },
+  "BITS_STATUS_CHANGE": { color: "#F57C00" },
+  "CREATE_TASK": { color: "#9C27B0" },
+  "FILE_MD5_PEER_SHIP": { color: "#9C27B0" },
+  "TASK_LATERAL_MOVEMENT": { color: "#388E3C" },
+  "DELETE_TASK": { color: "#9C27B0" },
+  "CROSS_MEMORY_EXECUTE": { color: "#4CAF50" },
+  "LOAD_DLL": { color: "#434260" },
+  "DLL_MD5_PEER_SHIP": { color: "#434260" },
+  "LOAD_DRIVER": { color: "#434260" },
+  "DRIVER_MD5_PEER_SHIP": { color: "#434260" },
+  "ENCRYPT_DECRYPT": { color: "#E91E63" },
+  "CREATE_EVENT": { color: "#795548" },
+  "OPEN_EVENT": { color: "#795548" },
+  "CREATE_FILE_MAPPING": { color: "#6D4C41" },
+  "CONNECT_FILE_MAPPING": { color: "#6D4C41" },
+  "CREATE_MAILSLOT": { color: "#FF5722" },
+  "CONNECT_MAILSLOT": { color: "#FF5722" },
+  "MODIFY_MBR": { color: "#B71C1C" },
+  "CREATE_PIPE": { color: "#607D8B" },
+  "CONNECT_PIPE": { color: "#607D8B" },
+  "POWERSHELL": { color: "#3F51B5" },
+  "CREATE_REGKEY": { color: "#009688" },
+  "DELETE_REGKEY": { color: "#009688" },
+  "RENAME_REGKEY": { color: "#009688" },
+  "RENAME_REGKEY_PEER": { color: "#009688" },
+  "SET_REGVALUE": { color: "#8E24AA" },
+  "DELETE_REGVALUE": { color: "#8E24AA" },
+  "QUERY_REGVALUE": { color: "#8E24AA" },
+  "STEALING_CREDENTIALS": { color: "#C2185B" },
+  "ADJUST_PRIVILEGE": { color: "#4CAF50" },
+  "IMPERSONATION_TOKEN": { color: "#AD1457" },
+  "SET_TOKEN": { color: "#AD1457" },
+  "HOOK_MESSAGE": { color: "#CDDC39" },
+  "ACCESS_URL": { color: "#00BCD4" },
+  "CREATE_WMI_CLASS": { color: "#26A69A" },
+  "WMI_QUERY": { color: "#BA68C8" },
+  "WMI_EXECUTE": { color: "#CE93D8" },
+  "WMI_CONSUMER": { color: "#4396F0" },
+  "WMI_FILTER": { color: "#6A1B9A" },
+  "CONSUMER_FILTER_BINDING": { color: "#6A1B9A" },
+  "WMI_LATERAL_MOVEMENT": { color: "#388E3C" },
+  "DEVICE_CHANGE": { color: "#388E3C" },
+  "CREATE_SERVICE": { color: "#FF7043" },
+  "START_SERVICE": { color: "#FF7043" },
+  "DELETE_SERVICE": { color: "#FF7043" },
+  "STOP_SERVICE": { color: "#FF7043" },
+  "PAUSE_RESTORE_SERVICE": { color: "#FF7043" },
+  "CHANGE_SERVICE": { color: "#FF7043" },
+  "SERVICE_MD5_PEER_SHIP": { color: "#434260" },
+  "CREATE_ACCOUNT": { color: "#039BE5" },
+  "ENABLE_ACCOUNT": { color: "#039BE5" },
+  "RESET_ACCOUNT_PASSWORD": { color: "#039BE5" },
+  "DISABLE_ACCOUNT": { color: "#039BE5" },
+  "DELETE_ACCOUNT": { color: "#039BE5" },
+  "MODIFY_ACCOUNT": { color: "#039BE5" },
+  "ADD_ACCOUNT_GROUP": { color: "#0288D1" },
+  "DELETE_ACCOUNT_GROUP": { color: "#0288D1" },
+  "CREATE_GROUP": { color: "#0288D1" },
+  "DELETE_GROUP": { color: "#0288D1" },
 
   // 默认边
-  "default": { label: "关联", color: "#6B7280", description: "关联关系" }
+  "default": { color: "#6B7280" }
 };
 
 // 获取边配置
@@ -160,6 +159,9 @@ const EdgeLabel: React.FC<EdgeLabelProps> = ({
   const sourceLabel = GetNodeDisplayString(sourcenode.type, sourcenode.data);
   const targetLabel = GetNodeDisplayString(targetnode.type, targetnode.data);
   const config = getEdgeConfig(link.type);
+  const edgeKey = EDGE_CONFIGS[link.type] ? link.type : "default";
+  const edgeLabel = t(`${edgeKey}.label`);
+  const edgeDescription = t(`${edgeKey}.description`);
 
   const renderArrow = () => {
     const arrowProps = { size: 16, strokeWidth: 4, color: config.color };
@@ -186,7 +188,7 @@ const EdgeLabel: React.FC<EdgeLabelProps> = ({
     <div
       className={`flex items-center justify-between gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow ${className}`}
       style={{ width: `${width}px` }}
-      title={`${sourceLabel} ${direction === "forward" ? "→" : direction === "backward" ? "←" : "↔"} ${targetLabel} (${config.label})`}
+      title={`${sourceLabel} ${direction === "forward" ? "→" : direction === "backward" ? "←" : "↔"} ${targetLabel} (${edgeLabel})`}
     >
       {/* 左节点，占剩余空间 */}
       <div className="flex-1 min-w-0">
@@ -203,9 +205,9 @@ const EdgeLabel: React.FC<EdgeLabelProps> = ({
         <Badge
           className="h-5 text-white border-0 text-xs font-medium flex items-center justify-center"
           style={{ width: '120px', backgroundColor: config.color }}
-          title={config.description}
+          title={edgeDescription}
         >
-          {config.label}
+          {edgeLabel}
         </Badge>
 
         <div style={lineStyle} />

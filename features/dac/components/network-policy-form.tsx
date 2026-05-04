@@ -5,6 +5,7 @@ import { Separator } from "@/shared/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { HelpCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface NetworkPolicyFormProps {
   netDirection: "in" | "out";
@@ -47,49 +48,51 @@ export function NetworkPolicyForm({
   onRemoteAddressChange,
   onProgramPathChange,
 }: NetworkPolicyFormProps) {
+  const t = useTranslations("pages.response.dac.networkForm");
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card className="p-6 border-l-4 border-l-blue-500 shadow-sm">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">规则配置</h2>
+          <h2 className="text-xl font-semibold">{t("ruleConfig")}</h2>
           <Separator />
           <div className="space-y-4">
             <div className="space-y-3">
-              <Label htmlFor="direction" className="text-sm font-medium">流量方向</Label>
+              <Label htmlFor="direction" className="text-sm font-medium">{t("direction")}</Label>
               <Select value={netDirection} onValueChange={(v) => onDirectionChange(v as any)}>
                 <SelectTrigger className="bg-background">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="in">入站 (Inbound)</SelectItem>
-                  <SelectItem value="out">出站 (Outbound)</SelectItem>
+                  <SelectItem value="in">{t("inbound")}</SelectItem>
+                  <SelectItem value="out">{t("outbound")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-3">
-              <Label htmlFor="action" className="text-sm font-medium">处理动作</Label>
+              <Label htmlFor="action" className="text-sm font-medium">{t("action")}</Label>
               <Select value={netAction} onValueChange={(v) => onActionChange(v as any)}>
                 <SelectTrigger className="bg-background">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="allow">允许 (Allow)</SelectItem>
-                  <SelectItem value="block">阻止 (Block)</SelectItem>
-                  <SelectItem value="bypass">绕过 (Bypass)</SelectItem>
+                  <SelectItem value="allow">{t("allow")}</SelectItem>
+                  <SelectItem value="block">{t("block")}</SelectItem>
+                  <SelectItem value="bypass">{t("bypass")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-3">
-              <Label htmlFor="profile" className="text-sm font-medium">网络配置文件</Label>
+              <Label htmlFor="profile" className="text-sm font-medium">{t("profile")}</Label>
               <Select value={netProfile} onValueChange={(v) => onProfileChange(v as any)}>
                 <SelectTrigger className="bg-background">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="domain">域网络 (Domain)</SelectItem>
-                  <SelectItem value="private">专用网络 (Private)</SelectItem>
-                  <SelectItem value="public">公用网络 (Public)</SelectItem>
-                  <SelectItem value="any">所有网络 (Any)</SelectItem>
+                  <SelectItem value="domain">{t("domain")}</SelectItem>
+                  <SelectItem value="private">{t("private")}</SelectItem>
+                  <SelectItem value="public">{t("public")}</SelectItem>
+                  <SelectItem value="any">{t("anyNetwork")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -99,11 +102,11 @@ export function NetworkPolicyForm({
 
       <Card className="p-6 border-l-4 border-l-green-500 shadow-sm">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">协议和端口</h2>
+          <h2 className="text-xl font-semibold">{t("protocolAndPorts")}</h2>
           <Separator />
           <div className="space-y-4">
             <div className="space-y-3">
-              <Label htmlFor="protocol" className="text-sm font-medium">协议类型</Label>
+              <Label htmlFor="protocol" className="text-sm font-medium">{t("protocol")}</Label>
               <Select value={netProtocol} onValueChange={(v) => onProtocolChange(v as any)}>
                 <SelectTrigger className="bg-background">
                   <SelectValue />
@@ -112,25 +115,25 @@ export function NetworkPolicyForm({
                   <SelectItem value="tcp">TCP</SelectItem>
                   <SelectItem value="udp">UDP</SelectItem>
                   <SelectItem value="icmp">ICMP</SelectItem>
-                  <SelectItem value="any">所有协议 (Any)</SelectItem>
+                  <SelectItem value="any">{t("anyProtocol")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-3">
-              <Label htmlFor="localport" className="text-sm font-medium">本地端口</Label>
+              <Label htmlFor="localport" className="text-sm font-medium">{t("localPort")}</Label>
               <Input
                 id="localport"
-                placeholder="80,443,8080 或 any"
+                placeholder={t("localPortPlaceholder")}
                 value={localPort}
                 onChange={(e) => onLocalPortChange(e.target.value)}
                 className="bg-background"
               />
             </div>
             <div className="space-y-3">
-              <Label htmlFor="remoteport" className="text-sm font-medium">远程端口</Label>
+              <Label htmlFor="remoteport" className="text-sm font-medium">{t("remotePort")}</Label>
               <Input
                 id="remoteport"
-                placeholder="any 或具体端口"
+                placeholder={t("remotePortPlaceholder")}
                 value={remotePort}
                 onChange={(e) => onRemotePortChange(e.target.value)}
                 className="bg-background"
@@ -142,21 +145,21 @@ export function NetworkPolicyForm({
 
       <Card className="p-6 border-l-4 border-l-purple-500 shadow-sm">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">地址范围</h2>
+          <h2 className="text-xl font-semibold">{t("addressRange")}</h2>
           <Separator />
           <div className="space-y-4">
             <div className="space-y-3">
-              <Label htmlFor="localaddr" className="text-sm font-medium">本地地址</Label>
+              <Label htmlFor="localaddr" className="text-sm font-medium">{t("localAddress")}</Label>
               <Input
                 id="localaddr"
-                placeholder="any 或 IP/CIDR"
+                placeholder={t("localAddressPlaceholder")}
                 value={localAddress}
                 onChange={(e) => onLocalAddressChange(e.target.value)}
                 className="bg-background"
               />
             </div>
             <div className="space-y-3">
-              <Label htmlFor="remoteaddr" className="text-sm font-medium">远程地址</Label>
+              <Label htmlFor="remoteaddr" className="text-sm font-medium">{t("remoteAddress")}</Label>
               <Input
                 id="remoteaddr"
                 placeholder="192.168.1.0/24"
@@ -171,18 +174,18 @@ export function NetworkPolicyForm({
 
       <Card className="p-6 border-l-4 border-l-orange-500 shadow-sm">
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">程序关联</h2>
+          <h2 className="text-xl font-semibold">{t("programAssociation")}</h2>
           <Separator />
           <div className="space-y-3">
             <div className="flex items-center gap-1">
-              <Label htmlFor="program" className="text-sm font-medium">程序路径</Label>
+              <Label htmlFor="program" className="text-sm font-medium">{t("programPath")}</Label>
               <span className="text-red-500 text-sm">*</span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
-                  应用此网络规则的进程路径，支持通配符匹配多个程序
+                  {t("programHelp")}
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -194,7 +197,7 @@ export function NetworkPolicyForm({
               className="bg-background"
             />
             <p className="text-xs text-muted-foreground">
-              应用此网络规则的进程路径，支持通配符匹配多个程序
+              {t("programHelp")}
             </p>
           </div>
         </div>

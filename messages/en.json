@@ -19,7 +19,57 @@
     "breadcrumbRoot": "WatchPoint",
     "fallbackPage": "Dashboard",
     "collapseSidebar": "Collapse sidebar",
-    "expandSidebar": "Expand sidebar"
+    "expandSidebar": "Expand sidebar",
+    "user": {
+      "loadFailed": "Failed to load user information",
+      "updateFailed": "Update failed",
+      "passwordMismatch": "The two passwords do not match",
+      "passwordUpdateFailed": "Failed to change password",
+      "operationFailed": "Operation failed",
+      "confirmTextInvalid": "Enter the correct confirmation text",
+      "deleteFailed": "Failed to delete account",
+      "logoutFailed": "Failed to log out",
+      "viewProfile": "View profile",
+      "editProfile": "Edit profile",
+      "changePassword": "Change password",
+      "disable2fa": "Disable two-factor authentication",
+      "enable2fa": "Enable two-factor authentication",
+      "logout": "Log out",
+      "deleteAccount": "Delete account",
+      "profileTitle": "User Profile",
+      "profileDescription": "View your personal information",
+      "userId": "User ID:",
+      "phone": "Phone:",
+      "email": "Email:",
+      "twoFactor": "Two-factor authentication:",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "createdAt": "Created:",
+      "updatedAt": "Updated:",
+      "editTitle": "Edit Profile",
+      "editDescription": "Update your personal information",
+      "nickname": "Nickname",
+      "nicknamePlaceholder": "Enter nickname",
+      "emailPlaceholder": "Enter email",
+      "phonePlaceholder": "Enter phone number",
+      "cancel": "Cancel",
+      "save": "Save",
+      "passwordTitle": "Change Password",
+      "passwordDescription": "Enter your old and new passwords",
+      "oldPassword": "Old password",
+      "oldPasswordPlaceholder": "Enter old password",
+      "newPassword": "New password",
+      "newPasswordPlaceholder": "Enter new password (at least 6 characters, including letters and numbers)",
+      "confirmPassword": "Confirm new password",
+      "confirmPasswordPlaceholder": "Enter the new password again",
+      "confirmChange": "Confirm change",
+      "deleteTitle": "Delete Account",
+      "deleteDescription": "This action cannot be undone. Enter",
+      "deleteDescriptionTail": "to confirm deletion.",
+      "confirmText": "Confirmation text",
+      "confirmTextPlaceholder": "Enter CONFIRM_DELETE",
+      "confirmDelete": "Confirm deletion"
+    }
   },
   "navigation": {
     "dashboard": "Dashboard",
@@ -126,6 +176,50 @@
         "terms": "Terms",
         "contact": "Contact",
         "copyright": "© 2025 Asset Management System. All rights reserved."
+      },
+      "tree": {
+        "nameRequired": "Name cannot be empty",
+        "companyExists": "Company name \"{name}\" already exists",
+        "siblingExists": "A sibling named \"{name}\" already exists",
+        "duplicateName": "Duplicate name",
+        "newDepartment": "New Department",
+        "newGroup": "New Group",
+        "newCompany": "New Company",
+        "company": "Company",
+        "department": "Department",
+        "group": "Group",
+        "addDepartment": "Add department",
+        "addGroup": "Add group",
+        "editName": "Edit name",
+        "deleteNode": "Delete node",
+        "title": "Organization Structure",
+        "readonlyDescription": "View organization structure",
+        "editDescription": "Edit organization structure (add, edit, and delete nodes)",
+        "addCompany": "Add Company",
+        "save": "Save",
+        "searchPlaceholder": "Search node name...",
+        "validationError": "Validation errors:",
+        "empty": "No organization structure",
+        "addFirstCompany": "Add first company",
+        "confirmDeleteTitle": "Confirm deletion",
+        "confirmDeleteDescription": "Delete this node? If it has child nodes, all child nodes will also be deleted. This action cannot be undone.",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      },
+      "logicGroupUploader": {
+        "title": "Upload Logical Organization Structure",
+        "description": "Upload a YAML organization structure file, or download the template and fill it manually.",
+        "dragDropText": "Drag a file here or click to select one",
+        "dragDropHint": "Supports YAML files (.yml, .yaml)",
+        "uploadingText": "Uploading...",
+        "successText": "Uploaded successfully.",
+        "errorText": "Upload failed",
+        "retryButtonText": "Retry",
+        "resetButtonText": "Upload again",
+        "downloadTemplateText": "Download template",
+        "yamlOnly": "Invalid file format: only .yml or .yaml files are supported",
+        "validationFailed": "File validation failed",
+        "parseFailed": "File parsing failed. Check the file format."
       }
     },
     "assets": {
@@ -360,6 +454,32 @@
           "prev": "Previous",
           "next": "Next",
           "last": "Last"
+        },
+        "uninstallProgress": {
+          "completed": "Completed",
+          "inProgress": "In progress",
+          "waiting": "Waiting",
+          "immediate": "Run immediately",
+          "scheduled": "Scheduled: {time}",
+          "unknownSchedule": "Unknown schedule",
+          "quietUninstall": "Silent uninstall",
+          "normalUninstall": "Normal uninstall",
+          "title": "Software Uninstall Task Progress",
+          "taskCount": "{count} tasks",
+          "rank": "Rank {rank}",
+          "type": "Type",
+          "createdAt": "Created",
+          "software": "Software",
+          "unknownSoftware": "Unknown software",
+          "hosts": "Hosts",
+          "softwareInfo": "Software Information",
+          "fingerprint": "Fingerprint",
+          "name": "Name",
+          "version": "Version",
+          "vendor": "Vendor",
+          "uninstallProgress": "Uninstall Progress",
+          "hostSuccess": "{success}/{total} hosts succeeded ({progress}%)",
+          "retry": "Retries: {count}"
         }
       }
     },
@@ -369,7 +489,22 @@
         "subtitle": "Attack Traceability Dashboard",
         "lastChecked": "Last checked: {time}",
         "stageStats": "ATT&CK Stage Statistics",
-        "stageStatsDescription": "View detailed results by ATT&CK stage."
+        "stageStatsDescription": "View detailed results by ATT&CK stage.",
+        "header": {
+          "attckTechniques": "ATT&CK Techniques",
+          "affectedHosts": "Affected Hosts",
+          "riskLevel": "Risk Level",
+          "total": "Total {total}",
+          "detectionPeriod": "Detection Period",
+          "start": "Start",
+          "end": "End",
+          "timeFormatError": "Invalid time format: {rangeText}",
+          "severity": {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+          }
+        }
       },
       "drill": {
         "title": "Trace Details",
@@ -386,6 +521,387 @@
         "searchDescription": "Search by IP, DNS, MD5, or port.",
         "graph": "Data Graph",
         "sheetTitle": "Node Details Panel"
+      },
+      "graph": {
+        "edges": {
+          "CREATE_PROCESS": {
+            "label": "Create Process",
+            "description": "Create Process"
+          },
+          "CREATE_FILE": {
+            "label": "Create File",
+            "description": "Create File"
+          },
+          "PROCESS_NET": {
+            "label": "Process Net",
+            "description": "Process Net"
+          },
+          "PROCESS_DNS": {
+            "label": "Process DNS",
+            "description": "Process DNS"
+          },
+          "TERMINATE_PROCESS": {
+            "label": "Terminate Process",
+            "description": "Terminate Process"
+          },
+          "ACCESS_PROCESS": {
+            "label": "Access Process",
+            "description": "Access Process"
+          },
+          "NET_DNS": {
+            "label": "Net DNS",
+            "description": "Net DNS"
+          },
+          "NET_LATERAL_MOVEMENT": {
+            "label": "Net Lateral Movement",
+            "description": "Net Lateral Movement"
+          },
+          "ACCESS_VOLUME": {
+            "label": "Access Volume",
+            "description": "Access Volume"
+          },
+          "DELETE_FILE": {
+            "label": "Delete File",
+            "description": "Delete File"
+          },
+          "READ_FILE": {
+            "label": "Read File",
+            "description": "Read File"
+          },
+          "WRITE_FILE": {
+            "label": "Write File",
+            "description": "Write File"
+          },
+          "SET_FILE_EA": {
+            "label": "Set File Ea",
+            "description": "Set File Ea"
+          },
+          "RENAME_FILE": {
+            "label": "Rename File",
+            "description": "Rename File"
+          },
+          "RENAME_PEER_FILE": {
+            "label": "Rename Peer File",
+            "description": "Rename Peer File"
+          },
+          "MOVE_FILE": {
+            "label": "Move File",
+            "description": "Move File"
+          },
+          "MOVE_PEER_FILE": {
+            "label": "Move Peer File",
+            "description": "Move Peer File"
+          },
+          "CHANGE_FILE_ATTRIBUTES": {
+            "label": "Change File Attributes",
+            "description": "Change File Attributes"
+          },
+          "CREATE_FILE_STREAM": {
+            "label": "Create File Stream",
+            "description": "Create File Stream"
+          },
+          "DELETE_FILE_STREAM": {
+            "label": "Delete File Stream",
+            "description": "Delete File Stream"
+          },
+          "STREAM_PEER_FILE": {
+            "label": "Stream Peer File",
+            "description": "Stream Peer File"
+          },
+          "NEW_FILE_PEER_STREAM": {
+            "label": "New File Peer Stream",
+            "description": "New File Peer Stream"
+          },
+          "CREATE_BITS": {
+            "label": "Create BITS",
+            "description": "Create BITS"
+          },
+          "BITS_ADD_FILE": {
+            "label": "BITS Add File",
+            "description": "BITS Add File"
+          },
+          "BITS_STATUS_CHANGE": {
+            "label": "BITS Status Change",
+            "description": "BITS Status Change"
+          },
+          "CREATE_TASK": {
+            "label": "Create Task",
+            "description": "Create Task"
+          },
+          "FILE_MD5_PEER_SHIP": {
+            "label": "File MD5 Peer Ship",
+            "description": "File MD5 Peer Ship"
+          },
+          "TASK_LATERAL_MOVEMENT": {
+            "label": "Task Lateral Movement",
+            "description": "Task Lateral Movement"
+          },
+          "DELETE_TASK": {
+            "label": "Delete Task",
+            "description": "Delete Task"
+          },
+          "CROSS_MEMORY_EXECUTE": {
+            "label": "Cross Memory Execute",
+            "description": "Cross Memory Execute"
+          },
+          "LOAD_DLL": {
+            "label": "Load DLL",
+            "description": "Load DLL"
+          },
+          "DLL_MD5_PEER_SHIP": {
+            "label": "DLL MD5 Peer Ship",
+            "description": "DLL MD5 Peer Ship"
+          },
+          "LOAD_DRIVER": {
+            "label": "Load Driver",
+            "description": "Load Driver"
+          },
+          "DRIVER_MD5_PEER_SHIP": {
+            "label": "Driver MD5 Peer Ship",
+            "description": "Driver MD5 Peer Ship"
+          },
+          "ENCRYPT_DECRYPT": {
+            "label": "Encrypt Decrypt",
+            "description": "Encrypt Decrypt"
+          },
+          "CREATE_EVENT": {
+            "label": "Create Event",
+            "description": "Create Event"
+          },
+          "OPEN_EVENT": {
+            "label": "Open Event",
+            "description": "Open Event"
+          },
+          "CREATE_FILE_MAPPING": {
+            "label": "Create File Mapping",
+            "description": "Create File Mapping"
+          },
+          "CONNECT_FILE_MAPPING": {
+            "label": "Connect File Mapping",
+            "description": "Connect File Mapping"
+          },
+          "CREATE_MAILSLOT": {
+            "label": "Create Mailslot",
+            "description": "Create Mailslot"
+          },
+          "CONNECT_MAILSLOT": {
+            "label": "Connect Mailslot",
+            "description": "Connect Mailslot"
+          },
+          "MODIFY_MBR": {
+            "label": "Modify MBR",
+            "description": "Modify MBR"
+          },
+          "CREATE_PIPE": {
+            "label": "Create Pipe",
+            "description": "Create Pipe"
+          },
+          "CONNECT_PIPE": {
+            "label": "Connect Pipe",
+            "description": "Connect Pipe"
+          },
+          "POWERSHELL": {
+            "label": "PowerShell",
+            "description": "PowerShell"
+          },
+          "CREATE_REGKEY": {
+            "label": "Create Regkey",
+            "description": "Create Regkey"
+          },
+          "DELETE_REGKEY": {
+            "label": "Delete Regkey",
+            "description": "Delete Regkey"
+          },
+          "RENAME_REGKEY": {
+            "label": "Rename Regkey",
+            "description": "Rename Regkey"
+          },
+          "RENAME_REGKEY_PEER": {
+            "label": "Rename Regkey Peer",
+            "description": "Rename Regkey Peer"
+          },
+          "SET_REGVALUE": {
+            "label": "Set Regvalue",
+            "description": "Set Regvalue"
+          },
+          "DELETE_REGVALUE": {
+            "label": "Delete Regvalue",
+            "description": "Delete Regvalue"
+          },
+          "QUERY_REGVALUE": {
+            "label": "Query Regvalue",
+            "description": "Query Regvalue"
+          },
+          "STEALING_CREDENTIALS": {
+            "label": "Stealing Credentials",
+            "description": "Stealing Credentials"
+          },
+          "ADJUST_PRIVILEGE": {
+            "label": "Adjust Privilege",
+            "description": "Adjust Privilege"
+          },
+          "IMPERSONATION_TOKEN": {
+            "label": "Impersonation Token",
+            "description": "Impersonation Token"
+          },
+          "SET_TOKEN": {
+            "label": "Set Token",
+            "description": "Set Token"
+          },
+          "HOOK_MESSAGE": {
+            "label": "Hook Message",
+            "description": "Hook Message"
+          },
+          "ACCESS_URL": {
+            "label": "Access URL",
+            "description": "Access URL"
+          },
+          "CREATE_WMI_CLASS": {
+            "label": "Create WMI Class",
+            "description": "Create WMI Class"
+          },
+          "WMI_QUERY": {
+            "label": "WMI Query",
+            "description": "WMI Query"
+          },
+          "WMI_EXECUTE": {
+            "label": "WMI Execute",
+            "description": "WMI Execute"
+          },
+          "WMI_CONSUMER": {
+            "label": "WMI Consumer",
+            "description": "WMI Consumer"
+          },
+          "WMI_FILTER": {
+            "label": "WMI Filter",
+            "description": "WMI Filter"
+          },
+          "CONSUMER_FILTER_BINDING": {
+            "label": "Consumer Filter Binding",
+            "description": "Consumer Filter Binding"
+          },
+          "WMI_LATERAL_MOVEMENT": {
+            "label": "WMI Lateral Movement",
+            "description": "WMI Lateral Movement"
+          },
+          "DEVICE_CHANGE": {
+            "label": "Device Change",
+            "description": "Device Change"
+          },
+          "CREATE_SERVICE": {
+            "label": "Create Service",
+            "description": "Create Service"
+          },
+          "START_SERVICE": {
+            "label": "Start Service",
+            "description": "Start Service"
+          },
+          "DELETE_SERVICE": {
+            "label": "Delete Service",
+            "description": "Delete Service"
+          },
+          "STOP_SERVICE": {
+            "label": "Stop Service",
+            "description": "Stop Service"
+          },
+          "PAUSE_RESTORE_SERVICE": {
+            "label": "Pause Restore Service",
+            "description": "Pause Restore Service"
+          },
+          "CHANGE_SERVICE": {
+            "label": "Change Service",
+            "description": "Change Service"
+          },
+          "SERVICE_MD5_PEER_SHIP": {
+            "label": "Service MD5 Peer Ship",
+            "description": "Service MD5 Peer Ship"
+          },
+          "CREATE_ACCOUNT": {
+            "label": "Create Account",
+            "description": "Create Account"
+          },
+          "ENABLE_ACCOUNT": {
+            "label": "Enable Account",
+            "description": "Enable Account"
+          },
+          "RESET_ACCOUNT_PASSWORD": {
+            "label": "Reset Account Password",
+            "description": "Reset Account Password"
+          },
+          "DISABLE_ACCOUNT": {
+            "label": "Disable Account",
+            "description": "Disable Account"
+          },
+          "DELETE_ACCOUNT": {
+            "label": "Delete Account",
+            "description": "Delete Account"
+          },
+          "MODIFY_ACCOUNT": {
+            "label": "Modify Account",
+            "description": "Modify Account"
+          },
+          "ADD_ACCOUNT_GROUP": {
+            "label": "Add Account Group",
+            "description": "Add Account Group"
+          },
+          "DELETE_ACCOUNT_GROUP": {
+            "label": "Delete Account Group",
+            "description": "Delete Account Group"
+          },
+          "CREATE_GROUP": {
+            "label": "Create Group",
+            "description": "Create Group"
+          },
+          "DELETE_GROUP": {
+            "label": "Delete Group",
+            "description": "Delete Group"
+          },
+          "default": {
+            "label": "Relation",
+            "description": "Relation"
+          }
+        },
+        "nodes": {
+          "ProcessNode": "Process",
+          "FileNode": "File",
+          "NetNode": "Net",
+          "DnsNode": "Dns",
+          "VolumeNode": "Volume",
+          "FileStreamNode": "File Stream",
+          "BitsJobNode": "Bits Job",
+          "TaskNode": "Task",
+          "DllImageNode": "Dll Image",
+          "DriverImageNode": "Driver Image",
+          "EnDecryptNode": "En Decrypt",
+          "EventNode": "Event",
+          "FileMappingNode": "File Mapping",
+          "MailSlotNode": "Mail Slot",
+          "MbrNode": "Mbr",
+          "PipeNode": "Pipe",
+          "PowershellNode": "Powershell",
+          "RegKeyNode": "Reg Key",
+          "RegValueNode": "Reg Value",
+          "CredentialsNode": "Credentials",
+          "ImpersonationTokenNode": "Impersonation Token",
+          "MessageNode": "Message",
+          "UrlNode": "Url",
+          "WmiClassNode": "Wmi Class",
+          "WmiQueryNode": "Wmi Query",
+          "WmiExecuteNode": "Wmi Execute",
+          "WmiConsumerNode": "Wmi Consumer",
+          "WmiFilterNode": "Wmi Filter",
+          "AgentNode": "Agent",
+          "DeviceChangeNode": "Device Change",
+          "ServiceNode": "Service",
+          "AccountGroupNode": "Account Group",
+          "AccountNode": "Account",
+          "AttackNode": "Attack"
+        }
+      },
+      "demo": {
+        "title": "Attack demo",
+        "description": "A small demo for the date picker component.",
+        "selectedRange": "Selected range"
       }
     },
     "baseline": {
@@ -394,7 +910,88 @@
         "subtitle": "Security Baseline Dashboard",
         "lastChecked": "Last checked: {time}",
         "categoryStats": "Category Compliance Statistics",
-        "categoryStatsDescription": "View detailed compliance status by check category."
+        "categoryStatsDescription": "View detailed compliance status by check category.",
+        "categoryTable": {
+          "viewing": "Viewing: {name}",
+          "pageSummary": "{current} / {total} pages ? {count} categories",
+          "complianceRate": "Compliance rate",
+          "total": "Total: {total}",
+          "compliant": "Compliant: {count}",
+          "rating": {
+            "excellent": "Excellent",
+            "good": "Good",
+            "average": "Average",
+            "poor": "Poor",
+            "needsImprovement": "Needs improvement"
+          },
+          "collapseDetails": "Collapse details",
+          "viewDetails": "View details",
+          "details": "Details",
+          "detailSummary": "{items} checks, {compliant} compliant",
+          "checkItemName": "Check item name",
+          "complianceStatus": "Compliance status",
+          "securityScore": "Security score",
+          "scoreProgress": "Score progress",
+          "detailAction": "Detail action",
+          "emptyTitle": "Select a category to view details",
+          "emptyDescription": "Click any category card above to inspect its checks and compliance status",
+          "status": {
+            "compliant": "Compliant",
+            "nonCompliant": "Non-compliant"
+          },
+          "categories": {
+            "account": "Account policy",
+            "system": "System settings",
+            "permission": "Permission control",
+            "service": "Service configuration",
+            "network": "Network security",
+            "database": "Database security"
+          },
+          "items": {
+            "account": {
+              "passwordComplexity": "Password complexity policy",
+              "accountLockout": "Account lockout policy",
+              "passwordExpiration": "Password expiration policy",
+              "mfa": "Multi-factor authentication",
+              "accountAudit": "Account privilege audit"
+            },
+            "system": {
+              "systemLogging": "System logging configuration",
+              "firewallRules": "Firewall rules",
+              "systemUpdate": "System update policy",
+              "timeSync": "Time sync configuration",
+              "systemMonitoring": "System monitoring configuration"
+            },
+            "permission": {
+              "filePermissions": "File permission settings",
+              "directoryAccess": "Directory access control",
+              "privilegedAccounts": "Privileged account management",
+              "sudoPermissions": "sudo permission configuration",
+              "sshAccess": "SSH access control"
+            },
+            "service": {
+              "webService": "Web service configuration",
+              "databaseService": "Database service configuration",
+              "mailService": "Mail service configuration",
+              "dnsService": "DNS service configuration",
+              "ftpService": "FTP service configuration"
+            },
+            "network": {
+              "networkSegmentation": "Network segmentation configuration",
+              "ids": "Intrusion detection system",
+              "trafficMonitoring": "Network traffic monitoring",
+              "vpnConfig": "VPN configuration",
+              "networkAccess": "Network access control"
+            },
+            "database": {
+              "databaseAccess": "Database access control",
+              "dataEncryption": "Data encryption configuration",
+              "databaseAudit": "Database audit",
+              "backupPolicy": "Backup policy",
+              "databaseVersion": "Database version management"
+            }
+          }
+        }
       },
       "rules": {
         "title": "Baseline Policy Dispatch",
@@ -452,6 +1049,80 @@
           "service": "Service Configuration",
           "network": "Network Security",
           "database": "Database Security"
+        }
+      },
+      "dispatch": {
+        "strategySelector": {
+          "title": "Strategy Selection",
+          "filters": "Filters",
+          "strategyName": "Strategy name",
+          "strategyNamePlaceholder": "Enter strategy name...",
+          "strategyType": "Strategy type",
+          "selectType": "Select type",
+          "all": "All",
+          "priorityLevel": "Priority level",
+          "selectLevel": "Select level",
+          "status": "Status",
+          "selectStatus": "Select status",
+          "clear": "Clear",
+          "selectedStrategies": "Selected strategies ({count})",
+          "strategyList": "Strategy list ({count} records)",
+          "type": "Type",
+          "priority": "Priority",
+          "creator": "Creator",
+          "createdAt": "Created at",
+          "actions": "Actions",
+          "preview": "Preview",
+          "pagination": "Showing {start} to {end} of {count} records",
+          "previousPage": "Previous",
+          "nextPage": "Next",
+          "types": {
+            "baseline": "Baseline",
+            "patch": "Patch",
+            "rollback": "Rollback"
+          },
+          "levels": {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+          },
+          "statuses": {
+            "enabled": "Enabled",
+            "disabled": "Disabled",
+            "draft": "Draft"
+          }
+        },
+        "reviewCard": {
+          "title": "Dispatch Preview",
+          "deployFailed": "Dispatch failed",
+          "deploySuccess": "Dispatch succeeded",
+          "selectStrategiesAndHosts": "Select strategies and host information first",
+          "selectStrategies": "Select strategy information",
+          "selectHosts": "Select host information",
+          "deploySuccessDescription": "Successfully dispatched {strategies} strategies to {hosts} hosts",
+          "deployErrorDescription": "An error occurred while dispatching policies. Try again.",
+          "networkErrorDescription": "Network error or service exception. Try again later.",
+          "selectedStrategies": "Selected Strategies ({count})",
+          "noStrategies": "No strategies selected",
+          "targetHosts": "Target Hosts ({count})",
+          "noHosts": "No hosts selected",
+          "deploying": "Dispatching...",
+          "deploy": "Dispatch Strategy",
+          "types": {
+            "baseline": "Baseline",
+            "patch": "Patch",
+            "rollback": "Rollback"
+          },
+          "levels": {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+          },
+          "statuses": {
+            "enabled": "Enabled",
+            "disabled": "Disabled",
+            "draft": "Draft"
+          }
         }
       }
     },
@@ -519,6 +1190,147 @@
           "immediate": "Immediate",
           "yes": "Yes",
           "no": "No"
+        },
+        "patchList": {
+          "title": "Patch List",
+          "count": "{count} patches",
+          "selectAll": "Select all",
+          "clearAll": "Clear all",
+          "searchPlaceholder": "Search patch title or KB ID...",
+          "filterLabel": "Filter:",
+          "severityPlaceholder": "Severity",
+          "allSeverities": "All severities",
+          "severity": {
+            "critical": "Critical",
+            "important": "Important",
+            "moderate": "Moderate",
+            "low": "Low"
+          },
+          "coveragePlaceholder": "Coverage",
+          "allCoverage": "All status",
+          "incomplete": "Incomplete",
+          "complete": "Complete",
+          "loading": "Loading patch data...",
+          "columns": {
+            "select": "Select",
+            "patchInfo": "Patch Info",
+            "securityLevel": "Security Level",
+            "coverage": "Install Coverage",
+            "installed": "Installed",
+            "pending": "Pending",
+            "failed": "Failed",
+            "actions": "Actions"
+          },
+          "selectPatchAria": "Select patch {title}",
+          "viewDetails": "View details",
+          "noMatch": "No matching patches found. Try adjusting the search or filters.",
+          "empty": "No patch data"
+        },
+        "patchDetail": {
+          "description": "Detailed patch information and host deployment status",
+          "showLess": "Show less",
+          "showMore": "Show more",
+          "downloadUrl": "Download URL:",
+          "releaseNotes": "Release notes:",
+          "moreInfoUrl": "More info URL:",
+          "imageUrl": "Image URL:",
+          "supportUrl": "Support URL:",
+          "securityBulletin": "Security bulletin:",
+          "hostInstallStatus": "Host Install Status",
+          "pending": "Pending ({count})",
+          "installed": "Installed ({count})",
+          "failed": "Failed ({count})",
+          "selectAll": "Select all",
+          "clearAll": "Clear all",
+          "addHosts": "Add {count} hosts to pool",
+          "columns": {
+            "select": "Select",
+            "hostName": "Host Name",
+            "system": "System",
+            "status": "Status",
+            "installTime": "Install Time",
+            "error": "Error"
+          }
+        }
+      },
+      "installTaskPage": {
+        "title": "Patch Task Deployment",
+        "subtitle": "Patch Task Deployment"
+      },
+      "taskStatusPage": {
+        "title": "Patch Task Status",
+        "subtitle": "Patch Task Status",
+        "refresh": "Refresh Progress",
+        "refreshing": "Refreshing..."
+      },
+      "taskStatus": {
+        "headerTitle": "Task Progress",
+        "taskCount": "{count} tasks",
+        "rankAria": "Rank {rank}",
+        "operationLabel": "Operation:",
+        "createdLabel": "Created:",
+        "patchesLabel": "Patches:",
+        "hostsLabel": "Hosts:",
+        "install": "Install",
+        "uninstall": "Uninstall",
+        "overallProgress": "Overall Progress",
+        "successHosts": "{success}/{total} hosts succeeded ({progress}%)",
+        "rebootAfterInstall": "Reboot after install",
+        "rollbackOnFailure": "Rollback on failure",
+        "retryCount": "Retry: {count}",
+        "tableTitle": "Patch Install Details",
+        "patchCount": "{count} patches",
+        "viewDetails": "View details",
+        "exportList": "Export list",
+        "hostDetailTitle": "{title} - Host Details",
+        "hostDetailSummary": "KB: {kb} ? {count} hosts total",
+        "status": {
+          "completed": "Completed",
+          "running": "Running",
+          "pending": "Pending",
+          "installed": "Installed",
+          "installFailed": "Install failed",
+          "notInstalled": "Not installed",
+          "unknown": "Unknown"
+        },
+        "schedule": {
+          "immediate": "Run now",
+          "scheduled": "Scheduled: {time}",
+          "unknown": "Unknown schedule"
+        },
+        "columns": {
+          "patchInfo": "Patch Info",
+          "securityLevel": "Security Level",
+          "success": "Success",
+          "failed": "Failed",
+          "pending": "Not Applied",
+          "progress": "Progress",
+          "actions": "Actions"
+        },
+        "hostColumns": {
+          "hostId": "Host ID",
+          "hostName": "Host Name",
+          "system": "System",
+          "installTime": "Install Time",
+          "status": "Status"
+        },
+        "tabs": {
+          "all": "All ({count})",
+          "installed": "Installed ({count})",
+          "failed": "Failed ({count})",
+          "pending": "Pending ({count})"
+        },
+        "lists": {
+          "all": "All Hosts",
+          "installed": "Successfully Installed Hosts",
+          "failed": "Failed Hosts",
+          "pending": "Pending Hosts"
+        },
+        "empty": {
+          "all": "No host data",
+          "installed": "No successfully installed hosts",
+          "failed": "No failed hosts",
+          "pending": "No pending hosts"
         }
       }
     },
@@ -780,7 +1592,169 @@
         "noPolicyTitle": "No Policy",
         "noPolicyDescription": "Generate a policy before viewing details.",
         "copied": "Copied",
-        "copiedDescription": "Policy JSON copied to clipboard."
+        "copiedDescription": "Policy JSON copied to clipboard.",
+        "actions": {
+          "file": {
+            "n": {
+              "label": "Create",
+              "description": "Create a new file"
+            },
+            "d": {
+              "label": "Delete",
+              "description": "Delete a file"
+            },
+            "m": {
+              "label": "Move",
+              "description": "Move a file"
+            },
+            "t": {
+              "label": "Rename",
+              "description": "Rename a file"
+            },
+            "s": {
+              "label": "Set",
+              "description": "Set file attributes"
+            },
+            "o": {
+              "label": "Open",
+              "description": "Open a file"
+            },
+            "x": {
+              "label": "Execute",
+              "description": "Execute a file"
+            },
+            "r": {
+              "label": "Read",
+              "description": "Read file content"
+            },
+            "w": {
+              "label": "Write",
+              "description": "Write file content"
+            }
+          },
+          "registry": {
+            "n": {
+              "label": "Create Key",
+              "description": "Create a new registry key"
+            },
+            "d": {
+              "label": "Delete Key/Value",
+              "description": "Delete a registry key or value"
+            },
+            "q": {
+              "label": "Query Key/Value",
+              "description": "Query the registry"
+            },
+            "t": {
+              "label": "Rename Key",
+              "description": "Rename a registry key"
+            },
+            "s": {
+              "label": "Set Value",
+              "description": "Set a registry value"
+            },
+            "o": {
+              "label": "Open Key",
+              "description": "Open a registry key"
+            },
+            "e": {
+              "label": "Enumerate Key/Value",
+              "description": "Enumerate registry data"
+            }
+          },
+          "process": {
+            "n": {
+              "label": "Create Process",
+              "description": "Create a new process"
+            },
+            "d": {
+              "label": "Terminate Process",
+              "description": "Terminate a process"
+            },
+            "o": {
+              "label": "Open Process",
+              "description": "Open a process handle"
+            },
+            "l": {
+              "label": "Allocate Memory",
+              "description": "Allocate process memory"
+            },
+            "w": {
+              "label": "Write Memory",
+              "description": "Write process memory"
+            }
+          }
+        },
+        "networkForm": {
+          "ruleConfig": "Rule Configuration",
+          "direction": "Traffic Direction",
+          "inbound": "Inbound",
+          "outbound": "Outbound",
+          "action": "Action",
+          "allow": "Allow",
+          "block": "Block",
+          "bypass": "Bypass",
+          "profile": "Network Profile",
+          "domain": "Domain",
+          "private": "Private",
+          "public": "Public",
+          "anyNetwork": "Any network",
+          "protocolAndPorts": "Protocol and Ports",
+          "protocol": "Protocol Type",
+          "anyProtocol": "Any protocol",
+          "localPort": "Local Port",
+          "localPortPlaceholder": "80,443,8080 or any",
+          "remotePort": "Remote Port",
+          "remotePortPlaceholder": "any or a specific port",
+          "addressRange": "Address Range",
+          "localAddress": "Local Address",
+          "localAddressPlaceholder": "any or IP/CIDR",
+          "remoteAddress": "Remote Address",
+          "programAssociation": "Program Association",
+          "programPath": "Program Path",
+          "programHelp": "Process path this network rule applies to. Wildcards can match multiple programs."
+        },
+        "bodyForm": {
+          "title": "Policy Body Configuration",
+          "file": "File",
+          "registry": "Registry",
+          "process": "Process",
+          "object": "Object",
+          "subjectPlaceholderFs": "Example: *\\notepad.exe or C:\\Windows\\System32\\*.exe",
+          "subjectPlaceholderReg": "Example: *\\regedit.exe or *\\powershell.exe",
+          "subjectPlaceholderPs": "Example: *\\taskmgr.exe or C:\\Program Files\\**\\*.exe",
+          "subjectPlaceholder": "Enter subject process path",
+          "objectPlaceholderFs": "Example: C:\\Data\\*.txt or D:\\**\\*.log",
+          "objectPlaceholderReg": "Example: HKEY_CURRENT_USER\\Software\\* or HKEY_LOCAL_MACHINE\\**\\Run",
+          "objectPlaceholderPs": "Example: *\\calc.exe or C:\\Windows\\System32\\*.exe",
+          "objectPlaceholder": "Enter object path",
+          "exceptProcess": "Except Process",
+          "exceptHelp": "Process not restricted by this policy",
+          "exceptPlaceholder": "Example: *\\rcSvc.exe (supports * # ? wildcards; separate multiple values with semicolons)",
+          "subjectProcess": "Subject Process",
+          "subjectHelp": "Process path that performs the action. Supports * # ? wildcards.",
+          "targetPrefix": "Target ",
+          "objectHelp": "Target path being operated on. Supports * # ? wildcards."
+        },
+        "review": {
+          "filePolicy": "File Policy",
+          "registryPolicy": "Registry Policy",
+          "processPolicy": "Process Policy",
+          "networkPolicy": "Network Policy",
+          "notDeployed": "Not deployed",
+          "deploying": "Deploying",
+          "deployed": "Deployed",
+          "failed": "Failed",
+          "empty": "No policies",
+          "policyName": "Policy Name",
+          "type": "Type",
+          "version": "Version",
+          "priority": "Priority",
+          "createdAt": "Created At",
+          "status": "Status",
+          "actions": "Actions",
+          "policyDetailsJson": "Policy Details (JSON)"
+        }
       }
     },
     "audit": {
@@ -817,6 +1791,131 @@
         "showing": "Showing {start} - {end} of {total}",
         "prev": "Previous",
         "next": "Next"
+      },
+      "userActivity": {
+        "filterTitle": "User Activity Filters",
+        "actionType": "Action Type:",
+        "actionTypePlaceholder": "Action type",
+        "result": "Result:",
+        "resultPlaceholder": "Result",
+        "target": "Target:",
+        "targetPlaceholder": "Target",
+        "listTitle": "User Activity Audit Records",
+        "empty": "No data",
+        "all": "All",
+        "success": "Success",
+        "failed": "Failed",
+        "login": "Login",
+        "logout": "Logout",
+        "failedLogin": "Failed login",
+        "createTask": "Create task",
+        "updateTask": "Update task",
+        "dispatchTask": "Dispatch task",
+        "createConfig": "Create config",
+        "updateConfig": "Update config",
+        "manualBlock": "Manual block",
+        "addUser": "Add user",
+        "deleteUser": "Delete user",
+        "roleChange": "Role change",
+        "task": "Task",
+        "policy": "Policy",
+        "host": "Host",
+        "user": "User",
+        "system": "System"
+      },
+      "defense": {
+        "filterTitle": "Defense Action Filters",
+        "actionType": "Defense Type:",
+        "actionTypePlaceholder": "Defense type",
+        "severity": "Severity:",
+        "severityPlaceholder": "Severity",
+        "status": "Status:",
+        "statusPlaceholder": "Status",
+        "source": "Source:",
+        "sourcePlaceholder": "Source",
+        "listTitle": "Defense Action Audit Records",
+        "empty": "No data",
+        "all": "All",
+        "success": "Success",
+        "failed": "Failed",
+        "alert": "Alert",
+        "block": "Block",
+        "prompt": "Prompt",
+        "endpoint": "Endpoint protection",
+        "firewall": "Firewall",
+        "hids": "HIDS"
+      },
+      "disposition": {
+        "filterTitle": "Disposition Action Filters",
+        "actionType": "Disposition Type:",
+        "actionTypePlaceholder": "Disposition type",
+        "severity": "Severity:",
+        "severityPlaceholder": "Severity",
+        "status": "Status:",
+        "statusPlaceholder": "Status",
+        "handler": "Handler:",
+        "handlerPlaceholder": "Handler",
+        "listTitle": "Disposition Action Audit Records",
+        "empty": "No data",
+        "all": "All",
+        "success": "Success",
+        "failed": "Failed",
+        "isolate": "Isolate",
+        "terminate": "Terminate",
+        "disconnect": "Disconnect",
+        "quarantine": "Quarantine"
+      },
+      "taskDispatch": {
+        "filterTitle": "Task Dispatch Filters",
+        "taskType": "Task Type:",
+        "taskTypePlaceholder": "Task type",
+        "priority": "Priority:",
+        "priorityPlaceholder": "Priority",
+        "status": "Dispatch Status:",
+        "statusPlaceholder": "Dispatch status",
+        "operator": "Operator:",
+        "operatorPlaceholder": "Operator",
+        "listTitle": "Task Dispatch Records",
+        "empty": "No data",
+        "all": "All",
+        "success": "Success",
+        "failed": "Failed",
+        "pending": "Pending"
+      }
+    },
+    "sensorConfig": {
+      "table": {
+        "success": "Success",
+        "error": "Error",
+        "deleteSuccess": "Configuration \"{name}\" was deleted",
+        "deleteFailed": "Failed to delete configuration",
+        "title": "Saved Configurations",
+        "empty": "No saved configuration files",
+        "name": "Name",
+        "version": "Version",
+        "date": "Date",
+        "filePath": "File path",
+        "actions": "Actions",
+        "detailsTitle": "Configuration Details",
+        "detailsDescription": "View detailed content of the configuration file",
+        "configContent": "Configuration Content"
+      },
+      "list": {
+        "title": "Sensor Configuration",
+        "description": "Toggle sensor monitoring components on or off",
+        "enabled": "enabled",
+        "reset": "Reset to default",
+        "create": "Create configuration",
+        "searchPlaceholder": "Search configuration items...",
+        "allCategories": "All categories",
+        "eventCount": "{count} events",
+        "enabledCount": "{count} enabled",
+        "deselectAll": "Deselect all",
+        "selectAll": "Select all",
+        "itemEnabled": "Enabled",
+        "itemDisabled": "Disabled",
+        "noMatchTitle": "No matching configuration items found",
+        "noMatchDescription": "Try adjusting search keywords or filter conditions"
       }
     }
   },
@@ -851,5 +1950,35 @@
     "backToLogin": "Back to sign in",
     "backToLoginTitle": "Back to sign in",
     "resetFailed": "Failed to send reset email. Please try again later."
+  },
+  "shared": {
+    "kibanaDatePicker": {
+      "quick": {
+        "last15Minutes": "Last 15 minutes",
+        "last30Minutes": "Last 30 minutes",
+        "last1Hour": "Last 1 hour",
+        "last4Hours": "Last 4 hours",
+        "last12Hours": "Last 12 hours",
+        "last24Hours": "Last 24 hours",
+        "last7Days": "Last 7 days",
+        "last30Days": "Last 30 days",
+        "last90Days": "Last 90 days"
+      },
+      "errorEndAfterStart": "End time must be later than start time",
+      "errorMaxDays": "Time range cannot exceed {maxDays} days",
+      "rangeMinutes": "Last {minutes} minutes",
+      "rangeHours": "Last {hours} hours",
+      "rangeDays": "Last {days} days",
+      "errorCompleteRange": "Fill in both start and end time",
+      "errorTimeFormat": "Invalid time format",
+      "quickTitle": "Quick select",
+      "customTitle": "Custom time range",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "selectStartDate": "Select start date",
+      "selectEndDate": "Select end date",
+      "cancel": "Cancel",
+      "apply": "Apply"
+    }
   }
 }

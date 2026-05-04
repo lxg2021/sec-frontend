@@ -1,9 +1,7 @@
-// processNodeMenu.tsx
-import { Drill, FileSearch, CheckSquare, Square } from "lucide-react"
+import { CheckSquare, Drill, FileSearch, Square } from "lucide-react"
 import { useProcessMenuStore } from "@/features/attack/graph/menu/use-process-menu-store"
 
 export function getProcessNodeMenu(data) {
-  // 这里取特定节点的状态
   const { getNodeState, toggleIsolateFile, toggleBlockExecution } = useProcessMenuStore.getState()
 
   const nodeState = getNodeState(data.nodeId)
@@ -14,20 +12,20 @@ export function getProcessNodeMenu(data) {
       label: (
         <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
           <Drill className="w-4 h-4 text-violet-500" />
-          节点钻探
+          Node drilldown
         </div>
       ),
-      action: () => alert(`钻探: ${data.label}`),
+      action: () => alert(`Drilldown: ${data.label}`),
       className: "hover:bg-violet-50 focus:bg-violet-50 transition-colors",
     },
     {
       label: (
         <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
           <FileSearch className="w-4 h-4 text-green-500" />
-          分析文件
+          Analyze file
         </div>
       ),
-      action: () => alert(`分析HASH: ${data.label}`),
+      action: () => alert(`Analyze hash: ${data.label}`),
       className: "hover:bg-green-50 focus:bg-green-50 transition-colors",
     },
     { type: "separator" },
@@ -39,12 +37,12 @@ export function getProcessNodeMenu(data) {
           ) : (
             <Square className="w-4 h-4 text-gray-400" />
           )}
-          隔离进程
+          Isolate process
         </div>
       ),
       action: () => {
         toggleIsolateFile(data.nodeId)
-        alert(`隔离文件: ${!isolateFileSelected ? "已选中" : "已取消"}`)
+        alert(`Isolate file: ${!isolateFileSelected ? "selected" : "cleared"}`)
       },
       className: "hover:bg-blue-50 focus:bg-blue-50 transition-colors",
     },
@@ -56,12 +54,12 @@ export function getProcessNodeMenu(data) {
           ) : (
             <Square className="w-4 h-4 text-gray-400" />
           )}
-          阻断执行
+          Block execution
         </div>
       ),
       action: () => {
         toggleBlockExecution(data.nodeId)
-        alert(`阻断执行: ${!blockExecutionSelected ? "已选中" : "已取消"}`)
+        alert(`Block execution: ${!blockExecutionSelected ? "selected" : "cleared"}`)
       },
       className: "hover:bg-red-50 focus:bg-red-50 transition-colors hover:text-red-700",
     },

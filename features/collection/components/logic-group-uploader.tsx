@@ -9,6 +9,7 @@ import { Progress } from "@/shared/ui/progress"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { parseLogicGroupFile, generateLogicGroupTemplate } from "@/features/collection/lib/logic-group-parser"
 import type { LogicGroupUploaderProps } from "@/features/collection/mock/logic-group-uploader-props"
+import { useTranslations } from "next-intl"
 
 export function LogicGroupUploader({
   onGroupsUploaded,
@@ -16,17 +17,18 @@ export function LogicGroupUploader({
   disabled = false,
   texts = {},
 }: LogicGroupUploaderProps) {
+  const t = useTranslations("pages.collection.logicGroupUploader")
   const defaultTexts = {
-    title: "上传逻辑组织结构",
-    description: "上传YAML格式的组织结构文件，或下载模板手动填写",
-    dragDropText: "拖拽文件到此处或点击选择文件",
-    dragDropHint: "支持 YAML 格式文件 (.yml, .yaml)",
-    uploadingText: "上传中...",
-    successText: "上传成功！",
-    errorText: "上传失败",
-    retryButtonText: "重试",
-    resetButtonText: "重新上传",
-    downloadTemplateText: "下载模板",
+    title: t("title"),
+    description: t("description"),
+    dragDropText: t("dragDropText"),
+    dragDropHint: t("dragDropHint"),
+    uploadingText: t("uploadingText"),
+    successText: t("successText"),
+    errorText: t("errorText"),
+    retryButtonText: t("retryButtonText"),
+    resetButtonText: t("resetButtonText"),
+    downloadTemplateText: t("downloadTemplateText"),
     ...texts,
   }
 
@@ -69,7 +71,7 @@ export function LogicGroupUploader({
 
     if (!file.name.endsWith(".yml") && !file.name.endsWith(".yaml")) {
       setUploadStatus("error")
-      setErrorMessage("文件格式错误：仅支持 .yml 或 .yaml 文件")
+      setErrorMessage(t("yamlOnly"))
       return
     }
 
@@ -78,12 +80,12 @@ export function LogicGroupUploader({
         const isValid = await onBeforeUpload(file)
         if (!isValid) {
           setUploadStatus("error")
-          setErrorMessage("文件验证失败")
+          setErrorMessage(t("validationFailed"))
           return
         }
       } catch (error) {
         setUploadStatus("error")
-        setErrorMessage(error instanceof Error ? error.message : "文件验证失败")
+        setErrorMessage(error instanceof Error ? error.message : t("validationFailed"))
         return
       }
     }
@@ -114,7 +116,7 @@ export function LogicGroupUploader({
     } catch (error) {
       clearInterval(progressInterval)
       setUploadStatus("error")
-      setErrorMessage(error instanceof Error ? error.message : "文件解析失败，请检查文件格式")
+      setErrorMessage(error instanceof Error ? error.message : t("parseFailed"))
     }
   }
 

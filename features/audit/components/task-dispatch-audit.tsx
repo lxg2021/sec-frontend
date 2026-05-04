@@ -7,6 +7,7 @@ import type { TaskDispatchReport } from "@/features/audit/types"
 import { TaskDispatchCard } from "./task-dispatch-card"
 import { Pagination } from "./pagination"
 import { Filter, ClipboardList } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 interface TaskDispatchAuditProps {
   data: TaskDispatchReport[]
@@ -23,6 +24,7 @@ export function TaskDispatchAudit({
   customDateFrom,
   customDateTo,
 }: TaskDispatchAuditProps) {
+  const t = useTranslations("pages.audit.taskDispatch")
   const [taskType, setTaskType] = useState<string>("all")
   const [priority, setPriority] = useState<string>("all")
   const [status, setStatus] = useState<string>("all")
@@ -122,19 +124,19 @@ export function TaskDispatchAudit({
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Filter className="h-4 w-4 text-blue-500" />
-            任务下发筛选条件
+            {t("filterTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">任务类型:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("taskType")}</label>
               <Select value={taskType} onValueChange={setTaskType}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="任务类型" />
+                  <SelectValue placeholder={t("taskTypePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
                   <SelectItem value="TASK">TASK</SelectItem>
                   <SelectItem value="CONFIG">CONFIG</SelectItem>
                   <SelectItem value="POLICY">POLICY</SelectItem>
@@ -143,13 +145,13 @@ export function TaskDispatchAudit({
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">优先级:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("priority")}</label>
               <Select value={priority} onValueChange={setPriority}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="优先级" />
+                  <SelectValue placeholder={t("priorityPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
                   <SelectItem value="HIGH">HIGH</SelectItem>
                   <SelectItem value="MEDIUM">MEDIUM</SelectItem>
                   <SelectItem value="LOW">LOW</SelectItem>
@@ -158,28 +160,28 @@ export function TaskDispatchAudit({
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">下发状态:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("status")}</label>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="下发状态" />
+                  <SelectValue placeholder={t("statusPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="success">成功</SelectItem>
-                  <SelectItem value="failed">失败</SelectItem>
-                  <SelectItem value="pending">待执行</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
+                  <SelectItem value="success">{t("success")}</SelectItem>
+                  <SelectItem value="failed">{t("failed")}</SelectItem>
+                  <SelectItem value="pending">{t("pending")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">操作人:</label>
+              <label className="text-sm font-medium whitespace-nowrap">{t("operator")}</label>
               <Select value={operator} onValueChange={setOperator}>
                 <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder="操作人" />
+                  <SelectValue placeholder={t("operatorPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="all">{t("all")}</SelectItem>
                   {operators.map((op) => (
                     <SelectItem key={op} value={op}>
                       {op}
@@ -196,12 +198,12 @@ export function TaskDispatchAudit({
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <ClipboardList className="h-5 w-5 text-blue-500" />
-            任务下发记录
+            {t("listTitle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {filteredReports.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">暂无数据</div>
+            <div className="text-center py-8 text-muted-foreground">{t("empty")}</div>
           ) : (
             <>
               {paginatedReports.map((report) => (
