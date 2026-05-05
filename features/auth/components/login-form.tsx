@@ -26,6 +26,12 @@ export default function LoginForm() {
     messageType,
     username,
     setUsername,
+    usernameEdited,
+    setUsernameEdited,
+    password,
+    setPassword,
+    passwordEdited,
+    setPasswordEdited,
     handleTogglePassword,
     handleLogin,
     handleForgotPassword,
@@ -72,8 +78,13 @@ export default function LoginForm() {
                       type="text"
                       placeholder={t("usernamePlaceholder")}
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400"
+                      onChange={(e) => {
+                        setUsername(e.target.value)
+                        setUsernameEdited(true)
+                      }}
+                      className={`pl-10 bg-white/10 border-white/20 focus:border-blue-400 focus:ring-blue-400 ${
+                        usernameEdited ? "text-white" : "text-slate-400"
+                      } placeholder:text-slate-400`}
                       required
                     />
                   </div>
@@ -90,7 +101,14 @@ export default function LoginForm() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       placeholder={t("passwordPlaceholder")}
-                      className="pl-10 pr-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400 focus:border-blue-400 focus:ring-blue-400"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value)
+                        setPasswordEdited(true)
+                      }}
+                      className={`pl-10 pr-10 bg-white/10 border-white/20 focus:border-blue-400 focus:ring-blue-400 ${
+                        passwordEdited ? "text-white" : "text-slate-400"
+                      } placeholder:text-slate-400`}
                       required
                     />
                     <button
