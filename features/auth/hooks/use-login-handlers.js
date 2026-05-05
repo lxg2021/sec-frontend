@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { authAPI } from "@/features/auth/api"
 
 const REMEMBERED_USERNAME_KEY = "rememberedUsername"
+const PASSWORD_RESET_COMPLETE_KEY = "passwordResetComplete"
 const FIXED_TENANT_ID = "public"
 const DEFAULT_USERNAME = "admin"
 const DEFAULT_PASSWORD = "admin@1234"
@@ -24,13 +25,22 @@ export function useLoginHandlers() {
   const [passwordEdited, setPasswordEdited] = useState(false)
 
   useEffect(() => {
+    const passwordResetComplete = sessionStorage.getItem(PASSWORD_RESET_COMPLETE_KEY) === "1"
+    if (passwordResetComplete) {
+      sessionStorage.removeItem(PASSWORD_RESET_COMPLETE_KEY)
+      setPassword("")
+      setPasswordEdited(true)
+      setMessage(t("resetPasswordDoneDescription"))
+      setMessageType("success")
+    }
+
     const savedUsername = localStorage.getItem(REMEMBERED_USERNAME_KEY)
     if (savedUsername) {
       setUsername(savedUsername)
       setRememberMe(true)
       setUsernameEdited(true)
     }
-  }, [])
+  }, [t])
 
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev)
@@ -54,7 +64,7 @@ export function useLoginHandlers() {
     const formData = new FormData(e.currentTarget)
     const credentials = {
       username: formData.get("username")?.toString().trim(),
-      password: formData.get("password")?.toString(),
+      password: formData.get("password")?.toString().trim(),
       tenantId: FIXED_TENANT_ID,
     }
 

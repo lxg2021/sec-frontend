@@ -1950,6 +1950,7 @@
     "sending": "发送中...",
     "resetMailSent": "重置邮件已发送！",
     "resetMailFailed": "邮件发送失败，请稍后重试",
+    "resetEmailNotFound": "该邮箱不存在，请确认后重试",
     "invalidEmail": "请输入有效的邮箱地址",
     "resetMailSentTo": "我们已向 <email></email> 发送了密码重置链接",
     "nextSteps": "接下来该怎么做？",
@@ -1960,7 +1961,23 @@
     "resend": "重新发送",
     "backToLogin": "返回登录",
     "backToLoginTitle": "返回登录页面",
-    "resetFailed": "发送重置邮件失败，请稍后重试"
+    "resetFailed": "发送重置邮件失败，请稍后重试",
+    "resetPasswordTitle": "重置密码",
+    "resetPasswordDescription": "请输入新密码，完成后即可使用新密码登录",
+    "resetPasswordDoneTitle": "密码已重置",
+    "resetPasswordDoneDescription": "请返回登录页，使用新密码登录",
+    "resetToken": "重置令牌",
+    "newPassword": "新密码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "confirmNewPassword": "确认新密码",
+    "confirmNewPasswordPlaceholder": "请再次输入新密码",
+    "resetPasswordAction": "确认重置密码",
+    "resettingPassword": "重置中...",
+    "resetPasswordSuccess": "密码重置成功",
+    "resetPasswordFailed": "密码重置失败，请稍后重试",
+    "resetTokenMissing": "重置链接缺少 token，请重新申请重置邮件",
+    "newPasswordInvalid": "新密码至少需要 6 位",
+    "passwordMismatch": "两次输入的密码不一致"
   },
   "shared": {
     "kibanaDatePicker": {

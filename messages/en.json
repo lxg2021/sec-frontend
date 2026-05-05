@@ -1948,6 +1948,7 @@
     "sending": "Sending...",
     "resetMailSent": "Reset email sent!",
     "resetMailFailed": "Failed to send the email. Please try again later.",
+    "resetEmailNotFound": "This email address does not exist. Check it and try again.",
     "invalidEmail": "Enter a valid email address.",
     "resetMailSentTo": "We have sent a password reset link to <email></email>.",
     "nextSteps": "What to do next?",
@@ -1958,7 +1959,23 @@
     "resend": "Resend",
     "backToLogin": "Back to sign in",
     "backToLoginTitle": "Back to sign in",
-    "resetFailed": "Failed to send reset email. Please try again later."
+    "resetFailed": "Failed to send reset email. Please try again later.",
+    "resetPasswordTitle": "Reset Password",
+    "resetPasswordDescription": "Enter a new password. You can use it to sign in after reset.",
+    "resetPasswordDoneTitle": "Password Reset",
+    "resetPasswordDoneDescription": "Return to sign in and use your new password.",
+    "resetToken": "Reset token",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter a new password",
+    "confirmNewPassword": "Confirm new password",
+    "confirmNewPasswordPlaceholder": "Enter the new password again",
+    "resetPasswordAction": "Reset password",
+    "resettingPassword": "Resetting...",
+    "resetPasswordSuccess": "Password reset successfully.",
+    "resetPasswordFailed": "Failed to reset password. Please try again later.",
+    "resetTokenMissing": "The reset link is missing a token. Request a new reset email.",
+    "newPasswordInvalid": "The new password must be at least 6 characters.",
+    "passwordMismatch": "The two passwords do not match."
   },
   "shared": {
     "kibanaDatePicker": {

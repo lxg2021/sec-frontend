@@ -4,7 +4,7 @@ import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
-import { Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react"                              // 图标组件
+import { CheckCircle, Eye, EyeOff, Lock, User, AlertCircle } from "lucide-react"                              // 图标组件
 import { useTranslations } from "next-intl"
 import { useLoginHandlers } from "@/features/auth/hooks/use-login-handlers"
 import LoginAnimation from "@/features/auth/components/login-animation"
@@ -157,11 +157,17 @@ export default function LoginForm() {
                   </button>
                 </div>
 
-                {/* 错误消息 */}
+                {/* 消息提示 */}
                 {message && messageType === "error" && (
                   <div className="flex items-center space-x-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
                     <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
                     <span className="text-red-300 text-sm">{message}</span>
+                  </div>
+                )}
+                {message && messageType === "success" && (
+                  <div className="flex items-center space-x-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
+                    <span className="text-green-300 text-sm">{message}</span>
                   </div>
                 )}
 

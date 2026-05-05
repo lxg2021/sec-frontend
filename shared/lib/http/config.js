@@ -10,6 +10,8 @@ const FALLBACK_CONFIG = {
       login: "/sensor/users/login",
       logout: "/sensor/users/logout",
       refreshToken: "/sensor/users/refresh",
+      resetPassword: "/sensor/users/password-reset/request",
+      confirmPasswordReset: "/sensor/users/password-reset/confirm",
     },
   },
 }

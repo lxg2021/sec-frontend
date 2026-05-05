@@ -19,13 +19,14 @@ type ResetPasswordResponse = {
   messageKey?: string
 }
 
-type AuthMessageKey = "invalidEmail" | "resetMailFailed" | "resetMailSent" | "resetFailed"
+type AuthMessageKey = "invalidEmail" | "resetMailFailed" | "resetMailSent" | "resetFailed" | "resetEmailNotFound"
 
 const authMessageKeys = new Set<AuthMessageKey>([
   "invalidEmail",
   "resetMailFailed",
   "resetMailSent",
   "resetFailed",
+  "resetEmailNotFound",
 ])
 
 function isAuthMessageKey(key: string | undefined): key is AuthMessageKey {
@@ -62,7 +63,7 @@ export default function ForgotPasswordPage() {
         setIsSubmitted(true)
       } else {
         setMessageType("error")
-        setMessage(getResponseMessage(response, "resetFailed"))
+        setMessage(response.code === 522 ? t("resetEmailNotFound") : getResponseMessage(response, "resetFailed"))
       }
     } catch (error) {
       setMessageType("error")
