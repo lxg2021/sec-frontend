@@ -11,6 +11,7 @@ import { authAPI } from "@/features/auth/api"
 import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import { useRouter } from 'next/navigation'
 
+const FIXED_TENANT_ID = "public"
 
 type ResetPasswordResponse = {
   success: boolean
@@ -53,7 +54,7 @@ export default function ForgotPasswordPage() {
     setMessage("")
 
     try {
-      const response = await authAPI.resetPassword(email)
+      const response = await authAPI.resetPassword(email, FIXED_TENANT_ID)
 
       if (response.success) {
         setMessageType("success")
@@ -117,6 +118,20 @@ export default function ForgotPasswordPage() {
             <CardContent>
               {!isSubmitted ? (
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tenant" className="text-white">
+                      {t("tenant")}
+                    </Label>
+                    <Input
+                      id="tenant"
+                      name="tenant"
+                      type="text"
+                      value={FIXED_TENANT_ID}
+                      readOnly
+                      className="bg-white/5 border-white/10 text-slate-400 cursor-not-allowed"
+                    />
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-white">
                       {t("email")}

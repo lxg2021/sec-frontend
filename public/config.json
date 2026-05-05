@@ -14,7 +14,8 @@
       "getUserInfo": "/sensor/users/get-by-id",
       "verifyToken": "/sensor/users/refresh",
       "changePassword": "/sensor/users/update-password",
-      "resetPassword": "/sensor/users/update-password"
+      "resetPassword": "/sensor/users/password-reset/request",
+      "confirmPasswordReset": "/sensor/users/password-reset/confirm"
     }
   }
 }

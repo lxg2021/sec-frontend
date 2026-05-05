@@ -338,7 +338,7 @@ export const authAPI = {
     }
   },
 
-  async resetPassword(email) {
+  async resetPassword(email, tenantId = "") {
     const validation = validateEmail(email)
     if (!validation.valid) {
       return {
@@ -355,6 +355,7 @@ export const authAPI = {
         {
           request_id: createRequestId(),
           email: validation.email,
+          tenant_id: tenantId || "",
         },
         { auth: false },
       )
@@ -362,6 +363,25 @@ export const authAPI = {
       return successResult(result)
     } catch (error) {
       return failureResult(error, "密码重置请求失败")
+    }
+  },
+
+  async confirmPasswordReset(token, newPassword, tenantId = "") {
+    try {
+      const result = await http.post(
+        "confirmPasswordReset",
+        {
+          request_id: createRequestId(),
+          token,
+          new_password: newPassword,
+          tenant_id: tenantId || "",
+        },
+        { auth: false },
+      )
+
+      return successResult(result)
+    } catch (error) {
+      return failureResult(error, "瀵嗙爜閲嶇疆纭璇锋眰澶辫触")
     }
   },
 
