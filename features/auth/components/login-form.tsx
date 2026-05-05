@@ -12,8 +12,8 @@ import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import Link from 'next/link'
 
 // 使用图片的Cypher LOGO组件
-const CypherLogo = ({ className = "w-8 h-8" }) => {
-  return <img src="/logo.svg?height=64&width=64" alt="Cypher Logo" className={className} />
+const CypherLogo = ({ className = "w-8 h-8", alt = "WatchPoint logo" }) => {
+  return <img src="/logo.svg?height=64&width=64" alt={alt} className={className} />
 }
 
 export default function LoginForm() {
@@ -49,7 +49,7 @@ export default function LoginForm() {
           <div className="text-center mb-8">
             {/* <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-900 to-blue-800 rounded-2xl mb-4 shadow-2xl border border-blue-500/30"> */}
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-4 shadow-2xl border border-blue-500/30">
-              <CypherLogo className="w-16 h-16" />
+              <CypherLogo className="w-16 h-16" alt={t("logoAlt")} />
             </div>
           </div>
 

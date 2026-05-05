@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react"
 import { authAPI } from "@/features/auth/api"
 import { useRouter } from 'next/navigation'
+import { useTranslations } from "next-intl"
 
 export function useLoginHandlers() {
+  const t = useTranslations("auth")
   const [showPassword, setShowPassword] = useState(false) // 用于密码显示/隐藏
   const [isLoading, setIsLoading] = useState(false) // 用于登录按钮加载状态
   const [rememberMe, setRememberMe] = useState(false) // 用于CheckMe勾选渲染
-  const [message, setMessage] = useState("")    // 登录返回的消息,控制显示
+  const [message, setMessage] = useState("") // 登录返回的消息,控制显示
   const [messageType, setMessageType] = useState("") // "success" | "error" 错误类型
-  const [username, setUsername] = useState("")    // 用于存储用户名
-  const router = useRouter();
+  const [username, setUsername] = useState("") // 用于存储用户名
+  const router = useRouter()
 
   // 初始化时检查是否有记住的用户名
   useEffect(() => {
@@ -52,7 +54,7 @@ export function useLoginHandlers() {
     }
 
     if (!credentials.username || !credentials.password) {
-      setMessage("请输入用户名和密码")
+      setMessage(t("missingCredentials"))
       setMessageType("error")
       setIsLoading(false)
       return
@@ -63,7 +65,7 @@ export function useLoginHandlers() {
       const response = await authAPI.mockLogin(credentials)
 
       if (response.success) {
-        setMessage("登录成功，正在跳转...")
+        setMessage(t("loginSuccess"))
         setMessageType("success")
 
         if (rememberMe) {
@@ -73,26 +75,23 @@ export function useLoginHandlers() {
         }
 
         router.push("/frame") // 可按需修改跳转目标
-
       } else {
-        setMessage(response.message || "登录失败")
+        setMessage(t("loginFailed"))
         setMessageType("error")
       }
     } catch (error) {
       console.error("登录异常:", error)
-      setMessage("发生错误，请稍后重试")
+      setMessage(t("loginError"))
       setMessageType("error")
     } finally {
       setIsLoading(false)
     }
   }
 
-
   // 处理忘记密码
   const handleForgotPassword = () => {
     router.push('/forgot-password')
   }
-
 
   return {
     showPassword,
