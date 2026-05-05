@@ -218,6 +218,17 @@ export function SidebarUser({
     }
   }, [logout, toast])
 
+  const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    event.currentTarget.dispatchEvent(
+      new MouseEvent("contextmenu", {
+        bubbles: true,
+        clientX: event.clientX,
+        clientY: event.clientY,
+      }),
+    )
+  }
+
   if (loading || !user) {
     return (
       <div className={`flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 ${collapsed ? 'justify-center' : ''}`}>
@@ -236,9 +247,11 @@ export function SidebarUser({
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div
+          <button
+            type="button"
+            onClick={handleOpenMenu}
             className={`
-            flex items-center gap-3 p-3 rounded-lg
+            flex w-full items-center gap-3 p-3 rounded-lg
             text-slate-400 border border-transparent
             transition-colors
             cursor-pointer
@@ -256,12 +269,12 @@ export function SidebarUser({
               </AvatarFallback>
             </Avatar>
             {!collapsed && (
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-medium text-white truncate">{user.nickname}</p>
                 <p className="text-xs text-slate-400 truncate">{user.email}</p>
               </div>
             )}
-          </div>
+          </button>
         </ContextMenuTrigger>
         <ContextMenuContent
           className="w-56"

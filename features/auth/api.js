@@ -8,8 +8,10 @@ import {
   getAccessToken,
   getRefreshToken,
   getTokenExpiresAt,
+  parseJwtPayload,
   saveAuthTokens,
   setAccessToken,
+  setCachedAuthUser,
   setRefreshToken,
 } from "@/shared/lib/http/auth"
 
@@ -36,20 +38,6 @@ function validateEmail(email) {
   return {
     valid: true,
     email: normalizedEmail,
-  }
-}
-
-function parseJwtPayload(token) {
-  try {
-    if (!token || !token.includes(".")) return null
-
-    const payload = token.split(".")[1]
-    const normalizedPayload = payload.replace(/-/g, "+").replace(/_/g, "/")
-    const decodedPayload = atob(normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, "="))
-
-    return JSON.parse(decodedPayload)
-  } catch {
-    return null
   }
 }
 
@@ -195,6 +183,7 @@ export const authAPI = {
       }
 
       saveAuthTokens(loginData)
+      setCachedAuthUser(loginData.user)
 
       return successResult(result, {
         token: loginData.accessToken,
@@ -243,6 +232,9 @@ export const authAPI = {
         refreshToken: loginData.refreshToken || refreshToken,
         expiresIn: loginData.expiresIn,
       })
+      if (loginData.user && Object.keys(loginData.user).length > 0) {
+        setCachedAuthUser(loginData.user)
+      }
 
       return successResult(result, {
         token: loginData.accessToken,
