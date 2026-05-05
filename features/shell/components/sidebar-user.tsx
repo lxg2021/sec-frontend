@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar"
 import {
   ContextMenu,
@@ -22,7 +23,7 @@ import { Label } from "@/shared/ui/label"
 import { Button } from "@/shared/ui/button"
 import { useToast } from "@/shared/hooks/use-toast"
 import type { UserProfile } from "@/features/user/api"
-import { User, Settings, Key, LogOut, Trash2, ShieldCheck, ShieldOff } from "lucide-react"
+import { User, Settings, Key, LogOut, Trash2, ShieldCheck, ShieldOff, UserPlus } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 type DialogType = "profile" | "edit" | "password" | "delete" | null
@@ -58,6 +59,7 @@ export function SidebarUser({
   const t = useTranslations("shell.user")
   const tCommon = useTranslations("common")
   const locale = useLocale()
+  const router = useRouter()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState<DialogType>(null)
@@ -218,6 +220,10 @@ export function SidebarUser({
     }
   }, [logout, toast])
 
+  const handleCreateUser = useCallback(() => {
+    router.push("/frame/users?mode=create")
+  }, [router])
+
   const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.currentTarget.dispatchEvent(
@@ -284,6 +290,12 @@ export function SidebarUser({
             <User className="mr-2 h-4 w-4" />
             {t("viewProfile")}
           </ContextMenuItem>
+          {user.role === "admin" && (
+            <ContextMenuItem onClick={handleCreateUser}>
+              <UserPlus className="mr-2 h-4 w-4" />
+              {t("createUser")}
+            </ContextMenuItem>
+          )}
           <ContextMenuItem onClick={() => setDialogOpen("edit")}>
             <Settings className="mr-2 h-4 w-4" />
             {t("editProfile")}
