@@ -5,6 +5,27 @@ import { useState } from "react"
 import { endpoints } from '@/shared/lib/endpoints';
 import { parseResponse } from '@/shared/lib/response-parser';
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function validateEmail(email) {
+  const normalizedEmail = email?.toString().trim() || ""
+
+  if (!EMAIL_PATTERN.test(normalizedEmail)) {
+    return {
+      valid: false,
+      email: normalizedEmail,
+      code: 400,
+      message: "请输入有效的邮箱地址",
+      messageKey: "invalidEmail",
+    }
+  }
+
+  return {
+    valid: true,
+    email: normalizedEmail,
+  }
+}
+
 // JWT Token管理
 export class TokenManager {
   static TOKEN_KEY = "auth_token"
@@ -479,12 +500,13 @@ export const authAPI = {
   /** 模拟重置密码 */
   async mockResetPassword(email) {
     try {
-      // 校验 email 基本合法性
-      if (!email || !email.includes("/")) {
+      const validation = validateEmail(email)
+      if (!validation.valid) {
         return {
           success: false,
-          code: 400,
-          message: "请输入有效的邮箱地址",
+          code: validation.code,
+          message: validation.message,
+          messageKey: validation.messageKey,
         };
       }
 
@@ -492,11 +514,12 @@ export const authAPI = {
       await new Promise((resolve) => setTimeout(resolve, 300));
 
       // 模拟特定邮箱失败
-      if (email === "fail/example.com") {
+      if (validation.email === "fail@example.com") {
         return {
           success: false,
           code: 500,
           message: "模拟：服务器错误，邮件发送失败",
+          messageKey: "resetMailFailed",
         };
       }
 
@@ -505,6 +528,7 @@ export const authAPI = {
         success: true,
         code: 0,
         message: "模拟：密码重置邮件已发送，请查收您的邮箱",
+        messageKey: "resetMailSent",
       };
     } catch (error) {
       console.error("模拟密码重置失败:", error);
@@ -693,12 +717,22 @@ export const authAPI = {
    */
   async resetPassword(email) {
     try {
+      const validation = validateEmail(email)
+      if (!validation.valid) {
+        return {
+          success: false,
+          code: validation.code,
+          message: validation.message,
+          messageKey: validation.messageKey,
+        };
+      }
+
       const response = await fetch(endpoints.resetPassword, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: validation.email }),
       });
 
       const text = await response.text();

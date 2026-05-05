@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
@@ -12,6 +12,25 @@ import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import { useRouter } from 'next/navigation'
 
 
+type ResetPasswordResponse = {
+  success: boolean
+  message?: string
+  messageKey?: string
+}
+
+type AuthMessageKey = "invalidEmail" | "resetMailFailed" | "resetMailSent" | "resetFailed"
+
+const authMessageKeys = new Set<AuthMessageKey>([
+  "invalidEmail",
+  "resetMailFailed",
+  "resetMailSent",
+  "resetFailed",
+])
+
+function isAuthMessageKey(key: string | undefined): key is AuthMessageKey {
+  return !!key && authMessageKeys.has(key as AuthMessageKey)
+}
+
 export default function ForgotPasswordPage() {
   const t = useTranslations("auth")
   const [email, setEmail] = useState("")
@@ -21,7 +40,14 @@ export default function ForgotPasswordPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)   // 是否已提交表单，控制提示，显示内容
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const getResponseMessage = (
+    response: ResetPasswordResponse,
+    fallbackKey: AuthMessageKey,
+  ) => {
+    return isAuthMessageKey(response.messageKey) ? t(response.messageKey) : response.message || t(fallbackKey)
+  }
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setMessage("")
@@ -32,11 +58,11 @@ export default function ForgotPasswordPage() {
 
       if (response.success) {
         setMessageType("success")
-        setMessage(response.message)
+        setMessage(getResponseMessage(response, "resetMailSent"))
         setIsSubmitted(true)
       } else {
         setMessageType("error")
-        setMessage(response.message)
+        setMessage(getResponseMessage(response, "resetFailed"))
       }
     } catch (error) {
       setMessageType("error")
