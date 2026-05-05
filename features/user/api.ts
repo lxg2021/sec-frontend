@@ -64,6 +64,26 @@ interface UpdatePasswordPayload {
   newPassword: string
 }
 
+export interface CreateUserPayload {
+  username: string
+  email: string
+  phone?: string
+  password: string
+  avatar?: string
+  role: number
+}
+
+function createUserId() {
+  if (globalThis.crypto?.randomUUID) {
+    return globalThis.crypto.randomUUID()
+  }
+
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (char) => {
+    const random = Math.floor(Math.random() * 16)
+    return (Number(char) ^ (random & (15 >> (Number(char) / 4)))).toString(16)
+  })
+}
+
 function timestampToIso(value: BackendUser["created_at"]) {
   if (!value) return ""
   if (typeof value === "string") return value
@@ -212,6 +232,27 @@ export async function updateUserProfile(
     success: true,
     message: result.message || "个人信息已更新",
     data: nextUser,
+  }
+}
+
+export async function createUser(payload: CreateUserPayload): Promise<ApiResponse> {
+  const tenantId = getCurrentTenantId()
+  const result = await http.post("createUser", {
+    request_id: createRequestId(),
+    user_id: createUserId(),
+    username: payload.username.trim(),
+    email: payload.email.trim(),
+    phone: payload.phone?.trim() || "",
+    password: payload.password,
+    avatar: payload.avatar || getAvatarByRole(payload.role),
+    role: payload.role,
+    status: 2,
+    tenant_id: tenantId,
+  })
+
+  return {
+    success: true,
+    message: result.message || "用户创建成功",
   }
 }
 

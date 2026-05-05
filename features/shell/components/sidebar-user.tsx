@@ -1,7 +1,6 @@
 ﻿"use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar"
 import {
   ContextMenu,
@@ -21,12 +20,26 @@ import {
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
 import { Button } from "@/shared/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { useToast } from "@/shared/hooks/use-toast"
 import type { UserProfile } from "@/features/user/api"
-import { User, Settings, Key, LogOut, Trash2, ShieldCheck, ShieldOff, UserPlus } from "lucide-react"
+import {
+  User,
+  Settings,
+  Key,
+  LogOut,
+  Trash2,
+  ShieldCheck,
+  ShieldOff,
+  UserPlus,
+  Mail,
+  Phone,
+  LockKeyhole,
+  Users,
+} from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
-type DialogType = "profile" | "edit" | "password" | "delete" | null
+type DialogType = "profile" | "create" | "edit" | "password" | "delete" | null
 
 interface SidebarUserProps {
   collapsed?: boolean
@@ -43,6 +56,14 @@ interface SidebarUserProps {
   enableTwoFactor: () => Promise<{ success: boolean; message: string; data?: UserProfile }>
   disableTwoFactor: () => Promise<{ success: boolean; message: string; data?: UserProfile }>
   deleteAccount: (confirmText: string) => Promise<{ success: boolean; message: string }>
+  createUser: (data: {
+    username: string
+    email: string
+    phone?: string
+    password: string
+    avatar?: string
+    role: number
+  }) => Promise<{ success: boolean; message: string }>
   logout: () => Promise<{ success: boolean; message: string }>
 }
 
@@ -54,14 +75,19 @@ export function SidebarUser({
   enableTwoFactor,
   disableTwoFactor,
   deleteAccount,
+  createUser,
   logout,
 }: SidebarUserProps) {
   const t = useTranslations("shell.user")
   const tCommon = useTranslations("common")
   const locale = useLocale()
-  const router = useRouter()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [submittingCreateUser, setSubmittingCreateUser] = useState(false)
+  const [createUserResult, setCreateUserResult] = useState<{
+    type: "success" | "error"
+    message: string
+  } | null>(null)
   const [dialogOpen, setDialogOpen] = useState<DialogType>(null)
   const [formData, setFormData] = useState({
     nickname: "",
@@ -71,6 +97,12 @@ export function SidebarUser({
     newPassword: "",
     confirmPassword: "",
     deleteConfirm: "",
+    createUsername: "",
+    createEmail: "",
+    createPhone: "",
+    createPassword: "",
+    createConfirmPassword: "",
+    createRole: "2",
   })
   const { toast } = useToast()
 
@@ -221,8 +253,100 @@ export function SidebarUser({
   }, [logout, toast])
 
   const handleCreateUser = useCallback(() => {
-    router.push("/frame/users?mode=create")
-  }, [router])
+    setCreateUserResult(null)
+    setFormData((prev) => ({
+      ...prev,
+      createUsername: "",
+      createEmail: "",
+      createPhone: "",
+      createPassword: "",
+      createConfirmPassword: "",
+      createRole: "2",
+    }))
+    setDialogOpen("create")
+  }, [])
+
+  const handleSubmitCreateUser = async () => {
+    setCreateUserResult(null)
+    const username = formData.createUsername.trim()
+    const email = formData.createEmail.trim()
+    const phone = formData.createPhone.trim()
+
+    if (username.length < 3) {
+      toast({
+        title: tCommon("error"),
+        description: t("createUsernameInvalid"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast({
+        title: tCommon("error"),
+        description: t("createEmailInvalid"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (phone && !/^\+[1-9]\d{6,14}$/.test(phone)) {
+      toast({
+        title: tCommon("error"),
+        description: t("createPhoneInvalid"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (formData.createPassword.length < 6) {
+      toast({
+        title: tCommon("error"),
+        description: t("createPasswordInvalid"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (formData.createPassword !== formData.createConfirmPassword) {
+      toast({
+        title: tCommon("error"),
+        description: t("passwordMismatch"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setSubmittingCreateUser(true)
+      const result = await createUser({
+        username,
+        email,
+        phone: phone || undefined,
+        password: formData.createPassword,
+        role: Number(formData.createRole),
+      })
+
+      toast({
+        title: tCommon("success"),
+        description: result.message || t("createUserSuccess"),
+      })
+      setDialogOpen(null)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t("createUserFailed")
+      toast({
+        title: tCommon("error"),
+        description: message,
+        variant: "destructive",
+      })
+      setCreateUserResult({
+        type: "error",
+        message,
+      })
+    } finally {
+      setSubmittingCreateUser(false)
+    }
+  }
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
@@ -332,6 +456,133 @@ export function SidebarUser({
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
+
+      {/* 创建用户对话框 */}
+      <Dialog open={dialogOpen === "create"} onOpenChange={(open) => !open && setDialogOpen(null)}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("createUserTitle")}</DialogTitle>
+            <DialogDescription>{t("createUserDescription")}</DialogDescription>
+          </DialogHeader>
+          {createUserResult && (
+            <div
+              className={
+                createUserResult.type === "success"
+                  ? "rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
+                  : "rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              }
+            >
+              {createUserResult.message}
+            </div>
+          )}
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="createUsername" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  {t("username")}
+                </Label>
+                <Input
+                  id="createUsername"
+                  value={formData.createUsername}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, createUsername: e.target.value }))}
+                  placeholder={t("usernamePlaceholder")}
+                  minLength={3}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="createEmail" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  {t("email")}
+                </Label>
+                <Input
+                  id="createEmail"
+                  type="email"
+                  value={formData.createEmail}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, createEmail: e.target.value }))}
+                  placeholder={t("emailPlaceholder")}
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="createRole" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  {t("role")}
+                </Label>
+                <Select
+                  value={formData.createRole}
+                  onValueChange={(value) => setFormData((prev) => ({ ...prev, createRole: value }))}
+                >
+                  <SelectTrigger id="createRole">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">{t("roleAdmin")}</SelectItem>
+                    <SelectItem value="3">{t("roleAuditor")}</SelectItem>
+                    <SelectItem value="2">{t("roleOperator")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="createPhone" className="flex items-center gap-2">
+                  <Phone className="h-4 w-4" />
+                  {t("phone")}
+                </Label>
+                <Input
+                  id="createPhone"
+                  value={formData.createPhone}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, createPhone: e.target.value }))}
+                  placeholder={t("createPhonePlaceholder")}
+                  pattern="^\+[1-9]\d{6,14}$"
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="createPassword" className="flex items-center gap-2">
+                  <LockKeyhole className="h-4 w-4" />
+                  {t("newPassword")}
+                </Label>
+                <Input
+                  id="createPassword"
+                  type="password"
+                  value={formData.createPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, createPassword: e.target.value }))}
+                  placeholder={t("newPasswordPlaceholder")}
+                  minLength={6}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="createConfirmPassword" className="flex items-center gap-2">
+                  <LockKeyhole className="h-4 w-4" />
+                  {t("confirmPassword")}
+                </Label>
+                <Input
+                  id="createConfirmPassword"
+                  type="password"
+                  value={formData.createConfirmPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, createConfirmPassword: e.target.value }))}
+                  placeholder={t("confirmPasswordPlaceholder")}
+                  minLength={6}
+                  required
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="items-center sm:justify-end sm:space-x-3">
+            <Button className="w-28" variant="outline" onClick={() => setDialogOpen(null)} disabled={submittingCreateUser}>
+              {t("cancel")}
+            </Button>
+            <Button className="w-28" onClick={handleSubmitCreateUser} disabled={submittingCreateUser}>
+              {submittingCreateUser ? t("creatingUser") : t("confirmCreateUser")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 查看资料对话框 */}
       <Dialog open={dialogOpen === "profile"} onOpenChange={(open) => !open && setDialogOpen(null)}>

@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
+import { Toaster } from "@/shared/ui/toaster"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -20,6 +21,7 @@ import {
   enableTwoFactor,
   disableTwoFactor,
   deleteAccount,
+  createUser,
   logout,
 } from "@/features/user/api"
 import { SidebarUser } from "@/features/shell/components/sidebar-user"
@@ -300,6 +302,7 @@ export function FrameLayout({ children }) {
               enableTwoFactor={enableTwoFactor}
               disableTwoFactor={disableTwoFactor}
               deleteAccount={deleteAccount}
+              createUser={createUser}
               logout={logout}
             />
           </div>
@@ -381,6 +384,7 @@ export function FrameLayout({ children }) {
         </main>
 
       </div>
+      <Toaster />
     </div>
   )
 }
