@@ -53,8 +53,7 @@ export default function ForgotPasswordPage() {
     setMessage("")
 
     try {
-      // const response = await authAPI.resetPassword(email)
-      const response = await authAPI.mockResetPassword(email)
+      const response = await authAPI.resetPassword(email)
 
       if (response.success) {
         setMessageType("success")

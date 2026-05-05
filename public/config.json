@@ -1,0 +1,20 @@
+{
+  "api": {
+    "baseUrl": "http://127.0.0.1:8090",
+    "prefix": "/api/v1",
+    "timeout": 15000,
+    "successCodes": [0, 200],
+    "endpoints": {
+      "login": "/sensor/users/login",
+      "logout": "/sensor/users/logout",
+      "refreshToken": "/sensor/users/refresh",
+      "register": "/sensor/users/create",
+      "getUserById": "/sensor/users/get-by-id",
+      "getUserByUsername": "/sensor/users/get-by-username",
+      "getUserInfo": "/sensor/users/get-by-id",
+      "verifyToken": "/sensor/users/refresh",
+      "changePassword": "/sensor/users/update-password",
+      "resetPassword": "/sensor/users/update-password"
+    }
+  }
+}
