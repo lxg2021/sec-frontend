@@ -80,6 +80,8 @@
       "newPasswordPlaceholder": "Enter new password (at least 6 characters, including letters and numbers)",
       "confirmPassword": "Confirm new password",
       "confirmPasswordPlaceholder": "Enter the new password again",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
       "confirmChange": "Confirm change",
       "deleteTitle": "Delete Account",
       "deleteDescription": "This action cannot be undone. Enter",

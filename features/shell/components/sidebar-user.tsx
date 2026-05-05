@@ -35,6 +35,11 @@ import {
   Mail,
   Phone,
   LockKeyhole,
+  Eye,
+  EyeOff,
+  IdCard,
+  CalendarClock,
+  Clock3,
   Users,
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
@@ -89,6 +94,11 @@ export function SidebarUser({
     message: string
   } | null>(null)
   const [dialogOpen, setDialogOpen] = useState<DialogType>(null)
+  const [passwordVisible, setPasswordVisible] = useState({
+    old: false,
+    next: false,
+    confirm: false,
+  })
   const [formData, setFormData] = useState({
     nickname: "",
     phone: "",
@@ -180,6 +190,11 @@ export function SidebarUser({
         newPassword: "",
         confirmPassword: "",
       }))
+      setPasswordVisible({
+        old: false,
+        next: false,
+        confirm: false,
+      })
     } catch (error) {
       toast({
         title: tCommon("error"),
@@ -604,31 +619,49 @@ export function SidebarUser({
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("userId")}</span>
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <IdCard className="h-4 w-4" />
+                  {t("userId")}
+                </span>
                 <span className="font-mono">{user.id}</span>
               </div>
               {user.phone && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t("phone")}</span>
+                  <span className="text-muted-foreground flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    {t("phone")}
+                  </span>
                   <span>{user.phone}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("email")}</span>
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  {t("email")}
+                </span>
                 <span>{user.email}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("twoFactor")}</span>
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  {t("twoFactor")}
+                </span>
                 <span className={user.twoFactorEnabled ? "text-green-600" : ""}>
                   {user.twoFactorEnabled ? t("enabled") : t("disabled")}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("createdAt")}</span>
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <CalendarClock className="h-4 w-4" />
+                  {t("createdAt")}
+                </span>
                 <span>{new Date(user.createdAt).toLocaleDateString(locale)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">{t("updatedAt")}</span>
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <Clock3 className="h-4 w-4" />
+                  {t("updatedAt")}
+                </span>
                 <span>{new Date(user.updatedAt).toLocaleDateString(locale)}</span>
               </div>
             </div>
@@ -645,16 +678,22 @@ export function SidebarUser({
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="nickname">{t("nickname")}</Label>
+              <Label htmlFor="nickname" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                {t("username")}
+              </Label>
               <Input
                 id="nickname"
                 value={formData.nickname}
                 onChange={(e) => setFormData((prev) => ({ ...prev, nickname: e.target.value }))}
-                placeholder={t("nicknamePlaceholder")}
+                placeholder={t("usernamePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">{t("email")}</Label>
+              <Label htmlFor="email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                {t("email")}
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -664,7 +703,10 @@ export function SidebarUser({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">{t("phone")}</Label>
+              <Label htmlFor="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                {t("phone")}
+              </Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -691,34 +733,82 @@ export function SidebarUser({
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="oldPassword">{t("oldPassword")}</Label>
-              <Input
-                id="oldPassword"
-                type="password"
-                value={formData.oldPassword}
-                onChange={(e) => setFormData((prev) => ({ ...prev, oldPassword: e.target.value }))}
-                placeholder={t("oldPasswordPlaceholder")}
-              />
+              <Label htmlFor="oldPassword" className="flex items-center gap-2">
+                <LockKeyhole className="h-4 w-4" />
+                {t("oldPassword")}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="oldPassword"
+                  type={passwordVisible.old ? "text" : "password"}
+                  value={formData.oldPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, oldPassword: e.target.value }))}
+                  placeholder={t("oldPasswordPlaceholder")}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
+                  onClick={() => setPasswordVisible((prev) => ({ ...prev, old: !prev.old }))}
+                  aria-label={passwordVisible.old ? t("hidePassword") : t("showPassword")}
+                >
+                  {passwordVisible.old ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="newPassword">{t("newPassword")}</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={formData.newPassword}
-                onChange={(e) => setFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
-                placeholder={t("newPasswordPlaceholder")}
-              />
+              <Label htmlFor="newPassword" className="flex items-center gap-2">
+                <LockKeyhole className="h-4 w-4" />
+                {t("newPassword")}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="newPassword"
+                  type={passwordVisible.next ? "text" : "password"}
+                  value={formData.newPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
+                  placeholder={t("newPasswordPlaceholder")}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
+                  onClick={() => setPasswordVisible((prev) => ({ ...prev, next: !prev.next }))}
+                  aria-label={passwordVisible.next ? t("hidePassword") : t("showPassword")}
+                >
+                  {passwordVisible.next ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t("confirmPassword")}</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                placeholder={t("confirmPasswordPlaceholder")}
-              />
+              <Label htmlFor="confirmPassword" className="flex items-center gap-2">
+                <LockKeyhole className="h-4 w-4" />
+                {t("confirmPassword")}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={passwordVisible.confirm ? "text" : "password"}
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                  placeholder={t("confirmPasswordPlaceholder")}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
+                  onClick={() => setPasswordVisible((prev) => ({ ...prev, confirm: !prev.confirm }))}
+                  aria-label={passwordVisible.confirm ? t("hidePassword") : t("showPassword")}
+                >
+                  {passwordVisible.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
           </div>
           <DialogFooter>

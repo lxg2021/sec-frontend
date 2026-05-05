@@ -86,7 +86,9 @@
       "deleteDescriptionTail": "以确认删除。",
       "confirmText": "确认文本",
       "confirmTextPlaceholder": "输入 CONFIRM_DELETE",
-      "confirmDelete": "确认删除"
+      "confirmDelete": "确认删除",
+      "showPassword": "????",
+      "hidePassword": "????"
     }
   },
   "navigation": {
