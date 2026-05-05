@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl"
 import { authAPI } from "@/features/auth/api"
 
 const REMEMBERED_USERNAME_KEY = "rememberedUsername"
+const FIXED_TENANT_ID = "public"
 const DEFAULT_USERNAME = "admin"
 const DEFAULT_PASSWORD = "admin@1234"
 
@@ -54,6 +55,7 @@ export function useLoginHandlers() {
     const credentials = {
       username: formData.get("username")?.toString().trim(),
       password: formData.get("password")?.toString(),
+      tenantId: FIXED_TENANT_ID,
     }
 
     if (!credentials.username || !credentials.password) {
@@ -113,5 +115,6 @@ export function useLoginHandlers() {
     handleLogin,
     handleForgotPassword,
     handleRememberMe,
+    fixedTenantId: FIXED_TENANT_ID,
   }
 }

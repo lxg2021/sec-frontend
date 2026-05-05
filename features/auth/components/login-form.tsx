@@ -36,6 +36,7 @@ export default function LoginForm() {
     handleLogin,
     handleForgotPassword,
     handleRememberMe,
+    fixedTenantId,
   } = useLoginHandlers()
 
 
@@ -66,6 +67,20 @@ export default function LoginForm() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="tenant" className="text-white">
+                    {t("tenant")}
+                  </Label>
+                  <Input
+                    id="tenant"
+                    name="tenant"
+                    type="text"
+                    value={fixedTenantId}
+                    readOnly
+                    className="bg-white/5 border-white/10 text-slate-400 cursor-not-allowed pl-3"
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="username" className="text-white">
                     {t("username")}

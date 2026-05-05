@@ -1924,6 +1924,7 @@
   "auth": {
     "loginTitle": "登录账户",
     "logoAlt": "WatchPoint 标志",
+    "tenant": "租户",
     "username": "用户名",
     "usernamePlaceholder": "请输入用户名",
     "password": "密码",

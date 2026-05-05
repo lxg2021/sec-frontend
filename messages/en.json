@@ -1922,6 +1922,7 @@
   "auth": {
     "loginTitle": "Sign in",
     "logoAlt": "WatchPoint logo",
+    "tenant": "Tenant",
     "username": "Username",
     "usernamePlaceholder": "Enter username",
     "password": "Password",
