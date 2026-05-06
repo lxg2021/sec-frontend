@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { Host, LogicGroup, HostFilterOptions } from "@/features/assets/approval/types"
 import { HostTable } from "./host-table"
 import { HostFilter } from "./host-filter"
@@ -15,7 +15,8 @@ export interface HostApprovalProps {
   logicGroups: LogicGroup[]
   initialFilters?: HostFilterOptions
   pageSize?: number
-  onSubmit: (updatedHosts: Host[]) => void
+  loading?: boolean
+  onSubmit: (updatedHosts: Host[]) => void | Promise<void>
   onCancel?: () => void
 }
 
@@ -24,6 +25,7 @@ export function HostApproval({
   logicGroups,
   initialFilters = {},
   pageSize = 20,
+  loading = false,
   onSubmit,
   onCancel,
 }: HostApprovalProps) {
@@ -34,6 +36,12 @@ export function HostApproval({
   const [editingHost, setEditingHost] = useState<Host | null>(null)
   const [sortField, setSortField] = useState<keyof Host | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    setHosts(initialHosts)
+    setCurrentPage(1)
+  }, [initialHosts])
 
   // Filter and sort hosts
   const filteredHosts = useMemo(() => {
@@ -91,8 +99,13 @@ export function HostApproval({
     }
   }
 
-  const handleSubmit = () => {
-    onSubmit(hosts)
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    try {
+      await onSubmit(hosts)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -132,7 +145,9 @@ export function HostApproval({
               {t("cancel")}
             </Button>
           )}
-          <Button onClick={handleSubmit}>{t("saveChanges")}</Button>
+          <Button onClick={handleSubmit} disabled={loading || submitting}>
+            {submitting ? "保存中..." : t("saveChanges")}
+          </Button>
         </div>
       </div>
 

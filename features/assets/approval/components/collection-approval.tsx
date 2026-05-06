@@ -13,6 +13,12 @@ import {
 import { useTranslations } from "next-intl"
 
 import { approveCollectionSubmission, getCollectionSubmission, listCollectionSubmissions, rejectCollectionSubmission } from "@/features/assets/approval/collection-api"
+import {
+  canApproveCollectionSubmission,
+  parseImportResultJson,
+  summarizeApprovalResult,
+  type ApprovalResultSummary,
+} from "@/features/assets/approval/collection-result"
 import type {
   CollectionSubmissionDetail,
   CollectionSubmissionStatus,
@@ -101,15 +107,6 @@ function formatDateTime(value?: number) {
   return date.toLocaleString()
 }
 
-function formatJson(value?: string) {
-  if (!value) return "-"
-  try {
-    return JSON.stringify(JSON.parse(value), null, 2)
-  } catch {
-    return value
-  }
-}
-
 export function CollectionApproval() {
   const t = useTranslations("pages.computers.approve.collection")
   const { toast } = useToast()
@@ -125,6 +122,7 @@ export function CollectionApproval() {
   const [selected, setSelected] = useState<CollectionSubmissionDetail | null>(null)
   const [open, setOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState("")
+  const [approvalResult, setApprovalResult] = useState<ApprovalResultSummary | null>(null)
 
   const loadList = useCallback(async () => {
     setLoading(true)
@@ -164,6 +162,7 @@ export function CollectionApproval() {
       setOpen(true)
       setDetailLoading(true)
       setReviewNote("")
+      setApprovalResult(null)
       setSelected(null)
       try {
         const detail = await getCollectionSubmission(TENANT_ID, submissionId)
@@ -187,10 +186,22 @@ export function CollectionApproval() {
     if (!selected) return
     setActionLoading(true)
     try {
-      await approveCollectionSubmission(TENANT_ID, selected.submission_id, reviewNote)
-      toast({ title: t("approveSuccess"), description: selected.submission_id })
-      setOpen(false)
-      setSelected(null)
+      const result = await approveCollectionSubmission(TENANT_ID, selected.submission_id, reviewNote)
+      const summary = summarizeApprovalResult(result)
+      setApprovalResult(summary)
+      setSelected((current) =>
+        current
+          ? {
+              ...current,
+              status: result.status,
+              import_result_json: JSON.stringify(result),
+            }
+          : current,
+      )
+      toast({
+        title: summary.failureCount > 0 ? t("failed") : t("approveSuccess"),
+        description: `${summary.successCount}/${summary.total}`,
+      })
       await loadList()
     } catch (error) {
       toast({
@@ -384,6 +395,7 @@ export function CollectionApproval() {
           if (!nextOpen) {
             setSelected(null)
             setReviewNote("")
+            setApprovalResult(null)
           }
         }}
       >
@@ -473,10 +485,77 @@ export function CollectionApproval() {
                 </TabsContent>
                 <TabsContent value="raw" className="mt-4">
                   <ScrollArea className="h-[280px] rounded-lg border bg-muted/30">
-                    <pre className="p-4 text-xs leading-5">{formatJson(selected.import_result_json || selected.error_msg || "")}</pre>
+                    <pre className="p-4 text-xs leading-5">{parseImportResultJson(selected.import_result_json || selected.error_msg || "").formatted}</pre>
                   </ScrollArea>
                 </TabsContent>
               </Tabs>
+
+              {approvalResult && (
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold">入库结果</div>
+                      <div className="text-xs text-muted-foreground">{approvalResult.submissionId}</div>
+                    </div>
+                    <span className={cn("inline-flex rounded-full border px-2 py-1 text-xs font-medium", statusTone(approvalResult.status))}>
+                      {statusLabel(approvalResult.status, t)}
+                    </span>
+                  </div>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <div className="rounded-md border bg-background p-3">
+                      <div className="text-xs text-muted-foreground">主机总数</div>
+                      <div className="text-xl font-semibold">{approvalResult.total}</div>
+                    </div>
+                    <div className="rounded-md border bg-background p-3">
+                      <div className="text-xs text-muted-foreground">成功入库</div>
+                      <div className="text-xl font-semibold text-emerald-600">{approvalResult.successCount}</div>
+                    </div>
+                    <div className="rounded-md border bg-background p-3">
+                      <div className="text-xs text-muted-foreground">入库失败</div>
+                      <div className="text-xl font-semibold text-rose-600">{approvalResult.failureCount}</div>
+                    </div>
+                  </div>
+                  {approvalResult.hostResults.length > 0 && (
+                    <div className="mt-3 overflow-hidden rounded-md border bg-background">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Agent ID</TableHead>
+                            <TableHead>结果</TableHead>
+                            <TableHead>说明</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {approvalResult.hostResults.map((result) => (
+                            <TableRow key={result.agent_id}>
+                              <TableCell className="font-mono text-xs">{result.agent_id}</TableCell>
+                              <TableCell>
+                                {result.success ? (
+                                  <span className="inline-flex items-center gap-1 text-emerald-600">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    成功
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 text-rose-600">
+                                    <XCircle className="h-4 w-4" />
+                                    失败
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">{result.msg || "-"}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                  {approvalResult.failedResults.length > 0 && (
+                    <div className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+                      存在失败主机，可保留弹窗查看原因；采集单进入失败状态后可再次审核重试。
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="review-note">{t("reviewNote")}</Label>
@@ -503,9 +582,12 @@ export function CollectionApproval() {
               <XCircle className="mr-2 h-4 w-4" />
               {t("reject")}
             </Button>
-            <Button onClick={handleApprove} disabled={actionLoading || !selected}>
+            <Button
+              onClick={handleApprove}
+              disabled={actionLoading || !selected || !canApproveCollectionSubmission(selected.status)}
+            >
               <CheckCircle2 className="mr-2 h-4 w-4" />
-              {t("approve")}
+              {selected && selected.status === 5 ? "重新审核入库" : t("approve")}
             </Button>
           </DialogFooter>
         </DialogContent>

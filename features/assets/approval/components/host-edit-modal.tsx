@@ -51,7 +51,7 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
   const [ownerName, setOwnerName] = useState(host.owner?.owner_name || "")
   const [ownerPhone, setOwnerPhone] = useState(host.owner?.phone || "")
   const [ownerEmail, setOwnerEmail] = useState(host.owner?.email || "")
-  const [ownerRole, setOwnerRole] = useState(host.owner?.owner_role || t("ownerUser"))
+  const [ownerRole, setOwnerRole] = useState(host.owner?.owner_role || "operator")
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   // 实时验证字段
@@ -255,9 +255,9 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={t("ownerAdmin")}>{t("ownerAdmin")}</SelectItem>
-                      <SelectItem value={t("ownerUser")}>{t("ownerUser")}</SelectItem>
-                      <SelectItem value={t("ownerMaintainer")}>{t("ownerMaintainer")}</SelectItem>
+                      <SelectItem value="admin">{t("ownerAdmin")}</SelectItem>
+                      <SelectItem value="auditor">{t("ownerUser")}</SelectItem>
+                      <SelectItem value="operator">{t("ownerMaintainer")}</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldErrors.ownerRole && (
