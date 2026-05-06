@@ -7,7 +7,8 @@ import { Input } from "@/shared/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { Badge } from "@/shared/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
-import { flattenUserLogicGroups, UserInfoTableProps } from "@/features/collection/mock/user-info-table-props"
+import { flattenLogicGroupPaths } from "@/features/collection/lib/logic-group-utils"
+import type { UserInfoTableProps } from "@/features/collection/components/user-info-table.types"
 import { useTranslations } from "next-intl"
 
 export function UserInfoTable({
@@ -20,7 +21,7 @@ export function UserInfoTable({
   onSave,
 }: UserInfoTableProps) {
   const t = useTranslations("pages.collection.userInfo")
-  const departmentPaths = flattenUserLogicGroups(userLogicGroups)
+  const departmentPaths = flattenLogicGroupPaths(userLogicGroups)
 
   if (assets.length === 0) {
     return (
@@ -82,6 +83,9 @@ export function UserInfoTable({
                   {t("name")} <span className="text-destructive">*</span>
                 </TableHead>
                 <TableHead className="min-w-[150px]">
+                  {t("role")} <span className="text-destructive">*</span>
+                </TableHead>
+                <TableHead className="min-w-[150px]">
                   {t("phone")} <span className="text-destructive">*</span>
                 </TableHead>
                 <TableHead className="min-w-[200px]">
@@ -94,13 +98,13 @@ export function UserInfoTable({
             </TableHeader>
             <TableBody>
               {assets.map((asset) => {
-                const userInfo = userInfos[asset.host_id] || {}
-                const assetErrors = errors[asset.host_id] || {}
+                const userInfo = userInfos[asset.agent_id] || {}
+                const assetErrors = errors[asset.agent_id] || {}
 
                 return (
-                  <TableRow key={asset.host_id}>
+                  <TableRow key={asset.agent_id}>
                     <TableCell>
-                      <Badge variant="secondary">{asset.host_name}</Badge>
+                      <Badge variant="secondary">{asset.hostname}</Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
@@ -135,7 +139,7 @@ export function UserInfoTable({
                       <div className="space-y-1">
                         <Input
                           value={userInfo.name || ""}
-                          onChange={(e) => onUserInfoChange(asset.host_id, "name", e.target.value)}
+                          onChange={(e) => onUserInfoChange(asset.agent_id, "name", e.target.value)}
                           placeholder={t("namePlaceholder")}
                           className={assetErrors.name ? "border-destructive" : ""}
                         />
@@ -144,10 +148,28 @@ export function UserInfoTable({
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
+                        <Select
+                          value={userInfo.role || "operator"}
+                          onValueChange={(value) => onUserInfoChange(asset.agent_id, "role", value)}
+                        >
+                          <SelectTrigger className={assetErrors.role ? "border-destructive" : ""}>
+                            <SelectValue placeholder={t("rolePlaceholder")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">{t("roleAdmin")}</SelectItem>
+                            <SelectItem value="auditor">{t("roleAuditor")}</SelectItem>
+                            <SelectItem value="operator">{t("roleOperator")}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {assetErrors.role && <p className="text-xs text-destructive">{assetErrors.role}</p>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
                         <Input
                           value={userInfo.phone || ""}
-                          onChange={(e) => onUserInfoChange(asset.host_id, "phone", e.target.value)}
-                          onBlur={(e) => onFieldBlur(asset.host_id, "phone", e.target.value)}
+                          onChange={(e) => onUserInfoChange(asset.agent_id, "phone", e.target.value)}
+                          onBlur={(e) => onFieldBlur(asset.agent_id, "phone", e.target.value)}
                           placeholder={t("phonePlaceholder")}
                           className={assetErrors.phone ? "border-destructive" : ""}
                         />
@@ -159,8 +181,8 @@ export function UserInfoTable({
                         <Input
                           type="email"
                           value={userInfo.email || ""}
-                          onChange={(e) => onUserInfoChange(asset.host_id, "email", e.target.value)}
-                          onBlur={(e) => onFieldBlur(asset.host_id, "email", e.target.value)}
+                          onChange={(e) => onUserInfoChange(asset.agent_id, "email", e.target.value)}
+                          onBlur={(e) => onFieldBlur(asset.agent_id, "email", e.target.value)}
                           placeholder={t("emailPlaceholder")}
                           className={assetErrors.email ? "border-destructive" : ""}
                         />
@@ -171,7 +193,7 @@ export function UserInfoTable({
                       <div className="space-y-1">
                         <Select
                           value={userInfo.department || ""}
-                          onValueChange={(value) => onUserInfoChange(asset.host_id, "department", value)}
+                          onValueChange={(value) => onUserInfoChange(asset.agent_id, "department", value)}
                         >
                           <SelectTrigger className={assetErrors.department ? "border-destructive" : ""}>
                             <SelectValue placeholder={t("departmentPlaceholder")} />

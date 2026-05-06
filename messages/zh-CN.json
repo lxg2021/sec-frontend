@@ -155,7 +155,10 @@
         "phoneRequired": "电话为必填项",
         "emailRequired": "邮箱为必填项",
         "departmentRequired": "部门为必填项",
-        "saveSuccess": "保存成功！"
+        "departmentInvalid": "部门不在当前逻辑组中",
+        "saveSuccess": "保存成功！",
+        "saveFailed": "保存失败",
+        "saving": "正在保存中..."
       },
       "uploader": {
         "acceptDisplay": "JSON 格式文件",
@@ -172,8 +175,10 @@
         "validationFailed": "文件验证失败",
         "parseFailed": "文件解析失败，请检查文件格式",
         "parser": {
-          "invalidShape": "文件格式不正确：需要包含 source_data 数组、assets 数组或直接为数组格式",
-          "emptyAssets": "文件中没有资产数据",
+          "invalidShape": "文件格式不正确：需要包含 tenant_id、logic_groups 和 hosts",
+          "emptyAssets": "文件中没有主机数据",
+          "emptyLogicGroups": "文件中没有逻辑组数据",
+          "tenantRequired": "tenant_id 为必填项",
           "requiredString": "第 {row} 条记录：{field} 为必填项",
           "requiredArray": "第 {row} 条记录：{field} 必须是非空数组",
           "invalidIp": "第 {row} 条记录：第 {index} 个 IP 地址格式不正确 ({value})",
@@ -203,14 +208,23 @@
         "macAddress": "MAC地址",
         "os": "操作系统",
         "name": "姓名",
+        "role": "角色",
+        "roleAdmin": "管理员",
+        "roleAuditor": "审计员",
+        "roleOperator": "操作员",
         "phone": "电话",
         "email": "邮箱",
         "department": "部门",
         "namePlaceholder": "请输入姓名",
+        "rolePlaceholder": "请选择角色",
         "phonePlaceholder": "请输入电话",
         "emailPlaceholder": "请输入邮箱",
         "departmentPlaceholder": "请选择部门",
         "save": "保存信息"
+      },
+      "tenant": {
+        "label": "租户",
+        "value": "public"
       },
       "footer": {
         "privacy": "隐私声明",

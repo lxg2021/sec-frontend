@@ -1,8 +1,11 @@
-import type { UiAssetData } from "@/features/collection/types"
+import type { CollectionImportData, OwnerRole, UiAssetData, UserLogicGroup } from "@/features/collection/types"
+import { ensureLogicGroupIds } from "@/features/collection/lib/logic-group-utils"
 
 export interface AssetParserMessages {
   invalidShape: string
   emptyAssets: string
+  emptyLogicGroups: string
+  tenantRequired: string
   requiredString: (values: { row: number; field: string }) => string
   requiredArray: (values: { row: number; field: string }) => string
   invalidIp: (values: { row: number; index: number; value: string }) => string
@@ -11,8 +14,10 @@ export interface AssetParserMessages {
 }
 
 const defaultMessages: AssetParserMessages = {
-  invalidShape: "Invalid file format: expected source_data, assets, or a top-level array.",
-  emptyAssets: "No asset data was found in the file.",
+  invalidShape: "Invalid file format: expected tenant_id, logic_groups, and hosts.",
+  emptyAssets: "No host data was found in the file.",
+  emptyLogicGroups: "No logic group data was found in the file.",
+  tenantRequired: "tenant_id is required.",
   requiredString: ({ row, field }) => `Record ${row}: ${field} is required.`,
   requiredArray: ({ row, field }) => `Record ${row}: ${field} must be a non-empty array.`,
   invalidIp: ({ row, index, value }) => `Record ${row}: IP address #${index} is invalid (${value}).`,
@@ -20,97 +25,116 @@ const defaultMessages: AssetParserMessages = {
   invalidJson: "Invalid JSON format. Check that the file contains valid JSON.",
 }
 
-export function parseAssetFile(content: string, messages: AssetParserMessages = defaultMessages): UiAssetData[] {
+function normalizeOwnerRole(role: unknown): OwnerRole {
+  const normalized = String(role || "operator").trim()
+  if (normalized === "admin" || normalized === "auditor" || normalized === "operator") {
+    return normalized
+  }
+  return "operator"
+}
+
+export function parseAssetFile(content: string, messages: AssetParserMessages = defaultMessages): CollectionImportData {
   try {
     const data = JSON.parse(content)
 
-    let assetsArray: unknown[]
-
-    if (Array.isArray(data)) {
-      assetsArray = data
-    } else if (data.source_data && Array.isArray(data.source_data)) {
-      assetsArray = data.source_data
-    } else if (data.assets && Array.isArray(data.assets)) {
-      assetsArray = data.assets
-    } else {
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
       throw new Error(messages.invalidShape)
     }
 
-    if (assetsArray.length === 0) {
+    const tenantId = String((data as { tenant_id?: unknown }).tenant_id || "").trim()
+    const logicGroups = Array.isArray((data as { logic_groups?: unknown }).logic_groups)
+      ? ((data as { logic_groups: UserLogicGroup[] }).logic_groups || [])
+      : []
+    const hosts = Array.isArray((data as { hosts?: unknown }).hosts) ? ((data as { hosts: UiAssetData[] }).hosts || []) : []
+
+    if (!tenantId) {
+      throw new Error(messages.tenantRequired)
+    }
+    if (logicGroups.length === 0) {
+      throw new Error(messages.emptyLogicGroups)
+    }
+    if (hosts.length === 0) {
       throw new Error(messages.emptyAssets)
     }
 
-    return assetsArray.map((asset: any, index: number) => {
+    const validatedHosts = hosts.map((host: any, index: number) => {
       const row = index + 1
 
-      if (!asset.host_id || typeof asset.host_id !== "string" || asset.host_id.trim() === "") {
-        throw new Error(messages.requiredString({ row, field: "host_id" }))
+      if (!host.agent_id || typeof host.agent_id !== "string" || host.agent_id.trim() === "") {
+        throw new Error(messages.requiredString({ row, field: "agent_id" }))
       }
-
-      if (!asset.host_name || typeof asset.host_name !== "string" || asset.host_name.trim() === "") {
-        throw new Error(messages.requiredString({ row, field: "host_name" }))
+      if (!host.hostname || typeof host.hostname !== "string" || host.hostname.trim() === "") {
+        throw new Error(messages.requiredString({ row, field: "hostname" }))
       }
-
-      if (!Array.isArray(asset.ip) || asset.ip.length === 0) {
+      if (!Array.isArray(host.ip) || host.ip.length === 0) {
         throw new Error(messages.requiredArray({ row, field: "ip" }))
       }
-
-      if (!asset.os_name || typeof asset.os_name !== "string" || asset.os_name.trim() === "") {
+      if (!host.os_name || typeof host.os_name !== "string" || host.os_name.trim() === "") {
         throw new Error(messages.requiredString({ row, field: "os_name" }))
       }
-
-      if (!asset.os_version || typeof asset.os_version !== "string" || asset.os_version.trim() === "") {
+      if (!host.os_version || typeof host.os_version !== "string" || host.os_version.trim() === "") {
         throw new Error(messages.requiredString({ row, field: "os_version" }))
       }
-
-      if (!asset.cpu_id || typeof asset.cpu_id !== "string" || asset.cpu_id.trim() === "") {
+      if (!host.product_id || typeof host.product_id !== "string" || host.product_id.trim() === "") {
+        throw new Error(messages.requiredString({ row, field: "product_id" }))
+      }
+      if (!host.cpu_id || typeof host.cpu_id !== "string" || host.cpu_id.trim() === "") {
         throw new Error(messages.requiredString({ row, field: "cpu_id" }))
       }
-
-      if (!Array.isArray(asset.harddisk_id) || asset.harddisk_id.length === 0) {
-        throw new Error(messages.requiredArray({ row, field: "harddisk_id" }))
-      }
-
-      if (!asset.board_serial || typeof asset.board_serial !== "string" || asset.board_serial.trim() === "") {
+      if (!host.board_serial || typeof host.board_serial !== "string" || host.board_serial.trim() === "") {
         throw new Error(messages.requiredString({ row, field: "board_serial" }))
       }
-
-      if (!Array.isArray(asset.macs) || asset.macs.length === 0) {
+      if (!Array.isArray(host.harddisk_id) || host.harddisk_id.length === 0) {
+        throw new Error(messages.requiredArray({ row, field: "harddisk_id" }))
+      }
+      if (!Array.isArray(host.macs) || host.macs.length === 0) {
         throw new Error(messages.requiredArray({ row, field: "macs" }))
       }
 
       const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/
-      asset.ip.forEach((ip: string, ipIndex: number) => {
-        if (!ipPattern.test(ip.trim())) {
-          throw new Error(messages.invalidIp({ row, index: ipIndex + 1, value: ip }))
+      host.ip.forEach((ip: string, ipIndex: number) => {
+        if (!ipPattern.test(String(ip).trim())) {
+          throw new Error(messages.invalidIp({ row, index: ipIndex + 1, value: String(ip) }))
         }
       })
 
       const macPattern = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/
-      asset.macs.forEach((mac: string, macIndex: number) => {
-        if (!macPattern.test(mac.trim())) {
-          throw new Error(messages.invalidMac({ row, index: macIndex + 1, value: mac }))
+      host.macs.forEach((mac: string, macIndex: number) => {
+        if (!macPattern.test(String(mac).trim())) {
+          throw new Error(messages.invalidMac({ row, index: macIndex + 1, value: String(mac) }))
         }
       })
 
       return {
-        host_id: asset.host_id.trim(),
-        host_name: asset.host_name.trim(),
-        ip: asset.ip.map((ip: string) => ip.trim()),
-        os_name: asset.os_name.trim(),
-        os_version: asset.os_version.trim(),
-        product_id: asset.product_id ? String(asset.product_id).trim() : undefined,
-        cpu_id: asset.cpu_id.trim(),
-        harddisk_id: asset.harddisk_id.map((id: string) => String(id).trim()),
-        board_serial: asset.board_serial.trim(),
-        macs: asset.macs.map((mac: string) => mac.trim().toUpperCase()),
-        department_path: asset.department_path ? String(asset.department_path).trim() : undefined,
-        owner_name: asset.owner_name ? String(asset.owner_name).trim() : undefined,
-        owner_role: asset.owner_role ? String(asset.owner_role).trim() : undefined,
-        phone: asset.phone ? String(asset.phone).trim() : undefined,
-        email: asset.email ? String(asset.email).trim() : undefined,
+        agent_id: String(host.agent_id).trim(),
+        hostname: String(host.hostname).trim(),
+        ip: host.ip.map((ip: string) => String(ip).trim()),
+        os_type: host.os_type ? String(host.os_type).trim() : "unknown",
+        os_name: String(host.os_name).trim(),
+        os_version: String(host.os_version).trim(),
+        product_id: String(host.product_id).trim(),
+        cpu_id: String(host.cpu_id).trim(),
+        harddisk_id: host.harddisk_id.map((id: string) => String(id).trim()),
+        board_serial: String(host.board_serial).trim(),
+        macs: host.macs.map((mac: string) => String(mac).trim().toUpperCase()),
+        department_path: host.department_path ? String(host.department_path).trim() : undefined,
+        group_id: host.group_id ? String(host.group_id).trim() : undefined,
+        owner: host.owner
+          ? {
+              username: String(host.owner.username || "").trim(),
+              role: normalizeOwnerRole(host.owner.role),
+              phone: host.owner.phone ? String(host.owner.phone).trim() : undefined,
+              email: host.owner.email ? String(host.owner.email).trim() : undefined,
+            }
+          : undefined,
       }
     })
+
+    return {
+      tenant_id: tenantId,
+      logic_groups: ensureLogicGroupIds(logicGroups),
+      hosts: validatedHosts,
+    }
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(messages.invalidJson)

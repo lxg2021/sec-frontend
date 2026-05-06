@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Progress } from "@/shared/ui/progress"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { parseAssetFile } from "@/features/collection/lib/file-parser"
-import type { FileUploaderProps } from "@/features/collection/mock/file-uploader-props"
+import type { FileUploaderProps } from "@/features/collection/components/file-uploader.types"
 import { useTranslations } from "next-intl"
 
 export function FileUploader({
@@ -107,6 +107,8 @@ export function FileUploader({
       const parsedData = parseAssetFile(text, {
         invalidShape: t("parser.invalidShape"),
         emptyAssets: t("parser.emptyAssets"),
+        emptyLogicGroups: t("parser.emptyLogicGroups"),
+        tenantRequired: t("parser.tenantRequired"),
         requiredString: (values) => t("parser.requiredString", values),
         requiredArray: (values) => t("parser.requiredArray", values),
         invalidIp: (values) => t("parser.invalidIp", values),
@@ -127,7 +129,7 @@ export function FileUploader({
   }
 
   const handleDownloadTemplate = () => {
-    const data = templateData || { assets: [] }
+    const data = templateData || { tenant_id: "public", logic_groups: [], hosts: [] }
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")

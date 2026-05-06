@@ -1,74 +1,113 @@
-/**
- * 单台主机资产信息
- */
-export interface UiAssetData {
-  /** 主机唯一标识 */
-  host_id: string
+export type OwnerRole = "admin" | "auditor" | "operator"
+export type LogicGroupType = "company" | "department" | "group"
 
-  /** 主机名 */
-  host_name: string
+export interface LogicGroupUploaderTexts {
+  title?: string
+  description?: string
+  dragDropText?: string
+  dragDropHint?: string
+  uploadingText?: string
+  successText?: string
+  errorText?: string
+  retryButtonText?: string
+  resetButtonText?: string
+  downloadTemplateText?: string
+}
 
-  /** 主机IP列表 */
-  ip: string[]
-
-  /** 操作系统名称 */
-  os_name: string
-
-  /** 操作系统版本 */
-  os_version: string
-
-  /** 产品ID或资产编号 */
-  product_id?: string
-
-  /** CPU序列号 */
-  cpu_id: string
-
-  /** 硬盘ID列表（支持多块硬盘） */
-  harddisk_id: string[]
-
-  /** 主板序列号 */
-  board_serial: string
-
-  /** MAC地址列表 */
-  macs: string[]
-
-  /** 所属部门路径（例如 "总公司/IT部/服务器组"） */
-  department_path?: string
-
-  /** 负责人姓名 */
-  owner_name?: string
-
-  /** 负责人角色（如 管理员、运维人员等） */
-  owner_role?: string
-
-  /** 联系电话 */
+export interface CollectionOwner {
+  username: string
+  role: OwnerRole
   phone?: string
-
-  /** 邮箱地址 */
   email?: string
+}
+
+export interface CollectionLogicGroupNode {
+  id?: string
+  name: string
+  description?: string
+  children?: CollectionLogicGroupNode[]
+}
+
+export interface UserLogicGroup {
+  id: string
+  name: string
+  path: string
+  type: LogicGroupType
+  parentId?: string
+  children?: UserLogicGroup[]
+}
+
+export interface BackendLogicGroupCreateData {
+  id: string
+  parent_id?: string
+  name: string
+  full_path: string
+  full_path_ids: string[]
+  company_name: string
+  department_name?: string
+  description?: string
+}
+
+export interface UiAssetData {
+  agent_id: string
+  hostname: string
+  ip: string[]
+  os_type: "unknown" | "windows" | "linux" | "macOs" | string
+  os_name: string
+  os_version: string
+  product_id: string
+  cpu_id: string
+  harddisk_id: string[]
+  board_serial: string
+  macs: string[]
+  department_path?: string
+  group_id?: string
+  owner?: CollectionOwner
 }
 
 export interface UserInfo {
   name: string
+  role: OwnerRole
   phone: string
   email: string
   department: string
 }
 
-/**
- * 用户逻辑组（公司/部门/组）的数据结构
- */
-export interface UserLogicGroup {
-  /** 唯一标识 */
-  id: string
-  /** 显示名称 */
-  name: string
-  /** 完整路径（例如：总公司/IT部/服务器组） */
-  path: string
-  /** 层级类型 */
-  type: "company" | "department" | "group"
-  /** 父级ID */
-  parentId?: string
-  /** 子级列表 */
-  children?: UserLogicGroup[]
+export interface CollectionImportData {
+  tenant_id: string
+  logic_groups: UserLogicGroup[]
+  hosts: UiAssetData[]
+}
+
+export interface RegisterAgentPayload {
+  request_id: string
+  agent_id: string
+  hostname: string
+  ip: string[]
+  os_type: string
+  os_name: string
+  os_version: string
+  product_id: string
+  cpu_id: string
+  board_serial: string
+  harddisk_id: string[]
+  macs: string[]
+  group_id?: string
+  status?: string
+  owner?: {
+    agent_id: string
+    username: string
+    phone?: string
+    email?: string
+    role: OwnerRole
+  }
+  tenant_id?: string
+  timestamp: number
+}
+
+export interface LogicGroupUploaderProps {
+  onGroupsUploaded: (groups: UserLogicGroup[], fileName: string) => void
+  onBeforeUpload?: (file: File) => Promise<boolean> | boolean
+  disabled?: boolean
+  texts?: LogicGroupUploaderTexts
 }

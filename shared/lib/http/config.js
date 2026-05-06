@@ -21,6 +21,10 @@ const FALLBACK_CONFIG = {
       hardDeleteUser: "/sensor/users/hard-delete",
       resetPassword: "/sensor/users/password-reset/request",
       confirmPasswordReset: "/sensor/users/password-reset/confirm",
+      getLogicGroups: "/sensor/host-mgr/logic-groups/get",
+      replaceLogicTree: "/sensor/host-mgr/logic-groups/replace-tree",
+      importHosts: "/sensor/host-mgr/host/import-hosts",
+      approveHost: "/sensor/host-mgr/host/approve-host",
     },
   },
 }

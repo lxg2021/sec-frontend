@@ -155,7 +155,10 @@
         "phoneRequired": "Phone is required.",
         "emailRequired": "Email is required.",
         "departmentRequired": "Department is required.",
-        "saveSuccess": "Saved successfully."
+        "departmentInvalid": "Department is not in the current logic groups.",
+        "saveSuccess": "Saved successfully.",
+        "saveFailed": "Save failed.",
+        "saving": "Saving..."
       },
       "uploader": {
         "acceptDisplay": "JSON files",
@@ -172,8 +175,10 @@
         "validationFailed": "File validation failed.",
         "parseFailed": "Failed to parse the file. Check the file format.",
         "parser": {
-          "invalidShape": "Invalid file format: expected a source_data array, an assets array, or a top-level array.",
-          "emptyAssets": "No asset data was found in the file.",
+          "invalidShape": "Invalid file format: expected tenant_id, logic_groups, and hosts.",
+          "emptyAssets": "No host data was found in the file.",
+          "emptyLogicGroups": "No logic group data was found in the file.",
+          "tenantRequired": "tenant_id is required.",
           "requiredString": "Record {row}: {field} is required.",
           "requiredArray": "Record {row}: {field} must be a non-empty array.",
           "invalidIp": "Record {row}: IP address #{index} is invalid ({value}).",
@@ -203,14 +208,23 @@
         "macAddress": "MAC Address",
         "os": "Operating System",
         "name": "Name",
+        "role": "Role",
+        "roleAdmin": "Admin",
+        "roleAuditor": "Auditor",
+        "roleOperator": "Operator",
         "phone": "Phone",
         "email": "Email",
         "department": "Department",
         "namePlaceholder": "Enter name",
+        "rolePlaceholder": "Select role",
         "phonePlaceholder": "Enter phone",
         "emailPlaceholder": "Enter email",
         "departmentPlaceholder": "Select department",
         "save": "Save Information"
+      },
+      "tenant": {
+        "label": "Tenant",
+        "value": "public"
       },
       "footer": {
         "privacy": "Privacy",

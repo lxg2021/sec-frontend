@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Progress } from "@/shared/ui/progress"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { parseLogicGroupFile, generateLogicGroupTemplate } from "@/features/collection/lib/logic-group-parser"
-import type { LogicGroupUploaderProps } from "@/features/collection/mock/logic-group-uploader-props"
+import type { LogicGroupUploaderProps } from "@/features/collection/types"
 import { useTranslations } from "next-intl"
 
 export function LogicGroupUploader({
