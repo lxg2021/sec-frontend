@@ -1,1 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 5 5" fill="none" shape-rendering="crispEdges"><metadata xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/"><rdf:RDF><rdf:Description><dc:title>Identicon</dc:title><dc:creator>DiceBear</dc:creator><dc:source xsi:type="dcterms:URI">https://www.dicebear.com</dc:source><dcterms:license xsi:type="dcterms:URI">https://creativecommons.org/publicdomain/zero/1.0/</dcterms:license><dc:rights>„Identicon” (https://www.dicebear.com) by „DiceBear”, licensed under „CC0 1.0” (https://creativecommons.org/publicdomain/zero/1.0/)</dc:rights></rdf:Description></rdf:RDF></metadata><mask id="viewboxMask"><rect width="5" height="5" rx="2.5" ry="2.5" x="0" y="0" fill="#fff" /></mask><g mask="url(#viewboxMask)"><rect fill="#1e293b" width="5" height="5" x="0" y="0" /><path d="M2 0H0v1h2V0ZM5 0H3v1h2V0Z" fill="#7cb342"/><path fill="#7cb342" d="M1 1h3v1H1z"/><path fill="#7cb342" d="M2 2h1v1H2z"/><path d="M0 3h1v1H0V3ZM4 3h1v1H4V3ZM3 3H2v1h1V3Z" fill="#7cb342"/><path fill="#7cb342" d="M0 4h5v1H0z"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Admin avatar">
+  <defs>
+    <linearGradient id="bg" x1="20" y1="10" x2="76" y2="90" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10b981"/>
+      <stop offset="1" stop-color="#0f766e"/>
+    </linearGradient>
+    <linearGradient id="jacket" x1="25" y1="61" x2="72" y2="93" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#164e63"/>
+    </linearGradient>
+    <clipPath id="clip">
+      <circle cx="48" cy="48" r="43"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#clip)">
+    <circle cx="48" cy="48" r="43" fill="url(#bg)"/>
+    <path d="M11 93c5.3-22 19.3-34 37-34s31.7 12 37 34" fill="url(#jacket)"/>
+    <path d="M34 62h28l-14 23Z" fill="#f8fafc"/>
+    <path d="M38 64l10 10 10-10 5 27H33Z" fill="#0f172a" opacity=".72"/>
+    <circle cx="48" cy="42" r="19" fill="#f2c7a8"/>
+    <path d="M29 40c.9-15.8 9.2-25.3 19-25.3S66.1 24.2 67 40c-5.7-5-11.2-7-19-7s-13.3 2-19 7Z" fill="#111827"/>
+    <path d="M29 42c1.5-3 4.1-4.5 8.1-4.5 2.7 0 5.2.7 7.3 2.1M51.6 39.6c2.1-1.4 4.6-2.1 7.3-2.1 4 0 6.6 1.5 8.1 4.5" fill="none" stroke="#111827" stroke-linecap="round" stroke-width="2.7"/>
+    <path d="M42 51c3.8 2.7 8.2 2.7 12 0" fill="none" stroke="#8a3a20" stroke-linecap="round" stroke-width="2.8"/>
+  </g>
+</svg>
