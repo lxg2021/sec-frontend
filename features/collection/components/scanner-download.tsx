@@ -35,7 +35,7 @@ export function ScannerDownload({ platforms }: ScannerDownloadProps) {
   }
 
   return (
-    <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
+    <Card className="border-0 bg-white dark:bg-gray-800">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-lg">

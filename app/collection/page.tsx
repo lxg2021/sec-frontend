@@ -7,6 +7,7 @@ import { ScannerDownload } from "@/features/collection/components/scanner-downlo
 import { FileUploader } from "@/features/collection/components/file-uploader"
 import { UserInfoTable } from "@/features/collection/components/user-info-table"
 import { AssetCollectorFooter } from "@/features/collection/components/asset-collector-footer"
+import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import { Card, CardContent } from "@/shared/ui/card"
 import { Label } from "@/shared/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
@@ -216,16 +217,18 @@ export default function AssetCollectorPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        <Card className="border bg-white shadow-sm">
-          <CardContent className="px-4 py-4">
+        <Card className="border-0 bg-gray-50 shadow-none">
+          <CardContent className="px-5 py-4">
             <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-              <div className="hidden sm:block" />
+              <div className="flex items-center justify-center sm:justify-start">
+                <LanguageSwitch className="h-9 w-9 rounded-md border text-slate-600 hover:bg-slate-50 hover:text-slate-900" />
+              </div>
 
-              <div className="flex items-center justify-center gap-3">
-                <div className="rounded-lg bg-blue-50 p-2">
-                  <Layers3 className="h-5 w-5 text-blue-600" />
+              <div className="flex items-center justify-center gap-2.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-transparent">
+                  <Layers3 className="h-5 w-5 text-black" />
                 </div>
-                <h1 className="text-xl font-semibold text-gray-900">{t("title")}</h1>
+                <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("title")}</h1>
               </div>
 
               <div className="flex items-center justify-center sm:justify-end">
