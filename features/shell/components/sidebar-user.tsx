@@ -69,6 +69,7 @@ type DialogType = "profile" | "create" | "edit" | "password" | "delete" | "users
 
 interface SidebarUserProps {
   collapsed?: boolean
+  classicStyle?: boolean
   getUserProfile: () => Promise<UserProfile>
   updateUserProfile: (data: {
     nickname: string
@@ -115,6 +116,7 @@ function compactId(value: string) {
 
 export function SidebarUser({
   collapsed = false,
+  classicStyle = false,
   getUserProfile,
   updateUserProfile,
   updatePassword,
@@ -144,6 +146,7 @@ export function SidebarUser({
   const [usersPageSize] = useState(10)
   const [usersSearch, setUsersSearch] = useState("")
   const [userDeleteTarget, setUserDeleteTarget] = useState<UserListItem | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [formData, setFormData] = useState({
     nickname: "",
     phone: "",
@@ -161,6 +164,26 @@ export function SidebarUser({
   })
 
   const isAdmin = user?.role === "admin"
+  const userButtonClassName = [
+    "group flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 shadow-sm outline-none transition-all duration-200 active:translate-y-0 active:scale-[0.99]",
+    collapsed ? "justify-center" : "",
+    classicStyle
+      ? menuOpen
+        ? "border-blue-200 bg-blue-50/70 text-slate-950 shadow-md shadow-slate-200/80 ring-1 ring-blue-100"
+        : "border-slate-200 bg-white/70 text-slate-600 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-slate-50 hover:text-slate-950 hover:shadow-md hover:shadow-slate-200/80 focus-visible:border-blue-300 focus-visible:ring-2 focus-visible:ring-blue-100"
+      : menuOpen
+        ? "border-cyan-400/30 bg-slate-800/80 text-white shadow-lg shadow-cyan-950/25 ring-1 ring-cyan-400/10"
+        : "border-white/10 bg-slate-900/45 text-slate-400 hover:-translate-y-0.5 hover:border-cyan-400/25 hover:bg-slate-800/75 hover:text-white hover:shadow-lg hover:shadow-black/30 focus-visible:border-cyan-400/40 focus-visible:ring-2 focus-visible:ring-cyan-400/20",
+  ]
+    .filter(Boolean)
+    .join(" ")
+  const avatarClassName = classicStyle
+    ? "h-10 w-10 ring-2 ring-slate-200 transition-all duration-200 group-hover:ring-blue-200"
+    : "h-10 w-10 ring-2 ring-white/10 transition-all duration-200 group-hover:ring-cyan-300/30"
+  const nameClassName = classicStyle
+    ? "truncate text-sm font-medium text-slate-900"
+    : "truncate text-sm font-medium text-white"
+  const emailClassName = classicStyle ? "truncate text-xs text-slate-500" : "truncate text-xs text-slate-400"
 
   const loadUserProfile = useCallback(async () => {
     try {
@@ -496,21 +519,21 @@ export function SidebarUser({
 
   return (
     <>
-      <ContextMenu>
+      <ContextMenu onOpenChange={setMenuOpen}>
         <ContextMenuTrigger asChild>
           <button
             type="button"
             onClick={handleOpenMenu}
-            className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border border-transparent p-3 text-slate-400 transition-colors hover:border-slate-600/30 hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 hover:text-white ${collapsed ? "justify-center" : ""}`}
+            className={userButtonClassName}
           >
-            <Avatar className="h-10 w-10">
+            <Avatar className={avatarClassName}>
               <AvatarImage src={user.avatar || "/icons/avatars/default.svg"} alt={user.nickname} />
               <AvatarFallback className="bg-slate-700 text-slate-300">{user.nickname.slice(0, 2)}</AvatarFallback>
             </Avatar>
             {!collapsed && (
               <div className="min-w-0 flex-1 text-left">
-                <p className="truncate text-sm font-medium text-white">{user.nickname}</p>
-                <p className="truncate text-xs text-slate-400">{user.email}</p>
+                <p className={nameClassName}>{user.nickname}</p>
+                <p className={emailClassName}>{user.email}</p>
               </div>
             )}
           </button>

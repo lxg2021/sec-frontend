@@ -296,6 +296,7 @@ export function FrameLayout({ children }) {
           <div className="mt-auto mb-8">
             <SidebarUser
               collapsed={sidebarCollapsed}
+              classicStyle={isClassicStyle}
               getUserProfile={getUserProfile}
               updateUserProfile={updateUserProfile}
               updatePassword={updatePassword}
