@@ -26,6 +26,10 @@ const FALLBACK_CONFIG = {
       importHosts: "/sensor/host-mgr/host/import-hosts",
       approveHost: "/sensor/host-mgr/host/approve-host",
       submitCollection: "/sensor/collection/submit",
+      listCollectionSubmissions: "/sensor/collection/submissions/list",
+      getCollectionSubmission: "/sensor/collection/submissions/get",
+      approveCollectionSubmission: "/sensor/collection/submissions/approve",
+      rejectCollectionSubmission: "/sensor/collection/submissions/reject",
     },
   },
 }

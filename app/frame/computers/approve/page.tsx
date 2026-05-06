@@ -10,6 +10,7 @@ import { Toaster } from "@/shared/ui/toaster"
 import Image from "next/image";
 import { Computer, FileUp } from "lucide-react"
 import { HostApproval } from "@/features/assets/approval/components/host-approval"
+import { CollectionApproval } from "@/features/assets/approval/components/collection-approval"
 import type { Host, LogicGroup } from "@/features/assets/approval/types"
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card"
 import { mockHosts, mockLogicGroups } from '@/features/assets/approval/mock/approve';
@@ -97,28 +98,64 @@ export default function LogicGroupsPage() {
           </TabsContent>
         </Tabs>
 
-        {/** 主机人工审批 */}
-        <Card className="border-0 shadow-lg bg-white dark:bg-gray-800 rounded-xl">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
-                <Computer className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                  {t("approvalTitle")}
-                </CardTitle>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-                  {t("approvalDescription")}
-                </p>
-              </div>
-            </div>
-            {/* 如果需要右上角加操作按钮，可以在这里加入 */}
-          </CardHeader>
-          <CardContent className="pb-6">
-            <HostApproval hosts={mockHosts} logicGroups={mockLogicGroups} pageSize={10} onSubmit={handleSubmit} />
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="host" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="host" className="flex items-center gap-2">
+              <Computer className="h-4 w-4" />
+              {t("hostApprovalTab")}
+            </TabsTrigger>
+            <TabsTrigger value="collection" className="flex items-center gap-2">
+              <FileUp className="h-4 w-4" />
+              {t("collectionApprovalTab")}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="host" className="space-y-6">
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-800 rounded-xl">
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                    <Computer className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                      {t("approvalTitle")}
+                    </CardTitle>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                      {t("approvalDescription")}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <HostApproval hosts={mockHosts} logicGroups={mockLogicGroups} pageSize={10} onSubmit={handleSubmit} />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="collection" className="space-y-6">
+            <Card className="border-0 shadow-lg bg-white dark:bg-gray-800 rounded-xl">
+              <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg">
+                    <FileUp className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                      {t("collectionApprovalTitle")}
+                    </CardTitle>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                      {t("collectionApprovalDescription")}
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pb-6">
+                <CollectionApproval />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
       </div>
       <Toaster />

@@ -23,7 +23,11 @@
       "replaceLogicTree": "/sensor/host-mgr/logic-groups/replace-tree",
       "importHosts": "/sensor/host-mgr/host/import-hosts",
       "approveHost": "/sensor/host-mgr/host/approve-host",
-      "submitCollection": "/sensor/collection/submit"
+      "submitCollection": "/sensor/collection/submit",
+      "listCollectionSubmissions": "/sensor/collection/submissions/list",
+      "getCollectionSubmission": "/sensor/collection/submissions/get",
+      "approveCollectionSubmission": "/sensor/collection/submissions/approve",
+      "rejectCollectionSubmission": "/sensor/collection/submissions/reject"
     }
   }
 }
