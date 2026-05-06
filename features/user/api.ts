@@ -64,7 +64,6 @@ export interface UserProfile {
   status: UserStatus
   lastLoginIp?: string
   lastLoginAt?: string
-  twoFactorEnabled: boolean
   createdAt: string
   updatedAt: string
   raw: BackendUser
@@ -237,7 +236,6 @@ function normalizeUser(user: BackendUser = {}): UserProfile {
     status: normalizeStatus(user.status),
     lastLoginIp: user.last_login_ip || user.lastLoginIp || undefined,
     lastLoginAt: timestampToIso(user.last_login_at || user.lastLoginAt) || undefined,
-    twoFactorEnabled: false,
     createdAt,
     updatedAt,
     raw: user,
@@ -405,22 +403,6 @@ export async function updatePassword(payload: UpdatePasswordPayload): Promise<Ap
   return {
     success: true,
     message: result.message || "密码修改成功",
-  }
-}
-
-export async function enableTwoFactor(): Promise<ApiResponse<UserProfile>> {
-  return {
-    success: false,
-    message: "后端暂未提供两步验证接口",
-    data: await getUserProfile(),
-  }
-}
-
-export async function disableTwoFactor(): Promise<ApiResponse<UserProfile>> {
-  return {
-    success: false,
-    message: "后端暂未提供两步验证接口",
-    data: await getUserProfile(),
   }
 }
 

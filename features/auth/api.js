@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { http, HttpError, setAuthRefreshHandler } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 import {
@@ -10,9 +9,7 @@ import {
   getTokenExpiresAt,
   parseJwtPayload,
   saveAuthTokens,
-  setAccessToken,
   setCachedAuthUser,
-  setRefreshToken,
 } from "@/shared/lib/http/auth"
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -94,47 +91,6 @@ function failureResult(error, fallbackMessage) {
     success: false,
     code: -1,
     message: error?.message || fallbackMessage,
-  }
-}
-
-export class TokenManager {
-  static TOKEN_KEY = "auth_token"
-  static REFRESH_TOKEN_KEY = "refresh_token"
-
-  static saveToken(token) {
-    setAccessToken(token)
-  }
-
-  static getToken() {
-    return getAccessToken()
-  }
-
-  static removeToken() {
-    clearAuthTokens()
-  }
-
-  static clearToken() {
-    setAccessToken(null)
-  }
-
-  static saveRefreshToken(refreshToken) {
-    setRefreshToken(refreshToken)
-  }
-
-  static getRefreshToken() {
-    return getRefreshToken()
-  }
-
-  static clearRefreshToken() {
-    setRefreshToken(null)
-  }
-
-  static isTokenExpired(token) {
-    return isAccessTokenExpired(token)
-  }
-
-  static parseToken(token) {
-    return parseJwtPayload(token)
   }
 }
 
@@ -265,30 +221,11 @@ export const authAPI = {
     }
   },
 
-  async register(userData) {
-    try {
-      const result = await http.post(
-        "register",
-        {
-          request_id: createRequestId(),
-          ...userData,
-        },
-        { auth: false },
-      )
-
-      return successResult(result, {
-        user: result.data || {},
-      })
-    } catch (error) {
-      return failureResult(error, "注册请求失败")
-    }
-  },
-
   async getCurrentUser() {
     const tokenResult = await authAPI.getValidToken()
     if (!tokenResult.success) return tokenResult
 
-    const payload = TokenManager.parseToken(tokenResult.token)
+    const payload = parseJwtPayload(tokenResult.token)
     const userId = payload?.user_id || payload?.userId || payload?.sub
 
     if (!userId) {
@@ -310,23 +247,6 @@ export const authAPI = {
       })
     } catch (error) {
       return failureResult(error, "获取用户信息失败")
-    }
-  },
-
-  async verifyToken(token) {
-    if (!token || isAccessTokenExpired(token)) {
-      return {
-        success: false,
-        code: 401,
-        message: "Token 无效或已过期",
-      }
-    }
-
-    return {
-      success: true,
-      code: 200,
-      message: "Token 验证通过",
-      payload: TokenManager.parseToken(token) || {},
     }
   },
 
@@ -398,75 +318,3 @@ setAuthRefreshHandler(async () => {
   const result = await authAPI.refreshToken()
   return result.success
 })
-
-export function useAuth() {
-  const [user, setUser] = useState(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setIsLoading(true)
-        const tokenResult = await authAPI.getValidToken()
-
-        if (!tokenResult.success) {
-          setUser(null)
-          setIsAuthenticated(false)
-          return
-        }
-
-        const currentUser = await authAPI.getCurrentUser()
-        if (currentUser.success) {
-          setUser(currentUser.user)
-          setIsAuthenticated(true)
-          return
-        }
-
-        setUser(null)
-        setIsAuthenticated(false)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    checkAuth()
-  }, [])
-
-  const login = async (credentials) => {
-    setIsLoading(true)
-
-    try {
-      const response = await authAPI.login(credentials)
-      if (response.success) {
-        setUser(response.user)
-        setIsAuthenticated(true)
-      }
-
-      return response
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const logout = async () => {
-    try {
-      await authAPI.logout()
-    } finally {
-      setUser(null)
-      setIsAuthenticated(false)
-    }
-  }
-
-  const register = async (userData) => {
-    setIsLoading(true)
-
-    try {
-      return await authAPI.register(userData)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  return { user, isAuthenticated, isLoading, login, logout, register }
-}

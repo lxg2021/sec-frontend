@@ -18,8 +18,6 @@ import {
   getUserProfile,
   updateUserProfile,
   updatePassword,
-  enableTwoFactor,
-  disableTwoFactor,
   deleteAccount,
   createUser,
   logout,
@@ -300,8 +298,6 @@ export function FrameLayout({ children }) {
               getUserProfile={getUserProfile}
               updateUserProfile={updateUserProfile}
               updatePassword={updatePassword}
-              enableTwoFactor={enableTwoFactor}
-              disableTwoFactor={disableTwoFactor}
               deleteAccount={deleteAccount}
               createUser={createUser}
               logout={logout}

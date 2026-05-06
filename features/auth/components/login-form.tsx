@@ -187,18 +187,6 @@ export default function LoginForm() {
                 </Button>
               </form>
 
-              {/* 注销注册,后续由[用户管理]来添加用户 */}
-              {/*
-                    <div className="mt-6 text-center">
-                      <p className="text-slate-400 text-sm">
-                        还没有账户？{" "}
-                        <button onClick={handleRegister} className="text-blue-400 hover:text-blue-300 transition-colors">
-                          立即注册
-                        </button>
-                      </p>
-                    </div>
-              */}
-
               {/* 信息采集页面 - 优化后的版本 */}
               <div className="mt-8 pt-4 border-t border-white/10">
                 <p className="text-center text-slate-400 text-sm">

@@ -57,7 +57,6 @@ import {
   Search,
   Settings,
   ShieldCheck,
-  ShieldOff,
   Trash2,
   User,
   UserCircle2,
@@ -80,8 +79,6 @@ interface SidebarUserProps {
     oldPassword: string
     newPassword: string
   }) => Promise<{ success: boolean; message: string }>
-  enableTwoFactor: () => Promise<{ success: boolean; message: string; data?: UserProfile }>
-  disableTwoFactor: () => Promise<{ success: boolean; message: string; data?: UserProfile }>
   deleteAccount: (confirmText: string) => Promise<{ success: boolean; message: string }>
   createUser: (data: {
     username: string
@@ -120,8 +117,6 @@ export function SidebarUser({
   getUserProfile,
   updateUserProfile,
   updatePassword,
-  enableTwoFactor,
-  disableTwoFactor,
   deleteAccount,
   createUser,
   logout,
@@ -333,27 +328,6 @@ export function SidebarUser({
       })
     }
   }
-
-  const handleToggleTwoFactor = useCallback(async () => {
-    if (!user) return
-
-    try {
-      const result = user.twoFactorEnabled ? await disableTwoFactor() : await enableTwoFactor()
-      if (result.data) {
-        setUser(result.data)
-      }
-      toast({
-        title: tCommon("success"),
-        description: result.message,
-      })
-    } catch (error) {
-      toast({
-        title: tCommon("error"),
-        description: error instanceof Error ? error.message : t("operationFailed"),
-        variant: "destructive",
-      })
-    }
-  }, [disableTwoFactor, enableTwoFactor, t, tCommon, toast, user])
 
   const handleDeleteAccount = async () => {
     if (submittingDeleteAccount) return
@@ -575,20 +549,6 @@ export function SidebarUser({
           <ContextMenuItem onClick={() => setDialogOpen("password")}>
             <Key className="mr-2 h-4 w-4" />
             {t("changePassword")}
-          </ContextMenuItem>
-          <ContextMenuSeparator />
-          <ContextMenuItem onClick={handleToggleTwoFactor}>
-            {user.twoFactorEnabled ? (
-              <>
-                <ShieldOff className="mr-2 h-4 w-4" />
-                {t("disable2fa")}
-              </>
-            ) : (
-              <>
-                <ShieldCheck className="mr-2 h-4 w-4" />
-                {t("enable2fa")}
-              </>
-            )}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem onClick={handleLogout} disabled={submittingLogout}>
