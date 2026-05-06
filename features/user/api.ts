@@ -431,6 +431,8 @@ export async function deleteAccount(): Promise<ApiResponse> {
     user_id: currentUser.userId,
     tenant_id: currentUser.tenantId,
   })
+  clearAuthTokens()
+  sessionStorage.removeItem("user_session")
 
   return {
     success: true,
@@ -439,18 +441,30 @@ export async function deleteAccount(): Promise<ApiResponse> {
 }
 
 export async function logout(): Promise<ApiResponse> {
+  let result: ApiResponse | null = null
+  let logoutError: unknown = null
+
   try {
-    const result = await http.post("logout", {
+    result = await http.post("logout", {
       request_id: createRequestId(),
       tenant_id: getCurrentTenantId(),
     })
-
-    return {
-      success: true,
-      message: result.message || "已退出登录",
-    }
+  } catch (error) {
+    logoutError = error
   } finally {
     clearAuthTokens()
     sessionStorage.removeItem("user_session")
+  }
+
+  if (logoutError) {
+    return {
+      success: false,
+      message: logoutError instanceof Error ? logoutError.message : "服务端退出登录失败，已清除本地登录状态",
+    }
+  }
+
+  return {
+    success: true,
+    message: result?.message || "已退出登录",
   }
 }

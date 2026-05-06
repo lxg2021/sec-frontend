@@ -135,6 +135,8 @@ export function SidebarUser({
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState<DialogType>(null)
   const [submittingCreateUser, setSubmittingCreateUser] = useState(false)
+  const [submittingDeleteAccount, setSubmittingDeleteAccount] = useState(false)
+  const [submittingLogout, setSubmittingLogout] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState({
     old: false,
     next: false,
@@ -354,6 +356,8 @@ export function SidebarUser({
   }, [disableTwoFactor, enableTwoFactor, t, tCommon, toast, user])
 
   const handleDeleteAccount = async () => {
+    if (submittingDeleteAccount) return
+
     if (formData.deleteConfirm !== "CONFIRM_DELETE") {
       toast({
         title: tCommon("error"),
@@ -364,28 +368,35 @@ export function SidebarUser({
     }
 
     try {
+      setSubmittingDeleteAccount(true)
       const result = await deleteAccount(formData.deleteConfirm)
       toast({
         title: tCommon("success"),
         description: result.message,
       })
       setDialogOpen(null)
-      await loadUserProfile()
+      window.location.href = "/login"
     } catch (error) {
       toast({
         title: tCommon("error"),
         description: error instanceof Error ? error.message : t("deleteFailed"),
         variant: "destructive",
       })
+    } finally {
+      setSubmittingDeleteAccount(false)
     }
   }
 
   const handleLogout = useCallback(async () => {
+    if (submittingLogout) return
+
     try {
+      setSubmittingLogout(true)
       const result = await logout()
       toast({
-        title: tCommon("success"),
+        title: result.success ? tCommon("success") : tCommon("error"),
         description: result.message,
+        variant: result.success ? "default" : "destructive",
       })
       window.location.href = "/login"
     } catch (error) {
@@ -394,8 +405,10 @@ export function SidebarUser({
         description: error instanceof Error ? error.message : t("logoutFailed"),
         variant: "destructive",
       })
+    } finally {
+      setSubmittingLogout(false)
     }
-  }, [logout, t, tCommon, toast])
+  }, [logout, submittingLogout, t, tCommon, toast])
 
   const handleCreateUser = useCallback(() => {
     setFormData((prev) => ({
@@ -578,7 +591,7 @@ export function SidebarUser({
             )}
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem onClick={handleLogout}>
+          <ContextMenuItem onClick={handleLogout} disabled={submittingLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             {t("logout")}
           </ContextMenuItem>
@@ -1029,10 +1042,10 @@ export function SidebarUser({
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(null)}>
+            <Button variant="outline" onClick={() => setDialogOpen(null)} disabled={submittingDeleteAccount}>
               {t("cancel")}
             </Button>
-            <Button variant="destructive" onClick={handleDeleteAccount}>
+            <Button variant="destructive" onClick={handleDeleteAccount} disabled={submittingDeleteAccount}>
               {t("confirmDelete")}
             </Button>
           </DialogFooter>
