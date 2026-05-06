@@ -35,18 +35,23 @@ export function ScannerDownload({ platforms }: ScannerDownloadProps) {
   }
 
   return (
-    <Card className="border-0 bg-white dark:bg-gray-800">
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg">
-            <Download className="h-8 w-8 text-primary" />
+    <Card className="border border-slate-200 bg-white dark:border-slate-700 dark:bg-gray-800">
+      <CardHeader className="pb-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/40">
+            <Download className="h-5 w-5 text-slate-900 dark:text-slate-100" />
           </div>
 
-          <div>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              {t("title")}
-            </CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                01
+              </span>
+              <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
+                {t("title")}
+              </CardTitle>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               {t("description")}
             </p>
           </div>

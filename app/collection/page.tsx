@@ -218,17 +218,17 @@ export default function AssetCollectorPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
         <Card className="border-0 bg-gray-50 shadow-none">
-          <CardContent className="px-5 py-4">
-            <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+          <CardContent className="px-5 py-5">
+            <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-[1fr_auto_1fr]">
               <div className="flex items-center justify-center sm:justify-start">
                 <LanguageSwitch className="h-9 w-9 rounded-md border text-slate-600 hover:bg-slate-50 hover:text-slate-900" />
               </div>
 
-              <div className="flex items-center justify-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 bg-transparent">
+              <div className="flex flex-col items-center justify-center gap-2 text-center">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md border border-black/10 bg-transparent">
                   <Layers3 className="h-5 w-5 text-black" />
                 </div>
-                <h1 className="text-3xl font-semibold tracking-tight text-slate-950">{t("title")}</h1>
+                <h1 className="text-[30px] font-bold tracking-tight text-slate-950">{t("title")}</h1>
               </div>
 
               <div className="flex items-center justify-center sm:justify-end">

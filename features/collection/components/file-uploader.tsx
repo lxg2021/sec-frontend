@@ -147,18 +147,23 @@ export function FileUploader({
   }
 
   return (
-    <Card className="border-0 bg-white dark:bg-gray-800">
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg">
-            <Upload className="h-8 w-8 text-primary" />
+    <Card className="border border-slate-200 bg-white dark:border-slate-700 dark:bg-gray-800">
+      <CardHeader className="pb-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900/40">
+            <Upload className="h-5 w-5 text-slate-900 dark:text-slate-100" />
           </div>
 
-          <div>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              {defaultTexts.title}
-            </CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                02
+              </span>
+              <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">
+                {defaultTexts.title}
+              </CardTitle>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               {defaultTexts.description}
             </p>
           </div>
@@ -179,9 +184,9 @@ export function FileUploader({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`
-            relative border-2 border-dashed rounded-lg p-8 transition-colors
-            ${isDragging ? "border-primary bg-primary/5" : "border-border"}
-            ${uploadStatus === "idle" && !disabled ? "hover:border-primary/50 hover:bg-accent/50" : ""}
+            relative rounded-lg border border-dashed p-8 transition-colors
+            ${isDragging ? "border-slate-400 bg-slate-50" : "border-slate-200 bg-slate-50/40"}
+            ${uploadStatus === "idle" && !disabled ? "hover:border-slate-300 hover:bg-slate-50" : ""}
             ${disabled ? "opacity-50 cursor-not-allowed" : ""}
           `}
         >
@@ -196,7 +201,7 @@ export function FileUploader({
           <div className="flex flex-col items-center justify-center gap-4 text-center">
             {uploadStatus === "idle" && (
               <>
-                <FileText className="h-12 w-12 text-muted-foreground" />
+                <FileText className="h-12 w-12 text-slate-500" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium">{defaultTexts.dragDropText}</p>
                   <p className="text-xs text-muted-foreground">{defaultTexts.dragDropHint}</p>
@@ -219,9 +224,9 @@ export function FileUploader({
 
             {uploadStatus === "success" && (
               <>
-                <CheckCircle2 className="h-12 w-12 text-green-600" />
+                <CheckCircle2 className="h-12 w-12 text-emerald-600" />
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-green-600">{defaultTexts.successText}</p>
+                  <p className="text-sm font-medium text-emerald-600">{defaultTexts.successText}</p>
                   <p className="text-xs text-muted-foreground">{fileName}</p>
                   <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 bg-transparent">
                     <X className="h-4 w-4" />
@@ -233,9 +238,9 @@ export function FileUploader({
 
             {uploadStatus === "error" && (
               <>
-                <AlertCircle className="h-12 w-12 text-destructive" />
+                <AlertCircle className="h-12 w-12 text-red-600" />
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-destructive">{defaultTexts.errorText}</p>
+                  <p className="text-sm font-medium text-red-600">{defaultTexts.errorText}</p>
                   <p className="text-xs text-muted-foreground">{errorMessage}</p>
                   <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 bg-transparent">
                     <X className="h-4 w-4" />
