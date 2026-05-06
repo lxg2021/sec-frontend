@@ -4,7 +4,7 @@ import { ensureLogicGroupIds } from "@/features/collection/lib/logic-group-utils
 export interface AssetParserMessages {
   invalidShape: string
   emptyAssets: string
-  emptyLogicGroups: string
+  emptyLogicGroups?: string
   tenantRequired: string
   requiredString: (values: { row: number; field: string }) => string
   requiredArray: (values: { row: number; field: string }) => string
@@ -14,7 +14,7 @@ export interface AssetParserMessages {
 }
 
 const defaultMessages: AssetParserMessages = {
-  invalidShape: "Invalid file format: expected tenant_id, logic_groups, and hosts.",
+  invalidShape: "Invalid file format: expected tenant_id and hosts.",
   emptyAssets: "No host data was found in the file.",
   emptyLogicGroups: "No logic group data was found in the file.",
   tenantRequired: "tenant_id is required.",
@@ -49,9 +49,6 @@ export function parseAssetFile(content: string, messages: AssetParserMessages = 
 
     if (!tenantId) {
       throw new Error(messages.tenantRequired)
-    }
-    if (logicGroups.length === 0) {
-      throw new Error(messages.emptyLogicGroups)
     }
     if (hosts.length === 0) {
       throw new Error(messages.emptyAssets)

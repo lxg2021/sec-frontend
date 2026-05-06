@@ -22,7 +22,8 @@
       "getLogicGroups": "/sensor/host-mgr/logic-groups/get",
       "replaceLogicTree": "/sensor/host-mgr/logic-groups/replace-tree",
       "importHosts": "/sensor/host-mgr/host/import-hosts",
-      "approveHost": "/sensor/host-mgr/host/approve-host"
+      "approveHost": "/sensor/host-mgr/host/approve-host",
+      "submitCollection": "/sensor/collection/submit"
     }
   }
 }

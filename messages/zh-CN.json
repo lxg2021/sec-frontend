@@ -158,7 +158,8 @@
         "departmentInvalid": "部门不在当前逻辑组中",
         "saveSuccess": "保存成功！",
         "saveFailed": "保存失败",
-        "saving": "正在保存中..."
+        "saving": "正在保存中...",
+        "logicGroupsLoadFailed": "组织结构加载失败"
       },
       "uploader": {
         "acceptDisplay": "JSON 格式文件",
@@ -175,7 +176,7 @@
         "validationFailed": "文件验证失败",
         "parseFailed": "文件解析失败，请检查文件格式",
         "parser": {
-          "invalidShape": "文件格式不正确：需要包含 tenant_id、logic_groups 和 hosts",
+          "invalidShape": "文件格式不正确：需要包含 tenant_id 和 hosts",
           "emptyAssets": "文件中没有主机数据",
           "emptyLogicGroups": "文件中没有逻辑组数据",
           "tenantRequired": "tenant_id 为必填项",
@@ -202,7 +203,7 @@
         "title": "用户信息填写",
         "emptyDescription": "上传文件后，在此填写资产相关的用户信息",
         "empty": "请先上传资产文件",
-        "description": "请填写用户相关信息（标记 * 的为必填项）",
+        "description": "请填写用户相关信息，并可从当前组织结构中选择所属部门",
         "hostName": "主机名",
         "ipAddress": "IP地址",
         "macAddress": "MAC地址",
@@ -220,6 +221,7 @@
         "phonePlaceholder": "请输入电话",
         "emailPlaceholder": "请输入邮箱",
         "departmentPlaceholder": "请选择部门",
+        "departmentEmpty": "当前无可选部门",
         "save": "保存信息"
       },
       "tenant": {

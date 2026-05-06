@@ -77,6 +77,14 @@ export interface CollectionImportData {
   tenant_id: string
   logic_groups: UserLogicGroup[]
   hosts: UiAssetData[]
+  submitter?: {
+    name?: string
+    phone?: string
+    email?: string
+    company?: string
+    remark?: string
+  }
+  metadata?: Record<string, string>
 }
 
 export interface RegisterAgentPayload {

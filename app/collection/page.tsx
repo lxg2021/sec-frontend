@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Building2, Shield } from "lucide-react"
+import { Building2, Layers3 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { ScannerDownload } from "@/features/collection/components/scanner-download"
 import { FileUploader } from "@/features/collection/components/file-uploader"
@@ -9,8 +9,8 @@ import { UserInfoTable } from "@/features/collection/components/user-info-table"
 import { AssetCollectorFooter } from "@/features/collection/components/asset-collector-footer"
 import type { CollectionImportData, UiAssetData, UserInfo } from "@/features/collection/types"
 import { defaultCollectionTemplate, platformDownloads, PUBLIC_TENANT_ID } from "@/features/collection/lib/collection-template"
-import { buildReplaceLogicTreeGroups, ensureLogicGroupIds, findLogicGroupIdByPath } from "@/features/collection/lib/logic-group-utils"
-import { replaceLogicTree, importHosts, approveHost } from "@/features/collection/api"
+import { ensureLogicGroupIds, findLogicGroupIdByPath } from "@/features/collection/lib/logic-group-utils"
+import { getLogicGroups, submitCollection } from "@/features/collection/api"
 import { validateEmail, validatePhone } from "@/features/collection/lib/validation"
 
 export default function AssetCollectorPage() {
@@ -21,7 +21,36 @@ export default function AssetCollectorPage() {
   const [userInfos, setUserInfos] = useState<Record<string, UserInfo>>({})
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>({})
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoadingGroups, setIsLoadingGroups] = useState(false)
   const [submitMessage, setSubmitMessage] = useState("")
+
+  useEffect(() => {
+    let canceled = false
+
+    async function loadLogicGroups() {
+      setIsLoadingGroups(true)
+      try {
+        const response = await getLogicGroups(tenantId)
+        if (!canceled) {
+          setLogicGroups(logicGroupsFromBackend(response.data))
+        }
+      } catch (error) {
+        if (!canceled) {
+          setSubmitMessage(error instanceof Error ? error.message : t("validation.logicGroupsLoadFailed"))
+        }
+      } finally {
+        if (!canceled) {
+          setIsLoadingGroups(false)
+        }
+      }
+    }
+
+    loadLogicGroups()
+
+    return () => {
+      canceled = true
+    }
+  }, [tenantId, t])
 
   useEffect(() => {
     const initialUserInfos: Record<string, UserInfo> = {}
@@ -54,7 +83,6 @@ export default function AssetCollectorPage() {
   }
 
   const handleFileUploaded = (data: CollectionImportData) => {
-    setLogicGroups(ensureLogicGroupIds(data.logic_groups))
     setUploadedAssets(data.hosts)
     setSubmitMessage("")
   }
@@ -147,9 +175,6 @@ export default function AssetCollectorPage() {
 
     setIsSaving(true)
     try {
-      const logicTreeGroups = buildReplaceLogicTreeGroups(logicGroups)
-      await replaceLogicTree(tenantId, logicTreeGroups)
-
       const confirmedAssets = uploadedAssets.map((asset) => {
         const userInfo = userInfos[asset.agent_id]
         const groupId = userInfo.department ? findLogicGroupIdByPath(logicGroups, userInfo.department) : undefined
@@ -167,39 +192,15 @@ export default function AssetCollectorPage() {
         }
       })
 
-      const hostsPayload = confirmedAssets.map((asset) => {
-        const owner = asset.owner
-        return {
-          request_id: String(Date.now()),
-          agent_id: asset.agent_id,
-          hostname: asset.hostname,
-          ip: asset.ip,
-          os_type: asset.os_type || "unknown",
-          os_name: asset.os_name,
-          os_version: asset.os_version,
-          product_id: asset.product_id,
-          cpu_id: asset.cpu_id,
-          board_serial: asset.board_serial,
-          harddisk_id: asset.harddisk_id,
-          macs: asset.macs,
-          group_id: asset.group_id,
-          owner: owner
-            ? {
-                agent_id: asset.agent_id,
-                username: owner.username,
-                phone: owner.phone,
-                email: owner.email,
-                role: owner.role,
-              }
-            : undefined,
-          tenant_id: tenantId,
-          timestamp: Date.now(),
-        }
+      await submitCollection({
+        tenant_id: tenantId,
+        logic_groups: logicGroups,
+        hosts: confirmedAssets,
+        metadata: {
+          source: "collection-page",
+          template_version: "2",
+        },
       })
-
-      await importHosts(tenantId, hostsPayload)
-
-      await Promise.all(confirmedAssets.map((asset) => approveHost(tenantId, asset)))
 
       setSubmitMessage(t("validation.saveSuccess"))
     } catch (error) {
@@ -212,20 +213,24 @@ export default function AssetCollectorPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between rounded-xl border bg-white px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-50 p-2">
-              <Shield className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="text-sm text-gray-500">{t("subtitle")}</p>
-            </div>
-          </div>
+        <div className="rounded-xl border bg-white px-4 py-4 shadow-sm">
+          <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+            <div className="hidden sm:block" />
 
-          <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            <span>{tenantLabel}</span>
+            <div className="flex items-center justify-center gap-3">
+              <div className="rounded-lg bg-blue-50 p-2">
+                <Layers3 className="h-5 w-5 text-blue-600" />
+              </div>
+              <h1 className="text-xl font-semibold text-gray-900">{t("title")}</h1>
+            </div>
+
+            <div className="flex items-center justify-center sm:justify-end">
+              <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground">
+                <Building2 className="h-4 w-4" />
+                <span>{t("tenant.label")}</span>
+                <span className="font-medium text-foreground">{tenantLabel}</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -247,6 +252,8 @@ export default function AssetCollectorPage() {
           userInfos={userInfos}
           errors={errors}
           userLogicGroups={logicGroups}
+          isLoadingLogicGroups={isLoadingGroups}
+          isSaving={isSaving}
           onUserInfoChange={handleUserInfoChange}
           onFieldBlur={handleFieldBlur}
           onSave={handleSave}
@@ -262,4 +269,37 @@ export default function AssetCollectorPage() {
       <AssetCollectorFooter />
     </div>
   )
+}
+
+function logicGroupsFromBackend(groups: any[]): ReturnType<typeof ensureLogicGroupIds> {
+  const items = Array.isArray(groups) ? groups : []
+  const byParent = new Map<string, any[]>()
+
+  items.forEach((item) => {
+    const parentId = String(item.parent_id || "")
+    byParent.set(parentId, [...(byParent.get(parentId) || []), item])
+  })
+
+  const build = (parentId = ""): any[] => {
+    return (byParent.get(parentId) || []).map((item) => ({
+      id: String(item.id || ""),
+      name: String(item.name || ""),
+      path: String(item.full_path || item.name || ""),
+      type: logicGroupTypeFromBackend(item),
+      parentId: item.parent_id || undefined,
+      children: build(String(item.id || "")),
+    }))
+  }
+
+  return ensureLogicGroupIds(build())
+}
+
+function logicGroupTypeFromBackend(item: any) {
+  const type = item.type ?? item.group_type
+  if (type === "company" || type === "department" || type === "group") {
+    return type
+  }
+  if (Number(type) === 1) return "company"
+  if (Number(type) === 2) return "department"
+  return "group"
 }

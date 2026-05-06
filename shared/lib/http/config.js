@@ -25,6 +25,7 @@ const FALLBACK_CONFIG = {
       replaceLogicTree: "/sensor/host-mgr/logic-groups/replace-tree",
       importHosts: "/sensor/host-mgr/host/import-hosts",
       approveHost: "/sensor/host-mgr/host/approve-host",
+      submitCollection: "/sensor/collection/submit",
     },
   },
 }

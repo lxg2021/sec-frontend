@@ -158,7 +158,8 @@
         "departmentInvalid": "Department is not in the current logic groups.",
         "saveSuccess": "Saved successfully.",
         "saveFailed": "Save failed.",
-        "saving": "Saving..."
+        "saving": "Saving...",
+        "logicGroupsLoadFailed": "Failed to load organization structure."
       },
       "uploader": {
         "acceptDisplay": "JSON files",
@@ -175,7 +176,7 @@
         "validationFailed": "File validation failed.",
         "parseFailed": "Failed to parse the file. Check the file format.",
         "parser": {
-          "invalidShape": "Invalid file format: expected tenant_id, logic_groups, and hosts.",
+          "invalidShape": "Invalid file format: expected tenant_id and hosts.",
           "emptyAssets": "No host data was found in the file.",
           "emptyLogicGroups": "No logic group data was found in the file.",
           "tenantRequired": "tenant_id is required.",
@@ -202,7 +203,7 @@
         "title": "User Information",
         "emptyDescription": "Upload an asset file, then fill in related user information here.",
         "empty": "Upload an asset file first.",
-        "description": "Fill in user information. Fields marked with * are required.",
+        "description": "Fill in user information and optionally choose a department from the current organization.",
         "hostName": "Host Name",
         "ipAddress": "IP Address",
         "macAddress": "MAC Address",
@@ -220,6 +221,7 @@
         "phonePlaceholder": "Enter phone",
         "emailPlaceholder": "Enter email",
         "departmentPlaceholder": "Select department",
+        "departmentEmpty": "No departments available",
         "save": "Save Information"
       },
       "tenant": {

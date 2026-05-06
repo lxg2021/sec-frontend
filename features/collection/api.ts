@@ -1,6 +1,11 @@
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
-import type { BackendLogicGroupCreateData, RegisterAgentPayload, UiAssetData } from "@/features/collection/types"
+import type {
+  BackendLogicGroupCreateData,
+  CollectionImportData,
+  RegisterAgentPayload,
+  UiAssetData,
+} from "@/features/collection/types"
 
 export async function replaceLogicTree(tenantId: string, groups: BackendLogicGroupCreateData[]) {
   return http.post("replaceLogicTree", {
@@ -40,5 +45,16 @@ export async function getLogicGroups(tenantId: string) {
   return http.post("getLogicGroups", {
     request_id: createRequestId(),
     tenant_id: tenantId,
+  }, {
+    auth: false,
+  })
+}
+
+export async function submitCollection(data: CollectionImportData) {
+  return http.post("submitCollection", {
+    request_id: createRequestId(),
+    ...data,
+  }, {
+    auth: false,
   })
 }
