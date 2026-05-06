@@ -1,7 +1,21 @@
-﻿"use client"
+"use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import type { MouseEvent } from "react"
+import { useLocale, useTranslations } from "next-intl"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar"
+import { Badge } from "@/shared/ui/badge"
+import { Button } from "@/shared/ui/button"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -17,34 +31,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
-import { Button } from "@/shared/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { useToast } from "@/shared/hooks/use-toast"
-import type { UserProfile } from "@/features/user/api"
+import type { UserListItem, UserProfile } from "@/features/user/api"
+import { hardDeleteUser, listUsers } from "@/features/user/api"
 import {
-  User,
-  Settings,
-  Key,
-  LogOut,
-  Trash2,
-  ShieldCheck,
-  ShieldOff,
-  UserPlus,
-  Mail,
-  Phone,
-  LockKeyhole,
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
   Eye,
   EyeOff,
+  FileUser,
   IdCard,
-  CalendarClock,
-  Clock3,
+  Key,
+  LockKeyhole,
+  LogOut,
+  Mail,
+  MoreHorizontal,
+  Phone,
+  RefreshCw,
+  Search,
+  Settings,
+  ShieldCheck,
+  ShieldOff,
+  Trash2,
+  User,
+  UserCircle2,
+  UserPlus,
   Users,
 } from "lucide-react"
-import { useLocale, useTranslations } from "next-intl"
 
-type DialogType = "profile" | "create" | "edit" | "password" | "delete" | null
+type DialogType = "profile" | "create" | "edit" | "password" | "delete" | "users" | null
 
 interface SidebarUserProps {
   collapsed?: boolean
@@ -72,6 +93,26 @@ interface SidebarUserProps {
   logout: () => Promise<{ success: boolean; message: string }>
 }
 
+const ROLE_OPTIONS = [
+  { value: "1", key: "roleAdmin" },
+  { value: "3", key: "roleAuditor" },
+  { value: "2", key: "roleOperator" },
+]
+
+function formatDateTime(value: string, locale: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "-"
+
+  return date.toLocaleString(locale)
+}
+
+function compactId(value: string) {
+  if (!value) return "-"
+  if (value.length <= 12) return value
+
+  return `${value.slice(0, 8)}...${value.slice(-4)}`
+}
+
 export function SidebarUser({
   collapsed = false,
   getUserProfile,
@@ -86,19 +127,23 @@ export function SidebarUser({
   const t = useTranslations("shell.user")
   const tCommon = useTranslations("common")
   const locale = useLocale()
+  const { toast } = useToast()
+
   const [user, setUser] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [submittingCreateUser, setSubmittingCreateUser] = useState(false)
-  const [createUserResult, setCreateUserResult] = useState<{
-    type: "success" | "error"
-    message: string
-  } | null>(null)
   const [dialogOpen, setDialogOpen] = useState<DialogType>(null)
+  const [submittingCreateUser, setSubmittingCreateUser] = useState(false)
   const [passwordVisible, setPasswordVisible] = useState({
     old: false,
     next: false,
     confirm: false,
   })
+  const [users, setUsers] = useState<UserListItem[]>([])
+  const [usersLoading, setUsersLoading] = useState(false)
+  const [usersPage, setUsersPage] = useState(1)
+  const [usersPageSize] = useState(10)
+  const [usersSearch, setUsersSearch] = useState("")
+  const [userDeleteTarget, setUserDeleteTarget] = useState<UserListItem | null>(null)
   const [formData, setFormData] = useState({
     nickname: "",
     phone: "",
@@ -114,7 +159,8 @@ export function SidebarUser({
     createConfirmPassword: "",
     createRole: "2",
   })
-  const { toast } = useToast()
+
+  const isAdmin = user?.role === "admin"
 
   const loadUserProfile = useCallback(async () => {
     try {
@@ -136,11 +182,68 @@ export function SidebarUser({
     } finally {
       setLoading(false)
     }
-  }, [getUserProfile, toast])
+  }, [getUserProfile, t, tCommon, toast])
 
   useEffect(() => {
-    loadUserProfile()
+    void loadUserProfile()
   }, [loadUserProfile])
+
+  const roleLabel = useCallback(
+    (value: string | number) => {
+      const normalized = String(value).toLowerCase()
+      if (normalized === "1" || normalized === "admin") return t("roleAdmin")
+      if (normalized === "3" || normalized === "auditor") return t("roleAuditor")
+      return t("roleOperator")
+    },
+    [t],
+  )
+
+  const statusLabel = useCallback(
+    (value: string | number) => {
+      const normalized = String(value).toLowerCase()
+      if (normalized === "active" || normalized === "2") return t("statusActive")
+      if (normalized === "inactive" || normalized === "3") return t("statusInactive")
+      if (normalized === "locked" || normalized === "4") return t("statusLocked")
+      if (normalized === "banned" || normalized === "5") return t("statusBanned")
+      return t("statusPending")
+    },
+    [t],
+  )
+
+  const filteredUsers = useMemo(() => {
+    const keyword = usersSearch.trim().toLowerCase()
+    if (!keyword) return users
+
+    return users.filter((item) =>
+      [item.username, item.email, item.phone, item.userId, item.role, item.status].some((value) =>
+        String(value || "").toLowerCase().includes(keyword),
+      ),
+    )
+  }, [users, usersSearch])
+
+  const hasNextPage = users.length === usersPageSize
+
+  const loadUsers = useCallback(async () => {
+    try {
+      setUsersLoading(true)
+      const result = await listUsers({ page: usersPage, pageSize: usersPageSize })
+      setUsers(result.items)
+    } catch (error) {
+      toast({
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("loadUsersFailed"),
+        variant: "destructive",
+      })
+    } finally {
+      setUsersLoading(false)
+    }
+  }, [t, tCommon, toast, usersPage, usersPageSize])
+
+  useEffect(() => {
+    if (dialogOpen === "users") {
+      void loadUsers()
+    }
+  }, [dialogOpen, loadUsers])
 
   const handleUpdateProfile = async () => {
     try {
@@ -149,7 +252,9 @@ export function SidebarUser({
         phone: formData.phone || undefined,
         email: formData.email,
       })
-      setUser(result.data!)
+      if (result.data) {
+        setUser(result.data)
+      }
       toast({
         title: tCommon("success"),
         description: result.message,
@@ -209,7 +314,9 @@ export function SidebarUser({
 
     try {
       const result = user.twoFactorEnabled ? await disableTwoFactor() : await enableTwoFactor()
-      setUser(result.data!)
+      if (result.data) {
+        setUser(result.data)
+      }
       toast({
         title: tCommon("success"),
         description: result.message,
@@ -221,7 +328,7 @@ export function SidebarUser({
         variant: "destructive",
       })
     }
-  }, [user, enableTwoFactor, disableTwoFactor, toast])
+  }, [disableTwoFactor, enableTwoFactor, t, tCommon, toast, user])
 
   const handleDeleteAccount = async () => {
     if (formData.deleteConfirm !== "CONFIRM_DELETE") {
@@ -265,10 +372,9 @@ export function SidebarUser({
         variant: "destructive",
       })
     }
-  }, [logout, toast])
+  }, [logout, t, tCommon, toast])
 
   const handleCreateUser = useCallback(() => {
-    setCreateUserResult(null)
     setFormData((prev) => ({
       ...prev,
       createUsername: "",
@@ -282,53 +388,32 @@ export function SidebarUser({
   }, [])
 
   const handleSubmitCreateUser = async () => {
-    setCreateUserResult(null)
     const username = formData.createUsername.trim()
     const email = formData.createEmail.trim()
     const phone = formData.createPhone.trim()
 
     if (username.length < 3) {
-      toast({
-        title: tCommon("error"),
-        description: t("createUsernameInvalid"),
-        variant: "destructive",
-      })
+      toast({ title: tCommon("error"), description: t("createUsernameInvalid"), variant: "destructive" })
       return
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast({
-        title: tCommon("error"),
-        description: t("createEmailInvalid"),
-        variant: "destructive",
-      })
+      toast({ title: tCommon("error"), description: t("createEmailInvalid"), variant: "destructive" })
       return
     }
 
     if (phone && !/^\+[1-9]\d{6,14}$/.test(phone)) {
-      toast({
-        title: tCommon("error"),
-        description: t("createPhoneInvalid"),
-        variant: "destructive",
-      })
+      toast({ title: tCommon("error"), description: t("createPhoneInvalid"), variant: "destructive" })
       return
     }
 
     if (formData.createPassword.length < 6) {
-      toast({
-        title: tCommon("error"),
-        description: t("createPasswordInvalid"),
-        variant: "destructive",
-      })
+      toast({ title: tCommon("error"), description: t("createPasswordInvalid"), variant: "destructive" })
       return
     }
 
     if (formData.createPassword !== formData.createConfirmPassword) {
-      toast({
-        title: tCommon("error"),
-        description: t("passwordMismatch"),
-        variant: "destructive",
-      })
+      toast({ title: tCommon("error"), description: t("passwordMismatch"), variant: "destructive" })
       return
     }
 
@@ -348,22 +433,43 @@ export function SidebarUser({
       })
       setDialogOpen(null)
     } catch (error) {
-      const message = error instanceof Error ? error.message : t("createUserFailed")
       toast({
         title: tCommon("error"),
-        description: message,
+        description: error instanceof Error ? error.message : t("createUserFailed"),
         variant: "destructive",
-      })
-      setCreateUserResult({
-        type: "error",
-        message,
       })
     } finally {
       setSubmittingCreateUser(false)
     }
   }
 
-  const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleOpenUsers = useCallback(() => {
+    setUsersSearch("")
+    setUsersPage(1)
+    setDialogOpen("users")
+  }, [])
+
+  const handleDeleteUser = async () => {
+    if (!userDeleteTarget) return
+
+    try {
+      const result = await hardDeleteUser(userDeleteTarget.userId, userDeleteTarget.tenantId)
+      toast({
+        title: tCommon("success"),
+        description: result.message || t("deleteUserSuccess"),
+      })
+      setUserDeleteTarget(null)
+      await loadUsers()
+    } catch (error) {
+      toast({
+        title: tCommon("error"),
+        description: error instanceof Error ? error.message : t("deleteUserFailed"),
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleOpenMenu = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     event.currentTarget.dispatchEvent(
       new MouseEvent("contextmenu", {
@@ -376,12 +482,12 @@ export function SidebarUser({
 
   if (loading || !user) {
     return (
-      <div className={`flex items-center gap-3 p-3 rounded-lg bg-slate-800/50 ${collapsed ? 'justify-center' : ''}`}>
-        <div className="h-10 w-10 rounded-full bg-slate-700 animate-pulse" />
+      <div className={`flex items-center gap-3 rounded-lg bg-slate-800/50 p-3 ${collapsed ? "justify-center" : ""}`}>
+        <div className="h-10 w-10 animate-pulse rounded-full bg-slate-700" />
         {!collapsed && (
           <div className="flex-1 space-y-2">
-            <div className="h-4 w-24 bg-slate-700 rounded animate-pulse" />
-            <div className="h-3 w-32 bg-slate-700 rounded animate-pulse" />
+            <div className="h-4 w-24 animate-pulse rounded bg-slate-700" />
+            <div className="h-3 w-32 animate-pulse rounded bg-slate-700" />
           </div>
         )}
       </div>
@@ -395,45 +501,36 @@ export function SidebarUser({
           <button
             type="button"
             onClick={handleOpenMenu}
-            className={`
-            flex w-full items-center gap-3 p-3 rounded-lg
-            text-slate-400 border border-transparent
-            transition-colors
-            cursor-pointer
-            ${collapsed ? 'justify-center' : ''}
-
-            hover:text-white
-            hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50
-            hover:border-slate-600/30
-          `}
+            className={`flex w-full cursor-pointer items-center gap-3 rounded-lg border border-transparent p-3 text-slate-400 transition-colors hover:border-slate-600/30 hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 hover:text-white ${collapsed ? "justify-center" : ""}`}
           >
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.nickname} />
-              <AvatarFallback className="bg-slate-700 text-slate-300">
-                {user.nickname.slice(0, 2)}
-              </AvatarFallback>
+              <AvatarImage src={user.avatar || "/icons/avatars/default.svg"} alt={user.nickname} />
+              <AvatarFallback className="bg-slate-700 text-slate-300">{user.nickname.slice(0, 2)}</AvatarFallback>
             </Avatar>
             {!collapsed && (
-              <div className="flex-1 min-w-0 text-left">
-                <p className="text-sm font-medium text-white truncate">{user.nickname}</p>
-                <p className="text-xs text-slate-400 truncate">{user.email}</p>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate text-sm font-medium text-white">{user.nickname}</p>
+                <p className="truncate text-xs text-slate-400">{user.email}</p>
               </div>
             )}
           </button>
         </ContextMenuTrigger>
-        <ContextMenuContent
-          className="w-56"
-          collisionPadding={8} // 避免边缘贴边
-        >
+        <ContextMenuContent className="w-56" collisionPadding={8}>
           <ContextMenuItem onClick={() => setDialogOpen("profile")}>
             <User className="mr-2 h-4 w-4" />
             {t("viewProfile")}
           </ContextMenuItem>
-          {user.role === "admin" && (
-            <ContextMenuItem onClick={handleCreateUser}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              {t("createUser")}
-            </ContextMenuItem>
+          {isAdmin && (
+            <>
+              <ContextMenuItem onClick={handleCreateUser}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                {t("createUser")}
+              </ContextMenuItem>
+              <ContextMenuItem onClick={handleOpenUsers}>
+                <FileUser className="mr-2 h-4 w-4" />
+                {t("userList")}
+              </ContextMenuItem>
+            </>
           )}
           <ContextMenuItem onClick={() => setDialogOpen("edit")}>
             <Settings className="mr-2 h-4 w-4" />
@@ -462,34 +559,178 @@ export function SidebarUser({
             <LogOut className="mr-2 h-4 w-4" />
             {t("logout")}
           </ContextMenuItem>
-          <ContextMenuItem
-            onClick={() => setDialogOpen("delete")}
-            className="text-red-400 focus:text-red-400"
-          >
+          <ContextMenuItem onClick={() => setDialogOpen("delete")} className="text-red-400 focus:text-red-400">
             <Trash2 className="mr-2 h-4 w-4" />
             {t("deleteAccount")}
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      {/* 创建用户对话框 */}
+      <Dialog open={dialogOpen === "users"} onOpenChange={(open) => !open && setDialogOpen(null)}>
+        <DialogContent className="max-h-[86vh] overflow-hidden sm:max-w-5xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileUser className="h-5 w-5" />
+              {t("userList")}
+            </DialogTitle>
+            <DialogDescription>{t("userListDescription")}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={usersSearch}
+                onChange={(event) => setUsersSearch(event.target.value)}
+                placeholder={t("searchUsers")}
+                className="pl-9"
+              />
+            </div>
+            <Button variant="outline" onClick={loadUsers} disabled={usersLoading} className="gap-2">
+              <RefreshCw className={`h-4 w-4 ${usersLoading ? "animate-spin" : ""}`} />
+              {tCommon("refresh")}
+            </Button>
+          </div>
+          <div className="overflow-hidden rounded-md border">
+            <div className="max-h-[52vh] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-40">
+                      <span className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        {t("username")}
+                      </span>
+                    </TableHead>
+                    <TableHead className="min-w-52">
+                      <span className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        {t("email")}
+                      </span>
+                    </TableHead>
+                    <TableHead className="min-w-36">
+                      <span className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        {t("phone")}
+                      </span>
+                    </TableHead>
+                    <TableHead className="min-w-28">
+                      <span className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        {t("role")}
+                      </span>
+                    </TableHead>
+                    <TableHead className="min-w-28">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {t("status")}
+                      </span>
+                    </TableHead>
+                    <TableHead className="w-24 text-right">
+                      {t("operation")}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {usersLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                        {tCommon("loading")}
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredUsers.length ? (
+                    filteredUsers.map((item) => (
+                      <TableRow key={item.userId}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={item.avatar || "/icons/avatars/default.svg"} alt={item.username} />
+                              <AvatarFallback>{item.username.slice(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0">
+                              <div className="truncate font-medium">{item.username || "-"}</div>
+                              <div className="font-mono text-xs text-muted-foreground">{compactId(item.userId)}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{item.email || "-"}</TableCell>
+                        <TableCell className="text-muted-foreground">{item.phone || "-"}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="gap-1">
+                            <ShieldCheck className="h-3 w-3" />
+                            {roleLabel(item.role)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={item.status === "active" ? "default" : "secondary"} className="gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            {statusLabel(item.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" aria-label={t("operation")}>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                className="text-red-600 focus:text-red-600"
+                                onClick={() => setUserDeleteTarget(item)}
+                                disabled={item.userId === user.userId}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                {t("deleteUser")}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                        {t("noUsers")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+          <DialogFooter className="items-center justify-between gap-3 sm:justify-between">
+            <div className="text-sm text-muted-foreground">
+              {t("userListCount", { count: filteredUsers.length })} · {t("pageInfo", { page: usersPage })}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={usersPage <= 1 || usersLoading}
+                onClick={() => setUsersPage((page) => Math.max(1, page - 1))}
+              >
+                {t("previousPage")}
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!hasNextPage || usersLoading}
+                onClick={() => setUsersPage((page) => page + 1)}
+              >
+                {t("nextPage")}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={dialogOpen === "create"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{t("createUserTitle")}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              {t("createUserTitle")}
+            </DialogTitle>
             <DialogDescription>{t("createUserDescription")}</DialogDescription>
           </DialogHeader>
-          {createUserResult && (
-            <div
-              className={
-                createUserResult.type === "success"
-                  ? "rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700"
-                  : "rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-              }
-            >
-              {createUserResult.message}
-            </div>
-          )}
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -500,10 +741,9 @@ export function SidebarUser({
                 <Input
                   id="createUsername"
                   value={formData.createUsername}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, createUsername: e.target.value }))}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, createUsername: event.target.value }))}
                   placeholder={t("usernamePlaceholder")}
                   minLength={3}
-                  required
                 />
               </div>
               <div className="space-y-2">
@@ -515,9 +755,8 @@ export function SidebarUser({
                   id="createEmail"
                   type="email"
                   value={formData.createEmail}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, createEmail: e.target.value }))}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, createEmail: event.target.value }))}
                   placeholder={t("emailPlaceholder")}
-                  required
                 />
               </div>
             </div>
@@ -535,9 +774,11 @@ export function SidebarUser({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">{t("roleAdmin")}</SelectItem>
-                    <SelectItem value="3">{t("roleAuditor")}</SelectItem>
-                    <SelectItem value="2">{t("roleOperator")}</SelectItem>
+                    {ROLE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {t(option.key)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -549,9 +790,8 @@ export function SidebarUser({
                 <Input
                   id="createPhone"
                   value={formData.createPhone}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, createPhone: e.target.value }))}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, createPhone: event.target.value }))}
                   placeholder={t("createPhonePlaceholder")}
-                  pattern="^\+[1-9]\d{6,14}$"
                 />
               </div>
             </div>
@@ -565,10 +805,9 @@ export function SidebarUser({
                   id="createPassword"
                   type="password"
                   value={formData.createPassword}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, createPassword: e.target.value }))}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, createPassword: event.target.value }))}
                   placeholder={t("newPasswordPlaceholder")}
                   minLength={6}
-                  required
                 />
               </div>
               <div className="space-y-2">
@@ -580,36 +819,37 @@ export function SidebarUser({
                   id="createConfirmPassword"
                   type="password"
                   value={formData.createConfirmPassword}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, createConfirmPassword: e.target.value }))}
+                  onChange={(event) => setFormData((prev) => ({ ...prev, createConfirmPassword: event.target.value }))}
                   placeholder={t("confirmPasswordPlaceholder")}
                   minLength={6}
-                  required
                 />
               </div>
             </div>
           </div>
-          <DialogFooter className="items-center sm:justify-end sm:space-x-3">
-            <Button className="w-28" variant="outline" onClick={() => setDialogOpen(null)} disabled={submittingCreateUser}>
+          <DialogFooter className="sm:justify-end">
+            <Button variant="outline" onClick={() => setDialogOpen(null)} disabled={submittingCreateUser}>
               {t("cancel")}
             </Button>
-            <Button className="w-28" onClick={handleSubmitCreateUser} disabled={submittingCreateUser}>
+            <Button onClick={handleSubmitCreateUser} disabled={submittingCreateUser}>
               {submittingCreateUser ? t("creatingUser") : t("confirmCreateUser")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* 查看资料对话框 */}
       <Dialog open={dialogOpen === "profile"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("profileTitle")}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCircle2 className="h-5 w-5" />
+              {t("profileTitle")}
+            </DialogTitle>
             <DialogDescription>{t("profileDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.nickname} />
+                <AvatarImage src={user.avatar || "/icons/avatars/default.svg"} alt={user.nickname} />
                 <AvatarFallback>{user.nickname.slice(0, 2)}</AvatarFallback>
               </Avatar>
               <div>
@@ -618,62 +858,29 @@ export function SidebarUser({
               </div>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <IdCard className="h-4 w-4" />
-                  {t("userId")}
-                </span>
-                <span className="font-mono">{user.id}</span>
-              </div>
-              {user.phone && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    {t("phone")}
-                  </span>
-                  <span>{user.phone}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  {t("email")}
-                </span>
-                <span>{user.email}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4" />
-                  {t("twoFactor")}
-                </span>
-                <span className={user.twoFactorEnabled ? "text-green-600" : ""}>
-                  {user.twoFactorEnabled ? t("enabled") : t("disabled")}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <CalendarClock className="h-4 w-4" />
-                  {t("createdAt")}
-                </span>
-                <span>{new Date(user.createdAt).toLocaleDateString(locale)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <Clock3 className="h-4 w-4" />
-                  {t("updatedAt")}
-                </span>
-                <span>{new Date(user.updatedAt).toLocaleDateString(locale)}</span>
-              </div>
+              <InfoRow icon={IdCard} label={t("userId")} value={user.id} mono />
+              <InfoRow icon={Phone} label={t("phone")} value={user.phone || "-"} />
+              <InfoRow icon={Mail} label={t("email")} value={user.email || "-"} />
+              <InfoRow icon={ShieldCheck} label={t("role")} value={roleLabel(user.role)} />
+              <InfoRow icon={CheckCircle2} label={t("status")} value={statusLabel(user.status)} />
+              <InfoRow
+                icon={CalendarClock}
+                label={t("createdAt")}
+                value={formatDateTime(user.createdAt, locale)}
+              />
+              <InfoRow icon={Clock3} label={t("updatedAt")} value={formatDateTime(user.updatedAt, locale)} />
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* 编辑信息对话框 */}
       <Dialog open={dialogOpen === "edit"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("editTitle")}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              {t("editTitle")}
+            </DialogTitle>
             <DialogDescription>{t("editDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -685,7 +892,7 @@ export function SidebarUser({
               <Input
                 id="nickname"
                 value={formData.nickname}
-                onChange={(e) => setFormData((prev) => ({ ...prev, nickname: e.target.value }))}
+                onChange={(event) => setFormData((prev) => ({ ...prev, nickname: event.target.value }))}
                 placeholder={t("usernamePlaceholder")}
               />
             </div>
@@ -698,7 +905,7 @@ export function SidebarUser({
                 id="email"
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
                 placeholder={t("emailPlaceholder")}
               />
             </div>
@@ -710,7 +917,7 @@ export function SidebarUser({
               <Input
                 id="phone"
                 value={formData.phone}
-                onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                onChange={(event) => setFormData((prev) => ({ ...prev, phone: event.target.value }))}
                 placeholder={t("phonePlaceholder")}
               />
             </div>
@@ -724,92 +931,46 @@ export function SidebarUser({
         </DialogContent>
       </Dialog>
 
-      {/* 修改密码对话框 */}
       <Dialog open={dialogOpen === "password"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("passwordTitle")}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              {t("passwordTitle")}
+            </DialogTitle>
             <DialogDescription>{t("passwordDescription")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="oldPassword" className="flex items-center gap-2">
-                <LockKeyhole className="h-4 w-4" />
-                {t("oldPassword")}
-              </Label>
-              <div className="relative">
-                <Input
-                  id="oldPassword"
-                  type={passwordVisible.old ? "text" : "password"}
-                  value={formData.oldPassword}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, oldPassword: e.target.value }))}
-                  placeholder={t("oldPasswordPlaceholder")}
-                  className="pr-10"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
-                  onClick={() => setPasswordVisible((prev) => ({ ...prev, old: !prev.old }))}
-                  aria-label={passwordVisible.old ? t("hidePassword") : t("showPassword")}
-                >
-                  {passwordVisible.old ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword" className="flex items-center gap-2">
-                <LockKeyhole className="h-4 w-4" />
-                {t("newPassword")}
-              </Label>
-              <div className="relative">
-                <Input
-                  id="newPassword"
-                  type={passwordVisible.next ? "text" : "password"}
-                  value={formData.newPassword}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, newPassword: e.target.value }))}
-                  placeholder={t("newPasswordPlaceholder")}
-                  className="pr-10"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
-                  onClick={() => setPasswordVisible((prev) => ({ ...prev, next: !prev.next }))}
-                  aria-label={passwordVisible.next ? t("hidePassword") : t("showPassword")}
-                >
-                  {passwordVisible.next ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="flex items-center gap-2">
-                <LockKeyhole className="h-4 w-4" />
-                {t("confirmPassword")}
-              </Label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={passwordVisible.confirm ? "text" : "password"}
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-                  placeholder={t("confirmPasswordPlaceholder")}
-                  className="pr-10"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
-                  onClick={() => setPasswordVisible((prev) => ({ ...prev, confirm: !prev.confirm }))}
-                  aria-label={passwordVisible.confirm ? t("hidePassword") : t("showPassword")}
-                >
-                  {passwordVisible.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
-            </div>
+            <PasswordInput
+              id="oldPassword"
+              label={t("oldPassword")}
+              placeholder={t("oldPasswordPlaceholder")}
+              value={formData.oldPassword}
+              visible={passwordVisible.old}
+              showLabel={passwordVisible.old ? t("hidePassword") : t("showPassword")}
+              onToggle={() => setPasswordVisible((prev) => ({ ...prev, old: !prev.old }))}
+              onChange={(value) => setFormData((prev) => ({ ...prev, oldPassword: value }))}
+            />
+            <PasswordInput
+              id="newPassword"
+              label={t("newPassword")}
+              placeholder={t("newPasswordPlaceholder")}
+              value={formData.newPassword}
+              visible={passwordVisible.next}
+              showLabel={passwordVisible.next ? t("hidePassword") : t("showPassword")}
+              onToggle={() => setPasswordVisible((prev) => ({ ...prev, next: !prev.next }))}
+              onChange={(value) => setFormData((prev) => ({ ...prev, newPassword: value }))}
+            />
+            <PasswordInput
+              id="confirmPassword"
+              label={t("confirmPassword")}
+              placeholder={t("confirmPasswordPlaceholder")}
+              value={formData.confirmPassword}
+              visible={passwordVisible.confirm}
+              showLabel={passwordVisible.confirm ? t("hidePassword") : t("showPassword")}
+              onToggle={() => setPasswordVisible((prev) => ({ ...prev, confirm: !prev.confirm }))}
+              onChange={(value) => setFormData((prev) => ({ ...prev, confirmPassword: value }))}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(null)}>
@@ -820,25 +981,29 @@ export function SidebarUser({
         </DialogContent>
       </Dialog>
 
-      {/* 注销账户对话框 */}
       <Dialog open={dialogOpen === "delete"} onOpenChange={(open) => !open && setDialogOpen(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-destructive">{t("deleteTitle")}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="h-5 w-5" />
+              {t("deleteTitle")}
+            </DialogTitle>
             <DialogDescription>
-              {t("deleteDescription")} <code className="font-mono font-bold">CONFIRM_DELETE</code> {t("deleteDescriptionTail")}
+              {t("deleteDescription")} <code className="font-mono font-bold">CONFIRM_DELETE</code>{" "}
+              {t("deleteDescriptionTail")}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="deleteConfirm">{t("confirmText")}</Label>
-              <Input
-                id="deleteConfirm"
-                value={formData.deleteConfirm}
-                onChange={(e) => setFormData((prev) => ({ ...prev, deleteConfirm: e.target.value }))}
-                placeholder={t("confirmTextPlaceholder")}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="deleteConfirm" className="flex items-center gap-2">
+              <IdCard className="h-4 w-4" />
+              {t("confirmText")}
+            </Label>
+            <Input
+              id="deleteConfirm"
+              value={formData.deleteConfirm}
+              onChange={(event) => setFormData((prev) => ({ ...prev, deleteConfirm: event.target.value }))}
+              placeholder={t("confirmTextPlaceholder")}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(null)}>
@@ -850,6 +1015,97 @@ export function SidebarUser({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={Boolean(userDeleteTarget)} onOpenChange={(open) => !open && setUserDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              {t("deleteUserTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteUserDescription", { username: userDeleteTarget?.username || "-" })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteUser} className="bg-red-600 text-white hover:bg-red-700">
+              {t("deleteUser")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
+  )
+}
+
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+  mono,
+}: {
+  icon: typeof User
+  label: string
+  value: string
+  mono?: boolean
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="flex items-center gap-2 text-muted-foreground">
+        <Icon className="h-4 w-4" />
+        {label}
+      </span>
+      <span className={`text-right ${mono ? "font-mono" : ""}`}>{value}</span>
+    </div>
+  )
+}
+
+function PasswordInput({
+  id,
+  label,
+  placeholder,
+  value,
+  visible,
+  showLabel,
+  onChange,
+  onToggle,
+}: {
+  id: string
+  label: string
+  placeholder: string
+  value: string
+  visible: boolean
+  showLabel: string
+  onChange: (value: string) => void
+  onToggle: () => void
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id} className="flex items-center gap-2">
+        <LockKeyhole className="h-4 w-4" />
+        {label}
+      </Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="pr-10"
+        />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
+          onClick={onToggle}
+          aria-label={showLabel}
+        >
+          {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
+      </div>
+    </div>
   )
 }

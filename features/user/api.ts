@@ -13,6 +13,8 @@ import { createRequestId } from "@/shared/lib/utils"
 export type UserRole = "admin" | "operator" | "auditor" | "client" | "unspecified" | string
 export type UserStatus = "active" | "pending" | "inactive" | "locked" | "banned" | "unspecified" | string
 
+type TimestampLike = string | { seconds?: number; nanos?: number } | null | undefined
+
 export interface BackendUser {
   user_id?: string
   userId?: string
@@ -24,14 +26,29 @@ export interface BackendUser {
   status?: UserStatus | number
   last_login_ip?: string
   lastLoginIp?: string
-  last_login_at?: string | { seconds?: number; nanos?: number }
-  lastLoginAt?: string | { seconds?: number; nanos?: number }
-  created_at?: string | { seconds?: number; nanos?: number }
-  createdAt?: string | { seconds?: number; nanos?: number }
-  updated_at?: string | { seconds?: number; nanos?: number }
-  updatedAt?: string | { seconds?: number; nanos?: number }
+  last_login_at?: TimestampLike
+  lastLoginAt?: TimestampLike
+  created_at?: TimestampLike
+  createdAt?: TimestampLike
+  updated_at?: TimestampLike
+  updatedAt?: TimestampLike
   tenant_id?: string
   tenantId?: string
+}
+
+export interface UserListItem {
+  id: string
+  userId: string
+  tenantId: string
+  username: string
+  email: string
+  phone?: string
+  avatar?: string
+  role: UserRole
+  status: UserStatus
+  createdAt: string
+  updatedAt: string
+  raw: BackendUser
 }
 
 export interface UserProfile {
@@ -43,8 +60,8 @@ export interface UserProfile {
   email: string
   phone?: string
   avatar?: string
-  role: UserRole | number
-  status: UserStatus | number
+  role: UserRole
+  status: UserStatus
   lastLoginIp?: string
   lastLoginAt?: string
   twoFactorEnabled: boolean
@@ -57,6 +74,18 @@ interface ApiResponse<T = unknown> {
   success: boolean
   message: string
   data?: T
+}
+
+export interface ListUsersResult {
+  items: UserListItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface ListUsersParams {
+  page?: number
+  pageSize?: number
 }
 
 interface UpdatePasswordPayload {
@@ -84,7 +113,7 @@ function createUserId() {
   })
 }
 
-function timestampToIso(value: BackendUser["created_at"]) {
+function timestampToIso(value: TimestampLike) {
   if (!value) return ""
   if (typeof value === "string") return value
 
@@ -95,7 +124,7 @@ function timestampToIso(value: BackendUser["created_at"]) {
   return new Date(seconds * 1000 + Math.floor(nanos / 1000000)).toISOString()
 }
 
-function normalizeRole(role: BackendUser["role"]): string {
+function normalizeRole(role: BackendUser["role"]): UserRole {
   if (typeof role === "number") {
     switch (role) {
       case 1:
@@ -111,7 +140,38 @@ function normalizeRole(role: BackendUser["role"]): string {
     }
   }
 
-  return String(role || "unspecified").toLowerCase()
+  const normalized = String(role || "unspecified").toLowerCase()
+  if (["admin", "operator", "auditor", "client"].includes(normalized)) {
+    return normalized
+  }
+
+  return "unspecified"
+}
+
+function normalizeStatus(status: BackendUser["status"]): UserStatus {
+  if (typeof status === "number") {
+    switch (status) {
+      case 1:
+        return "pending"
+      case 2:
+        return "active"
+      case 3:
+        return "inactive"
+      case 4:
+        return "locked"
+      case 5:
+        return "banned"
+      default:
+        return "unspecified"
+    }
+  }
+
+  const normalized = String(status || "unspecified").toLowerCase()
+  if (["active", "pending", "inactive", "locked", "banned"].includes(normalized)) {
+    return normalized
+  }
+
+  return "unspecified"
 }
 
 function getAvatarByRole(role: BackendUser["role"]) {
@@ -122,8 +182,6 @@ function getAvatarByRole(role: BackendUser["role"]) {
       return "/icons/avatars/operator.svg"
     case "auditor":
       return "/icons/avatars/auditor.svg"
-    case "client":
-      return "/icons/avatars/client.svg"
     default:
       return "/icons/avatars/default.svg"
   }
@@ -174,9 +232,9 @@ function normalizeUser(user: BackendUser = {}): UserProfile {
     nickname: username,
     email: user.email || "",
     phone: user.phone || undefined,
-    avatar: getAvatarByRole(user.role),
+    avatar: user.avatar || getAvatarByRole(user.role),
     role: normalizeRole(user.role),
-    status: user.status || "unspecified",
+    status: normalizeStatus(user.status),
     lastLoginIp: user.last_login_ip || user.lastLoginIp || undefined,
     lastLoginAt: timestampToIso(user.last_login_at || user.lastLoginAt) || undefined,
     twoFactorEnabled: false,
@@ -184,6 +242,48 @@ function normalizeUser(user: BackendUser = {}): UserProfile {
     updatedAt,
     raw: user,
   }
+}
+
+function normalizeUsers(users: BackendUser[] = []): UserListItem[] {
+  return users.map((user) => {
+    const normalized = normalizeUser(user)
+    return {
+      id: normalized.id,
+      userId: normalized.userId,
+      tenantId: normalized.tenantId,
+      username: normalized.username,
+      email: normalized.email,
+      phone: normalized.phone,
+      avatar: normalized.avatar,
+      role: normalized.role,
+      status: normalized.status,
+      createdAt: normalized.createdAt,
+      updatedAt: normalized.updatedAt,
+      raw: user,
+    }
+  })
+}
+
+function extractUserArray(payload: unknown): BackendUser[] {
+  if (Array.isArray(payload)) {
+    return payload as BackendUser[]
+  }
+
+  if (!payload || typeof payload !== "object") {
+    return []
+  }
+
+  const candidate = payload as {
+    data?: unknown
+    users?: unknown
+    items?: unknown
+  }
+
+  if (Array.isArray(candidate.data)) return candidate.data as BackendUser[]
+  if (Array.isArray(candidate.users)) return candidate.users as BackendUser[]
+  if (Array.isArray(candidate.items)) return candidate.items as BackendUser[]
+
+  return []
 }
 
 export async function getUserProfile(): Promise<UserProfile> {
@@ -198,7 +298,7 @@ export async function getUserProfile(): Promise<UserProfile> {
 export async function refreshUserProfile(): Promise<UserProfile> {
   const userId = getCurrentUserId()
   if (!userId) {
-    throw new Error("当前登录 token 中缺少用户 ID")
+    throw new Error("当前登录信息中缺少用户 ID")
   }
 
   const result = await http.post("getUserById", {
@@ -212,6 +312,28 @@ export async function refreshUserProfile(): Promise<UserProfile> {
   return normalizeUser(user)
 }
 
+export async function listUsers(params: ListUsersParams = {}): Promise<ListUsersResult> {
+  const page = Math.max(1, Number(params.page || 1))
+  const pageSize = Math.max(1, Math.min(100, Number(params.pageSize || 10)))
+  const offset = (page - 1) * pageSize
+
+  const result = await http.post("listUsers", {
+    request_id: createRequestId(),
+    limit: pageSize,
+    offset,
+    tenant_id: getCurrentTenantId(),
+  })
+
+  const items = normalizeUsers(extractUserArray(result.data))
+
+  return {
+    items,
+    total: items.length,
+    page,
+    pageSize,
+  }
+}
+
 export async function updateUserProfile(
   payload: Partial<Pick<UserProfile, "nickname" | "phone" | "email">>,
 ): Promise<ApiResponse<UserProfile>> {
@@ -222,7 +344,7 @@ export async function updateUserProfile(
     username: payload.nickname?.trim() || currentUser.username,
     email: payload.email?.trim() || currentUser.email,
     phone: payload.phone?.trim() || currentUser.phone || "",
-    avatar: currentUser.avatar || "",
+    avatar: currentUser.raw.avatar || currentUser.avatar || getAvatarByRole(currentUser.role),
     tenant_id: currentUser.tenantId,
   })
 
@@ -253,6 +375,19 @@ export async function createUser(payload: CreateUserPayload): Promise<ApiRespons
   return {
     success: true,
     message: result.message || "用户创建成功",
+  }
+}
+
+export async function hardDeleteUser(userId: string, tenantId?: string): Promise<ApiResponse> {
+  const result = await http.post("hardDeleteUser", {
+    request_id: createRequestId(),
+    user_id: userId,
+    tenant_id: tenantId || getCurrentTenantId(),
+  })
+
+  return {
+    success: true,
+    message: result.message || "用户已删除",
   }
 }
 
