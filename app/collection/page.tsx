@@ -7,6 +7,9 @@ import { ScannerDownload } from "@/features/collection/components/scanner-downlo
 import { FileUploader } from "@/features/collection/components/file-uploader"
 import { UserInfoTable } from "@/features/collection/components/user-info-table"
 import { AssetCollectorFooter } from "@/features/collection/components/asset-collector-footer"
+import { Card, CardContent } from "@/shared/ui/card"
+import { Label } from "@/shared/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import type { CollectionImportData, UiAssetData, UserInfo } from "@/features/collection/types"
 import { defaultCollectionTemplate, platformDownloads, PUBLIC_TENANT_ID } from "@/features/collection/lib/collection-template"
 import { ensureLogicGroupIds, findLogicGroupIdByPath } from "@/features/collection/lib/logic-group-utils"
@@ -213,26 +216,37 @@ export default function AssetCollectorPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        <div className="rounded-xl border bg-white px-4 py-4 shadow-sm">
-          <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
-            <div className="hidden sm:block" />
+        <Card className="border bg-white shadow-sm">
+          <CardContent className="px-4 py-4">
+            <div className="grid grid-cols-1 items-center gap-3 sm:grid-cols-[1fr_auto_1fr]">
+              <div className="hidden sm:block" />
 
-            <div className="flex items-center justify-center gap-3">
-              <div className="rounded-lg bg-blue-50 p-2">
-                <Layers3 className="h-5 w-5 text-blue-600" />
+              <div className="flex items-center justify-center gap-3">
+                <div className="rounded-lg bg-blue-50 p-2">
+                  <Layers3 className="h-5 w-5 text-blue-600" />
+                </div>
+                <h1 className="text-xl font-semibold text-gray-900">{t("title")}</h1>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900">{t("title")}</h1>
-            </div>
 
-            <div className="flex items-center justify-center sm:justify-end">
-              <div className="flex items-center gap-2 rounded-full border bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground">
-                <Building2 className="h-4 w-4" />
-                <span>{t("tenant.label")}</span>
-                <span className="font-medium text-foreground">{tenantLabel}</span>
+              <div className="flex items-center justify-center sm:justify-end">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="collection-tenant" className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Building2 className="h-4 w-4" />
+                    {t("tenant.label")}
+                  </Label>
+                  <Select value={tenantLabel}>
+                    <SelectTrigger id="collection-tenant" className="h-9 w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={PUBLIC_TENANT_ID}>{t("tenant.value")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <ScannerDownload platforms={platformDownloads} />
 

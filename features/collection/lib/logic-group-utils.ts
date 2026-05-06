@@ -23,7 +23,7 @@ export function flattenDepartmentLogicGroupPaths(groups: UserLogicGroup[]): stri
   const paths: string[] = []
 
   const walk = (group: UserLogicGroup) => {
-    if (group.type === "department") {
+    if (group.path) {
       paths.push(group.path)
     }
     group.children?.forEach(walk)

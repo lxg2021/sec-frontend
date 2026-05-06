@@ -37,15 +37,15 @@ export function UserInfoTable({
   const t = useTranslations("pages.collection.userInfo")
   const departmentPaths = flattenDepartmentLogicGroupPaths(userLogicGroups)
   const columns = [
-    { icon: Server, label: t("hostName") },
-    { icon: Globe, label: t("ipAddress") },
-    { icon: Fingerprint, label: t("macAddress") },
-    { icon: Cpu, label: t("os") },
-    { icon: User, label: t("name"), required: true },
-    { icon: Shield, label: t("role"), required: true },
-    { icon: Phone, label: t("phone"), required: true },
-    { icon: Mail, label: t("email"), required: true },
-    { icon: Building2, label: t("department"), required: true },
+    { icon: Server, label: t("hostName"), width: "10%" },
+    { icon: Globe, label: t("ipAddress"), width: "12%" },
+    { icon: Fingerprint, label: t("macAddress"), width: "12%" },
+    { icon: Cpu, label: t("os"), width: "11%" },
+    { icon: User, label: t("name"), required: true, width: "8%" },
+    { icon: Shield, label: t("role"), required: true, width: "8%" },
+    { icon: Phone, label: t("phone"), required: true, width: "11%" },
+    { icon: Mail, label: t("email"), required: true, width: "14%" },
+    { icon: Building2, label: t("department"), required: true, width: "14%" },
   ]
 
   if (assets.length === 0) {
@@ -91,8 +91,8 @@ export function UserInfoTable({
         <div className="overflow-x-auto rounded-md border">
           <Table className="min-w-[1260px] table-fixed">
             <colgroup>
-              {columns.map((_, index) => (
-                <col key={index} style={{ width: `${100 / columns.length}%` }} />
+              {columns.map((column, index) => (
+                <col key={index} style={{ width: column.width }} />
               ))}
             </colgroup>
             <TableHeader>
