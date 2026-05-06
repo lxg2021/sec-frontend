@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { useTranslations } from "next-intl"
 
 export function AssetCollectorFooter() {
@@ -9,17 +8,17 @@ export function AssetCollectorFooter() {
       <div className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="/privacy" className="hover:text-foreground transition-colors">
+            <span className="cursor-default text-muted-foreground">
               {t("privacy")}
-            </Link>
+            </span>
             <span className="text-border">|</span>
-            <Link href="/terms" className="hover:text-foreground transition-colors">
+            <span className="cursor-default text-muted-foreground">
               {t("terms")}
-            </Link>
+            </span>
             <span className="text-border">|</span>
-            <Link href="/contact" className="hover:text-foreground transition-colors">
+            <span className="cursor-default text-muted-foreground">
               {t("contact")}
-            </Link>
+            </span>
           </div>
 
           <div className="text-center md:text-right">
