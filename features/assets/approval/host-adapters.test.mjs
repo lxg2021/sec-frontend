@@ -165,3 +165,57 @@ test("builds ApproveHost request body with backend owner role values", () => {
     },
   )
 })
+
+test("finds only hosts whose group or owner changed", () => {
+  const { findHostsNeedingApproval } = loadHostAdaptersModule()
+  const baseHost = {
+    host_id: "agent-1",
+    hostname: "WEB-01",
+    ip: ["10.0.0.1"],
+    os_name: "Ubuntu",
+    os_version: "22.04",
+    product_id: "product-1",
+    cpu_id: "cpu-1",
+    harddisk_id: ["disk-1"],
+    board_serial: "board-1",
+    macs: ["00:11:22:33:44:55"],
+    heartbeat_time: "2024-03-09T16:00:00.000Z",
+    status: "online",
+    group: {
+      id: "group-1",
+      name: "Security",
+      full_path: "Acme/Security",
+      full_path_ids: ["group-1"],
+      company_name: "Acme",
+      created_by: "admin",
+      created_at: "2024-03-09T16:00:00.000Z",
+      updated_at: "2024-03-09T16:00:00.000Z",
+    },
+    owner: {
+      host_id: "agent-1",
+      user_id: "user-1",
+      owner_name: "Alice",
+      phone: "13800138000",
+      email: "alice@example.com",
+      owner_role: "operator",
+      assigned_at: "2024-03-09T16:00:00.000Z",
+    },
+  }
+  const changedHost = {
+    ...baseHost,
+    host_id: "agent-2",
+    group: {
+      ...baseHost.group,
+      id: "group-2",
+      full_path: "Acme/Operations",
+    },
+  }
+
+  assert.deepEqual(
+    findHostsNeedingApproval(
+      [baseHost, { ...baseHost, host_id: "agent-2" }],
+      [baseHost, changedHost],
+    ).map((host) => host.host_id),
+    ["agent-2"],
+  )
+})

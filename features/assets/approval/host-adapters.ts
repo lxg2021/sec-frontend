@@ -167,3 +167,32 @@ export function buildApproveHostRequest(tenantId: string, host: Host): ApproveHo
       : {}),
   }
 }
+
+function normalizedOwner(owner: Host["owner"]) {
+  if (!owner) return null
+
+  return {
+    username: owner.owner_name || "",
+    phone: owner.phone || "",
+    email: owner.email || "",
+    role: mapOwnerRoleToBackend(owner.owner_role),
+  }
+}
+
+function hostApprovalSignature(host: Host) {
+  return JSON.stringify({
+    groupId: host.group?.id || "",
+    owner: normalizedOwner(host.owner),
+  })
+}
+
+export function findHostsNeedingApproval(originalHosts: Host[], updatedHosts: Host[]): Host[] {
+  const originalById = new Map(originalHosts.map((host) => [host.host_id, host]))
+
+  return updatedHosts.filter((host) => {
+    const original = originalById.get(host.host_id)
+    if (!original) return true
+
+    return hostApprovalSignature(original) !== hostApprovalSignature(host)
+  })
+}

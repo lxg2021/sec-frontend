@@ -7,9 +7,9 @@ import { Computer, FileUp, Loader2, RefreshCcw } from "lucide-react"
 
 import { CollectionApproval } from "@/features/assets/approval/components/collection-approval"
 import { HostApproval } from "@/features/assets/approval/components/host-approval"
-import { getApprovalLogicGroups } from "@/features/assets/approval/host-api"
+import { approveHost, getApprovalHosts, getApprovalLogicGroups } from "@/features/assets/approval/host-api"
+import { findHostsNeedingApproval } from "@/features/assets/approval/host-adapters"
 import { backendLogicGroupsToUserTree } from "@/features/assets/approval/logic-group-tree-adapter"
-import { mockHosts } from "@/features/assets/approval/mock/approve"
 import type { Host, LogicGroup } from "@/features/assets/approval/types"
 import { replaceLogicTree } from "@/features/collection/api"
 import { LogicGroupUploader } from "@/features/collection/components/logic-group-uploader"
@@ -23,8 +23,10 @@ import { Toaster } from "@/shared/ui/toaster"
 import { useToast } from "@/shared/ui/use-toast"
 
 const TENANT_ID = "public"
+const HOST_FETCH_PAGE_SIZE = 200
 
 type LogicGroupLoadStatus = "loading" | "loaded" | "error"
+type HostLoadStatus = "loading" | "loaded" | "error"
 
 export default function LogicGroupsPage() {
   const t = useTranslations("pages.computers.approve")
@@ -37,6 +39,11 @@ export default function LogicGroupsPage() {
   const [logicGroupTab, setLogicGroupTab] = useState("upload")
   const [logicGroupTreeVersion, setLogicGroupTreeVersion] = useState(0)
   const [savingLogicGroups, setSavingLogicGroups] = useState(false)
+  const [hosts, setHosts] = useState<Host[]>([])
+  const [originalHosts, setOriginalHosts] = useState<Host[]>([])
+  const [hostStatus, setHostStatus] = useState<HostLoadStatus>("loading")
+  const [hostError, setHostError] = useState("")
+  const [savingHosts, setSavingHosts] = useState(false)
 
   const loadLogicGroups = useCallback(async () => {
     setLogicGroupStatus("loading")
@@ -70,6 +77,49 @@ export default function LogicGroupsPage() {
   useEffect(() => {
     void loadLogicGroups()
   }, [loadLogicGroups])
+
+  const loadHosts = useCallback(async () => {
+    setHostStatus("loading")
+    setHostError("")
+
+    try {
+      const firstPage = await getApprovalHosts({
+        tenantId: TENANT_ID,
+        page: 1,
+        pageSize: HOST_FETCH_PAGE_SIZE,
+      })
+      const loadedHosts = [...firstPage.hosts]
+      const totalPages = Math.max(1, firstPage.pagination.total_pages || 1)
+
+      for (let page = 2; page <= totalPages; page += 1) {
+        const nextPage = await getApprovalHosts({
+          tenantId: TENANT_ID,
+          page,
+          pageSize: HOST_FETCH_PAGE_SIZE,
+        })
+        loadedHosts.push(...nextPage.hosts)
+      }
+
+      setHosts(loadedHosts)
+      setOriginalHosts(loadedHosts)
+      setHostStatus("loaded")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : t("hostLoadFailed")
+      setHosts([])
+      setOriginalHosts([])
+      setHostError(message)
+      setHostStatus("error")
+      toast({
+        title: t("hostLoadFailed"),
+        description: message,
+        variant: "destructive",
+      })
+    }
+  }, [t, toast])
+
+  useEffect(() => {
+    void loadHosts()
+  }, [loadHosts])
 
   const handleGroupsUploaded = (groups: UserLogicGroup[], fileName: string) => {
     console.log("上传的逻辑组数量:", groups.length)
@@ -121,8 +171,34 @@ export default function LogicGroupsPage() {
     }
   }
 
-  const handleSubmit = (updatedHosts: Host[]) => {
-    console.log("Updated hosts:", updatedHosts)
+  const handleSubmit = async (updatedHosts: Host[]) => {
+    const changedHosts = findHostsNeedingApproval(originalHosts, updatedHosts)
+
+    if (changedHosts.length === 0) {
+      toast({
+        title: t("hostApproveNoChanges"),
+      })
+      return
+    }
+
+    setSavingHosts(true)
+    try {
+      for (const host of changedHosts) {
+        await approveHost(TENANT_ID, host)
+      }
+      toast({
+        title: t("hostApproveSuccess", { count: changedHosts.length }),
+      })
+      await loadHosts()
+    } catch (error) {
+      toast({
+        title: t("hostApproveFailed"),
+        description: error instanceof Error ? error.message : "Unknown error",
+        variant: "destructive",
+      })
+    } finally {
+      setSavingHosts(false)
+    }
   }
 
   return (
@@ -231,7 +307,31 @@ export default function LogicGroupsPage() {
                 </div>
               </CardHeader>
               <CardContent className="pb-6">
-                <HostApproval hosts={mockHosts} logicGroups={logicGroups} pageSize={10} onSubmit={handleSubmit} />
+                {hostStatus === "loading" && (
+                  <div className="mb-4 flex items-center gap-2 rounded-lg border bg-white p-3 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t("hostLoading")}
+                  </div>
+                )}
+                {hostStatus === "error" && (
+                  <div className="mb-4 flex flex-col gap-3 rounded-lg border border-destructive/40 bg-white p-4 text-sm md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="font-medium text-destructive">{t("hostLoadFailed")}</div>
+                      <div className="mt-1 text-muted-foreground">{hostError}</div>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => void loadHosts()}>
+                      <RefreshCcw className="h-4 w-4" />
+                      {t("hostRetry")}
+                    </Button>
+                  </div>
+                )}
+                <HostApproval
+                  hosts={hosts}
+                  logicGroups={logicGroups}
+                  pageSize={10}
+                  loading={hostStatus === "loading" || savingHosts}
+                  onSubmit={handleSubmit}
+                />
               </CardContent>
             </Card>
           </TabsContent>
