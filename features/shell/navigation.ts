@@ -5,7 +5,6 @@ import {
   Boxes,
   Computer,
   FileText,
-  HardDrive,
   LayoutDashboard,
   MapPin,
   Monitor,
@@ -29,7 +28,7 @@ export const menuItems = [
     icon: Computer,
     labelKey: "computers",
     submenu: [
-      { id: "agentinfo", icon: Monitor, labelKey: "agentinfo", path: "/frame/assets/hardware" },
+      { id: "agentinfo", icon: Monitor, labelKey: "agentinfo", path: "/frame/assets/host-info" },
       { id: "approve", icon: Package, labelKey: "approve", path: "/frame/computers/approve" },
     ],
   },
@@ -38,7 +37,7 @@ export const menuItems = [
     icon: Boxes,
     labelKey: "assets",
     submenu: [
-      { id: "hardware", icon: HardDrive, labelKey: "hardware", path: "/frame/assets/hardware" },
+      { id: "host-info", icon: Monitor, labelKey: "agentinfo", path: "/frame/assets/host-info" },
       { id: "softdetails", icon: Package, labelKey: "softdetails", path: "/frame/assets/software/details" },
       { id: "softuninstall", icon: Trash2, labelKey: "softuninstall", path: "/frame/assets/software/uninstall" },
     ],
