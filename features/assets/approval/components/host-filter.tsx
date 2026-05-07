@@ -101,7 +101,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
       </div>
 
       {/* Main Filters */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {/* Search - Full width on mobile, 2 cols on desktop */}
         <div className="lg:col-span-2">
           <div className="relative">
@@ -133,7 +133,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 lg:col-span-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {statusOptions.map((status) => {
               const selected = filters.status?.includes(status.value)
