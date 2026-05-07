@@ -2,7 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
-import { Activity, Computer, Download, FileUp, FolderTree, Loader2, Plus, RefreshCcw, Save } from "lucide-react"
+import {
+  Activity,
+  Computer,
+  Download,
+  FileUp,
+  FolderTree,
+  Loader2,
+  Plus,
+  RefreshCcw,
+  Save,
+} from "lucide-react"
 
 import { CollectionApproval } from "@/features/assets/approval/components/collection-approval"
 import { HostApproval } from "@/features/assets/approval/components/host-approval"
@@ -23,6 +33,7 @@ import type { TableLogicGroup } from "@/features/collection/table-types"
 import type { BackendLogicGroupCreateData, UserLogicGroup } from "@/features/collection/types"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Toaster } from "@/shared/ui/toaster"
 
 const TENANT_ID = "public"
@@ -43,6 +54,7 @@ export default function LogicGroupsPage() {
   const t = useTranslations("pages.computers.approve")
   const treeT = useTranslations("pages.collection.tree")
   const { toast } = useToast()
+
   const [uploadedGroups, setUploadedGroups] = useState<UserLogicGroup[]>([])
   const [uploadedFileName, setUploadedFileName] = useState("")
   const [logicGroups, setLogicGroups] = useState<LogicGroup[]>([])
@@ -54,6 +66,7 @@ export default function LogicGroupsPage() {
   const [hosts, setHosts] = useState<Host[]>([])
   const [originalHosts, setOriginalHosts] = useState<Host[]>([])
   const [collectionTotal, setCollectionTotal] = useState(0)
+  const [collectionRefreshRequestVersion, setCollectionRefreshRequestVersion] = useState(0)
   const [hostPagination, setHostPagination] = useState<HostPagination>({
     current_page: 1,
     page_size: HOST_FETCH_PAGE_SIZE,
@@ -146,13 +159,6 @@ export default function LogicGroupsPage() {
     }))
   }, [])
 
-  const handleHostRefresh = useCallback(() => {
-    setHostQuery((previous) => ({
-      ...previous,
-      revision: previous.revision + 1,
-    }))
-  }, [])
-
   const handleGroupsUploaded = (groups: UserLogicGroup[], fileName: string) => {
     setUploadedGroups(groups)
     setUploadedFileName(fileName)
@@ -221,9 +227,7 @@ export default function LogicGroupsPage() {
       }))
 
       await replaceLogicTree(TENANT_ID, groups)
-      toast({
-        title: t("saveSuccess", { count: tableGroups.length }),
-      })
+      toast({ title: t("saveSuccess", { count: tableGroups.length }) })
       await loadLogicGroups()
     } catch (error) {
       toast({
@@ -248,9 +252,7 @@ export default function LogicGroupsPage() {
     const changedHosts = findHostsNeedingApproval(originalHosts, updatedHosts)
 
     if (changedHosts.length === 0) {
-      toast({
-        title: t("hostApproveNoChanges"),
-      })
+      toast({ title: t("hostApproveNoChanges") })
       return
     }
 
@@ -259,9 +261,7 @@ export default function LogicGroupsPage() {
       for (const host of changedHosts) {
         await approveHost(TENANT_ID, host)
       }
-      toast({
-        title: t("hostApproveSuccess", { count: changedHosts.length }),
-      })
+      toast({ title: t("hostApproveSuccess", { count: changedHosts.length }) })
       await loadHosts()
     } catch (error) {
       toast({
@@ -278,199 +278,190 @@ export default function LogicGroupsPage() {
   const onlineHostCount = useMemo(() => countOnlineHosts(hosts), [hosts])
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-[1520px] space-y-6 px-4 py-6 lg:px-6">
-        <section className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <Computer className="h-6 w-6 text-slate-700" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="space-y-6 p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-blue-50 p-2">
+              <Computer className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
+              待处理主机 <strong className="text-slate-900">{hostPagination.total_count}</strong>
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              采集单 <strong className="text-slate-900">{collectionTotal}</strong>
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-orange-500" />
+              组织节点 <strong className="text-slate-900">{logicNodeCount}</strong>
+            </span>
+            <span className="inline-flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-violet-500" />
+              在线主机 <strong className="text-slate-900">{onlineHostCount}</strong>
+            </span>
+          </div>
+        </div>
+
+        <Card className="rounded-xl border-0 bg-white shadow-lg">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-slate-900 p-2 text-white">
+                <FolderTree className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
-                <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
-                  <Computer className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500">待处理主机</div>
-                  <div className="text-lg font-semibold text-slate-900">{hostPagination.total_count}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="rounded-lg bg-emerald-50 p-2 text-emerald-600">
-                  <FileUp className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500">采集单</div>
-                  <div className="text-lg font-semibold text-slate-900">{collectionTotal}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="rounded-lg bg-orange-50 p-2 text-orange-600">
-                  <FolderTree className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500">组织节点</div>
-                  <div className="text-lg font-semibold text-slate-900">{logicNodeCount}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <div className="rounded-lg bg-violet-50 p-2 text-violet-600">
-                  <Activity className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-500">在线主机</div>
-                  <div className="text-lg font-semibold text-slate-900">{onlineHostCount}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section data-approve-section="logic" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-6 py-5">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold text-slate-900">1. 组织结构管理</h2>
-                <p className="text-sm text-slate-500">管理公司、部门与逻辑组的层级结构，支持导入/导出与批量维护。</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  onClick={handleRequestLogicSave}
-                  disabled={savingLogicGroups || logicGroupStatus === "loading" || uploadedGroups.length === 0}
-                  className="h-10 w-28 justify-center bg-slate-900 text-white hover:bg-slate-800"
-                >
-                  {savingLogicGroups ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      保存中...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      保存结构
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={handleAddCompany}
-                  disabled={logicGroupStatus === "loading"}
-                  className="h-10 w-28 justify-center bg-slate-900 text-white hover:bg-slate-800"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  添加公司
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void loadLogicGroups()}
-                  disabled={logicGroupStatus === "loading"}
-                  className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
-                >
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  刷新
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid gap-4 p-4 xl:grid-cols-[minmax(0,1fr)_440px]">
-            <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="mb-4 text-xs text-slate-500">
-                {uploadedFileName ? `来源：${uploadedFileName}` : "来源：后端组织结构"}
-              </div>
-              {logicGroupStatus === "loading" && (
-                <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  正在加载组织结构...
-                </div>
-              )}
-              {logicGroupStatus === "error" && (
-                <div className="mb-4 flex flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <div className="font-medium text-rose-700">加载组织结构失败</div>
-                    <div className="mt-1 text-slate-500">{logicGroupError}</div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void loadLogicGroups()}
-                    className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
-                  >
-                    <RefreshCcw className="h-4 w-4" />
-                    刷新
-                  </Button>
-                </div>
-              )}
-              <div className="text-slate-800 [&_input]:border-slate-300 [&_input]:bg-white [&_input]:text-slate-900 [&_input]:placeholder:text-slate-400">
-                <TreeLogicGroup
-                  key={`${logicGroupTreeVersion}-${uploadedFileName || "backend"}`}
-                  groups={uploadedGroups}
-                  onSave={handleSave}
-                  disabled={savingLogicGroups}
-                  tenantId={TENANT_ID}
-                  hideSaveButton
-                  hideAddCompanyButton
-                  saveRequestVersion={logicGroupSaveRequestVersion}
-                  showFrame={false}
-                />
+                <CardTitle className="text-lg font-semibold text-slate-800">{t("editStructure")}</CardTitle>
+                <p className="mt-1 text-sm text-slate-600">
+                  管理公司、部门与逻辑组的层级结构，支持导入、编辑与批量维护。
+                </p>
               </div>
             </div>
 
-            <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900">导入配置</h3>
-                  <p className="mt-1 text-sm text-slate-500">上传组织结构文件，校验后同步到左侧树。</p>
-                </div>
-                <Button
-                  onClick={handleDownloadTemplate}
-                  className="h-10 w-28 shrink-0 justify-center bg-slate-900 text-white hover:bg-slate-800"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  下载模板
-                </Button>
-              </div>
-              <div className="space-y-4">
-                <LogicGroupUploader
-                  onGroupsUploaded={handleGroupsUploaded}
-                  onBeforeUpload={handleBeforeUpload}
-                  disabled={logicGroupStatus === "loading"}
-                  showFrame={false}
-                  hideDownloadButton
-                />
-                <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
-                  导入完成后，可在左侧树上直接编辑、添加和删除节点。
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section data-approve-section="host" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-6 py-5">
-            <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">2. 主机审批</h2>
-                <p className="mt-1 text-sm text-slate-500">{t("approvalDescription")}</p>
-              </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                onClick={handleRequestLogicSave}
+                disabled={savingLogicGroups || logicGroupStatus === "loading" || uploadedGroups.length === 0}
+                className="h-10 w-28 justify-center bg-slate-900 text-white hover:bg-slate-800"
+              >
+                {savingLogicGroups ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    保存中...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    保存结构
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleAddCompany}
+                disabled={logicGroupStatus === "loading"}
+                className="h-10 w-28 justify-center bg-slate-900 text-white hover:bg-slate-800"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                添加公司
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => void loadHosts()}
+                onClick={() => void loadLogicGroups()}
+                disabled={logicGroupStatus === "loading"}
                 className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
               >
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 刷新
               </Button>
             </div>
-          </div>
-          <div className="px-4 py-4 lg:px-6">
+          </CardHeader>
+
+          <CardContent className="p-4">
+            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_440px]">
+              <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-4 text-xs text-slate-500">
+                  {uploadedFileName ? `来源：${uploadedFileName}` : "来源：后端组织结构"}
+                </div>
+                {logicGroupStatus === "loading" && (
+                  <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    正在加载组织结构...
+                  </div>
+                )}
+                {logicGroupStatus === "error" && (
+                  <div className="mb-4 flex flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <div className="font-medium text-rose-700">加载组织结构失败</div>
+                      <div className="mt-1 text-slate-500">{logicGroupError}</div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void loadLogicGroups()}
+                      className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                    >
+                      <RefreshCcw className="h-4 w-4" />
+                      刷新
+                    </Button>
+                  </div>
+                )}
+                <div className="text-slate-800 [&_input]:border-slate-300 [&_input]:bg-white [&_input]:text-slate-900 [&_input]:placeholder:text-slate-400">
+                  <TreeLogicGroup
+                    key={`${logicGroupTreeVersion}-${uploadedFileName || "backend"}`}
+                    groups={uploadedGroups}
+                    onSave={handleSave}
+                    disabled={savingLogicGroups}
+                    tenantId={TENANT_ID}
+                    hideSaveButton
+                    hideAddCompanyButton
+                    saveRequestVersion={logicGroupSaveRequestVersion}
+                    showFrame={false}
+                  />
+                </div>
+              </div>
+
+              <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-base font-semibold text-slate-900">导入配置</h3>
+                    <p className="mt-1 text-sm text-slate-500">上传组织结构文件，校验后同步到左侧树。</p>
+                  </div>
+                  <Button
+                    onClick={handleDownloadTemplate}
+                    className="h-10 w-28 shrink-0 justify-center bg-slate-900 text-white hover:bg-slate-800"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    下载模板
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  <LogicGroupUploader
+                    onGroupsUploaded={handleGroupsUploaded}
+                    onBeforeUpload={handleBeforeUpload}
+                    disabled={logicGroupStatus === "loading"}
+                    showFrame={false}
+                    hideDownloadButton
+                  />
+                  <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
+                    导入完成后，可在左侧树上直接编辑、添加和删除节点。
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-xl border-0 bg-white shadow-lg">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-blue-600 p-2 text-white">
+                <Computer className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-800">{t("approvalTitle")}</CardTitle>
+                <p className="mt-1 text-sm text-slate-600">{t("approvalDescription")}</p>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => void loadHosts()}
+              className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
+            >
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              刷新
+            </Button>
+          </CardHeader>
+          <CardContent className="p-4">
             {hostStatus === "loading" && (
               <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -500,21 +491,40 @@ export default function LogicGroupsPage() {
               pagination={hostPagination}
               loading={hostStatus === "loading" || savingHosts}
               onQueryChange={handleHostQueryChange}
-              onRefresh={handleHostRefresh}
               onSubmit={handleSubmit}
             />
-          </div>
-        </section>
+          </CardContent>
+        </Card>
 
-        <section data-approve-section="collection" className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-200 px-6 py-5">
-            <h2 className="text-xl font-semibold text-slate-900">3. 采集审批</h2>
-            <p className="mt-1 text-sm text-slate-500">{t("collectionApprovalDescription")}</p>
-          </div>
-          <div className="px-4 py-4 lg:px-6">
-            <CollectionApproval onTotalChange={setCollectionTotal} />
-          </div>
-        </section>
+        <Card className="rounded-xl border-0 bg-white shadow-lg">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-emerald-600 p-2 text-white">
+                <FileUp className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-800">{t("collectionApprovalTitle")}</CardTitle>
+                <p className="mt-1 text-sm text-slate-600">{t("collectionApprovalDescription")}</p>
+              </div>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCollectionRefreshRequestVersion((value) => value + 1)}
+              className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
+            >
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              刷新
+            </Button>
+          </CardHeader>
+          <CardContent className="p-4">
+            <CollectionApproval
+              onTotalChange={setCollectionTotal}
+              refreshRequestVersion={collectionRefreshRequestVersion}
+            />
+          </CardContent>
+        </Card>
       </div>
       <Toaster />
     </div>

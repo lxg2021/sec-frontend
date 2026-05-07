@@ -1,10 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   CheckCircle2,
   Eye,
-  RefreshCcw,
   Search,
   ShieldCheck,
   XCircle,
@@ -109,9 +108,10 @@ function formatDateTime(value?: number) {
 
 export interface CollectionApprovalProps {
   onTotalChange?: (total: number) => void
+  refreshRequestVersion?: number
 }
 
-export function CollectionApproval({ onTotalChange }: CollectionApprovalProps) {
+export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }: CollectionApprovalProps) {
   const t = useTranslations("pages.computers.approve.collection")
   const { toast } = useToast()
   const [items, setItems] = useState<CollectionSubmissionSummary[]>([])
@@ -167,6 +167,12 @@ export function CollectionApproval({ onTotalChange }: CollectionApprovalProps) {
     }
   }, [keyword, page, pageSize, status, t, toast])
 
+  const loadListRef = useRef(loadList)
+
+  useEffect(() => {
+    loadListRef.current = loadList
+  }, [loadList])
+
   useEffect(() => {
     void loadList()
   }, [loadList])
@@ -174,6 +180,12 @@ export function CollectionApproval({ onTotalChange }: CollectionApprovalProps) {
   useEffect(() => {
     onTotalChange?.(total)
   }, [onTotalChange, total])
+
+  useEffect(() => {
+    if (refreshRequestVersion > 0) {
+      void loadListRef.current()
+    }
+  }, [refreshRequestVersion])
 
   useEffect(() => {
     setPage(1)
@@ -203,8 +215,6 @@ export function CollectionApproval({ onTotalChange }: CollectionApprovalProps) {
     },
     [t, toast],
   )
-
-  const refresh = () => void loadList()
 
   const handleApprove = async () => {
     if (!selected) return
@@ -301,10 +311,6 @@ export function CollectionApproval({ onTotalChange }: CollectionApprovalProps) {
               </SelectContent>
             </Select>
           </div>
-          <Button variant="outline" onClick={refresh} disabled={loading} className="w-full lg:w-auto">
-            <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
-            {t("refresh")}
-          </Button>
         </div>
 
         <div className="grid gap-3 md:grid-cols-5">

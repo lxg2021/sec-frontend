@@ -26,7 +26,6 @@ export interface HostApprovalProps {
   onQueryChange: (query: { page: number; pageSize: number; groupId?: string }) => void
   onSubmit: (updatedHosts: Host[]) => void | Promise<void>
   onCancel?: () => void
-  onRefresh?: () => void
 }
 
 export function HostApproval({
@@ -38,7 +37,6 @@ export function HostApproval({
   onQueryChange,
   onSubmit,
   onCancel,
-  onRefresh,
 }: HostApprovalProps) {
   const t = useTranslations("pages.computers.approve")
   const { toast } = useToast()
@@ -128,15 +126,6 @@ export function HostApproval({
     syncQuery(filters, 1, pageSize)
   }
 
-  const handleRefresh = () => {
-    if (onRefresh) {
-      onRefresh()
-      return
-    }
-
-    syncQuery(filters, pagination.current_page, pagination.page_size)
-  }
-
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
@@ -155,7 +144,6 @@ export function HostApproval({
           logicGroups={logicGroups}
           totalHosts={pagination.total_count}
           filteredHosts={displayedHosts.length}
-          onRefresh={handleRefresh}
         />
       </Card>
 

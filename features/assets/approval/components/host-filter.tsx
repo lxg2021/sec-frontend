@@ -5,7 +5,7 @@ import { Input } from "@/shared/ui/input"
 import { Button } from "@/shared/ui/button"
 import { Badge } from "@/shared/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
-import { Search, X, Filter, RefreshCcw } from "lucide-react"
+import { Search, X, Filter } from "lucide-react"
 import { Checkbox } from "@/shared/ui/checkbox"
 import { Label } from "@/shared/ui/label"
 import { useTranslations } from "next-intl"
@@ -17,10 +17,9 @@ interface HostFilterProps {
   logicGroups: LogicGroup[]
   totalHosts: number
   filteredHosts: number
-  onRefresh?: () => void
 }
 
-export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, filteredHosts, onRefresh }: HostFilterProps) {
+export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, filteredHosts }: HostFilterProps) {
   const t = useTranslations("pages.computers.approve")
   const statusOptions: { value: HostStatus; label: string; color: string }[] = [
     { value: "online", label: t("statusOnline"), color: "bg-green-500" },
@@ -133,11 +132,11 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-2 lg:col-span-2">
+        <div className="flex flex-wrap items-center gap-2 lg:col-span-2">
           <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
             {t("status")}
           </div>
-          <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {statusOptions.map((status) => {
               const selected = filters.status?.includes(status.value)
 
@@ -148,7 +147,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
                   size="sm"
                   onClick={() => handleStatusToggle(status.value)}
                   className={cn(
-                    "h-10 flex-1 cursor-pointer border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900",
+                    "h-10 w-28 shrink-0 cursor-pointer justify-center border-slate-200 bg-white px-3 text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900",
                     selected &&
                       status.value === "online" &&
                       "border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800",
@@ -157,50 +156,33 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
                       "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900",
                   )}
                 >
-                  <span className={`mr-2 h-4 w-4 rounded-full ${status.color}`} />
-                  <span className="text-xs">{status.label}</span>
+                  <span className={`mr-2 h-3.5 w-3.5 rounded-full ${status.color}`} />
+                  <span className="text-sm">{status.label}</span>
                 </Button>
               )
             })}
-          </div>
-          {onRefresh && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefresh}
-              className="h-10 shrink-0 cursor-pointer border-slate-200 bg-white px-3 text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900"
-            >
-              <RefreshCcw className="mr-2 h-4 w-4" />
-              {t("hostRetry")}
-            </Button>
-          )}
-        </div>
-      </div>
+            <div className="ml-2 flex flex-wrap items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="ungrouped"
+                  checked={filters.ungrouped || false}
+                  onCheckedChange={(checked) => onFiltersChange({ ...filters, ungrouped: checked as boolean })}
+                />
+                <Label htmlFor="ungrouped" className="cursor-pointer text-sm font-medium text-foreground">
+                  {t("ungroupedHosts")}
+                </Label>
+              </div>
 
-      {/* Quick Filters */}
-      <div className="border-t pt-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="ungrouped"
-                checked={filters.ungrouped || false}
-                onCheckedChange={(checked) => onFiltersChange({ ...filters, ungrouped: checked as boolean })}
-              />
-              <Label htmlFor="ungrouped" className="cursor-pointer text-sm font-medium text-foreground">
-                {t("ungroupedHosts")}
-              </Label>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="unowned"
-                checked={filters.unowned || false}
-                onCheckedChange={(checked) => onFiltersChange({ ...filters, unowned: checked as boolean })}
-              />
-              <Label htmlFor="unowned" className="cursor-pointer text-sm font-medium text-foreground">
-                {t("unownedHosts")}
-              </Label>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="unowned"
+                  checked={filters.unowned || false}
+                  onCheckedChange={(checked) => onFiltersChange({ ...filters, unowned: checked as boolean })}
+                />
+                <Label htmlFor="unowned" className="cursor-pointer text-sm font-medium text-foreground">
+                  {t("unownedHosts")}
+                </Label>
+              </div>
             </div>
           </div>
         </div>
