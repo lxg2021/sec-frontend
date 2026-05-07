@@ -3,10 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { ComponentType, ReactNode } from "react"
 import {
+  AlertTriangle,
+  Ban,
   Building2,
   CalendarClock,
   CheckCircle2,
   CircleDot,
+  Clock3,
   Eye,
   FileText,
   FolderTree,
@@ -132,6 +135,69 @@ function TableHeaderLabel({
   )
 }
 
+function CollectionStatCard({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: ComponentType<{ className?: string }>
+  label: string
+  value: number
+  tone: "blue" | "amber" | "emerald" | "rose" | "slate"
+}) {
+  const tones = {
+    blue: {
+      icon: "text-blue-500",
+      dot: "bg-blue-500",
+      value: "text-blue-600",
+      border: "border-t-blue-500",
+    },
+    amber: {
+      icon: "text-amber-500",
+      dot: "bg-amber-500",
+      value: "text-amber-600",
+      border: "border-t-amber-500",
+    },
+    emerald: {
+      icon: "text-emerald-500",
+      dot: "bg-emerald-500",
+      value: "text-emerald-600",
+      border: "border-t-emerald-500",
+    },
+    rose: {
+      icon: "text-rose-500",
+      dot: "bg-rose-500",
+      value: "text-rose-600",
+      border: "border-t-rose-500",
+    },
+    slate: {
+      icon: "text-slate-500",
+      dot: "bg-slate-400",
+      value: "text-slate-900",
+      border: "border-t-slate-400",
+    },
+  }[tone]
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border border-t-2 border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 hover:bg-slate-50/60",
+        tones.border,
+      )}
+    >
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <span className="inline-flex items-center gap-1.5">
+          <Icon className={cn("h-3.5 w-3.5", tones.icon)} />
+          {label}
+        </span>
+        <span className={cn("h-1.5 w-1.5 rounded-full", tones.dot)} />
+      </div>
+      <div className={cn("mt-2 text-2xl font-semibold leading-none", tones.value)}>{value}</div>
+    </div>
+  )
+}
+
 export interface CollectionApprovalProps {
   onTotalChange?: (total: number) => void
   refreshRequestVersion?: number
@@ -218,6 +284,22 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
   }, [keyword, status])
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [pageSize, total])
+  const pendingCount = useMemo(
+    () => items.filter((item) => item.status === 1 || item.status === "COLLECTION_SUBMISSION_PENDING").length,
+    [items],
+  )
+  const approvedCount = useMemo(
+    () => items.filter((item) => item.status === 3 || item.status === "COLLECTION_SUBMISSION_APPROVED").length,
+    [items],
+  )
+  const failedCount = useMemo(
+    () => items.filter((item) => item.status === 5 || item.status === "COLLECTION_SUBMISSION_FAILED").length,
+    [items],
+  )
+  const rejectedCount = useMemo(
+    () => items.filter((item) => item.status === 4 || item.status === "COLLECTION_SUBMISSION_REJECTED").length,
+    [items],
+  )
 
   const openDetail = useCallback(
     async (submissionId: string) => {
@@ -340,26 +422,11 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
         </div>
 
         <div className="grid gap-3 md:grid-cols-5">
-          <div className="rounded-lg border bg-card p-3">
-            <div className="text-xs text-muted-foreground">{t("statTotal")}</div>
-            <div className="text-2xl font-semibold">{total}</div>
-          </div>
-          <div className="rounded-lg border bg-card p-3">
-            <div className="text-xs text-muted-foreground">{t("statPending")}</div>
-            <div className="text-2xl font-semibold">{items.filter((item) => item.status === 1 || item.status === "COLLECTION_SUBMISSION_PENDING").length}</div>
-          </div>
-          <div className="rounded-lg border bg-card p-3">
-            <div className="text-xs text-muted-foreground">{t("statApproved")}</div>
-            <div className="text-2xl font-semibold">{items.filter((item) => item.status === 3 || item.status === "COLLECTION_SUBMISSION_APPROVED").length}</div>
-          </div>
-          <div className="rounded-lg border bg-card p-3">
-            <div className="text-xs text-muted-foreground">{t("statFailed")}</div>
-            <div className="text-2xl font-semibold">{items.filter((item) => item.status === 5 || item.status === "COLLECTION_SUBMISSION_FAILED").length}</div>
-          </div>
-          <div className="rounded-lg border bg-card p-3">
-            <div className="text-xs text-muted-foreground">{t("statRejected")}</div>
-            <div className="text-2xl font-semibold">{items.filter((item) => item.status === 4 || item.status === "COLLECTION_SUBMISSION_REJECTED").length}</div>
-          </div>
+          <CollectionStatCard icon={FileText} label={t("statTotal")} value={total} tone="blue" />
+          <CollectionStatCard icon={Clock3} label={t("statPending")} value={pendingCount} tone="amber" />
+          <CollectionStatCard icon={CheckCircle2} label={t("statApproved")} value={approvedCount} tone="emerald" />
+          <CollectionStatCard icon={AlertTriangle} label={t("statFailed")} value={failedCount} tone="rose" />
+          <CollectionStatCard icon={Ban} label={t("statRejected")} value={rejectedCount} tone="slate" />
         </div>
 
         <div className="mt-4 overflow-hidden rounded-lg border bg-card">
