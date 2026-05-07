@@ -1465,7 +1465,7 @@
         "hostApproveSuccess": "成功保存 {count} 台主机变更。",
         "hostApproveFailed": "保存主机变更失败",
         "collectionApprovalTitle": "采集审批",
-        "collectionApprovalDescription": "查看客户提交的采集单，审核通过后自动执行逻辑组替换和主机入库。",
+        "collectionApprovalDescription": "查看客户提交的采集单，审核通过后自动执行逻辑组替换和主机入库",
         "hostApprovalTab": "主机审批",
         "collectionApprovalTab": "采集审批",
         "collection": {

@@ -6,7 +6,22 @@ import type { Host } from "@/features/assets/approval/types"
 import { Button } from "@/shared/ui/button"
 import { Badge } from "@/shared/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
-import { ChevronLeft, ChevronRight, ArrowUpDown, Edit, AlertCircle } from "lucide-react"
+import {
+  AlertCircle,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  CircleDot,
+  Clock3,
+  Cpu,
+  Edit,
+  Fingerprint,
+  FolderTree,
+  Monitor,
+  Network,
+  Settings,
+  UserRound,
+} from "lucide-react"
 import { cn } from "@/shared/lib/utils"
 import { useTranslations } from "next-intl"
 
@@ -21,6 +36,23 @@ export interface HostTableProps {
   sortField?: keyof Host | null
   sortDirection?: "asc" | "desc"
   onSort?: (field: keyof Host) => void
+}
+
+function HeaderLabel({
+  icon: Icon,
+  children,
+  className,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <span className={cn("inline-flex items-center gap-1.5", className)}>
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      {children}
+    </span>
+  )
 }
 
 export function HostTable({
@@ -92,15 +124,35 @@ export function HostTable({
         <Table>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <SortableHeader field="hostname">{t("hostname")}</SortableHeader>
-              <TableHead>{t("ipAddress")}</TableHead>
-              <TableHead>{t("macAddress")}</TableHead>
-              <SortableHeader field="os_name">{t("os")}</SortableHeader>
-              <SortableHeader field="status">{t("status")}</SortableHeader>
-              <TableHead>{t("logicGroup")}</TableHead>
-              <TableHead>{t("owner")}</TableHead>
-              <SortableHeader field="heartbeat_time">{t("heartbeat")}</SortableHeader>
-              <TableHead className="text-right">{t("actions")}</TableHead>
+              <SortableHeader field="hostname">
+                <HeaderLabel icon={Monitor}>{t("hostname")}</HeaderLabel>
+              </SortableHeader>
+              <TableHead>
+                <HeaderLabel icon={Network}>{t("ipAddress")}</HeaderLabel>
+              </TableHead>
+              <TableHead>
+                <HeaderLabel icon={Fingerprint}>{t("macAddress")}</HeaderLabel>
+              </TableHead>
+              <SortableHeader field="os_name">
+                <HeaderLabel icon={Cpu}>{t("os")}</HeaderLabel>
+              </SortableHeader>
+              <SortableHeader field="status">
+                <HeaderLabel icon={CircleDot}>{t("status")}</HeaderLabel>
+              </SortableHeader>
+              <TableHead>
+                <HeaderLabel icon={FolderTree}>{t("logicGroup")}</HeaderLabel>
+              </TableHead>
+              <TableHead>
+                <HeaderLabel icon={UserRound}>{t("owner")}</HeaderLabel>
+              </TableHead>
+              <SortableHeader field="heartbeat_time">
+                <HeaderLabel icon={Clock3}>{t("heartbeat")}</HeaderLabel>
+              </SortableHeader>
+              <TableHead className="text-right">
+                <HeaderLabel icon={Settings} className="justify-end">
+                  {t("actions")}
+                </HeaderLabel>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

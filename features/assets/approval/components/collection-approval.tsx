@@ -1,11 +1,20 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import type { ComponentType, ReactNode } from "react"
 import {
+  Building2,
+  CalendarClock,
   CheckCircle2,
+  CircleDot,
   Eye,
+  FileText,
+  FolderTree,
   Search,
+  Server,
+  Settings,
   ShieldCheck,
+  UserRound,
   XCircle,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -104,6 +113,23 @@ function formatDateTime(value?: number) {
   if (!value) return "-"
   const date = new Date(value < 1_000_000_000_000 ? value * 1000 : value)
   return date.toLocaleString()
+}
+
+function TableHeaderLabel({
+  icon: Icon,
+  children,
+  className,
+}: {
+  icon: ComponentType<{ className?: string }>
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <span className={cn("inline-flex items-center gap-1.5", className)}>
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      {children}
+    </span>
+  )
 }
 
 export interface CollectionApprovalProps {
@@ -341,14 +367,32 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t("submissionId")}</TableHead>
-                  <TableHead>{t("tenant")}</TableHead>
-                  <TableHead>{t("status")}</TableHead>
-                  <TableHead>{t("hostCount")}</TableHead>
-                  <TableHead>{t("logicGroupCount")}</TableHead>
-                  <TableHead>{t("submitter")}</TableHead>
-                  <TableHead>{t("createdAt")}</TableHead>
-                  <TableHead className="text-right">{t("actions")}</TableHead>
+                  <TableHead>
+                    <TableHeaderLabel icon={FileText}>{t("submissionId")}</TableHeaderLabel>
+                  </TableHead>
+                  <TableHead>
+                    <TableHeaderLabel icon={Building2}>{t("tenant")}</TableHeaderLabel>
+                  </TableHead>
+                  <TableHead>
+                    <TableHeaderLabel icon={CircleDot}>{t("status")}</TableHeaderLabel>
+                  </TableHead>
+                  <TableHead>
+                    <TableHeaderLabel icon={Server}>{t("hostCount")}</TableHeaderLabel>
+                  </TableHead>
+                  <TableHead>
+                    <TableHeaderLabel icon={FolderTree}>{t("logicGroupCount")}</TableHeaderLabel>
+                  </TableHead>
+                  <TableHead>
+                    <TableHeaderLabel icon={UserRound}>{t("submitter")}</TableHeaderLabel>
+                  </TableHead>
+                  <TableHead>
+                    <TableHeaderLabel icon={CalendarClock}>{t("createdAt")}</TableHeaderLabel>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <TableHeaderLabel icon={Settings} className="justify-end">
+                      {t("actions")}
+                    </TableHeaderLabel>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

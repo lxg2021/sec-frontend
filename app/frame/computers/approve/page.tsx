@@ -311,16 +311,16 @@ export default function LogicGroupsPage() {
           </div>
         </div>
 
-        <Card className="rounded-xl border-0 bg-white shadow-lg">
-          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex items-start gap-3">
+        <Card className="rounded-xl border border-slate-200 bg-white shadow-none">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3">
               <div className="rounded-lg bg-slate-900 p-2 text-white">
                 <FolderTree className="h-5 w-5" />
               </div>
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800">{t("editStructure")}</CardTitle>
                 <p className="mt-1 text-sm text-slate-600">
-                  管理公司、部门与逻辑组的层级结构，支持导入、编辑与批量维护。
+                  管理公司、部门与逻辑组的层级结构，支持导入、编辑与批量维护
                 </p>
               </div>
             </div>
@@ -439,9 +439,9 @@ export default function LogicGroupsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border-0 bg-white shadow-lg">
-          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex items-start gap-3">
+        <Card className="rounded-xl border border-slate-200 bg-white shadow-none">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3">
               <div className="rounded-lg bg-blue-600 p-2 text-white">
                 <Computer className="h-5 w-5" />
               </div>
@@ -496,9 +496,9 @@ export default function LogicGroupsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border-0 bg-white shadow-lg">
-          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex items-start gap-3">
+        <Card className="rounded-xl border border-slate-200 bg-white shadow-none">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3">
               <div className="rounded-lg bg-emerald-600 p-2 text-white">
                 <FileUp className="h-5 w-5" />
               </div>

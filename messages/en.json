@@ -1400,7 +1400,7 @@
         "uploadFile": "Upload File",
         "editStructure": "Edit Structure",
         "approvalTitle": "Host Approval",
-        "approvalDescription": "Filter and edit host groups and owners.",
+        "approvalDescription": "Filter and edit host groups and owners",
         "fileTooLarge": "File size exceeds the limit (maximum 5 MB).",
         "saveSuccess": "Successfully saved {count} organization records.",
         "statusOnline": "Online",
@@ -1463,7 +1463,7 @@
         "hostApproveSuccess": "Successfully saved {count} host changes.",
         "hostApproveFailed": "Failed to save host changes",
         "collectionApprovalTitle": "Collection Approval",
-        "collectionApprovalDescription": "Review customer-submitted collection forms. Approved items will replace the logic tree and import hosts automatically.",
+        "collectionApprovalDescription": "Review customer-submitted collection forms. Approved items will replace the logic tree and import hosts automatically",
         "hostApprovalTab": "Host Approval",
         "collectionApprovalTab": "Collection Approval",
         "collection": {
