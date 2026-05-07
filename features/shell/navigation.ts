@@ -28,8 +28,8 @@ export const menuItems = [
     icon: Computer,
     labelKey: "computers",
     submenu: [
-      { id: "agentinfo", icon: Monitor, labelKey: "agentinfo", path: "/frame/assets/host-info" },
       { id: "approve", icon: Package, labelKey: "approve", path: "/frame/computers/approve" },
+      { id: "agentinfo", icon: Monitor, labelKey: "agentinfo", path: "/frame/assets/host-info" },
     ],
   },
   {
