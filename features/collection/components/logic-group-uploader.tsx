@@ -142,7 +142,10 @@ export function LogicGroupUploader({
   const content = (
     <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2 bg-transparent">
+          <Button
+            onClick={handleDownloadTemplate}
+            className="h-10 w-28 justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800"
+          >
             <Download className="h-4 w-4" />
             {defaultTexts.downloadTemplateText}
           </Button>

@@ -545,7 +545,11 @@ export function TreeLogicGroup({
           />
         </div>
         {!readOnly && !disabled && (
-          <Button onClick={addRootNode} size="sm" className="shrink-0">
+          <Button
+            onClick={addRootNode}
+            size="sm"
+            className="h-10 w-28 shrink-0 justify-center bg-slate-900 text-white hover:bg-slate-800"
+          >
             <Plus className="mr-2 h-4 w-4" />
             {t("addCompany")}
           </Button>
@@ -640,7 +644,7 @@ export function TreeLogicGroup({
               <Button
                 onClick={addRootNode}
                 size="sm"
-                className="flex items-center justify-center gap-1 w-28"
+                className="flex h-10 w-28 items-center justify-center gap-1 bg-slate-900 text-white hover:bg-slate-800"
               >
                 <Plus className="h-4 w-4" />
                 {t("addCompany")}
@@ -651,7 +655,7 @@ export function TreeLogicGroup({
                 onClick={handleSave}
                 size="sm"
                 variant="default"
-                className="flex items-center justify-center gap-1 w-28"
+                className="flex h-10 w-28 items-center justify-center gap-1 bg-slate-900 text-white hover:bg-slate-800"
               >
                 <Save className="h-4 w-4" />
                 {t("save")}

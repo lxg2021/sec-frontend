@@ -274,7 +274,7 @@ export default function LogicGroupsPage() {
                       <Button
                         onClick={handleRequestLogicSave}
                         disabled={savingLogicGroups || logicGroupStatus === "loading" || uploadedGroups.length === 0}
-                        className="bg-slate-900 text-white hover:bg-slate-800"
+                        className="h-10 w-28 justify-center bg-slate-900 text-white hover:bg-slate-800"
                       >
                         {savingLogicGroups ? (
                           <>
@@ -329,11 +329,11 @@ export default function LogicGroupsPage() {
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-lg border border-slate-200 bg-slate-50 shadow-sm">
-                  <div className="border-b border-slate-200 p-4">
-                    <h3 className="text-base font-semibold text-slate-100">导入配置</h3>
-                    <p className="mt-1 text-sm text-slate-400">上传组织结构文件，校验后同步到左侧树。</p>
-                  </div>
+                    <div className="flex h-full flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
+                      <div className="border-b border-slate-200 p-4">
+                        <h3 className="text-base font-semibold text-slate-900">导入配置</h3>
+                        <p className="mt-1 text-sm text-slate-500">上传组织结构文件，校验后同步到左侧树。</p>
+                      </div>
                   <div className="flex min-h-0 flex-1 flex-col space-y-4 p-4">
                     <LogicGroupUploader
                       onGroupsUploaded={handleGroupsUploaded}
