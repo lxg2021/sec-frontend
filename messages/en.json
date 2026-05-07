@@ -1452,6 +1452,7 @@
         "minuteAgo": "{count} minutes ago",
         "justNow": "Just now",
         "approvalPageSummary": "Showing {shown} of {filtered} hosts",
+        "pageSize": "Page size",
         "hostSaveToastTitle": "Changes staged",
         "hostSaveToastDescription": "Changes for {host} were saved locally. Click Save changes to submit them to the backend.",
         "saveChanges": "Save changes",

@@ -21,9 +21,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { Toaster } from "@/shared/ui/toaster"
 import { useToast } from "@/shared/hooks/use-toast"
+import type { HostPagination } from "@/features/assets/approval/host-api"
 
 const TENANT_ID = "public"
-const HOST_FETCH_PAGE_SIZE = 200
+const HOST_FETCH_PAGE_SIZE = 10
 
 type LogicGroupLoadStatus = "loading" | "loaded" | "error"
 type HostLoadStatus = "loading" | "loaded" | "error"
@@ -41,6 +42,20 @@ export default function LogicGroupsPage() {
   const [savingLogicGroups, setSavingLogicGroups] = useState(false)
   const [hosts, setHosts] = useState<Host[]>([])
   const [originalHosts, setOriginalHosts] = useState<Host[]>([])
+  const [hostPagination, setHostPagination] = useState<HostPagination>({
+    current_page: 1,
+    page_size: HOST_FETCH_PAGE_SIZE,
+    total_count: 0,
+    total_pages: 1,
+    has_previous: false,
+    has_next: false,
+  })
+  const [hostQuery, setHostQuery] = useState({
+    page: 1,
+    pageSize: HOST_FETCH_PAGE_SIZE,
+    groupId: undefined as string | undefined,
+    revision: 0,
+  })
   const [hostStatus, setHostStatus] = useState<HostLoadStatus>("loading")
   const [hostError, setHostError] = useState("")
   const [savingHosts, setSavingHosts] = useState(false)
@@ -81,27 +96,18 @@ export default function LogicGroupsPage() {
   const loadHosts = useCallback(async () => {
     setHostStatus("loading")
     setHostError("")
+    const { page, pageSize, groupId } = hostQuery
 
     try {
-      const firstPage = await getApprovalHosts({
+      const result = await getApprovalHosts({
         tenantId: TENANT_ID,
-        page: 1,
-        pageSize: HOST_FETCH_PAGE_SIZE,
+        page,
+        pageSize,
+        ...(groupId ? { groupId } : {}),
       })
-      const loadedHosts = [...firstPage.hosts]
-      const totalPages = Math.max(1, firstPage.pagination.total_pages || 1)
-
-      for (let page = 2; page <= totalPages; page += 1) {
-        const nextPage = await getApprovalHosts({
-          tenantId: TENANT_ID,
-          page,
-          pageSize: HOST_FETCH_PAGE_SIZE,
-        })
-        loadedHosts.push(...nextPage.hosts)
-      }
-
-      setHosts(loadedHosts)
-      setOriginalHosts(loadedHosts)
+      setHosts(result.hosts)
+      setOriginalHosts(result.hosts)
+      setHostPagination(result.pagination)
       setHostStatus("loaded")
     } catch (error) {
       const message = error instanceof Error ? error.message : t("hostLoadFailed")
@@ -115,11 +121,20 @@ export default function LogicGroupsPage() {
         variant: "destructive",
       })
     }
-  }, [t, toast])
+  }, [hostQuery, t, toast])
 
   useEffect(() => {
     void loadHosts()
   }, [loadHosts])
+
+  const handleHostQueryChange = useCallback((query: { page: number; pageSize: number; groupId?: string }) => {
+    setHostQuery((previous) => ({
+      page: query.page,
+      pageSize: query.pageSize,
+      groupId: query.groupId,
+      revision: previous.revision + 1,
+    }))
+  }, [])
 
   const handleGroupsUploaded = (groups: UserLogicGroup[], fileName: string) => {
     console.log("上传的逻辑组数量:", groups.length)
@@ -321,8 +336,9 @@ export default function LogicGroupsPage() {
                 <HostApproval
                   hosts={hosts}
                   logicGroups={logicGroups}
-                  pageSize={10}
+                  pagination={hostPagination}
                   loading={hostStatus === "loading" || savingHosts}
+                  onQueryChange={handleHostQueryChange}
                   onSubmit={handleSubmit}
                 />
               </CardContent>

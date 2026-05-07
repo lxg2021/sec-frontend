@@ -1,24 +1,29 @@
-﻿"use client"
+"use client"
 
 import { useEffect, useMemo, useState } from "react"
-import type { Host, LogicGroup, HostFilterOptions } from "@/features/assets/approval/types"
-import { HostTable } from "./host-table"
-import { HostFilter } from "./host-filter"
-import { HostEditModal } from "./host-edit-modal"
+import { Save } from "lucide-react"
+import { useTranslations } from "next-intl"
+
+import type { HostPagination } from "@/features/assets/approval/host-api"
 import { findHostsNeedingApproval } from "@/features/assets/approval/host-adapters"
 import { filterHosts } from "@/features/assets/approval/utils"
+import type { Host, LogicGroup, HostFilterOptions } from "@/features/assets/approval/types"
+import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
-import { useTranslations } from "next-intl"
-import { useToast } from "@/shared/hooks/use-toast"
-import { Save } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+
+import { HostEditModal } from "./host-edit-modal"
+import { HostFilter } from "./host-filter"
+import { HostTable } from "./host-table"
 
 export interface HostApprovalProps {
   hosts: Host[]
   logicGroups: LogicGroup[]
+  pagination: HostPagination
   initialFilters?: HostFilterOptions
-  pageSize?: number
   loading?: boolean
+  onQueryChange: (query: { page: number; pageSize: number; groupId?: string }) => void
   onSubmit: (updatedHosts: Host[]) => void | Promise<void>
   onCancel?: () => void
 }
@@ -26,9 +31,10 @@ export interface HostApprovalProps {
 export function HostApproval({
   hosts: initialHosts,
   logicGroups,
+  pagination,
   initialFilters = {},
-  pageSize = 20,
   loading = false,
+  onQueryChange,
   onSubmit,
   onCancel,
 }: HostApprovalProps) {
@@ -36,7 +42,6 @@ export function HostApproval({
   const { toast } = useToast()
   const [hosts, setHosts] = useState<Host[]>(initialHosts)
   const [filters, setFilters] = useState<HostFilterOptions>(initialFilters)
-  const [currentPage, setCurrentPage] = useState(1)
   const [editingHost, setEditingHost] = useState<Host | null>(null)
   const [sortField, setSortField] = useState<keyof Host | null>(null)
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
@@ -44,14 +49,11 @@ export function HostApproval({
 
   useEffect(() => {
     setHosts(initialHosts)
-    setCurrentPage(1)
   }, [initialHosts])
 
-  // Filter and sort hosts
-  const filteredHosts = useMemo(() => {
+  const displayedHosts = useMemo(() => {
     let result = filterHosts(hosts, filters)
 
-    // Apply sorting
     if (sortField) {
       result = [...result].sort((a, b) => {
         const aVal = a[sortField]
@@ -76,25 +78,25 @@ export function HostApproval({
     return result
   }, [hosts, filters, sortField, sortDirection])
 
-  // Paginate hosts
-  const paginatedHosts = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    const end = start + pageSize
-    return filteredHosts.slice(start, end)
-  }, [filteredHosts, currentPage, pageSize])
-
-  const totalPages = Math.ceil(filteredHosts.length / pageSize)
   const pendingChangeCount = useMemo(
     () => findHostsNeedingApproval(initialHosts, hosts).length,
     [hosts, initialHosts],
   )
+
+  const syncQuery = (nextFilters: HostFilterOptions, page = 1, pageSize = pagination.page_size) => {
+    onQueryChange({
+      page,
+      pageSize,
+      groupId: nextFilters.groupIds?.[0],
+    })
+  }
 
   const handleEditHost = (host: Host) => {
     setEditingHost(host)
   }
 
   const handleSaveHost = (updatedHost: Host) => {
-    setHosts((prev) => prev.map((h) => (h.host_id === updatedHost.host_id ? updatedHost : h)))
+    setHosts((prev) => prev.map((host) => (host.host_id === updatedHost.host_id ? updatedHost : host)))
     setEditingHost(null)
     toast({
       title: t("hostSaveToastTitle"),
@@ -111,6 +113,19 @@ export function HostApproval({
     }
   }
 
+  const handleFiltersChange = (nextFilters: HostFilterOptions) => {
+    setFilters(nextFilters)
+    syncQuery(nextFilters)
+  }
+
+  const handlePageChange = (page: number) => {
+    syncQuery(filters, page)
+  }
+
+  const handlePageSizeChange = (pageSize: number) => {
+    syncQuery(filters, 1, pageSize)
+  }
+
   const handleSubmit = async () => {
     setSubmitting(true)
     try {
@@ -125,22 +140,22 @@ export function HostApproval({
       <Card className="border-border bg-card p-6">
         <HostFilter
           filters={filters}
-          onFiltersChange={setFilters}
+          onFiltersChange={handleFiltersChange}
           logicGroups={logicGroups}
-          totalHosts={hosts.length}
-          filteredHosts={filteredHosts.length}
+          totalHosts={pagination.total_count}
+          filteredHosts={displayedHosts.length}
         />
       </Card>
 
       <Card className="border-border bg-card">
         <HostTable
-          hosts={paginatedHosts}
+          hosts={displayedHosts}
           onEditHost={handleEditHost}
           highlightUngrouped={filters.ungrouped}
           highlightUnowned={filters.unowned}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          currentPage={pagination.current_page}
+          totalPages={pagination.total_pages}
+          onPageChange={handlePageChange}
           sortField={sortField}
           sortDirection={sortDirection}
           onSort={handleSort}
@@ -148,9 +163,24 @@ export function HostApproval({
       </Card>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1 text-sm">
+        <div className="flex flex-wrap items-center gap-3 text-sm">
           <div className="text-muted-foreground">
-            {t("approvalPageSummary", { filtered: filteredHosts.length, shown: paginatedHosts.length })}
+            {t("approvalPageSummary", { filtered: pagination.total_count, shown: displayedHosts.length })}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">{t("pageSize")}</span>
+            <Select value={String(pagination.page_size)} onValueChange={(value) => handlePageSizeChange(Number(value))}>
+              <SelectTrigger className="h-9 w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 20, 50, 100].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
         <div className="flex justify-end gap-3 sm:flex-1">

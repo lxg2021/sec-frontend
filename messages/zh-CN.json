@@ -1454,6 +1454,7 @@
         "minuteAgo": "{count} 分钟前",
         "justNow": "刚刚",
         "approvalPageSummary": "显示 {filtered} 个主机中的 {shown} 个",
+        "pageSize": "每页",
         "hostSaveToastTitle": "修改已暂存",
         "hostSaveToastDescription": "{host} 的修改已保存到当前列表，点击“保存更改”提交到后台。",
         "saveChanges": "保存更改",
