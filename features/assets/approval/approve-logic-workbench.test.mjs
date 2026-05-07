@@ -7,13 +7,17 @@ import { fileURLToPath } from "node:url"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const repoRoot = resolve(__dirname, "../../..")
 
-test("approve logic workbench is a polished dark split panel without nested tree card chrome", () => {
+test("approve logic workbench uses a light split panel and supports double-click rename", () => {
   const pageSource = readFileSync(resolve(repoRoot, "app/frame/computers/approve/page.tsx"), "utf8")
   const treeSource = readFileSync(resolve(repoRoot, "features/collection/components/tree-logic-group.tsx"), "utf8")
 
   assert.match(pageSource, /data-approve-section="logic"/)
-  assert.match(pageSource, /bg-slate-950/)
+  assert.doesNotMatch(pageSource, /className="dark space-y-4"/)
+  assert.doesNotMatch(pageSource, /bg-slate-950/)
+  assert.match(pageSource, /border-slate-200/)
+  assert.match(pageSource, /bg-white/)
   assert.match(pageSource, /grid-cols-\[minmax\(0,1fr\)_420px\]/)
+  assert.match(pageSource, /min-h-\[480px\]/)
   assert.match(pageSource, /showFrame=\{false\}/)
   assert.match(pageSource, /保存结构/)
   assert.match(pageSource, /导入配置/)
@@ -27,4 +31,6 @@ test("approve logic workbench is a polished dark split panel without nested tree
   assert.match(treeSource, /if \(!showFrame\)/)
   assert.match(treeSource, /saveRequestVersion/)
   assert.match(treeSource, /hideSaveButton/)
+  assert.match(treeSource, /onDoubleClick/)
+  assert.match(treeSource, /startEdit\(node\.id, node\.name\)/)
 })

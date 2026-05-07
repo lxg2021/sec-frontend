@@ -432,6 +432,7 @@ export function TreeLogicGroup({
           className={`flex items-center gap-2 p-2 rounded-md transition-colors ${isSelected ? "bg-primary/10 border border-primary" : "hover:bg-muted"
             } ${isMatched ? "ring-2 ring-yellow-400" : ""} ${level > 0 ? "ml-6" : ""}`}
           onClick={() => selectNode(node.id)}
+          onDoubleClick={() => startEdit(node.id, node.name)}
         >
           {/* 展开/折叠按钮 */}
           {hasChildren && (

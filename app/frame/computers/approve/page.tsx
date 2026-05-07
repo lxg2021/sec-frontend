@@ -236,18 +236,18 @@ export default function LogicGroupsPage() {
           </div>
         </div>
 
-        <section data-approve-section="logic" className="dark space-y-4">
-          <Card className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950 text-slate-100 shadow-xl">
-            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-800/80 pb-4">
+        <section data-approve-section="logic" className="space-y-4">
+          <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between border-b border-slate-200 bg-slate-50/80 pb-4">
               <div className="flex items-center space-x-3">
-                <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2">
-                  <Computer className="h-5 w-5 text-emerald-300" />
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-2">
+                  <Computer className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg font-semibold text-slate-100">
+                  <CardTitle className="text-lg font-semibold text-slate-900">
                     {t("editStructure")}
                   </CardTitle>
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-slate-500">
                     左侧编辑组织树，右侧导入配置。
                   </p>
                 </div>
@@ -257,7 +257,7 @@ export default function LogicGroupsPage() {
                 size="sm"
                 onClick={() => void loadLogicGroups()}
                 disabled={logicGroupStatus === "loading"}
-                className="text-slate-300 hover:bg-slate-800 hover:text-slate-50"
+                className="text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               >
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 重新加载
@@ -265,8 +265,8 @@ export default function LogicGroupsPage() {
             </CardHeader>
             <CardContent className="p-4">
               <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_420px]">
-                <div className="flex min-h-[640px] flex-col rounded-lg border border-slate-800 bg-slate-900/70 shadow-sm">
-                  <div className="border-b border-slate-800 p-4">
+                    <div className="flex min-h-[480px] flex-col rounded-lg border border-slate-200 bg-white shadow-sm">
+                  <div className="border-b border-slate-200 p-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="text-xs text-slate-400">
                         {uploadedFileName ? `来源：${uploadedFileName}` : "来源：后端组织结构"}
@@ -274,7 +274,7 @@ export default function LogicGroupsPage() {
                       <Button
                         onClick={handleRequestLogicSave}
                         disabled={savingLogicGroups || logicGroupStatus === "loading" || uploadedGroups.length === 0}
-                        className="bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                        className="bg-slate-900 text-white hover:bg-slate-800"
                       >
                         {savingLogicGroups ? (
                           <>
@@ -292,13 +292,13 @@ export default function LogicGroupsPage() {
                   </div>
                   <div className="flex min-h-0 flex-1 flex-col space-y-4 p-4">
                     {logicGroupStatus === "loading" && (
-                      <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-sm text-slate-400">
+                      <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         正在加载组织结构...
                       </div>
                     )}
                     {logicGroupStatus === "error" && (
-                      <div className="flex flex-col gap-3 rounded-lg border border-rose-500/40 bg-rose-500/10 p-4 text-sm md:flex-row md:items-center md:justify-between">
+                      <div className="flex flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm md:flex-row md:items-center md:justify-between">
                         <div>
                           <div className="font-medium text-rose-300">加载组织结构失败</div>
                           <div className="mt-1 text-slate-400">{logicGroupError}</div>
@@ -307,14 +307,14 @@ export default function LogicGroupsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => void loadLogicGroups()}
-                          className="border-slate-700 bg-transparent text-slate-200 hover:bg-slate-800"
+                          className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                         >
                           <RefreshCcw className="h-4 w-4" />
                           重新加载
                         </Button>
                       </div>
                     )}
-                    <div className="flex-1 text-slate-200 [&_input]:border-slate-700 [&_input]:bg-slate-950/70 [&_input]:text-slate-100 [&_input]:placeholder:text-slate-500">
+                    <div className="flex-1 text-slate-800 [&_input]:border-slate-300 [&_input]:bg-white [&_input]:text-slate-900 [&_input]:placeholder:text-slate-400">
                       <TreeLogicGroup
                         key={`${logicGroupTreeVersion}-${uploadedFileName || "backend"}`}
                         groups={uploadedGroups}
@@ -329,8 +329,8 @@ export default function LogicGroupsPage() {
                   </div>
                 </div>
 
-                <div className="flex h-full flex-col rounded-lg border border-slate-800 bg-slate-900/70 shadow-sm">
-                  <div className="border-b border-slate-800 p-4">
+                <div className="flex h-full flex-col rounded-lg border border-slate-200 bg-slate-50 shadow-sm">
+                  <div className="border-b border-slate-200 p-4">
                     <h3 className="text-base font-semibold text-slate-100">导入配置</h3>
                     <p className="mt-1 text-sm text-slate-400">上传组织结构文件，校验后同步到左侧树。</p>
                   </div>
@@ -341,7 +341,7 @@ export default function LogicGroupsPage() {
                       disabled={logicGroupStatus === "loading"}
                       showFrame={false}
                     />
-                    <div className="rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-xs leading-5 text-slate-400">
+                    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs leading-5 text-slate-500">
                       导入完成后，直接在左侧树上新增、改名、删除和调整层级。
                     </div>
                   </div>
