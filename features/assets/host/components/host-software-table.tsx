@@ -22,6 +22,20 @@ interface HostSoftwareTableProps {
   onPageSizeChange?: (pageSize: number) => void
 }
 
+function getInfoUrl(value?: string): string {
+  const url = value?.trim() || ""
+
+  if (!url || url === "-" || url.toLowerCase() === "null" || url.toLowerCase() === "undefined") {
+    return ""
+  }
+
+  if (!/^https?:\/\//i.test(url)) {
+    return ""
+  }
+
+  return url
+}
+
 export function HostSoftwareTable({
   software,
   loading = false,
@@ -139,57 +153,61 @@ export function HostSoftwareTable({
                 </TableCell>
               </TableRow>
             ) : (
-              softwareList.map((sw, index) => (
-                <TableRow key={`${sw.identifyingNumber || sw.name}-${index}`}>
-                  <TableCell>
-                    <div className="max-w-xs truncate font-medium" title={sw.displayName}>
-                      {sw.displayName}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-xs truncate font-mono text-sm text-muted-foreground" title={sw.description}>
-                      {sw.description || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-mono text-sm">{sw.installDate || "-"}</span>
-                  </TableCell>
-                  <TableCell>
-                    <TruncateCopyable value={sw.installLocation || ""} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="max-w-xs truncate font-mono text-sm" title={sw.name}>
-                      {sw.name || "-"}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <TruncateCopyable value={sw.packageCache || ""} />
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{sw.vendor || "-"}</TableCell>
-                  <TableCell className="font-mono text-sm">{sw.version || "-"}</TableCell>
-                  <TableCell>
-                    <TruncateCopyable value={sw.uninstallString || ""} />
-                  </TableCell>
-                  <TableCell>
-                    <TruncateCopyable value={sw.quietUninstallString || ""} />
-                  </TableCell>
-                  <TableCell>
-                    {sw.urlInfoAbout ? (
-                      <a
-                        href={sw.urlInfoAbout}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                        title={sw.urlInfoAbout}
-                      >
-                        {t("details")}
-                      </a>
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
+              softwareList.map((sw, index) => {
+                const infoUrl = getInfoUrl(sw.urlInfoAbout)
+
+                return (
+                  <TableRow key={`${sw.identifyingNumber || sw.name}-${index}`}>
+                    <TableCell>
+                      <div className="max-w-xs truncate font-medium" title={sw.displayName}>
+                        {sw.displayName}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate font-mono text-sm text-muted-foreground" title={sw.description}>
+                        {sw.description || "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-sm">{sw.installDate || "-"}</span>
+                    </TableCell>
+                    <TableCell>
+                      <TruncateCopyable value={sw.installLocation || ""} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="max-w-xs truncate font-mono text-sm" title={sw.name}>
+                        {sw.name || "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <TruncateCopyable value={sw.packageCache || ""} />
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">{sw.vendor || "-"}</TableCell>
+                    <TableCell className="font-mono text-sm">{sw.version || "-"}</TableCell>
+                    <TableCell>
+                      <TruncateCopyable value={sw.uninstallString || ""} />
+                    </TableCell>
+                    <TableCell>
+                      <TruncateCopyable value={sw.quietUninstallString || ""} />
+                    </TableCell>
+                    <TableCell>
+                      {infoUrl ? (
+                        <a
+                          href={infoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                          title={infoUrl}
+                        >
+                          {t("details")}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
