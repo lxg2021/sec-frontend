@@ -1460,7 +1460,7 @@
         "saveChanges": "保存更改",
         "hostLoading": "正在加载主机...",
         "hostLoadFailed": "加载主机失败",
-        "hostRetry": "重新加载",
+        "hostRetry": "刷新",
         "hostApproveNoChanges": "没有需要保存的主机变更",
         "hostApproveSuccess": "成功保存 {count} 台主机变更。",
         "hostApproveFailed": "保存主机变更失败",

@@ -1458,7 +1458,7 @@
         "saveChanges": "Save changes",
         "hostLoading": "Loading hosts...",
         "hostLoadFailed": "Failed to load hosts",
-        "hostRetry": "Retry",
+        "hostRetry": "Refresh",
         "hostApproveNoChanges": "No host changes to save",
         "hostApproveSuccess": "Successfully saved {count} host changes.",
         "hostApproveFailed": "Failed to save host changes",

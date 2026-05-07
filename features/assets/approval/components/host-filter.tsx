@@ -5,10 +5,11 @@ import { Input } from "@/shared/ui/input"
 import { Button } from "@/shared/ui/button"
 import { Badge } from "@/shared/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
-import { Search, X, Filter } from "lucide-react"
+import { Search, X, Filter, RefreshCcw } from "lucide-react"
 import { Checkbox } from "@/shared/ui/checkbox"
 import { Label } from "@/shared/ui/label"
 import { useTranslations } from "next-intl"
+import { cn } from "@/shared/lib/utils"
 
 interface HostFilterProps {
   filters: HostFilterOptions
@@ -16,9 +17,10 @@ interface HostFilterProps {
   logicGroups: LogicGroup[]
   totalHosts: number
   filteredHosts: number
+  onRefresh?: () => void
 }
 
-export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, filteredHosts }: HostFilterProps) {
+export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, filteredHosts, onRefresh }: HostFilterProps) {
   const t = useTranslations("pages.computers.approve")
   const statusOptions: { value: HostStatus; label: string; color: string }[] = [
     { value: "online", label: t("statusOnline"), color: "bg-green-500" },
@@ -132,18 +134,43 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
 
         {/* Status Filter */}
         <div className="flex items-center gap-2">
-          {statusOptions.map((status) => (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {statusOptions.map((status) => {
+              const selected = filters.status?.includes(status.value)
+
+              return (
+                <Button
+                  key={status.value}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleStatusToggle(status.value)}
+                  className={cn(
+                    "h-10 flex-1 cursor-pointer border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900",
+                    selected &&
+                      status.value === "online" &&
+                      "border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800",
+                    selected &&
+                      status.value === "offline" &&
+                      "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900",
+                  )}
+                >
+                  <span className={`mr-2 h-4 w-4 rounded-full ${status.color}`} />
+                  <span className="text-xs">{status.label}</span>
+                </Button>
+              )
+            })}
+          </div>
+          {onRefresh && (
             <Button
-              key={status.value}
-              variant={filters.status?.includes(status.value) ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              onClick={() => handleStatusToggle(status.value)}
-              className="flex-1 h-10"
+              onClick={onRefresh}
+              className="h-10 shrink-0 cursor-pointer border-slate-200 bg-white px-3 text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900"
             >
-              <span className={`mr-2 h-4 w-4 rounded-full ${status.color}`} />
-              <span className="text-xs">{status.label}</span>
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              {t("hostRetry")}
             </Button>
-          ))}
+          )}
         </div>
       </div>
 

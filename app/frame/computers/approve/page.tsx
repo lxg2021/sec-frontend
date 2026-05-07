@@ -136,6 +136,13 @@ export default function LogicGroupsPage() {
     }))
   }, [])
 
+  const handleHostRefresh = useCallback(() => {
+    setHostQuery((previous) => ({
+      ...previous,
+      revision: previous.revision + 1,
+    }))
+  }, [])
+
   const handleGroupsUploaded = (groups: UserLogicGroup[], fileName: string) => {
     setUploadedGroups(groups)
     setUploadedFileName(fileName)
@@ -260,7 +267,7 @@ export default function LogicGroupsPage() {
                 className="text-slate-600 hover:bg-slate-100 hover:text-slate-900"
               >
                 <RefreshCcw className="mr-2 h-4 w-4" />
-                重新加载
+                刷新
               </Button>
             </CardHeader>
             <CardContent className="p-4">
@@ -310,7 +317,7 @@ export default function LogicGroupsPage() {
                           className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                         >
                           <RefreshCcw className="h-4 w-4" />
-                          重新加载
+                          刷新
                         </Button>
                       </div>
                     )}
@@ -393,6 +400,7 @@ export default function LogicGroupsPage() {
                 pagination={hostPagination}
                 loading={hostStatus === "loading" || savingHosts}
                 onQueryChange={handleHostQueryChange}
+                onRefresh={handleHostRefresh}
                 onSubmit={handleSubmit}
               />
             </CardContent>
