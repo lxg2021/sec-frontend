@@ -125,6 +125,13 @@ export function CollectionApproval() {
   const [approvalResult, setApprovalResult] = useState<ApprovalResultSummary | null>(null)
 
   const loadList = useCallback(async () => {
+    console.info("[CollectionApproval] loadList:start", {
+      tenantId: TENANT_ID,
+      page,
+      pageSize,
+      status,
+      keyword: keyword.trim(),
+    })
     setLoading(true)
     try {
       const result = await listCollectionSubmissions({
@@ -134,9 +141,16 @@ export function CollectionApproval() {
         ...(status === "all" ? {} : { status }),
         ...(keyword.trim() ? { keyword } : {}),
       })
+      console.info("[CollectionApproval] loadList:success", {
+        itemCount: result.items.length,
+        total: result.total,
+        page: result.page,
+        pageSize: result.page_size,
+      })
       setItems(result.items)
       setTotal(result.total)
     } catch (error) {
+      console.error("[CollectionApproval] loadList:error", error)
       toast({
         title: t("loadFailed"),
         description: error instanceof Error ? error.message : t("unknownError"),

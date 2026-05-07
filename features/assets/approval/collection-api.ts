@@ -1,5 +1,12 @@
 import { http } from "@/shared/lib/http/client"
+import { getAccessToken } from "@/shared/lib/http/auth"
+import { resolveApiUrl } from "@/shared/lib/http/config"
 import { createRequestId } from "@/shared/lib/utils"
+import {
+  adaptCollectionApprovalResult,
+  adaptCollectionSubmissionDetail,
+  adaptCollectionSubmissionListData,
+} from "@/features/assets/approval/collection-adapters"
 import type {
   CollectionApprovalResult,
   CollectionSubmissionDetail,
@@ -22,21 +29,24 @@ export async function listCollectionSubmissions({
   status,
   keyword,
 }: ListCollectionSubmissionsParams): Promise<CollectionSubmissionListData> {
-  const result = await http.post("listCollectionSubmissions", {
+  const body = {
     request_id: createRequestId(),
     tenant_id: tenantId,
     page,
     page_size: pageSize,
     ...(status ? { status } : {}),
     ...(keyword?.trim() ? { keyword: keyword.trim() } : {}),
-  })
-
-  return {
-    items: result.data?.items || [],
-    page: Number(result.data?.page || page),
-    page_size: Number(result.data?.page_size || pageSize),
-    total: Number(result.data?.total || 0),
   }
+
+  console.info("[CollectionAPI] POST listCollectionSubmissions", {
+    url: await resolveApiUrl("listCollectionSubmissions"),
+    hasAccessToken: Boolean(getAccessToken()),
+    body,
+  })
+  const result = await http.post("listCollectionSubmissions", body)
+  console.info("[CollectionAPI] listCollectionSubmissions:response", result)
+
+  return adaptCollectionSubmissionListData(result.data, { page, pageSize })
 }
 
 export async function getCollectionSubmission(
@@ -49,7 +59,7 @@ export async function getCollectionSubmission(
     submission_id: submissionId,
   })
 
-  return result.data
+  return adaptCollectionSubmissionDetail(result.data)
 }
 
 export async function approveCollectionSubmission(
@@ -64,7 +74,7 @@ export async function approveCollectionSubmission(
     ...(reviewNote?.trim() ? { review_note: reviewNote.trim() } : {}),
   })
 
-  return result.data
+  return adaptCollectionApprovalResult(result.data)
 }
 
 export async function rejectCollectionSubmission(
