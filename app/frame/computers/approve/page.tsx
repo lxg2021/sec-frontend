@@ -216,21 +216,24 @@ export default function LogicGroupsPage() {
           </div>
         </div>
 
-        <Tabs value={logicGroupTab} onValueChange={setLogicGroupTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upload" className="flex items-center gap-2">
-              <Image src="/icons/computer/upload.svg" alt={t("uploadAlt")} width={16} height={16} />
-              {t("uploadFile")}
-            </TabsTrigger>
-            <TabsTrigger
-              value="edit"
-              disabled={uploadedGroups.length === 0 || logicGroupStatus === "loading"}
-              className="flex items-center gap-2"
-            >
-              <Image src="/icons/computer/organization.svg" alt={t("editAlt")} width={16} height={16} />
-              {t("editStructure")}
-            </TabsTrigger>
-          </TabsList>
+        <section data-approve-section="logic" className="space-y-6">
+          <Card className="rounded-xl border-0 bg-white shadow-lg dark:bg-gray-800">
+            <CardContent className="pb-6">
+              <Tabs value={logicGroupTab} onValueChange={setLogicGroupTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="upload" className="flex items-center gap-2">
+                    <Image src="/icons/computer/upload.svg" alt={t("uploadAlt")} width={16} height={16} />
+                    {t("uploadFile")}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="edit"
+                    disabled={uploadedGroups.length === 0 || logicGroupStatus === "loading"}
+                    className="flex items-center gap-2"
+                  >
+                    <Image src="/icons/computer/organization.svg" alt={t("editAlt")} width={16} height={16} />
+                    {t("editStructure")}
+                  </TabsTrigger>
+                </TabsList>
 
           <TabsContent value="upload" className="space-y-6">
             {logicGroupStatus === "loading" && (
@@ -274,21 +277,12 @@ export default function LogicGroupsPage() {
               />
             )}
           </TabsContent>
-        </Tabs>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </section>
 
-        <Tabs defaultValue="host" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="host" className="flex items-center gap-2">
-              <Computer className="h-4 w-4" />
-              {t("hostApprovalTab")}
-            </TabsTrigger>
-            <TabsTrigger value="collection" className="flex items-center gap-2">
-              <FileUp className="h-4 w-4" />
-              {t("collectionApprovalTab")}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="host" className="space-y-6">
+        <section data-approve-section="host" className="space-y-6">
             <Card className="rounded-xl border-0 bg-white shadow-lg dark:bg-gray-800">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="flex items-center space-x-3">
@@ -333,9 +327,9 @@ export default function LogicGroupsPage() {
                 />
               </CardContent>
             </Card>
-          </TabsContent>
+        </section>
 
-          <TabsContent value="collection" className="space-y-6">
+        <section data-approve-section="collection" className="space-y-6">
             <Card className="rounded-xl border-0 bg-white shadow-lg dark:bg-gray-800">
               <CardHeader className="flex flex-row items-center justify-between pb-4">
                 <div className="flex items-center space-x-3">
@@ -356,8 +350,7 @@ export default function LogicGroupsPage() {
                 <CollectionApproval />
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+        </section>
       </div>
       <Toaster />
     </div>
