@@ -132,7 +132,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         </div>
 
         {/* Status Filter */}
-        <div className="flex flex-wrap items-center gap-2 lg:col-span-2">
+        <div className="flex flex-wrap items-center justify-end gap-2 lg:col-span-2 lg:justify-self-end">
           <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
             {t("status")}
           </div>
@@ -161,28 +161,29 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
                 </Button>
               )
             })}
-            <div className="ml-2 flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="ungrouped"
-                  checked={filters.ungrouped || false}
-                  onCheckedChange={(checked) => onFiltersChange({ ...filters, ungrouped: checked as boolean })}
-                />
-                <Label htmlFor="ungrouped" className="cursor-pointer text-sm font-medium text-foreground">
-                  {t("ungroupedHosts")}
-                </Label>
-              </div>
+          </div>
+          <span className="mx-1 text-slate-300">|</span>
+          <div className="ml-auto flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="ungrouped"
+                checked={filters.ungrouped || false}
+                onCheckedChange={(checked) => onFiltersChange({ ...filters, ungrouped: checked as boolean })}
+              />
+              <Label htmlFor="ungrouped" className="cursor-pointer text-sm font-medium text-foreground">
+                {t("ungroupedHosts")}
+              </Label>
+            </div>
 
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="unowned"
-                  checked={filters.unowned || false}
-                  onCheckedChange={(checked) => onFiltersChange({ ...filters, unowned: checked as boolean })}
-                />
-                <Label htmlFor="unowned" className="cursor-pointer text-sm font-medium text-foreground">
-                  {t("unownedHosts")}
-                </Label>
-              </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="unowned"
+                checked={filters.unowned || false}
+                onCheckedChange={(checked) => onFiltersChange({ ...filters, unowned: checked as boolean })}
+              />
+              <Label htmlFor="unowned" className="cursor-pointer text-sm font-medium text-foreground">
+                {t("unownedHosts")}
+              </Label>
             </div>
           </div>
         </div>
