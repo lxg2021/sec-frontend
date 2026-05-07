@@ -17,6 +17,7 @@ export function LogicGroupUploader({
   disabled = false,
   texts = {},
   showFrame = true,
+  hideDownloadButton = false,
 }: LogicGroupUploaderProps) {
   const t = useTranslations("pages.collection.logicGroupUploader")
   const defaultTexts = {
@@ -141,7 +142,8 @@ export function LogicGroupUploader({
 
   const content = (
     <div className="space-y-4">
-        <div className="flex items-center gap-2">
+        {!hideDownloadButton && (
+          <div className="flex items-center justify-end gap-2">
           <Button
             onClick={handleDownloadTemplate}
             className="h-10 w-28 justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800"
@@ -149,7 +151,8 @@ export function LogicGroupUploader({
             <Download className="h-4 w-4" />
             {defaultTexts.downloadTemplateText}
           </Button>
-        </div>
+          </div>
+        )}
 
         <div
           onDragOver={handleDragOver}

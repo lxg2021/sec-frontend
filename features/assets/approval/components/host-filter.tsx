@@ -134,6 +134,9 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
 
         {/* Status Filter */}
         <div className="flex items-center gap-2 lg:col-span-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+            {t("status")}
+          </div>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             {statusOptions.map((status) => {
               const selected = filters.status?.includes(status.value)

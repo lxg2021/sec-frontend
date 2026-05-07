@@ -119,4 +119,5 @@ export interface LogicGroupUploaderProps {
   disabled?: boolean
   texts?: LogicGroupUploaderTexts
   showFrame?: boolean
+  hideDownloadButton?: boolean
 }

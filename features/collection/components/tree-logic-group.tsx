@@ -56,6 +56,8 @@ export interface TreeLogicGroupProps {
   saveRequestVersion?: number
   /** 隐藏组件内部保存按钮，用外部按钮承载提交动作 */
   hideSaveButton?: boolean
+  /** 隐藏组件内部添加公司按钮，用外部按钮承载创建根节点动作 */
+  hideAddCompanyButton?: boolean
   /** 是否渲染组件自带卡片外框和标题 */
   showFrame?: boolean
 }
@@ -82,6 +84,7 @@ export function TreeLogicGroup({
   createdBy = "system",
   saveRequestVersion,
   hideSaveButton = false,
+  hideAddCompanyButton = false,
   showFrame = true,
 }: TreeLogicGroupProps) {
   const t = useTranslations("pages.collection.tree")
@@ -745,7 +748,7 @@ export function TreeLogicGroup({
             <Button variant="outline" size="sm" onClick={handleCollapseAll} className="bg-white">
               全部收起
             </Button>
-            {!readOnly && !disabled && (
+            {!readOnly && !disabled && !hideAddCompanyButton && (
               <Button
                 onClick={addRootNode}
                 size="sm"
@@ -790,7 +793,7 @@ export function TreeLogicGroup({
           <div className="py-8 text-center text-muted-foreground">
             <Building2 className="mx-auto mb-2 h-12 w-12 opacity-50" />
             <p>{t("empty")}</p>
-            {!readOnly && !disabled && (
+            {!readOnly && !disabled && !hideAddCompanyButton && (
               <Button onClick={addRootNode} size="sm" variant="outline" className="mt-4 bg-transparent">
                 <Plus className="mr-2 h-4 w-4" />
                 {t("addFirstCompany")}
@@ -858,7 +861,7 @@ export function TreeLogicGroup({
 
           {/* 右侧操作按钮区 */}
           <div className="flex items-center gap-2">
-            {!readOnly && !disabled && (
+            {!readOnly && !disabled && !hideAddCompanyButton && (
               <Button
                 onClick={addRootNode}
                 size="sm"

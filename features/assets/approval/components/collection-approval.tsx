@@ -107,7 +107,11 @@ function formatDateTime(value?: number) {
   return date.toLocaleString()
 }
 
-export function CollectionApproval() {
+export interface CollectionApprovalProps {
+  onTotalChange?: (total: number) => void
+}
+
+export function CollectionApproval({ onTotalChange }: CollectionApprovalProps) {
   const t = useTranslations("pages.computers.approve.collection")
   const { toast } = useToast()
   const [items, setItems] = useState<CollectionSubmissionSummary[]>([])
@@ -166,6 +170,10 @@ export function CollectionApproval() {
   useEffect(() => {
     void loadList()
   }, [loadList])
+
+  useEffect(() => {
+    onTotalChange?.(total)
+  }, [onTotalChange, total])
 
   useEffect(() => {
     setPage(1)

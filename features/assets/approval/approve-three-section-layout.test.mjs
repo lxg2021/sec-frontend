@@ -17,6 +17,6 @@ test("approve page renders logic host and collection as three vertical sections"
   assert.ok(logicIndex >= 0, "logic section should exist")
   assert.ok(hostIndex > logicIndex, "host section should be second")
   assert.ok(collectionIndex > hostIndex, "collection section should be third")
-  assert.match(source, /<CollectionApproval \/>/)
+  assert.match(source, /<CollectionApproval onTotalChange=\{setCollectionTotal\} \/>/)
   assert.doesNotMatch(source, /<Tabs defaultValue="host"/)
 })
