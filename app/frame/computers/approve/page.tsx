@@ -50,6 +50,10 @@ function countOnlineHosts(hosts: Host[]): number {
   return hosts.filter((host) => host.status === "online").length
 }
 
+function countPendingApprovalHosts(hosts: Host[]): number {
+  return hosts.filter((host) => !host.group || !host.owner).length
+}
+
 export default function LogicGroupsPage() {
   const t = useTranslations("pages.computers.approve")
   const treeT = useTranslations("pages.collection.tree")
@@ -276,6 +280,7 @@ export default function LogicGroupsPage() {
 
   const logicNodeCount = useMemo(() => countLogicNodes(uploadedGroups), [uploadedGroups])
   const onlineHostCount = useMemo(() => countOnlineHosts(hosts), [hosts])
+  const pendingHostCount = useMemo(() => countPendingApprovalHosts(hosts), [hosts])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -294,7 +299,7 @@ export default function LogicGroupsPage() {
           <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
             <span className="inline-flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-blue-500" />
-              待处理主机 <strong className="text-slate-900">{hostPagination.total_count}</strong>
+              待处理主机 <strong className="text-slate-900">{pendingHostCount}</strong>
             </span>
             <span className="inline-flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -491,6 +496,7 @@ export default function LogicGroupsPage() {
               pagination={hostPagination}
               loading={hostStatus === "loading" || savingHosts}
               onQueryChange={handleHostQueryChange}
+              onHostsChange={setHosts}
               onSubmit={handleSubmit}
             />
           </CardContent>

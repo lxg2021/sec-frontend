@@ -24,6 +24,7 @@ export interface HostApprovalProps {
   initialFilters?: HostFilterOptions
   loading?: boolean
   onQueryChange: (query: { page: number; pageSize: number; groupId?: string }) => void
+  onHostsChange?: (hosts: Host[]) => void
   onSubmit: (updatedHosts: Host[]) => void | Promise<void>
   onCancel?: () => void
 }
@@ -35,6 +36,7 @@ export function HostApproval({
   initialFilters = {},
   loading = false,
   onQueryChange,
+  onHostsChange,
   onSubmit,
   onCancel,
 }: HostApprovalProps) {
@@ -50,6 +52,10 @@ export function HostApproval({
   useEffect(() => {
     setHosts(initialHosts)
   }, [initialHosts])
+
+  useEffect(() => {
+    onHostsChange?.(hosts)
+  }, [hosts, onHostsChange])
 
   const displayedHosts = useMemo(() => {
     let result = filterHosts(hosts, filters)
