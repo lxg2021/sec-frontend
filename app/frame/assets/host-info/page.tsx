@@ -235,8 +235,6 @@ export default function HostInfoPage() {
           isOpen={!!selectedHostId}
           onClose={() => setSelectedHostId(null)}
           host={selectedHost}
-          hardware={null}
-          software={null}
         />
       </div>
     </div>

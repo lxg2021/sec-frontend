@@ -1,52 +1,71 @@
-﻿"use client"
+"use client"
 
-import { useState, useMemo } from "react"
-import { Search, Package, Calendar, FolderOpen, Archive, Trash2, VolumeX, ExternalLink } from "lucide-react"
-import { Input } from "@/shared/ui/input"
-import { Card, CardContent } from "@/shared/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+import { Archive, Calendar, ChevronLeft, ChevronRight, ExternalLink, FolderOpen, Loader2, Package, RefreshCcw, Trash2, VolumeX } from "lucide-react"
+
+import type { HostPagination } from "@/features/assets/host/api"
 import type { AgentSoftInfo } from "@/features/assets/host/types/software"
 import TruncateCopyable from "@/features/assets/software/components/truncate-copyable"
+import { Button } from "@/shared/ui/button"
+import { Card, CardContent } from "@/shared/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { useTranslations } from "next-intl"
 
 interface HostSoftwareTableProps {
   software: AgentSoftInfo | null
+  loading?: boolean
+  error?: string
+  pagination?: HostPagination
+  pageSize?: number
+  onRetry?: () => void
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
 }
 
-export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
+export function HostSoftwareTable({
+  software,
+  loading = false,
+  error = "",
+  pagination,
+  pageSize = 10,
+  onRetry,
+  onPageChange,
+  onPageSizeChange,
+}: HostSoftwareTableProps) {
   const t = useTranslations("pages.assets.hardware.host.softwarePanel")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [vendorFilter, setVendorFilter] = useState<string>("all")
+  const softwareList = software?.softwareList || []
+  const currentPage = pagination?.current_page || 1
+  const totalPages = Math.max(pagination?.total_pages || 0, 1)
+  const totalCount = pagination?.total_count || 0
+  const rangeStart = totalCount > 0 ? (currentPage - 1) * (pagination?.page_size || pageSize) + 1 : 0
+  const rangeEnd = totalCount > 0 ? Math.min(currentPage * (pagination?.page_size || pageSize), totalCount) : 0
 
-  const vendors = useMemo(() => {
-    if (!software) return []
-    const unique = Array.from(new Set(software.softwareList.map((s) => s.vendor).filter(Boolean)))
-    return unique.sort()
-  }, [software])
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-10 text-sm text-muted-foreground">
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          正在加载软件信息...
+        </CardContent>
+      </Card>
+    )
+  }
 
-  const filteredSoftware = useMemo(() => {
-    if (!software) return []
-
-    let filtered = software.softwareList
-
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (sw) =>
-          sw.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sw.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sw.vendor.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-    }
-
-    // Vendor filter
-    if (vendorFilter !== "all") {
-      filtered = filtered.filter((sw) => sw.vendor === vendorFilter)
-    }
-
-    return filtered
-  }, [software, searchTerm, vendorFilter])
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col gap-3 py-8 text-sm text-rose-700 md:flex-row md:items-center md:justify-between">
+          <span>{error}</span>
+          {onRetry ? (
+            <Button variant="outline" size="sm" onClick={onRetry}>
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              重试
+            </Button>
+          ) : null}
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (!software) {
     return (
@@ -60,43 +79,11 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        <Select value={vendorFilter} onValueChange={setVendorFilter}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder={t("selectVendor")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t("allVendors")}</SelectItem>
-            {vendors.map((vendor) => (
-              <SelectItem key={vendor} value={vendor}>
-                {vendor}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Package className="h-4 w-4" />
+        <span>{t("count", { count: totalCount || softwareList.length })}</span>
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <Package className="h-4 w-4" />
-          <span>{t("count", { count: filteredSoftware.length })}</span>
-        </div>
-        {(searchTerm || vendorFilter !== "all") && <div>({t("filteredFrom", { count: software.softwareList.length })})</div>}
-      </div>
-
-      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -104,7 +91,7 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
               <TableHead>{t("name")}</TableHead>
               <TableHead>{t("description")}</TableHead>
               <TableHead>
-                <div className="flex items-left gap-2">
+                <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   {t("installDate")}
                 </div>
@@ -145,17 +132,17 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredSoftware.length === 0 ? (
+            {softwareList.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
-                  {searchTerm || vendorFilter !== "all" ? t("noMatch") : t("empty")}
+                <TableCell colSpan={11} className="py-8 text-center text-muted-foreground">
+                  {t("empty")}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredSoftware.map((sw, index) => (
-                <TableRow key={index}>
+              softwareList.map((sw, index) => (
+                <TableRow key={`${sw.identifyingNumber || sw.name}-${index}`}>
                   <TableCell>
-                    <div className="font-medium max-w-xs truncate" title={sw.displayName}>
+                    <div className="max-w-xs truncate font-medium" title={sw.displayName}>
                       {sw.displayName}
                     </div>
                   </TableCell>
@@ -165,63 +152,40 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm">{sw.installDate || "-"}</span>
-                    </div>
+                    <span className="font-mono text-sm">{sw.installDate || "-"}</span>
                   </TableCell>
-
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <TruncateCopyable value={sw.installLocation || ""} />
-                    </div>
+                    <TruncateCopyable value={sw.installLocation || ""} />
                   </TableCell>
-
                   <TableCell>
                     <div className="max-w-xs truncate font-mono text-sm" title={sw.name}>
                       {sw.name || "-"}
                     </div>
                   </TableCell>
-
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <TruncateCopyable value={sw.packageCache || ""} />
-                    </div>
+                    <TruncateCopyable value={sw.packageCache || ""} />
                   </TableCell>
-
                   <TableCell className="font-mono text-sm">{sw.vendor || "-"}</TableCell>
                   <TableCell className="font-mono text-sm">{sw.version || "-"}</TableCell>
-
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <TruncateCopyable value={sw.uninstallString || ""} />
-                    </div>
+                    <TruncateCopyable value={sw.uninstallString || ""} />
                   </TableCell>
-
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <TruncateCopyable value={sw.quietUninstallString || ""} />
-                    </div>
+                    <TruncateCopyable value={sw.quietUninstallString || ""} />
                   </TableCell>
-
                   <TableCell>
                     {sw.urlInfoAbout ? (
-                      <div className="flex items-center gap-2">
-                        <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                        <a
-                          href={sw.urlInfoAbout}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 text-xs truncate max-w-xs block"
-                          title={sw.urlInfoAbout}
-                        >
-                          {t("details")}
-                        </a>
-                      </div>
+                      <a
+                        href={sw.urlInfoAbout}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                        title={sw.urlInfoAbout}
+                      >
+                        {t("details")}
+                      </a>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <ExternalLink className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                        <span>-</span>
-                      </div>
+                      "-"
                     )}
                   </TableCell>
                 </TableRow>
@@ -230,6 +194,48 @@ export function HostSoftwareTable({ software }: HostSoftwareTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      {pagination ? (
+        <div className="flex flex-col gap-3 border-t pt-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            共 {totalCount} 条软件记录
+            {totalCount > 0 ? `，当前显示 ${rangeStart}-${rangeEnd}` : ""}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-slate-500">第 {currentPage} / {totalPages} 页</span>
+            <span className="ml-2 text-slate-500">每页</span>
+            <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange?.(Number(value))}>
+              <SelectTrigger className="h-9 w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange?.(Math.max(currentPage - 1, 1))}
+              disabled={loading || !pagination.has_previous}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              上一页
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange?.(currentPage + 1)}
+              disabled={loading || !pagination.has_next}
+            >
+              下一页
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

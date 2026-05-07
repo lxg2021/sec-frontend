@@ -2,7 +2,9 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 
 import { AgentStatus, SystemType } from "./types/system-info"
+import type { AgentHardwareInfo } from "./types/hardware"
 import type { HostSummary } from "./types/host-summary"
+import type { AgentSoftInfo, Software } from "./types/software"
 import type { AgentInfo } from "./types/system-info"
 
 interface BackendHostSummary {
@@ -37,6 +39,79 @@ interface BackendPaginatedHostsData {
   pagination?: Partial<HostPagination>
 }
 
+interface BackendHardwareInfo {
+  agent_id?: string
+  cpus?: Array<{
+    socket_id?: string
+    name?: string
+    vendor?: string
+    physical_cores?: number
+    logical_cores?: number
+    max_frequency_mhz?: number
+    current_frequency_mhz?: number
+    l2_cache_size_bytes?: number
+    l3_cache_size_bytes?: number
+  }>
+  disks?: Array<{
+    device_id?: string
+    caption?: string
+    model?: string
+    manufacturer?: string
+    serial_number?: string
+    size_bytes?: number
+  }>
+  mainboard?: {
+    manufacturer?: string
+    product?: string
+    version?: string
+    serial_number?: string
+  }
+  memory?: Array<{
+    manufacturer?: string
+    part_number?: string
+    serial_number?: string
+    capacity_bytes?: number
+    speed_mhz?: number
+    device_locator?: string
+  }>
+  gpus?: Array<{
+    device_id?: string
+    name?: string
+    vendor?: string
+    driver_version?: string
+    memory_bytes?: number
+  }>
+  network_interfaces?: Array<{
+    interface_index?: number
+    description?: string
+    mac_address?: string
+    ip_address?: string[]
+    ip_enabled?: boolean
+  }>
+}
+
+interface BackendSoftwareInfo {
+  display_name?: string
+  description?: string
+  identifying_number?: string
+  install_date?: string
+  install_location?: string
+  install_state?: number
+  name?: string
+  package_cache?: string
+  sku_number?: string
+  vendor?: string
+  version?: string
+  uninstall_string?: string
+  quiet_uninstall_string?: string
+  url_info_about?: string
+}
+
+interface BackendPaginatedSoftwareData {
+  software_list?: BackendSoftwareInfo[]
+  pagination?: Partial<HostPagination>
+}
+
 export interface HostPagination {
   current_page: number
   page_size: number
@@ -48,6 +123,11 @@ export interface HostPagination {
 
 export interface HostListResult {
   hosts: AgentInfo[]
+  pagination: HostPagination
+}
+
+export interface HostSoftwarePaginationResult {
+  software: AgentSoftInfo
   pagination: HostPagination
 }
 
@@ -111,6 +191,111 @@ function adaptBackendHost(host: BackendHostDetail): AgentInfo {
     installDate: toDisplayDate(host.heartbeat_time),
     manufacturer: "-",
     model: "-",
+  }
+}
+
+function bytesToMiB(value?: number) {
+  return Math.round((Number(value) || 0) / 1024 / 1024)
+}
+
+function adaptHardwareInfo(data: BackendHardwareInfo, host?: AgentInfo | null): AgentHardwareInfo {
+  return {
+    hostId: data.agent_id || host?.hostId || "",
+    hostname: host?.hostname || data.agent_id || "-",
+    cpu: {
+      sockets: (data.cpus || []).map((cpu, index) => ({
+        socketId: cpu.socket_id || `CPU ${index + 1}`,
+        vendor: cpu.vendor || "-",
+        model: cpu.name || "-",
+        physicalCores: Number(cpu.physical_cores) || 0,
+        logicalCores: Number(cpu.logical_cores) || 0,
+        maxFrequencyMHz: Number(cpu.max_frequency_mhz) || 0,
+        regularFrequencyMHz: 0,
+        minFrequencyMHz: 0,
+        currentFrequencyMHz: Number(cpu.current_frequency_mhz) || 0,
+        cacheSizeBytes: Number(cpu.l3_cache_size_bytes || cpu.l2_cache_size_bytes) || 0,
+      })),
+    },
+    disks: {
+      disks: (data.disks || []).map((disk) => ({
+        vendor: disk.manufacturer || "-",
+        model: disk.model || disk.caption || "-",
+        serialNumber: disk.serial_number || disk.device_id || "-",
+        size: Number(disk.size_bytes) || 0,
+      })),
+    },
+    gpus: {
+      gpus: (data.gpus || []).map((gpu, index) => ({
+        id: gpu.device_id || `GPU ${index + 1}`,
+        vendor: gpu.vendor || "-",
+        model: gpu.name || "-",
+        driverVersion: gpu.driver_version || "-",
+        memoryMiB: bytesToMiB(gpu.memory_bytes),
+        minFrequencyMHz: 0,
+        currentFrequencyMHz: 0,
+        maxFrequencyMHz: 0,
+      })),
+    },
+    mainBoard: {
+      vendor: data.mainboard?.manufacturer || "-",
+      name: data.mainboard?.product || "-",
+      version: data.mainboard?.version || "-",
+      serialNumber: data.mainboard?.serial_number || "-",
+    },
+    rams: (data.memory || []).map((memory, index) => ({
+      vendor: memory.manufacturer || "-",
+      model: memory.part_number || "-",
+      name: memory.device_locator || `Memory ${index + 1}`,
+      serialNumber: memory.serial_number || "-",
+      sizeMiB: bytesToMiB(memory.capacity_bytes),
+      usedMiB: 0,
+      availableMiB: bytesToMiB(memory.capacity_bytes),
+    })),
+    networkInterfaces: {
+      interfaces: (data.network_interfaces || []).map((network, index) => ({
+        id: String(network.interface_index ?? index),
+        name: network.description || `Interface ${index + 1}`,
+        vendor: "-",
+        macAddress: network.mac_address || "-",
+        ipv4Addresses: network.ip_address || [],
+        ipv6Addresses: [],
+        enabled: Boolean(network.ip_enabled),
+        speedMbps: 0,
+      })),
+    },
+  }
+}
+
+function hasBackendHardwareInfo(data: BackendHardwareInfo): boolean {
+  return Boolean(
+    data.cpus?.length ||
+      data.disks?.length ||
+      data.memory?.length ||
+      data.gpus?.length ||
+      data.network_interfaces?.length ||
+      data.mainboard?.manufacturer ||
+      data.mainboard?.product ||
+      data.mainboard?.version ||
+      data.mainboard?.serial_number
+  )
+}
+
+function adaptSoftwareInfo(item: BackendSoftwareInfo): Software {
+  return {
+    displayName: item.display_name || item.name || "-",
+    description: item.description || "",
+    identifyingNumber: item.identifying_number || "",
+    installDate: item.install_date || "",
+    installLocation: item.install_location || "",
+    installState: Number(item.install_state) || 0,
+    name: item.name || item.display_name || "-",
+    packageCache: item.package_cache || "",
+    skuNumber: item.sku_number || "",
+    vendor: item.vendor || "",
+    version: item.version || "",
+    uninstallString: item.uninstall_string || "",
+    quietUninstallString: item.quiet_uninstall_string || "",
+    urlInfoAbout: item.url_info_about || "",
   }
 }
 
@@ -178,5 +363,74 @@ export async function getHostsPagination({
   return {
     hosts,
     pagination: normalizePagination(data.pagination, page, pageSize, hosts.length),
+  }
+}
+
+export async function getHardwareInfo({
+  tenantId = "public",
+  agentId,
+  host,
+}: {
+  tenantId?: string
+  agentId: string
+  host?: AgentInfo | null
+}): Promise<AgentHardwareInfo | null> {
+  try {
+    const result = await http.post("getHardwareInfo", {
+      request_id: createRequestId(),
+      tenant_id: tenantId,
+      agent_id: agentId,
+    })
+
+    const data = (result.data || {}) as BackendHardwareInfo
+
+    if (!hasBackendHardwareInfo(data)) {
+      return null
+    }
+
+    return adaptHardwareInfo(data, host)
+  } catch (error) {
+    const status = Number((error as { status?: unknown })?.status)
+    const code = Number((error as { code?: unknown })?.code)
+
+    if (status === 404 || code === 404) {
+      return null
+    }
+
+    throw error
+  }
+}
+
+export async function getHostSoftwareInfoPagination({
+  tenantId = "public",
+  agentId,
+  hostname,
+  page,
+  pageSize,
+}: {
+  tenantId?: string
+  agentId: string
+  hostname?: string
+  page: number
+  pageSize: number
+}): Promise<HostSoftwarePaginationResult> {
+  const result = await http.post("getHostSoftwareInfoPagination", {
+    request_id: createRequestId(),
+    tenant_id: tenantId,
+    agent_id: agentId,
+    page,
+    page_size: pageSize,
+  })
+
+  const data = (result.data || {}) as BackendPaginatedSoftwareData
+  const softwareList = (data.software_list || []).map(adaptSoftwareInfo)
+
+  return {
+    software: {
+      hostId: agentId,
+      hostname: hostname || agentId,
+      softwareList,
+    },
+    pagination: normalizePagination(data.pagination, page, pageSize, softwareList.length),
   }
 }

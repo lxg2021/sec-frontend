@@ -111,7 +111,7 @@ export function HostHardwareAccordion({ hardware }: HostHardwareAccordionProps) 
             </TableHeader>
             <TableBody>
               {hardware.rams.map((ram, index) => {
-                const usagePercent = (ram.usedMiB / ram.sizeMiB) * 100
+                const usagePercent = ram.sizeMiB > 0 ? (ram.usedMiB / ram.sizeMiB) * 100 : 0
                 return (
                   <TableRow key={index}>
                     <TableCell>{ram.vendor}</TableCell>
