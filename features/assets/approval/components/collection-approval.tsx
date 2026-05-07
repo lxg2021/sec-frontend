@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   CheckCircle2,
   Eye,
-  FileText,
   RefreshCcw,
   Search,
   ShieldCheck,
@@ -13,9 +12,10 @@ import {
 import { useTranslations } from "next-intl"
 
 import { approveCollectionSubmission, getCollectionSubmission, listCollectionSubmissions, rejectCollectionSubmission } from "@/features/assets/approval/collection-api"
+import { buildCollectionOwnerRows } from "@/features/assets/approval/collection-detail-view-model"
 import {
   canApproveCollectionSubmission,
-  parseImportResultJson,
+  canRejectCollectionSubmission,
   summarizeApprovalResult,
   type ApprovalResultSummary,
 } from "@/features/assets/approval/collection-result"
@@ -25,7 +25,7 @@ import type {
   CollectionSubmissionSummary,
 } from "@/features/assets/approval/collection-types"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent } from "@/shared/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
@@ -123,6 +123,8 @@ export function CollectionApproval() {
   const [open, setOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState("")
   const [approvalResult, setApprovalResult] = useState<ApprovalResultSummary | null>(null)
+
+  const ownerRows = useMemo(() => buildCollectionOwnerRows(selected?.hosts || []), [selected?.hosts])
 
   const loadList = useCallback(async () => {
     console.info("[CollectionApproval] loadList:start", {
@@ -230,6 +232,14 @@ export function CollectionApproval() {
 
   const handleReject = async () => {
     if (!selected) return
+    if (!canRejectCollectionSubmission(selected.status)) {
+      toast({
+        title: t("rejectFailed"),
+        description: t("rejectNotAllowed"),
+        variant: "destructive",
+      })
+      return
+    }
     if (!reviewNote.trim()) {
       toast({
         title: t("rejectFailed"),
@@ -258,22 +268,6 @@ export function CollectionApproval() {
 
   return (
     <Card className="border-0 bg-transparent shadow-none">
-      <CardHeader className="px-0 pb-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-white">
-              <FileText className="h-5 w-5 text-slate-900 dark:text-white" />
-              {t("title")}
-            </CardTitle>
-            <CardDescription>{t("description")}</CardDescription>
-          </div>
-          <Button variant="outline" onClick={refresh} disabled={loading}>
-            <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
-            {t("refresh")}
-          </Button>
-        </div>
-      </CardHeader>
-
       <CardContent className="px-0">
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative flex-1">
@@ -299,6 +293,10 @@ export function CollectionApproval() {
               </SelectContent>
             </Select>
           </div>
+          <Button variant="outline" onClick={refresh} disabled={loading} className="w-full lg:w-auto">
+            <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
+            {t("refresh")}
+          </Button>
         </div>
 
         <div className="grid gap-3 md:grid-cols-5">
@@ -444,16 +442,15 @@ export function CollectionApproval() {
                   <div className="font-medium">{selected.host_count}</div>
                 </div>
                 <div className="rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">{t("logicGroupCount")}</div>
-                  <div className="font-medium">{selected.logic_group_count}</div>
+                  <div className="text-xs text-muted-foreground">{t("ownerCount")}</div>
+                  <div className="font-medium">{ownerRows.length}</div>
                 </div>
               </div>
 
               <Tabs defaultValue="hosts">
                 <TabsList>
                   <TabsTrigger value="hosts">{t("hostsTab")}</TabsTrigger>
-                  <TabsTrigger value="groups">{t("groupsTab")}</TabsTrigger>
-                  <TabsTrigger value="raw">{t("rawTab")}</TabsTrigger>
+                  <TabsTrigger value="owners">{t("ownersTab")}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="hosts" className="mt-4">
                   <ScrollArea className="h-[280px] rounded-lg border">
@@ -461,6 +458,7 @@ export function CollectionApproval() {
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead>{t("agentId")}</TableHead>
                             <TableHead>{t("hostName")}</TableHead>
                             <TableHead>{t("ip")}</TableHead>
                             <TableHead>{t("os")}</TableHead>
@@ -469,37 +467,74 @@ export function CollectionApproval() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {selected.hosts.map((host) => (
-                            <TableRow key={host.agent_id}>
-                              <TableCell className="font-mono text-xs">{host.hostname}</TableCell>
-                              <TableCell className="text-xs">{host.ip.join(", ")}</TableCell>
-                              <TableCell className="text-xs">{host.os_name} {host.os_version}</TableCell>
-                              <TableCell className="text-xs">{host.department_path || host.group_id || "-"}</TableCell>
-                              <TableCell className="text-xs">
-                                {host.owner ? `${host.owner.username} / ${host.owner.role}` : "-"}
+                          {selected.hosts.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                                {t("noHosts")}
                               </TableCell>
                             </TableRow>
-                          ))}
+                          ) : (
+                            selected.hosts.map((host) => (
+                              <TableRow key={host.agent_id}>
+                                <TableCell className="font-mono text-xs">{host.agent_id || "-"}</TableCell>
+                                <TableCell className="font-mono text-xs">{host.hostname || "-"}</TableCell>
+                                <TableCell className="text-xs">{host.ip?.length ? host.ip.join(", ") : "-"}</TableCell>
+                                <TableCell className="text-xs">{[host.os_name, host.os_version].filter(Boolean).join(" ") || host.os_type || "-"}</TableCell>
+                                <TableCell className="text-xs">{host.department_path || host.group_id || "-"}</TableCell>
+                                <TableCell className="text-xs">
+                                  <div className="flex flex-col gap-0.5">
+                                    <span>{host.owner ? `${host.owner.username} / ${host.owner.role}` : "-"}</span>
+                                    {host.owner && (
+                                      <span className="text-muted-foreground">{host.owner.email || host.owner.phone || "-"}</span>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
                         </TableBody>
                       </Table>
                     </div>
                   </ScrollArea>
                 </TabsContent>
-                <TabsContent value="groups" className="mt-4">
+                <TabsContent value="owners" className="mt-4">
                   <ScrollArea className="h-[280px] rounded-lg border">
-                    <div className="space-y-2 p-3">
-                      {selected.logic_groups.map((group) => (
-                        <div key={group.id} className="rounded-lg border p-3">
-                          <div className="font-medium">{group.path}</div>
-                          <div className="text-xs text-muted-foreground">{group.type} / {group.name}</div>
-                        </div>
-                      ))}
+                    <div className="p-3">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{t("ownerName")}</TableHead>
+                            <TableHead>{t("ownerRole")}</TableHead>
+                            <TableHead>{t("ownerPhone")}</TableHead>
+                            <TableHead>{t("ownerEmail")}</TableHead>
+                            <TableHead>{t("ownerHost")}</TableHead>
+                            <TableHead>{t("agentId")}</TableHead>
+                            <TableHead>{t("department")}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {ownerRows.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                                {t("noOwners")}
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            ownerRows.map((owner) => (
+                              <TableRow key={owner.key}>
+                                <TableCell className="font-medium">{owner.username}</TableCell>
+                                <TableCell className="text-xs">{owner.role}</TableCell>
+                                <TableCell className="text-xs">{owner.phone}</TableCell>
+                                <TableCell className="text-xs">{owner.email}</TableCell>
+                                <TableCell className="text-xs">{owner.hostname}</TableCell>
+                                <TableCell className="font-mono text-xs">{owner.agentId}</TableCell>
+                                <TableCell className="text-xs">{owner.department}</TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
-                  </ScrollArea>
-                </TabsContent>
-                <TabsContent value="raw" className="mt-4">
-                  <ScrollArea className="h-[280px] rounded-lg border bg-muted/30">
-                    <pre className="p-4 text-xs leading-5">{parseImportResultJson(selected.import_result_json || selected.error_msg || "").formatted}</pre>
                   </ScrollArea>
                 </TabsContent>
               </Tabs>
@@ -589,10 +624,7 @@ export function CollectionApproval() {
           )}
 
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              {t("close")}
-            </Button>
-            <Button variant="destructive" onClick={handleReject} disabled={actionLoading || !selected}>
+            <Button variant="destructive" onClick={handleReject} disabled={actionLoading || !selected || !canRejectCollectionSubmission(selected.status)}>
               <XCircle className="mr-2 h-4 w-4" />
               {t("reject")}
             </Button>
@@ -601,7 +633,7 @@ export function CollectionApproval() {
               disabled={actionLoading || !selected || !canApproveCollectionSubmission(selected.status)}
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />
-              {selected && selected.status === 5 ? "重新审核入库" : t("approve")}
+              {t("approve")}
             </Button>
           </DialogFooter>
         </DialogContent>

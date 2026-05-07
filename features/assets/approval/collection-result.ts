@@ -27,6 +27,15 @@ export function canApproveCollectionSubmission(status?: CollectionSubmissionStat
   )
 }
 
+export function canRejectCollectionSubmission(status?: CollectionSubmissionStatus) {
+  return (
+    status === 1 ||
+    status === 5 ||
+    status === "COLLECTION_SUBMISSION_PENDING" ||
+    status === "COLLECTION_SUBMISSION_FAILED"
+  )
+}
+
 export function summarizeApprovalResult(result: CollectionApprovalResult): ApprovalResultSummary {
   const hostResults = result.host_results || []
 

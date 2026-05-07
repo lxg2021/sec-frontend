@@ -36,6 +36,21 @@ test("recognizes pending and failed collection submissions as approvable", () =>
   assert.equal(canApproveCollectionSubmission("COLLECTION_SUBMISSION_REJECTED"), false)
 })
 
+test("recognizes only pending and failed collection submissions as rejectable", () => {
+  const { canRejectCollectionSubmission } = loadCollectionResultModule()
+
+  assert.equal(canRejectCollectionSubmission(1), true)
+  assert.equal(canRejectCollectionSubmission("COLLECTION_SUBMISSION_PENDING"), true)
+  assert.equal(canRejectCollectionSubmission(5), true)
+  assert.equal(canRejectCollectionSubmission("COLLECTION_SUBMISSION_FAILED"), true)
+  assert.equal(canRejectCollectionSubmission(2), false)
+  assert.equal(canRejectCollectionSubmission(3), false)
+  assert.equal(canRejectCollectionSubmission(4), false)
+  assert.equal(canRejectCollectionSubmission("COLLECTION_SUBMISSION_APPROVING"), false)
+  assert.equal(canRejectCollectionSubmission("COLLECTION_SUBMISSION_APPROVED"), false)
+  assert.equal(canRejectCollectionSubmission("COLLECTION_SUBMISSION_REJECTED"), false)
+})
+
 test("summarizes approval result counts and failed host rows", () => {
   const { summarizeApprovalResult } = loadCollectionResultModule()
 
