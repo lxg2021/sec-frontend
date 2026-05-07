@@ -26,6 +26,12 @@ function getSystemIcon(osType: SystemType) {
 }
 
 export function HostSummaryCard({ summary }: { summary: HostSummary }) {
+  const onlinePercent = summary.total > 0 ? ((summary.online / summary.total) * 100).toFixed(1) : "0.0"
+  const offlinePercent = summary.total > 0 ? ((summary.offline / summary.total) * 100).toFixed(1) : "0.0"
+  const osTypeEntries = Object.entries(summary.osTypeCount).filter(
+    ([osType, count]) => osType !== "unknown" && Number(count) > 0,
+  )
+
   const getSystemName = (systemType: SystemType) => {
     switch (systemType) {
       case SystemType.WINDOWS:
@@ -70,7 +76,7 @@ export function HostSummaryCard({ summary }: { summary: HostSummary }) {
         <CardContent>
           <div className="flex items-baseline justify-between">
             <span className="text-3xl font-bold text-green-600">{summary.online}</span>
-            <span className="text-xs text-slate-500 ml-2">{((summary.online / summary.total) * 100).toFixed(1)}%</span>
+            <span className="text-xs text-slate-500 ml-2">{onlinePercent}%</span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">当前在线主机数</p>
         </CardContent>
@@ -88,7 +94,7 @@ export function HostSummaryCard({ summary }: { summary: HostSummary }) {
         <CardContent>
           <div className="flex items-baseline justify-between">
             <span className="text-3xl font-bold text-red-600">{summary.offline}</span>
-            <span className="text-xs text-slate-500 ml-2">{((summary.offline / summary.total) * 100).toFixed(1)}%</span>
+            <span className="text-xs text-slate-500 ml-2">{offlinePercent}%</span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">当前离线主机数</p>
         </CardContent>
@@ -105,7 +111,7 @@ export function HostSummaryCard({ summary }: { summary: HostSummary }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            {Object.entries(summary.osTypeCount).map(([osType, count]) => (
+            {osTypeEntries.length > 0 ? osTypeEntries.map(([osType, count]) => (
               <div key={osType} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {getSystemIcon(osType as SystemType)}
@@ -113,7 +119,9 @@ export function HostSummaryCard({ summary }: { summary: HostSummary }) {
                 </div>
                 <span className="text-xs text-slate-800 dark:text-white">{count}</span>
               </div>
-            ))}
+            )) : (
+              <div className="text-sm text-slate-500 dark:text-slate-400">暂无数据</div>
+            )}
           </div>
         </CardContent>
       </Card>
