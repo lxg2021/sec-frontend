@@ -16,6 +16,7 @@ export function LogicGroupUploader({
   onBeforeUpload,
   disabled = false,
   texts = {},
+  showFrame = true,
 }: LogicGroupUploaderProps) {
   const t = useTranslations("pages.collection.logicGroupUploader")
   const defaultTexts = {
@@ -138,25 +139,8 @@ export function LogicGroupUploader({
     setErrorMessage("")
   }
 
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-green-500 to-green-600 rounded-lg">
-            <Building2 className="h-5 w-5 text-white" />
-          </div>
-
-          <div>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              {defaultTexts.title}
-            </CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
-              {defaultTexts.description}
-            </p>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+  const content = (
+    <div className="space-y-4">
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2 bg-transparent">
             <Download className="h-4 w-4" />
@@ -243,7 +227,28 @@ export function LogicGroupUploader({
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         )}
-      </CardContent>
+    </div>
+  )
+
+  if (!showFrame) {
+    return content
+  }
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <div className="flex items-center space-x-3">
+          <div className="rounded-lg bg-gradient-to-br from-green-500 to-green-600 p-2">
+            <Building2 className="h-5 w-5 text-white" />
+          </div>
+
+          <div>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{defaultTexts.title}</CardTitle>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{defaultTexts.description}</p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">{content}</CardContent>
     </Card>
   )
 }

@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -51,6 +51,12 @@ export interface TreeLogicGroupProps {
   tenantId?: string
   /** 创建者ID */
   createdBy?: string
+  /** 外部保存请求版本号，递增时触发一次保存 */
+  saveRequestVersion?: number
+  /** 隐藏组件内部保存按钮，用外部按钮承载提交动作 */
+  hideSaveButton?: boolean
+  /** 是否渲染组件自带卡片外框和标题 */
+  showFrame?: boolean
 }
 
 interface TreeNodeState {
@@ -67,6 +73,9 @@ export function TreeLogicGroup({
   readOnly = false,
   tenantId,
   createdBy = "system",
+  saveRequestVersion,
+  hideSaveButton = false,
+  showFrame = true,
 }: TreeLogicGroupProps) {
   const t = useTranslations("pages.collection.tree")
   const { toast } = useToast()
@@ -81,6 +90,7 @@ export function TreeLogicGroup({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [nodeToDelete, setNodeToDelete] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const previousSaveRequestVersion = useRef<number | undefined>(saveRequestVersion)
 
   // 搜索匹配的节点
   const matchedNodes = useMemo(() => {
@@ -382,6 +392,20 @@ export function TreeLogicGroup({
     setValidationErrors([])
   }
 
+  useEffect(() => {
+    if (saveRequestVersion === undefined) return
+
+    if (previousSaveRequestVersion.current === undefined) {
+      previousSaveRequestVersion.current = saveRequestVersion
+      return
+    }
+
+    if (saveRequestVersion !== previousSaveRequestVersion.current) {
+      previousSaveRequestVersion.current = saveRequestVersion
+      handleSave()
+    }
+  }, [saveRequestVersion])
+
   // 渲染树节点
   const renderNode = (node: UserLogicGroup, level = 0) => {
     const isExpanded = nodeState.expanded[node.id]
@@ -507,6 +531,89 @@ export function TreeLogicGroup({
     )
   }
 
+  const treeContent = (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder={t("searchPlaceholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        {!readOnly && !disabled && (
+          <Button onClick={addRootNode} size="sm" className="shrink-0">
+            <Plus className="mr-2 h-4 w-4" />
+            {t("addCompany")}
+          </Button>
+        )}
+      </div>
+
+      {validationErrors.length > 0 && (
+        <div className="rounded-md border border-destructive bg-destructive/10 p-4">
+          <p className="mb-2 font-semibold text-destructive">{t("validationError")}</p>
+          <ul className="list-inside list-disc space-y-1">
+            {validationErrors.map((error, index) => (
+              <li key={index} className="text-sm text-destructive">
+                {error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {groups.length === 0 ? (
+          <div className="py-8 text-center text-muted-foreground">
+            <Building2 className="mx-auto mb-2 h-12 w-12 opacity-50" />
+            <p>{t("empty")}</p>
+            {!readOnly && !disabled && (
+              <Button onClick={addRootNode} size="sm" variant="outline" className="mt-4 bg-transparent">
+                <Plus className="mr-2 h-4 w-4" />
+                {t("addFirstCompany")}
+              </Button>
+            )}
+          </div>
+        ) : (
+          groups.map((group) => renderNode(group))
+        )}
+      </div>
+    </div>
+  )
+
+  const deleteDialog = (
+    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("confirmDeleteTitle")}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t("confirmDeleteDescription")}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={() => setNodeToDelete(null)}>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={deleteNode}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {t("delete")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+
+  if (!showFrame) {
+    return (
+      <>
+        {treeContent}
+        {deleteDialog}
+      </>
+    )
+  }
+
   return (
     <>
       <Card>
@@ -538,7 +645,7 @@ export function TreeLogicGroup({
                 {t("addCompany")}
               </Button>
             )}
-            {!readOnly && (
+            {!readOnly && !hideSaveButton && (
               <Button
                 onClick={handleSave}
                 size="sm"
@@ -552,71 +659,9 @@ export function TreeLogicGroup({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          {/* 搜索框 */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-
-          {/* 验证错误 */}
-          {validationErrors.length > 0 && (
-            <div className="bg-destructive/10 border border-destructive rounded-md p-4">
-              <p className="font-semibold text-destructive mb-2">{t("validationError")}</p>
-              <ul className="list-disc list-inside space-y-1">
-                {validationErrors.map((error, index) => (
-                  <li key={index} className="text-sm text-destructive">
-                    {error}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* 树形结构 */}
-          <div className="space-y-2">
-            {groups.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>{t("empty")}</p>
-                {!readOnly && !disabled && (
-                  <Button onClick={addRootNode} size="sm" variant="outline" className="mt-4 bg-transparent">
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("addFirstCompany")}
-                  </Button>
-                )}
-              </div>
-            ) : (
-              groups.map((group) => renderNode(group))
-            )}
-          </div>
-        </CardContent>
+        <CardContent>{treeContent}</CardContent>
       </Card>
-
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("confirmDeleteTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("confirmDeleteDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setNodeToDelete(null)}>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={deleteNode}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {t("delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {deleteDialog}
     </>
   )
 }

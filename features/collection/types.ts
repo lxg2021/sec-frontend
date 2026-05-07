@@ -118,4 +118,5 @@ export interface LogicGroupUploaderProps {
   onBeforeUpload?: (file: File) => Promise<boolean> | boolean
   disabled?: boolean
   texts?: LogicGroupUploaderTexts
+  showFrame?: boolean
 }
