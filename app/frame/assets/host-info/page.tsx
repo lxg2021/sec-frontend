@@ -165,27 +165,6 @@ export default function HostInfoPage() {
             </Button>
           </CardHeader>
           <CardContent className="space-y-4 pb-6">
-            <div className="flex flex-col gap-3 border-b pb-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
-              <div>
-                共 {pagination.total_count} 台主机
-                {pagination.total_count > 0 ? `，当前显示 ${rangeStart}-${rangeEnd}` : ""}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-slate-500">每页</span>
-                <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                  <SelectTrigger className="h-9 w-24">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
             {hostsError ? (
               <div className="flex min-h-24 flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-2">
@@ -210,11 +189,25 @@ export default function HostInfoPage() {
               />
             )}
 
-            <div className="flex flex-col gap-3 border-t pt-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-3 border-t pt-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                第 {pagination.current_page} / {Math.max(pagination.total_pages, 1)} 页
+                共 {pagination.total_count} 台主机
+                {pagination.total_count > 0 ? `，当前显示 ${rangeStart}-${rangeEnd}` : ""}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-slate-500">第 {pagination.current_page} / {Math.max(pagination.total_pages, 1)} 页</span>
+                <span className="ml-2 text-slate-500">每页</span>
+                <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                  <SelectTrigger className="h-9 w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
                 <Button
                   variant="outline"
                   size="sm"
