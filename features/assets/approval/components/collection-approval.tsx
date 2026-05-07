@@ -10,9 +10,15 @@ import {
   CheckCircle2,
   CircleDot,
   Clock3,
+  Cpu,
   Eye,
   FileText,
+  Fingerprint,
   FolderTree,
+  Mail,
+  Monitor,
+  Network,
+  Phone,
   Search,
   Server,
   Settings,
@@ -194,6 +200,69 @@ function CollectionStatCard({
         <span className={cn("h-1.5 w-1.5 rounded-full", tones.dot)} />
       </div>
       <div className={cn("mt-2 text-2xl font-semibold leading-none", tones.value)}>{value}</div>
+    </div>
+  )
+}
+
+function DetailSummaryItem({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: ComponentType<{ className?: string }>
+  label: string
+  value: ReactNode
+  tone: "blue" | "amber" | "emerald" | "rose" | "slate"
+}) {
+  const tones = {
+    blue: {
+      icon: "text-blue-500",
+      dot: "bg-blue-500",
+      value: "text-blue-600",
+      border: "border-t-blue-500",
+    },
+    amber: {
+      icon: "text-amber-500",
+      dot: "bg-amber-500",
+      value: "text-amber-600",
+      border: "border-t-amber-500",
+    },
+    emerald: {
+      icon: "text-emerald-500",
+      dot: "bg-emerald-500",
+      value: "text-emerald-600",
+      border: "border-t-emerald-500",
+    },
+    rose: {
+      icon: "text-rose-500",
+      dot: "bg-rose-500",
+      value: "text-rose-600",
+      border: "border-t-rose-500",
+    },
+    slate: {
+      icon: "text-slate-500",
+      dot: "bg-slate-400",
+      value: "text-slate-900",
+      border: "border-t-slate-400",
+    },
+  }[tone]
+
+  return (
+    <div
+      className={cn(
+        "rounded-lg border border-t-2 border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 hover:bg-slate-50/60",
+        tones.border,
+      )}
+    >
+      <div className="flex items-center justify-between text-xs text-slate-500">
+        <span className="inline-flex items-center gap-1.5">
+          <Icon className={cn("h-3.5 w-3.5", tones.icon)} />
+          {label}
+        </span>
+        <span className={cn("h-1.5 w-1.5 rounded-full", tones.dot)} />
+      </div>
+      <div className={cn("mt-2 truncate text-lg font-semibold leading-none", tones.value)}>{value}</div>
     </div>
   )
 }
@@ -554,22 +623,10 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
           ) : selected ? (
             <div className="space-y-4 overflow-hidden">
               <div className="grid gap-3 md:grid-cols-4">
-                <div className="rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">{t("tenant")}</div>
-                  <div className="font-medium">{selected.tenant_id}</div>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">{t("status")}</div>
-                  <div className="font-medium">{statusLabel(selected.status, t)}</div>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">{t("hostCount")}</div>
-                  <div className="font-medium">{selected.host_count}</div>
-                </div>
-                <div className="rounded-lg border p-3">
-                  <div className="text-xs text-muted-foreground">{t("ownerCount")}</div>
-                  <div className="font-medium">{ownerRows.length}</div>
-                </div>
+                <DetailSummaryItem icon={Building2} label={t("tenant")} value={selected.tenant_id} tone="blue" />
+                <DetailSummaryItem icon={CircleDot} label={t("status")} value={statusLabel(selected.status, t)} tone="amber" />
+                <DetailSummaryItem icon={UserRound} label={t("ownerCount")} value={ownerRows.length} tone="emerald" />
+                <DetailSummaryItem icon={Server} label={t("hostCount")} value={selected.host_count} tone="slate" />
               </div>
 
               <Tabs defaultValue="hosts">
@@ -578,17 +635,29 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                   <TabsTrigger value="owners">{t("ownersTab")}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="hosts" className="mt-4">
-                  <ScrollArea className="h-[280px] rounded-lg border">
+                  <ScrollArea className="h-[220px] rounded-lg border">
                     <div className="p-3">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>{t("agentId")}</TableHead>
-                            <TableHead>{t("hostName")}</TableHead>
-                            <TableHead>{t("ip")}</TableHead>
-                            <TableHead>{t("os")}</TableHead>
-                            <TableHead>{t("department")}</TableHead>
-                            <TableHead>{t("owner")}</TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Fingerprint}>{t("agentId")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Monitor}>{t("hostName")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Network}>{t("ip")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Cpu}>{t("os")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={FolderTree}>{t("department")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={UserRound}>{t("owner")}</TableHeaderLabel>
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -623,18 +692,32 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                   </ScrollArea>
                 </TabsContent>
                 <TabsContent value="owners" className="mt-4">
-                  <ScrollArea className="h-[280px] rounded-lg border">
+                  <ScrollArea className="h-[220px] rounded-lg border">
                     <div className="p-3">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>{t("ownerName")}</TableHead>
-                            <TableHead>{t("ownerRole")}</TableHead>
-                            <TableHead>{t("ownerPhone")}</TableHead>
-                            <TableHead>{t("ownerEmail")}</TableHead>
-                            <TableHead>{t("ownerHost")}</TableHead>
-                            <TableHead>{t("agentId")}</TableHead>
-                            <TableHead>{t("department")}</TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={UserRound}>{t("ownerName")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={ShieldCheck}>{t("ownerRole")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Phone}>{t("ownerPhone")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Mail}>{t("ownerEmail")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Monitor}>{t("ownerHost")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={Fingerprint}>{t("agentId")}</TableHeaderLabel>
+                            </TableHead>
+                            <TableHead>
+                              <TableHeaderLabel icon={FolderTree}>{t("department")}</TableHeaderLabel>
+                            </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -738,7 +821,8 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                   value={reviewNote}
                   onChange={(event) => setReviewNote(event.target.value)}
                   placeholder={t("reviewNotePlaceholder")}
-                  rows={4}
+                  rows={2}
+                  className="min-h-[72px]"
                 />
               </div>
             </div>
