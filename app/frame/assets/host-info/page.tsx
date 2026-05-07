@@ -1,29 +1,44 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { HostSummaryCard } from "@/features/assets/host/components/host-summary-card"
-import { HostListToolbar } from "@/features/assets/host/components/host-list-toolbar"
-import { HostListTable } from "@/features/assets/host/components/host-list-table"
-import { HostDetailsDialog } from "@/features/assets/host/components/host-details-dialog"
-import { getHostSummary } from "@/features/assets/host/api"
-import { mockAgentInfos } from "@/features/assets/host/mock/agent-info"
-import { mockAgentHardwareInfos } from "@/features/assets/host/mock/hardware-info"
-import { mockAgentSoftInfos } from "@/features/assets/host/mock/software-info"
-import type { HostSummary } from "@/features/assets/host/types/host-summary"
-import { AlertCircle, Computer, List, Loader2, RefreshCcw } from "lucide-react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card"
-import { Button } from "@/shared/ui/button"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { AlertCircle, ChevronLeft, ChevronRight, Computer, List, Loader2, RefreshCcw } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { getHostSummary, getHostsPagination } from "@/features/assets/host/api"
+import type { HostPagination } from "@/features/assets/host/api"
+import { HostDetailsDialog } from "@/features/assets/host/components/host-details-dialog"
+import { HostListTable } from "@/features/assets/host/components/host-list-table"
+import { HostSummaryCard } from "@/features/assets/host/components/host-summary-card"
+import type { HostSummary } from "@/features/assets/host/types/host-summary"
+import type { AgentInfo } from "@/features/assets/host/types/system-info"
+import { Button } from "@/shared/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+
 const TENANT_ID = "public"
+const DEFAULT_PAGE_SIZE = 10
+
+const EMPTY_PAGINATION: HostPagination = {
+  current_page: 1,
+  page_size: DEFAULT_PAGE_SIZE,
+  total_count: 0,
+  total_pages: 0,
+  has_previous: false,
+  has_next: false,
+}
 
 export default function HostInfoPage() {
   const t = useTranslations("pages.assets.hardware")
   const [selectedHostId, setSelectedHostId] = useState<string | null>(null)
-  const [filteredHosts, setFilteredHosts] = useState(mockAgentInfos)
   const [summary, setSummary] = useState<HostSummary | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(true)
   const [summaryError, setSummaryError] = useState("")
+  const [hosts, setHosts] = useState<AgentInfo[]>([])
+  const [hostsLoading, setHostsLoading] = useState(true)
+  const [hostsError, setHostsError] = useState("")
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const [pagination, setPagination] = useState<HostPagination>(EMPTY_PAGINATION)
 
   const loadSummary = useCallback(async () => {
     setSummaryLoading(true)
@@ -39,33 +54,72 @@ export default function HostInfoPage() {
     }
   }, [])
 
+  const loadHosts = useCallback(async () => {
+    setHostsLoading(true)
+    setHostsError("")
+
+    try {
+      const result = await getHostsPagination({
+        tenantId: TENANT_ID,
+        page,
+        pageSize,
+      })
+
+      setHosts(result.hosts)
+      setPagination(result.pagination)
+      setSelectedHostId((current) =>
+        current && result.hosts.some((host) => host.hostId === current) ? current : null,
+      )
+    } catch (error) {
+      setHosts([])
+      setPagination({ ...EMPTY_PAGINATION, current_page: page, page_size: pageSize })
+      setHostsError(error instanceof Error ? error.message : "加载主机列表失败")
+    } finally {
+      setHostsLoading(false)
+    }
+  }, [page, pageSize])
+
   useEffect(() => {
     void loadSummary()
   }, [loadSummary])
 
-  const selectedHost = selectedHostId
-    ? mockAgentInfos.find((host) => host.hostId === selectedHostId) ?? null
-    : null
+  useEffect(() => {
+    void loadHosts()
+  }, [loadHosts])
 
-  const selectedHardware = selectedHostId
-    ? mockAgentHardwareInfos.find((hw) => hw.hostId === selectedHostId) ?? null
-    : null
+  const selectedHost = useMemo(
+    () => (selectedHostId ? hosts.find((host) => host.hostId === selectedHostId) ?? null : null),
+    [hosts, selectedHostId],
+  )
 
-  const selectedSoftware = selectedHostId
-    ? mockAgentSoftInfos.find((sw) => sw.hostId === selectedHostId) ?? null
-    : null
+  const handleRefresh = () => {
+    void loadSummary()
+    void loadHosts()
+  }
+
+  const handlePageSizeChange = (value: string) => {
+    setPageSize(Number(value))
+    setPage(1)
+  }
+
+  const rangeStart = pagination.total_count > 0
+    ? (pagination.current_page - 1) * pagination.page_size + 1
+    : 0
+  const rangeEnd = pagination.total_count > 0
+    ? Math.min(pagination.current_page * pagination.page_size, pagination.total_count)
+    : 0
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
+      <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="rounded-lg bg-blue-50 p-2">
               <Computer className="h-6 w-6 text-blue-300" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
+              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
             </div>
           </div>
         </div>
@@ -90,29 +144,97 @@ export default function HostInfoPage() {
           <HostSummaryCard summary={summary} />
         ) : null}
 
-        <Card className="border-0 shadow-lg bg-white dark:bg-gray-800 rounded-xl">
+        <Card className="rounded-xl border-0 bg-white shadow-lg dark:bg-gray-800">
           <CardHeader className="flex flex-row items-center justify-between pb-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2">
                 <List className="h-5 w-5 text-white" />
               </div>
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
                   {t("hostList")}
                 </CardTitle>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                   {t("hostListDescription")}
                 </p>
               </div>
             </div>
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={hostsLoading || summaryLoading}>
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              刷新
+            </Button>
           </CardHeader>
-          <CardContent className="pb-6">
-            <HostListToolbar hosts={mockAgentInfos} onFilter={setFilteredHosts} />
-            <HostListTable
-              hosts={filteredHosts}
-              selectedHostId={selectedHostId}
-              onSelectHost={setSelectedHostId}
-            />
+          <CardContent className="space-y-4 pb-6">
+            <div className="flex flex-col gap-3 border-b pb-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+              <div>
+                共 {pagination.total_count} 台主机
+                {pagination.total_count > 0 ? `，当前显示 ${rangeStart}-${rangeEnd}` : ""}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-500">每页</span>
+                <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                  <SelectTrigger className="h-9 w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {hostsError ? (
+              <div className="flex min-h-24 flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{hostsError}</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => void loadHosts()} className="bg-white">
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  重试
+                </Button>
+              </div>
+            ) : hostsLoading ? (
+              <div className="flex min-h-48 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                正在加载主机列表...
+              </div>
+            ) : (
+              <HostListTable
+                hosts={hosts}
+                selectedHostId={selectedHostId}
+                onSelectHost={setSelectedHostId}
+              />
+            )}
+
+            <div className="flex flex-col gap-3 border-t pt-4 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+              <div>
+                第 {pagination.current_page} / {Math.max(pagination.total_pages, 1)} 页
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((current) => Math.max(current - 1, 1))}
+                  disabled={hostsLoading || !pagination.has_previous}
+                >
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  上一页
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((current) => current + 1)}
+                  disabled={hostsLoading || !pagination.has_next}
+                >
+                  下一页
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -120,8 +242,8 @@ export default function HostInfoPage() {
           isOpen={!!selectedHostId}
           onClose={() => setSelectedHostId(null)}
           host={selectedHost}
-          hardware={selectedHardware}
-          software={selectedSoftware}
+          hardware={null}
+          software={null}
         />
       </div>
     </div>
