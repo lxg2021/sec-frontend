@@ -1,5 +1,6 @@
 ﻿"use client"
 
+import type React from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
@@ -66,6 +67,12 @@ interface TreeNodeState {
   editValue: string
 }
 
+interface TreeIndex {
+  nodeById: Map<string, UserLogicGroup>
+  parentById: Map<string, string | undefined>
+  pathById: Map<string, string[]>
+}
+
 export function TreeLogicGroup({
   groups: initialGroups,
   onSave,
@@ -91,14 +98,37 @@ export function TreeLogicGroup({
   const [nodeToDelete, setNodeToDelete] = useState<string | null>(null)
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const previousSaveRequestVersion = useRef<number | undefined>(saveRequestVersion)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({})
+
+  const treeIndex = useMemo<TreeIndex>(() => {
+    const nodeById = new Map<string, UserLogicGroup>()
+    const parentById = new Map<string, string | undefined>()
+    const pathById = new Map<string, string[]>()
+
+    const walk = (nodes: UserLogicGroup[], ancestors: UserLogicGroup[] = []) => {
+      nodes.forEach((node) => {
+        nodeById.set(node.id, node)
+        parentById.set(node.id, ancestors[ancestors.length - 1]?.id)
+        pathById.set(node.id, [...ancestors.map((ancestor) => ancestor.name), node.name])
+        if (node.children?.length) {
+          walk(node.children, [...ancestors, node])
+        }
+      })
+    }
+
+    walk(groups)
+    return { nodeById, parentById, pathById }
+  }, [groups])
 
   // 搜索匹配的节点
   const matchedNodes = useMemo(() => {
     if (!searchQuery.trim()) return new Set<string>()
     const matches = new Set<string>()
+    const searchValue = searchQuery.trim().toLowerCase()
 
     function searchInGroup(group: UserLogicGroup) {
-      if (group.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      if (group.name.toLowerCase().includes(searchValue)) {
         matches.add(group.id)
       }
       group.children?.forEach(searchInGroup)
@@ -107,6 +137,43 @@ export function TreeLogicGroup({
     groups.forEach(searchInGroup)
     return matches
   }, [groups, searchQuery])
+
+  const searchExpandedIds = useMemo(() => {
+    if (!searchQuery.trim()) return new Set<string>()
+    const expanded = new Set<string>()
+    const searchValue = searchQuery.trim().toLowerCase()
+
+    const visit = (nodes: UserLogicGroup[], ancestors: string[] = []) => {
+      nodes.forEach((node) => {
+        if (node.name.toLowerCase().includes(searchValue)) {
+          ancestors.forEach((ancestorId) => expanded.add(ancestorId))
+        }
+        if (node.children?.length) {
+          visit(node.children, [...ancestors, node.id])
+        }
+      })
+    }
+
+    visit(groups)
+    return expanded
+  }, [groups, searchQuery])
+
+  const visibleNodeIds = useMemo(() => {
+    const ids: string[] = []
+
+    const visit = (nodes: UserLogicGroup[]) => {
+      nodes.forEach((node) => {
+        ids.push(node.id)
+        const isExpanded = nodeState.expanded[node.id] || searchExpandedIds.has(node.id)
+        if (node.children?.length && isExpanded) {
+          visit(node.children)
+        }
+      })
+    }
+
+    visit(groups)
+    return ids
+  }, [groups, nodeState.expanded, searchExpandedIds])
 
   const checkDuplicateName = (
     name: string,
@@ -167,7 +234,7 @@ export function TreeLogicGroup({
   const selectNode = (id: string) => {
     setNodeState((prev) => ({
       ...prev,
-      selected: prev.selected === id ? null : id,
+      selected: id,
     }))
   }
 
@@ -178,6 +245,7 @@ export function TreeLogicGroup({
       ...prev,
       editing: id,
       editValue: currentName,
+      selected: id,
     }))
   }
 
@@ -192,23 +260,10 @@ export function TreeLogicGroup({
 
   // 保存编辑
   const saveEdit = () => {
-    if (!nodeState.editing || !nodeState.editValue.trim()) return
+    if (!nodeState.editing) return
 
     // 查找当前节点的parentId
-    let currentParentId: string | undefined
-    const findParentId = (nodes: UserLogicGroup[], targetId: string, parentId?: string): string | undefined => {
-      for (const node of nodes) {
-        if (node.id === targetId) {
-          return parentId
-        }
-        if (node.children) {
-          const found = findParentId(node.children, targetId, node.id)
-          if (found !== undefined) return found
-        }
-      }
-      return undefined
-    }
-    currentParentId = findParentId(groups, nodeState.editing)
+    const currentParentId = treeIndex.parentById.get(nodeState.editing)
 
     const validation = checkDuplicateName(nodeState.editValue, currentParentId, nodeState.editing)
     if (validation.isDuplicate) {
@@ -216,7 +271,6 @@ export function TreeLogicGroup({
         title: t("duplicateName"),
         description: validation.message,
         duration: 2000,
-        className: "bg-black text-white border-none",
       })
       return
     }
@@ -245,6 +299,137 @@ export function TreeLogicGroup({
     setGroups(updateNode(groups))
     setValidationErrors([])
     cancelEdit()
+  }
+
+  useEffect(() => {
+    if (!nodeState.editing) return
+
+    const timer = window.setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus()
+        inputRef.current.select()
+      }
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [nodeState.editing])
+
+  useEffect(() => {
+    if (!nodeState.selected) return
+    rowRefs.current[nodeState.selected]?.scrollIntoView({ block: "nearest" })
+  }, [nodeState.selected])
+
+  const handleExpandAll = () => {
+    if (readOnly || disabled) return
+
+    const nextExpanded: Record<string, boolean> = {}
+    treeIndex.nodeById.forEach((node, id) => {
+      if (node.children?.length) {
+        nextExpanded[id] = true
+      }
+    })
+
+    setNodeState((prev) => ({
+      ...prev,
+      expanded: nextExpanded,
+    }))
+  }
+
+  const handleCollapseAll = () => {
+    if (readOnly || disabled) return
+
+    setNodeState((prev) => ({
+      ...prev,
+      expanded: {},
+    }))
+  }
+
+  const handleTreeKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (readOnly || disabled) return
+
+    if (nodeState.editing) {
+      if (e.key === "Escape") {
+        e.preventDefault()
+        cancelEdit()
+      }
+      return
+    }
+
+    const currentId = nodeState.selected ?? visibleNodeIds[0]
+    if (!currentId) return
+
+    const currentNode = treeIndex.nodeById.get(currentId)
+    const currentIndex = visibleNodeIds.indexOf(currentId)
+    const isNodeExpanded = nodeState.expanded[currentId] || searchExpandedIds.has(currentId)
+
+    switch (e.key) {
+      case "ArrowDown": {
+        e.preventDefault()
+        const nextId = visibleNodeIds[Math.min(currentIndex + 1, visibleNodeIds.length - 1)]
+        if (nextId) selectNode(nextId)
+        break
+      }
+      case "ArrowUp": {
+        e.preventDefault()
+        const previousId = visibleNodeIds[Math.max(currentIndex - 1, 0)]
+        if (previousId) selectNode(previousId)
+        break
+      }
+      case "ArrowLeft": {
+        e.preventDefault()
+        if (currentNode?.children?.length && nodeState.expanded[currentId] && !searchExpandedIds.has(currentId)) {
+          setNodeState((prev) => ({
+            ...prev,
+            expanded: {
+              ...prev.expanded,
+              [currentId]: false,
+            },
+          }))
+          break
+        }
+
+        const parentId = treeIndex.parentById.get(currentId)
+        if (parentId) selectNode(parentId)
+        break
+      }
+      case "ArrowRight": {
+        e.preventDefault()
+        if (currentNode?.children?.length && !isNodeExpanded) {
+          setNodeState((prev) => ({
+            ...prev,
+            expanded: {
+              ...prev.expanded,
+              [currentId]: true,
+            },
+          }))
+          break
+        }
+
+        const firstChild = currentNode?.children?.[0]
+        if (firstChild) selectNode(firstChild.id)
+        break
+      }
+      case "Enter": {
+        e.preventDefault()
+        if (currentNode) startEdit(currentNode.id, currentNode.name)
+        break
+      }
+      case "Delete": {
+        e.preventDefault()
+        confirmDelete(currentId)
+        break
+      }
+      case "Escape": {
+        e.preventDefault()
+        setNodeState((prev) => ({
+          ...prev,
+          selected: null,
+        }))
+        break
+      }
+      default:
+        break
+    }
   }
 
   // 添加子节点
@@ -408,7 +593,7 @@ export function TreeLogicGroup({
 
   // 渲染树节点
   const renderNode = (node: UserLogicGroup, level = 0) => {
-    const isExpanded = nodeState.expanded[node.id]
+    const isExpanded = nodeState.expanded[node.id] || searchExpandedIds.has(node.id)
     const isSelected = nodeState.selected === node.id
     const isEditing = nodeState.editing === node.id
     const isMatched = matchedNodes.has(node.id)
@@ -429,7 +614,10 @@ export function TreeLogicGroup({
     return (
       <div key={node.id} className="space-y-1">
         <div
-          className={`flex items-center gap-2 p-2 rounded-md transition-colors ${isSelected ? "bg-primary/10 border border-primary" : "hover:bg-muted"
+          ref={(el) => {
+            rowRefs.current[node.id] = el
+          }}
+          className={`group/tree-node flex items-center gap-2 rounded-md p-2 transition-colors ${isSelected ? "border border-primary bg-primary/10 shadow-sm" : "hover:bg-muted"
             } ${isMatched ? "ring-2 ring-yellow-400" : ""} ${level > 0 ? "ml-6" : ""}`}
           onClick={() => selectNode(node.id)}
           onDoubleClick={() => startEdit(node.id, node.name)}
@@ -457,19 +645,21 @@ export function TreeLogicGroup({
           {isEditing ? (
             <div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
               <Input
+                ref={inputRef}
                 value={nodeState.editValue}
                 onChange={(e) => setNodeState((prev) => ({ ...prev, editValue: e.target.value }))}
                 className="h-8"
                 autoFocus
+                onBlur={() => saveEdit()}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") saveEdit()
                   if (e.key === "Escape") cancelEdit()
                 }}
               />
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={saveEdit}>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onMouseDown={(e) => e.preventDefault()} onClick={saveEdit}>
                 <Check className="h-4 w-4 text-green-600" />
               </Button>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={cancelEdit}>
+              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onMouseDown={(e) => e.preventDefault()} onClick={cancelEdit}>
                 <X className="h-4 w-4 text-red-600" />
               </Button>
             </div>
@@ -486,12 +676,13 @@ export function TreeLogicGroup({
 
               {/* 操作按钮 */}
               {!readOnly && !disabled && (
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className={`flex items-center gap-1 transition-opacity ${isSelected ? "opacity-100" : "opacity-0 group-hover/tree-node:opacity-100 group-focus-within/tree-node:opacity-100"}`} onClick={(e) => e.stopPropagation()}>
                   {node.type !== "group" && (
                     <Button
                       size="sm"
                       variant="ghost"
                       className="h-8 w-8 p-0"
+                      onMouseDown={(e) => e.preventDefault()}
                       onClick={() => addChild(node.id)}
                       title={node.type === "company" ? t("addDepartment") : t("addGroup")}
                     >
@@ -502,6 +693,7 @@ export function TreeLogicGroup({
                     size="sm"
                     variant="ghost"
                     className="h-8 w-8 p-0"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => startEdit(node.id, node.name)}
                     title={t("editName")}
                   >
@@ -511,6 +703,7 @@ export function TreeLogicGroup({
                     size="sm"
                     variant="ghost"
                     className="h-8 w-8 p-0"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => confirmDelete(node.id)}
                     title={t("deleteNode")}
                   >
@@ -534,26 +727,49 @@ export function TreeLogicGroup({
 
   const treeContent = (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={t("searchPlaceholder")}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+      <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/80 p-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={t("searchPlaceholder")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleExpandAll} className="bg-white">
+              全部展开
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCollapseAll} className="bg-white">
+              全部收起
+            </Button>
+            {!readOnly && !disabled && (
+              <Button
+                onClick={addRootNode}
+                size="sm"
+                className="h-10 w-28 shrink-0 justify-center bg-slate-900 text-white hover:bg-slate-800"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {t("addCompany")}
+              </Button>
+            )}
+          </div>
         </div>
-        {!readOnly && !disabled && (
-          <Button
-            onClick={addRootNode}
-            size="sm"
-            className="h-10 w-28 shrink-0 justify-center bg-slate-900 text-white hover:bg-slate-800"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {t("addCompany")}
-          </Button>
-        )}
+
+        <div className="flex flex-col gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-2">
+            <GitBranch className="h-4 w-4 text-slate-400" />
+            <span className="font-medium text-slate-700">当前路径</span>
+            <span className="text-slate-500">
+              {nodeState.editing || nodeState.selected
+                ? (treeIndex.pathById.get(nodeState.editing ?? nodeState.selected ?? "") ?? []).join(" / ")
+                : "未选择节点"}
+            </span>
+          </div>
+          <div className="text-xs text-slate-500">键盘：↑↓选择，←→折叠/展开，Enter 重命名，Delete 删除</div>
+        </div>
       </div>
 
       {validationErrors.length > 0 && (
@@ -613,7 +829,9 @@ export function TreeLogicGroup({
   if (!showFrame) {
     return (
       <>
-        {treeContent}
+        <div tabIndex={0} onKeyDown={handleTreeKeyDown} className="outline-none">
+          {treeContent}
+        </div>
         {deleteDialog}
       </>
     )
@@ -664,7 +882,11 @@ export function TreeLogicGroup({
           </div>
         </CardHeader>
 
-        <CardContent>{treeContent}</CardContent>
+        <CardContent>
+          <div tabIndex={0} onKeyDown={handleTreeKeyDown} className="outline-none">
+            {treeContent}
+          </div>
+        </CardContent>
       </Card>
       {deleteDialog}
     </>

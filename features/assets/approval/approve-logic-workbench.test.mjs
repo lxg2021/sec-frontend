@@ -43,3 +43,19 @@ test("approve logic workbench uses a light split panel and supports double-click
   assert.match(uploaderSource, /downloadTemplateText/)
   assert.match(uploaderSource, /bg-slate-900 text-white hover:bg-slate-800/)
 })
+
+test("logic tree exposes efficient tree editing interactions", () => {
+  const treeSource = readFileSync(resolve(repoRoot, "features/collection/components/tree-logic-group.tsx"), "utf8")
+
+  assert.match(treeSource, /searchExpandedIds/)
+  assert.match(treeSource, /visibleNodeIds/)
+  assert.match(treeSource, /handleTreeKeyDown/)
+  assert.match(treeSource, /onKeyDown=\{handleTreeKeyDown\}/)
+  assert.match(treeSource, /当前路径/)
+  assert.match(treeSource, /全部展开/)
+  assert.match(treeSource, /全部收起/)
+  assert.match(treeSource, /group\/tree-node/)
+  assert.match(treeSource, /group-hover\/tree-node:opacity-100/)
+  assert.match(treeSource, /inputRef\.current\.select\(\)/)
+  assert.match(treeSource, /onBlur=\{\(\) => saveEdit\(\)\}/)
+})
