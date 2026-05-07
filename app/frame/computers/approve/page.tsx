@@ -20,7 +20,7 @@ import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { Toaster } from "@/shared/ui/toaster"
-import { useToast } from "@/shared/ui/use-toast"
+import { useToast } from "@/shared/hooks/use-toast"
 
 const TENANT_ID = "public"
 const HOST_FETCH_PAGE_SIZE = 200
@@ -271,7 +271,6 @@ export default function LogicGroupsPage() {
                 onSave={handleSave}
                 disabled={savingLogicGroups}
                 tenantId={TENANT_ID}
-                createdBy="current-user"
               />
             )}
           </TabsContent>

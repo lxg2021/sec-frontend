@@ -34,7 +34,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { Textarea } from "@/shared/ui/textarea"
-import { useToast } from "@/shared/ui/use-toast"
+import { useToast } from "@/shared/hooks/use-toast"
 import { cn } from "@/shared/lib/utils"
 
 const TENANT_ID = "public"

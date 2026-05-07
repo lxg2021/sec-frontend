@@ -256,8 +256,8 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="admin">{t("ownerAdmin")}</SelectItem>
-                      <SelectItem value="auditor">{t("ownerUser")}</SelectItem>
-                      <SelectItem value="operator">{t("ownerMaintainer")}</SelectItem>
+                      <SelectItem value="auditor">{t("ownerAuditor")}</SelectItem>
+                      <SelectItem value="operator">{t("ownerOperator")}</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldErrors.ownerRole && (

@@ -5,10 +5,13 @@ import type { Host, LogicGroup, HostFilterOptions } from "@/features/assets/appr
 import { HostTable } from "./host-table"
 import { HostFilter } from "./host-filter"
 import { HostEditModal } from "./host-edit-modal"
+import { findHostsNeedingApproval } from "@/features/assets/approval/host-adapters"
 import { filterHosts } from "@/features/assets/approval/utils"
 import { Button } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
 import { useTranslations } from "next-intl"
+import { useToast } from "@/shared/hooks/use-toast"
+import { Save } from "lucide-react"
 
 export interface HostApprovalProps {
   hosts: Host[]
@@ -30,6 +33,7 @@ export function HostApproval({
   onCancel,
 }: HostApprovalProps) {
   const t = useTranslations("pages.computers.approve")
+  const { toast } = useToast()
   const [hosts, setHosts] = useState<Host[]>(initialHosts)
   const [filters, setFilters] = useState<HostFilterOptions>(initialFilters)
   const [currentPage, setCurrentPage] = useState(1)
@@ -80,6 +84,10 @@ export function HostApproval({
   }, [filteredHosts, currentPage, pageSize])
 
   const totalPages = Math.ceil(filteredHosts.length / pageSize)
+  const pendingChangeCount = useMemo(
+    () => findHostsNeedingApproval(initialHosts, hosts).length,
+    [hosts, initialHosts],
+  )
 
   const handleEditHost = (host: Host) => {
     setEditingHost(host)
@@ -88,6 +96,10 @@ export function HostApproval({
   const handleSaveHost = (updatedHost: Host) => {
     setHosts((prev) => prev.map((h) => (h.host_id === updatedHost.host_id ? updatedHost : h)))
     setEditingHost(null)
+    toast({
+      title: t("hostSaveToastTitle"),
+      description: t("hostSaveToastDescription", { host: updatedHost.hostname }),
+    })
   }
 
   const handleSort = (field: keyof Host) => {
@@ -135,17 +147,20 @@ export function HostApproval({
         />
       </Card>
 
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {t("approvalPageSummary", { filtered: filteredHosts.length, shown: paginatedHosts.length })}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1 text-sm">
+          <div className="text-muted-foreground">
+            {t("approvalPageSummary", { filtered: filteredHosts.length, shown: paginatedHosts.length })}
+          </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex justify-end gap-3 sm:flex-1">
           {onCancel && (
             <Button variant="outline" onClick={onCancel}>
               {t("cancel")}
             </Button>
           )}
-          <Button onClick={handleSubmit} disabled={loading || submitting}>
+          <Button onClick={handleSubmit} disabled={loading || submitting || pendingChangeCount === 0}>
+            {!submitting && <Save className="mr-2 h-4 w-4" />}
             {submitting ? "保存中..." : t("saveChanges")}
           </Button>
         </div>
