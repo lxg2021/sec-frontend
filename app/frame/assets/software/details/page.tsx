@@ -50,26 +50,31 @@ function SummaryMetric({
       border: "border-t-blue-500",
       iconBg: "bg-blue-50",
       text: "text-blue-600",
+      value: "text-blue-600",
     },
     amber: {
       border: "border-t-amber-500",
       iconBg: "bg-amber-50",
       text: "text-amber-600",
+      value: "text-amber-600",
     },
     emerald: {
       border: "border-t-emerald-500",
       iconBg: "bg-emerald-50",
       text: "text-emerald-600",
+      value: "text-emerald-600",
     },
     rose: {
       border: "border-t-rose-500",
       iconBg: "bg-rose-50",
       text: "text-rose-600",
+      value: "text-rose-600",
     },
     slate: {
       border: "border-t-slate-400",
       iconBg: "bg-slate-100",
       text: "text-slate-600",
+      value: "text-slate-600",
     },
   }[tone]
 
@@ -83,7 +88,7 @@ function SummaryMetric({
         {isLoading ? (
           <Skeleton className="mt-2 h-7 w-14" />
         ) : (
-          <div className="mt-1 truncate text-2xl font-semibold leading-7 tabular-nums text-slate-950">
+          <div className={`mt-1 truncate text-2xl font-semibold leading-7 tabular-nums ${toneClassNames.value}`}>
             {value.toLocaleString()}
           </div>
         )}
@@ -181,7 +186,7 @@ export default function Home() {
               <div>
                 <h2 className="text-xl font-semibold text-slate-950">{t("softwareList")}</h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  {t("softwareCount", { count: pagination.total_count })}
+                  {t("softwareListDescription")}
                 </p>
               </div>
             </div>

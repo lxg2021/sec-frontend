@@ -154,33 +154,33 @@ function CollectionStatCard({
 }) {
   const tones = {
     blue: {
-      icon: "text-blue-500",
-      dot: "bg-blue-500",
+      iconBg: "bg-blue-50",
+      icon: "text-blue-600",
       value: "text-blue-600",
       border: "border-t-blue-500",
     },
     amber: {
-      icon: "text-amber-500",
-      dot: "bg-amber-500",
+      iconBg: "bg-amber-50",
+      icon: "text-amber-600",
       value: "text-amber-600",
       border: "border-t-amber-500",
     },
     emerald: {
-      icon: "text-emerald-500",
-      dot: "bg-emerald-500",
+      iconBg: "bg-emerald-50",
+      icon: "text-emerald-600",
       value: "text-emerald-600",
       border: "border-t-emerald-500",
     },
     rose: {
-      icon: "text-rose-500",
-      dot: "bg-rose-500",
+      iconBg: "bg-rose-50",
+      icon: "text-rose-600",
       value: "text-rose-600",
       border: "border-t-rose-500",
     },
     slate: {
-      icon: "text-slate-500",
-      dot: "bg-slate-400",
-      value: "text-slate-900",
+      iconBg: "bg-slate-100",
+      icon: "text-slate-600",
+      value: "text-slate-600",
       border: "border-t-slate-400",
     },
   }[tone]
@@ -188,18 +188,19 @@ function CollectionStatCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-t-2 border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 hover:bg-slate-50/60",
+        "flex min-w-0 items-center gap-3 rounded-lg border border-t-2 border-slate-200 bg-white px-4 py-3 transition-colors hover:border-slate-300 hover:bg-slate-50/60",
         tones.border,
       )}
     >
-      <div className="flex items-center justify-between text-xs text-slate-500">
-        <span className="inline-flex items-center gap-1.5">
-          <Icon className={cn("h-3.5 w-3.5", tones.icon)} />
-          {label}
-        </span>
-        <span className={cn("h-1.5 w-1.5 rounded-full", tones.dot)} />
+      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", tones.iconBg, tones.icon)}>
+        <Icon className="h-4 w-4" />
       </div>
-      <div className={cn("mt-2 text-2xl font-semibold leading-none", tones.value)}>{value}</div>
+      <div className="min-w-0">
+        <div className="truncate text-xs font-medium text-slate-500">{label}</div>
+        <div className={cn("mt-1 truncate text-2xl font-semibold leading-7 tabular-nums", tones.value)}>
+          {value}
+        </div>
+      </div>
     </div>
   )
 }
