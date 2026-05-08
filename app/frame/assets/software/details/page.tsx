@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import type React from "react"
-import { BarChart3, Building2, Link2Off, Monitor, Package, RefreshCcw, ServerCog } from "lucide-react"
+import { AppWindow, BarChart3, Building2, Link2Off, Monitor, Package, RefreshCcw, ServerCog } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { getSoftwareDistributionPagination, getSoftwareSummary } from "@/features/assets/software/api"
@@ -48,47 +48,46 @@ function SummaryMetric({
   const toneClassNames = {
     blue: {
       border: "border-t-blue-500",
+      iconBg: "bg-blue-50",
       text: "text-blue-600",
-      dot: "bg-blue-500",
     },
     amber: {
       border: "border-t-amber-500",
+      iconBg: "bg-amber-50",
       text: "text-amber-600",
-      dot: "bg-amber-500",
     },
     emerald: {
       border: "border-t-emerald-500",
+      iconBg: "bg-emerald-50",
       text: "text-emerald-600",
-      dot: "bg-emerald-500",
     },
     rose: {
       border: "border-t-rose-500",
+      iconBg: "bg-rose-50",
       text: "text-rose-600",
-      dot: "bg-rose-500",
     },
     slate: {
       border: "border-t-slate-400",
+      iconBg: "bg-slate-100",
       text: "text-slate-600",
-      dot: "bg-slate-400",
     },
   }[tone]
 
   return (
-    <div className={`min-w-0 rounded-lg border border-t-2 border-slate-200 ${toneClassNames.border} bg-white px-4 py-3`}>
-      <div className="flex items-center justify-between gap-3">
-        <div className={`flex min-w-0 items-center gap-1.5 text-xs font-medium ${toneClassNames.text}`}>
-          <Icon className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{label}</span>
-        </div>
-        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${toneClassNames.dot}`} />
+    <div className={`flex min-w-0 items-center gap-3 rounded-lg border border-t-2 border-slate-200 ${toneClassNames.border} bg-white px-4 py-3`}>
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${toneClassNames.iconBg} ${toneClassNames.text}`}>
+        <Icon className="h-4 w-4" />
       </div>
-      {isLoading ? (
-        <Skeleton className="mt-3 h-7 w-14" />
-      ) : (
-        <div className="mt-2 truncate text-2xl font-semibold leading-7 tabular-nums text-slate-950">
-          {value.toLocaleString()}
-        </div>
-      )}
+      <div className="min-w-0">
+        <div className="truncate text-xs font-medium text-slate-500">{label}</div>
+        {isLoading ? (
+          <Skeleton className="mt-2 h-7 w-14" />
+        ) : (
+          <div className="mt-1 truncate text-2xl font-semibold leading-7 tabular-nums text-slate-950">
+            {value.toLocaleString()}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -176,8 +175,8 @@ export default function Home() {
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
-                <Package className="h-5 w-5" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                <Package className="h-6 w-6" />
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-slate-950">{t("softwareList")}</h2>
@@ -212,7 +211,7 @@ export default function Home() {
                 <SummaryMetric
                   label={t("summarySoftware")}
                   value={formattedSummary.software_count}
-                  icon={Package}
+                  icon={AppWindow}
                   isLoading={summaryLoading}
                   tone="blue"
                 />
