@@ -96,7 +96,6 @@ function OverviewCard({ summary, isLoading = false }: HardwareSummaryCardsProps)
 
 function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsProps) {
   const byCategory = new Map(summary.categories.map((item) => [item.category, item]))
-  const maxDeviceCount = Math.max(...summary.categories.map((item) => Number(item.device_count || 0)), 1)
 
   return (
     <Card className="group relative overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
@@ -104,7 +103,7 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
       <CardHeader className="relative flex flex-row items-start justify-between pb-2">
         <div>
           <h3 className="text-base font-semibold text-slate-800">硬件分类分布</h3>
-          <p className="mt-2 text-sm text-slate-500">每类展示型号数 / 设备数，进度条按设备数占比绘制</p>
+          <p className="mt-2 text-sm text-slate-500">每类展示型号数 / 设备数，进度条按型号占比绘制</p>
         </div>
         <div className="rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 p-2 text-white">
           <Database className="h-5 w-5" />
@@ -121,17 +120,31 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
                 const value = byCategory.get(category.value)
                 const modelCount = Number(value?.model_count || 0)
                 const deviceCount = Number(value?.device_count || 0)
-                const percent = Math.max(4, Math.round((deviceCount / maxDeviceCount) * 100))
+                const percent = deviceCount > 0
+                  ? Math.min(100, Math.max(0, Math.round((modelCount / deviceCount) * 100)))
+                  : 0
                 return (
-                  <div key={category.value} className="grid grid-cols-[72px_120px_minmax(120px,1fr)] items-center gap-4 text-sm">
+                  <div key={category.value} className="grid grid-cols-[72px_132px_minmax(120px,1fr)] items-center gap-4 text-sm">
                     <div className="flex min-w-0 items-center gap-2 font-medium text-slate-700">
                       <category.icon className={`h-4 w-4 shrink-0 ${category.color}`} />
                       <span className="truncate">{category.label}</span>
                     </div>
-                    <span className="text-right text-sm font-medium tabular-nums text-slate-700">
-                      {modelCount.toLocaleString()} 型号 / {deviceCount.toLocaleString()} 设备
-                    </span>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                    <div className="grid grid-cols-[24px_32px_10px_28px_32px] items-center text-sm font-medium tabular-nums text-slate-700">
+                      <span className="text-right">{modelCount.toLocaleString()}</span>
+                      <span className="text-left"> 型号</span>
+                      <span className="text-center text-slate-400">/</span>
+                      <span className="text-right">{deviceCount.toLocaleString()}</span>
+                      <span className="text-left"> 设备</span>
+                    </div>
+                    <div
+                      className="h-2 overflow-hidden rounded-full bg-slate-200"
+                      aria-label={`${category.label} 型号占比 ${percent}%`}
+                      role="progressbar"
+                      aria-valuenow={percent}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      title={`${percent}%`}
+                    >
                       <div
                         className={`h-full rounded-full ${category.barClassName}`}
                         style={{ width: `${percent}%` }}
