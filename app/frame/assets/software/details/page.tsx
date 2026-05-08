@@ -7,9 +7,7 @@ import { useTranslations } from "next-intl"
 import { getSoftwareDistributionPagination } from "@/features/assets/software/api"
 import type { SoftwarePagination } from "@/features/assets/software/api"
 import { SoftInventoryTable } from "@/features/assets/software/components/soft-inventory-table"
-import { UninstallSoftTaskList } from "@/features/assets/software/components/uninstall-soft-task-list"
 import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
-import type { CreateUninstallTaskRequest } from "@/features/assets/software/types/task-soft-uninstall"
 import { Button } from "@/shared/ui/button"
 
 const TENANT_ID = "public"
@@ -34,7 +32,6 @@ export default function Home() {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchTerm, setSearchTerm] = useState("")
   const [vendorFilter, setVendorFilter] = useState("all")
-  const [uninstallTasks, setUninstallTasks] = useState<CreateUninstallTaskRequest[]>([])
 
   const loadSoftware = useCallback(async () => {
     setLoading(true)
@@ -67,10 +64,6 @@ export default function Home() {
   useEffect(() => {
     void loadSoftware()
   }, [loadSoftware])
-
-  const handleDeleteTask = (taskId: string) => {
-    setUninstallTasks((prev) => prev.filter((task) => task.taskId !== taskId))
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -124,7 +117,6 @@ export default function Home() {
           </div>
         </section>
 
-        <UninstallSoftTaskList tasks={uninstallTasks} onDeleteTask={handleDeleteTask} />
       </div>
     </div>
   )
