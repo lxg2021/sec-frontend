@@ -15,13 +15,11 @@ interface HardwareSummaryCardsProps {
 function MetricItem({
   title,
   value,
-  description,
   tone,
   isLoading,
 }: {
   title: string
   value: number
-  description: string
   tone: "blue" | "green" | "slate"
   isLoading?: boolean
 }) {
@@ -53,7 +51,6 @@ function MetricItem({
           {value.toLocaleString()}
         </p>
       )}
-      <p className="mt-3 text-sm text-slate-600">{description}</p>
     </div>
   )
 }
@@ -76,21 +73,18 @@ function OverviewCard({ summary, isLoading = false }: HardwareSummaryCardsProps)
           <MetricItem
             title="型号总数"
             value={Number(summary.model_count || 0)}
-            description="按硬件型号聚合"
             tone="blue"
             isLoading={isLoading}
           />
           <MetricItem
             title="设备总数"
             value={Number(summary.device_count || 0)}
-            description="真实硬件设备数量"
             tone="green"
             isLoading={isLoading}
           />
           <MetricItem
             title="主机数"
             value={Number(summary.covered_host_count || 0)}
-            description="已覆盖硬件数据的主机"
             tone="slate"
             isLoading={isLoading}
           />
