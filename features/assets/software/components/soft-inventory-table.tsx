@@ -2,30 +2,20 @@
 
 import { useState, useMemo, useCallback, Fragment } from "react"
 import type React from "react"
-import { Search, ChevronDown, ChevronRight, MoreHorizontal, ExternalLink, Trash2, Fingerprint, Monitor, CalendarDays, Folder, Package, Filter, X, EyeOff, RefreshCcw, ArrowUpDown, Boxes, Globe2, Settings } from "lucide-react"
+import { Search, ChevronDown, ChevronRight, ExternalLink, Fingerprint, Monitor, CalendarDays, Folder, Package, Filter, X, RefreshCcw, ArrowUpDown, Boxes, Globe2 } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/shared/ui/dropdown-menu"
 import { Badge } from "@/shared/ui/badge"
-import { UninstallSoftTaskDialog } from "@/features/assets/software/components/uninstall-soft-task-dialog"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import type { SoftwarePagination } from "@/features/assets/software/api"
-import type { SoftItem, SoftwareInstallation } from "@/features/assets/software/types/software-aggregate"
-import type { CreateUninstallTaskRequest } from "@/features/assets/software/types/task-soft-uninstall"
+import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
 import { useLocale, useTranslations } from "next-intl"
 
 interface SoftInventoryTableProps {
   data: SoftItem[]
-  onTaskCreated: (task: CreateUninstallTaskRequest) => void
   isLoading?: boolean
   error?: string
   pagination: SoftwarePagination
@@ -65,7 +55,6 @@ function HeaderLabel({
 
 export function SoftInventoryTable({
   data,
-  onTaskCreated,
   isLoading = false,
   error = "",
   pagination,
@@ -82,9 +71,6 @@ export function SoftInventoryTable({
   const locale = useLocale()
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
-  const [uninstallDialogOpen, setUninstallDialogOpen] = useState(false)
-  const [selectedSoftwareForUninstall, setSelectedSoftwareForUninstall] = useState<SoftItem[]>([])
-  const [uninstallType, setUninstallType] = useState<"uninstall" | "quietUninstall">("uninstall")
   const currentPage = pagination.current_page
   const totalCount = pagination.total_count
   const totalPages = Math.max(pagination.total_pages, totalCount > 0 ? 1 : 0)
@@ -108,38 +94,6 @@ export function SoftInventoryTable({
       return newExpanded
     })
   }, [])
-
-  const handleBatchUninstall = (softItem: SoftItem) => {
-    setSelectedSoftwareForUninstall([softItem])
-    setUninstallType("uninstall")
-    setUninstallDialogOpen(true)
-  }
-
-  const handleBatchSilentUninstall = (softItem: SoftItem) => {
-    setSelectedSoftwareForUninstall([softItem])
-    setUninstallType("quietUninstall")
-    setUninstallDialogOpen(true)
-  }
-
-  const handleUninstall = (installation: SoftwareInstallation, softItem: SoftItem) => {
-    const singleHostSoftware: SoftItem = {
-      ...softItem,
-      installations: [installation],
-    }
-    setSelectedSoftwareForUninstall([singleHostSoftware])
-    setUninstallType("uninstall")
-    setUninstallDialogOpen(true)
-  }
-
-  const handleSilentUninstall = (installation: SoftwareInstallation, softItem: SoftItem) => {
-    const singleHostSoftware: SoftItem = {
-      ...softItem,
-      installations: [installation],
-    }
-    setSelectedSoftwareForUninstall([singleHostSoftware])
-    setUninstallType("quietUninstall")
-    setUninstallDialogOpen(true)
-  }
 
   const clearFilters = () => {
     onSearchTermChange("")
@@ -303,11 +257,6 @@ export function SoftInventoryTable({
                       {t("installCount")}
                     </HeaderLabel>
                   </TableHead>
-                  <TableHead className="text-right">
-                    <HeaderLabel icon={Settings} className="justify-end">
-                      {t("actions")}
-                    </HeaderLabel>
-                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -368,50 +317,12 @@ export function SoftInventoryTable({
                           {item.installations.length}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>{t("details")}</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => handleBatchUninstall(item)}
-                              disabled={
-                                item.installations.length === 0 ||
-                                !item.installations.some(installation => installation.uninstallString && installation.uninstallString.length > 0)
-                              }
-                              className="text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2 text-red-500" />
-                              <span className="text-black">{t("batchNormalUninstall")}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleBatchSilentUninstall(item)}
-                              disabled={
-                                item.installations.length === 0 ||
-                                !item.installations.some(installation => installation.quietUninstallString && installation.quietUninstallString.length > 0)
-                              }
-                              className="text-destructive"
-                            >
-                              <EyeOff className="h-4 w-4 mr-2 text-orange-500" />
-                              <span className="text-black">{t("batchSilentUninstall")}</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-
-
-                      </TableCell>
                     </TableRow>
 
                     {/* Expanded Row Details */}
                     {expandedRows.has(item.hash) && (
                       <TableRow className="bg-muted/30">
-                        <TableCell colSpan={9} className="p-0">
+                        <TableCell colSpan={8} className="p-0">
                           <div className="p-4">
                             <div className="flex justify-between items-center mb-3">
                               <h4 className="font-bold">
@@ -455,7 +366,6 @@ export function SoftInventoryTable({
                                         {t("packagePath")}
                                       </div>
                                     </th>
-                                    <th className="text-center p-2">{t("operation")}</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -474,37 +384,6 @@ export function SoftInventoryTable({
                                       <td className="text-xs max-w-48 truncate p-2" title={installation.packageCache}>
                                         {installation.packageCache || "-"}
                                       </td>
-
-                                      <td className="text-center p-2">
-                                        <div
-                                          className={`flex gap-1 justify-center items-center ${installation.uninstallString && installation.quietUninstallString ? "flex-row" : "flex-row"
-                                            }`}
-                                        >
-                                          {installation.uninstallString && (
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => handleUninstall(installation, item)}
-                                              className="flex items-center gap-1"
-                                            >
-                                              <Trash2 className="h-3 w-3 text-red-500" />
-                                              {t("normalUninstall")}
-                                            </Button>
-                                          )}
-                                          {installation.quietUninstallString && (
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => handleSilentUninstall(installation, item)}
-                                              className="flex items-center gap-1"
-                                            >
-                                              <EyeOff className="h-3 w-3 text-orange-500" />
-                                              {t("quietUninstall")}
-                                            </Button>
-                                          )}
-                                        </div>
-                                      </td>
-
                                     </tr>
                                   ))}
                                 </tbody>
@@ -612,13 +491,6 @@ export function SoftInventoryTable({
         </div>
       </div>
 
-      <UninstallSoftTaskDialog
-        selectedSoftware={selectedSoftwareForUninstall}
-        uninstallType={uninstallType}
-        open={uninstallDialogOpen}
-        onOpenChange={setUninstallDialogOpen}
-        onTaskCreated={onTaskCreated}
-      />
     </div>
   )
 }

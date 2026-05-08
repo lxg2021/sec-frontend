@@ -68,10 +68,6 @@ export default function Home() {
     void loadSoftware()
   }, [loadSoftware])
 
-  const handleTaskCreated = (task: CreateUninstallTaskRequest) => {
-    setUninstallTasks((prev) => [...prev, task])
-  }
-
   const handleDeleteTask = (taskId: string) => {
     setUninstallTasks((prev) => prev.filter((task) => task.taskId !== taskId))
   }
@@ -124,7 +120,6 @@ export default function Home() {
               onPageChange={setPage}
               onPageSizeChange={setPageSize}
               onRetry={() => void loadSoftware()}
-              onTaskCreated={handleTaskCreated}
             />
           </div>
         </section>
