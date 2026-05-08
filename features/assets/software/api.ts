@@ -17,7 +17,7 @@ export interface SoftwareDistributionResult {
   pagination: SoftwarePagination
 }
 
-export interface SoftwareSummary {
+export interface SoftwareOverviewSummary {
   software_count: number
   installation_count: number
   host_count: number
@@ -25,7 +25,99 @@ export interface SoftwareSummary {
   missing_website_count: number
 }
 
+export interface SoftwareVendorSummary {
+  vendor: string
+  software_count: number
+  installation_count: number
+  host_count: number
+}
+
+export interface SoftwareTopSummary {
+  software_hash: string
+  display_name: string
+  name: string
+  vendor: string
+  version: string
+  installation_count: number
+  host_count: number
+}
+
+export interface SoftwareVersionSummary {
+  display_name: string
+  name: string
+  vendor: string
+  version_count: number
+  software_count: number
+  installation_count: number
+  host_count: number
+}
+
+export interface SoftwareSummary {
+  overview: SoftwareOverviewSummary
+  vendors: SoftwareVendorSummary[]
+  top_software: SoftwareTopSummary[]
+  multi_version_software: SoftwareVersionSummary[]
+}
+
+interface BackendSoftwareOverviewSummary {
+  software_count?: number
+  softwareCount?: number
+  installation_count?: number
+  installationCount?: number
+  host_count?: number
+  hostCount?: number
+  vendor_count?: number
+  vendorCount?: number
+  missing_website_count?: number
+  missingWebsiteCount?: number
+}
+
+interface BackendSoftwareVendorSummary {
+  vendor?: string
+  software_count?: number
+  softwareCount?: number
+  installation_count?: number
+  installationCount?: number
+  host_count?: number
+  hostCount?: number
+}
+
+interface BackendSoftwareTopSummary {
+  software_hash?: string
+  softwareHash?: string
+  display_name?: string
+  displayName?: string
+  name?: string
+  vendor?: string
+  version?: string
+  installation_count?: number
+  installationCount?: number
+  host_count?: number
+  hostCount?: number
+}
+
+interface BackendSoftwareVersionSummary {
+  display_name?: string
+  displayName?: string
+  name?: string
+  vendor?: string
+  version_count?: number
+  versionCount?: number
+  software_count?: number
+  softwareCount?: number
+  installation_count?: number
+  installationCount?: number
+  host_count?: number
+  hostCount?: number
+}
+
 interface BackendSoftwareSummary {
+  overview?: BackendSoftwareOverviewSummary
+  vendors?: BackendSoftwareVendorSummary[]
+  top_software?: BackendSoftwareTopSummary[]
+  topSoftware?: BackendSoftwareTopSummary[]
+  multi_version_software?: BackendSoftwareVersionSummary[]
+  multiVersionSoftware?: BackendSoftwareVersionSummary[]
   software_count?: number
   softwareCount?: number
   installation_count?: number
@@ -161,13 +253,45 @@ function normalizeCount(value: unknown): number {
   return Number(value) || 0
 }
 
-function adaptSoftwareSummary(data: BackendSoftwareSummary): SoftwareSummary {
+function adaptSoftwareOverview(data: BackendSoftwareOverviewSummary | BackendSoftwareSummary): SoftwareOverviewSummary {
   return {
     software_count: normalizeCount(data.software_count ?? data.softwareCount),
     installation_count: normalizeCount(data.installation_count ?? data.installationCount),
     host_count: normalizeCount(data.host_count ?? data.hostCount),
     vendor_count: normalizeCount(data.vendor_count ?? data.vendorCount),
     missing_website_count: normalizeCount(data.missing_website_count ?? data.missingWebsiteCount),
+  }
+}
+
+function adaptSoftwareSummary(data: BackendSoftwareSummary): SoftwareSummary {
+  const overviewSource = data.overview || data
+
+  return {
+    overview: adaptSoftwareOverview(overviewSource),
+    vendors: (data.vendors || []).map((item) => ({
+      vendor: item.vendor || "-",
+      software_count: normalizeCount(item.software_count ?? item.softwareCount),
+      installation_count: normalizeCount(item.installation_count ?? item.installationCount),
+      host_count: normalizeCount(item.host_count ?? item.hostCount),
+    })),
+    top_software: (data.top_software || data.topSoftware || []).map((item) => ({
+      software_hash: item.software_hash || item.softwareHash || "",
+      display_name: item.display_name || item.displayName || item.name || "-",
+      name: item.name || item.display_name || item.displayName || "-",
+      vendor: item.vendor || "-",
+      version: item.version || "-",
+      installation_count: normalizeCount(item.installation_count ?? item.installationCount),
+      host_count: normalizeCount(item.host_count ?? item.hostCount),
+    })),
+    multi_version_software: (data.multi_version_software || data.multiVersionSoftware || []).map((item) => ({
+      display_name: item.display_name || item.displayName || item.name || "-",
+      name: item.name || item.display_name || item.displayName || "-",
+      vendor: item.vendor || "-",
+      version_count: normalizeCount(item.version_count ?? item.versionCount),
+      software_count: normalizeCount(item.software_count ?? item.softwareCount),
+      installation_count: normalizeCount(item.installation_count ?? item.installationCount),
+      host_count: normalizeCount(item.host_count ?? item.hostCount),
+    })),
   }
 }
 
