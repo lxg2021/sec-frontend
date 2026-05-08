@@ -58,13 +58,14 @@ function MetricItem({
 function OverviewCard({ summary, isLoading = false }: HardwareSummaryCardsProps) {
   return (
     <Card className="group relative overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-emerald-500 to-slate-500 opacity-10 transition-opacity group-hover:opacity-20" />
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-50/90 via-white to-slate-50" />
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-100/80 via-orange-50/60 to-slate-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       <CardHeader className="relative flex flex-row items-center justify-between pb-4">
         <div>
           <h3 className="text-base font-semibold text-slate-800">硬件资产概览</h3>
           <p className="mt-2 text-sm text-slate-500">按型号、设备和主机覆盖范围汇总</p>
         </div>
-        <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2 text-white">
+        <div className="rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 p-2 text-white shadow-sm shadow-amber-200/60">
           <PackageSearch className="h-5 w-5" />
         </div>
       </CardHeader>
