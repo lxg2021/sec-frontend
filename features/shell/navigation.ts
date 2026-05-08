@@ -37,7 +37,6 @@ export const menuItems = [
     icon: Boxes,
     labelKey: "assets",
     submenu: [
-      { id: "host-info", icon: Monitor, labelKey: "agentinfo", path: "/frame/assets/host-info" },
       { id: "softdetails", icon: Package, labelKey: "softdetails", path: "/frame/assets/software/details" },
       { id: "softuninstall", icon: Trash2, labelKey: "softuninstall", path: "/frame/assets/software/uninstall" },
     ],

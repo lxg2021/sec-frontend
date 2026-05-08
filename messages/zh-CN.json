@@ -478,6 +478,7 @@
         "table": {
           "title": "软件列表",
           "clearFilters": "清空筛选",
+          "retry": "重试",
           "searchPlaceholder": "搜索软件名称、厂商或版本...",
           "selectVendor": "选择厂商",
           "allVendors": "全部厂商",

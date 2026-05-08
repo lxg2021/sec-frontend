@@ -476,6 +476,7 @@
         "table": {
           "title": "Software list",
           "clearFilters": "Clear filters",
+          "retry": "Retry",
           "searchPlaceholder": "Search software name, vendor, or version...",
           "selectVendor": "Select vendor",
           "allVendors": "All vendors",

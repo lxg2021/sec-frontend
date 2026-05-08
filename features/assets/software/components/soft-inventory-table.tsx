@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import { useState, useMemo, useCallback, Fragment } from "react"
-import { Search, ChevronDown, ChevronRight, MoreHorizontal, ExternalLink, Trash2, VolumeX, Fingerprint, Monitor, Hash, CalendarDays, Folder, Package, Loader2, Filter, X, EyeOff } from "lucide-react"
+import { Search, ChevronDown, ChevronRight, MoreHorizontal, ExternalLink, Trash2, Fingerprint, Monitor, CalendarDays, Folder, Package, Filter, X, EyeOff, RefreshCcw } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { UninstallSoftTaskDialog } from "@/features/assets/software/components/uninstall-soft-task-dialog"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
+import type { SoftwarePagination } from "@/features/assets/software/api"
 import type { SoftItem, SoftwareInstallation } from "@/features/assets/software/types/software-aggregate"
 import type { CreateUninstallTaskRequest } from "@/features/assets/software/types/task-soft-uninstall"
 import { useLocale, useTranslations } from "next-intl"
@@ -26,51 +27,58 @@ interface SoftInventoryTableProps {
   data: SoftItem[]
   onTaskCreated: (task: CreateUninstallTaskRequest) => void
   isLoading?: boolean
+  error?: string
+  pagination: SoftwarePagination
+  searchTerm: string
+  vendorFilter: string
+  itemsPerPage: number
+  onSearchTermChange: (value: string) => void
+  onVendorFilterChange: (value: string) => void
+  onPageChange: (page: number) => void
+  onPageSizeChange: (pageSize: number) => void
+  onRetry?: () => void
 }
 
 const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100]
-const DEFAULT_ITEMS_PER_PAGE = 10
 
-export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: SoftInventoryTableProps) {
+function getWebsiteUrl(value?: string): string {
+  const url = value?.trim() || ""
+  return /^https?:\/\//i.test(url) ? url : ""
+}
+
+export function SoftInventoryTable({
+  data,
+  onTaskCreated,
+  isLoading = false,
+  error = "",
+  pagination,
+  searchTerm,
+  vendorFilter,
+  itemsPerPage,
+  onSearchTermChange,
+  onVendorFilterChange,
+  onPageChange,
+  onPageSizeChange,
+  onRetry,
+}: SoftInventoryTableProps) {
   const t = useTranslations("pages.assets.software.table")
   const locale = useLocale()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [vendorFilter, setVendorFilter] = useState("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
   const [uninstallDialogOpen, setUninstallDialogOpen] = useState(false)
   const [selectedSoftwareForUninstall, setSelectedSoftwareForUninstall] = useState<SoftItem[]>([])
   const [uninstallType, setUninstallType] = useState<"uninstall" | "quietUninstall">("uninstall")
+  const currentPage = pagination.current_page
+  const totalCount = pagination.total_count
+  const totalPages = Math.max(pagination.total_pages, totalCount > 0 ? 1 : 0)
 
-  // Get unique vendors for filter dropdown
   const vendors = useMemo(() => {
-    const uniqueVendors = Array.from(new Set(data.map((item) => item.vendor)))
+    const uniqueVendors = Array.from(new Set([
+      ...data.map((item) => item.vendor).filter(Boolean),
+      ...(vendorFilter !== "all" ? [vendorFilter] : []),
+    ]))
     return uniqueVendors.sort()
-  }, [data])
-
-  // Filter and search data
-  const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      const matchesSearch =
-        searchTerm === "" ||
-        item.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.version.toLowerCase().includes(searchTerm.toLowerCase())
-
-      const matchesVendor = vendorFilter === "all" || item.vendor === vendorFilter
-
-      return matchesSearch && matchesVendor
-    })
   }, [data, searchTerm, vendorFilter])
-
-  // Pagination
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage)
-  const paginatedData = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredData.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredData, currentPage, itemsPerPage])
 
   const toggleRowExpansion = useCallback((hash: string) => {
     setExpandedRows(prev => {
@@ -83,21 +91,6 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
       return newExpanded
     })
   }, [])
-
-  const getInstallStateColor = (state: string) => {
-    switch (state) {
-      case "Installed":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      case "PartiallyInstalled":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-      case "Failed":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-      case "NotInstalled":
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-    }
-  }
 
   const handleBatchUninstall = (softItem: SoftItem) => {
     setSelectedSoftwareForUninstall([softItem])
@@ -132,9 +125,9 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
   }
 
   const clearFilters = () => {
-    setSearchTerm("")
-    setVendorFilter("all")
-    setCurrentPage(1)
+    onSearchTermChange("")
+    onVendorFilterChange("all")
+    onPageChange(1)
   }
 
   // Generate page numbers for pagination
@@ -191,8 +184,8 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                 placeholder={t("searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value)
-                  setCurrentPage(1)
+                  onSearchTermChange(e.target.value)
+                  onPageChange(1)
                 }}
                 className="pl-10"
               />
@@ -200,8 +193,8 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
             <Select
               value={vendorFilter}
               onValueChange={(value) => {
-                setVendorFilter(value)
-                setCurrentPage(1)
+                onVendorFilterChange(value)
+                onPageChange(1)
               }}
             >
               <SelectTrigger className="w-full sm:w-48">
@@ -226,14 +219,14 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
       {/* Results Summary and Items Per Page Selector */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="text-sm text-muted-foreground">
-          {filteredData.length === 0 ? (
+          {totalCount === 0 ? (
             t("noMatch")
           ) : (
             <>
               {t("summary", {
-                count: filteredData.length,
-                start: Math.min((currentPage - 1) * itemsPerPage + 1, filteredData.length),
-                end: Math.min(currentPage * itemsPerPage, filteredData.length),
+                count: totalCount,
+                start: Math.min((currentPage - 1) * itemsPerPage + 1, totalCount),
+                end: Math.min(currentPage * itemsPerPage, totalCount),
               })}
             </>
           )}
@@ -244,8 +237,8 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
           <Select
             value={itemsPerPage.toString()}
             onValueChange={(value) => {
-              setItemsPerPage(Number(value))
-              setCurrentPage(1)
+              onPageSizeChange(Number(value))
+              onPageChange(1)
             }}
           >
             <SelectTrigger className="w-20 h-8">
@@ -278,7 +271,20 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                 </div>
               ))}
             </div>
-          ) : filteredData.length === 0 ? (
+          ) : error ? (
+            <div className="p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
+                <Package className="h-6 w-6 text-rose-500" />
+              </div>
+              <h3 className="mt-4 text-lg font-semibold">{error}</h3>
+              {onRetry ? (
+                <Button variant="outline" size="sm" onClick={onRetry} className="mt-4">
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  {t("retry")}
+                </Button>
+              ) : null}
+            </div>
+          ) : data.length === 0 ? (
             // Empty state
             <div className="p-12 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
@@ -310,7 +316,10 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedData.map((item) => (
+                {data.map((item) => {
+                  const websiteUrl = getWebsiteUrl(item.urlInfoAbout)
+
+                  return (
                   <Fragment key={item.hash}>
                     <TableRow className="group hover:bg-muted/50">
                       <TableCell>
@@ -337,12 +346,12 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                       <TableCell className="hidden lg:table-cell">{item.vendor}</TableCell>
                       <TableCell className="hidden xl:table-cell text-xs">{item.skuNumber || "-"}</TableCell>
                       <TableCell>
-                        {item.urlInfoAbout ? (
+                        {websiteUrl ? (
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="sm" asChild>
-                                  <a href={item.urlInfoAbout} target="_blank" rel="noopener noreferrer">
+                                  <a href={websiteUrl} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="h-4 w-4 text-blue-500" />
                                   </a>
                                 </Button>
@@ -508,7 +517,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                       </TableRow>
                     )}
                   </Fragment>
-                ))}
+                )})}
               </TableBody>
             </Table>
           )}
@@ -519,13 +528,13 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-sm text-muted-foreground">
-            {t("showingPage", { current: currentPage, total: totalPages, count: filteredData.length })}
+            {t("showingPage", { current: currentPage, total: totalPages, count: totalCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(1)}
+              onClick={() => onPageChange(1)}
               disabled={currentPage === 1}
             >
               {t("home")}
@@ -533,8 +542,8 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
+              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+              disabled={!pagination.has_previous}
             >
               {t("prev")}
             </Button>
@@ -549,7 +558,7 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
                     variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     className="w-8 h-8 p-0"
-                    onClick={() => setCurrentPage(page as number)}
+                    onClick={() => onPageChange(page as number)}
                   >
                     {page}
                   </Button>
@@ -560,15 +569,15 @@ export function SoftInventoryTable({ data, onTaskCreated, isLoading = false }: S
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
+              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+              disabled={!pagination.has_next}
             >
               {t("next")}
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage(totalPages)}
+              onClick={() => onPageChange(totalPages)}
               disabled={currentPage === totalPages}
             >
               {t("last")}
