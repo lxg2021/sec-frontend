@@ -415,7 +415,15 @@
         "softwareList": "软件清单",
         "softwareCount": "{count} 个软件",
         "refresh": "刷新",
-        "loadFailed": "加载软件列表失败"
+        "loadFailed": "加载软件列表失败",
+        "summaryTitle": "软件概览",
+        "summaryDescription": "基于当前租户的软件安装数据实时统计",
+        "summarySoftware": "软件总数",
+        "summaryInstallations": "安装次数",
+        "summaryHosts": "涉及主机",
+        "summaryVendors": "厂商数量",
+        "summaryMissingWebsite": "无官网信息",
+        "summaryLoadFailed": "加载软件统计失败"
       },
       "softwareUninstall": {
         "title": "软件卸载状态",

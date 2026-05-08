@@ -1,14 +1,16 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { Computer, Package, RefreshCcw } from "lucide-react"
+import type React from "react"
+import { BarChart3, Building2, Link2Off, Monitor, Package, RefreshCcw, ServerCog } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { getSoftwareDistributionPagination } from "@/features/assets/software/api"
-import type { SoftwarePagination } from "@/features/assets/software/api"
+import { getSoftwareDistributionPagination, getSoftwareSummary } from "@/features/assets/software/api"
+import type { SoftwarePagination, SoftwareSummary } from "@/features/assets/software/api"
 import { SoftInventoryTable } from "@/features/assets/software/components/soft-inventory-table"
 import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
 import { Button } from "@/shared/ui/button"
+import { Skeleton } from "@/shared/ui/skeleton"
 
 const TENANT_ID = "public"
 const DEFAULT_PAGE_SIZE = 10
@@ -22,12 +24,84 @@ const EMPTY_PAGINATION: SoftwarePagination = {
   has_next: false,
 }
 
+const EMPTY_SUMMARY: SoftwareSummary = {
+  software_count: 0,
+  installation_count: 0,
+  host_count: 0,
+  vendor_count: 0,
+  missing_website_count: 0,
+}
+
+function SummaryMetric({
+  label,
+  value,
+  icon: Icon,
+  isLoading,
+  tone,
+}: {
+  label: string
+  value: number
+  icon: React.ComponentType<{ className?: string }>
+  isLoading: boolean
+  tone: "blue" | "amber" | "emerald" | "rose" | "slate"
+}) {
+  const toneClassNames = {
+    blue: {
+      border: "border-t-blue-500",
+      text: "text-blue-600",
+      dot: "bg-blue-500",
+    },
+    amber: {
+      border: "border-t-amber-500",
+      text: "text-amber-600",
+      dot: "bg-amber-500",
+    },
+    emerald: {
+      border: "border-t-emerald-500",
+      text: "text-emerald-600",
+      dot: "bg-emerald-500",
+    },
+    rose: {
+      border: "border-t-rose-500",
+      text: "text-rose-600",
+      dot: "bg-rose-500",
+    },
+    slate: {
+      border: "border-t-slate-400",
+      text: "text-slate-600",
+      dot: "bg-slate-400",
+    },
+  }[tone]
+
+  return (
+    <div className={`min-w-0 rounded-lg border border-t-2 border-slate-200 ${toneClassNames.border} bg-white px-4 py-3`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className={`flex min-w-0 items-center gap-1.5 text-xs font-medium ${toneClassNames.text}`}>
+          <Icon className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{label}</span>
+        </div>
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${toneClassNames.dot}`} />
+      </div>
+      {isLoading ? (
+        <Skeleton className="mt-3 h-7 w-14" />
+      ) : (
+        <div className="mt-2 truncate text-2xl font-semibold leading-7 tabular-nums text-slate-950">
+          {value.toLocaleString()}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Home() {
   const t = useTranslations("pages.assets.softwareDetails")
   const [software, setSoftware] = useState<SoftItem[]>([])
   const [pagination, setPagination] = useState<SoftwarePagination>(EMPTY_PAGINATION)
+  const [summary, setSummary] = useState<SoftwareSummary>(EMPTY_SUMMARY)
   const [loading, setLoading] = useState(false)
+  const [summaryLoading, setSummaryLoading] = useState(false)
   const [error, setError] = useState("")
+  const [summaryError, setSummaryError] = useState("")
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [searchTerm, setSearchTerm] = useState("")
@@ -61,25 +135,44 @@ export default function Home() {
     }
   }, [page, pageSize, searchTerm, t, vendorFilter])
 
+  const loadSummary = useCallback(async () => {
+    setSummaryLoading(true)
+    setSummaryError("")
+
+    try {
+      setSummary(await getSoftwareSummary({ tenantId: TENANT_ID }))
+    } catch (requestError) {
+      setSummary(EMPTY_SUMMARY)
+      setSummaryError(requestError instanceof Error ? requestError.message : t("summaryLoadFailed"))
+    } finally {
+      setSummaryLoading(false)
+    }
+  }, [t])
+
   useEffect(() => {
     void loadSoftware()
   }, [loadSoftware])
 
+  useEffect(() => {
+    void loadSummary()
+  }, [loadSummary])
+
+  const refreshPage = () => {
+    void loadSoftware()
+    void loadSummary()
+  }
+
+  const formattedSummary = {
+    software_count: Number(summary.software_count || 0),
+    installation_count: Number(summary.installation_count || 0),
+    host_count: Number(summary.host_count || 0),
+    vendor_count: Number(summary.vendor_count || 0),
+    missing_website_count: Number(summary.missing_website_count || 0),
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="rounded-lg bg-blue-50 p-2">
-              <Computer className="h-6 w-6 text-blue-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-            </div>
-          </div>
-        </div>
-
         <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
@@ -93,13 +186,67 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={() => void loadSoftware()} disabled={loading}>
-              <RefreshCcw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <Button variant="outline" onClick={refreshPage} disabled={loading || summaryLoading}>
+              <RefreshCcw className={`mr-2 h-4 w-4 ${loading || summaryLoading ? "animate-spin" : ""}`} />
               {t("refresh")}
             </Button>
           </div>
 
-          <div className="p-6">
+          <div className="space-y-6 p-6">
+            <div className="rounded-lg border border-slate-200 bg-white p-6">
+              <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-2">
+                  <BarChart3 className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-950">{t("summaryTitle")}</h3>
+                  </div>
+                </div>
+                {summaryError ? (
+                  <div className="text-sm text-rose-600" role="alert">
+                    {t("summaryLoadFailed")}: {summaryError}
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <SummaryMetric
+                  label={t("summarySoftware")}
+                  value={formattedSummary.software_count}
+                  icon={Package}
+                  isLoading={summaryLoading}
+                  tone="blue"
+                />
+                <SummaryMetric
+                  label={t("summaryInstallations")}
+                  value={formattedSummary.installation_count}
+                  icon={ServerCog}
+                  isLoading={summaryLoading}
+                  tone="amber"
+                />
+                <SummaryMetric
+                  label={t("summaryHosts")}
+                  value={formattedSummary.host_count}
+                  icon={Monitor}
+                  isLoading={summaryLoading}
+                  tone="emerald"
+                />
+                <SummaryMetric
+                  label={t("summaryVendors")}
+                  value={formattedSummary.vendor_count}
+                  icon={Building2}
+                  isLoading={summaryLoading}
+                  tone="rose"
+                />
+                <SummaryMetric
+                  label={t("summaryMissingWebsite")}
+                  value={formattedSummary.missing_website_count}
+                  icon={Link2Off}
+                  isLoading={summaryLoading}
+                  tone="slate"
+                />
+              </div>
+            </div>
+
             <SoftInventoryTable
               data={software}
               isLoading={loading}

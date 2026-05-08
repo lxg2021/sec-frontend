@@ -30,6 +30,7 @@ const FALLBACK_CONFIG = {
       getHardwareInfo: "/sensor/asset/get-hardware-info",
       getHostSoftwareInfoPagination: "/sensor/asset/get-host-software-info-pagination",
       getSoftwareDistributionPagination: "/sensor/asset/get-software-distribution-pagination",
+      getSoftwareSummary: "/sensor/asset/get-software-summary",
       submitCollection: "/sensor/collection/submit",
       listCollectionSubmissions: "/sensor/collection/submissions/list",
       getCollectionSubmission: "/sensor/collection/submissions/get",

@@ -17,6 +17,27 @@ export interface SoftwareDistributionResult {
   pagination: SoftwarePagination
 }
 
+export interface SoftwareSummary {
+  software_count: number
+  installation_count: number
+  host_count: number
+  vendor_count: number
+  missing_website_count: number
+}
+
+interface BackendSoftwareSummary {
+  software_count?: number
+  softwareCount?: number
+  installation_count?: number
+  installationCount?: number
+  host_count?: number
+  hostCount?: number
+  vendor_count?: number
+  vendorCount?: number
+  missing_website_count?: number
+  missingWebsiteCount?: number
+}
+
 interface BackendSoftwareInstallation {
   agent_id?: string
   agentId?: string
@@ -136,6 +157,20 @@ function normalizePagination(
   }
 }
 
+function normalizeCount(value: unknown): number {
+  return Number(value) || 0
+}
+
+function adaptSoftwareSummary(data: BackendSoftwareSummary): SoftwareSummary {
+  return {
+    software_count: normalizeCount(data.software_count ?? data.softwareCount),
+    installation_count: normalizeCount(data.installation_count ?? data.installationCount),
+    host_count: normalizeCount(data.host_count ?? data.hostCount),
+    vendor_count: normalizeCount(data.vendor_count ?? data.vendorCount),
+    missing_website_count: normalizeCount(data.missing_website_count ?? data.missingWebsiteCount),
+  }
+}
+
 export async function getSoftwareDistributionPagination({
   tenantId = "public",
   page,
@@ -168,4 +203,17 @@ export async function getSoftwareDistributionPagination({
     software,
     pagination: normalizePagination(data.pagination, page, pageSize, software.length),
   }
+}
+
+export async function getSoftwareSummary({
+  tenantId = "public",
+}: {
+  tenantId?: string
+} = {}): Promise<SoftwareSummary> {
+  const result = await http.post("getSoftwareSummary", {
+    request_id: createRequestId(),
+    tenant_id: tenantId,
+  })
+
+  return adaptSoftwareSummary((result.data || {}) as BackendSoftwareSummary)
 }

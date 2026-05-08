@@ -415,7 +415,15 @@
         "softwareList": "Software List",
         "softwareCount": "{count} software items",
         "refresh": "Refresh",
-        "loadFailed": "Failed to load software list"
+        "loadFailed": "Failed to load software list",
+        "summaryTitle": "Software Overview",
+        "summaryDescription": "Real-time totals from the current tenant's software installation records",
+        "summarySoftware": "Software",
+        "summaryInstallations": "Installations",
+        "summaryHosts": "Hosts",
+        "summaryVendors": "Vendors",
+        "summaryMissingWebsite": "Missing websites",
+        "summaryLoadFailed": "Failed to load software summary"
       },
       "softwareUninstall": {
         "title": "Software Uninstall Status",
