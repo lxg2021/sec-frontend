@@ -1,7 +1,8 @@
 ﻿"use client"
 
 import Image from "next/image"
-import { Cpu, Calendar, Server, HardDrive, Building, Users } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import { BadgeInfo, Building, Calendar, CircleDot, Cpu, HardDrive, Laptop, Monitor, Server, Users } from "lucide-react"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
@@ -29,6 +30,21 @@ function getSystemIcon(osType: SystemType) {
   )
 }
 
+function HeaderLabel({
+  icon: Icon,
+  children,
+}: {
+  icon: LucideIcon
+  children: React.ReactNode
+}) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      {children}
+    </span>
+  )
+}
+
 export function HostListTable({ hosts, selectedHostId, onSelectHost }: {
   hosts: AgentInfo[]
   selectedHostId: string | null
@@ -41,15 +57,33 @@ export function HostListTable({ hosts, selectedHostId, onSelectHost }: {
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead className="font-medium">{t("hostInfo")}</TableHead>
-            <TableHead className="font-medium">{t("status")}</TableHead>
-            <TableHead className="font-medium">{t("system")}</TableHead>
-            <TableHead className="font-medium">{t("os")}</TableHead>
-            <TableHead className="font-medium">{t("version")}</TableHead>
-            <TableHead className="font-medium">{t("architecture")}</TableHead>
-            <TableHead className="font-medium">{t("hardwareInfo")}</TableHead>
-            <TableHead className="font-medium">{t("organization")}</TableHead>
-            <TableHead className="font-medium">{t("installDate")}</TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={Server}>{t("hostInfo")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={CircleDot}>{t("status")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={Monitor}>{t("system")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={Laptop}>{t("os")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={BadgeInfo}>{t("version")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={Cpu}>{t("architecture")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={HardDrive}>{t("hardwareInfo")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={Building}>{t("organization")}</HeaderLabel>
+            </TableHead>
+            <TableHead className="font-medium">
+              <HeaderLabel icon={Calendar}>{t("installDate")}</HeaderLabel>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

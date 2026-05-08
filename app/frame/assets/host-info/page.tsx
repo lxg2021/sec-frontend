@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertCircle, ChevronLeft, ChevronRight, Computer, List, Loader2, RefreshCcw } from "lucide-react"
+import { AlertCircle, ChevronLeft, ChevronRight, List, Loader2, RefreshCcw } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { getHostSummary, getHostsPagination } from "@/features/assets/host/api"
@@ -112,18 +112,6 @@ export default function HostInfoPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="rounded-lg bg-blue-50 p-2">
-              <Computer className="h-6 w-6 text-blue-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-            </div>
-          </div>
-        </div>
-
         {summaryLoading ? (
           <div className="flex min-h-32 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm text-slate-500">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -144,27 +132,27 @@ export default function HostInfoPage() {
           <HostSummaryCard summary={summary} />
         ) : null}
 
-        <Card className="rounded-xl border-0 bg-white shadow-lg dark:bg-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2">
-                <List className="h-5 w-5 text-white" />
+        <Card className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-none">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                <List className="h-6 w-6" />
               </div>
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+                <CardTitle className="text-xl font-semibold text-slate-950">
                   {t("hostList")}
                 </CardTitle>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                <p className="mt-1 text-sm text-slate-500">
                   {t("hostListDescription")}
                 </p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={hostsLoading || summaryLoading}>
+            <Button variant="outline" onClick={handleRefresh} disabled={hostsLoading || summaryLoading}>
               <RefreshCcw className="mr-2 h-4 w-4" />
               刷新
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4 pb-6">
+          <CardContent className="space-y-4 pb-6 pt-6">
             {hostsError ? (
               <div className="flex min-h-24 flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-2">
