@@ -18,7 +18,6 @@ import {
   Target,
   Terminal,
   Timer,
-  Trash2,
 } from "lucide-react"
 
 export const menuItems = [
@@ -37,8 +36,8 @@ export const menuItems = [
     icon: Boxes,
     labelKey: "assets",
     submenu: [
+      { id: "hardware", icon: Monitor, labelKey: "hardware", path: "/frame/assets/hardware" },
       { id: "softdetails", icon: Package, labelKey: "softdetails", path: "/frame/assets/software/details" },
-      { id: "softuninstall", icon: Trash2, labelKey: "softuninstall", path: "/frame/assets/software/uninstall" },
     ],
   },
   {

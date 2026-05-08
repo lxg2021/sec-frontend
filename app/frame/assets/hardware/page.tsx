@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation"
+"use client"
 
-export default function HardwareAssetsRedirect() {
-  redirect("/frame/assets/host-info")
+import { HardwareAssetsPage } from "@/features/assets/hardware/components/hardware-assets-page"
+
+export default function HardwarePage() {
+  return <HardwareAssetsPage />
 }
