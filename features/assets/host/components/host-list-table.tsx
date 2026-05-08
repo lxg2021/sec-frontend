@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import Image from "next/image"
+import type React from "react"
 import type { LucideIcon } from "lucide-react"
 import { BadgeInfo, Building, Calendar, CircleDot, Cpu, HardDrive, Laptop, Monitor, Server, Users } from "lucide-react"
 import { Badge } from "@/shared/ui/badge"

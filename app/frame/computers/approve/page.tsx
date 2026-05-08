@@ -1,9 +1,8 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import {
-  Activity,
   Computer,
   Download,
   FileUp,
@@ -42,18 +41,6 @@ const HOST_FETCH_PAGE_SIZE = 10
 type LogicGroupLoadStatus = "loading" | "loaded" | "error"
 type HostLoadStatus = "loading" | "loaded" | "error"
 
-function countLogicNodes(groups: UserLogicGroup[]): number {
-  return groups.reduce((total, group) => total + 1 + countLogicNodes(group.children || []), 0)
-}
-
-function countOnlineHosts(hosts: Host[]): number {
-  return hosts.filter((host) => host.status === "online").length
-}
-
-function countPendingApprovalHosts(hosts: Host[]): number {
-  return hosts.filter((host) => !host.group || !host.owner).length
-}
-
 export default function LogicGroupsPage() {
   const t = useTranslations("pages.computers.approve")
   const treeT = useTranslations("pages.collection.tree")
@@ -69,7 +56,6 @@ export default function LogicGroupsPage() {
   const [savingLogicGroups, setSavingLogicGroups] = useState(false)
   const [hosts, setHosts] = useState<Host[]>([])
   const [originalHosts, setOriginalHosts] = useState<Host[]>([])
-  const [collectionTotal, setCollectionTotal] = useState(0)
   const [collectionRefreshRequestVersion, setCollectionRefreshRequestVersion] = useState(0)
   const [hostPagination, setHostPagination] = useState<HostPagination>({
     current_page: 1,
@@ -278,46 +264,11 @@ export default function LogicGroupsPage() {
     }
   }
 
-  const logicNodeCount = useMemo(() => countLogicNodes(uploadedGroups), [uploadedGroups])
-  const onlineHostCount = useMemo(() => countOnlineHosts(hosts), [hosts])
-  const pendingHostCount = useMemo(() => countPendingApprovalHosts(hosts), [hosts])
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="space-y-6 p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-50 p-2">
-              <Computer className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-blue-500" />
-              待处理主机 <strong className="text-slate-900">{pendingHostCount}</strong>
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              采集单 <strong className="text-slate-900">{collectionTotal}</strong>
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-orange-500" />
-              组织节点 <strong className="text-slate-900">{logicNodeCount}</strong>
-            </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-violet-500" />
-              在线主机 <strong className="text-slate-900">{onlineHostCount}</strong>
-            </span>
-          </div>
-        </div>
-
         <Card className="rounded-xl border border-slate-200 bg-white shadow-none">
-          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-center lg:justify-between">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-slate-900 p-2 text-white">
                 <FolderTree className="h-5 w-5" />
@@ -330,7 +281,7 @@ export default function LogicGroupsPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex max-w-3xl flex-wrap items-center justify-start gap-2 lg:justify-end">
               <Button
                 onClick={handleRequestLogicSave}
                 disabled={savingLogicGroups || logicGroupStatus === "loading" || uploadedGroups.length === 0}
@@ -526,7 +477,6 @@ export default function LogicGroupsPage() {
           </CardHeader>
           <CardContent className="p-4">
             <CollectionApproval
-              onTotalChange={setCollectionTotal}
               refreshRequestVersion={collectionRefreshRequestVersion}
             />
           </CardContent>
