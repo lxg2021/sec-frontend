@@ -68,5 +68,6 @@ export interface HardwareCategoryMeta {
   label: string
   icon: ComponentType<{ className?: string }>
   color: string
+  barClassName: string
   softClassName: string
 }
