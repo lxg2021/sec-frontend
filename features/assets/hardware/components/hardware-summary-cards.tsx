@@ -3,8 +3,9 @@
 import type { ComponentType } from "react"
 import { Boxes, Database, MonitorCheck, PackageSearch } from "lucide-react"
 
-import { HARDWARE_CATEGORIES, getHardwareCategoryMeta } from "@/features/assets/hardware/constants"
+import { HARDWARE_CATEGORIES } from "@/features/assets/hardware/constants"
 import type { HardwareSummary } from "@/features/assets/hardware/types"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { Skeleton } from "@/shared/ui/skeleton"
 
 interface HardwareSummaryCardsProps {
@@ -31,46 +32,46 @@ function StatCard({
 }) {
   const tones = {
     blue: {
-      wrapper: "bg-blue-50/80",
-      icon: "bg-blue-600 text-white",
+      gradient: "from-blue-500 to-blue-600",
       value: "text-slate-800",
     },
     green: {
-      wrapper: "bg-emerald-50/80",
-      icon: "bg-emerald-500 text-white",
+      gradient: "from-emerald-500 to-emerald-600",
       value: "text-emerald-600",
     },
     red: {
-      wrapper: "bg-rose-50/80",
-      icon: "bg-rose-500 text-white",
+      gradient: "from-rose-500 to-rose-600",
       value: "text-rose-600",
     },
   }[tone]
 
   return (
-    <div className={`min-h-[134px] rounded-lg p-6 shadow-lg shadow-slate-200/70 ${tones.wrapper}`}>
-      <div className="flex items-start justify-between gap-4">
+    <Card className="group relative min-h-[188px] overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className={`absolute inset-0 bg-gradient-to-br ${tones.gradient} opacity-10 transition-opacity group-hover:opacity-20`} />
+      <CardHeader className="relative flex flex-row items-center justify-between pb-3">
+        <span className="text-sm font-medium text-slate-600">{title}</span>
+        <div className={`rounded-lg bg-gradient-to-br p-2 ${tones.gradient}`}>
+          <Icon className="h-5 w-5 text-white" />
+        </div>
+      </CardHeader>
+      <CardContent className="relative pt-0">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-600">{title}</p>
           {isLoading ? (
-            <Skeleton className="mt-7 h-9 w-20" />
+            <Skeleton className="mt-2 h-9 w-20" />
           ) : (
-            <p className={`mt-6 text-4xl font-semibold leading-none tabular-nums ${tones.value}`}>
-              {value.toLocaleString()}
-            </p>
+            <div className="mt-2 flex h-10 items-baseline justify-between gap-3">
+              <p className={`text-4xl font-semibold leading-none tabular-nums ${tones.value}`}>
+                {value.toLocaleString()}
+              </p>
+              {percent ? (
+                <span className="text-sm font-medium tabular-nums text-slate-500">{percent}</span>
+              ) : null}
+            </div>
           )}
           <p className="mt-3 text-sm text-slate-600">{description}</p>
         </div>
-        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tones.icon}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-      {percent ? (
-        <div className="mt-[-34px] text-right text-sm font-medium text-slate-500">
-          {percent}
-        </div>
-      ) : null}
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -78,40 +79,43 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
   const byCategory = new Map(summary.categories.map((item) => [item.category, item]))
 
   return (
-    <div className="min-h-[134px] rounded-lg bg-slate-100/80 p-6 shadow-lg shadow-slate-200/70">
-      <div className="flex items-start justify-between gap-4">
+    <Card className="group relative min-h-[188px] overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-500 to-slate-600 opacity-10 transition-opacity group-hover:opacity-20" />
+      <CardHeader className="relative flex flex-row items-start justify-between pb-2">
         <div>
           <p className="text-sm font-medium text-slate-600">硬件分类分布</p>
           <p className="mt-2 text-xs text-slate-500">
             覆盖主机 {summary.covered_host_count.toLocaleString()} 台
           </p>
         </div>
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-600 text-white">
+        <div className="rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 p-2 text-white">
           <Database className="h-5 w-5" />
         </div>
-      </div>
+      </CardHeader>
 
-      <div className="mt-4 space-y-2">
-        {isLoading
-          ? Array.from({ length: 3 }).map((_, index) => (
-              <Skeleton key={index} className="h-4 w-full" />
-            ))
-          : HARDWARE_CATEGORIES.slice(0, 4).map((category) => {
-              const value = byCategory.get(category.value)
-              return (
-                <div key={category.value} className="flex items-center justify-between gap-3 text-sm">
-                  <div className="flex min-w-0 items-center gap-2">
-                    <category.icon className={`h-4 w-4 shrink-0 ${category.color}`} />
-                    <span className="truncate text-slate-700">{category.label}</span>
+      <CardContent className="relative pt-0">
+        <div className="space-y-1.5">
+          {isLoading
+            ? Array.from({ length: 3 }).map((_, index) => (
+                <Skeleton key={index} className="h-4 w-full" />
+              ))
+          : HARDWARE_CATEGORIES.map((category) => {
+                const value = byCategory.get(category.value)
+                return (
+                  <div key={category.value} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <category.icon className={`h-4 w-4 shrink-0 ${category.color}`} />
+                      <span className="truncate text-slate-700">{category.label}</span>
+                    </div>
+                    <span className="w-16 shrink-0 text-right text-sm font-medium tabular-nums text-slate-700">
+                      {(value?.model_count || 0).toLocaleString()} / {(value?.device_count || 0).toLocaleString()}
+                    </span>
                   </div>
-                  <span className="font-medium tabular-nums text-slate-700">
-                    {(value?.model_count || 0).toLocaleString()} / {(value?.device_count || 0).toLocaleString()}
-                  </span>
-                </div>
-              )
-            })}
-      </div>
-    </div>
+                )
+              })}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -123,7 +127,7 @@ export function HardwareSummaryCards({ summary, isLoading = false }: HardwareSum
   const deviceRatio = recordCount > 0 ? `${Math.round((deviceCount / recordCount) * 100)}%` : undefined
 
   return (
-    <div className="grid gap-5 xl:grid-cols-4">
+    <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
       <StatCard
         title="型号总数"
         value={modelCount}
