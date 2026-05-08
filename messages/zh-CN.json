@@ -413,7 +413,9 @@
         "title": "软件管理",
         "subtitle": "软件管理",
         "softwareList": "软件清单",
-        "softwareCount": "{count} 个软件"
+        "softwareCount": "{count} 个软件",
+        "refresh": "刷新",
+        "loadFailed": "加载软件列表失败"
       },
       "softwareUninstall": {
         "title": "软件卸载状态",
@@ -477,6 +479,8 @@
         },
         "table": {
           "title": "软件列表",
+          "filterTitle": "软件筛选",
+          "displaySoftware": "显示 {shown} / {total} 个软件",
           "clearFilters": "清空筛选",
           "retry": "重试",
           "searchPlaceholder": "搜索软件名称、厂商或版本...",

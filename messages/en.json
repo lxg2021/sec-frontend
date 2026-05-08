@@ -413,7 +413,9 @@
         "title": "Software Management",
         "subtitle": "Software Management",
         "softwareList": "Software List",
-        "softwareCount": "{count} software items"
+        "softwareCount": "{count} software items",
+        "refresh": "Refresh",
+        "loadFailed": "Failed to load software list"
       },
       "softwareUninstall": {
         "title": "Software Uninstall Status",
@@ -475,6 +477,8 @@
         },
         "table": {
           "title": "Software list",
+          "filterTitle": "Software filter",
+          "displaySoftware": "Showing {shown} / {total} software",
           "clearFilters": "Clear filters",
           "retry": "Retry",
           "searchPlaceholder": "Search software name, vendor, or version...",

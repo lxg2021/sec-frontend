@@ -1,15 +1,16 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { SoftInventoryTable } from "@/features/assets/software/components/soft-inventory-table"
-import { UninstallSoftTaskList } from "@/features/assets/software/components/uninstall-soft-task-list"
+import { Computer, Package, RefreshCcw } from "lucide-react"
+import { useTranslations } from "next-intl"
+
 import { getSoftwareDistributionPagination } from "@/features/assets/software/api"
 import type { SoftwarePagination } from "@/features/assets/software/api"
+import { SoftInventoryTable } from "@/features/assets/software/components/soft-inventory-table"
+import { UninstallSoftTaskList } from "@/features/assets/software/components/uninstall-soft-task-list"
 import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
 import type { CreateUninstallTaskRequest } from "@/features/assets/software/types/task-soft-uninstall"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
-import { CalendarCheck, Computer } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { Button } from "@/shared/ui/button"
 
 const TENANT_ID = "public"
 const DEFAULT_PAGE_SIZE = 10
@@ -57,11 +58,11 @@ export default function Home() {
         current_page: page,
         page_size: pageSize,
       })
-      setError(requestError instanceof Error ? requestError.message : "加载软件列表失败")
+      setError(requestError instanceof Error ? requestError.message : t("loadFailed"))
     } finally {
       setLoading(false)
     }
-  }, [page, pageSize, searchTerm, vendorFilter])
+  }, [page, pageSize, searchTerm, t, vendorFilter])
 
   useEffect(() => {
     void loadSoftware()
@@ -77,37 +78,39 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
+      <div className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
+            <div className="rounded-lg bg-blue-50 p-2">
               <Computer className="h-6 w-6 text-blue-300" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
+              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
             </div>
           </div>
         </div>
 
-        <Card className="border-0 shadow-lg bg-white dark:bg-gray-800">
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg">
-                <CalendarCheck className="h-5 w-5 text-white" />
+        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-white">
+                <Package className="h-5 w-5" />
               </div>
               <div>
-                <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-                  {t("softwareList")}
-                </CardTitle>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">
+                <h2 className="text-xl font-semibold text-slate-950">{t("softwareList")}</h2>
+                <p className="mt-1 text-sm text-slate-500">
                   {t("softwareCount", { count: pagination.total_count })}
                 </p>
               </div>
             </div>
-          </CardHeader>
+            <Button variant="outline" onClick={() => void loadSoftware()} disabled={loading}>
+              <RefreshCcw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              {t("refresh")}
+            </Button>
+          </div>
 
-          <CardContent>
+          <div className="p-6">
             <SoftInventoryTable
               data={software}
               isLoading={loading}
@@ -123,8 +126,8 @@ export default function Home() {
               onRetry={() => void loadSoftware()}
               onTaskCreated={handleTaskCreated}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </section>
 
         <UninstallSoftTaskList tasks={uninstallTasks} onDeleteTask={handleDeleteTask} />
       </div>

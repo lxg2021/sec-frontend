@@ -1,7 +1,8 @@
 ﻿"use client"
 
 import { useState, useMemo, useCallback, Fragment } from "react"
-import { Search, ChevronDown, ChevronRight, MoreHorizontal, ExternalLink, Trash2, Fingerprint, Monitor, CalendarDays, Folder, Package, Filter, X, EyeOff, RefreshCcw } from "lucide-react"
+import type React from "react"
+import { Search, ChevronDown, ChevronRight, MoreHorizontal, ExternalLink, Trash2, Fingerprint, Monitor, CalendarDays, Folder, Package, Filter, X, EyeOff, RefreshCcw, ArrowUpDown, Boxes, Globe2, Settings } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
@@ -14,7 +15,6 @@ import {
   DropdownMenuSeparator,
 } from "@/shared/ui/dropdown-menu"
 import { Badge } from "@/shared/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { UninstallSoftTaskDialog } from "@/features/assets/software/components/uninstall-soft-task-dialog"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
@@ -44,6 +44,23 @@ const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50, 100]
 function getWebsiteUrl(value?: string): string {
   const url = value?.trim() || ""
   return /^https?:\/\//i.test(url) ? url : ""
+}
+
+function HeaderLabel({
+  icon: Icon,
+  children,
+  className,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 ${className || ""}`}>
+      <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+      {children}
+    </span>
+  )
 }
 
 export function SoftInventoryTable({
@@ -162,92 +179,54 @@ export function SoftInventoryTable({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Search and Filter Bar */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="text-lg font-semibold">{t("title")}</CardTitle>
+    <div className="space-y-6">
+      <div className="rounded-lg border border-slate-200 bg-white p-6">
+        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <Filter className="h-5 w-5 text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-slate-950">{t("filterTitle")}</h3>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              {t("displaySoftware", { shown: data.length, total: totalCount })}
+            </span>
             {(searchTerm !== "" || vendorFilter !== "all") && (
-              <Button variant="outline" size="sm" onClick={clearFilters} className="flex items-center gap-1">
-                <X className="h-4 w-4" />
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-muted-foreground">
+                <X className="mr-1 h-4 w-4" />
                 {t("clearFilters")}
               </Button>
             )}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder={t("searchPlaceholder")}
-                value={searchTerm}
-                onChange={(e) => {
-                  onSearchTermChange(e.target.value)
-                  onPageChange(1)
-                }}
-                className="pl-10"
-              />
-            </div>
-            <Select
-              value={vendorFilter}
-              onValueChange={(value) => {
-                onVendorFilterChange(value)
-                onPageChange(1)
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-48">
-                <div className="flex items-center">
-                  <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder={t("selectVendor")} />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("allVendors")}</SelectItem>
-                {vendors.map((vendor) => (
-                  <SelectItem key={vendor} value={vendor}>
-                    {vendor}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Results Summary and Items Per Page Selector */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="text-sm text-muted-foreground">
-          {totalCount === 0 ? (
-            t("noMatch")
-          ) : (
-            <>
-              {t("summary", {
-                count: totalCount,
-                start: Math.min((currentPage - 1) * itemsPerPage + 1, totalCount),
-                end: Math.min(currentPage * itemsPerPage, totalCount),
-              })}
-            </>
-          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">{t("itemsPerPage")}</span>
+        <div className="grid gap-4 lg:grid-cols-[minmax(280px,1fr)_280px]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={t("searchPlaceholder")}
+              value={searchTerm}
+              onChange={(e) => {
+                onSearchTermChange(e.target.value)
+                onPageChange(1)
+              }}
+              className="h-10 pl-9"
+            />
+          </div>
           <Select
-            value={itemsPerPage.toString()}
+            value={vendorFilter}
             onValueChange={(value) => {
-              onPageSizeChange(Number(value))
+              onVendorFilterChange(value)
               onPageChange(1)
             }}
           >
-            <SelectTrigger className="w-20 h-8">
-              <SelectValue />
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder={t("selectVendor")} />
             </SelectTrigger>
             <SelectContent>
-              {ITEMS_PER_PAGE_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option.toString()}>
-                  {option}
+              <SelectItem value="all">{t("allVendors")}</SelectItem>
+              {vendors.map((vendor) => (
+                <SelectItem key={vendor} value={vendor}>
+                  {vendor}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -255,9 +234,7 @@ export function SoftInventoryTable({
         </div>
       </div>
 
-      {/* Main Table */}
-      <Card>
-        <CardContent className="p-0">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
           {isLoading ? (
             // Loading state
             <div className="p-6 space-y-4">
@@ -296,23 +273,41 @@ export function SoftInventoryTable({
               </p>
             </div>
           ) : (
+            <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="w-12"></TableHead>
                   <TableHead className="w-60">
-                    <div className="flex items-center gap-1">
+                    <HeaderLabel icon={Fingerprint}>
                       {t("fingerprint")}
-                      <Fingerprint className="w-4 h-4 text-blue-600" />
-                    </div>
+                    </HeaderLabel>
                   </TableHead>
-                  <TableHead>{t("name")}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t("version")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">{t("vendor")}</TableHead>
-                  <TableHead className="hidden xl:table-cell">{t("sku")}</TableHead>
-                  <TableHead>{t("website")}</TableHead>
-                  <TableHead className="text-center">{t("installCount")}</TableHead>
-                  <TableHead className="text-center">{t("actions")}</TableHead>
+                  <TableHead>
+                    <HeaderLabel icon={Package}>{t("name")}</HeaderLabel>
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    <HeaderLabel icon={ArrowUpDown}>{t("version")}</HeaderLabel>
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    <HeaderLabel icon={Boxes}>{t("vendor")}</HeaderLabel>
+                  </TableHead>
+                  <TableHead className="hidden xl:table-cell">
+                    <HeaderLabel icon={Fingerprint}>{t("sku")}</HeaderLabel>
+                  </TableHead>
+                  <TableHead>
+                    <HeaderLabel icon={Globe2}>{t("website")}</HeaderLabel>
+                  </TableHead>
+                  <TableHead className="text-center">
+                    <HeaderLabel icon={Monitor} className="justify-center">
+                      {t("installCount")}
+                    </HeaderLabel>
+                  </TableHead>
+                  <TableHead className="text-right">
+                    <HeaderLabel icon={Settings} className="justify-end">
+                      {t("actions")}
+                    </HeaderLabel>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -321,7 +316,7 @@ export function SoftInventoryTable({
 
                   return (
                   <Fragment key={item.hash}>
-                    <TableRow className="group hover:bg-muted/50">
+                    <TableRow className="group border-border hover:bg-muted/50">
                       <TableCell>
                         <Button
                           variant="ghost"
@@ -336,11 +331,14 @@ export function SoftInventoryTable({
                           )}
                         </Button>
                       </TableCell>
-                      <TableCell className="font-mono w-60 truncate" title={item.hash}>
+                      <TableCell className="w-60 max-w-60 truncate font-mono text-xs" title={item.hash}>
                         {item.hash}
                       </TableCell>
-                      <TableCell className="font-medium max-w-[200px] truncate" title={item.displayName}>
-                        {item.displayName}
+                      <TableCell className="max-w-[240px]" title={item.displayName}>
+                        <div className="truncate font-medium text-slate-950">{item.displayName}</div>
+                        {item.name !== item.displayName ? (
+                          <div className="truncate text-xs text-muted-foreground">{item.name}</div>
+                        ) : null}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">{item.version}</TableCell>
                       <TableCell className="hidden lg:table-cell">{item.vendor}</TableCell>
@@ -366,11 +364,11 @@ export function SoftInventoryTable({
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant="secondary" className={item.installations.length === 0 ? "opacity-50" : ""}>
+                        <Badge variant="secondary" className={item.installations.length === 0 ? "opacity-50" : "bg-blue-50 text-blue-700 hover:bg-blue-50"}>
                           {item.installations.length}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-right">
 
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -520,71 +518,99 @@ export function SoftInventoryTable({
                 )})}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-sm text-muted-foreground">
-            {t("showingPage", { current: currentPage, total: totalPages, count: totalCount })}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(1)}
-              disabled={currentPage === 1}
-            >
-              {t("home")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-              disabled={!pagination.has_previous}
-            >
-              {t("prev")}
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {getPageNumbers().map((page, index) => (
-                page === '...' ? (
-                  <span key={`ellipsis-${index}`} className="px-2 py-1">...</span>
-                ) : (
-                  <Button
-                    key={page}
-                    variant={currentPage === page ? "default" : "outline"}
-                    size="sm"
-                    className="w-8 h-8 p-0"
-                    onClick={() => onPageChange(page as number)}
-                  >
-                    {page}
-                  </Button>
-                )
-              ))}
             </div>
+          )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-              disabled={!pagination.has_next}
-            >
-              {t("next")}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onPageChange(totalPages)}
-              disabled={currentPage === totalPages}
-            >
-              {t("last")}
-            </Button>
+        <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/60 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>
+              {totalCount === 0
+                ? t("noMatch")
+                : t("summary", {
+                    count: totalCount,
+                    start: Math.min((currentPage - 1) * itemsPerPage + 1, totalCount),
+                    end: Math.min(currentPage * itemsPerPage, totalCount),
+                  })}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">{t("itemsPerPage")}</span>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={(value) => {
+                  onPageSizeChange(Number(value))
+                  onPageChange(1)
+                }}
+              >
+                <SelectTrigger className="h-9 w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ITEMS_PER_PAGE_OPTIONS.map((option) => (
+                    <SelectItem key={option} value={option.toString()}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
+          {totalPages > 1 ? (
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(1)}
+                disabled={currentPage === 1}
+              >
+                {t("home")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                disabled={!pagination.has_previous}
+              >
+                {t("prev")}
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {getPageNumbers().map((page, index) => (
+                  page === "..." ? (
+                    <span key={`ellipsis-${index}`} className="px-2 py-1">...</span>
+                  ) : (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onPageChange(page as number)}
+                    >
+                      {page}
+                    </Button>
+                  )
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={!pagination.has_next}
+              >
+                {t("next")}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(totalPages)}
+                disabled={currentPage === totalPages}
+              >
+                {t("last")}
+              </Button>
+            </div>
+          ) : null}
         </div>
-      )}
+      </div>
 
       <UninstallSoftTaskDialog
         selectedSoftware={selectedSoftwareForUninstall}
