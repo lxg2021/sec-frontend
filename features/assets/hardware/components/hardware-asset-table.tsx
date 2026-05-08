@@ -262,7 +262,8 @@ export function HardwareAssetTable({
               className="h-10 pl-9"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1">
             {HARDWARE_CATEGORIES.map((item) => {
               const Icon = item.icon
               const active = item.value === category
@@ -276,15 +277,18 @@ export function HardwareAssetTable({
                     setExpandedRows(new Set())
                   }}
                   className={cn(
-                    "inline-flex h-10 min-w-20 cursor-pointer items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-                    active ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                    "inline-flex h-9 min-w-20 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                    active
+                      ? "bg-white text-slate-950 shadow-sm"
+                      : "text-slate-600 hover:bg-white/70 hover:text-slate-900",
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={cn("h-4 w-4", active ? item.color : "text-slate-500")} />
                   {item.label}
                 </button>
               )
             })}
+            </div>
             <Button variant="outline" onClick={submitSearch} className="h-10">
               查询
             </Button>
