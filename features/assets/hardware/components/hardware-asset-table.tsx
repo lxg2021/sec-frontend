@@ -125,43 +125,88 @@ function LoadingRows() {
 }
 
 function ExpandedHosts({ item }: { item: HardwareAssetItem }) {
-  if (item.hosts.length === 0) {
-    return (
-      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-        暂无关联主机明细
-      </div>
-    )
-  }
-
   return (
-    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
-        <Server className="h-4 w-4 text-slate-500" />
-        关联主机
-        <Badge variant="secondary" className="bg-white text-slate-600">
-          {item.hosts.length} 台
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <Server className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <h4 className="truncate text-sm font-semibold text-slate-950">
+              关联主机 - {item.title}
+            </h4>
+            <p className="mt-1 text-xs text-slate-500">{item.subtitle || item.vendor || "硬件型号关联主机明细"}</p>
+          </div>
+        </div>
+        <Badge variant="outline" className="w-fit rounded-full bg-slate-50 px-3 py-1 text-slate-700">
+          {item.hosts.length} 台主机
         </Badge>
       </div>
-      <div className="grid max-h-56 gap-3 overflow-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
-        {item.hosts.map((host) => (
-          <div key={`${host.agent_id}-${host.instance_hash}`} className="rounded-lg border border-slate-200 bg-white p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-semibold text-slate-950">{host.hostname}</div>
-                <div className="mt-1 truncate text-xs text-slate-500">{host.os_name} {host.os_version}</div>
-              </div>
-              <span className={cn(
-                "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium",
-                host.status === "online" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600",
-              )}>
-                <span className={cn("h-1.5 w-1.5 rounded-full", host.status === "online" ? "bg-emerald-500" : "bg-slate-400")} />
-                {statusLabel(host.status)}
-              </span>
-            </div>
-            <div className="mt-3 truncate font-mono text-xs text-slate-400">{host.agent_id}</div>
-          </div>
-        ))}
-      </div>
+
+      {item.hosts.length === 0 ? (
+        <div className="px-5 py-8 text-center text-sm text-slate-500">暂无关联主机明细</div>
+      ) : (
+        <div className="max-h-80 overflow-auto">
+          <table className="w-full min-w-[920px] text-sm">
+            <thead className="sticky top-0 z-10 bg-white shadow-[0_1px_0_0_rgba(226,232,240,1)]">
+              <tr className="text-left text-xs font-medium text-slate-500">
+                <th className="px-5 py-3">
+                  <HeaderLabel icon={Monitor}>主机名</HeaderLabel>
+                </th>
+                <th className="px-5 py-3">
+                  <HeaderLabel icon={Fingerprint}>Agent ID</HeaderLabel>
+                </th>
+                <th className="px-5 py-3">
+                  <HeaderLabel icon={Package}>操作系统</HeaderLabel>
+                </th>
+                <th className="px-5 py-3">
+                  <HeaderLabel icon={Hash}>状态</HeaderLabel>
+                </th>
+                <th className="px-5 py-3">
+                  <HeaderLabel icon={CalendarDays}>最近采集</HeaderLabel>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {item.hosts.map((host) => (
+                <tr key={`${host.agent_id}-${host.instance_hash}`} className="transition-colors hover:bg-blue-50/40">
+                  <td className="px-5 py-3 font-medium text-slate-950">
+                    <div className="truncate" title={host.hostname}>
+                      {host.hostname || "-"}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3">
+                    <code
+                      className="block max-w-[280px] truncate rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700"
+                      title={host.agent_id}
+                    >
+                      {host.agent_id || "-"}
+                    </code>
+                  </td>
+                  <td className="px-5 py-3 text-slate-700">
+                    <div className="max-w-[260px] truncate" title={`${host.os_name} ${host.os_version}`.trim()}>
+                      {[host.os_name, host.os_version].filter(Boolean).join(" ") || "-"}
+                    </div>
+                  </td>
+                  <td className="px-5 py-3">
+                    <span className={cn(
+                      "inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium",
+                      host.status === "online" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600",
+                    )}>
+                      <span className={cn("h-1.5 w-1.5 rounded-full", host.status === "online" ? "bg-emerald-500" : "bg-slate-400")} />
+                      {statusLabel(host.status)}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap px-5 py-3 text-slate-700">
+                    {formatTimestamp(host.collected_at)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -231,8 +276,8 @@ export function HardwareAssetTable({
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg border", activeMeta.softClassName)}>
-              <activeMeta.icon className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
+              <activeMeta.icon className={cn("h-5 w-5", activeMeta.color)} />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-slate-950">硬件清单</h3>
@@ -379,8 +424,8 @@ export function HardwareAssetTable({
                           </Button>
                         </TableCell>
                         <TableCell>
-                          <span className={cn("inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold", meta.softClassName)}>
-                            <Icon className="h-3.5 w-3.5" />
+                          <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+                            <Icon className={cn("h-4 w-4", meta.color)} />
                             {meta.label}
                           </span>
                         </TableCell>
@@ -405,7 +450,7 @@ export function HardwareAssetTable({
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
-                          <span className={cn("inline-flex min-w-9 justify-center rounded-full px-2.5 py-1 text-sm font-semibold tabular-nums", meta.softClassName)}>
+                          <span className="inline-flex min-w-9 justify-center rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold tabular-nums text-blue-600">
                             {item.device_count.toLocaleString()}
                           </span>
                         </TableCell>
@@ -417,9 +462,11 @@ export function HardwareAssetTable({
                         <TableCell className="text-sm text-slate-500">{formatTimestamp(item.collected_at)}</TableCell>
                       </TableRow>
                       {isExpanded ? (
-                        <TableRow className="hover:bg-transparent">
-                          <TableCell colSpan={7} className="bg-white px-6 py-4">
-                            <ExpandedHosts item={item} />
+                        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+                          <TableCell colSpan={7} className="p-0">
+                            <div className="px-4 pb-4">
+                              <ExpandedHosts item={item} />
+                            </div>
                           </TableCell>
                         </TableRow>
                       ) : null}
