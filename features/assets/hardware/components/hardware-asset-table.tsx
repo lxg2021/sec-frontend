@@ -10,7 +10,6 @@ import {
   ChevronRight,
   ChevronUp,
   Fingerprint,
-  Filter,
   Hash,
   Monitor,
   Package,
@@ -230,72 +229,6 @@ export function HardwareAssetTable({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-slate-200 bg-white p-6">
-        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Filter className="h-5 w-5 text-slate-500" />
-            <h3 className="text-lg font-semibold text-slate-950">硬件筛选</h3>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">
-              显示 {data.length} / {pagination.total_count} 个型号
-            </span>
-            {keyword ? (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-slate-500">
-                <X className="mr-1 h-4 w-4" />
-                清除筛选
-              </Button>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="grid gap-4 xl:grid-cols-[minmax(320px,1fr)_auto]">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              value={draftKeyword}
-              onChange={(event) => setDraftKeyword(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") submitSearch()
-              }}
-              placeholder="搜索硬件型号、厂商、主机名或指纹..."
-              className="h-10 pl-9"
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1">
-            {HARDWARE_CATEGORIES.map((item) => {
-              const Icon = item.icon
-              const active = item.value === category
-              return (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => {
-                    onCategoryChange(item.value)
-                    onPageChange(1)
-                    setExpandedRows(new Set())
-                  }}
-                  className={cn(
-                    "inline-flex h-9 min-w-20 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-                    active
-                      ? "bg-white text-slate-950 shadow-sm"
-                      : "text-slate-600 hover:bg-white/70 hover:text-slate-900",
-                  )}
-                >
-                  <Icon className={cn("h-4 w-4", active ? item.color : "text-slate-500")} />
-                  {item.label}
-                </button>
-              )
-            })}
-            </div>
-            <Button variant="outline" onClick={submitSearch} className="h-10">
-              查询
-            </Button>
-          </div>
-        </div>
-      </section>
-
       <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
         <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -304,13 +237,73 @@ export function HardwareAssetTable({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-slate-950">硬件清单</h3>
-              <p className="mt-1 text-sm text-slate-500">按 {activeMeta.label} 型号聚合展示，点击行查看关联主机</p>
+              <p className="mt-1 text-sm text-slate-500">按 {activeMeta.label} 型号聚合展示，支持筛选、展开查看关联主机</p>
             </div>
           </div>
           <Button variant="outline" onClick={onRetry} disabled={isLoading}>
             <RefreshCcw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
             刷新
           </Button>
+        </div>
+
+        <div className="border-b border-slate-200 bg-slate-50/50 px-6 py-4">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm text-slate-500">
+              显示 {data.length} / {pagination.total_count} 个型号
+            </span>
+            {keyword ? (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 w-fit text-slate-500">
+                <X className="mr-1 h-4 w-4" />
+                清除筛选
+              </Button>
+            ) : null}
+          </div>
+
+          <div className="grid gap-4 xl:grid-cols-[minmax(320px,1fr)_auto]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Input
+                value={draftKeyword}
+                onChange={(event) => setDraftKeyword(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") submitSearch()
+                }}
+                placeholder="搜索硬件型号、厂商、主机名或指纹..."
+                className="h-10 bg-white pl-9"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1">
+                {HARDWARE_CATEGORIES.map((item) => {
+                  const Icon = item.icon
+                  const active = item.value === category
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => {
+                        onCategoryChange(item.value)
+                        onPageChange(1)
+                        setExpandedRows(new Set())
+                      }}
+                      className={cn(
+                        "inline-flex h-9 min-w-20 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                        active
+                          ? "bg-white text-slate-950 shadow-sm"
+                          : "text-slate-600 hover:bg-white/70 hover:text-slate-900",
+                      )}
+                    >
+                      <Icon className={cn("h-4 w-4", active ? item.color : "text-slate-500")} />
+                      {item.label}
+                    </button>
+                  )
+                })}
+              </div>
+              <Button variant="outline" onClick={submitSearch} className="h-10 bg-white">
+                查询
+              </Button>
+            </div>
+          </div>
         </div>
 
         {error ? (
