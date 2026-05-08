@@ -6,7 +6,7 @@ import { AppWindow, BarChart3, Building2, Link2Off, Monitor, Package, RefreshCcw
 import { useTranslations } from "next-intl"
 
 import { getSoftwareDistributionPagination, getSoftwareSummary } from "@/features/assets/software/api"
-import type { SoftwarePagination, SoftwareSummary } from "@/features/assets/software/api"
+import type { SoftwarePagination, SoftwareOverviewSummary, SoftwareSummary } from "@/features/assets/software/api"
 import { SoftInventoryTable } from "@/features/assets/software/components/soft-inventory-table"
 import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
 import { Button } from "@/shared/ui/button"
@@ -24,12 +24,19 @@ const EMPTY_PAGINATION: SoftwarePagination = {
   has_next: false,
 }
 
-const EMPTY_SUMMARY: SoftwareSummary = {
+const EMPTY_OVERVIEW: SoftwareOverviewSummary = {
   software_count: 0,
   installation_count: 0,
   host_count: 0,
   vendor_count: 0,
   missing_website_count: 0,
+}
+
+const EMPTY_SUMMARY: SoftwareSummary = {
+  overview: EMPTY_OVERVIEW,
+  vendors: [],
+  top_software: [],
+  multi_version_software: [],
 }
 
 function SummaryMetric({
@@ -166,13 +173,7 @@ export default function Home() {
     void loadSummary()
   }
 
-  const formattedSummary = {
-    software_count: Number(summary.software_count || 0),
-    installation_count: Number(summary.installation_count || 0),
-    host_count: Number(summary.host_count || 0),
-    vendor_count: Number(summary.vendor_count || 0),
-    missing_website_count: Number(summary.missing_website_count || 0),
-  }
+  const overview = summary.overview || EMPTY_OVERVIEW
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -215,35 +216,35 @@ export default function Home() {
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                 <SummaryMetric
                   label={t("summarySoftware")}
-                  value={formattedSummary.software_count}
+                  value={Number(overview.software_count || 0)}
                   icon={AppWindow}
                   isLoading={summaryLoading}
                   tone="blue"
                 />
                 <SummaryMetric
                   label={t("summaryInstallations")}
-                  value={formattedSummary.installation_count}
+                  value={Number(overview.installation_count || 0)}
                   icon={ServerCog}
                   isLoading={summaryLoading}
                   tone="amber"
                 />
                 <SummaryMetric
                   label={t("summaryHosts")}
-                  value={formattedSummary.host_count}
+                  value={Number(overview.host_count || 0)}
                   icon={Monitor}
                   isLoading={summaryLoading}
                   tone="emerald"
                 />
                 <SummaryMetric
                   label={t("summaryVendors")}
-                  value={formattedSummary.vendor_count}
+                  value={Number(overview.vendor_count || 0)}
                   icon={Building2}
                   isLoading={summaryLoading}
                   tone="rose"
                 />
                 <SummaryMetric
                   label={t("summaryMissingWebsite")}
-                  value={formattedSummary.missing_website_count}
+                  value={Number(overview.missing_website_count || 0)}
                   icon={Link2Off}
                   isLoading={summaryLoading}
                   tone="slate"
