@@ -12,6 +12,7 @@ import { Skeleton } from "@/shared/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import type { SoftwarePagination } from "@/features/assets/software/api"
 import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
+import { cn } from "@/shared/lib/utils"
 import { useLocale, useTranslations } from "next-intl"
 
 interface SoftInventoryTableProps {
@@ -262,21 +263,34 @@ export function SoftInventoryTable({
               <TableBody>
                 {data.map((item) => {
                   const websiteUrl = getWebsiteUrl(item.urlInfoAbout)
+                  const isExpanded = expandedRows.has(item.hash)
 
                   return (
                   <Fragment key={item.hash}>
-                    <TableRow className="group border-border hover:bg-muted/50">
+                    <TableRow
+                      onClick={() => toggleRowExpansion(item.hash)}
+                      className={cn(
+                        "group cursor-pointer border-border transition-colors hover:bg-slate-50",
+                        isExpanded && "bg-blue-50/30 hover:bg-blue-50/40",
+                      )}
+                    >
                       <TableCell>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => toggleRowExpansion(item.hash)}
-                          className="p-1 h-6 w-6"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            toggleRowExpansion(item.hash)
+                          }}
+                          className={cn(
+                            "h-8 w-8 rounded-md border border-transparent p-0 text-slate-500 transition-colors hover:border-slate-200 hover:bg-white hover:text-slate-900",
+                            isExpanded && "border-blue-200 bg-white text-blue-600 shadow-sm hover:border-blue-200 hover:text-blue-700",
+                          )}
                         >
-                          {expandedRows.has(item.hash) ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
                           ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            <ChevronRight className="h-4 w-4" />
                           )}
                         </Button>
                       </TableCell>
@@ -298,7 +312,12 @@ export function SoftInventoryTable({
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="sm" asChild>
-                                  <a href={websiteUrl} target="_blank" rel="noopener noreferrer">
+                                  <a
+                                    href={websiteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
                                     <ExternalLink className="h-4 w-4 text-blue-500" />
                                   </a>
                                 </Button>
@@ -319,75 +338,94 @@ export function SoftInventoryTable({
                       </TableCell>
                     </TableRow>
 
-                    {/* Expanded Row Details */}
-                    {expandedRows.has(item.hash) && (
-                      <TableRow className="bg-muted/30">
+                    {isExpanded && (
+                      <TableRow className="border-border bg-slate-50/80 hover:bg-slate-50/80">
                         <TableCell colSpan={8} className="p-0">
-                          <div className="p-4">
-                            <div className="flex justify-between items-center mb-3">
-                              <h4 className="font-bold">
-                                {t("installDetail")} - {item.displayName}
-                              </h4>
-                              <Badge variant="outline" className="ml-2">
-                                {t("hostCount", { count: item.installations.length })}
-                              </Badge>
-                            </div>
-                            <div className="overflow-x-auto">
-                              <table className="w-full">
-                                <thead>
-                                  <tr>
-                                    <th className="text-left p-2">
-                                      <div className="flex items-center gap-2">
-                                        <Monitor className="h-4 w-4 text-blue-500" />
-                                        {t("hostName")}
-                                      </div>
-                                    </th>
-                                    <th className="text-left p-2">
-                                      <div className="flex items-center gap-2">
-                                        <Fingerprint className="h-4 w-4 text-blue-500" />
-                                        {t("hostId")}
-                                      </div>
-                                    </th>
-                                    <th className="text-left p-2">
-                                      <div className="flex items-center gap-2">
-                                        <CalendarDays className="h-4 w-4 text-blue-500" />
-                                        {t("installDate")}
-                                      </div>
-                                    </th>
-                                    <th className="text-left p-2">
-                                      <div className="flex items-center gap-2">
-                                        <Folder className="h-4 w-4 text-blue-500" />
-                                        {t("installPath")}
-                                      </div>
-                                    </th>
-                                    <th className="text-left p-2">
-                                      <div className="flex items-center gap-2">
-                                        <Package className="h-4 w-4 text-blue-500" />
-                                        {t("packagePath")}
-                                      </div>
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {item.installations.map((installation, index) => (
-                                    <tr key={`${installation.hostId}-${index}`}>
-                                      <td className="font-medium p-2">{installation.hostname}</td>
-                                      <td className="font-mono text-xs p-2">{installation.hostId}</td>
-                                      <td className="p-2">
-                                        {installation.installDate
-                                          ? new Date(installation.installDate).toLocaleDateString(locale)
-                                          : "-"}
-                                      </td>
-                                      <td className="text-xs max-w-48 truncate p-2" title={installation.installLocation}>
-                                        {installation.installLocation || "-"}
-                                      </td>
-                                      <td className="text-xs max-w-48 truncate p-2" title={installation.packageCache}>
-                                        {installation.packageCache || "-"}
-                                      </td>
+                          <div className="px-4 pb-4">
+                            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                              <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex min-w-0 items-center gap-3">
+                                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                    <Monitor className="h-4 w-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <h4 className="truncate text-sm font-semibold text-slate-950">
+                                      {t("installDetail")} - {item.displayName}
+                                    </h4>
+                                    <p className="mt-1 text-xs text-slate-500">{item.version}</p>
+                                  </div>
+                                </div>
+                                <Badge variant="outline" className="w-fit rounded-full bg-slate-50 px-3 py-1 text-slate-700">
+                                  {t("hostCount", { count: item.installations.length })}
+                                </Badge>
+                              </div>
+
+                              <div className="max-h-80 overflow-auto">
+                                <table className="w-full min-w-[960px] text-sm">
+                                  <thead className="sticky top-0 z-10 bg-white shadow-[0_1px_0_0_rgba(226,232,240,1)]">
+                                    <tr className="text-left text-xs font-medium text-slate-500">
+                                      <th className="px-5 py-3">
+                                        <HeaderLabel icon={Monitor}>{t("hostName")}</HeaderLabel>
+                                      </th>
+                                      <th className="px-5 py-3">
+                                        <HeaderLabel icon={Fingerprint}>{t("hostId")}</HeaderLabel>
+                                      </th>
+                                      <th className="px-5 py-3">
+                                        <HeaderLabel icon={CalendarDays}>{t("installDate")}</HeaderLabel>
+                                      </th>
+                                      <th className="px-5 py-3">
+                                        <HeaderLabel icon={Folder}>{t("installPath")}</HeaderLabel>
+                                      </th>
+                                      <th className="px-5 py-3">
+                                        <HeaderLabel icon={Package}>{t("packagePath")}</HeaderLabel>
+                                      </th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100">
+                                    {item.installations.map((installation, index) => (
+                                      <tr
+                                        key={`${installation.hostId}-${index}`}
+                                        className="transition-colors hover:bg-blue-50/40"
+                                      >
+                                        <td className="px-5 py-3 font-medium text-slate-950">
+                                          <div className="truncate" title={installation.hostname}>
+                                            {installation.hostname || "-"}
+                                          </div>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                          <code
+                                            className="block max-w-[260px] truncate rounded bg-slate-100 px-2 py-1 font-mono text-xs text-slate-700"
+                                            title={installation.hostId}
+                                          >
+                                            {installation.hostId || "-"}
+                                          </code>
+                                        </td>
+                                        <td className="whitespace-nowrap px-5 py-3 text-slate-700">
+                                          {installation.installDate
+                                            ? new Date(installation.installDate).toLocaleDateString(locale)
+                                            : "-"}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                          <div
+                                            className="max-w-[260px] truncate text-xs text-slate-700"
+                                            title={installation.installLocation || "-"}
+                                          >
+                                            {installation.installLocation || "-"}
+                                          </div>
+                                        </td>
+                                        <td className="px-5 py-3">
+                                          <div
+                                            className="max-w-[260px] truncate text-xs text-slate-700"
+                                            title={installation.packageCache || "-"}
+                                          >
+                                            {installation.packageCache || "-"}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
                           </div>
                         </TableCell>
