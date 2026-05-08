@@ -8,7 +8,6 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronUp,
   Fingerprint,
   Hash,
   Monitor,
@@ -359,8 +358,25 @@ export function HardwareAssetTable({
                         onClick={() => toggleRow(item.id)}
                         className={cn("cursor-pointer", isExpanded && "bg-blue-50/40 hover:bg-blue-50/60")}
                       >
-                        <TableCell className="w-12 text-slate-500">
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              toggleRow(item.id)
+                            }}
+                            className={cn(
+                              "h-8 w-8 rounded-md border border-transparent p-0 text-slate-500 transition-colors hover:border-slate-200 hover:bg-white hover:text-slate-900",
+                              isExpanded && "border-blue-200 bg-white text-blue-600 shadow-sm hover:border-blue-200 hover:text-blue-700",
+                            )}
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
                         </TableCell>
                         <TableCell>
                           <span className={cn("inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-semibold", meta.softClassName)}>
