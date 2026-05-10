@@ -39,12 +39,39 @@ type CategoryRow = CategoryGroup & {
 
 const PAGE_SIZE = 10
 const CATEGORY_PAGE_SIZE = 10
-const PROGRESS_COLORS = {
-  emerald: "#10b981",
-  amber: "#f59e0b",
-  rose: "#f43f5e",
+const PROGRESS_TONE_META = {
+  emerald: {
+    color: "#10b981",
+    trackClass: "bg-emerald-100",
+    fillClass: "bg-emerald-500",
+    textClass: "text-emerald-600",
+  },
+  teal: {
+    color: "#14b8a6",
+    trackClass: "bg-teal-100",
+    fillClass: "bg-teal-500",
+    textClass: "text-teal-600",
+  },
+  yellow: {
+    color: "#eab308",
+    trackClass: "bg-yellow-100",
+    fillClass: "bg-yellow-500",
+    textClass: "text-yellow-600",
+  },
+  orange: {
+    color: "#f97316",
+    trackClass: "bg-orange-100",
+    fillClass: "bg-orange-500",
+    textClass: "text-orange-600",
+  },
+  rose: {
+    color: "#f43f5e",
+    trackClass: "bg-rose-100",
+    fillClass: "bg-rose-500",
+    textClass: "text-rose-600",
+  },
 } as const
-type CategoryProgressTone = keyof typeof PROGRESS_COLORS
+type CategoryProgressTone = keyof typeof PROGRESS_TONE_META
 
 const BASELINE_CATEGORY_ICON_MAP: Record<string, string> = {
   "account policies": "account-policies",
@@ -166,34 +193,28 @@ function getCategoryIconName(category: CategoryGroup) {
   return VALID_CATEGORY_ICON_NAMES.has(iconName) ? iconName : "default"
 }
 
-function getCategoryProgressTone(category: CategoryGroup): CategoryProgressTone {
+function getCategoryRiskScore(category: CategoryGroup, maxItemCount: number) {
   const rate = getAveragePassRate(category)
   const mix = getCategorySeverityMix(category)
   const total = Math.max(mix.total, 1)
-  const highShare = mix.high / total
-  const mediumShare = mix.medium / total
-  const lowShare = mix.low / total
-  const completion = rate / 100
-  const severityPressure = (mix.high * 3 + mix.medium * 2 + mix.low) / (total * 3)
-  const volumePressure = Math.min(1, total / 25)
-  const riskScore = severityPressure * 0.45 + (1 - completion) * 0.4 + volumePressure * 0.15
+  const safeMaxItemCount = Math.max(maxItemCount, 1)
+  const failedRateIndex = 1 - Math.max(0, Math.min(100, rate)) / 100
+  const severityIndex = (mix.high * 3 + mix.medium * 2 + mix.low) / (total * 3)
+  const countIndex = Math.log1p(total) / Math.log1p(safeMaxItemCount)
 
-  if (rate >= 99.5) return "emerald"
-  if (riskScore >= 0.62 || (highShare >= 0.45 && rate < 85)) return "rose"
-  if (riskScore >= 0.35 || mediumShare >= 0.45 || lowShare <= 0.3) return "amber"
-  return "emerald"
+  return failedRateIndex * 0.55 + severityIndex * 0.3 + countIndex * 0.15
 }
 
-function getCategoryProgressMeta(category: CategoryGroup) {
+function getCategoryProgressMeta(category: CategoryGroup, tone: CategoryProgressTone) {
   const rate = getAveragePassRate(category)
-  const tone = getCategoryProgressTone(category)
+  const toneMeta = PROGRESS_TONE_META[tone]
   return {
     rate,
     tone,
-    trackClass: tone === "rose" ? "bg-rose-100" : tone === "amber" ? "bg-amber-100" : "bg-emerald-100",
-    fillClass: tone === "rose" ? "bg-rose-500" : tone === "amber" ? "bg-amber-500" : "bg-emerald-500",
-    textClass: tone === "rose" ? "text-rose-600" : tone === "amber" ? "text-amber-600" : "text-emerald-600",
-    color: PROGRESS_COLORS[tone],
+    trackClass: toneMeta.trackClass,
+    fillClass: toneMeta.fillClass,
+    textClass: toneMeta.textClass,
+    color: toneMeta.color,
   }
 }
 
@@ -263,6 +284,33 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
       })),
     [data],
   )
+  const categoryProgressByKey = useMemo<Record<string, ReturnType<typeof getCategoryProgressMeta>>>(() => {
+    const maxItemCount = Math.max(
+      1,
+      ...categoryRows.map((category) => Math.max(category.item_count || 0, category.items.length)),
+    )
+    const scoredRows = categoryRows.map((category) => ({
+      category,
+      passRate: getAveragePassRate(category),
+      riskScore: getCategoryRiskScore(category, maxItemCount),
+    }))
+    const nonPerfectRows = scoredRows
+      .filter((row) => row.passRate < 100)
+      .sort((left, right) => left.riskScore - right.riskScore || right.passRate - left.passRate)
+    const rankMap = new Map(nonPerfectRows.map((row, index) => [row.category.categoryKey, index]))
+    const nonGreenTones: Exclude<CategoryProgressTone, "emerald">[] = ["teal", "yellow", "orange", "rose"]
+    const totalNonPerfect = Math.max(nonPerfectRows.length, 1)
+
+    return scoredRows.reduce<Record<string, ReturnType<typeof getCategoryProgressMeta>>>((acc, row) => {
+      const rank = rankMap.get(row.category.categoryKey) ?? 0
+      const tone =
+        row.passRate >= 100
+          ? "emerald"
+          : nonGreenTones[Math.min(nonGreenTones.length - 1, Math.floor(((rank + 0.5) / totalNonPerfect) * nonGreenTones.length))]
+      acc[row.category.categoryKey] = getCategoryProgressMeta(row.category, tone)
+      return acc
+    }, {})
+  }, [categoryRows])
 
   const [selectedCategoryKey, setSelectedCategoryKey] = useState("")
   const [categoryCurrentPage, setCategoryCurrentPage] = useState(1)
@@ -409,7 +457,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
         <ScrollArea className="h-[520px] lg:h-full">
           <div className="p-2">
             {visibleCategoryRows.map((category) => {
-              const progress = getCategoryProgressMeta(category)
+              const progress = categoryProgressByKey[category.categoryKey] ?? getCategoryProgressMeta(category, "teal")
               const isSelected = selectedCategoryKey === category.categoryKey
 
               return (
