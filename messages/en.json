@@ -1063,6 +1063,7 @@
         },
         "categoryStats": "Category Compliance Statistics",
         "categoryStatsDescription": "View detailed compliance status by check category.",
+        "refresh": "Refresh",
         "categoryTable": {
           "loading": "Loading category statistics...",
           "emptyTitle": "No category statistics",
@@ -1075,6 +1076,7 @@
           "detailSummary": "{items} checks total, {results} statistical results returned",
           "checkItemName": "Check item name",
           "severity": "Risk level",
+          "totalHosts": "Total hosts",
           "passed": "Passed",
           "failed": "Failed",
           "error": "Error",

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 文件夹图标作为默认 -->
+  <path d="M4 7V19C4 19.5523 4.44772 20 5 20H19C19.5523 20 20 19.5523 20 19V9C20 8.44772 19.5523 8 19 8H12L10 5H5C4.44772 5 4 5.44772 4 6V7Z"/>
+  <circle cx="12" cy="14" r="2"/>
+</svg>

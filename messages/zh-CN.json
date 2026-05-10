@@ -1065,6 +1065,7 @@
         },
         "categoryStats": "分类合规统计",
         "categoryStatsDescription": "按检查分类查看详细合规情况",
+        "refresh": "刷新",
         "categoryTable": {
           "loading": "加载分类统计中...",
           "emptyTitle": "暂无分类统计",
@@ -1077,6 +1078,7 @@
           "detailSummary": "共 {items} 个检查项，当前返回 {results} 个统计结果",
           "checkItemName": "检查项名称",
           "severity": "风险等级",
+          "totalHosts": "主机数",
           "passed": "通过",
           "failed": "失败",
           "error": "异常",

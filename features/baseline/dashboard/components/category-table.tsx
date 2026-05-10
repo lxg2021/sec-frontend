@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   AlertTriangle,
   ArrowRight,
@@ -79,12 +79,22 @@ const CATEGORY_ICON_MAP: Record<string, string> = {
   账户策略: "account",
 }
 
-function getCategoryLabel(category: CategoryGroup) {
-  return category.category_zh || category.category || "Unknown"
+function isZhLocale(locale: string) {
+  return locale.toLowerCase().startsWith("zh")
 }
 
-function getItemLabel(item: CategoryGroup["items"][number]) {
-  return item.name_zh || item.name || item.item_id
+function getCategoryLabel(category: CategoryGroup, locale: string) {
+  const useZh = isZhLocale(locale)
+  return (useZh ? category.category_zh : category.category) || category.category || category.category_zh || "Unknown"
+}
+
+function getItemLabel(item: CategoryGroup["items"][number], locale: string) {
+  const useZh = isZhLocale(locale)
+  return (useZh ? item.name_zh : item.name) || item.name || item.name_zh || item.item_id
+}
+
+function getItemSearchText(item: CategoryGroup["items"][number]) {
+  return [item.name, item.name_zh, item.item_id].filter(Boolean).join(" ").toLowerCase()
 }
 
 function getAveragePassRate(category: CategoryGroup) {
@@ -214,6 +224,7 @@ function HeaderCell({
 
 export default function CategoryTable({ data, baselineUUID, loading = false }: CategoryTableProps) {
   const t = useTranslations("pages.baseline.dashboard.categoryTable")
+  const locale = useLocale()
   const router = useRouter()
   const categoryRows = useMemo<CategoryRow[]>(
     () =>
@@ -251,7 +262,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
     return currentCategory.items.filter((item) => {
       const matchesSearch =
         !keyword ||
-        getItemLabel(item).toLowerCase().includes(keyword) ||
+        getItemSearchText(item).includes(keyword) ||
         item.item_id.toLowerCase().includes(keyword)
 
       const matchesSeverity =
@@ -338,7 +349,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
       baseline_uuid: baselineUUID,
       category: currentCategory.category,
       item_id: item.item_id,
-      item: getItemLabel(item),
+      item: getItemLabel(item, locale),
     })
     router.push(`/frame/baseline/details?${searchParams.toString()}`)
   }
@@ -404,7 +415,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
                       <div className={cn("truncate text-sm font-medium", isSelected && "text-primary")}>
-                        {getCategoryLabel(category)}
+                        {getCategoryLabel(category, locale)}
                       </div>
                       <Badge variant="outline" className="h-5 shrink-0 px-1.5 text-[10px]">
                         {category.item_count || category.items.length}
@@ -469,7 +480,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
             <div>
               <div className="flex items-center gap-2">
                 <ListChecks className="h-4 w-4 text-primary" />
-                <h3 className="text-base font-semibold text-foreground">{getCategoryLabel(currentCategory)}</h3>
+                <h3 className="text-base font-semibold text-foreground">{getCategoryLabel(currentCategory, locale)}</h3>
                 <Badge variant="outline" className="border-primary/20 bg-primary/10 text-xs text-primary">
                   {t("details")}
                 </Badge>
@@ -557,7 +568,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                     <tr key={`${item.item_id}-${index}`} className="transition-colors hover:bg-muted/50">
                       <td className="px-4 py-3 align-top">
                         <div className="max-w-xs">
-                          <div className="truncate text-sm font-medium text-foreground">{getItemLabel(item)}</div>
+                          <div className="truncate text-sm font-medium text-foreground">{getItemLabel(item, locale)}</div>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
