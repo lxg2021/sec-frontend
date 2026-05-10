@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import {
@@ -50,7 +50,8 @@ type CategoryRow = CategoryGroup & {
   iconName: string
 }
 
-const PAGE_SIZE = 10
+const FALLBACK_ITEM_PAGE_SIZE = 15
+const TABLE_ROW_HEIGHT = 46
 const CATEGORY_PAGE_SIZE = 10
 function CategoryIcon({
   name,
@@ -151,7 +152,13 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
   const [searchQuery, setSearchQuery] = useState("")
   const [severityFilter, setSeverityFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
+  const [itemPageSize, setItemPageSize] = useState(FALLBACK_ITEM_PAGE_SIZE)
+  const [rightTableHeight, setRightTableHeight] = useState<number | null>(null)
   const [itemStatsById, setItemStatsById] = useState<Record<string, BaselineItemResultStatistics | null>>({})
+  const rightSectionRef = useRef<HTMLElement | null>(null)
+  const leftPaginationRef = useRef<HTMLDivElement | null>(null)
+  const tableContainerRef = useRef<HTMLDivElement | null>(null)
+  const tableBodyRef = useRef<HTMLTableSectionElement | null>(null)
 
   const currentCategory = useMemo(() => {
     return categoryRows.find((category) => category.categoryKey === selectedCategoryKey) ?? categoryRows[0] ?? null
@@ -182,11 +189,12 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
   }, [currentCategory, searchQuery, severityFilter])
 
   const paginatedItems = useMemo(() => {
-    const startIndex = (currentPage - 1) * PAGE_SIZE
-    return filteredItems.slice(startIndex, startIndex + PAGE_SIZE)
-  }, [filteredItems, currentPage])
+    const safePageSize = Math.max(itemPageSize, 1)
+    const startIndex = (currentPage - 1) * safePageSize
+    return filteredItems.slice(startIndex, startIndex + safePageSize)
+  }, [filteredItems, currentPage, itemPageSize])
 
-  const totalPages = Math.max(Math.ceil(filteredItems.length / PAGE_SIZE), 1)
+  const totalPages = Math.max(Math.ceil(filteredItems.length / Math.max(itemPageSize, 1)), 1)
 
   useEffect(() => {
     if (categoryRows.length > 0 && !selectedCategoryKey) {
@@ -206,6 +214,61 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
   useEffect(() => {
     setCurrentPage(1)
   }, [selectedCategoryKey, searchQuery, severityFilter])
+
+  useLayoutEffect(() => {
+    const updateItemPageSize = () => {
+      const shouldAlignWithLeftPagination = window.matchMedia("(min-width: 1024px)").matches
+      const tableContainerTop = tableContainerRef.current?.getBoundingClientRect().top || 0
+      const tableBodyTop = tableBodyRef.current?.getBoundingClientRect().top || 0
+      const limitTop = leftPaginationRef.current?.getBoundingClientRect().top || 0
+
+      if (
+        !shouldAlignWithLeftPagination ||
+        !tableContainerTop ||
+        !tableBodyTop ||
+        !limitTop ||
+        limitTop <= tableContainerTop ||
+        !filteredItems.length
+      ) {
+        setRightTableHeight(null)
+        setItemPageSize(FALLBACK_ITEM_PAGE_SIZE)
+        return
+      }
+
+      const availableContainerHeight = Math.max(Math.floor(limitTop - tableContainerTop), 0)
+      const rowHeight =
+        tableBodyRef.current?.querySelector("tr")?.getBoundingClientRect().height || TABLE_ROW_HEIGHT
+      const availableRowsHeight = Math.max(limitTop - tableBodyTop - 1, 0)
+      const rowsUntilLeftPagination = Math.max(1, Math.floor(availableRowsHeight / rowHeight))
+      setRightTableHeight(availableContainerHeight)
+      setItemPageSize(Math.min(filteredItems.length, rowsUntilLeftPagination))
+    }
+
+    updateItemPageSize()
+    const frameId = window.requestAnimationFrame(updateItemPageSize)
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", updateItemPageSize)
+      return () => {
+        window.cancelAnimationFrame(frameId)
+        window.removeEventListener("resize", updateItemPageSize)
+      }
+    }
+
+    const observer = new ResizeObserver(updateItemPageSize)
+    if (rightSectionRef.current) observer.observe(rightSectionRef.current)
+    if (leftPaginationRef.current) observer.observe(leftPaginationRef.current)
+    if (tableBodyRef.current) observer.observe(tableBodyRef.current)
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      observer.disconnect()
+    }
+  }, [filteredItems.length, categoryTotalPages])
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(Math.max(page, 1), totalPages))
+  }, [totalPages])
 
   useEffect(() => {
     if (!currentCategory) return
@@ -377,7 +440,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
           </div>
         </ScrollArea>
         {categoryTotalPages > 1 && (
-          <div className="border-t border-border bg-slate-50/70 px-3 py-2.5">
+          <div ref={leftPaginationRef} className="border-t border-border bg-slate-50/70 px-3 py-2.5">
             <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
               <span className="text-xs font-medium text-slate-600">
                 {t("categoryPageInfo", {
@@ -413,7 +476,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
         )}
       </aside>
 
-      <section className="flex flex-1 flex-col overflow-hidden">
+      <section ref={rightSectionRef} className="flex flex-1 flex-col overflow-hidden">
         {currentCategory && (
           <div className="flex flex-col gap-3 border-b border-border px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -458,59 +521,63 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
           </div>
         )}
 
-        <div className="flex-1 overflow-auto">
+        <div
+          ref={tableContainerRef}
+          className={cn("overflow-auto", rightTableHeight === null && "flex-1")}
+          style={rightTableHeight !== null ? { height: rightTableHeight } : undefined}
+        >
           {currentCategory && paginatedItems.length > 0 ? (
             <table className="w-full">
               <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm">
                 <tr className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-3">
+                  <th className="px-4 py-2.5">
                     <HeaderCell icon={<ListChecks className="h-3.5 w-3.5" />} label={t("checkItemName")} />
                   </th>
-                  <th className="px-4 py-3 text-center">
+                  <th className="px-4 py-2.5 text-center">
                     <HeaderCell icon={<ShieldAlert className="h-3.5 w-3.5" />} label={t("severity")} align="center" />
                   </th>
-                  <th className="px-4 py-3 text-center">
+                  <th className="px-4 py-2.5 text-center">
                     <HeaderCell icon={<BarChart3 className="h-3.5 w-3.5" />} label={t("totalHosts")} align="center" />
                   </th>
-                  <th className="px-4 py-3 text-center">
+                  <th className="px-4 py-2.5 text-center">
                     <HeaderCell
                       icon={<CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />}
                       label={t("passed")}
                       align="center"
                     />
                   </th>
-                  <th className="px-4 py-3 text-center">
+                  <th className="px-4 py-2.5 text-center">
                     <HeaderCell icon={<XCircle className="h-3.5 w-3.5 text-rose-500" />} label={t("failed")} align="center" />
                   </th>
-                  <th className="px-4 py-3 text-center">
+                  <th className="px-4 py-2.5 text-center">
                     <HeaderCell
                       icon={<AlertTriangle className="h-3.5 w-3.5 text-amber-500" />}
                       label={t("error")}
                       align="center"
                     />
                   </th>
-                  <th className="w-36 px-4 py-3">
+                  <th className="w-36 px-4 py-2.5">
                     <HeaderCell icon={<BarChart3 className="h-3.5 w-3.5" />} label={t("passRate")} />
                   </th>
-                  <th className="px-4 py-3 text-center">
+                  <th className="px-4 py-2.5 text-center">
                     <HeaderCell icon={<ArrowRight className="h-3.5 w-3.5" />} label={t("action")} align="center" />
                   </th>
                 </tr>
               </thead>
 
-              <tbody className="divide-y divide-border">
+              <tbody ref={tableBodyRef} className="divide-y divide-border">
                 {paginatedItems.map((item, index) => {
                   const itemStats = itemStatsById[item.item_id]
                   const passRate = itemStats?.pass_rate ?? 0
 
                   return (
-                    <tr key={`${item.item_id}-${index}`} className="transition-colors hover:bg-muted/50">
-                      <td className="px-4 py-3 align-top">
+                    <tr key={`${item.item_id}-${index}`} className="h-[46px] transition-colors hover:bg-muted/50">
+                      <td className="px-4 py-2.5 align-middle">
                         <div className="max-w-xs">
                           <div className="truncate text-sm font-medium text-foreground">{getItemLabel(item, locale)}</div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2.5 text-center">
                         {(() => {
                           const severity = severityClass(item.severity)
                           return (
@@ -529,27 +596,27 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                           )
                         })()}
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2.5 text-center">
                         <span className="text-sm font-medium text-foreground">
                           {itemStats ? itemStats.total_hosts : "-"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2.5 text-center">
                         <span className="text-sm font-medium text-emerald-600">
                           {itemStats ? itemStats.passed_hosts : "-"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2.5 text-center">
                         <span className="text-sm font-medium text-rose-600">
                           {itemStats ? itemStats.failed_hosts : "-"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2.5 text-center">
                         <span className="text-sm font-medium text-amber-600">
                           {itemStats ? itemStats.error_hosts : "-"}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-2.5">
                         <div className="flex items-center gap-2">
                           <div className={cn("h-2 flex-1 rounded-full", passRate >= 99.5 ? "bg-emerald-100" : passRate >= 60 ? "bg-amber-100" : "bg-rose-100")}>
                             <div
@@ -570,7 +637,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-2.5 text-center">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -599,75 +666,77 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
         </div>
 
         {totalPages > 1 && (
-          <div className="flex flex-shrink-0 items-center justify-between border-t border-border px-4 py-3">
-            <div className="text-sm text-muted-foreground">
-              {t("pageInfo", { current: currentPage, total: totalPages, count: filteredItems.length })}
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-                className="h-8 px-2"
-              >
-                {t("firstPage")}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                disabled={currentPage === 1}
-                className="h-8 px-2"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                {t("previousPage")}
-              </Button>
-              <div className="flex items-center gap-1 px-2">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
-                  let pageNum: number
-                  if (totalPages <= 5) {
-                    pageNum = index + 1
-                  } else if (currentPage <= 3) {
-                    pageNum = index + 1
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + index
-                  } else {
-                    pageNum = currentPage - 2 + index
-                  }
-
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setCurrentPage(pageNum)}
-                      className="h-8 w-8 p-0"
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                })}
+          <div className="border-t border-border bg-slate-50/70 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <div className="text-xs font-medium text-slate-600">
+                {t("pageInfo", { current: currentPage, total: totalPages, count: filteredItems.length })}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                disabled={currentPage === totalPages}
-                className="h-8 px-2"
-              >
-                {t("nextPage")}
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage === totalPages}
-                className="h-8 px-2"
-              >
-                {t("lastPage")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                >
+                  {t("firstPage")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  {t("previousPage")}
+                </Button>
+                <div className="flex items-center gap-1 px-2">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+                    let pageNum: number
+                    if (totalPages <= 5) {
+                      pageNum = index + 1
+                    } else if (currentPage <= 3) {
+                      pageNum = index + 1
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + index
+                    } else {
+                      pageNum = currentPage - 2 + index
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className="h-8 w-8 rounded-md p-0 text-xs"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                >
+                  {t("nextPage")}
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                >
+                  {t("lastPage")}
+                </Button>
+              </div>
             </div>
           </div>
         )}
