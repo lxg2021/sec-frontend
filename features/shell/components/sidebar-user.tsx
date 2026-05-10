@@ -38,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 import { useToast } from "@/shared/hooks/use-toast"
 import type { UserListItem, UserProfile } from "@/features/user/api"
-import { hardDeleteUser, listUsers } from "@/features/user/api"
+import { getAvatarByRole, hardDeleteUser, listUsers } from "@/features/user/api"
 import {
   CalendarClock,
   CheckCircle2,
@@ -181,6 +181,7 @@ export function SidebarUser({
     ? "truncate text-sm font-medium text-slate-900"
     : "truncate text-sm font-medium text-white"
   const emailClassName = classicStyle ? "truncate text-xs text-slate-500" : "truncate text-xs text-slate-400"
+  const getDisplayAvatar = (role: UserProfile["role"] | UserListItem["role"]) => getAvatarByRole(role)
 
   const loadUserProfile = useCallback(async () => {
     try {
@@ -514,7 +515,7 @@ export function SidebarUser({
             className={userButtonClassName}
           >
             <Avatar className={avatarClassName}>
-              <AvatarImage src={user.avatar || "/icons/avatars/default.svg"} alt={user.nickname} />
+              <AvatarImage src={getDisplayAvatar(user.role)} alt={user.nickname} />
               <AvatarFallback className="bg-slate-700 text-slate-300">{user.nickname.slice(0, 2)}</AvatarFallback>
             </Avatar>
             {!collapsed && (
@@ -639,7 +640,7 @@ export function SidebarUser({
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={item.avatar || "/icons/avatars/default.svg"} alt={item.username} />
+                              <AvatarImage src={getDisplayAvatar(item.role)} alt={item.username} />
                               <AvatarFallback>{item.username.slice(0, 2)}</AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
@@ -845,7 +846,7 @@ export function SidebarUser({
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={user.avatar || "/icons/avatars/default.svg"} alt={user.nickname} />
+                <AvatarImage src={getDisplayAvatar(user.role)} alt={user.nickname} />
                 <AvatarFallback>{user.nickname.slice(0, 2)}</AvatarFallback>
               </Avatar>
               <div>

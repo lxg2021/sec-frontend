@@ -1,7 +1,11 @@
-import { buildApproveHostRequest, adaptBackendHost, adaptBackendLogicGroup } from "@/features/assets/approval/host-adapters"
+import {
+  buildApproveHostRequest,
+  adaptBackendHost,
+  adaptBackendLogicGroup,
+  extractBackendLogicGroups,
+} from "@/features/assets/approval/host-adapters"
 import type {
   BackendHostDetail,
-  BackendLogicGroup,
   BackendPaginatedHostsData,
 } from "@/features/assets/approval/host-adapters"
 import type { Host, LogicGroup } from "@/features/assets/approval/types"
@@ -28,7 +32,7 @@ export async function getApprovalLogicGroups(tenantId: string): Promise<LogicGro
     tenant_id: tenantId,
   })
 
-  return ((result.data || []) as BackendLogicGroup[]).map(adaptBackendLogicGroup)
+  return extractBackendLogicGroups(result.data).map(adaptBackendLogicGroup)
 }
 
 export async function getApprovalHosts({

@@ -173,7 +173,7 @@ function normalizeStatus(status: BackendUser["status"]): UserStatus {
   return "unspecified"
 }
 
-function getAvatarByRole(role: BackendUser["role"]) {
+export function getAvatarByRole(role: BackendUser["role"]) {
   switch (normalizeRole(role)) {
     case "admin":
       return "/icons/avatars/admin.svg"
@@ -181,6 +181,8 @@ function getAvatarByRole(role: BackendUser["role"]) {
       return "/icons/avatars/operator.svg"
     case "auditor":
       return "/icons/avatars/auditor.svg"
+    case "client":
+      return "/icons/avatars/client.svg"
     default:
       return "/icons/avatars/default.svg"
   }

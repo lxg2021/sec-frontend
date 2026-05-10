@@ -58,6 +58,16 @@ test("adapts backend logic group timestamps and optional parent fields to UI sha
   )
 })
 
+test("extracts backend logic groups from array or wrapped empty responses", () => {
+  const { extractBackendLogicGroups } = loadHostAdaptersModule()
+
+  assert.deepEqual(extractBackendLogicGroups([]), [])
+  assert.deepEqual(extractBackendLogicGroups({}), [])
+  assert.deepEqual(extractBackendLogicGroups({ data: [] }), [])
+  assert.deepEqual(extractBackendLogicGroups({ logic_groups: [] }), [])
+  assert.deepEqual(extractBackendLogicGroups({ logicGroups: [] }), [])
+})
+
 test("adapts backend host detail to current host approval UI shape", () => {
   const { adaptBackendHost } = loadHostAdaptersModule()
 

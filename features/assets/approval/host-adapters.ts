@@ -1,5 +1,26 @@
 import type { Host, HostOwner, HostStatus, LogicGroup } from "@/features/assets/approval/types"
 
+export function extractBackendLogicGroups(value: unknown): LogicGroup[] {
+  if (Array.isArray(value)) {
+    return value as LogicGroup[]
+  }
+
+  if (!value || typeof value !== "object") {
+    return []
+  }
+
+  const record = value as Record<string, unknown>
+  const candidates = [record.data, record.Data, record.logic_groups, record.logicGroups]
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) {
+      return candidate as LogicGroup[]
+    }
+  }
+
+  return []
+}
+
 export interface BackendLogicGroup {
   id: string
   parent_id?: string | null
