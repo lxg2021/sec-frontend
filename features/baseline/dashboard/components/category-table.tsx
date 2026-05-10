@@ -242,7 +242,6 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
   const [severityFilter, setSeverityFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemStatsById, setItemStatsById] = useState<Record<string, BaselineItemResultStatistics | null>>({})
-  const [loadingItemStats, setLoadingItemStats] = useState<Record<string, boolean>>({})
 
   const currentCategory = useMemo(() => {
     return categoryRows.find((category) => category.categoryKey === selectedCategoryKey) ?? categoryRows[0] ?? null
@@ -292,7 +291,6 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
     setSeverityFilter("all")
     setCurrentPage(1)
     setItemStatsById({})
-    setLoadingItemStats({})
   }, [baselineUUID, categoryRows])
 
   useEffect(() => {
@@ -302,20 +300,13 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
   useEffect(() => {
     if (!currentCategory) return
 
-    const allMissingItems = currentCategory.items.filter(
-      (item) => itemStatsById[item.item_id] === undefined && !loadingItemStats[item.item_id],
-    )
-    if (!allMissingItems.length) return
+    const itemsToLoad = currentCategory.items
+    if (!itemsToLoad.length) return
 
     let cancelled = false
-    const nextLoadingState: Record<string, boolean> = {}
-    allMissingItems.forEach((item) => {
-      nextLoadingState[item.item_id] = true
-    })
-    setLoadingItemStats((prev) => ({ ...prev, ...nextLoadingState }))
 
     Promise.all(
-      allMissingItems.map(async (item) => {
+      itemsToLoad.map(async (item) => {
         try {
           const stats = await fetchBaselineItemStatistics(baselineUUID, item.item_id)
           return [item.item_id, stats] as const
@@ -327,20 +318,17 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
       if (cancelled) return
 
       const newStats: Record<string, BaselineItemResultStatistics | null> = {}
-      const clearedLoading: Record<string, boolean> = {}
       results.forEach(([id, stats]) => {
         newStats[id] = stats
-        clearedLoading[id] = false
       })
 
       setItemStatsById((prev) => ({ ...prev, ...newStats }))
-      setLoadingItemStats((prev) => ({ ...prev, ...clearedLoading }))
     })
 
     return () => {
       cancelled = true
     }
-  }, [baselineUUID, currentCategory?.categoryKey])
+  }, [baselineUUID, currentCategory])
 
   const handleItemDetail = (item: CategoryGroup["items"][number]) => {
     if (!currentCategory) return
