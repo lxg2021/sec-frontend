@@ -43,6 +43,10 @@ const FALLBACK_CONFIG = {
       getCollectionSubmission: "/sensor/collection/submissions/get",
       approveCollectionSubmission: "/sensor/collection/submissions/approve",
       rejectCollectionSubmission: "/sensor/collection/submissions/reject",
+      getBaselineOptions: "/sensor/baseline/options",
+      getBaselineDailyStats: "/sensor/baseline/stats/daily",
+      getBaselineTrend: "/sensor/baseline/stats/trend",
+      getBaselineCategoryStats: "/sensor/baseline/stats/categories",
     },
   },
 }
