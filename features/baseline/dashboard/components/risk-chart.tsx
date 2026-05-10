@@ -169,7 +169,7 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
                         strokeLinecap="round"
                         className="pointer-events-none transition-all duration-300"
                         style={{
-                          filter: isHovered ? `drop-shadow(0 0 8px ${item.color})` : "none",
+                          filter: isHovered ? `drop-shadow(0 0 2px ${item.color})` : "none",
                           opacity: isDimmed ? 0.38 : 1,
                           transform: `scale(${isHovered ? 1.02 : 1})`,
                           transformOrigin: "center",
