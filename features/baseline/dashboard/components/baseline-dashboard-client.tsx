@@ -111,16 +111,16 @@ export default function BaselineDashboardClient() {
   const hasOptions = options.length > 0
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="space-y-6 p-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="rounded-lg bg-blue-50 p-2">
-              <Shield className="h-6 w-6 text-blue-300" />
+    <div className="min-h-screen bg-muted/30">
+      <div className="mx-auto max-w-[1680px] space-y-6 p-6">
+        <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <Shield className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
+              <h1 className="text-2xl font-semibold text-foreground">{t("title")}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
           </div>
 
@@ -130,56 +130,54 @@ export default function BaselineDashboardClient() {
             onValueChange={setSelectedBaselineUUID}
             onRefresh={() => void loadOptions()}
             isRefreshing={loadingOptions}
-            className="w-full bg-white xl:w-auto xl:min-w-[720px]"
+            className="w-full bg-card xl:w-auto xl:min-w-[720px]"
           />
         </div>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            {error}
+          </div>
         )}
 
         {!loadingOptions && !hasOptions ? (
-          <Card className="border-dashed bg-white shadow-sm">
+          <Card className="border-dashed bg-card shadow-sm">
             <CardContent className="py-14 text-center">
-              <div className="text-lg font-medium text-gray-900">{t("empty.title")}</div>
-              <div className="mt-2 text-sm text-gray-500">{t("empty.description")}</div>
+              <div className="text-lg font-medium text-foreground">{t("empty.title")}</div>
+              <div className="mt-2 text-sm text-muted-foreground">{t("empty.description")}</div>
             </CardContent>
           </Card>
         ) : (
           <>
             <OverviewCards data={dailyStats} loading={loadingStats || loadingOptions} />
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
               <TrendChart data={trendData} loading={loadingStats || loadingOptions} />
               <RiskChart data={dailyStats} loading={loadingStats || loadingOptions} />
             </div>
 
-            <div className="grid grid-cols-12 gap-6">
-              <div className="col-span-12">
-                <Card className="border-gray-200 bg-white shadow-sm">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="rounded-lg bg-purple-50 p-2">
-                        <BarChart3 className="h-5 w-5 text-purple-300" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg font-medium text-gray-900">{t("categoryStats")}</CardTitle>
-                        <CardDescription className="text-sm text-gray-500">
-                          {t("categoryStatsDescription")}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CategoryTable
-                      data={categoryData}
-                      baselineUUID={selectedBaselineUUID}
-                      loading={loadingStats || loadingOptions}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <Card className="border bg-card shadow-sm">
+              <CardHeader className="border-b border-border pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <BarChart3 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg font-semibold text-foreground">{t("categoryStats")}</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground">
+                      {t("categoryStatsDescription")}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4">
+                <CategoryTable
+                  data={categoryData}
+                  baselineUUID={selectedBaselineUUID}
+                  loading={loadingStats || loadingOptions}
+                />
+              </CardContent>
+            </Card>
           </>
         )}
       </div>
