@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { BarChart3, RefreshCw, Shield } from "lucide-react"
 
@@ -36,6 +36,10 @@ function shiftDate(date: string, days: number) {
   return parsed.toISOString().slice(0, 10)
 }
 
+function getSelectedOption(options: BaselineOption[], currentUUID: string) {
+  return options.find((item) => item.baseline_uuid === currentUUID) ?? options[0] ?? null
+}
+
 export default function BaselineDashboardClient() {
   const t = useTranslations("pages.baseline.dashboard")
   const [options, setOptions] = useState<BaselineOption[]>([])
@@ -45,24 +49,23 @@ export default function BaselineDashboardClient() {
   const [categoryData, setCategoryData] = useState<CategoryGroup[]>([])
   const [loadingOptions, setLoadingOptions] = useState(true)
   const [loadingStats, setLoadingStats] = useState(false)
+  const [loadingCategory, setLoadingCategory] = useState(false)
   const [error, setError] = useState("")
+  const skipNextStatsLoadRef = useRef(false)
 
   const selectedOption = useMemo(
     () => options.find((item) => item.baseline_uuid === selectedBaselineUUID) ?? null,
     [options, selectedBaselineUUID],
   )
 
-  const loadOptions = async () => {
+  const loadOptions = useCallback(async () => {
     setLoadingOptions(true)
     setError("")
 
     try {
       const nextOptions = await fetchBaselineOptions()
       setOptions(nextOptions)
-      setSelectedBaselineUUID((current) => {
-        if (current && nextOptions.some((item) => item.baseline_uuid === current)) return current
-        return nextOptions[0]?.baseline_uuid ?? ""
-      })
+      setSelectedBaselineUUID((current) => getSelectedOption(nextOptions, current)?.baseline_uuid ?? "")
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errors.options"))
       setOptions([])
@@ -70,13 +73,14 @@ export default function BaselineDashboardClient() {
     } finally {
       setLoadingOptions(false)
     }
-  }
+  }, [t])
 
   const loadStats = useCallback(async (option: BaselineOption | null) => {
     if (!option) return
 
     const statDate = toDateOnly(option.latest_check_time)
     setLoadingStats(true)
+    setLoadingCategory(true)
     setError("")
 
     try {
@@ -96,18 +100,72 @@ export default function BaselineDashboardClient() {
       setError(err instanceof Error ? err.message : t("errors.stats"))
     } finally {
       setLoadingStats(false)
+      setLoadingCategory(false)
     }
   }, [t])
 
+  const loadCategoryStats = useCallback(async (option: BaselineOption | null) => {
+    if (!option) return
+
+    setLoadingCategory(true)
+    setError("")
+
+    try {
+      const categories = await fetchBaselineCategoryStats(option.baseline_uuid)
+      setCategoryData(categories)
+    } catch (err) {
+      setCategoryData([])
+      setError(err instanceof Error ? err.message : t("errors.categoryStats"))
+    } finally {
+      setLoadingCategory(false)
+    }
+  }, [t])
+
+  const refreshDashboard = useCallback(async () => {
+    setLoadingOptions(true)
+    setError("")
+
+    try {
+      const nextOptions = await fetchBaselineOptions()
+      const nextSelectedOption = getSelectedOption(nextOptions, selectedBaselineUUID)
+
+      skipNextStatsLoadRef.current = Boolean(nextSelectedOption)
+      setOptions(nextOptions)
+      setSelectedBaselineUUID(nextSelectedOption?.baseline_uuid ?? "")
+
+      if (nextSelectedOption) {
+        await loadStats(nextSelectedOption)
+      } else {
+        setDailyStats(null)
+        setTrendData([])
+        setCategoryData([])
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errors.options"))
+      setOptions([])
+      setSelectedBaselineUUID("")
+      setDailyStats(null)
+      setTrendData([])
+      setCategoryData([])
+    } finally {
+      setLoadingOptions(false)
+    }
+  }, [loadStats, selectedBaselineUUID, t])
+
   useEffect(() => {
     void loadOptions()
-  }, [])
+  }, [loadOptions])
 
   useEffect(() => {
     if (!selectedOption) {
       setDailyStats(null)
       setTrendData([])
       setCategoryData([])
+      return
+    }
+
+    if (skipNextStatsLoadRef.current) {
+      skipNextStatsLoadRef.current = false
       return
     }
 
@@ -134,8 +192,8 @@ export default function BaselineDashboardClient() {
             options={options}
             value={selectedBaselineUUID}
             onValueChange={setSelectedBaselineUUID}
-            onRefresh={() => void loadOptions()}
-            isRefreshing={loadingOptions}
+            onRefresh={() => void refreshDashboard()}
+            isRefreshing={loadingOptions || loadingStats}
             className="w-full xl:w-auto xl:min-w-[720px]"
           />
         </div>
@@ -181,11 +239,11 @@ export default function BaselineDashboardClient() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => void loadStats(selectedOption)}
-                    disabled={!selectedOption || loadingStats}
+                    onClick={() => void loadCategoryStats(selectedOption)}
+                    disabled={!selectedOption || loadingCategory}
                     className="h-9 gap-2 border-border/70 bg-background/80 px-3 shadow-none"
                   >
-                    <RefreshCw className={loadingStats ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                    <RefreshCw className={loadingCategory ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
                     <span>{t("refresh")}</span>
                   </Button>
                 </div>
@@ -194,7 +252,7 @@ export default function BaselineDashboardClient() {
                 <CategoryTable
                   data={categoryData}
                   baselineUUID={selectedBaselineUUID}
-                  loading={loadingStats || loadingOptions}
+                  loading={loadingCategory || loadingOptions}
                 />
               </CardContent>
             </Card>
