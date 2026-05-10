@@ -28,6 +28,10 @@ import { cn } from "@/shared/lib/utils"
 
 import { fetchBaselineItemStatistics, type BaselineItemResultStatistics, type CategoryGroup } from "../api"
 import {
+  FALLBACK_ITEM_PAGE_SIZE,
+  TABLE_ROW_HEIGHT,
+  calculateAlignedItemPagination,
+  clampPage,
   getAveragePassRate,
   getCategoryIconName,
   getCategoryLabel,
@@ -35,6 +39,7 @@ import {
   getCategoryRiskScore,
   getItemLabel,
   getItemSearchText,
+  getTotalPages,
   severityClass,
   type CategoryProgressTone,
 } from "./category-table-utils"
@@ -50,8 +55,6 @@ type CategoryRow = CategoryGroup & {
   iconName: string
 }
 
-const FALLBACK_ITEM_PAGE_SIZE = 15
-const TABLE_ROW_HEIGHT = 46
 const CATEGORY_PAGE_SIZE = 10
 function CategoryIcon({
   name,
@@ -194,7 +197,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
     return filteredItems.slice(startIndex, startIndex + safePageSize)
   }, [filteredItems, currentPage, itemPageSize])
 
-  const totalPages = Math.max(Math.ceil(filteredItems.length / Math.max(itemPageSize, 1)), 1)
+  const totalPages = getTotalPages(filteredItems.length, itemPageSize)
 
   useEffect(() => {
     if (categoryRows.length > 0 && !selectedCategoryKey) {
@@ -222,26 +225,19 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
       const tableBodyTop = tableBodyRef.current?.getBoundingClientRect().top || 0
       const limitTop = leftPaginationRef.current?.getBoundingClientRect().top || 0
 
-      if (
-        !shouldAlignWithLeftPagination ||
-        !tableContainerTop ||
-        !tableBodyTop ||
-        !limitTop ||
-        limitTop <= tableContainerTop ||
-        !filteredItems.length
-      ) {
-        setRightTableHeight(null)
-        setItemPageSize(FALLBACK_ITEM_PAGE_SIZE)
-        return
-      }
-
-      const availableContainerHeight = Math.max(Math.floor(limitTop - tableContainerTop), 0)
       const rowHeight =
         tableBodyRef.current?.querySelector("tr")?.getBoundingClientRect().height || TABLE_ROW_HEIGHT
-      const availableRowsHeight = Math.max(limitTop - tableBodyTop - 1, 0)
-      const rowsUntilLeftPagination = Math.max(1, Math.floor(availableRowsHeight / rowHeight))
-      setRightTableHeight(availableContainerHeight)
-      setItemPageSize(Math.min(filteredItems.length, rowsUntilLeftPagination))
+      const nextPagination = calculateAlignedItemPagination({
+        shouldAlignWithLeftPagination,
+        tableContainerTop,
+        tableBodyTop,
+        limitTop,
+        rowHeight,
+        itemCount: filteredItems.length,
+      })
+
+      setRightTableHeight(nextPagination.tableHeight)
+      setItemPageSize(nextPagination.pageSize)
     }
 
     updateItemPageSize()
@@ -267,7 +263,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
   }, [filteredItems.length, categoryTotalPages])
 
   useEffect(() => {
-    setCurrentPage((page) => Math.min(Math.max(page, 1), totalPages))
+    setCurrentPage((page) => clampPage(page, totalPages))
   }, [totalPages])
 
   useEffect(() => {

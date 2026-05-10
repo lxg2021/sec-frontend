@@ -1,5 +1,8 @@
 import type { CategoryGroup } from "../api"
 
+export const FALLBACK_ITEM_PAGE_SIZE = 15
+export const TABLE_ROW_HEIGHT = 46
+
 export const PROGRESS_TONE_META = {
   emerald: {
     color: "#10b981",
@@ -169,5 +172,55 @@ export function getCategoryProgressMeta(category: CategoryGroup, tone: CategoryP
     fillClass: toneMeta.fillClass,
     textClass: toneMeta.textClass,
     color: toneMeta.color,
+  }
+}
+
+export function getTotalPages(itemCount: number, pageSize: number) {
+  return Math.max(Math.ceil(itemCount / Math.max(pageSize, 1)), 1)
+}
+
+export function clampPage(page: number, totalPages: number) {
+  return Math.min(Math.max(page, 1), totalPages)
+}
+
+export function calculateAlignedItemPagination({
+  shouldAlignWithLeftPagination,
+  tableContainerTop,
+  tableBodyTop,
+  limitTop,
+  rowHeight,
+  itemCount,
+  fallbackPageSize = FALLBACK_ITEM_PAGE_SIZE,
+}: {
+  shouldAlignWithLeftPagination: boolean
+  tableContainerTop: number
+  tableBodyTop: number
+  limitTop: number
+  rowHeight: number
+  itemCount: number
+  fallbackPageSize?: number
+}) {
+  if (
+    !shouldAlignWithLeftPagination ||
+    !tableContainerTop ||
+    !tableBodyTop ||
+    !limitTop ||
+    limitTop <= tableContainerTop ||
+    itemCount <= 0
+  ) {
+    return {
+      tableHeight: null,
+      pageSize: fallbackPageSize,
+    }
+  }
+
+  const safeRowHeight = Math.max(rowHeight || TABLE_ROW_HEIGHT, 1)
+  const tableHeight = Math.max(Math.floor(limitTop - tableContainerTop), 0)
+  const availableRowsHeight = Math.max(limitTop - tableBodyTop - 1, 0)
+  const rowsUntilLeftPagination = Math.max(1, Math.floor(availableRowsHeight / safeRowHeight))
+
+  return {
+    tableHeight,
+    pageSize: Math.min(itemCount, rowsUntilLeftPagination),
   }
 }
