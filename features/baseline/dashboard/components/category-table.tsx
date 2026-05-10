@@ -476,7 +476,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
           <p className="mt-0.5 text-xs text-muted-foreground">{t("categoryCount", { count: data.length })}</p>
         </div>
         <ScrollArea className="h-[520px] lg:h-full">
-          <div className="p-2">
+          <div className="space-y-1.5 p-2">
             {visibleCategoryRows.map((category) => {
               const progress = categoryProgressByKey[category.categoryKey] ?? getCategoryProgressMeta(category, "teal")
               const isSelected = selectedCategoryKey === category.categoryKey
@@ -486,19 +486,38 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                   key={category.categoryKey}
                   onClick={() => setSelectedCategoryKey(category.categoryKey)}
                   className={cn(
-                    "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all",
-                    isSelected ? "text-primary" : "text-foreground hover:bg-muted/40",
+                    "group relative flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
+                    isSelected
+                      ? "border-blue-200 bg-blue-50 text-blue-700 shadow-sm"
+                      : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950",
                   )}
                 >
+                  {isSelected && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-0 top-0 h-full w-1 rounded-r-full bg-blue-600"
+                    />
+                  )}
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
                     <CategoryIcon name={category.iconName} color={progress.color} className="h-7 w-7" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <div className={cn("truncate text-sm font-medium", isSelected && "text-primary")}>
+                      <div
+                        className={cn(
+                          "truncate text-sm font-medium transition-colors duration-200",
+                          isSelected ? "text-blue-700" : "text-slate-600 group-hover:text-slate-950",
+                        )}
+                      >
                         {getCategoryLabel(category, locale)}
                       </div>
-                      <Badge variant="outline" className="h-5 shrink-0 px-1.5 text-[10px]">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "h-5 shrink-0 px-1.5 text-[10px] transition-colors duration-200",
+                          isSelected && "border-blue-200 bg-white/80 text-blue-700",
+                        )}
+                      >
                         {category.item_count || category.items.length}
                       </Badge>
                     </div>
@@ -514,7 +533,12 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                       </span>
                     </div>
                   </div>
-                  <ChevronRight className={cn("h-4 w-4 shrink-0 transition-transform", isSelected ? "text-primary" : "text-muted-foreground")} />
+                  <ChevronRight
+                    className={cn(
+                      "h-4 w-4 shrink-0 transition-colors duration-200",
+                      isSelected ? "text-blue-700" : "text-slate-400 group-hover:text-slate-600",
+                    )}
+                  />
                 </button>
               )
             })}
