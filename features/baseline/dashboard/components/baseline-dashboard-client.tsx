@@ -183,7 +183,7 @@ export default function BaselineDashboardClient() {
                     size="sm"
                     onClick={() => void loadStats(selectedOption)}
                     disabled={!selectedOption || loadingStats}
-                    className="h-9 gap-2 border-border/70 bg-background/80 px-3 text-xs shadow-none"
+                    className="h-9 gap-2 border-border/70 bg-background/80 px-3 shadow-none"
                   >
                     <RefreshCw className={loadingStats ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
                     <span>{t("refresh")}</span>
