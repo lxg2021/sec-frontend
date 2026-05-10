@@ -391,16 +391,15 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                   onClick={() => setSelectedCategoryKey(category.categoryKey)}
                   className={cn(
                     "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-all",
-                    isSelected ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted",
+                    isSelected ? "text-primary" : "text-foreground hover:bg-muted/40",
                   )}
                 >
                   <div
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border",
-                      isSelected ? "border-primary/20 bg-primary/10" : "border-border bg-muted/60",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
                     )}
                   >
-                    <img src={`/icons/baseline/${category.iconName}.svg`} alt="" className="h-6 w-6" />
+                    <img src={`/icons/baseline/${category.iconName}.svg`} alt="" className="h-7 w-7" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
