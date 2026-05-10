@@ -39,6 +39,34 @@ type CategoryRow = CategoryGroup & {
 
 const PAGE_SIZE = 10
 const CATEGORY_PAGE_SIZE = 10
+const PROGRESS_COLORS = {
+  emerald: "#10b981",
+  amber: "#f59e0b",
+  rose: "#f43f5e",
+} as const
+type CategoryProgressTone = keyof typeof PROGRESS_COLORS
+
+const BASELINE_CATEGORY_ICON_MAP: Record<string, string> = {
+  "account policies": "account-policies",
+  "administrative templates: control panel": "control-panel",
+  "administrative templates: network": "network",
+  "administrative templates: powershellcore": "powershell",
+  "administrative templates: printers": "printers",
+  "administrative templates: start menu and taskbar": "start-menu",
+  "administrative templates: system": "system",
+  "administrative templates: windows components": "windows-components",
+  "advanced audit policy configuration": "audit-policy",
+  features: "features",
+  "microsoft defender exploit guard": "defender",
+  "ms security guide": "security-guide",
+  "mss (legacy)": "mss-legacy",
+  "scheduled task": "scheduled-task",
+  "security options": "security-options",
+  "system services": "system-services",
+  "user rights assignment": "user-rights",
+  "windows firewall": "firewall",
+}
+const VALID_CATEGORY_ICON_NAMES = new Set([...Object.values(BASELINE_CATEGORY_ICON_MAP), "default"])
 
 const CATEGORY_ICON_MAP: Record<string, string> = {
   "account policies": "account",
@@ -78,6 +106,8 @@ const CATEGORY_ICON_MAP: Record<string, string> = {
   用户权限分配: "account",
   账户策略: "account",
 }
+
+Object.assign(CATEGORY_ICON_MAP, BASELINE_CATEGORY_ICON_MAP)
 
 function isZhLocale(locale: string) {
   return locale.toLowerCase().startsWith("zh")
@@ -131,26 +161,12 @@ function severityClass(severity: string) {
 function getCategoryIconName(category: CategoryGroup) {
   const normalizedCategory = normalizeCategoryKey(category.category || "")
   const normalizedCategoryZh = normalizeCategoryKey(category.category_zh || "")
+  const iconName = CATEGORY_ICON_MAP[normalizedCategory] ?? CATEGORY_ICON_MAP[normalizedCategoryZh] ?? "default"
 
-  if (CATEGORY_ICON_MAP[normalizedCategory]) return CATEGORY_ICON_MAP[normalizedCategory]
-  if (CATEGORY_ICON_MAP[normalizedCategoryZh]) return CATEGORY_ICON_MAP[normalizedCategoryZh]
-
-  const text = `${normalizedCategory} ${normalizedCategoryZh}`
-
-  if (text.includes("template") || text.includes("policy")) return "template"
-  if (text.includes("windows")) return "windows"
-  if (text.includes("account") || text.includes("user rights") || text.includes("password") || text.includes("login")) return "account"
-  if (text.includes("audit") || text.includes("event log") || text.includes("log")) return "audit"
-  if (text.includes("network") || text.includes("firewall") || text.includes("dns") || text.includes("vpn")) return "network"
-  if (text.includes("registry")) return "registry"
-  if (text.includes("service") || text.includes("task")) return "service"
-  if (text.includes("security") || text.includes("defender") || text.includes("shield") || text.includes("antivirus")) return "security"
-  if (text.includes("system") || text.includes("os")) return "system"
-  if (text.includes("file") || text.includes("permission") || text.includes("directory") || text.includes("acl")) return "file"
-  return "default"
+  return VALID_CATEGORY_ICON_NAMES.has(iconName) ? iconName : "default"
 }
 
-function getCategoryProgressMeta(category: CategoryGroup) {
+function getCategoryProgressTone(category: CategoryGroup): CategoryProgressTone {
   const rate = getAveragePassRate(category)
   const mix = getCategorySeverityMix(category)
   const total = Math.max(mix.total, 1)
@@ -162,39 +178,51 @@ function getCategoryProgressMeta(category: CategoryGroup) {
   const volumePressure = Math.min(1, total / 25)
   const riskScore = severityPressure * 0.45 + (1 - completion) * 0.4 + volumePressure * 0.15
 
-  if (rate >= 99.5) {
-    return {
-      rate,
-      trackClass: "bg-emerald-100",
-      fillClass: "bg-emerald-500",
-      textClass: "text-emerald-600",
-    }
-  }
+  if (rate >= 99.5) return "emerald"
+  if (riskScore >= 0.62 || (highShare >= 0.45 && rate < 85)) return "rose"
+  if (riskScore >= 0.35 || mediumShare >= 0.45 || lowShare <= 0.3) return "amber"
+  return "emerald"
+}
 
-  if (riskScore >= 0.62 || (highShare >= 0.45 && rate < 85)) {
-    return {
-      rate,
-      trackClass: "bg-rose-100",
-      fillClass: "bg-rose-500",
-      textClass: "text-rose-600",
-    }
-  }
-
-  if (riskScore >= 0.35 || mediumShare >= 0.45 || lowShare <= 0.3) {
-    return {
-      rate,
-      trackClass: "bg-amber-100",
-      fillClass: "bg-amber-500",
-      textClass: "text-amber-600",
-    }
-  }
-
+function getCategoryProgressMeta(category: CategoryGroup) {
+  const rate = getAveragePassRate(category)
+  const tone = getCategoryProgressTone(category)
   return {
     rate,
-    trackClass: "bg-emerald-100",
-    fillClass: "bg-emerald-500",
-    textClass: "text-emerald-600",
+    tone,
+    trackClass: tone === "rose" ? "bg-rose-100" : tone === "amber" ? "bg-amber-100" : "bg-emerald-100",
+    fillClass: tone === "rose" ? "bg-rose-500" : tone === "amber" ? "bg-amber-500" : "bg-emerald-500",
+    textClass: tone === "rose" ? "text-rose-600" : tone === "amber" ? "text-amber-600" : "text-emerald-600",
+    color: PROGRESS_COLORS[tone],
   }
+}
+
+function CategoryIcon({
+  name,
+  color,
+  className,
+}: {
+  name: string
+  color: string
+  className?: string
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("inline-block shrink-0", className)}
+      style={{
+        backgroundColor: color,
+        WebkitMaskImage: `url(/icons/baseline/${name}.svg)`,
+        maskImage: `url(/icons/baseline/${name}.svg)`,
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+      }}
+    />
+  )
 }
 
 function getSeverityLabel(severity: string, t: ReturnType<typeof useTranslations>) {
@@ -393,12 +421,8 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                     isSelected ? "text-primary" : "text-foreground hover:bg-muted/40",
                   )}
                 >
-                  <div
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg",
-                    )}
-                  >
-                    <img src={`/icons/baseline/${category.iconName}.svg`} alt="" className="h-7 w-7" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+                    <CategoryIcon name={category.iconName} color={progress.color} className="h-7 w-7" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
