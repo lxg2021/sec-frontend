@@ -84,6 +84,14 @@ export interface BaselineItemSimple {
   passed_rate: number
 }
 
+export interface BaselineItemResultStatistics {
+  total_hosts: number
+  passed_hosts: number
+  failed_hosts: number
+  error_hosts: number
+  pass_rate: number
+}
+
 interface ApiResult<T> {
   data: T
 }
@@ -134,4 +142,17 @@ export async function fetchBaselineCategoryStats(baselineUUID: string): Promise<
   })) as ApiResult<CategoryStatsData | null>
 
   return normalizeArray<CategoryGroup>(result.data?.categories)
+}
+
+export async function fetchBaselineItemStatistics(
+  baselineUUID: string,
+  itemID: string,
+): Promise<BaselineItemResultStatistics | null> {
+  const result = (await http.post("getBaselineItemStatistics", {
+    request_id: createRequestId(),
+    baseline_uuid: baselineUUID,
+    item_id: itemID,
+  })) as ApiResult<BaselineItemResultStatistics | null>
+
+  return result.data ?? null
 }

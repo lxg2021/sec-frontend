@@ -44,7 +44,8 @@
       "getBaselineOptions": "/sensor/baseline/options",
       "getBaselineDailyStats": "/sensor/baseline/stats/daily",
       "getBaselineTrend": "/sensor/baseline/stats/trend",
-      "getBaselineCategoryStats": "/sensor/baseline/stats/categories"
+      "getBaselineCategoryStats": "/sensor/baseline/stats/categories",
+      "getBaselineItemStatistics": "/sensor/baseline/item/statistics"
     }
   }
 }
