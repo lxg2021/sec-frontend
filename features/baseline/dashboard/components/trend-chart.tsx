@@ -13,13 +13,6 @@ interface TrendChartProps {
   loading?: boolean
 }
 
-function formatDateLabel(value: string) {
-  const normalized = value.includes("/") ? value.replaceAll("/", "-") : value
-  const parsed = new Date(`${normalized.slice(0, 10)}T00:00:00`)
-  if (Number.isNaN(parsed.getTime())) return value
-  return `${parsed.getMonth() + 1}/${parsed.getDate()}`
-}
-
 export default function TrendChart({ data, loading = false }: TrendChartProps) {
   const t = useTranslations("pages.baseline.dashboard.trend")
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
@@ -29,7 +22,7 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
 
   const trendData = data.map((item) => ({
     date: item.date,
-    label: formatDateLabel(item.date),
+    label: item.date,
     rate: Number(item.pass_rate || 0),
   }))
 
