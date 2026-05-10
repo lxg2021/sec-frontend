@@ -1,6 +1,7 @@
 "use client"
 
 import { AlertTriangle, CheckCircle, Shield, XCircle } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 
@@ -11,46 +12,45 @@ interface OverviewCardsProps {
   loading?: boolean
 }
 
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("zh-CN").format(value || 0)
-}
-
 function formatRate(value: number) {
   return `${(value || 0).toFixed(2)}%`
 }
 
 export default function OverviewCards({ data, loading = false }: OverviewCardsProps) {
+  const t = useTranslations("pages.baseline.dashboard.overview")
+  const locale = useLocale()
   const itemStats = data?.item_stats
   const passRateStats = data?.pass_rate_stats
+  const formatCount = (value: number) => new Intl.NumberFormat(locale).format(value || 0)
 
   const overviewData = [
     {
-      title: "合规率",
+      title: t("complianceRate"),
       value: formatRate(passRateStats?.total_pass_rate ?? 0),
       icon: Shield,
       color: "from-green-500 to-green-600",
-      description: "当前基线整体检查项通过率",
+      description: t("complianceRateDescription"),
     },
     {
-      title: "检查项总数",
-      value: formatNumber(itemStats?.total_items ?? 0),
+      title: t("totalItems"),
+      value: formatCount(itemStats?.total_items ?? 0),
       icon: CheckCircle,
       color: "from-blue-500 to-blue-600",
-      description: "当前基线包含的检查项数量",
+      description: t("totalItemsDescription"),
     },
     {
-      title: "不合规项数",
-      value: formatNumber(itemStats?.failed_items ?? 0),
+      title: t("failedItems"),
+      value: formatCount(itemStats?.failed_items ?? 0),
       icon: XCircle,
       color: "from-orange-500 to-orange-600",
-      description: "当前仍未通过的检查项数量",
+      description: t("failedItemsDescription"),
     },
     {
-      title: "高风险项数",
-      value: formatNumber(itemStats?.high_items ?? 0),
+      title: t("highRiskItems"),
+      value: formatCount(itemStats?.high_items ?? 0),
       icon: AlertTriangle,
       color: "from-red-500 to-red-600",
-      description: "当前基线中的高风险检查项数量",
+      description: t("highRiskItemsDescription"),
     },
   ]
 

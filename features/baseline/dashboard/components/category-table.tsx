@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { ChevronLeft, ChevronRight, Eye, ListChecks, X } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
@@ -19,7 +20,7 @@ interface CategoryTableProps {
 }
 
 function getCategoryLabel(category: CategoryGroup) {
-  return category.category_zh || category.category || "未分类"
+  return category.category_zh || category.category || "Unknown"
 }
 
 function getItemLabel(item: CategoryGroup["items"][number]) {
@@ -40,6 +41,7 @@ function severityClass(severity: string) {
 }
 
 export default function CategoryTable({ data, baselineUUID, loading = false }: CategoryTableProps) {
+  const t = useTranslations("pages.baseline.dashboard.categoryTable")
   const router = useRouter()
   const [activeIndex, setActiveIndex] = useState(0)
   const [selectedCategoryKey, setSelectedCategoryKey] = useState("")
@@ -84,14 +86,14 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
   }
 
   if (loading) {
-    return <div className="py-12 text-center text-sm text-gray-500">加载分类统计中...</div>
+    return <div className="py-12 text-center text-sm text-gray-500">{t("loading")}</div>
   }
 
   if (!data.length) {
     return (
       <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 py-12 text-center">
-        <div className="text-lg font-medium text-gray-900">暂无分类统计</div>
-        <div className="mt-2 text-sm text-gray-500">当前基线还没有可展示的分类检查项。</div>
+        <div className="text-lg font-medium text-gray-900">{t("emptyTitle")}</div>
+        <div className="mt-2 text-sm text-gray-500">{t("emptyDescription")}</div>
       </div>
     )
   }
@@ -135,7 +137,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
         </div>
 
         <div className="text-sm text-gray-500">
-          {activeIndex + 1} / {totalPages} 页 · {data.length} 个分类
+          {t("pageSummary", { current: activeIndex + 1, total: totalPages, count: data.length })}
         </div>
       </div>
 
@@ -172,14 +174,14 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                       <CountUp end={passRate} duration={1200} delay={index * 80} suffix="%" />
                     </div>
                     <Badge variant="outline" className="border-blue-200 bg-blue-50 text-xs text-blue-700">
-                      平均通过率
+                      {t("averagePassRate")}
                     </Badge>
                   </div>
 
                   <div className="w-full space-y-2">
                     <div className="flex justify-between text-xs text-gray-600">
-                      <span>检查项 {category.item_count}</span>
-                      <span>{category.items.length} 项有结果</span>
+                      <span>{t("categoryItemCount", { count: category.item_count })}</span>
+                      <span>{t("resultsCount", { count: category.items.length })}</span>
                     </div>
                     <Progress value={passRate} className="h-2 w-full bg-gray-200" />
                   </div>
@@ -203,11 +205,14 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                     <CardTitle className="flex items-center space-x-2 text-lg font-medium text-gray-900">
                       <span>{getCategoryLabel(selectedCategory)}</span>
                       <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
-                        详情
+                        {t("details")}
                       </Badge>
                     </CardTitle>
                     <p className="mt-1 text-sm text-gray-500">
-                      共 {selectedCategory.item_count} 个检查项，当前返回 {selectedCategory.items.length} 个统计结果
+                      {t("detailSummary", {
+                        items: selectedCategory.item_count,
+                        results: selectedCategory.items.length,
+                      })}
                     </p>
                   </div>
                 </div>
@@ -216,7 +221,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                     <div className="mb-1 text-2xl font-bold text-blue-900">
                       <CountUp end={getAveragePassRate(selectedCategory)} duration={1200} delay={100} suffix="%" />
                     </div>
-                    <div className="text-sm text-gray-500">平均通过率</div>
+                    <div className="text-sm text-gray-500">{t("averagePassRate")}</div>
                   </div>
                   <Button
                     variant="ghost"
@@ -232,10 +237,10 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
             <CardContent>
               <div className="space-y-1">
                 <div className="grid grid-cols-5 gap-4 rounded-lg border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs uppercase tracking-wide text-gray-500">
-                  <div className="col-span-2">检查项名称</div>
-                  <div>风险等级</div>
-                  <div>通过率</div>
-                  <div className="text-center">操作</div>
+                  <div className="col-span-2">{t("checkItemName")}</div>
+                  <div>{t("severity")}</div>
+                  <div>{t("passRate")}</div>
+                  <div className="text-center">{t("action")}</div>
                 </div>
 
                 {selectedCategory.items.map((item, index) => (
@@ -246,7 +251,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                     <div className="col-span-2 text-sm font-medium text-gray-900">{getItemLabel(item)}</div>
                     <div>
                       <Badge variant="outline" className={`text-xs ${severityClass(item.severity)}`}>
-                        {item.severity || "unknown"}
+                        {item.severity || t("unknown")}
                       </Badge>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -265,7 +270,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                         onClick={() => handleItemDetail(selectedCategory, item)}
                         className="h-7 border-blue-200 bg-blue-50 px-3 text-xs font-medium text-blue-600 hover:bg-blue-100 hover:text-blue-700"
                       >
-                        详情
+                        {t("details")}
                       </Button>
                     </div>
                   </div>

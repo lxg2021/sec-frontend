@@ -63,7 +63,7 @@ export default function BaselineDashboardClient() {
         return nextOptions[0]?.baseline_uuid ?? ""
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "加载基线列表失败")
+      setError(err instanceof Error ? err.message : t("errors.options"))
       setOptions([])
       setSelectedBaselineUUID("")
     } finally {
@@ -101,7 +101,7 @@ export default function BaselineDashboardClient() {
         setDailyStats(null)
         setTrendData([])
         setCategoryData([])
-        setError(err instanceof Error ? err.message : "加载基线统计失败")
+        setError(err instanceof Error ? err.message : t("errors.stats"))
       })
       .finally(() => {
         setLoadingStats(false)
@@ -141,8 +141,8 @@ export default function BaselineDashboardClient() {
         {!loadingOptions && !hasOptions ? (
           <Card className="border-dashed bg-white shadow-sm">
             <CardContent className="py-14 text-center">
-              <div className="text-lg font-medium text-gray-900">暂无基线检查数据</div>
-              <div className="mt-2 text-sm text-gray-500">当前租户还没有可用于统计的基线报告。</div>
+              <div className="text-lg font-medium text-gray-900">{t("empty.title")}</div>
+              <div className="mt-2 text-sm text-gray-500">{t("empty.description")}</div>
             </CardContent>
           </Card>
         ) : (

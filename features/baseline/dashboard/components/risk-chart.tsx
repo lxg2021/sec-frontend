@@ -1,6 +1,7 @@
 "use client"
 
 import { PieChart } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 
@@ -17,11 +18,12 @@ function percentage(count: number, total: number) {
 }
 
 export default function RiskChart({ data, loading = false }: RiskChartProps) {
+  const t = useTranslations("pages.baseline.dashboard.risk")
   const itemStats = data?.item_stats
   const riskData = [
-    { level: "低风险", count: itemStats?.low_items ?? 0, color: "#10b981" },
-    { level: "中风险", count: itemStats?.medium_items ?? 0, color: "#f59e0b" },
-    { level: "高风险", count: itemStats?.high_items ?? 0, color: "#ef4444" },
+    { level: t("low"), count: itemStats?.low_items ?? 0, color: "#10b981" },
+    { level: t("medium"), count: itemStats?.medium_items ?? 0, color: "#f59e0b" },
+    { level: t("high"), count: itemStats?.high_items ?? 0, color: "#ef4444" },
   ].map((item) => ({
     ...item,
     percentage: percentage(item.count, itemStats?.total_items ?? 0),
@@ -39,8 +41,8 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
             <PieChart className="h-5 w-5 text-white" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">风险等级分布</CardTitle>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">按风险等级统计检查项分布</p>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{t("title")}</CardTitle>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{t("description")}</p>
           </div>
         </div>
       </CardHeader>
@@ -81,7 +83,7 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-xl font-bold text-slate-800 dark:text-white">{loading ? "..." : total}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">总检查项</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">{t("total")}</div>
                 </div>
               </div>
             </div>
@@ -98,7 +100,9 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.level}</span>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">{loading ? "..." : item.count} 项</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    {loading ? "..." : t("count", { count: item.count })}
+                  </span>
                   <span className="min-w-[2.5rem] text-right text-sm font-semibold text-slate-800 dark:text-white">
                     {loading ? "..." : `${item.percentage}%`}
                   </span>

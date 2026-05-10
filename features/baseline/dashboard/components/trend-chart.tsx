@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { TrendingUp } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -20,6 +21,7 @@ function formatDateLabel(value: string) {
 }
 
 export default function TrendChart({ data, loading = false }: TrendChartProps) {
+  const t = useTranslations("pages.baseline.dashboard.trend")
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   const trendData = data.map((item) => ({
     date: formatDateLabel(item.date),
@@ -60,8 +62,8 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
             <TrendingUp className="h-5 w-5 text-white" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">基线检查趋势</CardTitle>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">最近7天合规率变化趋势</p>
+            <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{t("title")}</CardTitle>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{t("description")}</p>
           </div>
         </div>
       </CardHeader>
@@ -69,9 +71,9 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
         <div className="space-y-4">
           <div className="relative w-full overflow-x-auto rounded-lg bg-gradient-to-t from-blue-50 to-transparent p-4 dark:from-blue-900/20">
             {loading ? (
-              <div className="flex h-40 items-center justify-center text-sm text-slate-500">加载趋势数据中...</div>
+              <div className="flex h-40 items-center justify-center text-sm text-slate-500">{t("loading")}</div>
             ) : !hasData ? (
-              <div className="flex h-40 items-center justify-center text-sm text-slate-500">暂无趋势数据</div>
+              <div className="flex h-40 items-center justify-center text-sm text-slate-500">{t("empty")}</div>
             ) : (
               <div className="flex w-full justify-center">
                 <svg width={chartWidth} height={chartHeight} className="overflow-visible">
@@ -179,19 +181,19 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
               <div className="text-lg font-semibold text-green-600 dark:text-green-400">
                 {loading ? "..." : `${maxRate.toFixed(2)}%`}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">最高合规率</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{t("highest")}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">
                 {loading ? "..." : `${averageRate.toFixed(2)}%`}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">平均合规率</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{t("average")}</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-semibold text-orange-600 dark:text-orange-400">
                 {loading ? "..." : `${weeklyChange >= 0 ? "+" : ""}${weeklyChange.toFixed(2)}%`}
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">周期变化</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">{t("change")}</div>
             </div>
           </div>
         </div>

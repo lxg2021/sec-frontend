@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -35,34 +36,23 @@ interface BaselineSelectorProps {
   className?: string
 }
 
-const standardLabels: Record<string, { label: string; color: string }> = {
-  cis: { label: "CIS", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-  dod: { label: "DoD", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-  msft: { label: "MSFT", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-  tls: { label: "TLS", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-  intune: { label: "Intune", color: "bg-cyan-500/10 text-cyan-600 border-cyan-500/20" },
-  custom: { label: "自定义", color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
-  other: { label: "其他", color: "bg-gray-500/10 text-gray-600 border-gray-500/20" },
+const standardColors: Record<string, string> = {
+  cis: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  dod: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  msft: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  tls: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  intune: "bg-cyan-500/10 text-cyan-600 border-cyan-500/20",
+  custom: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  other: "bg-gray-500/10 text-gray-600 border-gray-500/20",
 }
 
-const profileLabels: Record<string, string> = {
-  machine: "计算机",
-  user: "用户",
-  both: "全部",
+function getKnownKey(value: string, knownKeys: Record<string, unknown>) {
+  const key = value.toLowerCase()
+  return Object.prototype.hasOwnProperty.call(knownKeys, key) ? key : ""
 }
 
-function getStandardMeta(standard: string) {
-  const key = standard.toLowerCase()
-  return (
-    standardLabels[key] ?? {
-      label: standard ? standard.toUpperCase() : "OTHER",
-      color: "bg-gray-500/10 text-gray-600 border-gray-500/20",
-    }
-  )
-}
-
-function formatCheckTime(dateString: string): string {
-  if (!dateString) return "暂无检查"
+function formatCheckTime(dateString: string, emptyText: string): string {
+  if (!dateString) return emptyText
 
   const date = new Date(dateString)
   if (Number.isNaN(date.getTime())) return dateString.replace("T", " ").slice(0, 19)
@@ -85,9 +75,21 @@ export function BaselineSelector({
   isRefreshing = false,
   className,
 }: BaselineSelectorProps) {
+  const t = useTranslations("pages.baseline.dashboard.selector")
   const [open, setOpen] = React.useState(false)
   const selectedOption = options.find((opt) => opt.baseline_uuid === value)
   const hasOptions = options.length > 0
+  const getStandardMeta = (standard: string) => {
+    const key = getKnownKey(standard, standardColors)
+    return {
+      label: key ? t(`standard.${key}`) : standard ? standard.toUpperCase() : t("unknown"),
+      color: standardColors[key || "other"],
+    }
+  }
+  const getProfileLabel = (profile: string) => {
+    const key = getKnownKey(profile, { machine: true, user: true, both: true })
+    return key ? t(`profile.${key}`) : profile || t("unknown")
+  }
 
   return (
     <div
@@ -122,13 +124,15 @@ export function BaselineSelector({
                     {getStandardMeta(selectedOption.standard).label}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {selectedOption.product || "unknown"} /{" "}
-                    {profileLabels[selectedOption.profile] || selectedOption.profile || "unknown"}
+                    {selectedOption.product || t("unknown")} /{" "}
+                    {getProfileLabel(selectedOption.profile)}
                   </span>
                 </div>
               </div>
             ) : (
-              <span className="text-muted-foreground">{hasOptions ? "选择基线..." : "暂无可选基线"}</span>
+              <span className="text-muted-foreground">
+                {hasOptions ? t("selectPlaceholder") : t("emptyPlaceholder")}
+              </span>
             )}
             <ChevronDownIcon
               className={cn(
@@ -140,11 +144,11 @@ export function BaselineSelector({
         </PopoverTrigger>
         <PopoverContent className="w-[480px] p-0" align="start" sideOffset={8}>
           <Command>
-            <CommandInput placeholder="搜索基线名称、标准或产品..." />
+            <CommandInput placeholder={t("searchPlaceholder")} />
             <CommandList className="max-h-[400px]">
               <CommandEmpty className="py-8 text-center">
                 <SearchIcon className="mx-auto h-8 w-8 text-muted-foreground/50" />
-                <p className="mt-2 text-sm text-muted-foreground">未找到匹配的基线</p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("noMatches")}</p>
               </CommandEmpty>
               <CommandGroup>
                 {options.map((option) => {
@@ -187,10 +191,10 @@ export function BaselineSelector({
                               {standard.label}
                             </Badge>
                             <Badge variant="outline" className="h-5 bg-secondary/50 px-1.5 text-[10px] font-medium">
-                              {option.product || "unknown"}
+                              {option.product || t("unknown")}
                             </Badge>
                             <Badge variant="outline" className="h-5 bg-secondary/50 px-1.5 text-[10px] font-medium">
-                              {profileLabels[option.profile] || option.profile || "unknown"}
+                              {getProfileLabel(option.profile)}
                             </Badge>
                             {option.os_version && (
                               <Badge variant="outline" className="h-5 bg-secondary/50 px-1.5 text-[10px] font-medium">
@@ -210,7 +214,7 @@ export function BaselineSelector({
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1">
                             <ServerIcon className="h-3 w-3" />
-                            <span>{option.host_count} 台主机</span>
+                            <span>{t("hosts", { count: option.host_count })}</span>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <span className="flex items-center gap-0.5">
@@ -228,9 +232,11 @@ export function BaselineSelector({
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span>{option.item_count} 项检查</span>
+                          <span>{t("checks", { count: option.item_count })}</span>
                           {value === option.baseline_uuid && (
-                            <Badge className="h-4 border-0 bg-primary/20 px-1.5 text-[9px] text-primary">当前</Badge>
+                            <Badge className="h-4 border-0 bg-primary/20 px-1.5 text-[9px] text-primary">
+                              {t("current")}
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -249,9 +255,9 @@ export function BaselineSelector({
             <ClockIcon className="h-4 w-4" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] leading-none text-muted-foreground">最后检查</span>
+            <span className="text-[10px] leading-none text-muted-foreground">{t("lastChecked")}</span>
             <span className="text-xs font-medium text-foreground">
-              {formatCheckTime(selectedOption.latest_check_time)}
+              {formatCheckTime(selectedOption.latest_check_time, t("noCheck"))}
             </span>
           </div>
         </div>
@@ -267,7 +273,7 @@ export function BaselineSelector({
         className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700"
       >
         <RefreshCwIcon className={cn("h-4 w-4", isRefreshing && "animate-spin")} />
-        <span className="sr-only">刷新数据</span>
+        <span className="sr-only">{t("refresh")}</span>
       </Button>
     </div>
   )

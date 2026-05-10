@@ -998,11 +998,87 @@
         "title": "Security Baseline Dashboard",
         "subtitle": "Security Baseline Dashboard",
         "lastChecked": "Last checked: {time}",
+        "empty": {
+          "title": "No baseline check data yet",
+          "description": "This tenant does not have any baseline reports available for statistics."
+        },
+        "errors": {
+          "options": "Failed to load baseline list",
+          "stats": "Failed to load baseline statistics"
+        },
+        "selector": {
+          "selectPlaceholder": "Select baseline...",
+          "emptyPlaceholder": "No baselines available",
+          "searchPlaceholder": "Search baseline name, standard, or product...",
+          "noMatches": "No matching baseline found",
+          "lastChecked": "Last checked",
+          "noCheck": "No check history",
+          "refresh": "Refresh data",
+          "unknown": "Unknown",
+          "current": "Current",
+          "hosts": "{count} hosts",
+          "checks": "{count} checks",
+          "standard": {
+            "cis": "CIS",
+            "dod": "DoD",
+            "msft": "MSFT",
+            "tls": "TLS",
+            "intune": "Intune",
+            "custom": "Custom",
+            "other": "Other"
+          },
+          "profile": {
+            "machine": "Machine",
+            "user": "User",
+            "both": "All"
+          }
+        },
+        "overview": {
+          "complianceRate": "Compliance rate",
+          "complianceRateDescription": "Overall pass rate of the current baseline",
+          "totalItems": "Total checks",
+          "totalItemsDescription": "Number of checks included in the current baseline",
+          "failedItems": "Failed checks",
+          "failedItemsDescription": "Number of checks that have not passed yet",
+          "highRiskItems": "High-risk checks",
+          "highRiskItemsDescription": "Number of high-risk checks in the current baseline"
+        },
+        "trend": {
+          "title": "Baseline check trend",
+          "description": "Compliance trend over the last 7 days",
+          "loading": "Loading trend data...",
+          "empty": "No trend data",
+          "highest": "Highest compliance",
+          "average": "Average compliance",
+          "change": "Period change"
+        },
+        "risk": {
+          "title": "Risk level distribution",
+          "description": "Check item distribution by risk level",
+          "low": "Low risk",
+          "medium": "Medium risk",
+          "high": "High risk",
+          "total": "Total checks",
+          "count": "{count} checks"
+        },
         "categoryStats": "Category Compliance Statistics",
         "categoryStatsDescription": "View detailed compliance status by check category.",
         "categoryTable": {
+          "loading": "Loading category statistics...",
+          "emptyTitle": "No category statistics",
+          "emptyDescription": "This baseline does not yet have any category check items to display.",
+          "pageSummary": "{current} / {total} pages · {count} categories",
+          "averagePassRate": "Average pass rate",
+          "categoryItemCount": "Checks {count}",
+          "resultsCount": "{count} results",
+          "details": "Details",
+          "detailSummary": "{items} checks total, {results} statistical results returned",
+          "checkItemName": "Check item name",
+          "severity": "Risk level",
+          "passRate": "Pass rate",
+          "action": "Action",
+          "unknown": "Unknown",
           "viewing": "Viewing: {name}",
-          "pageSummary": "{current} / {total} pages ? {count} categories",
           "complianceRate": "Compliance rate",
           "total": "Total: {total}",
           "compliant": "Compliant: {count}",
@@ -1016,7 +1092,7 @@
           "collapseDetails": "Collapse details",
           "viewDetails": "View details",
           "details": "Details",
-          "detailSummary": "{items} checks, {compliant} compliant",
+          "detailSummary": "{items} checks total, {results} statistical results returned",
           "checkItemName": "Check item name",
           "complianceStatus": "Compliance status",
           "securityScore": "Security score",
