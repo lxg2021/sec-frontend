@@ -28,7 +28,8 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const trendData = data.map((item) => ({
-    date: formatDateLabel(item.date),
+    date: item.date,
+    label: formatDateLabel(item.date),
     rate: Number(item.pass_rate || 0),
   }))
 
@@ -159,7 +160,7 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
                         />
                         <text
                           x={padding.left - 10}
-                          y={y + 4}
+                          y={y + 6}
                           textAnchor="end"
                           className="fill-slate-500 text-xs dark:fill-slate-400"
                           style={{
@@ -239,10 +240,10 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
                             points={`${point.x - 6},${point.y - 14} ${point.x + 6},${point.y - 14} ${point.x},${point.y - 6}`}
                             fill="rgba(15, 23, 42, 0.9)"
                           />
-                          <text x={point.x} y={point.y - 35} textAnchor="middle" className="fill-white text-xs font-semibold">
+                          <text x={point.x} y={point.y - 33} textAnchor="middle" className="fill-white text-xs font-semibold">
                             {point.rate.toFixed(2)}%
                           </text>
-                          <text x={point.x} y={point.y - 21} textAnchor="middle" className="fill-slate-300 text-xs">
+                          <text x={point.x} y={point.y - 19} textAnchor="middle" className="fill-slate-300 text-xs">
                             {point.date}
                           </text>
                         </g>
@@ -257,7 +258,7 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
                       <text
                         key={`${point.date}-label-${index}`}
                         x={point.x}
-                        y={chartHeight - padding.bottom + 24}
+                        y={chartHeight - padding.bottom + 28}
                         textAnchor="middle"
                         className="fill-slate-600 text-xs font-medium dark:fill-slate-400"
                         style={{
@@ -266,7 +267,7 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
                           transition: `opacity 0.4s ease-out ${0.6 + index * 0.03}s, transform 0.4s ease-out ${0.6 + index * 0.03}s`,
                         }}
                       >
-                        {point.date}
+                        {point.label}
                       </text>
                     )
                   })}

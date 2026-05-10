@@ -1050,7 +1050,7 @@
           "empty": "No trend data",
           "highest": "Highest compliance",
           "average": "Average compliance",
-          "change": "Period change"
+          "change": "7-day change"
         },
         "risk": {
           "title": "Risk level distribution",

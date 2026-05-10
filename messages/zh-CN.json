@@ -1052,7 +1052,7 @@
           "empty": "暂无趋势数据",
           "highest": "最高合规率",
           "average": "平均合规率",
-          "change": "周期变化"
+          "change": "近7日变化"
         },
         "risk": {
           "title": "风险等级分布",
