@@ -545,32 +545,34 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
           </div>
         </ScrollArea>
         {categoryTotalPages > 1 && (
-          <div className="border-t border-border px-3 py-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">
+          <div className="border-t border-border bg-slate-50/70 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+              <span className="text-xs font-medium text-slate-600">
                 {t("categoryPageInfo", {
                   current: categoryCurrentPage,
                   total: categoryTotalPages,
                   count: categoryRows.length,
                 })}
               </span>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={() => handleCategoryPageChange(categoryCurrentPage - 1)}
                   disabled={categoryCurrentPage === 1}
-                  className="h-7 w-7"
+                  className="h-8 gap-1.5 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
+                  <span>{t("previousPage")}</span>
                 </Button>
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={() => handleCategoryPageChange(categoryCurrentPage + 1)}
                   disabled={categoryCurrentPage === categoryTotalPages}
-                  className="h-7 w-7"
+                  className="h-8 gap-1.5 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
+                  <span>{t("nextPage")}</span>
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
