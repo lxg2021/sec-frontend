@@ -456,16 +456,16 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
           <TooltipProvider delayDuration={200}>
             <div className="flex items-center gap-1.5">
               <h3 className="text-sm font-semibold text-foreground">{t("categoryList")}</h3>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
-                    aria-label={t("progressLegendLabel")}
-                  >
-                    <Info className="h-3 w-3" />
-                  </button>
-                </TooltipTrigger>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-blue-600 transition-[transform,color] duration-200 ease-out hover:scale-105 hover:text-blue-700 active:scale-[1.03] focus-visible:scale-105 focus-visible:outline-none"
+                      aria-label={t("progressLegendLabel")}
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  </TooltipTrigger>
                 <TooltipContent side="right" align="center" className="max-w-[18rem] text-xs leading-5">
                   <div>{t("progressLegendLine1")}</div>
                   <div>{t("progressLegendLine2")}</div>
