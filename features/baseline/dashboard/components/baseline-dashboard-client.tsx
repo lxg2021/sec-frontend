@@ -111,16 +111,16 @@ export default function BaselineDashboardClient() {
   const hasOptions = options.length > 0
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="mx-auto max-w-[1680px] space-y-6 p-6">
-        <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm xl:flex-row xl:items-start xl:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Shield className="h-6 w-6" />
+    <div className="min-h-screen bg-gray-50">
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-blue-50 p-2">
+              <Shield className="h-6 w-6 text-blue-300" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-foreground">{t("title")}</h1>
-              <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
+              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
             </div>
           </div>
 
@@ -130,7 +130,7 @@ export default function BaselineDashboardClient() {
             onValueChange={setSelectedBaselineUUID}
             onRefresh={() => void loadOptions()}
             isRefreshing={loadingOptions}
-            className="w-full bg-card xl:w-auto xl:min-w-[720px]"
+            className="w-full xl:w-auto xl:min-w-[720px]"
           />
         </div>
 
