@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  Info,
   ListChecks,
   Search,
   ShieldAlert,
@@ -22,6 +23,7 @@ import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { ScrollArea } from "@/shared/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
 
 import { fetchBaselineItemStatistics, type BaselineItemResultStatistics, type CategoryGroup } from "../api"
@@ -451,7 +453,26 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
     <div className="flex min-h-[680px] flex-col overflow-hidden rounded-lg border bg-card lg:flex-row">
       <aside className="flex w-full flex-col border-b border-border lg:w-[30rem] lg:border-b-0 lg:border-r">
         <div className="border-b border-border px-4 py-3">
-          <h3 className="text-sm font-semibold text-foreground">{t("categoryList")}</h3>
+          <TooltipProvider delayDuration={200}>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold text-foreground">{t("categoryList")}</h3>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-4 w-4 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
+                    aria-label={t("progressLegendLabel")}
+                  >
+                    <Info className="h-3 w-3" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="center" className="max-w-[18rem] text-xs leading-5">
+                  <div>{t("progressLegendLine1")}</div>
+                  <div>{t("progressLegendLine2")}</div>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
           <p className="mt-0.5 text-xs text-muted-foreground">{t("categoryCount", { count: data.length })}</p>
         </div>
         <ScrollArea className="h-[520px] lg:h-full">
