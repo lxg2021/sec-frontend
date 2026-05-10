@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
-import { BarChart3, Shield } from "lucide-react"
+import { BarChart3, RefreshCw, Shield } from "lucide-react"
 
+import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 
 import {
@@ -71,6 +72,33 @@ export default function BaselineDashboardClient() {
     }
   }
 
+  const loadStats = useCallback(async (option: BaselineOption | null) => {
+    if (!option) return
+
+    const statDate = toDateOnly(option.latest_check_time)
+    setLoadingStats(true)
+    setError("")
+
+    try {
+      const [daily, trend, categories] = await Promise.all([
+        fetchBaselineDailyStats(option.baseline_uuid, statDate),
+        fetchBaselineTrend(option.baseline_uuid, shiftDate(statDate, -6), statDate),
+        fetchBaselineCategoryStats(option.baseline_uuid),
+      ])
+
+      setDailyStats(daily)
+      setTrendData(trend)
+      setCategoryData(categories)
+    } catch (err) {
+      setDailyStats(null)
+      setTrendData([])
+      setCategoryData([])
+      setError(err instanceof Error ? err.message : t("errors.stats"))
+    } finally {
+      setLoadingStats(false)
+    }
+  }, [t])
+
   useEffect(() => {
     void loadOptions()
   }, [])
@@ -83,30 +111,8 @@ export default function BaselineDashboardClient() {
       return
     }
 
-    const statDate = toDateOnly(selectedOption.latest_check_time)
-    setLoadingStats(true)
-    setError("")
-
-    Promise.all([
-      fetchBaselineDailyStats(selectedOption.baseline_uuid, statDate),
-      fetchBaselineTrend(selectedOption.baseline_uuid, shiftDate(statDate, -6), statDate),
-      fetchBaselineCategoryStats(selectedOption.baseline_uuid),
-    ])
-      .then(([daily, trend, categories]) => {
-        setDailyStats(daily)
-        setTrendData(trend)
-        setCategoryData(categories)
-      })
-      .catch((err) => {
-        setDailyStats(null)
-        setTrendData([])
-        setCategoryData([])
-        setError(err instanceof Error ? err.message : t("errors.stats"))
-      })
-      .finally(() => {
-        setLoadingStats(false)
-      })
-  }, [selectedOption])
+    void loadStats(selectedOption)
+  }, [loadStats, selectedOption])
 
   const hasOptions = options.length > 0
 
@@ -158,16 +164,30 @@ export default function BaselineDashboardClient() {
 
             <Card className="border bg-card shadow-sm">
               <CardHeader className="border-b border-border pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <BarChart3 className="h-5 w-5" />
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 p-2">
+                      <BarChart3 className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg font-semibold text-foreground">{t("categoryStats")}</CardTitle>
+                      <CardDescription className="text-sm text-muted-foreground">
+                        {t("categoryStatsDescription")}
+                      </CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg font-semibold text-foreground">{t("categoryStats")}</CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground">
-                      {t("categoryStatsDescription")}
-                    </CardDescription>
-                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void loadStats(selectedOption)}
+                    disabled={!selectedOption || loadingStats}
+                    className="h-9 gap-2 border-border/70 bg-background/80 px-3 text-xs shadow-none"
+                  >
+                    <RefreshCw className={loadingStats ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                    <span>{t("refresh")}</span>
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-4">
