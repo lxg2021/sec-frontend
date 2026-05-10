@@ -94,7 +94,7 @@ export function BaselineSelector({
   return (
     <div
       className={cn(
-        "flex items-center gap-4 rounded-xl bg-card/50 p-2 shadow-sm backdrop-blur-sm",
+        "flex items-center gap-5 rounded-xl bg-card/50 p-2 shadow-sm backdrop-blur-sm",
         className,
       )}
     >
@@ -109,7 +109,7 @@ export function BaselineSelector({
             role="combobox"
             aria-expanded={open}
             disabled={!hasOptions}
-            className="h-auto min-w-[280px] max-w-[430px] flex-1 justify-between px-3 py-2 hover:bg-accent/50 disabled:opacity-100"
+            className="h-auto min-w-[280px] max-w-[430px] flex-1 justify-between px-3 py-2 pr-5 hover:bg-accent/50 disabled:opacity-100"
           >
             {selectedOption ? (
               <div className="flex flex-col items-start gap-0.5 text-left">
@@ -250,7 +250,7 @@ export function BaselineSelector({
       </Popover>
 
       {selectedOption && (
-        <div className="flex min-w-[180px] items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
+        <div className="ml-4 flex min-w-[180px] items-center gap-3 rounded-lg bg-slate-50 px-3 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
             <ClockIcon className="h-4 w-4" />
           </div>
