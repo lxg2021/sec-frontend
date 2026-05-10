@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react"
 import { PieChart } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -36,6 +36,9 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
   }))
 
   const circumference = 2 * Math.PI * 70
+  const center = 90
+  const minRadius = 56
+  const maxRadius = 86
 
   useEffect(() => {
     if (loading) {
@@ -66,6 +69,39 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
 
   let offset = 0
 
+  const handlePieMouseMove = (event: ReactMouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect()
+    if (!rect.width || !rect.height || !riskData.length) return
+
+    const x = ((event.clientX - rect.left) / rect.width) * 180
+    const y = ((event.clientY - rect.top) / rect.height) * 180
+    const dx = x - center
+    const dy = y - center
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    if (distance < minRadius || distance > maxRadius) {
+      setHoveredIndex(null)
+      return
+    }
+
+    const angle = (Math.atan2(dy, dx) * 180) / Math.PI
+    const normalized = (angle + 450) % 360
+    const targetPercent = (normalized / 360) * 100
+
+    let accumulated = 0
+    for (let index = 0; index < riskData.length; index += 1) {
+      const item = riskData[index]
+      const nextAccumulated = accumulated + item.percentage
+      if (targetPercent >= accumulated && targetPercent < nextAccumulated) {
+        setHoveredIndex(index)
+        return
+      }
+      accumulated = nextAccumulated
+    }
+
+    setHoveredIndex(null)
+  }
+
   return (
     <Card className="h-full border-0 shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -82,8 +118,12 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
       <CardContent className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col items-center justify-center gap-6 lg:flex-row">
           <div className="relative flex items-center justify-center">
-            <div className="relative h-56 w-56 sm:h-64 sm:w-64">
-              <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 180 180">
+            <div
+              className="relative h-56 w-56 sm:h-64 sm:w-64"
+              onMouseMove={handlePieMouseMove}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              <svg className="h-full w-full -rotate-90 transform cursor-pointer" viewBox="0 0 180 180">
                 <circle
                   cx="90"
                   cy="90"
@@ -101,33 +141,46 @@ export default function RiskChart({ data, loading = false }: RiskChartProps) {
                   offset += segmentLength
 
                   const isHovered = hoveredIndex === index
+                  const isDimmed = hoveredIndex !== null && !isHovered
 
                   return (
-                    <circle
-                      key={item.level}
-                      cx="90"
-                      cy="90"
-                      r={70}
-                      fill="none"
-                      stroke={item.color}
-                      strokeWidth={isHovered ? 20 : 16}
-                      strokeDasharray={dash}
-                      strokeDashoffset={currentOffset}
-                      strokeLinecap="round"
-                      className="cursor-pointer transition-all duration-300"
-                      style={{
-                        filter: isHovered ? `drop-shadow(0 0 8px ${item.color})` : "none",
-                        transform: `scale(${isHovered ? 1.02 : 1})`,
-                        transformOrigin: "center",
-                      }}
-                      onMouseEnter={() => setHoveredIndex(index)}
-                      onMouseLeave={() => setHoveredIndex(null)}
-                    />
+                    <g key={item.level}>
+                      <circle
+                        cx="90"
+                        cy="90"
+                        r={70}
+                        fill="none"
+                        stroke="transparent"
+                        strokeWidth={28}
+                        strokeDasharray={dash}
+                        strokeDashoffset={currentOffset}
+                        strokeLinecap="round"
+                        className="pointer-events-none"
+                      />
+                      <circle
+                        cx="90"
+                        cy="90"
+                        r={70}
+                        fill="none"
+                        stroke={item.color}
+                        strokeWidth={isHovered ? 20 : 16}
+                        strokeDasharray={dash}
+                        strokeDashoffset={currentOffset}
+                        strokeLinecap="round"
+                        className="pointer-events-none transition-all duration-300"
+                        style={{
+                          filter: isHovered ? `drop-shadow(0 0 8px ${item.color})` : "none",
+                          opacity: isDimmed ? 0.38 : 1,
+                          transform: `scale(${isHovered ? 1.02 : 1})`,
+                          transformOrigin: "center",
+                        }}
+                      />
+                    </g>
                   )
                 })}
               </svg>
 
-              <div className="absolute inset-0 flex items-center justify-center">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                 <div className="text-center">
                   <div
                     className="text-3xl font-bold text-slate-800 transition-all duration-500 sm:text-4xl dark:text-white"
