@@ -460,7 +460,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                   <TooltipTrigger asChild>
                     <button
                       type="button"
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-blue-600 transition-[transform,color] duration-200 ease-out hover:scale-105 hover:text-blue-700 active:scale-[1.03] focus-visible:scale-105 focus-visible:outline-none"
+                      className="flex h-5 w-5 origin-center items-center justify-center rounded-full text-blue-600 transition-[transform,color] duration-200 ease-out hover:scale-105 hover:text-blue-700 active:scale-[1.03] focus-visible:scale-105 focus-visible:outline-none"
                       aria-label={t("progressLegendLabel")}
                     >
                       <Info className="h-3.5 w-3.5" />
