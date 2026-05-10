@@ -182,9 +182,22 @@ function getCategorySeverityMix(category: CategoryGroup) {
 
 function severityClass(severity: string) {
   const normalized = severity.toLowerCase()
-  if (normalized === "high") return "bg-red-50 text-red-700 border-red-200"
-  if (normalized === "medium") return "bg-amber-50 text-amber-700 border-amber-200"
-  return "bg-emerald-50 text-emerald-700 border-emerald-200"
+  if (normalized === "high") {
+    return {
+      container: "border-red-200/70 bg-red-50/60 text-red-700",
+      strip: "bg-red-500",
+    }
+  }
+  if (normalized === "medium") {
+    return {
+      container: "border-amber-200/70 bg-amber-50/60 text-amber-700",
+      strip: "bg-amber-500",
+    }
+  }
+  return {
+    container: "border-emerald-200/70 bg-emerald-50/60 text-emerald-700",
+    strip: "bg-emerald-500",
+  }
 }
 
 function getCategoryIconName(category: CategoryGroup) {
@@ -679,9 +692,23 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <Badge variant="outline" className={cn("text-xs", severityClass(item.severity))}>
-                          {getSeverityLabel(item.severity, t)}
-                        </Badge>
+                        {(() => {
+                          const severity = severityClass(item.severity)
+                          return (
+                            <div
+                              className={cn(
+                                "relative inline-flex h-[22px] w-16 items-center justify-center overflow-hidden rounded-md border px-2 text-xs font-medium",
+                                severity.container,
+                              )}
+                            >
+                              <span
+                                aria-hidden="true"
+                                className={cn("absolute left-0 top-0 h-full w-[3px]", severity.strip)}
+                              />
+                              <span className="relative z-10">{getSeverityLabel(item.severity, t)}</span>
+                            </div>
+                          )
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className="text-sm font-medium text-foreground">
