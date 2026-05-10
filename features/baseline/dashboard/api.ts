@@ -100,6 +100,28 @@ function normalizeArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : []
 }
 
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
+}
+
+function numberValue(value: unknown) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function normalizeBaselineItemStatistics(value: unknown): BaselineItemResultStatistics | null {
+  const data = asRecord(value)
+  if (!Object.keys(data).length) return null
+
+  return {
+    total_hosts: numberValue(data.total_hosts ?? data.totalHosts),
+    passed_hosts: numberValue(data.passed_hosts ?? data.passedHosts),
+    failed_hosts: numberValue(data.failed_hosts ?? data.failedHosts),
+    error_hosts: numberValue(data.error_hosts ?? data.errorHosts),
+    pass_rate: numberValue(data.pass_rate ?? data.passRate),
+  }
+}
+
 export async function fetchBaselineOptions(): Promise<BaselineOption[]> {
   const result = (await http.post("getBaselineOptions", {
     request_id: createRequestId(),
@@ -152,7 +174,7 @@ export async function fetchBaselineItemStatistics(
     request_id: createRequestId(),
     baseline_uuid: baselineUUID,
     item_id: itemID,
-  })) as ApiResult<BaselineItemResultStatistics | null>
+  })) as ApiResult<unknown>
 
-  return result.data ?? null
+  return normalizeBaselineItemStatistics(result.data)
 }
