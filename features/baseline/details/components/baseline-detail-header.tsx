@@ -109,7 +109,7 @@ function StatItem({
   return (
     <Card className="relative overflow-hidden rounded-md border bg-background shadow-sm transition-shadow hover:shadow-md">
       <span aria-hidden="true" className={cn("absolute inset-y-0 left-0 w-1", accentClassName)} />
-      <div className="flex min-h-[72px] items-center gap-2.5 px-3 py-3 pl-4">
+      <div className="flex min-h-[86px] items-center gap-2.5 px-3 py-4 pl-4">
         <div className={cn("shrink-0", iconClassName)}>{icon}</div>
         <div className="min-w-0">
           <div className="text-[11px] leading-4 text-muted-foreground">{label}</div>
@@ -159,21 +159,21 @@ export function BaselineDetailHeader({
       </Breadcrumb>
 
       <div className="flex flex-col gap-5 xl:flex-row xl:items-center">
-        <div className="flex min-w-0 shrink-0 items-start gap-4">
+        <div className="flex min-w-0 shrink-0 items-center gap-4">
             <Button
               type="button"
               variant="outline"
               size="icon"
               onClick={onBack}
-              className="mt-1 h-10 w-10 shrink-0 rounded-full bg-background shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              className="h-10 w-10 shrink-0 rounded-full bg-background shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
               aria-label="返回"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
 
-          <div className="flex min-h-[72px] w-full min-w-0 px-1 py-1 xl:w-[32rem]">
+          <div className="flex min-h-[86px] w-full min-w-0 px-1 py-1 xl:w-[32rem]">
             {isLoading ? (
-              <div className="flex min-h-[64px] w-full flex-col justify-between gap-2">
+              <div className="flex min-h-[78px] w-full flex-col justify-between gap-2">
                 <SkeletonLine className="h-8 w-full max-w-[28rem]" />
                 <div className="flex flex-wrap gap-2">
                   <SkeletonLine className="h-6 w-32 rounded-full" />
@@ -182,7 +182,7 @@ export function BaselineDetailHeader({
                 </div>
               </div>
             ) : (
-              <div className="flex min-h-[64px] w-full flex-col justify-between gap-2">
+              <div className="flex min-h-[78px] w-full flex-col justify-between gap-2">
                 <div className="min-w-0 w-full">
                   <TooltipProvider delayDuration={200}>
                     <Tooltip>
