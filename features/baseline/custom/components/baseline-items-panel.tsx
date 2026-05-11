@@ -90,7 +90,7 @@ export function BaselineItemsPanel({
   const severityStats = itemsData?.severity_statistics ?? []
 
   return (
-    <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+    <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

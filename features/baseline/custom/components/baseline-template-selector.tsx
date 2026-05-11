@@ -53,7 +53,7 @@ export function BaselineTemplateSelector({
   onRefresh,
 }: BaselineTemplateSelectorProps) {
   return (
-    <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+    <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -129,7 +129,7 @@ export function BaselineTemplateSelector({
                   className={cn(
                     "w-full rounded-2xl border p-3 text-left transition-all",
                     isSelected
-                      ? "border-zinc-900 bg-zinc-50 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+                      ? "border-blue-200 bg-blue-50/70 shadow-sm"
                       : "border-zinc-200 bg-white hover:border-zinc-400 hover:bg-zinc-50",
                   )}
                 >
@@ -137,7 +137,7 @@ export function BaselineTemplateSelector({
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-950">{template.display_name}</span>
-                        {isSelected && <Badge className="h-5 rounded-full bg-zinc-900 px-2 text-[11px] text-white">当前</Badge>}
+                        {isSelected && <Badge className="h-5 rounded-full bg-blue-600 px-2 text-[11px] text-white">当前</Badge>}
                       </div>
                       <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-500">
                         {template.description || `${template.standard.toUpperCase()} · ${template.product} · ${template.os_version}`}

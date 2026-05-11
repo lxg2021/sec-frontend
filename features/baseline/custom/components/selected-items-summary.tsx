@@ -110,12 +110,12 @@ export function SelectedItemsSummary({
   }
 
   return (
-    <Card className="rounded-2xl border border-zinc-200 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+    <Card className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-100">
-              <CheckCircle2 className="h-5 w-5 text-zinc-900" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+              <CheckCircle2 className="h-5 w-5 text-blue-300" />
             </div>
             <div>
               <CardTitle className="text-lg font-semibold text-zinc-950">已选检查项</CardTitle>

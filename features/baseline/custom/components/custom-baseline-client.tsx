@@ -239,10 +239,12 @@ export default function CustomBaselineClient() {
   }, [description, displayName, selectedItems])
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
-      <div className="flex h-[72px] items-center justify-between border-b border-zinc-200 bg-white px-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex flex-col gap-4 border-b border-zinc-200 bg-white px-6 py-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex items-center gap-4">
-          <Shield className="h-7 w-7 text-zinc-950" />
+          <div className="rounded-lg bg-blue-50 p-2">
+            <Shield className="h-6 w-6 text-blue-300" />
+          </div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-950">自定义基线</h1>
         </div>
 
@@ -257,7 +259,7 @@ export default function CustomBaselineClient() {
         </Button>
       </div>
 
-      <div className="mx-auto flex w-full max-w-[1720px] flex-col gap-6 px-8 py-8">
+      <div className="flex w-full flex-col gap-6 px-6 py-6">
         {templatesError ? (
           <Card className="border-destructive/20 bg-destructive/5 shadow-none">
             <CardContent className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-destructive">
@@ -287,7 +289,7 @@ export default function CustomBaselineClient() {
           </Card>
         ) : null}
 
-        <div className="grid gap-8 xl:grid-cols-[440px_minmax(0,0.88fr)_352px]">
+        <div className="grid gap-6 xl:grid-cols-[440px_minmax(0,0.9fr)_352px]">
           <BaselineTemplateSelector
             templates={filteredTemplates}
             loading={templatesLoading}
