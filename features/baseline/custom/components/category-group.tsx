@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/ui
 
 import type { BaselineTemplateCategoryGroup } from "../api"
 import { BaselineItemRow } from "./baseline-item-row"
-import { getCategoryLabel, isZhLocale } from "./locale-utils"
+import { getCategoryIconName, getCategoryLabel, isZhLocale } from "./locale-utils"
 
 interface CategoryGroupProps {
   group: BaselineTemplateCategoryGroup
@@ -29,6 +29,25 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
   const isAllSelected = selectedCount === group.items.length && group.items.length > 0
   const isPartialSelected = selectedCount > 0 && selectedCount < group.items.length
   const categoryLabel = getCategoryLabel(group, useZh)
+  const iconName = getCategoryIconName(group)
+
+  const CategoryIcon = () => (
+    <span
+      aria-hidden="true"
+      className="inline-block h-5 w-5 shrink-0"
+      style={{
+        backgroundColor: "#60a5fa",
+        WebkitMaskImage: `url(/icons/baseline/${iconName}.svg)`,
+        maskImage: `url(/icons/baseline/${iconName}.svg)`,
+        WebkitMaskPosition: "center",
+        maskPosition: "center",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat",
+        WebkitMaskSize: "contain",
+        maskSize: "contain",
+      }}
+    />
+  )
 
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
@@ -42,11 +61,13 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
 
           <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left transition-colors hover:text-zinc-950">
             <span className="text-zinc-500">{expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</span>
+            <CategoryIcon />
 
             <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-              <span className="truncate text-base font-semibold text-zinc-950">{categoryLabel}</span>
-              <span className="flex-shrink-0 text-sm text-zinc-500">
-                {selectedCount} / {group.item_count} {t("categoryGroup.selected")}
+              <span className="truncate text-sm font-medium text-zinc-950">{categoryLabel}</span>
+              <span className="min-w-[4.75rem] flex-shrink-0 whitespace-nowrap text-right text-sm font-medium tabular-nums text-zinc-500">
+                {selectedCount}/{group.item_count}
+                {useZh ? t("categoryGroup.selected") : ` ${t("categoryGroup.selected")}`}
               </span>
             </div>
           </CollapsibleTrigger>
