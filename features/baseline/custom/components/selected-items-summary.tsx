@@ -266,14 +266,17 @@ export function SelectedItemsSummary({
                                 key={item.id}
                                 type="button"
                                 onClick={() => onRemoveItem(templateUuid, item.id)}
+                                title={getItemLabel(item, useZh)}
                                 className={cn(
-                                  "flex w-full items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left transition-colors hover:bg-zinc-50",
+                                  "group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left transition-colors hover:bg-zinc-50",
                                 )}
                               >
-                                <span className="min-w-0 flex-1 truncate text-sm text-zinc-900">
+                                <span className="min-w-0 truncate text-sm text-zinc-900">
                                   {getItemLabel(item, useZh)}
                                 </span>
-                                <X className="h-3.5 w-3.5 flex-shrink-0 text-zinc-400" />
+                                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors group-hover:bg-zinc-100 group-hover:text-zinc-700">
+                                  <X className="h-3.5 w-3.5" />
+                                </span>
                               </button>
                             ))}
                           </div>
