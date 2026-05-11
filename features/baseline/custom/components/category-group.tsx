@@ -27,25 +27,17 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-        <CollapsibleTrigger asChild>
-          <button
-            type="button"
-            className="flex min-h-14 w-full items-center gap-3 bg-zinc-50 px-4 py-3 text-left transition-colors hover:bg-zinc-100"
-          >
+        <div className="flex min-h-14 items-center gap-3 bg-zinc-50 px-4 py-3">
+          <Checkbox
+            checked={isPartialSelected ? "indeterminate" : isAllSelected}
+            onCheckedChange={(checked) => onToggleCategory(itemIds, checked === true)}
+            aria-label={`选择分类 ${group.category_zh || group.category}`}
+          />
+
+          <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left transition-colors hover:text-zinc-950">
             <span className="text-zinc-500">
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </span>
-
-            <Checkbox
-              checked={isAllSelected}
-              onCheckedChange={(checked) => onToggleCategory(itemIds, Boolean(checked))}
-              onClick={(event) => event.stopPropagation()}
-              ref={(element) => {
-                if (element) {
-                  ;(element as HTMLButtonElement & { indeterminate: boolean }).indeterminate = isPartialSelected
-                }
-              }}
-            />
 
             <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
               <span className="truncate text-base font-semibold text-zinc-950">{group.category_zh || group.category}</span>
@@ -53,8 +45,8 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
                 {selectedCount} / {group.item_count} 已选
               </span>
             </div>
-          </button>
-        </CollapsibleTrigger>
+          </CollapsibleTrigger>
+        </div>
 
         <CollapsibleContent>
           <div className="space-y-2 border-t border-zinc-200 bg-white p-3">

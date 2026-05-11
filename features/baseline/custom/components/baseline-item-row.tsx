@@ -25,22 +25,20 @@ export function BaselineItemRow({ item, isSelected, onToggle }: BaselineItemRowP
   const severity = severityConfig[item.severity] || severityConfig.Low
 
   return (
-    <button
-      type="button"
-      onClick={() => onToggle(item.id)}
+    <div
       className={cn(
-        "flex w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors",
+        "flex items-start gap-3 rounded-xl border px-3 py-3 transition-colors",
         isSelected ? "border-zinc-900 bg-zinc-50" : "border-zinc-200 bg-white hover:bg-zinc-50",
       )}
     >
       <Checkbox
         checked={isSelected}
         onCheckedChange={() => onToggle(item.id)}
-        onClick={(event) => event.stopPropagation()}
+        aria-label={`选择检查项 ${item.name_zh || item.name}`}
         className="mt-0.5"
       />
 
-      <div className="min-w-0 flex-1">
+      <button type="button" onClick={() => onToggle(item.id)} className="min-w-0 flex-1 text-left">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-medium text-zinc-950">{item.name_zh}</span>
           <Badge variant="secondary" className="h-5 rounded-full bg-zinc-100 px-1.5 text-[11px] font-normal text-zinc-900">
@@ -73,7 +71,7 @@ export function BaselineItemRow({ item, isSelected, onToggle }: BaselineItemRowP
             </Tooltip>
           </TooltipProvider>
         </div>
-      </div>
-    </button>
+      </button>
+    </div>
   )
 }
