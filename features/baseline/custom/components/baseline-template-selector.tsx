@@ -150,7 +150,9 @@ export function BaselineTemplateSelector({
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-950">{getTemplateLabel(template)}</span>
                         {isSelected && (
-                          <Badge className="h-5 rounded-full bg-sky-600 px-2 text-[11px] text-white">{t("templateSelector.current")}</Badge>
+                          <Badge className="h-5 shrink-0 rounded-full bg-sky-600 px-2 text-[11px] text-white">
+                            {t("templateSelector.current")}
+                          </Badge>
                         )}
                       </div>
                       <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-500">
