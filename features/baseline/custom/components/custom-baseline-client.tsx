@@ -83,9 +83,9 @@ export default function CustomBaselineClient() {
     })
   }, [profileFilter, standardFilter, templates])
 
-  const selectedTemplate = useMemo(
-    () => templates.find((template) => template.uuid === selectedTemplateUuid) ?? null,
-    [selectedTemplateUuid, templates],
+  const visibleSelectedTemplate = useMemo(
+    () => filteredTemplates.find((template) => template.uuid === selectedTemplateUuid) ?? null,
+    [filteredTemplates, selectedTemplateUuid],
   )
 
   const selectedCountMap = useMemo(() => {
@@ -96,26 +96,26 @@ export default function CustomBaselineClient() {
     return map
   }, [selectedItems])
 
-  const currentSelectedItems = selectedTemplate ? selectedItems.get(selectedTemplate.uuid) ?? new Set<string>() : new Set<string>()
-  const currentTemplateItemsData = selectedTemplate ? itemsDataMap.get(selectedTemplate.uuid) ?? null : null
+  const currentSelectedItems = visibleSelectedTemplate ? selectedItems.get(visibleSelectedTemplate.uuid) ?? new Set<string>() : new Set<string>()
+  const currentTemplateItemsData = visibleSelectedTemplate ? itemsDataMap.get(visibleSelectedTemplate.uuid) ?? null : null
 
   useEffect(() => {
     let cancelled = false
 
     const loadItems = async () => {
-      if (!selectedTemplate) return
-      if (itemsDataMap.has(selectedTemplate.uuid)) return
+      if (!visibleSelectedTemplate) return
+      if (itemsDataMap.has(visibleSelectedTemplate.uuid)) return
 
-      setItemsLoadingTemplateUuid(selectedTemplate.uuid)
+      setItemsLoadingTemplateUuid(visibleSelectedTemplate.uuid)
       setItemsError("")
 
       try {
-        const data = await getBaselineTemplateItems(selectedTemplate.uuid)
+        const data = await getBaselineTemplateItems(visibleSelectedTemplate.uuid)
         if (cancelled) return
         if (data) {
           setItemsDataMap((current) => {
             const next = new Map(current)
-            next.set(selectedTemplate.uuid, data)
+            next.set(visibleSelectedTemplate.uuid, data)
             return next
           })
         }
@@ -134,7 +134,7 @@ export default function CustomBaselineClient() {
     return () => {
       cancelled = true
     }
-  }, [itemsDataMap, selectedTemplate, t])
+  }, [itemsDataMap, t, visibleSelectedTemplate])
 
   const totalSelectedCount = useMemo(
     () => Array.from(selectedItems.values()).reduce((sum, itemIds) => sum + itemIds.size, 0),
@@ -293,9 +293,9 @@ export default function CustomBaselineClient() {
           />
 
           <BaselineItemsPanel
-            template={selectedTemplate}
+            template={visibleSelectedTemplate}
             itemsData={currentTemplateItemsData}
-            loading={itemsLoadingTemplateUuid === selectedTemplateUuid}
+            loading={visibleSelectedTemplate ? itemsLoadingTemplateUuid === visibleSelectedTemplate.uuid : false}
             errorMessage={itemsError}
             searchTerm={itemSearchTerm}
             onSearchTermChange={setItemSearchTerm}
