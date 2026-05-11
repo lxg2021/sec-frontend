@@ -115,16 +115,17 @@ export function SelectedItemsSummary({
   }
 
   return (
-    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
-      <CardHeader className="border-b border-zinc-200 pb-4">
+    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-shadow duration-200 hover:shadow-xl">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-violet-500" />
+      <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-              <CheckCircle2 className="h-5 w-5 text-blue-500" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm shadow-blue-200/70">
+              <CheckCircle2 className="h-5 w-5 text-white" />
             </div>
-            <div>
-              <CardTitle className="text-lg font-semibold text-zinc-950">{t("summary.title")}</CardTitle>
-              <CardDescription className="mt-1 text-sm text-zinc-500">{t("summary.fromTemplates", { count: selectedItems.size })}</CardDescription>
+            <div className="space-y-1">
+              <CardTitle className="text-base font-semibold text-zinc-950">{t("summary.title")}</CardTitle>
+              <CardDescription className="text-sm text-zinc-500">{t("summary.fromTemplates", { count: selectedItems.size })}</CardDescription>
             </div>
           </div>
           <Button
@@ -133,7 +134,7 @@ export function SelectedItemsSummary({
             size="sm"
             onClick={onClearAll}
             disabled={!hasSelections}
-            className="h-9 gap-2 px-3 text-red-600 hover:bg-red-50 hover:text-red-700"
+            className="h-9 gap-2 rounded-xl px-3 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
           >
             <Trash2 className="h-4 w-4" />
             <span>{t("summary.clear")}</span>
@@ -143,7 +144,7 @@ export function SelectedItemsSummary({
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-4">
         {!hasSelections ? (
-          <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
+          <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-gradient-to-b from-zinc-50 to-white text-center">
             <div>
               <CheckCircle2 className="mx-auto h-10 w-10 text-zinc-300" />
               <p className="mt-3 text-sm font-medium text-zinc-950">{t("summary.noItemsTitle")}</p>
@@ -152,16 +153,19 @@ export function SelectedItemsSummary({
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-zinc-900" />
-                  <span className="text-sm font-medium text-zinc-950">{t("summary.totalSelected")}</span>
+            <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white via-slate-50 to-blue-50/60 p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-zinc-900" />
+                    <span className="text-sm font-medium text-zinc-950">{t("summary.totalSelected")}</span>
+                  </div>
+                  <div className="mt-1 text-xs text-zinc-500">{t("summary.fromTemplates", { count: selectedItems.size })}</div>
                 </div>
                 <span className="text-4xl font-semibold tabular-nums text-zinc-950">{summary.totalSelected}</span>
               </div>
 
-              <div className="mt-4 h-3 overflow-hidden rounded-full bg-zinc-100">
+              <div className="mt-4 h-3 overflow-hidden rounded-full bg-white shadow-inner">
                 <div className="flex h-full">
                   <div className="bg-red-500" style={{ width: `${summary.totalSelected ? (summary.highCount / summary.totalSelected) * 100 : 0}%` }} />
                   <div className="bg-amber-500" style={{ width: `${summary.totalSelected ? (summary.mediumCount / summary.totalSelected) * 100 : 0}%` }} />
@@ -172,15 +176,15 @@ export function SelectedItemsSummary({
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-600">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                  {t("summary.high")} <span className="font-semibold text-zinc-950">{summary.highCount}</span>
+                  {t("summary.high")} <span className="font-semibold tabular-nums text-zinc-950">{summary.highCount}</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  {t("summary.medium")} <span className="font-semibold text-zinc-950">{summary.mediumCount}</span>
+                  {t("summary.medium")} <span className="font-semibold tabular-nums text-zinc-950">{summary.mediumCount}</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  {t("summary.low")} <span className="font-semibold text-zinc-950">{summary.lowCount}</span>
+                  {t("summary.low")} <span className="font-semibold tabular-nums text-zinc-950">{summary.lowCount}</span>
                 </span>
               </div>
             </div>
@@ -193,16 +197,16 @@ export function SelectedItemsSummary({
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {summary.categoryStats.slice(0, 5).map(([category, count]) => (
-                    <Badge key={category} variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-900">
+                    <Badge key={category} variant="secondary" className="h-6 rounded-full border border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-700 shadow-sm">
                       {category}
-                      <span className="ml-1 font-medium text-zinc-950">{count}</span>
+                      <span className="ml-1 font-medium tabular-nums text-zinc-950">{count}</span>
                     </Badge>
                   ))}
                   {summary.categoryStats.length > 5 && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Badge variant="outline" className="h-6 cursor-help rounded-full border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-900">
+                          <Badge variant="outline" className="h-6 cursor-help rounded-full border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-900 shadow-sm">
                             +{summary.categoryStats.length - 5}
                           </Badge>
                         </TooltipTrigger>
@@ -228,8 +232,8 @@ export function SelectedItemsSummary({
                   const isExpanded = expandedTemplates.has(templateUuid)
 
                   return (
-                    <div key={templateUuid} className="rounded-2xl border border-zinc-200 bg-white">
-                      <div className="flex items-start gap-3 px-3 py-3">
+                    <div key={templateUuid} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                      <div className="flex items-start gap-3 bg-gradient-to-r from-white to-zinc-50/80 px-3 py-3">
                         <button
                           type="button"
                           onClick={() => toggleTemplate(templateUuid)}
@@ -237,7 +241,7 @@ export function SelectedItemsSummary({
                         >
                           <div className="flex items-center gap-2">
                             <span className="truncate text-sm font-semibold text-zinc-950">{template.display_name}</span>
-                            <Badge variant="outline" className="h-5 rounded-full border-zinc-200 bg-white px-1.5 text-[11px] font-normal text-zinc-900">
+                            <Badge variant="outline" className="h-5 rounded-full border-zinc-200 bg-white px-1.5 text-[11px] font-normal text-zinc-700">
                               {t("summary.templateItems", { count: items.length })}
                             </Badge>
                           </div>
@@ -251,7 +255,7 @@ export function SelectedItemsSummary({
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 flex-shrink-0 text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                          className="h-8 w-8 flex-shrink-0 rounded-xl text-zinc-400 hover:bg-red-50 hover:text-red-600"
                           onClick={() => onRemoveTemplate(templateUuid)}
                         >
                           <X className="h-4 w-4" />
@@ -259,8 +263,8 @@ export function SelectedItemsSummary({
                       </div>
 
                       {isExpanded && (
-                        <div className="border-t border-zinc-200 bg-zinc-50 p-2">
-                          <div className="space-y-1">
+                        <div className="border-t border-zinc-200 bg-zinc-50/70 p-2">
+                          <div className="space-y-1.5">
                             {items.map((item) => (
                               <button
                                 key={item.id}
@@ -268,7 +272,7 @@ export function SelectedItemsSummary({
                                 onClick={() => onRemoveItem(templateUuid, item.id)}
                                 title={getItemLabel(item, useZh)}
                                 className={cn(
-                                  "group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left transition-colors hover:bg-zinc-50",
+                                  "group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-left transition-colors hover:border-zinc-300 hover:bg-zinc-50",
                                 )}
                               >
                                 <span className="min-w-0 truncate text-sm text-zinc-900">

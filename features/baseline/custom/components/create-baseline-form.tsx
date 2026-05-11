@@ -43,16 +43,16 @@ export function CreateBaselineForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl sm:max-w-[560px]">
         <DialogHeader>
-          <DialogTitle>{t("createForm.title")}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-lg font-semibold text-zinc-950">{t("createForm.title")}</DialogTitle>
+          <DialogDescription className="text-sm text-zinc-500">
             {t("createForm.selectedDescription", { selectedItemCount, selectedTemplateCount })}
           </DialogDescription>
         </DialogHeader>
 
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="border-b border-border/40 pb-4">
+        <Card className="border-zinc-200/80 shadow-sm">
+          <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
             <CardTitle className="text-base font-semibold text-foreground">{t("createForm.infoTitle")}</CardTitle>
             <CardDescription className="mt-1 text-sm text-muted-foreground">{t("createForm.infoDescription")}</CardDescription>
           </CardHeader>
@@ -73,7 +73,7 @@ export function CreateBaselineForm({
                 value={displayName}
                 onChange={(event) => onDisplayNameChange(event.target.value)}
                 placeholder={t("createForm.baselineNamePlaceholder")}
-                className="h-10"
+                className="h-10 rounded-xl border-zinc-200 shadow-none focus-visible:border-blue-300"
               />
             </div>
 
@@ -84,17 +84,22 @@ export function CreateBaselineForm({
                 value={description}
                 onChange={(event) => onDescriptionChange(event.target.value)}
                 placeholder={t("createForm.descriptionPlaceholder")}
-                className="min-h-28 resize-none"
+                className="min-h-28 resize-none rounded-xl border-zinc-200 shadow-none focus-visible:border-blue-300"
               />
             </div>
           </CardContent>
         </Card>
 
         <DialogFooter>
-          <Button type="button" variant="outline" onClick={onReset} disabled={submitting}>
+          <Button type="button" variant="outline" onClick={onReset} disabled={submitting} className="rounded-xl border-zinc-200 shadow-none">
             {t("createForm.reset")}
           </Button>
-          <Button type="button" onClick={onSubmit} disabled={submitting || selectedItemCount === 0}>
+          <Button
+            type="button"
+            onClick={onSubmit}
+            disabled={submitting || selectedItemCount === 0}
+            className="rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 shadow-sm shadow-zinc-300/40 hover:from-zinc-900 hover:to-zinc-700"
+          >
             {submitting && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
             {t("createForm.create")}
           </Button>

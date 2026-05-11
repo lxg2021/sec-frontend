@@ -61,16 +61,17 @@ export function BaselineTemplateSelector({
   ]
 
   return (
-    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
-      <CardHeader className="border-b border-zinc-200 pb-4">
+    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-shadow duration-200 hover:shadow-xl">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-emerald-400" />
+      <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-              <LayoutGrid className="h-5 w-5 text-blue-500" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm shadow-blue-200/70">
+              <LayoutGrid className="h-5 w-5 text-white" />
             </div>
-            <div>
-              <CardTitle className="text-lg font-semibold text-zinc-950">{t("templateSelector.title")}</CardTitle>
-              <CardDescription className="mt-1 text-sm text-zinc-500">{t("templateSelector.subtitle")}</CardDescription>
+            <div className="space-y-1">
+              <CardTitle className="text-base font-semibold text-zinc-950">{t("templateSelector.title")}</CardTitle>
+              <CardDescription className="text-sm text-zinc-500">{t("templateSelector.subtitle")}</CardDescription>
             </div>
           </div>
           <Button
@@ -78,16 +79,16 @@ export function BaselineTemplateSelector({
             variant="outline"
             size="sm"
             onClick={onRefresh}
-            className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none"
+            className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
             <span>{t("templateSelector.refresh")}</span>
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 pt-2">
+        <div className="grid grid-cols-2 gap-2 pt-3">
           <Select value={standardFilter} onValueChange={onStandardFilterChange}>
-            <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white shadow-none">
+            <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white shadow-none transition-colors hover:border-zinc-300">
               <SlidersHorizontal className="mr-2 h-4 w-4 text-zinc-400" />
               <SelectValue placeholder={t("templateSelector.standardPlaceholder")} />
             </SelectTrigger>
@@ -101,7 +102,7 @@ export function BaselineTemplateSelector({
           </Select>
 
           <Select value={profileFilter} onValueChange={onProfileFilterChange}>
-            <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white shadow-none">
+            <SelectTrigger className="h-10 rounded-xl border-zinc-200 bg-white shadow-none transition-colors hover:border-zinc-300">
               <SlidersHorizontal className="mr-2 h-4 w-4 text-zinc-400" />
               <SelectValue placeholder={t("templateSelector.profilePlaceholder")} />
             </SelectTrigger>
@@ -121,7 +122,7 @@ export function BaselineTemplateSelector({
           {loading ? (
             Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
           ) : templates.length === 0 ? (
-            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-gradient-to-b from-zinc-50 to-white">
               <div className="text-center">
                 <LayoutGrid className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="text-sm font-medium text-zinc-950">{t("templateSelector.emptyTitle")}</p>
@@ -139,10 +140,10 @@ export function BaselineTemplateSelector({
                   type="button"
                   onClick={() => onSelectTemplate(template)}
                   className={cn(
-                    "w-full rounded-2xl border p-3 text-left transition-all",
+                    "group w-full rounded-2xl border p-3 text-left transition-all duration-200",
                     isSelected
-                      ? "border-zinc-950 bg-blue-50/70 shadow-sm"
-                      : "border-zinc-200 bg-white hover:border-zinc-400 hover:bg-zinc-50",
+                      ? "border-blue-300 bg-blue-50/80 shadow-sm ring-1 ring-blue-100"
+                      : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-sm",
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -150,7 +151,7 @@ export function BaselineTemplateSelector({
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-950">{getTemplateLabel(template)}</span>
                         {isSelected && (
-                          <Badge className="h-5 shrink-0 rounded-full bg-sky-600 px-2 text-[11px] text-white">
+                          <Badge className="h-5 shrink-0 rounded-full bg-blue-600 px-2 text-[11px] text-white shadow-sm">
                             {t("templateSelector.current")}
                           </Badge>
                         )}
@@ -161,24 +162,24 @@ export function BaselineTemplateSelector({
                     </div>
                     <Badge
                       variant="outline"
-                      className="flex-shrink-0 rounded-full border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-900"
+                      className="flex-shrink-0 rounded-full border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-700 shadow-none"
                     >
                       {template.item_count} {t("templateSelector.itemsSuffix")}
                     </Badge>
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-900">
+                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
                       {t("templateSelector.standardLabel")}: {template.standard || "STANDARD"}
                     </Badge>
-                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-900">
+                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
                       {t("templateSelector.profileLabel")}: {template.profile || "profile"}
                     </Badge>
-                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-900">
-                      {t("templateSelector.versionLabel")}: {template.os_version || template.baseline_version || "—"}
+                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
+                      {t("templateSelector.versionLabel")}: {template.os_version || template.baseline_version || "--"}
                     </Badge>
                     {selectedCount > 0 && (
-                      <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-900">
+                      <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
                         {t("templateSelector.selected")} {selectedCount}
                       </Badge>
                     )}
@@ -189,12 +190,12 @@ export function BaselineTemplateSelector({
           )}
         </div>
 
-        <div className="mt-2 border-t border-zinc-200 pt-2">
+        <div className="mt-2 border-t border-zinc-200/80 pt-2">
           <div className="flex justify-center">
             <Button
               type="button"
               onClick={onCreateBaseline}
-              className="h-11 gap-3 rounded-xl bg-zinc-950 px-5 text-base font-semibold text-white hover:bg-zinc-800"
+              className="h-11 gap-3 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 px-5 text-base font-semibold text-white shadow-sm shadow-zinc-300/40 transition-transform hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700"
             >
               <Plus className="h-5 w-5" />
               <span>{t("createBaseline")}</span>

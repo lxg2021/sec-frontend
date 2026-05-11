@@ -34,7 +34,7 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
   const CategoryIcon = () => (
     <span
       aria-hidden="true"
-      className="inline-block h-5 w-5 shrink-0 text-sky-500 transition-colors duration-200 group-hover:text-sky-600"
+      className="inline-block h-6 w-6 shrink-0 text-sky-500 transition-colors duration-200 group-hover:text-sky-600"
       style={{
         backgroundColor: "currentColor",
         WebkitMaskImage: `url(/icons/baseline/${iconName}.svg)`,
@@ -51,32 +51,42 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
 
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
-      <div className="group overflow-hidden rounded-xl border border-zinc-200 bg-white transition-all duration-200 hover:border-sky-200 hover:bg-sky-50/60 hover:shadow-sm">
-        <div className="flex min-h-14 items-center gap-3 bg-zinc-50 px-4 py-3 transition-colors duration-200 group-hover:bg-sky-50/60">
+      <div className="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md">
+        <div className="flex min-h-14 items-center gap-3 bg-gradient-to-r from-zinc-50 via-white to-zinc-50 px-4 py-3 transition-colors duration-200 group-hover:from-sky-50/70 group-hover:via-white group-hover:to-sky-50/50">
           <Checkbox
             checked={isPartialSelected ? "indeterminate" : isAllSelected}
             onCheckedChange={(checked) => onToggleCategory(itemIds, checked === true)}
             aria-label={`${t("categoryGroup.selectCategory")} ${categoryLabel}`}
+            className="border-zinc-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600"
           />
 
-          <CollapsibleTrigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg text-left transition-colors duration-200 hover:text-sky-700">
-            <span className="text-zinc-500 transition-colors duration-200 group-hover:text-sky-600">
-              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </span>
-            <CategoryIcon />
-
-            <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-              <span className="truncate text-sm font-medium text-zinc-950 transition-colors duration-200 group-hover:text-sky-950">{categoryLabel}</span>
-              <span className="min-w-[4.75rem] flex-shrink-0 whitespace-nowrap text-right text-sm font-medium tabular-nums text-zinc-500 transition-colors duration-200 group-hover:text-sky-700">
-                {selectedCount}/{group.item_count}
-                {useZh ? t("categoryGroup.selected") : ` ${t("categoryGroup.selected")}`}
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg text-left transition-colors duration-200 hover:text-sky-700"
+            >
+              <span className="text-zinc-500 transition-colors duration-200 group-hover:text-sky-600">
+                {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </span>
-            </div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 transition-colors duration-200 group-hover:bg-white">
+                <CategoryIcon />
+              </div>
+
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+                <span className="truncate text-sm font-medium text-zinc-950 transition-colors duration-200 group-hover:text-sky-950">
+                  {categoryLabel}
+                </span>
+                <span className="min-w-[5.25rem] flex-shrink-0 rounded-full bg-white px-2.5 py-1 text-right text-xs font-semibold tabular-nums text-zinc-600 shadow-sm transition-colors duration-200 group-hover:text-sky-700">
+                  {selectedCount}/{group.item_count}
+                  {useZh ? t("categoryGroup.selected") : ` ${t("categoryGroup.selected")}`}
+                </span>
+              </div>
+            </button>
           </CollapsibleTrigger>
         </div>
 
         <CollapsibleContent>
-          <div className="space-y-2 border-t border-zinc-200 bg-white p-3">
+          <div className="space-y-2 border-t border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/50 p-3">
             {group.items.map((item) => (
               <BaselineItemRow key={item.id} item={item} isSelected={selectedItems.has(item.id)} onToggle={onToggleItem} />
             ))}

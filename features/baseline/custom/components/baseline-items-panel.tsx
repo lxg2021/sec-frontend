@@ -1,8 +1,9 @@
-﻿"use client"
+"use client"
 
 import { useLocale, useTranslations } from "next-intl"
 import { AlertCircle, Search, SquareCheckBig, SquareDashedMousePointer, ShieldCheck } from "lucide-react"
 
+import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
@@ -102,18 +103,19 @@ export function BaselineItemsPanel({
   const severityStats = itemsData?.severity_statistics ?? []
 
   return (
-    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
-      <CardHeader className="border-b border-zinc-200 pb-4">
+    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-shadow duration-200 hover:shadow-xl">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-violet-500" />
+      <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-              <SquareCheckBig className="h-5 w-5 text-blue-500" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm shadow-blue-200/70">
+              <SquareCheckBig className="h-5 w-5 text-white" />
             </div>
-            <div className="min-w-0">
-              <CardTitle className="truncate text-lg font-semibold text-zinc-950">
+            <div className="min-w-0 space-y-1">
+              <CardTitle className="truncate text-base font-semibold text-zinc-950">
                 {template?.display_name || t("itemsPanel.chooseTemplateTitle")}
               </CardTitle>
-              <CardDescription className="mt-1 text-sm text-zinc-500">
+              <CardDescription className="text-sm text-zinc-500">
                 {template ? t("itemsPanel.selectedSubtitle") : t("itemsPanel.emptySubtitle")}
               </CardDescription>
             </div>
@@ -126,7 +128,7 @@ export function BaselineItemsPanel({
               size="sm"
               onClick={handleSelectAll}
               disabled={!template || !itemsData}
-              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none"
+              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
             >
               <SquareCheckBig className="h-4 w-4" />
               <span>{t("itemsPanel.selectAll")}</span>
@@ -137,7 +139,7 @@ export function BaselineItemsPanel({
               size="sm"
               onClick={handleClear}
               disabled={!template || selectedCount === 0}
-              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none"
+              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-zinc-300 hover:bg-zinc-50"
             >
               <SquareDashedMousePointer className="h-4 w-4" />
               <span>{t("itemsPanel.clear")}</span>
@@ -146,44 +148,46 @@ export function BaselineItemsPanel({
         </div>
 
         {itemsData && (
-          <>
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="space-y-3 pt-3">
+            <div className="flex flex-wrap items-center gap-2">
               {severityStats.map((stat) => (
-                <span key={stat.severity} className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-900">
+                <span
+                  key={stat.severity}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-700 shadow-sm"
+                >
                   <span className={stat.severity === "High" ? "text-red-500" : stat.severity === "Medium" ? "text-amber-500" : "text-emerald-500"}>
                     {stat.severity === "High" ? t("itemsPanel.high") : stat.severity === "Medium" ? t("itemsPanel.medium") : t("itemsPanel.low")}:
                   </span>
-                  <span className="font-medium">
+                  <span className="font-medium tabular-nums text-zinc-950">
                     {stat.count} ({stat.percentage.toFixed(1)}%)
                   </span>
                 </span>
               ))}
             </div>
 
-            <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <Input
                   value={searchTerm}
                   onChange={(event) => onSearchTermChange(event.target.value)}
                   placeholder={t("itemsPanel.searchPlaceholder")}
-                  className="h-10 rounded-xl border-zinc-200 pl-9 shadow-none"
+                  className="h-10 rounded-xl border-zinc-200 bg-white pl-9 shadow-none transition-colors hover:border-zinc-300 focus-visible:border-blue-300"
                   disabled={!template}
                 />
               </div>
-              <div className="flex-shrink-0 text-sm text-zinc-600">
-                {t("itemsPanel.selectedPrefix")}
-                <span className="font-semibold text-zinc-950">{selectedCount}</span> / {totalCount} {t("itemsPanel.itemsSuffix")}
-              </div>
+              <Badge variant="secondary" className="h-10 rounded-xl bg-blue-50 px-3 text-sm font-medium tabular-nums text-blue-700">
+                {selectedCount} / {totalCount} {t("itemsPanel.itemsSuffix")}
+              </Badge>
             </div>
-          </>
+          </div>
         )}
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-4">
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
           {!template ? (
-            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-gradient-to-b from-zinc-50 to-white text-center">
               <div>
                 <ShieldCheck className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="mt-3 text-lg font-medium text-zinc-950">{t("itemsPanel.chooseTemplateTitle")}</p>
@@ -193,7 +197,7 @@ export function BaselineItemsPanel({
           ) : loading ? (
             Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-24 rounded-2xl" />)
           ) : !itemsData ? (
-            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-gradient-to-b from-zinc-50 to-white text-center">
               <div>
                 <AlertCircle className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="mt-3 text-sm font-medium text-zinc-950">{errorMessage || t("itemsPanel.loadErrorTitle")}</p>
@@ -201,7 +205,7 @@ export function BaselineItemsPanel({
               </div>
             </div>
           ) : filteredGroups.length === 0 ? (
-            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-gradient-to-b from-zinc-50 to-white text-center">
               <div>
                 <Search className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="mt-3 text-sm font-medium text-zinc-950">{t("itemsPanel.noResultsTitle")}</p>

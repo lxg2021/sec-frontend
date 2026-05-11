@@ -241,10 +241,11 @@ export default function CustomBaselineClient() {
   }, [description, displayName, selectedItems, t])
 
   return (
-    <div className="h-full overflow-hidden bg-gray-50">
-      <div className="flex h-full min-h-0 w-full flex-col gap-6 px-6 py-6">
+    <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f8fafc_58%,#eef4ff_100%)]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_26%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.08),transparent_22%),radial-gradient(circle_at_bottom,rgba(99,102,241,0.05),transparent_24%)]" />
+      <div className="relative flex h-full min-h-0 w-full flex-col gap-6 px-6 py-6">
         {templatesError ? (
-          <Card className="border-destructive/20 bg-destructive/5 shadow-none">
+          <Card className="border-destructive/20 bg-destructive/5 shadow-sm">
             <CardContent className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-destructive">
               <span>{templatesError}</span>
               <Button type="button" variant="outline" size="sm" onClick={loadTemplates} className="h-8 gap-2 border-destructive/30 bg-background px-3 text-destructive">
@@ -256,7 +257,7 @@ export default function CustomBaselineClient() {
         ) : null}
 
         {createdResult ? (
-          <Card className="border-emerald-200 bg-emerald-50/70 shadow-none dark:border-emerald-900/40 dark:bg-emerald-950/20">
+          <Card className="border-emerald-200 bg-emerald-50/70 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/20">
             <CardContent className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />

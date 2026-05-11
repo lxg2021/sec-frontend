@@ -38,15 +38,17 @@ export function BaselineItemRow({ item, isSelected, onToggle }: BaselineItemRowP
   return (
     <div
       className={cn(
-        "flex items-start gap-3 rounded-xl border px-3 py-3 transition-colors",
-        isSelected ? "border-zinc-900 bg-zinc-50" : "border-zinc-200 bg-white hover:bg-zinc-50",
+        "flex items-start gap-3 rounded-xl border px-3 py-3 transition-all duration-200",
+        isSelected
+          ? "border-sky-300 bg-sky-50/80 shadow-sm ring-1 ring-sky-100"
+          : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50",
       )}
     >
       <Checkbox
         checked={isSelected}
         onCheckedChange={() => onToggle(item.id)}
         aria-label={`${t("itemRow.selectItem")} ${getItemLabel(item, useZh)}`}
-        className="mt-0.5"
+        className="mt-0.5 border-zinc-300 data-[state=checked]:border-sky-600 data-[state=checked]:bg-sky-600"
       />
 
       <button type="button" onClick={() => onToggle(item.id)} className="min-w-0 flex-1 text-left">
