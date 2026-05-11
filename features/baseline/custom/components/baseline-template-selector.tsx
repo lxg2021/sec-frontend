@@ -1,6 +1,6 @@
 "use client"
 
-import { RefreshCw, SlidersHorizontal } from "lucide-react"
+import { LayoutGrid, RefreshCw, SlidersHorizontal } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -56,11 +56,16 @@ export function BaselineTemplateSelector({
     <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <CardTitle className="text-lg font-semibold text-zinc-950">选择基线模板</CardTitle>
-            <CardDescription className="mt-1 text-sm text-zinc-500">
-              从模板中选择一个基线作为定义起点
-            </CardDescription>
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+              <LayoutGrid className="h-5 w-5 text-blue-300" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold text-zinc-950">选择基线模板</CardTitle>
+              <CardDescription className="mt-1 text-sm text-zinc-500">
+                从模板中选择一个基线作为定义起点
+              </CardDescription>
+            </div>
           </div>
           <Button
             type="button"

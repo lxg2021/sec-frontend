@@ -93,13 +93,18 @@ export function BaselineItemsPanel({
     <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <CardTitle className="truncate text-lg font-semibold text-zinc-950">
-              {template?.display_name || "请选择一个模板"}
-            </CardTitle>
-            <CardDescription className="mt-1 text-sm text-zinc-500">
-              {template ? "勾选需要的检查项，支持跨模板累计选择" : "先从左侧选择基线模板"}
-            </CardDescription>
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+              <SquareCheckBig className="h-5 w-5 text-blue-300" />
+            </div>
+            <div className="min-w-0">
+              <CardTitle className="truncate text-lg font-semibold text-zinc-950">
+                {template?.display_name || "请选择一个模板"}
+              </CardTitle>
+              <CardDescription className="mt-1 text-sm text-zinc-500">
+                {template ? "勾选需要的检查项，支持跨模板累计选择" : "先从左侧选择基线模板"}
+              </CardDescription>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
