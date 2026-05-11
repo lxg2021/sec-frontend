@@ -140,7 +140,7 @@ export function BaselineTemplateSelector({
                   className={cn(
                     "w-full rounded-2xl border p-3 text-left transition-all",
                     isSelected
-                      ? "border-blue-200 bg-blue-50/70 shadow-sm"
+                      ? "border-zinc-950 bg-blue-50/70 shadow-sm"
                       : "border-zinc-200 bg-white hover:border-zinc-400 hover:bg-zinc-50",
                   )}
                 >
