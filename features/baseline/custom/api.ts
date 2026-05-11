@@ -233,7 +233,7 @@ function normalizeCreateResult(value: unknown): CreateCustomBaselineResult {
 }
 
 export async function getAllBaselineTemplates(): Promise<BaselineTemplate[]> {
-  const result = (await http.post("GetAllBaselineTemplates", {
+  const result = (await http.post("getAllBaselineTemplates", {
     request_id: createRequestId(),
   })) as ApiResult<unknown>
 
@@ -246,7 +246,7 @@ export async function getAllBaselineTemplates(): Promise<BaselineTemplate[]> {
 }
 
 export async function getBaselineTemplateItems(templateUuid: string): Promise<BaselineTemplateItemsData | null> {
-  const result = (await http.post("GetBaselineTemplateItems", {
+  const result = (await http.post("getBaselineTemplateItems", {
     request_id: createRequestId(),
     template_uuid: templateUuid,
     baseline_uuid: templateUuid,
@@ -258,7 +258,7 @@ export async function getBaselineTemplateItems(templateUuid: string): Promise<Ba
 }
 
 export async function createCustomBaseline(payload: CreateCustomBaselineRequest): Promise<CreateCustomBaselineResult> {
-  const result = (await http.post("CreateCustomBaseline", {
+  const result = (await http.post("createCustomBaseline", {
     request_id: createRequestId(),
     ...payload,
   })) as ApiResult<unknown>
