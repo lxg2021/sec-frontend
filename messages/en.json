@@ -1067,8 +1067,8 @@
         "refresh": "Refresh",
         "categoryTable": {
           "loading": "Loading category statistics...",
-          "emptyTitle": "No category statistics",
-          "emptyDescription": "This baseline does not yet have any category check items to display.",
+          "emptyTitle": "Select a category to view details",
+          "emptyDescription": "Click any category card above to inspect its checks and compliance status",
           "pageSummary": "{current} / {total} pages · {count} categories",
           "averagePassRate": "Average pass rate",
           "categoryItemCount": "Checks {count}",
@@ -1121,15 +1121,10 @@
           },
           "collapseDetails": "Collapse details",
           "viewDetails": "View details",
-          "details": "Details",
-          "detailSummary": "{items} checks total, {results} statistical results returned",
-          "checkItemName": "Check item name",
           "complianceStatus": "Compliance status",
           "securityScore": "Security score",
           "scoreProgress": "Score progress",
           "detailAction": "Detail action",
-          "emptyTitle": "Select a category to view details",
-          "emptyDescription": "Click any category card above to inspect its checks and compliance status",
           "status": {
             "compliant": "Compliant",
             "nonCompliant": "Non-compliant"
@@ -1334,6 +1329,119 @@
             "draft": "Draft"
           }
         }
+      },
+      "custom": {
+        "title": "Define Baseline",
+        "subtitle": "Select checks from templates and create a custom baseline",
+        "createBaseline": "Create baseline",
+        "loadTemplatesFailed": "Failed to load baseline templates",
+        "loadItemsFailed": "Failed to load template items",
+        "createFailed": "Failed to create custom baseline",
+        "retry": "Retry",
+        "createdSuccessTitle": "Custom baseline created",
+        "createdSuccessDescription": "{displayName} - {itemCount} items - {baselineUuid}",
+        "createdAt": "Created at {createdAt}",
+        "templateSelector": {
+          "title": "Select Baseline Template",
+          "subtitle": "Pick a template as the starting point for the custom baseline.",
+          "refresh": "Refresh",
+          "standardPlaceholder": "All standards",
+          "profilePlaceholder": "All profiles",
+          "emptyTitle": "No matching templates",
+          "emptyDescription": "Adjust the filters and try again.",
+          "current": "Current",
+          "selected": "Selected",
+          "itemsSuffix": "items",
+          "standardLabel": "Standard",
+          "profileLabel": "Profile",
+          "versionLabel": "Version",
+          "standards": {
+            "all": "All standards",
+            "cis": "CIS",
+            "dod": "DOD STIG",
+            "msft": "Microsoft",
+            "intune": "Intune",
+            "custom": "Custom"
+          },
+          "profiles": {
+            "all": "All profiles",
+            "machine": "Machine",
+            "user": "User",
+            "both": "Both"
+          }
+        },
+        "itemsPanel": {
+          "title": "Item list",
+          "selectedSubtitle": "Select the checks you need. Selection can span multiple templates.",
+          "emptySubtitle": "Choose a baseline template from the left first.",
+          "selectAll": "Select all",
+          "clear": "Clear",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low",
+          "searchPlaceholder": "Search items...",
+          "selectedPrefix": "Selected",
+          "itemsSuffix": "items",
+          "chooseTemplateTitle": "Select a baseline template first",
+          "chooseTemplateDescription": "Pick a template from the left panel to begin.",
+          "loadErrorTitle": "Failed to load template items",
+          "loadErrorDescription": "Refresh and try again.",
+          "noResultsTitle": "No matching items",
+          "noResultsDescription": "Adjust the search term and try again.",
+          "recommendedValue": "Recommended value",
+          "notProvided": "Not provided"
+        },
+        "categoryGroup": {
+          "selectCategory": "Select category",
+          "selected": "Selected"
+        },
+        "itemRow": {
+          "recommend": "Recommended value",
+          "detail": "Details",
+          "detection": "Detection method",
+          "defaultValue": "Default value",
+          "operator": "Operator",
+          "references": "References",
+          "notProvided": "Not provided",
+          "severity": {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low"
+          },
+          "selectItem": "Select item"
+        },
+        "summary": {
+          "title": "Selected Items",
+          "fromTemplates": "From {count} templates",
+          "clear": "Clear",
+          "noItemsTitle": "No items selected",
+          "noItemsDescription": "Pick items from the middle panel",
+          "totalSelected": "Total Selected",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low",
+          "categories": "Categories",
+          "itemsSuffix": "items",
+          "itemsLabel": "items",
+          "templateItems": "{count} items"
+        },
+        "createForm": {
+          "title": "Create Custom Baseline",
+          "description": "Create a new custom baseline from the selected checks.",
+          "selectedDescription": "{selectedItemCount} items selected from {selectedTemplateCount} templates",
+          "baselineName": "Baseline name",
+          "baselineNamePlaceholder": "e.g. Windows Server custom baseline",
+          "descriptionLabel": "Description",
+          "descriptionPlaceholder": "Add the purpose, environment, or scope for this custom baseline",
+          "reset": "Reset",
+          "create": "Create baseline",
+          "required": "Required",
+          "infoTitle": "Custom details",
+          "infoDescription": "Create a new custom baseline from the selected checks."
+        },
+        "selectAtLeastOneItem": "Select at least one check item",
+        "nameRequired": "Enter a baseline name",
+        "selectItemsToMerge": "Select items to merge"
       }
     },
     "vulnerability": {

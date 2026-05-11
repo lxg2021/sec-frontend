@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import { CheckCircle2, Layers3, Trash2, X } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
@@ -11,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shar
 import { cn } from "@/shared/lib/utils"
 
 import type { BaselineTemplate, BaselineTemplateItem, BaselineTemplateItemsData } from "../api"
+import { getItemLabel, isZhLocale } from "./locale-utils"
 
 interface SelectedItemsSummaryProps {
   templates: BaselineTemplate[]
@@ -29,6 +31,9 @@ export function SelectedItemsSummary({
   onRemoveTemplate,
   onRemoveItem,
 }: SelectedItemsSummaryProps) {
+  const locale = useLocale()
+  const useZh = isZhLocale(locale)
+  const t = useTranslations("pages.baseline.custom")
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set())
 
   const summary = useMemo(() => {
@@ -74,7 +79,7 @@ export function SelectedItemsSummary({
             templateLow += 1
           }
 
-          const categoryKey = item.category_zh || item.category || "Uncategorized"
+          const categoryKey = (useZh ? item.category_zh : item.category) || item.category || item.category_zh || "Uncategorized"
           categoryStats.set(categoryKey, (categoryStats.get(categoryKey) || 0) + 1)
         })
       })
@@ -97,7 +102,7 @@ export function SelectedItemsSummary({
       templateStats,
       categoryStats: Array.from(categoryStats.entries()).sort((a, b) => b[1] - a[1]),
     }
-  }, [itemsDataMap, selectedItems, templates])
+  }, [itemsDataMap, selectedItems, templates, useZh])
 
   const hasSelections = summary.totalSelected > 0
 
@@ -115,11 +120,11 @@ export function SelectedItemsSummary({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-              <CheckCircle2 className="h-5 w-5 text-blue-300" />
+              <CheckCircle2 className="h-5 w-5 text-blue-500" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-zinc-950">Selected Items</CardTitle>
-              <CardDescription className="mt-1 text-sm text-zinc-500">From {selectedItems.size} templates</CardDescription>
+              <CardTitle className="text-lg font-semibold text-zinc-950">{t("summary.title")}</CardTitle>
+              <CardDescription className="mt-1 text-sm text-zinc-500">{t("summary.fromTemplates", { count: selectedItems.size })}</CardDescription>
             </div>
           </div>
           <Button
@@ -131,7 +136,7 @@ export function SelectedItemsSummary({
             className="h-9 gap-2 px-3 text-red-600 hover:bg-red-50 hover:text-red-700"
           >
             <Trash2 className="h-4 w-4" />
-            <span>Clear</span>
+            <span>{t("summary.clear")}</span>
           </Button>
         </div>
       </CardHeader>
@@ -141,8 +146,8 @@ export function SelectedItemsSummary({
           <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
             <div>
               <CheckCircle2 className="mx-auto h-10 w-10 text-zinc-300" />
-              <p className="mt-3 text-sm font-medium text-zinc-950">No items selected</p>
-              <p className="mt-1 text-xs text-zinc-500">Pick items from the middle panel</p>
+              <p className="mt-3 text-sm font-medium text-zinc-950">{t("summary.noItemsTitle")}</p>
+              <p className="mt-1 text-xs text-zinc-500">{t("summary.noItemsDescription")}</p>
             </div>
           </div>
         ) : (
@@ -151,7 +156,7 @@ export function SelectedItemsSummary({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-zinc-900" />
-                  <span className="text-sm font-medium text-zinc-950">Total Selected</span>
+                  <span className="text-sm font-medium text-zinc-950">{t("summary.totalSelected")}</span>
                 </div>
                 <span className="text-4xl font-semibold tabular-nums text-zinc-950">{summary.totalSelected}</span>
               </div>
@@ -167,15 +172,15 @@ export function SelectedItemsSummary({
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-600">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                  High<span className="font-semibold text-zinc-950">{summary.highCount}</span>
+                  {t("summary.high")} <span className="font-semibold text-zinc-950">{summary.highCount}</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  Medium<span className="font-semibold text-zinc-950">{summary.mediumCount}</span>
+                  {t("summary.medium")} <span className="font-semibold text-zinc-950">{summary.mediumCount}</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  Low<span className="font-semibold text-zinc-950">{summary.lowCount}</span>
+                  {t("summary.low")} <span className="font-semibold text-zinc-950">{summary.lowCount}</span>
                 </span>
               </div>
             </div>
@@ -184,7 +189,7 @@ export function SelectedItemsSummary({
               <div>
                 <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-500">
                   <Layers3 className="h-3.5 w-3.5" />
-                  <span>Categories</span>
+                  <span>{t("summary.categories")}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {summary.categoryStats.slice(0, 5).map(([category, count]) => (
@@ -233,13 +238,13 @@ export function SelectedItemsSummary({
                           <div className="flex items-center gap-2">
                             <span className="truncate text-sm font-semibold text-zinc-950">{template.display_name}</span>
                             <Badge variant="outline" className="h-5 rounded-full border-zinc-200 bg-white px-1.5 text-[11px] font-normal text-zinc-900">
-                              {items.length} items
+                              {t("summary.templateItems", { count: items.length })}
                             </Badge>
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                            {high > 0 && <span className="text-red-600">High {high}</span>}
-                            {medium > 0 && <span className="text-amber-600">Medium {medium}</span>}
-                            {low > 0 && <span className="text-emerald-600">Low {low}</span>}
+                            {high > 0 && <span className="text-red-600">{t("summary.high")} {high}</span>}
+                            {medium > 0 && <span className="text-amber-600">{t("summary.medium")} {medium}</span>}
+                            {low > 0 && <span className="text-emerald-600">{t("summary.low")} {low}</span>}
                           </div>
                         </button>
                         <Button
@@ -265,7 +270,7 @@ export function SelectedItemsSummary({
                                 onClick={() => onRemoveItem(templateUuid, item.id)}
                                 className={cn("h-7 rounded-full border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-900")}
                               >
-                                {item.name_zh}
+                                {getItemLabel(item, useZh)}
                                 <X className="ml-1 h-3 w-3" />
                               </Button>
                             ))}

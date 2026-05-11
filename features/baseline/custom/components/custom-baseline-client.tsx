@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import { CheckCircle2, Plus, RefreshCw, Shield } from "lucide-react"
 
 import { Button } from "@/shared/ui/button"
@@ -29,6 +30,7 @@ function collectSelectionPayload(selectedItems: Map<string, Set<string>>) {
 }
 
 export default function CustomBaselineClient() {
+  const t = useTranslations("pages.baseline.custom")
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
   const [templatesLoading, setTemplatesLoading] = useState(true)
   const [templatesError, setTemplatesError] = useState("")
@@ -63,11 +65,11 @@ export default function CustomBaselineClient() {
     } catch (error) {
       setTemplates([])
       setSelectedTemplateUuid("")
-      setTemplatesError(error instanceof Error ? error.message : "基线模板加载失败")
+      setTemplatesError(error instanceof Error ? error.message : t("loadTemplatesFailed"))
     } finally {
       setTemplatesLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void loadTemplates()
@@ -119,7 +121,7 @@ export default function CustomBaselineClient() {
         }
       } catch (error) {
         if (cancelled) return
-        setItemsError(error instanceof Error ? error.message : "模板项加载失败")
+        setItemsError(error instanceof Error ? error.message : t("loadItemsFailed"))
       } finally {
         if (!cancelled) {
           setItemsLoadingTemplateUuid("")
@@ -132,7 +134,7 @@ export default function CustomBaselineClient() {
     return () => {
       cancelled = true
     }
-  }, [itemsDataMap, selectedTemplate])
+  }, [itemsDataMap, selectedTemplate, t])
 
   const totalSelectedCount = useMemo(
     () => Array.from(selectedItems.values()).reduce((sum, itemIds) => sum + itemIds.size, 0),
@@ -200,24 +202,24 @@ export default function CustomBaselineClient() {
     setSubmitError("")
     setCreatedResult(null)
     if (totalSelectedCount === 0) {
-      setSubmitError("请至少勾选一项检查项")
+      setSubmitError(t("selectAtLeastOneItem"))
       return
     }
     setCreateOpen(true)
-  }, [totalSelectedCount])
+  }, [t, totalSelectedCount])
 
   const handleSubmit = useCallback(async () => {
     setSubmitError("")
     setCreatedResult(null)
 
     if (!displayName.trim()) {
-      setSubmitError("请输入基线名称")
+      setSubmitError(t("nameRequired"))
       return
     }
 
     const selectedPayload = collectSelectionPayload(selectedItems)
     if (selectedPayload.length === 0) {
-      setSubmitError("请选择要合并的模板条目")
+      setSubmitError(t("selectItemsToMerge"))
       return
     }
 
@@ -231,21 +233,21 @@ export default function CustomBaselineClient() {
       })
       setCreatedResult(result)
       setCreateOpen(false)
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : "创建自定义基线失败")
+    } catch {
+      setSubmitError(t("createFailed"))
     } finally {
       setSubmitting(false)
     }
-  }, [description, displayName, selectedItems])
+  }, [description, displayName, selectedItems, t])
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex flex-col gap-4 border-b border-zinc-200 bg-white px-6 py-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex items-center gap-4">
           <div className="rounded-lg bg-blue-50 p-2">
-            <Shield className="h-6 w-6 text-blue-300" />
+            <Shield className="h-6 w-6 text-blue-500" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-950">自定义基线</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-950">{t("title")}</h1>
         </div>
 
         <Button
@@ -254,7 +256,7 @@ export default function CustomBaselineClient() {
           className="h-11 gap-3 rounded-xl bg-zinc-950 px-5 text-base font-semibold text-white hover:bg-zinc-800"
         >
           <Plus className="h-5 w-5" />
-          <span>创建基线</span>
+          <span>{t("createBaseline")}</span>
           <span className="rounded-md bg-white/20 px-2 py-0.5 text-sm tabular-nums">{totalSelectedCount}</span>
         </Button>
       </div>
@@ -266,7 +268,7 @@ export default function CustomBaselineClient() {
               <span>{templatesError}</span>
               <Button type="button" variant="outline" size="sm" onClick={loadTemplates} className="h-8 gap-2 border-destructive/30 bg-background px-3 text-destructive">
                 <RefreshCw className="h-4 w-4" />
-                <span>重试</span>
+                <span>{t("retry")}</span>
               </Button>
             </CardContent>
           </Card>
@@ -278,13 +280,17 @@ export default function CustomBaselineClient() {
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
                 <div>
-                  <div className="text-sm font-medium text-foreground">自定义基线创建成功</div>
+                  <div className="text-sm font-medium text-foreground">{t("createdSuccessTitle")}</div>
                   <div className="mt-0.5 text-xs text-muted-foreground">
-                    {createdResult.display_name} · {createdResult.item_count} 项 · {createdResult.baseline_uuid}
+                    {t("createdSuccessDescription", {
+                      displayName: createdResult.display_name,
+                      itemCount: createdResult.item_count,
+                      baselineUuid: createdResult.baseline_uuid,
+                    })}
                   </div>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground">创建时间 {createdResult.created_at}</div>
+              <div className="text-xs text-muted-foreground">{t("createdAt", { createdAt: createdResult.created_at })}</div>
             </CardContent>
           </Card>
         ) : null}

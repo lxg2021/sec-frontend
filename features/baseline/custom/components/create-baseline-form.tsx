@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { RefreshCw } from "lucide-react"
 
 import { Button } from "@/shared/ui/button"
@@ -38,22 +39,22 @@ export function CreateBaselineForm({
   onReset,
   onSubmit,
 }: CreateBaselineFormProps) {
+  const t = useTranslations("pages.baseline.custom")
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>创建自定义基线</DialogTitle>
+          <DialogTitle>{t("createForm.title")}</DialogTitle>
           <DialogDescription>
-            已选择 {selectedItemCount} 个检查项，来自 {selectedTemplateCount} 个模板。
+            {t("createForm.selectedDescription", { selectedItemCount, selectedTemplateCount })}
           </DialogDescription>
         </DialogHeader>
 
         <Card className="border-border/60 shadow-none">
           <CardHeader className="border-b border-border/40 pb-4">
-            <CardTitle className="text-base font-semibold text-foreground">自定义信息</CardTitle>
-            <CardDescription className="mt-1 text-sm text-muted-foreground">
-              为当前勾选的检查项创建一个新的自定义基线
-            </CardDescription>
+            <CardTitle className="text-base font-semibold text-foreground">{t("createForm.infoTitle")}</CardTitle>
+            <CardDescription className="mt-1 text-sm text-muted-foreground">{t("createForm.infoDescription")}</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4 p-4">
@@ -65,24 +66,24 @@ export function CreateBaselineForm({
 
             <div className="grid gap-2">
               <Label htmlFor="display-name">
-                基线名称 <span className="text-destructive">*</span>
+                {t("createForm.baselineName")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="display-name"
                 value={displayName}
                 onChange={(event) => onDisplayNameChange(event.target.value)}
-                placeholder="例如：Windows 服务器自定义基线"
+                placeholder={t("createForm.baselineNamePlaceholder")}
                 className="h-10"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="description">说明</Label>
+              <Label htmlFor="description">{t("createForm.descriptionLabel")}</Label>
               <Textarea
                 id="description"
                 value={description}
                 onChange={(event) => onDescriptionChange(event.target.value)}
-                placeholder="补充这个自定义基线的用途、环境或适用范围"
+                placeholder={t("createForm.descriptionPlaceholder")}
                 className="min-h-28 resize-none"
               />
             </div>
@@ -91,11 +92,11 @@ export function CreateBaselineForm({
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onReset} disabled={submitting}>
-            重置
+            {t("createForm.reset")}
           </Button>
           <Button type="button" onClick={onSubmit} disabled={submitting || selectedItemCount === 0}>
             {submitting && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
-            创建基线
+            {t("createForm.create")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,8 +1,8 @@
-"use client"
+﻿"use client"
 
+import { useLocale, useTranslations } from "next-intl"
 import { AlertCircle, Search, SquareCheckBig, SquareDashedMousePointer, ShieldCheck } from "lucide-react"
 
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
@@ -10,6 +10,7 @@ import { Skeleton } from "@/shared/ui/skeleton"
 
 import type { BaselineTemplate, BaselineTemplateItemsData } from "../api"
 import { CategoryGroup } from "./category-group"
+import { getItemDescription, getItemLabel, getRecommendedValue, isZhLocale } from "./locale-utils"
 
 interface BaselineItemsPanelProps {
   template: BaselineTemplate | null
@@ -22,7 +23,7 @@ interface BaselineItemsPanelProps {
   onSelectionChange: (templateUuid: string, itemIds: Set<string>) => void
 }
 
-function filterGroups(itemsData: BaselineTemplateItemsData | null, searchTerm: string) {
+function filterGroups(itemsData: BaselineTemplateItemsData | null, searchTerm: string, useZh: boolean) {
   if (!itemsData) return []
 
   const keyword = searchTerm.trim().toLowerCase()
@@ -32,8 +33,15 @@ function filterGroups(itemsData: BaselineTemplateItemsData | null, searchTerm: s
     .map((group) => ({
       ...group,
       items: group.items.filter((item) =>
-        [item.name_zh, item.name, item.description, item.category_zh, item.recommended_value]
-          .some((value) => String(value || "").toLowerCase().includes(keyword)),
+        [
+          getItemLabel(item, useZh),
+          getItemDescription(item, useZh),
+          item.description,
+          item.description_en,
+          item.category,
+          item.category_zh,
+          getRecommendedValue(item),
+        ].some((value) => String(value || "").toLowerCase().includes(keyword)),
       ),
     }))
     .filter((group) => group.items.length > 0)
@@ -49,6 +57,10 @@ export function BaselineItemsPanel({
   selectedItems,
   onSelectionChange,
 }: BaselineItemsPanelProps) {
+  const locale = useLocale()
+  const useZh = isZhLocale(locale)
+  const t = useTranslations("pages.baseline.custom")
+
   const handleToggleItem = (itemId: string) => {
     if (!template) return
 
@@ -84,7 +96,7 @@ export function BaselineItemsPanel({
     onSelectionChange(template.uuid, new Set())
   }
 
-  const filteredGroups = filterGroups(itemsData, searchTerm)
+  const filteredGroups = filterGroups(itemsData, searchTerm, useZh)
   const totalCount = itemsData?.total_count ?? 0
   const selectedCount = selectedItems.size
   const severityStats = itemsData?.severity_statistics ?? []
@@ -95,26 +107,40 @@ export function BaselineItemsPanel({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
-              <SquareCheckBig className="h-5 w-5 text-blue-300" />
+              <SquareCheckBig className="h-5 w-5 text-blue-500" />
             </div>
             <div className="min-w-0">
               <CardTitle className="truncate text-lg font-semibold text-zinc-950">
-                {template?.display_name || "请选择一个模板"}
+                {template?.display_name || t("itemsPanel.chooseTemplateTitle")}
               </CardTitle>
               <CardDescription className="mt-1 text-sm text-zinc-500">
-                {template ? "勾选需要的检查项，支持跨模板累计选择" : "先从左侧选择基线模板"}
+                {template ? t("itemsPanel.selectedSubtitle") : t("itemsPanel.emptySubtitle")}
               </CardDescription>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={handleSelectAll} disabled={!template || !itemsData} className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAll}
+              disabled={!template || !itemsData}
+              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none"
+            >
               <SquareCheckBig className="h-4 w-4" />
-              <span>全选</span>
+              <span>{t("itemsPanel.selectAll")}</span>
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={handleClear} disabled={!template || selectedCount === 0} className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClear}
+              disabled={!template || selectedCount === 0}
+              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none"
+            >
               <SquareDashedMousePointer className="h-4 w-4" />
-              <span>清空</span>
+              <span>{t("itemsPanel.clear")}</span>
             </Button>
           </div>
         </div>
@@ -125,9 +151,11 @@ export function BaselineItemsPanel({
               {severityStats.map((stat) => (
                 <span key={stat.severity} className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-900">
                   <span className={stat.severity === "High" ? "text-red-500" : stat.severity === "Medium" ? "text-amber-500" : "text-emerald-500"}>
-                    {stat.severity === "High" ? "高" : stat.severity === "Medium" ? "中" : "低"}:
+                    {stat.severity === "High" ? t("itemsPanel.high") : stat.severity === "Medium" ? t("itemsPanel.medium") : t("itemsPanel.low")}:
                   </span>
-                  <span className="font-medium">{stat.count} ({stat.percentage.toFixed(1)}%)</span>
+                  <span className="font-medium">
+                    {stat.count} ({stat.percentage.toFixed(1)}%)
+                  </span>
                 </span>
               ))}
             </div>
@@ -138,13 +166,14 @@ export function BaselineItemsPanel({
                 <Input
                   value={searchTerm}
                   onChange={(event) => onSearchTermChange(event.target.value)}
-                  placeholder="搜索检查项..."
+                  placeholder={t("itemsPanel.searchPlaceholder")}
                   className="h-10 rounded-xl border-zinc-200 pl-9 shadow-none"
                   disabled={!template}
                 />
               </div>
               <div className="flex-shrink-0 text-sm text-zinc-600">
-                已选 <span className="font-semibold text-zinc-950">{selectedCount}</span> / {totalCount} 项
+                {t("itemsPanel.selectedPrefix")}
+                <span className="font-semibold text-zinc-950">{selectedCount}</span> / {totalCount} {t("itemsPanel.itemsSuffix")}
               </div>
             </div>
           </>
@@ -157,8 +186,8 @@ export function BaselineItemsPanel({
             <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
               <div>
                 <ShieldCheck className="mx-auto h-12 w-12 text-zinc-300" />
-                <p className="mt-3 text-lg font-medium text-zinc-950">请先选择基线模板</p>
-                <p className="mt-1 text-sm text-zinc-500">从左侧列表中选择一个模板开始</p>
+                <p className="mt-3 text-lg font-medium text-zinc-950">{t("itemsPanel.chooseTemplateTitle")}</p>
+                <p className="mt-1 text-sm text-zinc-500">{t("itemsPanel.chooseTemplateDescription")}</p>
               </div>
             </div>
           ) : loading ? (
@@ -167,16 +196,16 @@ export function BaselineItemsPanel({
             <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
               <div>
                 <AlertCircle className="mx-auto h-12 w-12 text-zinc-300" />
-                <p className="mt-3 text-sm font-medium text-zinc-950">{errorMessage || "模板项加载失败"}</p>
-                <p className="mt-1 text-xs text-zinc-500">请刷新后重试</p>
+                <p className="mt-3 text-sm font-medium text-zinc-950">{errorMessage || t("itemsPanel.loadErrorTitle")}</p>
+                <p className="mt-1 text-xs text-zinc-500">{t("itemsPanel.loadErrorDescription")}</p>
               </div>
             </div>
           ) : filteredGroups.length === 0 ? (
             <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
               <div>
                 <Search className="mx-auto h-12 w-12 text-zinc-300" />
-                <p className="mt-3 text-sm font-medium text-zinc-950">没有匹配的检查项</p>
-                <p className="mt-1 text-xs text-zinc-500">调整搜索词后再试一次</p>
+                <p className="mt-3 text-sm font-medium text-zinc-950">{t("itemsPanel.noResultsTitle")}</p>
+                <p className="mt-1 text-xs text-zinc-500">{t("itemsPanel.noResultsDescription")}</p>
               </div>
             </div>
           ) : (

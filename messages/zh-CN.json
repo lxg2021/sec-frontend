@@ -1069,8 +1069,8 @@
         "refresh": "刷新",
         "categoryTable": {
           "loading": "加载分类统计中...",
-          "emptyTitle": "暂无分类统计",
-          "emptyDescription": "当前基线还没有可展示的分类检查项。",
+          "emptyTitle": "选择分类查看详细信息",
+          "emptyDescription": "点击上方任意分类卡片，查看该分类下的详细检查项目和合规状况",
           "pageSummary": "{current} / {total} 页 · 共 {count} 个分类",
           "averagePassRate": "平均通过率",
           "categoryItemCount": "检查项 {count}",
@@ -1123,15 +1123,10 @@
           },
           "collapseDetails": "点击收起详情",
           "viewDetails": "点击查看详情",
-          "details": "详情",
-          "detailSummary": "共 {items} 个检查项，当前返回 {results} 个统计结果",
-          "checkItemName": "检查项名称",
           "complianceStatus": "合规状态",
           "securityScore": "安全评分",
           "scoreProgress": "评分进度",
           "detailAction": "详情操作",
-          "emptyTitle": "选择分类查看详细信息",
-          "emptyDescription": "点击上方任意分类卡片，查看该分类下的详细检查项目和合规状况",
           "status": {
             "compliant": "合 规",
             "nonCompliant": "不合规"
@@ -1336,6 +1331,119 @@
             "draft": "草稿"
           }
         }
+      },
+      "custom": {
+        "title": "定义基线",
+        "subtitle": "选择模板中的检查项并创建自定义基线",
+        "createBaseline": "创建基线",
+        "loadTemplatesFailed": "基线模板加载失败",
+        "loadItemsFailed": "模板项加载失败",
+        "createFailed": "创建自定义基线失败",
+        "retry": "重试",
+        "createdSuccessTitle": "自定义基线创建成功",
+        "createdSuccessDescription": "{displayName} · {itemCount} 项 · {baselineUuid}",
+        "createdAt": "创建时间 {createdAt}",
+        "templateSelector": {
+          "title": "选择基线模板",
+          "subtitle": "从模板中选择一个基线作为定义起点",
+          "refresh": "刷新",
+          "standardPlaceholder": "全部标准",
+          "profilePlaceholder": "全部配置",
+          "emptyTitle": "没有匹配的模板",
+          "emptyDescription": "调整筛选条件后再试一次",
+          "current": "当前",
+          "selected": "已选",
+          "itemsSuffix": "项",
+          "standardLabel": "标准",
+          "profileLabel": "配置",
+          "versionLabel": "版本",
+          "standards": {
+            "all": "全部标准",
+            "cis": "CIS",
+            "dod": "DOD STIG",
+            "msft": "Microsoft",
+            "intune": "Intune",
+            "custom": "自定义"
+          },
+          "profiles": {
+            "all": "全部配置",
+            "machine": "计算机",
+            "user": "用户",
+            "both": "两者"
+          }
+        },
+        "itemsPanel": {
+          "title": "检查项列表",
+          "selectedSubtitle": "勾选需要的检查项，支持跨模板累计选择",
+          "emptySubtitle": "先从左侧选择基线模板",
+          "selectAll": "全选",
+          "clear": "清空",
+          "high": "高",
+          "medium": "中",
+          "low": "低",
+          "searchPlaceholder": "搜索检查项...",
+          "selectedPrefix": "已选",
+          "itemsSuffix": "项",
+          "chooseTemplateTitle": "请先选择基线模板",
+          "chooseTemplateDescription": "从左侧列表中选择一个模板开始",
+          "loadErrorTitle": "模板项加载失败",
+          "loadErrorDescription": "请刷新后重试",
+          "noResultsTitle": "没有匹配的检查项",
+          "noResultsDescription": "调整搜索词后再试一次",
+          "recommendedValue": "推荐值",
+          "notProvided": "未提供"
+        },
+        "categoryGroup": {
+          "selectCategory": "选择分类",
+          "selected": "已选"
+        },
+        "itemRow": {
+          "recommend": "推荐值",
+          "detail": "详情",
+          "detection": "检测方式",
+          "defaultValue": "默认值",
+          "operator": "操作符",
+          "references": "参考",
+          "notProvided": "未提供",
+          "severity": {
+            "high": "高",
+            "medium": "中",
+            "low": "低"
+          },
+          "selectItem": "选择检查项"
+        },
+        "summary": {
+          "title": "已选项",
+          "fromTemplates": "来自 {count} 个模板",
+          "clear": "清空",
+          "noItemsTitle": "当前没有选择项",
+          "noItemsDescription": "从中间面板选择检查项",
+          "totalSelected": "已选总数",
+          "high": "高",
+          "medium": "中",
+          "low": "低",
+          "categories": "分类",
+          "itemsSuffix": "项",
+          "itemsLabel": "项",
+          "templateItems": "{count} 项"
+        },
+        "createForm": {
+          "title": "创建自定义基线",
+          "description": "为当前勾选的检查项创建一个新的自定义基线",
+          "selectedDescription": "已选择 {selectedItemCount} 项，来自 {selectedTemplateCount} 个模板",
+          "baselineName": "基线名称",
+          "baselineNamePlaceholder": "例如：Windows Server 自定义基线",
+          "descriptionLabel": "说明",
+          "descriptionPlaceholder": "补充这个自定义基线的用途、环境或适用范围",
+          "reset": "重置",
+          "create": "创建基线",
+          "required": "必填",
+          "infoTitle": "自定义信息",
+          "infoDescription": "为当前勾选的检查项创建一个新的自定义基线"
+        },
+        "selectAtLeastOneItem": "请至少勾选一项检查项",
+        "nameRequired": "请输入基线名称",
+        "selectItemsToMerge": "请选择要合并的模板项"
       }
     },
     "vulnerability": {
