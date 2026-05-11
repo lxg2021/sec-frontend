@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { LayoutGrid, RefreshCw, SlidersHorizontal } from "lucide-react"
+import { LayoutGrid, Plus, RefreshCw, SlidersHorizontal } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -24,6 +24,8 @@ interface BaselineTemplateSelectorProps {
   onProfileFilterChange: (value: string) => void
   onSelectTemplate: (template: BaselineTemplate) => void
   onRefresh: () => void
+  onCreateBaseline: () => void
+  createSelectedCount: number
 }
 
 export function BaselineTemplateSelector({
@@ -37,6 +39,8 @@ export function BaselineTemplateSelector({
   onProfileFilterChange,
   onSelectTemplate,
   onRefresh,
+  onCreateBaseline,
+  createSelectedCount,
 }: BaselineTemplateSelectorProps) {
   const t = useTranslations("pages.baseline.custom")
 
@@ -57,7 +61,7 @@ export function BaselineTemplateSelector({
   ]
 
   return (
-    <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <Card className="flex h-full flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -112,8 +116,8 @@ export function BaselineTemplateSelector({
         </div>
       </CardHeader>
 
-      <CardContent className="p-3">
-        <div className="max-h-[calc(100dvh-240px)] space-y-2 overflow-y-auto pr-1">
+      <CardContent className="flex h-full flex-col p-3">
+        <div className="max-h-[calc(100dvh-288px)] flex-1 space-y-2 overflow-y-auto pr-1">
           {loading ? (
             Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
           ) : templates.length === 0 ? (
@@ -180,6 +184,20 @@ export function BaselineTemplateSelector({
               )
             })
           )}
+        </div>
+
+        <div className="mt-4 border-t border-zinc-200 pt-4">
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              onClick={onCreateBaseline}
+              className="h-11 gap-3 rounded-xl bg-zinc-950 px-5 text-base font-semibold text-white hover:bg-zinc-800"
+            >
+              <Plus className="h-5 w-5" />
+              <span>{t("createBaseline")}</span>
+              <span className="rounded-md bg-white/20 px-2 py-0.5 text-sm tabular-nums">{createSelectedCount}</span>
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

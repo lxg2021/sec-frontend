@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
-import { CheckCircle2, Plus, RefreshCw, Shield } from "lucide-react"
+import { CheckCircle2, RefreshCw } from "lucide-react"
 
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent } from "@/shared/ui/card"
@@ -242,25 +242,6 @@ export default function CustomBaselineClient() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex flex-col gap-4 border-b border-zinc-200 bg-white px-6 py-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex items-center gap-4">
-          <div className="rounded-lg bg-blue-50 p-2">
-            <Shield className="h-6 w-6 text-blue-500" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-950">{t("title")}</h1>
-        </div>
-
-        <Button
-          type="button"
-          onClick={handleOpenCreate}
-          className="h-11 gap-3 rounded-xl bg-zinc-950 px-5 text-base font-semibold text-white hover:bg-zinc-800"
-        >
-          <Plus className="h-5 w-5" />
-          <span>{t("createBaseline")}</span>
-          <span className="rounded-md bg-white/20 px-2 py-0.5 text-sm tabular-nums">{totalSelectedCount}</span>
-        </Button>
-      </div>
-
       <div className="flex w-full flex-col gap-6 px-6 py-6">
         {templatesError ? (
           <Card className="border-destructive/20 bg-destructive/5 shadow-none">
@@ -307,6 +288,8 @@ export default function CustomBaselineClient() {
             onProfileFilterChange={setProfileFilter}
             onSelectTemplate={(template) => setSelectedTemplateUuid(template.uuid)}
             onRefresh={() => void loadTemplates()}
+            onCreateBaseline={handleOpenCreate}
+            createSelectedCount={totalSelectedCount}
           />
 
           <BaselineItemsPanel
