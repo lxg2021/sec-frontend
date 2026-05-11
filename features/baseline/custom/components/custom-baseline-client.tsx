@@ -276,7 +276,7 @@ export default function CustomBaselineClient() {
           </Card>
         ) : null}
 
-        <div className="grid min-h-0 flex-1 items-stretch gap-6 xl:grid-cols-[440px_minmax(0,0.9fr)_352px]">
+        <div className="grid min-h-0 flex-1 items-stretch gap-6 xl:grid-cols-[460px_minmax(0,1fr)_minmax(0,0.9fr)]">
           <BaselineTemplateSelector
             templates={filteredTemplates}
             loading={templatesLoading}
