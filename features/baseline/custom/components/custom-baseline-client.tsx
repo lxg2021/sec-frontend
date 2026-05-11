@@ -241,7 +241,7 @@ export default function CustomBaselineClient() {
   }, [description, displayName, selectedItems, t])
 
   return (
-    <div className="h-dvh overflow-hidden bg-gray-50">
+    <div className="h-full overflow-hidden bg-gray-50">
       <div className="flex h-full min-h-0 w-full flex-col gap-6 px-6 py-6">
         {templatesError ? (
           <Card className="border-destructive/20 bg-destructive/5 shadow-none">
