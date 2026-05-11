@@ -30,9 +30,37 @@ import {
 } from "lucide-react"
 import FixDropdownMenu from "@/shared/components/menu/fix-dropdown-menu"
 import { useTranslations } from "next-intl"
+import type { ComponentType, ReactNode } from "react"
+import type { BaselineHostListItem } from "@/features/baseline/dashboard/api"
+
+interface HostListProps {
+  filteredData: BaselineHostListItem[]
+  selectedHosts: string[]
+  searchTerm: string
+  filterUser: string
+  filterDepartment: string
+  filterOS: string
+  filterHostId: string
+  batchFixMethod: string
+  uniqueUsers: string[]
+  uniqueDepartments: string[]
+  uniqueOS: string[]
+  setSearchTerm: (value: string) => void
+  setFilterUser: (value: string) => void
+  setFilterDepartment: (value: string) => void
+  setFilterOS: (value: string) => void
+  setFilterHostId: (value: string) => void
+  handleSelectAll: (checked: boolean) => void
+  handleSelectHost: (hostId: string, checked: boolean) => void
+  clearFilters: () => void
+  handleBatchFixMethodSelect: (method: string) => void
+  handleHostFixMethodSelect: (hostId: string, method: string) => void
+  getHostFixMethod: (hostId: string) => string
+  isLoading?: boolean
+}
 
 // 表头图标+文字组件，减少重复
-const HeaderCell = ({ icon: Icon, children }) => (
+const HeaderCell = ({ icon: Icon, children }: { icon: ComponentType<{ className?: string }>; children: ReactNode }) => (
   <div className="flex items-center space-x-1">
     <Icon className="h-3 w-3" />
     <span>{children}</span>
@@ -48,7 +76,6 @@ export default function HostList({
   filterOS,
   filterHostId,
   batchFixMethod,
-  hostFixMethods,
   uniqueUsers,
   uniqueDepartments,
   uniqueOS,
@@ -63,11 +90,12 @@ export default function HostList({
   handleBatchFixMethodSelect,
   handleHostFixMethodSelect,
   getHostFixMethod,
-}) {
+  isLoading = false,
+}: HostListProps) {
   const t = useTranslations("pages.baseline.details")
   const selectedAll =
     selectedHosts.length === filteredData.length && filteredData.length > 0
-  const failedCount = filteredData.filter((h) => h.status === "failed").length
+  const failedCount = filteredData.filter((h) => h.status !== "passed").length
 
   return (
     <Card className="bg-white border-gray-200 shadow-sm">
@@ -110,7 +138,7 @@ export default function HostList({
           </div>
 
           <div className="grid grid-cols-4 gap-4">
-            <Select value={filterUser} onValueChange={setFilterUser}>
+            <Select value={filterUser || "all"} onValueChange={(value) => setFilterUser(value === "all" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder={t("filterUser")} />
               </SelectTrigger>
@@ -124,7 +152,10 @@ export default function HostList({
               </SelectContent>
             </Select>
 
-            <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+            <Select
+              value={filterDepartment || "all"}
+              onValueChange={(value) => setFilterDepartment(value === "all" ? "" : value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder={t("filterDepartment")} />
               </SelectTrigger>
@@ -138,7 +169,7 @@ export default function HostList({
               </SelectContent>
             </Select>
 
-            <Select value={filterOS} onValueChange={setFilterOS}>
+            <Select value={filterOS || "all"} onValueChange={(value) => setFilterOS(value === "all" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder={t("filterOs")} />
               </SelectTrigger>
@@ -162,7 +193,7 @@ export default function HostList({
 
         <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
           <div className="flex items-center space-x-4">
-            <Checkbox checked={selectedAll} onCheckedChange={handleSelectAll} />
+            <Checkbox checked={selectedAll} onCheckedChange={(checked) => handleSelectAll(checked === true)} />
             <span className="text-sm text-gray-700">
               {t("selectedHosts", { count: selectedHosts.length })}
             </span>
@@ -182,7 +213,7 @@ export default function HostList({
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
                 <th className="text-left py-3 px-4">
-                  <Checkbox checked={selectedAll} onCheckedChange={handleSelectAll} />
+                  <Checkbox checked={selectedAll} onCheckedChange={(checked) => handleSelectAll(checked === true)} />
                 </th>
                 <th className="text-left py-3 px-4">
                   <HeaderCell icon={Hash}>{t("hostId")}</HeaderCell>
@@ -220,7 +251,7 @@ export default function HostList({
                     <Checkbox
                       checked={selectedHosts.includes(host.id)}
                       onCheckedChange={(checked) =>
-                        handleSelectHost(host.id, checked)
+                        handleSelectHost(host.id, checked === true)
                       }
                     />
                   </td>
@@ -251,13 +282,13 @@ export default function HostList({
                       ) : (
                         <XCircle className="h-3 w-3 mr-1" />
                       )}
-                      {host.checkResult}
+                      {t(`resultStatus.${host.status}`)}
                     </Badge>
                   </td>
                   <td className="py-3 px-4">
                     <FixDropdownMenu
                       selectedMethod={getHostFixMethod(host.id)}
-                      onSelect={(method) =>
+                      onSelect={(method: string) =>
                         handleHostFixMethodSelect(host.id, method)
                       }
                       buttonVariant="outline"
@@ -270,7 +301,14 @@ export default function HostList({
           </table>
         </div>
 
-        {filteredData.length === 0 && (
+        {isLoading && (
+          <div className="text-center py-12">
+            <RefreshCw className="h-12 w-12 mx-auto text-gray-400 mb-4 animate-spin" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t("loadingHosts")}</h3>
+          </div>
+        )}
+
+        {!isLoading && filteredData.length === 0 && (
           <div className="text-center py-12">
             <Search className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t("noMatchTitle")}</h3>

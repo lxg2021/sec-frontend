@@ -92,6 +92,37 @@ export interface BaselineItemResultStatistics {
   pass_rate: number
 }
 
+export interface BaselineHostPagination {
+  current_page: number
+  page_size: number
+  total_count: number
+  total_pages: number
+  has_previous: boolean
+  has_next: boolean
+}
+
+export interface BaselineHostListItem {
+  id: string
+  user: string
+  email: string
+  phone: string
+  department: string
+  os: string
+  lastOnline: string
+  checkResult: string
+  status: "passed" | "failed" | "error"
+  testResult: string
+  errorReason: string
+  hostname: string
+  ip: string
+  hostStatus: string
+}
+
+export interface BaselineItemHostResults {
+  hosts: BaselineHostListItem[]
+  pagination: BaselineHostPagination
+}
+
 export interface BaselineTemplateItem {
   template_uuid: string
   id: string
@@ -122,6 +153,47 @@ export interface BaselineTemplateItem {
   category_zh: string
 }
 
+interface BackendHostOwner {
+  username?: string
+  email?: string
+  phone?: string
+}
+
+interface BackendLogicGroup {
+  name?: string
+  full_path?: string
+  department_name?: string | null
+}
+
+interface BackendHostDetail {
+  agent_id?: string
+  hostname?: string
+  ip?: string[]
+  os_type?: string
+  os_name?: string
+  os_version?: string
+  status?: string
+  heartbeat_time?: number | string
+  group?: BackendLogicGroup | null
+  owners?: BackendHostOwner[]
+}
+
+interface BackendBaselineCheckResult {
+  result?: string
+  test_result?: string
+  error_reason?: string
+}
+
+interface BackendBaselineItemHostResult {
+  host_detail?: BackendHostDetail | null
+  check_result?: BackendBaselineCheckResult | null
+}
+
+interface BackendBaselineItemHostResultsData {
+  host_results?: BackendBaselineItemHostResult[]
+  pagination?: Partial<BaselineHostPagination>
+}
+
 interface ApiResult<T> {
   data: T
 }
@@ -137,6 +209,90 @@ function asRecord(value: unknown): Record<string, unknown> {
 function numberValue(value: unknown) {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
+}
+
+function stringValue(value: unknown, fallback = "-") {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback
+}
+
+function toDisplayDateTime(value?: number | string | null) {
+  if (value === undefined || value === null || value === "") return "-"
+
+  const numericValue = Number(value)
+  const timestamp = Number.isFinite(numericValue)
+    ? numericValue < 1_000_000_000_000
+      ? numericValue * 1000
+      : numericValue
+    : Date.parse(String(value))
+
+  if (!Number.isFinite(timestamp)) return "-"
+
+  const date = new Date(timestamp)
+  const pad = (part: number) => String(part).padStart(2, "0")
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(
+    date.getMinutes(),
+  )}:${pad(date.getSeconds())}`
+}
+
+function normalizeCheckStatus(value: unknown): BaselineHostListItem["status"] {
+  const status = typeof value === "string" ? value.toLowerCase() : ""
+
+  if (status === "passed" || status === "failed" || status === "error") return status
+
+  return "error"
+}
+
+function normalizePagination(
+  pagination: Partial<BaselineHostPagination> | undefined,
+  limit: number,
+  offset: number,
+  hostCount: number,
+): BaselineHostPagination {
+  const pageSize = Number(pagination?.page_size ?? limit) || limit
+  const currentPage = Number(pagination?.current_page ?? Math.floor(offset / pageSize) + 1) || 1
+  const totalCount = Number(pagination?.total_count ?? hostCount) || 0
+  const totalPages = Number(pagination?.total_pages ?? Math.ceil(totalCount / pageSize)) || 0
+
+  return {
+    current_page: currentPage,
+    page_size: pageSize,
+    total_count: totalCount,
+    total_pages: totalPages,
+    has_previous: Boolean(pagination?.has_previous ?? currentPage > 1),
+    has_next: Boolean(pagination?.has_next ?? currentPage < totalPages),
+  }
+}
+
+function adaptBaselineHostResult(item: BackendBaselineItemHostResult): BaselineHostListItem {
+  const host = item.host_detail || {}
+  const check = item.check_result || {}
+  const owners = Array.isArray(host.owners) ? host.owners : []
+  const ownerNames = owners.map((owner) => stringValue(owner.username, "")).filter(Boolean)
+  const ownerEmails = owners.map((owner) => stringValue(owner.email, "")).filter(Boolean)
+  const ownerPhones = owners.map((owner) => stringValue(owner.phone, "")).filter(Boolean)
+  const groupPath = stringValue(host.group?.full_path, "")
+  const groupParts = groupPath.split("/").filter(Boolean)
+  const os = [host.os_name, host.os_version].map((part) => stringValue(part, "")).filter(Boolean).join(" ")
+
+  const status = normalizeCheckStatus(check.result)
+
+  return {
+    id: stringValue(host.agent_id, ""),
+    user: ownerNames.length ? ownerNames.join(", ") : "-",
+    email: ownerEmails.length ? ownerEmails.join(", ") : "-",
+    phone: ownerPhones.length ? ownerPhones.join(", ") : "-",
+    department: stringValue(host.group?.department_name, "") || stringValue(host.group?.name, "") || groupParts.at(-1) || "-",
+    os: os || stringValue(host.os_type),
+    lastOnline: toDisplayDateTime(host.heartbeat_time),
+    checkResult: status,
+    status,
+    testResult: stringValue(check.test_result),
+    errorReason: stringValue(check.error_reason, ""),
+    hostname: stringValue(host.hostname),
+    ip: Array.isArray(host.ip) && host.ip.length ? host.ip.join(", ") : "-",
+    hostStatus: stringValue(host.status),
+  }
 }
 
 function normalizeBaselineItemStatistics(value: unknown): BaselineItemResultStatistics | null {
@@ -207,6 +363,28 @@ export async function fetchBaselineItemStatistics(
   })) as ApiResult<unknown>
 
   return normalizeBaselineItemStatistics(result.data)
+}
+
+export async function fetchBaselineItemHostResults(
+  baselineUUID: string,
+  itemID: string,
+  { limit = 100, offset = 0 }: { limit?: number; offset?: number } = {},
+): Promise<BaselineItemHostResults> {
+  const result = (await http.post("getBaselineItemHostResults", {
+    request_id: createRequestId(),
+    baseline_uuid: baselineUUID,
+    item_id: itemID,
+    limit,
+    offset,
+  })) as ApiResult<BackendBaselineItemHostResultsData | null>
+
+  const data = result.data || {}
+  const hosts = normalizeArray<BackendBaselineItemHostResult>(data.host_results).map(adaptBaselineHostResult)
+
+  return {
+    hosts,
+    pagination: normalizePagination(data.pagination, limit, offset, hosts.length),
+  }
 }
 
 export async function fetchBaselineDetail(baselineUUID: string, itemID: string): Promise<BaselineTemplateItem | null> {

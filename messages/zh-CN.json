@@ -1218,7 +1218,7 @@
         "hostListTitle": "影响主机列表",
         "hostCount": "共 {count} 台主机",
         "nonCompliantCount": "{count} 台不合规",
-        "searchPlaceholder": "搜索主机ID、使用者或邮箱...",
+        "searchPlaceholder": "搜索主机ID、主机名、IP、使用者或邮箱...",
         "clearFilters": "清空筛选",
         "filterUser": "筛选使用者",
         "allUsers": "全部使用者",
@@ -1235,6 +1235,12 @@
         "os": "操作系统",
         "lastOnline": "最近上线时间",
         "checkResult": "检查结果",
+        "loadingHosts": "正在加载影响主机",
+        "resultStatus": {
+          "passed": "合规",
+          "failed": "不合规",
+          "error": "检查异常"
+        },
         "actions": "操作",
         "noMatchTitle": "未找到匹配的主机",
         "noMatchDescription": "请尝试调整筛选条件或搜索关键词",

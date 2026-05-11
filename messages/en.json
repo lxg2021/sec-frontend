@@ -1216,7 +1216,7 @@
         "hostListTitle": "Affected Hosts",
         "hostCount": "{count} hosts",
         "nonCompliantCount": "{count} non-compliant",
-        "searchPlaceholder": "Search by host ID, user, or email...",
+        "searchPlaceholder": "Search by host ID, hostname, IP, user, or email...",
         "clearFilters": "Clear Filters",
         "filterUser": "Filter by user",
         "allUsers": "All users",
@@ -1233,6 +1233,12 @@
         "os": "Operating System",
         "lastOnline": "Last Online",
         "checkResult": "Check Result",
+        "loadingHosts": "Loading affected hosts",
+        "resultStatus": {
+          "passed": "Compliant",
+          "failed": "Non-compliant",
+          "error": "Check Error"
+        },
         "actions": "Actions",
         "noMatchTitle": "No matching hosts found",
         "noMatchDescription": "Try adjusting filters or search terms.",

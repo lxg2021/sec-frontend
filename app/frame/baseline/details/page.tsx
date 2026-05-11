@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Database, Lock, Monitor, Settings, Shield, Users } from "lucide-react"
@@ -10,7 +10,9 @@ import BaselineDetailSpec from "@/features/baseline/details/components/baseline-
 import HostList from "@/features/baseline/details/components/host-list"
 import {
   fetchBaselineDetail,
+  fetchBaselineItemHostResults,
   fetchBaselineItemStatistics,
+  type BaselineHostListItem,
   type BaselineItemResultStatistics,
   type BaselineTemplateItem,
 } from "@/features/baseline/dashboard/api"
@@ -27,64 +29,6 @@ const categoryIconMap = {
   database: Database,
 }
 
-const mockHostData = [
-  {
-    id: "HOST-001",
-    user: "张三",
-    email: "zhangsan/company.com",
-    phone: "138****1234",
-    department: "技术部",
-    os: "Windows Server 2019",
-    lastOnline: "2025-01-25 14:30:25",
-    checkResult: "不合规",
-    status: "failed",
-  },
-  {
-    id: "HOST-002",
-    user: "李四",
-    email: "lisi/company.com",
-    phone: "139****5678",
-    department: "运维部",
-    os: "Ubuntu 20.04",
-    lastOnline: "2025-01-25 15:45:12",
-    checkResult: "合规",
-    status: "passed",
-  },
-  {
-    id: "HOST-003",
-    user: "王五",
-    email: "wangwu/company.com",
-    phone: "136****9012",
-    department: "技术部",
-    os: "CentOS 7.9",
-    lastOnline: "2025-01-25 13:20:08",
-    checkResult: "不合规",
-    status: "failed",
-  },
-  {
-    id: "HOST-004",
-    user: "赵六",
-    email: "zhaoliu/company.com",
-    phone: "137****3456",
-    department: "安全部",
-    os: "Windows Server 2022",
-    lastOnline: "2025-01-25 16:10:33",
-    checkResult: "合规",
-    status: "passed",
-  },
-  {
-    id: "HOST-005",
-    user: "钱七",
-    email: "qianqi/company.com",
-    phone: "135****7890",
-    department: "运维部",
-    os: "Red Hat 8.5",
-    lastOnline: "2025-01-25 12:55:47",
-    checkResult: "不合规",
-    status: "failed",
-  },
-]
-
 export default function BaselineDetailsPage() {
   const t = useTranslations("pages.baseline.details")
   const searchParams = useSearchParams()
@@ -100,7 +44,9 @@ export default function BaselineDetailsPage() {
   const [hostFixMethods, setHostFixMethods] = useState<Record<string, string>>({})
   const [detail, setDetail] = useState<BaselineTemplateItem | null>(null)
   const [statistics, setStatistics] = useState<BaselineItemResultStatistics | null>(null)
+  const [hostData, setHostData] = useState<BaselineHostListItem[]>([])
   const [headerLoading, setHeaderLoading] = useState(true)
+  const [hostLoading, setHostLoading] = useState(true)
 
   const baselineUuid = searchParams.get("baseline_uuid") || ""
   const baselineNameFallback = searchParams.get("baseline_name") || baselineUuid || "基线模板"
@@ -118,17 +64,23 @@ export default function BaselineDetailsPage() {
       if (!baselineUuid || !itemId) {
         setDetail(null)
         setStatistics(null)
+        setHostData([])
         setHeaderLoading(false)
+        setHostLoading(false)
         return
       }
 
       setHeaderLoading(true)
+      setHostLoading(true)
       setDetail(null)
       setStatistics(null)
+      setHostData([])
+      setSelectedHosts([])
 
-      const [detailResult, statisticsResult] = await Promise.allSettled([
+      const [detailResult, statisticsResult, hostResult] = await Promise.allSettled([
         fetchBaselineDetail(baselineUuid, itemId),
         fetchBaselineItemStatistics(baselineUuid, itemId),
+        fetchBaselineItemHostResults(baselineUuid, itemId),
       ])
 
       if (cancelled) return
@@ -141,7 +93,12 @@ export default function BaselineDetailsPage() {
         setStatistics(statisticsResult.value)
       }
 
+      if (hostResult.status === "fulfilled") {
+        setHostData(hostResult.value.hosts)
+      }
+
       setHeaderLoading(false)
+      setHostLoading(false)
     }
 
     void loadHeaderData()
@@ -151,20 +108,34 @@ export default function BaselineDetailsPage() {
     }
   }, [baselineUuid, itemId])
 
-  const uniqueUsers = [...new Set(mockHostData.map((host) => host.user))]
-  const uniqueDepartments = [...new Set(mockHostData.map((host) => host.department))]
-  const uniqueOS = [...new Set(mockHostData.map((host) => host.os))]
+  const uniqueUsers = useMemo(
+    () => [...new Set(hostData.map((host) => host.user).filter((value) => value !== "-"))],
+    [hostData],
+  )
+  const uniqueDepartments = useMemo(
+    () => [...new Set(hostData.map((host) => host.department).filter((value) => value !== "-"))],
+    [hostData],
+  )
+  const uniqueOS = useMemo(
+    () => [...new Set(hostData.map((host) => host.os).filter((value) => value !== "-"))],
+    [hostData],
+  )
 
-  const filteredData = mockHostData.filter((host) => {
+  const filteredData = hostData.filter((host) => {
+    const keyword = searchTerm.trim().toLowerCase()
+    const hostIdKeyword = filterHostId.trim().toLowerCase()
+
     return (
-      (searchTerm.trim() === "" ||
-        host.user.toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
-        host.id.toLowerCase().includes(searchTerm.trim().toLowerCase()) ||
-        host.email.toLowerCase().includes(searchTerm.trim().toLowerCase())) &&
+      (keyword === "" ||
+        host.user.toLowerCase().includes(keyword) ||
+        host.id.toLowerCase().includes(keyword) ||
+        host.email.toLowerCase().includes(keyword) ||
+        host.hostname.toLowerCase().includes(keyword) ||
+        host.ip.toLowerCase().includes(keyword)) &&
       (filterUser === "" || host.user.toLowerCase() === filterUser.toLowerCase()) &&
       (filterDepartment === "" || host.department.toLowerCase() === filterDepartment.toLowerCase()) &&
       (filterOS === "" || host.os.toLowerCase() === filterOS.toLowerCase()) &&
-      (filterHostId === "" || host.id.toLowerCase().includes(filterHostId.trim().toLowerCase()))
+      (hostIdKeyword === "" || host.id.toLowerCase().includes(hostIdKeyword))
     )
   })
 
@@ -243,7 +214,6 @@ export default function BaselineDetailsPage() {
           filterOS={filterOS}
           filterHostId={filterHostId}
           batchFixMethod={batchFixMethod}
-          hostFixMethods={hostFixMethods}
           uniqueUsers={uniqueUsers}
           uniqueDepartments={uniqueDepartments}
           uniqueOS={uniqueOS}
@@ -258,6 +228,7 @@ export default function BaselineDetailsPage() {
           handleBatchFixMethodSelect={handleBatchFixMethodSelect}
           handleHostFixMethodSelect={handleHostFixMethodSelect}
           getHostFixMethod={getHostFixMethod}
+          isLoading={hostLoading}
         />
       </div>
     </div>
