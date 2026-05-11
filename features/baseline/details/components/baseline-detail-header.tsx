@@ -1,6 +1,7 @@
 "use client"
 
 import type { ComponentType, ReactNode } from "react"
+import { useLocale } from "next-intl"
 import {
   AlertCircle,
   AlertTriangle,
@@ -134,8 +135,11 @@ export function BaselineDetailHeader({
   isLoading = false,
   onBack,
 }: BaselineDetailHeaderProps) {
-  const title = item?.name_zh || item?.name || fallbackTitle || "检查项详情"
-  const categoryLabel = item?.category_zh || item?.category || fallbackCategory || "未分类"
+  const locale = useLocale()
+  const useZh = locale.toLowerCase().startsWith("zh")
+  const title = (useZh ? item?.name_zh : item?.name) || item?.name || item?.name_zh || fallbackTitle || "检查项详情"
+  const categoryLabel =
+    (useZh ? item?.category_zh : item?.category) || item?.category || item?.category_zh || fallbackCategory || "未分类"
   const templateLabel = baselineName || baselineUuid || "基线模板"
   const itemId = item?.id || "未知"
   const severityMeta = getSeverityMeta(item?.severity)

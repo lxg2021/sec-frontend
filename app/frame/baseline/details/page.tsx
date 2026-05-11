@@ -112,6 +112,7 @@ export default function BaselineDetailsPage() {
   const [headerLoading, setHeaderLoading] = useState(true)
 
   const baselineUuid = searchParams.get("baseline_uuid") || ""
+  const baselineNameFallback = searchParams.get("baseline_name") || baselineUuid || "基线模板"
   const itemId = searchParams.get("item_id") || ""
   const itemNameFallback = searchParams.get("item") || t("defaultItemName")
   const categoryId = searchParams.get("category") || "account"
@@ -247,6 +248,7 @@ export default function BaselineDetailsPage() {
           item={detail}
           statistics={statistics}
           baselineUuid={baselineUuid}
+          baselineName={baselineNameFallback}
           categoryIcon={CategoryIcon}
           fallbackCategory={fallbackCategoryName}
           fallbackTitle={itemNameFallback}
