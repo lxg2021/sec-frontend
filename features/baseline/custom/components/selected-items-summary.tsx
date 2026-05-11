@@ -260,19 +260,21 @@ export function SelectedItemsSummary({
 
                       {isExpanded && (
                         <div className="border-t border-zinc-200 bg-zinc-50 p-2">
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="space-y-1">
                             {items.map((item) => (
-                              <Button
+                              <button
                                 key={item.id}
                                 type="button"
-                                variant="outline"
-                                size="sm"
                                 onClick={() => onRemoveItem(templateUuid, item.id)}
-                                className={cn("h-7 rounded-full border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-900")}
+                                className={cn(
+                                  "flex w-full items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left transition-colors hover:bg-zinc-50",
+                                )}
                               >
-                                {getItemLabel(item, useZh)}
-                                <X className="ml-1 h-3 w-3" />
-                              </Button>
+                                <span className="min-w-0 flex-1 truncate text-sm text-zinc-900">
+                                  {getItemLabel(item, useZh)}
+                                </span>
+                                <X className="h-3.5 w-3.5 flex-shrink-0 text-zinc-400" />
+                              </button>
                             ))}
                           </div>
                         </div>
