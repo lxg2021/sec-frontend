@@ -13,9 +13,21 @@ import {
   fetchBaselineItemHostResults,
   fetchBaselineItemStatistics,
   type BaselineHostListItem,
+  type BaselineHostPagination,
   type BaselineItemResultStatistics,
   type BaselineTemplateItem,
 } from "@/features/baseline/dashboard/api"
+
+const DEFAULT_HOST_PAGE_SIZE = 10
+
+const EMPTY_HOST_PAGINATION: BaselineHostPagination = {
+  current_page: 1,
+  page_size: DEFAULT_HOST_PAGE_SIZE,
+  total_count: 0,
+  total_pages: 0,
+  has_previous: false,
+  has_next: false,
+}
 
 const categoryKeys = ["account", "system", "permission", "service", "network", "database"] as const
 type CategoryKey = (typeof categoryKeys)[number]
@@ -34,17 +46,19 @@ export default function BaselineDetailsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const [selectedHosts, setSelectedHosts] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterUser, setFilterUser] = useState("")
   const [filterDepartment, setFilterDepartment] = useState("")
   const [filterOS, setFilterOS] = useState("")
   const [filterHostId, setFilterHostId] = useState("")
-  const [batchFixMethod, setBatchFixMethod] = useState(t("defaultFixMethod"))
-  const [hostFixMethods, setHostFixMethods] = useState<Record<string, string>>({})
   const [detail, setDetail] = useState<BaselineTemplateItem | null>(null)
   const [statistics, setStatistics] = useState<BaselineItemResultStatistics | null>(null)
   const [hostData, setHostData] = useState<BaselineHostListItem[]>([])
+  const [hostPagination, setHostPagination] = useState<BaselineHostPagination>(EMPTY_HOST_PAGINATION)
+  const [hostPage, setHostPage] = useState(1)
+  const [hostPageSize, setHostPageSize] = useState(DEFAULT_HOST_PAGE_SIZE)
+  const [hostError, setHostError] = useState("")
+  const [hostReloadKey, setHostReloadKey] = useState(0)
   const [headerLoading, setHeaderLoading] = useState(true)
   const [hostLoading, setHostLoading] = useState(true)
 
@@ -64,23 +78,17 @@ export default function BaselineDetailsPage() {
       if (!baselineUuid || !itemId) {
         setDetail(null)
         setStatistics(null)
-        setHostData([])
         setHeaderLoading(false)
-        setHostLoading(false)
         return
       }
 
       setHeaderLoading(true)
-      setHostLoading(true)
       setDetail(null)
       setStatistics(null)
-      setHostData([])
-      setSelectedHosts([])
 
-      const [detailResult, statisticsResult, hostResult] = await Promise.allSettled([
+      const [detailResult, statisticsResult] = await Promise.allSettled([
         fetchBaselineDetail(baselineUuid, itemId),
         fetchBaselineItemStatistics(baselineUuid, itemId),
-        fetchBaselineItemHostResults(baselineUuid, itemId),
       ])
 
       if (cancelled) return
@@ -93,12 +101,7 @@ export default function BaselineDetailsPage() {
         setStatistics(statisticsResult.value)
       }
 
-      if (hostResult.status === "fulfilled") {
-        setHostData(hostResult.value.hosts)
-      }
-
       setHeaderLoading(false)
-      setHostLoading(false)
     }
 
     void loadHeaderData()
@@ -107,6 +110,55 @@ export default function BaselineDetailsPage() {
       cancelled = true
     }
   }, [baselineUuid, itemId])
+
+  useEffect(() => {
+    setHostPage(1)
+  }, [baselineUuid, itemId])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadHostData = async () => {
+      if (!baselineUuid || !itemId) {
+        setHostData([])
+        setHostPagination(EMPTY_HOST_PAGINATION)
+        setHostError("")
+        setHostLoading(false)
+        return
+      }
+
+      setHostLoading(true)
+      setHostError("")
+
+      try {
+        const result = await fetchBaselineItemHostResults(baselineUuid, itemId, {
+          limit: hostPageSize,
+          offset: (hostPage - 1) * hostPageSize,
+        })
+
+        if (cancelled) return
+
+        setHostData(result.hosts)
+        setHostPagination(result.pagination)
+      } catch (error) {
+        if (cancelled) return
+
+        setHostData([])
+        setHostPagination({ ...EMPTY_HOST_PAGINATION, current_page: hostPage, page_size: hostPageSize })
+        setHostError(error instanceof Error ? error.message : t("loadHostsFailed"))
+      } finally {
+        if (!cancelled) {
+          setHostLoading(false)
+        }
+      }
+    }
+
+    void loadHostData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [baselineUuid, hostPage, hostPageSize, hostReloadKey, itemId, t])
 
   const uniqueUsers = useMemo(
     () => [...new Set(hostData.map((host) => host.user).filter((value) => value !== "-"))],
@@ -139,49 +191,13 @@ export default function BaselineDetailsPage() {
     )
   })
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedHosts(filteredData.map((host) => host.id))
-    } else {
-      setSelectedHosts([])
-    }
-  }
-
-  const handleSelectHost = (hostId: string, checked: boolean) => {
-    if (checked && !selectedHosts.includes(hostId)) {
-      setSelectedHosts([...selectedHosts, hostId])
-    } else if (!checked) {
-      setSelectedHosts(selectedHosts.filter((id) => id !== hostId))
-    }
-  }
-
   const clearFilters = () => {
     setSearchTerm("")
     setFilterUser("")
     setFilterDepartment("")
     setFilterOS("")
     setFilterHostId("")
-  }
-
-  const handleBatchFixMethodSelect = (method: string) => {
-    setBatchFixMethod(method)
-    if (process.env.NODE_ENV !== "production") {
-      console.log("批量修复方式:", method, "选中主机:", selectedHosts)
-    }
-  }
-
-  const handleHostFixMethodSelect = (hostId: string, method: string) => {
-    setHostFixMethods((prev) => ({
-      ...prev,
-      [hostId]: method,
-    }))
-    if (process.env.NODE_ENV !== "production") {
-      console.log("主机修复方式:", hostId, method)
-    }
-  }
-
-  const getHostFixMethod = (hostId: string) => {
-    return hostFixMethods[hostId] || t("defaultFixMethod")
+    setHostPage(1)
   }
 
   const handleBack = useCallback(() => {
@@ -207,28 +223,27 @@ export default function BaselineDetailsPage() {
 
         <HostList
           filteredData={filteredData}
-          selectedHosts={selectedHosts}
+          pagination={hostPagination}
           searchTerm={searchTerm}
           filterUser={filterUser}
           filterDepartment={filterDepartment}
           filterOS={filterOS}
           filterHostId={filterHostId}
-          batchFixMethod={batchFixMethod}
           uniqueUsers={uniqueUsers}
           uniqueDepartments={uniqueDepartments}
           uniqueOS={uniqueOS}
+          pageSize={hostPageSize}
           setSearchTerm={setSearchTerm}
           setFilterUser={setFilterUser}
           setFilterDepartment={setFilterDepartment}
           setFilterOS={setFilterOS}
           setFilterHostId={setFilterHostId}
-          handleSelectAll={handleSelectAll}
-          handleSelectHost={handleSelectHost}
           clearFilters={clearFilters}
-          handleBatchFixMethodSelect={handleBatchFixMethodSelect}
-          handleHostFixMethodSelect={handleHostFixMethodSelect}
-          getHostFixMethod={getHostFixMethod}
           isLoading={hostLoading}
+          error={hostError}
+          onPageChange={setHostPage}
+          onPageSizeChange={setHostPageSize}
+          onRetry={() => setHostReloadKey((value) => value + 1)}
         />
       </div>
     </div>
