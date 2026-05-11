@@ -14,7 +14,6 @@ import {
   Info,
   LinkIcon,
   Settings2,
-  Shield,
   SlidersHorizontal,
 } from "lucide-react"
 
@@ -427,7 +426,6 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
   if (!item) return <EmptyState label={labels.empty} />
 
   const title = (useZh ? item.name_zh : item.name) || item.name || item.name_zh || ""
-  const category = (useZh ? item.category_zh : item.category) || item.category || item.category_zh || ""
   const description = item.description?.trim() || ""
 
   const handleCopy = async (key: string, value: string) => {
@@ -541,18 +539,6 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
           </CardContent>
         )}
 
-        <div className="border-t border-slate-200 px-6 py-3 text-xs text-slate-500">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="gap-1.5 border-slate-200 bg-background text-slate-600">
-              <Shield className="h-3 w-3" />
-              {category || labels.category}
-            </Badge>
-            <Badge variant="outline" className="gap-1.5 border-slate-200 bg-background text-slate-600">
-              <Copy className="h-3 w-3" />
-              {labels.itemId}: {item.id}
-            </Badge>
-          </div>
-        </div>
       </Card>
     </TooltipProvider>
   )
