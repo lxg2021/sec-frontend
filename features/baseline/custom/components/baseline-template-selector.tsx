@@ -123,6 +123,7 @@ export function BaselineTemplateSelector({
           ) : templates.length === 0 ? (
             <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50">
               <div className="text-center">
+                <LayoutGrid className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="text-sm font-medium text-zinc-950">{t("templateSelector.emptyTitle")}</p>
                 <p className="mt-1 text-xs text-zinc-500">{t("templateSelector.emptyDescription")}</p>
               </div>
