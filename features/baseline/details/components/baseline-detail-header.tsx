@@ -173,7 +173,7 @@ export function BaselineDetailHeader({
 
           <div className="flex min-h-[86px] w-full min-w-0 px-1 py-1 xl:w-[32rem]">
             {isLoading ? (
-              <div className="flex min-h-[78px] w-full flex-col justify-between gap-2">
+              <div className="flex min-h-[78px] w-full flex-col justify-center gap-2">
                 <SkeletonLine className="h-8 w-full max-w-[28rem]" />
                 <div className="flex flex-wrap gap-2">
                   <SkeletonLine className="h-6 w-32 rounded-full" />
@@ -182,12 +182,12 @@ export function BaselineDetailHeader({
                 </div>
               </div>
             ) : (
-              <div className="flex min-h-[78px] w-full flex-col justify-between gap-2">
+              <div className="flex min-h-[78px] w-full flex-col justify-center gap-2">
                 <div className="min-w-0 w-full">
                   <TooltipProvider delayDuration={200}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <h1 className="w-full truncate text-xl font-semibold leading-snug tracking-tight text-foreground">
+                        <h1 className="w-full truncate text-lg font-semibold leading-snug tracking-tight text-foreground">
                           {title}
                         </h1>
                       </TooltipTrigger>
