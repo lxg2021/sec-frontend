@@ -116,6 +116,7 @@ export interface BaselineTemplateItem {
   severity: string
   filter: string
   description: string
+  description_en?: string
   references: string
   name_zh: string
   category_zh: string

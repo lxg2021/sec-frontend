@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ReactNode } from "react"
 import { useLocale } from "next-intl"
 import {
   Check,
@@ -30,9 +30,9 @@ interface BaselineDetailSpecProps {
   isLoading?: boolean
 }
 
-type LabelSet = ReturnType<typeof getLabels>
+type Labels = ReturnType<typeof getLabels>
 
-type CompactField = {
+type Field = {
   key: string
   label: string
   value?: string
@@ -50,12 +50,13 @@ function isUrl(value: string) {
 function splitReferences(value?: string) {
   const text = value?.trim()
   if (!text) return []
-  const raw = text
+
+  const parts = text
     .split(/[\n;]+/)
     .map((part) => part.trim())
     .filter(Boolean)
 
-  if (raw.length > 1) return raw
+  if (parts.length > 1) return parts
 
   const urls = text.match(/https?:\/\/[^\s)]+/gi)
   if (urls?.length) return urls
@@ -70,37 +71,38 @@ function getLabels(useZh: boolean) {
     empty: useZh ? "暂无检查项详情" : "No item detail available",
     copied: useZh ? "已复制" : "Copied",
     copy: useZh ? "复制" : "Copy",
+    expand: useZh ? "展开" : "Expand",
+    collapse: useZh ? "折叠" : "Collapse",
     description: useZh ? "说明" : "Description",
-    recommendation: useZh ? "推荐配置" : "Recommended",
-    detection: useZh ? "检测方式" : "Detection",
-    registry: useZh ? "注册表路径" : "Registry",
-    wmi: useZh ? "WMI / CIM 配置" : "WMI / CIM",
-    intune: useZh ? "Intune / DCP 配置" : "Intune / DCP",
+    recommendation: useZh ? "推荐配置" : "Recommended configuration",
+    detection: useZh ? "检测方式" : "Detection method",
+    registry: useZh ? "注册表配置" : "Registry configuration",
+    wmi: useZh ? "WMI / CIM 配置" : "WMI / CIM configuration",
+    intune: useZh ? "Intune / DCP 配置" : "Intune / DCP configuration",
     references: useZh ? "参考文档" : "References",
     method: useZh ? "检测方法" : "Method",
-    methodArgument: useZh ? "注册表项" : "Registry Item",
+    methodArgument: useZh ? "注册表项" : "Registry item",
     itemId: useZh ? "条目 ID" : "Item ID",
     category: useZh ? "分类" : "Category",
-    severity: useZh ? "风险等级" : "Severity",
-    recommendedValue: useZh ? "推荐值" : "Recommended Value",
-    defaultValue: useZh ? "默认值" : "Default Value",
+    recommendedValue: useZh ? "推荐值" : "Recommended value",
+    defaultValue: useZh ? "默认值" : "Default value",
     operator: useZh ? "比较符" : "Operator",
     filter: useZh ? "适用条件" : "Filter",
     path: useZh ? "路径" : "Path",
     namespace: useZh ? "命名空间" : "Namespace",
-    className: useZh ? "类名" : "Class Name",
+    className: useZh ? "类名" : "Class name",
     property: useZh ? "属性" : "Property",
-    query: useZh ? "查询/参数" : "Query / Argument",
-    intunePath: useZh ? "Intune 路径" : "Intune Path",
-    intuneItem: useZh ? "Intune 项" : "Intune Item",
-    intuneDefault: useZh ? "Intune 默认值" : "Intune Default",
-    intuneRecommended: useZh ? "Intune 推荐值" : "Intune Recommended",
-    intuneOperator: useZh ? "Intune 比较符" : "Intune Operator",
-    dcpPath: useZh ? "DCP 路径" : "DCP Path",
+    query: useZh ? "查询/参数" : "Query / argument",
+    intunePath: useZh ? "Intune 路径" : "Intune path",
+    intuneItem: useZh ? "Intune 项" : "Intune item",
+    intuneDefault: useZh ? "Intune 默认值" : "Intune default",
+    intuneRecommended: useZh ? "Intune 推荐值" : "Intune recommended",
+    intuneOperator: useZh ? "Intune 比较符" : "Intune operator",
+    dcpPath: useZh ? "DCP 路径" : "DCP path",
   }
 }
 
-function SkeletonField() {
+function SkeletonRow() {
   return <div className="h-10 animate-pulse rounded-md bg-muted/70" />
 }
 
@@ -110,7 +112,7 @@ function SkeletonCard() {
       <CardContent className="space-y-6 p-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <div className="h-5 w-36 animate-pulse rounded bg-muted" />
+            <div className="h-5 w-40 animate-pulse rounded bg-muted" />
             <div className="h-4 w-[28rem] max-w-full animate-pulse rounded bg-muted" />
           </div>
           <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
@@ -118,18 +120,18 @@ function SkeletonCard() {
         <div className="h-14 rounded-md border-l-4 border-blue-500 bg-muted/30 p-4" />
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="space-y-3 rounded-lg border p-4">
-            <SkeletonField />
-            <SkeletonField />
+            <SkeletonRow />
+            <SkeletonRow />
           </div>
           <div className="space-y-3 rounded-lg border p-4">
-            <SkeletonField />
-            <SkeletonField />
+            <SkeletonRow />
+            <SkeletonRow />
           </div>
         </div>
         <div className="space-y-3 rounded-lg border p-4">
-          <SkeletonField />
-          <SkeletonField />
-          <SkeletonField />
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
         </div>
       </CardContent>
     </Card>
@@ -152,7 +154,7 @@ function CopyButton({
 }: {
   value: string
   copied: boolean
-  labels: LabelSet
+  labels: Labels
   onCopy: () => void
 }) {
   return (
@@ -170,15 +172,15 @@ function CopyButton({
   )
 }
 
-function InlineValue({
+function ValuePill({
   field,
   copied,
   labels,
   onCopy,
 }: {
-  field: CompactField
+  field: Field
   copied: boolean
-  labels: LabelSet
+  labels: Labels
   onCopy: () => void
 }) {
   const value = field.value?.trim() || ""
@@ -205,15 +207,15 @@ function InlineValue({
   )
 }
 
-function Row({
+function InfoRow({
   field,
   copiedKey,
   labels,
   onCopy,
 }: {
-  field: CompactField
+  field: Field
   copiedKey: string | null
-  labels: LabelSet
+  labels: Labels
   onCopy: (key: string, value: string) => void
 }) {
   const value = field.value?.trim() || ""
@@ -223,7 +225,7 @@ function Row({
     <div className="flex items-center justify-between gap-4 border-b border-dashed border-slate-200 py-3 last:border-0">
       <div className="min-w-0 text-sm text-slate-500">{field.label}</div>
       <div className="min-w-0 max-w-[70%]">
-        <InlineValue field={field} copied={copiedKey === field.key} labels={labels} onCopy={() => onCopy(field.key, value)} />
+        <ValuePill field={field} copied={copiedKey === field.key} labels={labels} onCopy={() => onCopy(field.key, value)} />
       </div>
     </div>
   )
@@ -259,7 +261,7 @@ function PrimaryBlock({
   onCopy,
 }: {
   item: BaselineTemplateItem
-  labels: LabelSet
+  labels: Labels
   copiedKey: string | null
   onCopy: (key: string, value: string) => void
 }) {
@@ -273,29 +275,35 @@ function PrimaryBlock({
     hasValue(item.operator_intune) ||
     hasValue(item.registry_path_dcp)
 
-  const mode = hasWmi ? "wmi" : hasRegistry ? "registry" : hasIntune ? "intune" : "none"
-
-  if (mode === "none") return null
-
-  const renderMonoLine = (key: string, label: string, value?: string) => {
+  const renderLine = (key: string, label: string, value?: string) => {
     if (!hasValue(value)) return null
     const text = value!.trim()
     return (
       <div key={key} className="flex items-center justify-between gap-4 border-b border-white/10 py-3 last:border-0">
         <div className="text-sm text-slate-300">{label}</div>
         <div className="min-w-0 max-w-[72%]">
-          <InlineValue
-            field={{ key, label, value: text, mono: true }}
-            copied={copiedKey === key}
-            labels={labels}
-            onCopy={() => onCopy(key, text)}
-          />
+          <ValuePill field={{ key, label, value: text, mono: true }} copied={copiedKey === key} labels={labels} onCopy={() => onCopy(key, text)} />
         </div>
       </div>
     )
   }
 
-  if (mode === "registry") {
+  if (hasWmi) {
+    return (
+      <Panel title={labels.wmi} accentClassName="bg-orange-500" icon={<Code2 className="h-4 w-4" />}>
+        <div className="rounded-md bg-slate-950 px-4 py-4">
+          <div className="space-y-0">
+            {renderLine("namespace", labels.namespace, item.namespace)}
+            {renderLine("class_name", labels.className, item.class_name)}
+            {renderLine("property", labels.property, item.property)}
+            {renderLine("method_argument", labels.query, item.method_argument)}
+          </div>
+        </div>
+      </Panel>
+    )
+  }
+
+  if (hasRegistry) {
     return (
       <Panel title={labels.registry} accentClassName="bg-orange-500" icon={<Database className="h-4 w-4" />}>
         <div className="space-y-3">
@@ -325,7 +333,7 @@ function PrimaryBlock({
             </div>
           )}
           {hasValue(item.registry_item) && (
-            <Row
+            <InfoRow
               field={{ key: "registry_item", label: labels.methodArgument, value: item.registry_item, mono: true }}
               copiedKey={copiedKey}
               labels={labels}
@@ -337,80 +345,69 @@ function PrimaryBlock({
     )
   }
 
-  if (mode === "wmi") {
+  if (hasIntune) {
     return (
-      <Panel title={labels.wmi} accentClassName="bg-orange-500" icon={<Code2 className="h-4 w-4" />}>
-        <div className="rounded-md bg-slate-950 px-4 py-4">
-          <div className="space-y-0">
-            {renderMonoLine("namespace", labels.namespace, item.namespace)}
-            {renderMonoLine("class_name", labels.className, item.class_name)}
-            {renderMonoLine("property", labels.property, item.property)}
-            {renderMonoLine("method_argument", labels.query, item.method_argument)}
-          </div>
+      <Panel title={labels.intune} accentClassName="bg-orange-500" icon={<Settings2 className="h-4 w-4" />}>
+        <div className="space-y-3">
+          {hasValue(item.registry_path_intune) && (
+            <InfoRow
+              field={{ key: "registry_path_intune", label: labels.intunePath, value: item.registry_path_intune, mono: true }}
+              copiedKey={copiedKey}
+              labels={labels}
+              onCopy={onCopy}
+            />
+          )}
+          {hasValue(item.registry_item_intune) && (
+            <InfoRow
+              field={{ key: "registry_item_intune", label: labels.intuneItem, value: item.registry_item_intune, mono: true }}
+              copiedKey={copiedKey}
+              labels={labels}
+              onCopy={onCopy}
+            />
+          )}
+          {hasValue(item.default_value_intune) && (
+            <InfoRow
+              field={{ key: "default_value_intune", label: labels.intuneDefault, value: item.default_value_intune, mono: true }}
+              copiedKey={copiedKey}
+              labels={labels}
+              onCopy={onCopy}
+            />
+          )}
+          {hasValue(item.recommended_value_intune) && (
+            <InfoRow
+              field={{
+                key: "recommended_value_intune",
+                label: labels.intuneRecommended,
+                value: item.recommended_value_intune,
+                mono: true,
+              }}
+              copiedKey={copiedKey}
+              labels={labels}
+              onCopy={onCopy}
+            />
+          )}
+          {hasValue(item.operator_intune) && (
+            <InfoRow
+              field={{ key: "operator_intune", label: labels.intuneOperator, value: item.operator_intune, mono: true }}
+              copiedKey={copiedKey}
+              labels={labels}
+              onCopy={onCopy}
+            />
+          )}
+          {hasValue(item.registry_path_dcp) && (
+            <InfoRow
+              field={{ key: "registry_path_dcp", label: labels.dcpPath, value: item.registry_path_dcp, mono: true }}
+              copiedKey={copiedKey}
+              labels={labels}
+              onCopy={onCopy}
+            />
+          )}
         </div>
       </Panel>
     )
   }
 
-  return (
-    <Panel title={labels.intune} accentClassName="bg-orange-500" icon={<Settings2 className="h-4 w-4" />}>
-      <div className="space-y-3">
-        {hasValue(item.registry_path_intune) && (
-          <Row
-            field={{ key: "registry_path_intune", label: labels.intunePath, value: item.registry_path_intune, mono: true }}
-            copiedKey={copiedKey}
-            labels={labels}
-            onCopy={onCopy}
-          />
-        )}
-        {hasValue(item.registry_item_intune) && (
-          <Row
-            field={{ key: "registry_item_intune", label: labels.intuneItem, value: item.registry_item_intune, mono: true }}
-            copiedKey={copiedKey}
-            labels={labels}
-            onCopy={onCopy}
-          />
-        )}
-        {hasValue(item.default_value_intune) && (
-          <Row
-            field={{ key: "default_value_intune", label: labels.intuneDefault, value: item.default_value_intune, mono: true }}
-            copiedKey={copiedKey}
-            labels={labels}
-            onCopy={onCopy}
-          />
-        )}
-        {hasValue(item.recommended_value_intune) && (
-          <Row
-            field={{
-              key: "recommended_value_intune",
-              label: labels.intuneRecommended,
-              value: item.recommended_value_intune,
-              mono: true,
-            }}
-            copiedKey={copiedKey}
-            labels={labels}
-            onCopy={onCopy}
-          />
-        )}
-        {hasValue(item.operator_intune) && (
-          <Row
-            field={{ key: "operator_intune", label: labels.intuneOperator, value: item.operator_intune, mono: true }}
-            copiedKey={copiedKey}
-            labels={labels}
-            onCopy={onCopy}
-          />
-        )}
-        {hasValue(item.registry_path_dcp) && (
-          <Row
-            field={{ key: "registry_path_dcp", label: labels.dcpPath, value: item.registry_path_dcp, mono: true }}
-            copiedKey={copiedKey}
-            labels={labels}
-            onCopy={onCopy}
-          />
-        )}
-      </div>
-    </Panel>
-  )
+  return null
 }
 
 export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSpecProps) {
@@ -421,12 +418,31 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
   const [collapsed, setCollapsed] = useState(false)
 
   const references = useMemo(() => splitReferences(item?.references), [item?.references])
+  const descriptionCn = item?.description?.trim() || ""
+  const descriptionEn = item?.description_en?.trim() || ""
+  const description = useZh ? descriptionCn || descriptionEn : descriptionEn
+  const chosenDescriptionSource = useZh ? (descriptionCn ? "description" : "description_en") : "description_en"
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production") return
+    console.log("[BaselineDetailSpec]", {
+      locale,
+      useZh,
+      hasDescriptionCn: Boolean(descriptionCn),
+      hasDescriptionEn: Boolean(descriptionEn),
+      chosenLanguage: useZh ? "zh" : "en",
+      chosenDescriptionSource,
+      chosenDescriptionLength: description.length,
+      itemId: item?.id,
+      titleCn: item?.name_zh || "",
+      titleEn: item?.name || "",
+    })
+  }, [chosenDescriptionSource, description.length, descriptionCn, descriptionEn, item?.id, item?.name, item?.name_zh, locale, useZh])
 
   if (isLoading) return <SkeletonCard />
   if (!item) return <EmptyState label={labels.empty} />
 
   const title = (useZh ? item.name_zh : item.name) || item.name || item.name_zh || ""
-  const description = item.description?.trim() || ""
 
   const handleCopy = async (key: string, value: string) => {
     if (!value) return
@@ -439,12 +455,12 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
     }
   }
 
-  const recommendedFields: CompactField[] = [
+  const recommendedFields: Field[] = [
     { key: "recommended_value", label: labels.recommendedValue, value: item.recommended_value, mono: true },
     { key: "default_value", label: labels.defaultValue, value: item.default_value, mono: true },
   ]
 
-  const detectionFields: CompactField[] = [
+  const detectionFields: Field[] = [
     { key: "method", label: labels.method, value: item.method, mono: true },
     { key: "method_argument", label: labels.methodArgument, value: item.method_argument, mono: true },
   ]
@@ -457,7 +473,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-                  <FileText className="h-4.5 w-4.5" />
+                  <FileText className="h-4 w-4" />
                 </div>
                 <h2 className="truncate text-lg font-semibold text-foreground">{labels.title}</h2>
               </div>
@@ -468,7 +484,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
               variant="ghost"
               size="icon"
               className="h-9 w-9 shrink-0 rounded-full border border-slate-200 bg-background text-slate-600 hover:bg-slate-50"
-              aria-label={collapsed ? "展开" : "折叠"}
+              aria-label={collapsed ? labels.expand : labels.collapse}
               onClick={() => setCollapsed((current) => !current)}
             >
               {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
@@ -488,7 +504,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
               <Panel title={labels.recommendation} accentClassName="bg-emerald-500" icon={<Check className="h-4 w-4" />}>
                 <div className="space-y-1">
                   {recommendedFields.map((field) => (
-                    <Row key={field.key} field={field} copiedKey={copiedKey} labels={labels} onCopy={handleCopy} />
+                    <InfoRow key={field.key} field={field} copiedKey={copiedKey} labels={labels} onCopy={handleCopy} />
                   ))}
                 </div>
               </Panel>
@@ -496,7 +512,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
               <Panel title={labels.detection} accentClassName="bg-violet-500" icon={<SlidersHorizontal className="h-4 w-4" />}>
                 <div className="space-y-1">
                   {detectionFields.map((field) => (
-                    <Row key={field.key} field={field} copiedKey={copiedKey} labels={labels} onCopy={handleCopy} />
+                    <InfoRow key={field.key} field={field} copiedKey={copiedKey} labels={labels} onCopy={handleCopy} />
                   ))}
                 </div>
               </Panel>
@@ -538,7 +554,6 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
             )}
           </CardContent>
         )}
-
       </Card>
     </TooltipProvider>
   )

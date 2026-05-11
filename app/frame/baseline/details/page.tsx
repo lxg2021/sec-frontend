@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl"
 import { Database, Lock, Monitor, Settings, Shield, Users } from "lucide-react"
 
 import BaselineDetailHeader from "@/features/baseline/details/components/baseline-detail-header"
-import DetailsCard from "@/features/baseline/details/components/details-card"
+import BaselineDetailSpec from "@/features/baseline/details/components/baseline-detail-spec"
 import HostList from "@/features/baseline/details/components/host-list"
 import {
   fetchBaselineDetail,
@@ -85,14 +85,6 @@ const mockHostData = [
   },
 ]
 
-function formatSeverityLabel(severity?: string) {
-  const normalized = (severity || "").toLowerCase()
-  if (normalized === "high") return "高风险"
-  if (normalized === "medium") return "中风险"
-  if (normalized === "low") return "低风险"
-  return severity || "未知风险"
-}
-
 export default function BaselineDetailsPage() {
   const t = useTranslations("pages.baseline.details")
   const searchParams = useSearchParams()
@@ -104,7 +96,6 @@ export default function BaselineDetailsPage() {
   const [filterDepartment, setFilterDepartment] = useState("")
   const [filterOS, setFilterOS] = useState("")
   const [filterHostId, setFilterHostId] = useState("")
-  const [selectedFixMethod, setSelectedFixMethod] = useState(t("defaultFixMethod"))
   const [batchFixMethod, setBatchFixMethod] = useState(t("defaultFixMethod"))
   const [hostFixMethods, setHostFixMethods] = useState<Record<string, string>>({})
   const [detail, setDetail] = useState<BaselineTemplateItem | null>(null)
@@ -160,10 +151,6 @@ export default function BaselineDetailsPage() {
     }
   }, [baselineUuid, itemId])
 
-  const displayItemName = detail?.name_zh || detail?.name || itemNameFallback
-  const displayCategoryName = detail?.category_zh || detail?.category || fallbackCategoryName
-  const displayRiskLevel = formatSeverityLabel(detail?.severity)
-
   const uniqueUsers = [...new Set(mockHostData.map((host) => host.user))]
   const uniqueDepartments = [...new Set(mockHostData.map((host) => host.department))]
   const uniqueOS = [...new Set(mockHostData.map((host) => host.os))]
@@ -180,10 +167,6 @@ export default function BaselineDetailsPage() {
       (filterHostId === "" || host.id.toLowerCase().includes(filterHostId.trim().toLowerCase()))
     )
   })
-
-  const nonCompliantCount = filteredData.filter((h) => h.status === "failed").length
-  const totalCount = filteredData.length
-  const complianceRate = totalCount > 0 ? Math.round(((totalCount - nonCompliantCount) / totalCount) * 100) : 0
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -207,13 +190,6 @@ export default function BaselineDetailsPage() {
     setFilterDepartment("")
     setFilterOS("")
     setFilterHostId("")
-  }
-
-  const handleFixMethodSelect = (method: string) => {
-    setSelectedFixMethod(method)
-    if (process.env.NODE_ENV !== "production") {
-      console.log("选择修复方式:", method)
-    }
   }
 
   const handleBatchFixMethodSelect = (method: string) => {
@@ -256,12 +232,7 @@ export default function BaselineDetailsPage() {
           onBack={handleBack}
         />
 
-        <DetailsCard
-          itemName={displayItemName}
-          categoryName={displayCategoryName}
-          CategoryIcon={CategoryIcon}
-          riskLevel={displayRiskLevel}
-        />
+        <BaselineDetailSpec item={detail} isLoading={headerLoading} />
 
         <HostList
           filteredData={filteredData}
