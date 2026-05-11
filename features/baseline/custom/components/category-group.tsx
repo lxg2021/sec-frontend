@@ -34,9 +34,9 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
   const CategoryIcon = () => (
     <span
       aria-hidden="true"
-      className="inline-block h-5 w-5 shrink-0"
+      className="inline-block h-5 w-5 shrink-0 text-sky-500 transition-colors duration-200 group-hover:text-sky-600"
       style={{
-        backgroundColor: "#60a5fa",
+        backgroundColor: "currentColor",
         WebkitMaskImage: `url(/icons/baseline/${iconName}.svg)`,
         maskImage: `url(/icons/baseline/${iconName}.svg)`,
         WebkitMaskPosition: "center",
@@ -51,21 +51,23 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
 
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
-      <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
-        <div className="flex min-h-14 items-center gap-3 bg-zinc-50 px-4 py-3">
+      <div className="group overflow-hidden rounded-xl border border-zinc-200 bg-white transition-all duration-200 hover:border-sky-200 hover:bg-sky-50/60 hover:shadow-sm">
+        <div className="flex min-h-14 items-center gap-3 bg-zinc-50 px-4 py-3 transition-colors duration-200 group-hover:bg-sky-50/60">
           <Checkbox
             checked={isPartialSelected ? "indeterminate" : isAllSelected}
             onCheckedChange={(checked) => onToggleCategory(itemIds, checked === true)}
             aria-label={`${t("categoryGroup.selectCategory")} ${categoryLabel}`}
           />
 
-          <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left transition-colors hover:text-zinc-950">
-            <span className="text-zinc-500">{expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</span>
+          <CollapsibleTrigger className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg text-left transition-colors duration-200 hover:text-sky-700">
+            <span className="text-zinc-500 transition-colors duration-200 group-hover:text-sky-600">
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </span>
             <CategoryIcon />
 
             <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-              <span className="truncate text-sm font-medium text-zinc-950">{categoryLabel}</span>
-              <span className="min-w-[4.75rem] flex-shrink-0 whitespace-nowrap text-right text-sm font-medium tabular-nums text-zinc-500">
+              <span className="truncate text-sm font-medium text-zinc-950 transition-colors duration-200 group-hover:text-sky-950">{categoryLabel}</span>
+              <span className="min-w-[4.75rem] flex-shrink-0 whitespace-nowrap text-right text-sm font-medium tabular-nums text-zinc-500 transition-colors duration-200 group-hover:text-sky-700">
                 {selectedCount}/{group.item_count}
                 {useZh ? t("categoryGroup.selected") : ` ${t("categoryGroup.selected")}`}
               </span>
