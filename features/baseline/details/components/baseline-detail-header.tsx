@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import type { ComponentType, ReactNode } from "react"
 import {
   AlertCircle,
@@ -18,7 +17,6 @@ import { Badge } from "@/shared/ui/badge"
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
@@ -35,6 +33,7 @@ interface BaselineDetailHeaderProps {
   item: BaselineTemplateItem | null
   statistics: BaselineItemResultStatistics | null
   baselineUuid: string
+  baselineName?: string
   categoryIcon?: IconComponent
   fallbackCategory?: string
   fallbackTitle?: string
@@ -128,6 +127,7 @@ export function BaselineDetailHeader({
   item,
   statistics,
   baselineUuid,
+  baselineName,
   categoryIcon: CategoryIcon = Shield,
   fallbackCategory,
   fallbackTitle,
@@ -136,153 +136,152 @@ export function BaselineDetailHeader({
 }: BaselineDetailHeaderProps) {
   const title = item?.name_zh || item?.name || fallbackTitle || "检查项详情"
   const categoryLabel = item?.category_zh || item?.category || fallbackCategory || "未分类"
+  const templateLabel = baselineName || baselineUuid || "基线模板"
   const itemId = item?.id || "未知"
   const severityMeta = getSeverityMeta(item?.severity)
   const shortBaselineUuid = baselineUuid ? `${baselineUuid.slice(0, 8)}...` : "未知"
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/frame/baseline">安全基线</Link>
-            </BreadcrumbLink>
+            <BreadcrumbPage className="max-w-[18rem] truncate font-normal text-muted-foreground">
+              {templateLabel}
+            </BreadcrumbPage>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/frame/baseline">基线概览</Link>
-            </BreadcrumbLink>
+            <BreadcrumbPage className="max-w-[14rem] truncate font-normal text-muted-foreground">
+              {isLoading ? <SkeletonLine className="h-4 w-20" /> : categoryLabel}
+            </BreadcrumbPage>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage className="max-w-[18rem] truncate">
+            <BreadcrumbPage className="max-w-[24rem] truncate font-medium text-foreground">
               {isLoading ? <SkeletonLine className="h-4 w-28" /> : title}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <Card className="overflow-hidden rounded-lg border-border/80 bg-card shadow-sm">
-        <div className="border-b border-border bg-gradient-to-r from-sky-50 via-white to-cyan-50 px-5 py-5 lg:px-6">
-          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-            <div className="flex min-w-0 items-start gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={onBack}
-                className="mt-1 h-10 w-10 shrink-0 rounded-full bg-white shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-                aria-label="返回"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
+      <div className="space-y-4 rounded-none border-0 bg-transparent shadow-none">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex min-w-0 items-start gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={onBack}
+              className="mt-1 h-10 w-10 shrink-0 rounded-full bg-background shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              aria-label="返回"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
 
-              <div className="min-w-0">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
+            <div className="min-w-0">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                {isLoading ? (
+                  <>
+                    <SkeletonLine className="h-6 w-24 rounded-full" />
+                    <SkeletonLine className="h-6 w-20 rounded-full" />
+                    <SkeletonLine className="h-6 w-28 rounded-full" />
+                  </>
+                ) : (
+                  <>
+                    <Badge variant="outline" className="gap-1.5 border-blue-200 bg-blue-50 text-blue-700">
+                      <Shield className="h-3 w-3" />
+                      {categoryLabel}
+                    </Badge>
+                    <Badge variant="outline" className={cn("gap-1.5", severityMeta.className)}>
+                      <AlertTriangle className={cn("h-3 w-3", severityMeta.iconClassName)} />
+                      {severityMeta.label}
+                    </Badge>
+                    <Badge variant="outline" className="gap-1.5 border-slate-200 bg-background text-slate-600">
+                      <Info className="h-3 w-3" />
+                      ID: {itemId}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="gap-1.5 border-slate-200 bg-background text-slate-600"
+                      title={baselineUuid}
+                    >
+                      基线: {shortBaselineUuid}
+                    </Badge>
+                  </>
+                )}
+              </div>
+
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-background shadow-sm">
+                  <CategoryIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="min-w-0">
                   {isLoading ? (
                     <>
-                      <SkeletonLine className="h-6 w-24 rounded-full" />
-                      <SkeletonLine className="h-6 w-20 rounded-full" />
-                      <SkeletonLine className="h-6 w-28 rounded-full" />
+                      <SkeletonLine className="h-7 w-72 max-w-full" />
+                      <SkeletonLine className="mt-2 h-4 w-48 max-w-full" />
                     </>
                   ) : (
                     <>
-                      <Badge variant="outline" className="gap-1.5 border-blue-200 bg-blue-50 text-blue-700">
-                        <Shield className="h-3 w-3" />
-                        {categoryLabel}
-                      </Badge>
-                      <Badge variant="outline" className={cn("gap-1.5", severityMeta.className)}>
-                        <AlertTriangle className={cn("h-3 w-3", severityMeta.iconClassName)} />
-                        {severityMeta.label}
-                      </Badge>
-                      <Badge variant="outline" className="gap-1.5 border-slate-200 bg-white text-slate-600">
-                        <Info className="h-3 w-3" />
-                        ID: {itemId}
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="gap-1.5 border-slate-200 bg-white text-slate-600"
-                        title={baselineUuid}
-                      >
-                        基线: {shortBaselineUuid}
-                      </Badge>
+                      <h1 className="break-words text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+                      <p className="mt-1 text-sm text-muted-foreground">查看该检查项的合规统计和影响范围</p>
                     </>
                   )}
                 </div>
-
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-white shadow-sm">
-                    <CategoryIcon className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    {isLoading ? (
-                      <>
-                        <SkeletonLine className="h-7 w-72 max-w-full" />
-                        <SkeletonLine className="mt-2 h-4 w-48 max-w-full" />
-                      </>
-                    ) : (
-                      <>
-                        <h1 className="break-words text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">查看该检查项的合规统计和影响范围</p>
-                      </>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
+          </div>
 
-            <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:max-w-[46rem]">
-              <StatItem
-                label="总主机数"
-                value={formatNumber(statistics?.total_hosts)}
-                icon={<Monitor className="h-4 w-4" />}
-                accentClassName="bg-blue-500"
-                iconClassName="text-blue-500"
-                valueClassName="text-blue-600"
-                isLoading={isLoading}
-              />
-              <StatItem
-                label="通过"
-                value={formatNumber(statistics?.passed_hosts)}
-                icon={<CheckCircle2 className="h-4 w-4" />}
-                accentClassName="bg-emerald-500"
-                iconClassName="text-emerald-500"
-                valueClassName="text-emerald-600"
-                isLoading={isLoading}
-              />
-              <StatItem
-                label="失败"
-                value={formatNumber(statistics?.failed_hosts)}
-                icon={<XCircle className="h-4 w-4" />}
-                accentClassName="bg-rose-500"
-                iconClassName="text-rose-500"
-                valueClassName="text-rose-600"
-                isLoading={isLoading}
-              />
-              <StatItem
-                label="异常"
-                value={formatNumber(statistics?.error_hosts)}
-                icon={<AlertCircle className="h-4 w-4" />}
-                accentClassName="bg-amber-500"
-                iconClassName="text-amber-500"
-                valueClassName="text-amber-600"
-                isLoading={isLoading}
-              />
-              <StatItem
-                label="通过率"
-                value={formatPassRate(statistics)}
-                icon={<TrendingUp className="h-4 w-4" />}
-                accentClassName="bg-indigo-500"
-                iconClassName="text-indigo-500"
-                valueClassName="text-indigo-600"
-                isLoading={isLoading}
-              />
-            </div>
+          <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:max-w-[46rem]">
+            <StatItem
+              label="总主机数"
+              value={formatNumber(statistics?.total_hosts)}
+              icon={<Monitor className="h-4 w-4" />}
+              accentClassName="bg-blue-500"
+              iconClassName="text-blue-500"
+              valueClassName="text-blue-600"
+              isLoading={isLoading}
+            />
+            <StatItem
+              label="通过"
+              value={formatNumber(statistics?.passed_hosts)}
+              icon={<CheckCircle2 className="h-4 w-4" />}
+              accentClassName="bg-emerald-500"
+              iconClassName="text-emerald-500"
+              valueClassName="text-emerald-600"
+              isLoading={isLoading}
+            />
+            <StatItem
+              label="失败"
+              value={formatNumber(statistics?.failed_hosts)}
+              icon={<XCircle className="h-4 w-4" />}
+              accentClassName="bg-rose-500"
+              iconClassName="text-rose-500"
+              valueClassName="text-rose-600"
+              isLoading={isLoading}
+            />
+            <StatItem
+              label="异常"
+              value={formatNumber(statistics?.error_hosts)}
+              icon={<AlertCircle className="h-4 w-4" />}
+              accentClassName="bg-amber-500"
+              iconClassName="text-amber-500"
+              valueClassName="text-amber-600"
+              isLoading={isLoading}
+            />
+            <StatItem
+              label="通过率"
+              value={formatPassRate(statistics)}
+              icon={<TrendingUp className="h-4 w-4" />}
+              accentClassName="bg-indigo-500"
+              iconClassName="text-indigo-500"
+              valueClassName="text-indigo-600"
+              isLoading={isLoading}
+            />
           </div>
         </div>
-      </Card>
+      </div>
     </section>
   )
 }

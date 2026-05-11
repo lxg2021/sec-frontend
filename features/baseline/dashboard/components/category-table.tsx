@@ -47,6 +47,7 @@ import {
 interface CategoryTableProps {
   data: CategoryGroup[]
   baselineUUID: string
+  baselineName?: string
   loading?: boolean
 }
 
@@ -109,7 +110,7 @@ function HeaderCell({
   )
 }
 
-export default function CategoryTable({ data, baselineUUID, loading = false }: CategoryTableProps) {
+export default function CategoryTable({ data, baselineUUID, baselineName, loading = false }: CategoryTableProps) {
   const t = useTranslations("pages.baseline.dashboard.categoryTable")
   const locale = useLocale()
   const router = useRouter()
@@ -304,6 +305,7 @@ export default function CategoryTable({ data, baselineUUID, loading = false }: C
 
     const searchParams = new URLSearchParams({
       baseline_uuid: baselineUUID,
+      baseline_name: baselineName || baselineUUID,
       category: currentCategory.category,
       item_id: item.item_id,
       item: getItemLabel(item, locale),

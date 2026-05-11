@@ -252,6 +252,7 @@ export default function BaselineDashboardClient() {
                 <CategoryTable
                   data={categoryData}
                   baselineUUID={selectedBaselineUUID}
+                  baselineName={selectedOption?.display_name}
                   loading={loadingCategory || loadingOptions}
                 />
               </CardContent>
