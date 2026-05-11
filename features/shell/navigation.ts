@@ -4,6 +4,7 @@ import {
   BarChart,
   Boxes,
   Computer,
+  FilePenLine,
   FileText,
   LayoutDashboard,
   MapPin,
@@ -46,6 +47,7 @@ export const menuItems = [
     labelKey: "baseline",
     submenu: [
       { id: "baselinedashboard", icon: LayoutDashboard, labelKey: "baselinedashboard", path: "/frame/baseline" },
+      { id: "baselinecustom", icon: FilePenLine, labelKey: "baselinecustom", path: "/frame/baseline/custom" },
       { id: "baselineconfig", icon: Settings2, labelKey: "baselineconfig", path: "/frame/baseline/rules" },
     ],
   },

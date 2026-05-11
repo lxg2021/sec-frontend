@@ -123,6 +123,7 @@
     "softuninstall": "软件卸载",
     "baseline": "安全基线",
     "baselinedashboard": "基线概览",
+    "baselinecustom": "定义基线",
     "baselineconfig": "基线配置",
     "vulnerability": "漏洞防护",
     "patchdash": "补丁概览",

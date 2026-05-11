@@ -123,6 +123,7 @@
     "softuninstall": "Software Uninstall",
     "baseline": "Security Baseline",
     "baselinedashboard": "Baseline Overview",
+    "baselinecustom": "Define Baseline",
     "baselineconfig": "Baseline Rules",
     "vulnerability": "Vulnerability Protection",
     "patchdash": "Patch Overview",
