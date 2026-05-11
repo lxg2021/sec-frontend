@@ -1,17 +1,23 @@
-﻿"use client"
+"use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { Button } from "@/shared/ui/button"
-import { ArrowLeft, Shield, Users, Settings, Lock, Monitor, Database } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
+import { Database, Lock, Monitor, Settings, Shield, Users } from "lucide-react"
+
+import BaselineDetailHeader from "@/features/baseline/details/components/baseline-detail-header"
 import DetailsCard from "@/features/baseline/details/components/details-card"
 import HostList from "@/features/baseline/details/components/host-list"
-import { useTranslations } from "next-intl"
+import {
+  fetchBaselineDetail,
+  fetchBaselineItemStatistics,
+  type BaselineItemResultStatistics,
+  type BaselineTemplateItem,
+} from "@/features/baseline/dashboard/api"
 
 const categoryKeys = ["account", "system", "permission", "service", "network", "database"] as const
 type CategoryKey = (typeof categoryKeys)[number]
 
-// 分类图标映射
 const categoryIconMap = {
   account: Users,
   system: Settings,
@@ -21,7 +27,6 @@ const categoryIconMap = {
   database: Database,
 }
 
-// 模拟主机数据
 const mockHostData = [
   {
     id: "HOST-001",
@@ -80,12 +85,20 @@ const mockHostData = [
   },
 ]
 
+function formatSeverityLabel(severity?: string) {
+  const normalized = (severity || "").toLowerCase()
+  if (normalized === "high") return "高风险"
+  if (normalized === "medium") return "中风险"
+  if (normalized === "low") return "低风险"
+  return severity || "未知风险"
+}
+
 export default function BaselineDetailsPage() {
   const t = useTranslations("pages.baseline.details")
   const searchParams = useSearchParams()
   const router = useRouter()
 
-  const [selectedHosts, setSelectedHosts] = useState([])
+  const [selectedHosts, setSelectedHosts] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterUser, setFilterUser] = useState("")
   const [filterDepartment, setFilterDepartment] = useState("")
@@ -93,21 +106,67 @@ export default function BaselineDetailsPage() {
   const [filterHostId, setFilterHostId] = useState("")
   const [selectedFixMethod, setSelectedFixMethod] = useState(t("defaultFixMethod"))
   const [batchFixMethod, setBatchFixMethod] = useState(t("defaultFixMethod"))
-  const [hostFixMethods, setHostFixMethods] = useState({})
+  const [hostFixMethods, setHostFixMethods] = useState<Record<string, string>>({})
+  const [detail, setDetail] = useState<BaselineTemplateItem | null>(null)
+  const [statistics, setStatistics] = useState<BaselineItemResultStatistics | null>(null)
+  const [headerLoading, setHeaderLoading] = useState(true)
 
-  // 从URL参数获取分类和项目信息
+  const baselineUuid = searchParams.get("baseline_uuid") || ""
+  const itemId = searchParams.get("item_id") || ""
+  const itemNameFallback = searchParams.get("item") || t("defaultItemName")
   const categoryId = searchParams.get("category") || "account"
   const categoryKey = categoryKeys.includes(categoryId as CategoryKey) ? (categoryId as CategoryKey) : "account"
-  const itemName = searchParams.get("item") || t("defaultItemName")
-  const categoryName = t(`categories.${categoryKey}`)
-  const CategoryIcon = categoryIconMap[categoryId] || Users
+  const fallbackCategoryName = t(`categories.${categoryKey}`)
+  const CategoryIcon = categoryIconMap[categoryKey] || Users
 
-  // 获取唯一的筛选选项
+  useEffect(() => {
+    let cancelled = false
+
+    const loadHeaderData = async () => {
+      if (!baselineUuid || !itemId) {
+        setDetail(null)
+        setStatistics(null)
+        setHeaderLoading(false)
+        return
+      }
+
+      setHeaderLoading(true)
+      setDetail(null)
+      setStatistics(null)
+
+      const [detailResult, statisticsResult] = await Promise.allSettled([
+        fetchBaselineDetail(baselineUuid, itemId),
+        fetchBaselineItemStatistics(baselineUuid, itemId),
+      ])
+
+      if (cancelled) return
+
+      if (detailResult.status === "fulfilled") {
+        setDetail(detailResult.value)
+      }
+
+      if (statisticsResult.status === "fulfilled") {
+        setStatistics(statisticsResult.value)
+      }
+
+      setHeaderLoading(false)
+    }
+
+    void loadHeaderData()
+
+    return () => {
+      cancelled = true
+    }
+  }, [baselineUuid, itemId])
+
+  const displayItemName = detail?.name_zh || detail?.name || itemNameFallback
+  const displayCategoryName = detail?.category_zh || detail?.category || fallbackCategoryName
+  const displayRiskLevel = formatSeverityLabel(detail?.severity)
+
   const uniqueUsers = [...new Set(mockHostData.map((host) => host.user))]
   const uniqueDepartments = [...new Set(mockHostData.map((host) => host.department))]
   const uniqueOS = [...new Set(mockHostData.map((host) => host.os))]
 
-  // 筛选数据（统一小写比较）
   const filteredData = mockHostData.filter((host) => {
     return (
       (searchTerm.trim() === "" ||
@@ -121,13 +180,11 @@ export default function BaselineDetailsPage() {
     )
   })
 
-  // 计算不合规主机数量和合规率
   const nonCompliantCount = filteredData.filter((h) => h.status === "failed").length
   const totalCount = filteredData.length
   const complianceRate = totalCount > 0 ? Math.round(((totalCount - nonCompliantCount) / totalCount) * 100) : 0
 
-  // 处理全选
-  const handleSelectAll = (checked) => {
+  const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedHosts(filteredData.map((host) => host.id))
     } else {
@@ -135,8 +192,7 @@ export default function BaselineDetailsPage() {
     }
   }
 
-  // 处理单个选择，避免重复添加
-  const handleSelectHost = (hostId, checked) => {
+  const handleSelectHost = (hostId: string, checked: boolean) => {
     if (checked && !selectedHosts.includes(hostId)) {
       setSelectedHosts([...selectedHosts, hostId])
     } else if (!checked) {
@@ -144,7 +200,6 @@ export default function BaselineDetailsPage() {
     }
   }
 
-  // 清空筛选
   const clearFilters = () => {
     setSearchTerm("")
     setFilterUser("")
@@ -153,24 +208,21 @@ export default function BaselineDetailsPage() {
     setFilterHostId("")
   }
 
-  // 选择修复方式
-  const handleFixMethodSelect = (method) => {
+  const handleFixMethodSelect = (method: string) => {
     setSelectedFixMethod(method)
     if (process.env.NODE_ENV !== "production") {
       console.log("选择修复方式:", method)
     }
   }
 
-  // 批量修复方式
-  const handleBatchFixMethodSelect = (method) => {
+  const handleBatchFixMethodSelect = (method: string) => {
     setBatchFixMethod(method)
     if (process.env.NODE_ENV !== "production") {
       console.log("批量修复方式:", method, "选中主机:", selectedHosts)
     }
   }
 
-  // 单个主机修复方式
-  const handleHostFixMethodSelect = (hostId, method) => {
+  const handleHostFixMethodSelect = (hostId: string, method: string) => {
     setHostFixMethods((prev) => ({
       ...prev,
       [hostId]: method,
@@ -180,51 +232,33 @@ export default function BaselineDetailsPage() {
     }
   }
 
-  // 获取单个主机的修复方式
-  const getHostFixMethod = (hostId) => {
+  const getHostFixMethod = (hostId: string) => {
     return hostFixMethods[hostId] || t("defaultFixMethod")
   }
 
-  // 用useCallback避免多次重新创建函数（可选）
   const handleBack = useCallback(() => {
     router.back()
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
-        {/* 页面头部 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-400 hover:text-gray-600"
-              onClick={handleBack}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Shield className="h-6 w-6 text-blue-300" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-                <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-slate-50">
+      <div className="space-y-6 p-6">
+        <BaselineDetailHeader
+          item={detail}
+          statistics={statistics}
+          baselineUuid={baselineUuid}
+          categoryIcon={CategoryIcon}
+          fallbackCategory={fallbackCategoryName}
+          fallbackTitle={itemNameFallback}
+          isLoading={headerLoading}
+          onBack={handleBack}
+        />
 
         <DetailsCard
-          itemName={itemName}
-          categoryName={categoryName}
+          itemName={displayItemName}
+          categoryName={displayCategoryName}
           CategoryIcon={CategoryIcon}
-          nonCompliantCount={nonCompliantCount}
-          totalCount={totalCount}
-          complianceRate={complianceRate}
-          selectedFixMethod={selectedFixMethod}
-          handleFixMethodSelect={handleFixMethodSelect}
+          riskLevel={displayRiskLevel}
         />
 
         <HostList

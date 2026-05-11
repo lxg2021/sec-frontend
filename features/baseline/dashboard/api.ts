@@ -92,6 +92,35 @@ export interface BaselineItemResultStatistics {
   pass_rate: number
 }
 
+export interface BaselineTemplateItem {
+  template_uuid: string
+  id: string
+  category: string
+  name: string
+  method: string
+  method_argument: string
+  registry_path: string
+  registry_item: string
+  registry_path_intune: string
+  registry_path_dcp: string
+  registry_item_intune: string
+  class_name: string
+  namespace: string
+  property: string
+  default_value: string
+  default_value_intune: string
+  recommended_value: string
+  recommended_value_intune: string
+  operator: string
+  operator_intune: string
+  severity: string
+  filter: string
+  description: string
+  references: string
+  name_zh: string
+  category_zh: string
+}
+
 interface ApiResult<T> {
   data: T
 }
@@ -177,4 +206,14 @@ export async function fetchBaselineItemStatistics(
   })) as ApiResult<unknown>
 
   return normalizeBaselineItemStatistics(result.data)
+}
+
+export async function fetchBaselineDetail(baselineUUID: string, itemID: string): Promise<BaselineTemplateItem | null> {
+  const result = (await http.post("getBaselineDetail", {
+    request_id: createRequestId(),
+    baseline_uuid: baselineUUID,
+    item_id: itemID,
+  })) as ApiResult<BaselineTemplateItem | null>
+
+  return result.data ?? null
 }

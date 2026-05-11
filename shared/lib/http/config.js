@@ -47,7 +47,9 @@ const FALLBACK_CONFIG = {
       getBaselineDailyStats: "/sensor/baseline/stats/daily",
       getBaselineTrend: "/sensor/baseline/stats/trend",
       getBaselineCategoryStats: "/sensor/baseline/stats/categories",
+      getBaselineDetail: "/sensor/baseline/detail",
       getBaselineItemStatistics: "/sensor/baseline/item/statistics",
+      getBaselineItemHostResults: "/sensor/baseline/item/hosts",
     },
   },
 }
