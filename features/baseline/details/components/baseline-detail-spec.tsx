@@ -470,14 +470,14 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
       <Card className="overflow-hidden rounded-xl border border-slate-200 bg-background shadow-sm">
         <div className="border-b border-slate-200 px-6 py-5">
           <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-                  <FileText className="h-4 w-4" />
-                </div>
-                <h2 className="truncate text-lg font-semibold text-foreground">{labels.title}</h2>
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
+                <FileText className="h-5 w-5" />
               </div>
-              <p className="mt-2 text-sm text-muted-foreground">{labels.subtitle}</p>
+              <div className="min-w-0">
+                <h3 className="truncate text-lg font-semibold text-slate-950">{labels.title}</h3>
+                <p className="mt-1 text-sm text-slate-500">{labels.subtitle}</p>
+              </div>
             </div>
             <Button
               type="button"
