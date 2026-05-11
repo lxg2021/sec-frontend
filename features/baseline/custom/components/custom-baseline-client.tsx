@@ -241,8 +241,8 @@ export default function CustomBaselineClient() {
   }, [description, displayName, selectedItems, t])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="flex w-full flex-col gap-6 px-6 py-6">
+    <div className="h-dvh overflow-hidden bg-gray-50">
+      <div className="flex h-full min-h-0 w-full flex-col gap-6 px-6 py-6">
         {templatesError ? (
           <Card className="border-destructive/20 bg-destructive/5 shadow-none">
             <CardContent className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-destructive">
@@ -276,7 +276,7 @@ export default function CustomBaselineClient() {
           </Card>
         ) : null}
 
-        <div className="grid gap-6 xl:grid-cols-[440px_minmax(0,0.9fr)_352px]">
+        <div className="grid min-h-0 flex-1 items-stretch gap-6 xl:grid-cols-[440px_minmax(0,0.9fr)_352px]">
           <BaselineTemplateSelector
             templates={filteredTemplates}
             loading={templatesLoading}

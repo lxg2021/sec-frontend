@@ -102,7 +102,7 @@ export function BaselineItemsPanel({
   const severityStats = itemsData?.severity_statistics ?? []
 
   return (
-    <Card className="h-full rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
@@ -180,8 +180,8 @@ export function BaselineItemsPanel({
         )}
       </CardHeader>
 
-      <CardContent className="p-4">
-        <div className="max-h-[calc(100dvh-240px)] space-y-3 overflow-y-auto pr-1">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-4">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
           {!template ? (
             <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
               <div>

@@ -61,7 +61,7 @@ export function BaselineTemplateSelector({
   ]
 
   return (
-    <Card className="flex h-full flex-col rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
       <CardHeader className="border-b border-zinc-200 pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
@@ -116,8 +116,8 @@ export function BaselineTemplateSelector({
         </div>
       </CardHeader>
 
-      <CardContent className="flex h-full flex-col p-3">
-        <div className="max-h-[calc(100dvh-288px)] flex-1 space-y-2 overflow-y-auto pr-1">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
           {loading ? (
             Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
           ) : templates.length === 0 ? (
