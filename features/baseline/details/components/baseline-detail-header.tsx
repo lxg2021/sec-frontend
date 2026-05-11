@@ -23,6 +23,7 @@ import {
 } from "@/shared/ui/breadcrumb"
 import { Button } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
 
 import type { BaselineItemResultStatistics, BaselineTemplateItem } from "../../dashboard/api"
@@ -108,7 +109,7 @@ function StatItem({
   return (
     <Card className="relative overflow-hidden rounded-md border bg-background shadow-sm transition-shadow hover:shadow-md">
       <span aria-hidden="true" className={cn("absolute inset-y-0 left-0 w-1", accentClassName)} />
-      <div className="flex min-h-[58px] items-center gap-2.5 px-3 py-2 pl-4">
+      <div className="flex min-h-[72px] items-center gap-2.5 px-3 py-3 pl-4">
         <div className={cn("shrink-0", iconClassName)}>{icon}</div>
         <div className="min-w-0">
           <div className="text-[11px] leading-4 text-muted-foreground">{label}</div>
@@ -128,7 +129,6 @@ export function BaselineDetailHeader({
   statistics,
   baselineUuid,
   baselineName,
-  categoryIcon: CategoryIcon = Shield,
   fallbackCategory,
   fallbackTitle,
   isLoading = false,
@@ -139,7 +139,6 @@ export function BaselineDetailHeader({
   const templateLabel = baselineName || baselineUuid || "基线模板"
   const itemId = item?.id || "未知"
   const severityMeta = getSeverityMeta(item?.severity)
-  const shortBaselineUuid = baselineUuid ? `${baselineUuid.slice(0, 8)}...` : "未知"
 
   return (
     <section className="space-y-4">
@@ -152,22 +151,15 @@ export function BaselineDetailHeader({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage className="max-w-[14rem] truncate font-normal text-muted-foreground">
+            <BreadcrumbPage className="max-w-[18rem] truncate font-medium text-foreground">
               {isLoading ? <SkeletonLine className="h-4 w-20" /> : categoryLabel}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="max-w-[24rem] truncate font-medium text-foreground">
-              {isLoading ? <SkeletonLine className="h-4 w-28" /> : title}
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="space-y-4 rounded-none border-0 bg-transparent shadow-none">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div className="flex min-w-0 items-start gap-4">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-center">
+        <div className="flex min-w-0 shrink-0 items-start gap-4">
             <Button
               type="button"
               variant="outline"
@@ -179,61 +171,49 @@ export function BaselineDetailHeader({
               <ArrowLeft className="h-4 w-4" />
             </Button>
 
-            <div className="min-w-0">
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                {isLoading ? (
-                  <>
-                    <SkeletonLine className="h-6 w-24 rounded-full" />
-                    <SkeletonLine className="h-6 w-20 rounded-full" />
-                    <SkeletonLine className="h-6 w-28 rounded-full" />
-                  </>
-                ) : (
-                  <>
-                    <Badge variant="outline" className="gap-1.5 border-blue-200 bg-blue-50 text-blue-700">
-                      <Shield className="h-3 w-3" />
-                      {categoryLabel}
-                    </Badge>
-                    <Badge variant="outline" className={cn("gap-1.5", severityMeta.className)}>
-                      <AlertTriangle className={cn("h-3 w-3", severityMeta.iconClassName)} />
-                      {severityMeta.label}
-                    </Badge>
-                    <Badge variant="outline" className="gap-1.5 border-slate-200 bg-background text-slate-600">
-                      <Info className="h-3 w-3" />
-                      ID: {itemId}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className="gap-1.5 border-slate-200 bg-background text-slate-600"
-                      title={baselineUuid}
-                    >
-                      基线: {shortBaselineUuid}
-                    </Badge>
-                  </>
-                )}
+          <div className="flex min-h-[72px] w-full min-w-0 px-1 py-1 xl:w-[32rem]">
+            {isLoading ? (
+              <div className="flex min-h-[64px] w-full flex-col justify-between gap-2">
+                <SkeletonLine className="h-8 w-full max-w-[28rem]" />
+                <div className="flex flex-wrap gap-2">
+                  <SkeletonLine className="h-6 w-32 rounded-full" />
+                  <SkeletonLine className="h-6 w-20 rounded-full" />
+                  <SkeletonLine className="h-6 w-24 rounded-full" />
+                </div>
               </div>
+            ) : (
+              <div className="flex min-h-[64px] w-full flex-col justify-between gap-2">
+                <div className="min-w-0 w-full">
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <h1 className="w-full truncate text-xl font-semibold leading-snug tracking-tight text-foreground">
+                          {title}
+                        </h1>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[32rem] whitespace-normal break-words">
+                        {title}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
 
-              <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-background shadow-sm">
-                  <CategoryIcon className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="min-w-0">
-                  {isLoading ? (
-                    <>
-                      <SkeletonLine className="h-7 w-72 max-w-full" />
-                      <SkeletonLine className="mt-2 h-4 w-48 max-w-full" />
-                    </>
-                  ) : (
-                    <>
-                      <h1 className="break-words text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
-                      <p className="mt-1 text-sm text-muted-foreground">查看该检查项的合规统计和影响范围</p>
-                    </>
-                  )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={cn("gap-1.5", severityMeta.className)}>
+                    <AlertTriangle className={cn("h-3 w-3", severityMeta.iconClassName)} />
+                    {severityMeta.label}
+                  </Badge>
+                  <Badge variant="outline" className="gap-1.5 border-slate-200 bg-background text-slate-600">
+                    <Info className="h-3 w-3" />
+                    ID: {itemId}
+                  </Badge>
                 </div>
               </div>
-            </div>
+            )}
           </div>
+        </div>
 
-          <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:max-w-[46rem]">
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <StatItem
               label="总主机数"
               value={formatNumber(statistics?.total_hosts)}
@@ -281,7 +261,6 @@ export function BaselineDetailHeader({
             />
           </div>
         </div>
-      </div>
     </section>
   )
 }
