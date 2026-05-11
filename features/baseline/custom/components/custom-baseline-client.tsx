@@ -287,7 +287,7 @@ export default function CustomBaselineClient() {
           </Card>
         ) : null}
 
-        <div className="grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)_376px]">
+        <div className="grid gap-8 xl:grid-cols-[440px_minmax(0,0.88fr)_352px]">
           <BaselineTemplateSelector
             templates={filteredTemplates}
             loading={templatesLoading}

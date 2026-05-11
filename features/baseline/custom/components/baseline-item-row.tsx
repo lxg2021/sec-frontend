@@ -52,7 +52,9 @@ export function BaselineItemRow({ item, isSelected, onToggle }: BaselineItemRowP
         <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-500">{item.description || item.name}</p>
 
         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
-          <span>推荐值 {item.recommended_value || "未提供"}</span>
+          <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">
+            推荐值 {item.recommended_value || "未提供"}
+          </span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
