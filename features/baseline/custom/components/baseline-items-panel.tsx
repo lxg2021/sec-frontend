@@ -183,7 +183,7 @@ export function BaselineItemsPanel({
       <CardContent className="flex min-h-0 flex-1 flex-col p-4">
         <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
           {!template ? (
-            <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
               <div>
                 <ShieldCheck className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="mt-3 text-lg font-medium text-zinc-950">{t("itemsPanel.chooseTemplateTitle")}</p>
@@ -193,7 +193,7 @@ export function BaselineItemsPanel({
           ) : loading ? (
             Array.from({ length: 4 }).map((_, index) => <Skeleton key={index} className="h-24 rounded-2xl" />)
           ) : !itemsData ? (
-            <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
               <div>
                 <AlertCircle className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="mt-3 text-sm font-medium text-zinc-950">{errorMessage || t("itemsPanel.loadErrorTitle")}</p>
@@ -201,7 +201,7 @@ export function BaselineItemsPanel({
               </div>
             </div>
           ) : filteredGroups.length === 0 ? (
-            <div className="flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 text-center">
               <div>
                 <Search className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="mt-3 text-sm font-medium text-zinc-950">{t("itemsPanel.noResultsTitle")}</p>

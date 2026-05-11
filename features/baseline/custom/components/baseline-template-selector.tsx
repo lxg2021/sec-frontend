@@ -121,7 +121,7 @@ export function BaselineTemplateSelector({
           {loading ? (
             Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
           ) : templates.length === 0 ? (
-            <div className="flex h-[360px] items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50">
+            <div className="flex h-full min-h-0 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50">
               <div className="text-center">
                 <p className="text-sm font-medium text-zinc-950">{t("templateSelector.emptyTitle")}</p>
                 <p className="mt-1 text-xs text-zinc-500">{t("templateSelector.emptyDescription")}</p>
@@ -186,7 +186,7 @@ export function BaselineTemplateSelector({
           )}
         </div>
 
-        <div className="mt-4 border-t border-zinc-200 pt-4">
+        <div className="mt-2 border-t border-zinc-200 pt-2">
           <div className="flex justify-center">
             <Button
               type="button"
