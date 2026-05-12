@@ -19,7 +19,6 @@ interface DispatchStepperProps {
 }
 
 export function DispatchStepper({
-  currentStep,
   items,
   onStepChange,
 }: DispatchStepperProps) {
@@ -70,8 +69,6 @@ export function DispatchStepper({
           </div>
         ))}
       </div>
-
-      <div className="mt-4 text-xs text-slate-400">当前步骤：{currentStep}</div>
     </div>
   )
 }
