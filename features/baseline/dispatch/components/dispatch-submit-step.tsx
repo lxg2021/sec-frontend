@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertCircle, ArrowRight, CheckCircle2, FileText } from "lucide-react"
+import { AlertCircle, ArrowRight, CheckCircle2, ChevronLeft, FileText } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Badge } from "@/shared/ui/badge"
@@ -29,16 +29,19 @@ export function DispatchSubmitStep({
   selectedHostCount,
 }: DispatchSubmitStepProps) {
   return (
-    <Card className="overflow-hidden border-slate-200/80 shadow-lg">
-      <div className="h-1 bg-gradient-to-r from-slate-950 via-blue-600 to-cyan-400" />
-      <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <div className="rounded-xl bg-slate-950 p-2 text-white">
-            <FileText className="h-4 w-4" />
+    <Card className="border bg-card shadow-sm">
+      <CardHeader className="border-b border-border pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+            <FileText className="h-5 w-5 text-blue-500" />
           </div>
-          任务下发
-        </CardTitle>
-        <CardDescription>确认策略对象和目标范围，然后进入下发预览。</CardDescription>
+          <div>
+            <CardTitle className="text-lg font-semibold text-foreground">任务下发</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground">
+              确认策略对象和目标范围，然后进入下发预览。
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-5 p-6">
@@ -51,9 +54,7 @@ export function DispatchSubmitStep({
           </div>
           <div className="rounded-2xl border bg-slate-50/70 p-4">
             <div className="text-xs text-slate-500">目标主机</div>
-            <div className="mt-2 text-sm font-medium text-slate-950">
-              {selectedHostCount} 台
-            </div>
+            <div className="mt-2 text-sm font-medium text-slate-950">{selectedHostCount} 台</div>
           </div>
           <div className="rounded-2xl border bg-slate-50/70 p-4">
             <div className="text-xs text-slate-500">风险提示</div>
@@ -68,9 +69,7 @@ export function DispatchSubmitStep({
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>策略对象不存在</AlertTitle>
-            <AlertDescription>
-              请先回到“任务计划”步骤，创建基线扫描策略对象。
-            </AlertDescription>
+            <AlertDescription>请先回到“任务计划”步骤，创建基线扫描策略对象。</AlertDescription>
           </Alert>
         ) : null}
 
@@ -84,13 +83,14 @@ export function DispatchSubmitStep({
           </Alert>
         ) : null}
 
-        <div className="flex justify-between border-t pt-4">
+        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
+            <ChevronLeft className="mr-2 h-4 w-4" />
             返回：主机选择
           </Button>
           <Button onClick={onPreview} disabled={!canPreview} className="h-11 px-6">
-            <ArrowRight className="mr-2 h-4 w-4" />
             下发预览
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </CardContent>
