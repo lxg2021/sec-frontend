@@ -83,17 +83,13 @@ export function ScanScheduleStep({
           <ScanScheduleForm
             value={schedule}
             onChange={onScheduleChange}
-            title="调度计划配置"
+            title={null}
             description={null}
             className="max-w-none border-0 shadow-none [&_[class*='text-2xl']]:text-base"
           />
         </section>
 
-        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
-          <div className="text-sm text-slate-500">
-            {canCreatePolicy ? "策略信息已完整，可创建策略对象。" : "请先填写策略名称和版本号。"}
-          </div>
-
+        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-end">
           <div className="flex gap-3">
             <Button variant="outline" onClick={onBack} className="h-11 px-5">
               <ChevronLeft className="mr-2 h-4 w-4" />

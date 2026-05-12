@@ -37,13 +37,17 @@ export function ScanScheduleForm({
 
   return (
     <Card className={cn("w-full max-w-2xl", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <Clock className="size-5" />
-          {title}
-        </CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
-      </CardHeader>
+      {title || description ? (
+        <CardHeader className="pb-3">
+          {title ? (
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="size-5" />
+              {title}
+            </CardTitle>
+          ) : null}
+          {description ? <CardDescription>{description}</CardDescription> : null}
+        </CardHeader>
+      ) : null}
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
