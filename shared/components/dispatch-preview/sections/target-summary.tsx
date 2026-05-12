@@ -4,7 +4,7 @@ import { useState, type LucideIcon } from "react"
 import {
   AlertCircle,
   ChevronDown,
-  ChevronRight,
+  ChevronUp,
   FolderOpen,
   Monitor,
   Server,
@@ -182,12 +182,16 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
-                className="h-10 w-full justify-between rounded-none border-t px-4"
+                className="h-12 w-full justify-start rounded-none border-t px-4 text-sm font-medium text-muted-foreground hover:bg-muted/30 hover:text-foreground"
               >
-                <span className="text-sm font-normal">
+                <span className="inline-flex items-center gap-2">
+                  {expanded ? (
+                    <ChevronUp className="size-4 shrink-0" />
+                  ) : (
+                    <ChevronDown className="size-4 shrink-0" />
+                  )}
                   {expanded ? "收起目标明细" : "展开目标明细"}
                 </span>
-                {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>

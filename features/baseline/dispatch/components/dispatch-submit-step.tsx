@@ -7,7 +7,6 @@ import { ObjectSummary } from "@/shared/components/dispatch-preview/sections/obj
 import { ScheduleSummary } from "@/shared/components/dispatch-preview/sections/schedule-summary"
 import { TargetSummary } from "@/shared/components/dispatch-preview/sections/target-summary"
 import { ValidationList } from "@/shared/components/dispatch-preview/sections/validation-list"
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Separator } from "@/shared/ui/separator"
@@ -27,20 +26,6 @@ export function DispatchSubmitStep({
   onConfirm,
   submitting = false,
 }: DispatchSubmitStepProps) {
-  const statusTags = (() => {
-    if (!data) return []
-
-    const tags: string[] = []
-    const hasErrors = data.validations?.some((item) => item.level === "error")
-    const hasWarnings = data.validations?.some((item) => item.level === "warning")
-
-    if (hasErrors) tags.push("存在错误")
-    if (hasWarnings) tags.push("存在风险")
-    if (data.permissions?.canSubmit) tags.push("可提交")
-
-    return tags
-  })()
-
   const hasBlockingErrors = data?.validations?.some((item) => item.level === "error") ?? false
   const hasWarnings = data?.validations?.some((item) => item.level === "warning") ?? false
   const canSubmit = data?.permissions?.canSubmit !== false
@@ -74,16 +59,6 @@ export function DispatchSubmitStep({
           </div>
         ) : (
           <div className="space-y-6 p-6">
-            {statusTags.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {statusTags.map((tag) => (
-                  <Badge key={tag} variant="outline">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            ) : null}
-
             <ObjectSummary object={data.object} />
 
             <Separator />
