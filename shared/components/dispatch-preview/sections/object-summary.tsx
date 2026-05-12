@@ -5,7 +5,6 @@ import {
   GitBranch,
   Hash,
   Layers,
-  Settings,
   Tag,
   type LucideIcon,
 } from "lucide-react"
@@ -104,14 +103,6 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
           value: sourceMap[object.sourceType] ?? object.sourceType,
         }
       : null,
-    object.mode
-      ? {
-          icon: Settings,
-          iconClassName: "text-amber-600",
-          label: "下发方式",
-          value: modeMap[object.mode] ?? object.mode,
-        }
-      : null,
   ].filter(Boolean) as Array<{
     icon: LucideIcon
     iconClassName: string
@@ -119,9 +110,11 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
     value: string
   }>
 
-  const midpoint = Math.ceil(rows.length / 2)
-  const leftRows = rows.slice(0, midpoint)
-  const rightRows = rows.slice(midpoint)
+  const columnCount = 3
+  const rowsPerColumn = Math.ceil(rows.length / columnCount)
+  const columns = Array.from({ length: columnCount }, (_, index) =>
+    rows.slice(index * rowsPerColumn, (index + 1) * rowsPerColumn),
+  ).filter((column) => column.length > 0)
 
   return (
     <section className="space-y-4">
@@ -132,17 +125,14 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
 
       <div className="rounded-xl border bg-card p-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="grid flex-1 gap-x-10 xl:grid-cols-2">
-            <div>
-              {leftRows.map((row) => (
-                <SummaryRow key={row.label} {...row} />
-              ))}
-            </div>
-            <div>
-              {rightRows.map((row) => (
-                <SummaryRow key={row.label} {...row} />
-              ))}
-            </div>
+          <div className="grid flex-1 gap-x-10 xl:grid-cols-3">
+            {columns.map((column, index) => (
+              <div key={index}>
+                {column.map((row) => (
+                  <SummaryRow key={row.label} {...row} />
+                ))}
+              </div>
+            ))}
           </div>
           <Badge variant="secondary" className="shrink-0">
             {typeMap[object.type] ?? object.type}

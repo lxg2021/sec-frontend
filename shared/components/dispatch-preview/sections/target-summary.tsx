@@ -155,9 +155,11 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
       value: `${target.ungroupedHostCount ?? 0} 台`,
     },
   ]
-  const midpoint = Math.ceil(rows.length / 2)
-  const leftRows = rows.slice(0, midpoint)
-  const rightRows = rows.slice(midpoint)
+  const columnCount = 3
+  const rowsPerColumn = Math.ceil(rows.length / columnCount)
+  const columns = Array.from({ length: columnCount }, (_, index) =>
+    rows.slice(index * rowsPerColumn, (index + 1) * rowsPerColumn),
+  ).filter((column) => column.length > 0)
 
   return (
     <section className="space-y-4">
@@ -168,17 +170,14 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
 
       <div className="rounded-xl border bg-card">
         <div className="space-y-4 p-4">
-          <div className="grid gap-x-10 xl:grid-cols-2">
-            <div>
-              {leftRows.map((row) => (
-                <SummaryRow key={row.label} {...row} />
-              ))}
-            </div>
-            <div>
-              {rightRows.map((row) => (
-                <SummaryRow key={row.label} {...row} />
-              ))}
-            </div>
+          <div className="grid gap-x-10 xl:grid-cols-3">
+            {columns.map((column, index) => (
+              <div key={index}>
+                {column.map((row) => (
+                  <SummaryRow key={row.label} {...row} />
+                ))}
+              </div>
+            ))}
           </div>
 
           {hasWarnings ? (
