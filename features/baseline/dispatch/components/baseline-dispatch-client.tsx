@@ -282,7 +282,8 @@ export function BaselineDispatchClient() {
     ).length
   }, [deduplicatedHosts])
 
-  const canEnterStep2 = Boolean(
+  const canEnterStep2 = Boolean(selectedTemplateUuid)
+  const canCreatePolicy = Boolean(
     policyName.trim() && version.trim() && selectedTemplateUuid,
   )
   const canEnterStep3 = canEnterStep2 && Boolean(createdPolicy)
@@ -471,7 +472,7 @@ export function BaselineDispatchClient() {
   }, [])
 
   const handleCreatePolicy = useCallback(async () => {
-    if (!selectedTemplate || !canEnterStep2) return
+    if (!selectedTemplate || !canCreatePolicy) return
 
     setCreatingPolicy(true)
 
@@ -492,7 +493,7 @@ export function BaselineDispatchClient() {
     } finally {
       setCreatingPolicy(false)
     }
-  }, [canEnterStep2, policyName, selectedTemplate, version])
+  }, [canCreatePolicy, policyName, selectedTemplate, version])
 
   const handleOpenPreview = useCallback(() => {
     if (!previewData) return
@@ -539,13 +540,9 @@ export function BaselineDispatchClient() {
     if (currentStep === 1) {
       return (
         <BaselineSelectionStep
-          policyName={policyName}
-          version={version}
           selector={selector}
           selectedTemplate={selectedTemplate}
           canNext={canEnterStep2}
-          onNameChange={setPolicyName}
-          onVersionChange={setVersion}
           onNext={() => setCurrentStep(2)}
         />
       )
@@ -556,8 +553,12 @@ export function BaselineDispatchClient() {
         <ScanScheduleStep
           schedule={schedule}
           creating={creatingPolicy}
-          canCreatePolicy={canEnterStep2}
+          canCreatePolicy={canCreatePolicy}
+          onNameChange={setPolicyName}
           onScheduleChange={handleScheduleChange}
+          onVersionChange={setVersion}
+          policyName={policyName}
+          version={version}
           onBack={() => setCurrentStep(1)}
           onCreatePolicy={() => void handleCreatePolicy()}
         />
