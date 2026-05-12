@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import '../shared/styles/globals.css'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
+import { Toaster } from '@/shared/ui/sonner'
 
 export const metadata: Metadata = {
   title: 'WatchPoint',
@@ -23,6 +24,7 @@ export default async function RootLayout({children,}: Readonly<{children: React.
       <body>
         <NextIntlClientProvider messages={messages}>
           {children}
+          <Toaster position="top-right" richColors />
         </NextIntlClientProvider>
       </body>
     </html>
