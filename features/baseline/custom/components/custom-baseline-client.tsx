@@ -33,16 +33,14 @@ function collectSelectionPayload(selectedItems: Map<string, Set<string>>) {
 
 function extractTemplateRequestMetadata(template: BaselineTemplate) {
   return {
-    standard: template.standard.trim(),
     product: template.product.trim(),
     os_version: template.os_version.trim(),
-    profile: template.profile.trim(),
   }
 }
 
 function getTemplateMetadataSignature(template: BaselineTemplate) {
   const metadata = extractTemplateRequestMetadata(template)
-  return [metadata.product, metadata.os_version, metadata.profile].join("::")
+  return [metadata.product, metadata.os_version].join("::")
 }
 
 export default function CustomBaselineClient() {
@@ -185,7 +183,7 @@ export default function CustomBaselineClient() {
     const baseTemplate = selectedTemplates[0]
     const metadata = extractTemplateRequestMetadata(baseTemplate)
 
-    if (!metadata.product || !metadata.os_version || !metadata.profile) {
+    if (!metadata.product || !metadata.os_version) {
       return { metadata: null, errorKey: "templateMetadataIncomplete" }
     }
 

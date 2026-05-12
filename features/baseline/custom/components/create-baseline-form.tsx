@@ -87,11 +87,6 @@ export function CreateBaselineForm({
 
         <div className="space-y-4">
           <Card className="border-zinc-200/80 shadow-sm">
-            <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
-              <CardTitle className="text-base font-semibold text-foreground">{t("createForm.infoTitle")}</CardTitle>
-              <CardDescription className="mt-1 text-sm text-muted-foreground">{t("createForm.infoDescription")}</CardDescription>
-            </CardHeader>
-
             <CardContent className="space-y-4 p-4">
               {errorMessage ? (
                 <div className="rounded-xl border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
