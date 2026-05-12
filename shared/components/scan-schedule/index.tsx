@@ -48,25 +48,28 @@ export function ScanScheduleForm({
           {description ? <CardDescription>{description}</CardDescription> : null}
         </CardHeader>
       ) : null}
+
       <CardContent className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
           <div className="space-y-2">
             <Label htmlFor="mode" className="flex items-center gap-2">
               <Clock className="size-3.5 text-sky-600" />
               调度模式
             </Label>
-            <Select
-              value={schedule.mode}
-              onValueChange={(mode: "interval") => handleChange({ mode })}
-              disabled={disabled}
-            >
-              <SelectTrigger id="mode">
-                <SelectValue placeholder="选择调度模式" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="interval">固定间隔</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex h-12 items-center">
+              <Select
+                value={schedule.mode}
+                onValueChange={(mode: "interval") => handleChange({ mode })}
+                disabled={disabled}
+              >
+                <SelectTrigger id="mode">
+                  <SelectValue placeholder="选择调度模式" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="interval">固定间隔</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -79,21 +82,23 @@ export function ScanScheduleForm({
                 {schedule.interval_hours ?? 24}小时
               </span>
             </div>
-            <Slider
-              id="interval_hours"
-              min={1}
-              max={168}
-              step={1}
-              value={[schedule.interval_hours ?? 24]}
-              onValueChange={([val]) => handleChange({ interval_hours: val })}
-              disabled={disabled}
-            />
+            <div className="flex h-12 items-center">
+              <Slider
+                id="interval_hours"
+                min={1}
+                max={168}
+                step={1}
+                value={[schedule.interval_hours ?? 24]}
+                onValueChange={([val]) => handleChange({ interval_hours: val })}
+                disabled={disabled}
+              />
+            </div>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="specific_time" className="flex items-center gap-2 text-xs">
+            <Label htmlFor="specific_time" className="flex items-center gap-2">
               <CalendarClock className="size-3.5 text-blue-600" />
               固定执行时间
             </Label>
@@ -111,7 +116,7 @@ export function ScanScheduleForm({
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="random_delay" className="flex items-center gap-1 text-xs">
+              <Label htmlFor="random_delay" className="flex items-center gap-1">
                 <Shuffle className="size-3.5 text-violet-600" />
                 随机延迟
               </Label>
@@ -133,7 +138,7 @@ export function ScanScheduleForm({
 
         <div className="flex items-end gap-3 rounded-lg border bg-muted/30 p-3">
           <div className="flex-1 space-y-1">
-            <Label className="flex items-center gap-2 text-xs font-medium">
+            <Label className="flex items-center gap-2 font-medium">
               <RefreshCw className="size-3.5 text-amber-600" />
               重试次数
             </Label>
@@ -154,8 +159,9 @@ export function ScanScheduleForm({
               </SelectContent>
             </Select>
           </div>
+
           <div className="flex-1 space-y-1">
-            <Label className="flex items-center gap-2 text-xs font-medium">
+            <Label className="flex items-center gap-2 font-medium">
               <RefreshCw className="size-3.5 text-amber-600" />
               重试间隔
             </Label>
