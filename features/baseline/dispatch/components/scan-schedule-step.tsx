@@ -1,6 +1,6 @@
 "use client"
 
-import { Clock3 } from "lucide-react"
+import { ArrowRight, CalendarClock, ChevronLeft } from "lucide-react"
 
 import { ScanScheduleForm, type ScanSchedule } from "@/shared/components/scan-schedule"
 import { Button } from "@/shared/ui/button"
@@ -34,61 +34,80 @@ export function ScanScheduleStep({
   version,
 }: ScanScheduleStepProps) {
   return (
-    <Card className="overflow-hidden border-slate-200/80 shadow-lg">
-      <div className="h-1 bg-gradient-to-r from-slate-950 via-slate-700 to-blue-500" />
-      <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <div className="rounded-xl bg-slate-950 p-2 text-white">
-            <Clock3 className="h-4 w-4" />
+    <Card className="border bg-card shadow-sm">
+      <CardHeader className="border-b border-border pb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+            <CalendarClock className="h-5 w-5 text-blue-500" />
           </div>
-          任务计划
-        </CardTitle>
-        <CardDescription>
-          填写策略名称、版本，并配置扫描周期与重试策略。
-        </CardDescription>
+          <div>
+            <CardTitle className="text-lg font-semibold text-foreground">任务计划</CardTitle>
+            <CardDescription className="text-sm text-muted-foreground">
+              填写策略名称、版本，并配置扫描周期与重试策略。
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
 
       <CardContent className="space-y-6 p-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="policy-name">策略名称 *</Label>
-            <Input
-              id="policy-name"
-              value={policyName}
-              onChange={(event) => onNameChange(event.target.value)}
-              placeholder="例如：Windows 基线巡检策略"
-            />
+        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <Label htmlFor="policy-name" className="shrink-0 sm:w-24">
+                策略名称 *
+              </Label>
+              <Input
+                id="policy-name"
+                value={policyName}
+                onChange={(event) => onNameChange(event.target.value)}
+                placeholder="例如：Windows 基线巡检策略"
+                className="flex-1"
+              />
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <Label htmlFor="policy-version" className="shrink-0 sm:w-20">
+                版本号 *
+              </Label>
+              <Input
+                id="policy-version"
+                value={version}
+                onChange={(event) => onVersionChange(event.target.value)}
+                placeholder="例如：1.0.0"
+                className="flex-1"
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="policy-version">版本号 *</Label>
-            <Input
-              id="policy-version"
-              value={version}
-              onChange={(event) => onVersionChange(event.target.value)}
-              placeholder="例如：1.0.0"
-            />
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5">
+          <ScanScheduleForm
+            value={schedule}
+            onChange={onScheduleChange}
+            title="调度计划配置"
+            description={null}
+            className="max-w-none border-0 shadow-none [&_[class*='text-2xl']]:text-base"
+          />
+        </section>
+
+        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
+          <div className="text-sm text-slate-500">
+            {canCreatePolicy ? "策略信息已完整，可创建策略对象。" : "请先填写策略名称和版本号。"}
           </div>
-        </div>
 
-        <ScanScheduleForm
-          value={schedule}
-          onChange={onScheduleChange}
-          title="调度计划配置"
-          description="当前流程仅支持 interval 模式。"
-          className="max-w-none border-slate-200 shadow-none"
-        />
-
-        <div className="flex justify-between border-t pt-4">
-          <Button variant="outline" onClick={onBack} className="h-11 px-5">
-            返回：基线选择
-          </Button>
-          <Button
-            onClick={onCreatePolicy}
-            disabled={!canCreatePolicy || creating}
-            className="h-11 px-6"
-          >
-            {creating ? "创建中..." : "创建策略并继续"}
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={onBack} className="h-11 px-5">
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              返回基线选择
+            </Button>
+            <Button
+              onClick={onCreatePolicy}
+              disabled={!canCreatePolicy || creating}
+              className="h-11 px-6"
+            >
+              {creating ? "创建中..." : "创建策略并继续"}
+              {!creating ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
