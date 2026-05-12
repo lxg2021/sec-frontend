@@ -514,17 +514,6 @@ export function BaselineDispatchClient() {
     }
   }, [previewData?.permissions?.canSubmit])
 
-  const resetAll = useCallback(() => {
-    setCurrentStep(1)
-    setPolicyName("")
-    setVersion("1.0.0")
-    setSchedule(DEFAULT_SCAN_SCHEDULE)
-    setCreatedPolicy(null)
-    setSelectedNodes([])
-    setSelectedIds(new Set())
-    setSelectorVersion((value) => value + 1)
-  }, [])
-
   const renderCurrentStep = () => {
     const selector = (
       <BaselineDispatchSelector
@@ -622,12 +611,6 @@ export function BaselineDispatchClient() {
 
         <div className="space-y-6">
           {renderCurrentStep()}
-
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={resetAll}>
-              重置当前流程
-            </Button>
-          </div>
         </div>
       </div>
 

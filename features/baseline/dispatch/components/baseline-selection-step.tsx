@@ -7,7 +7,6 @@ import {
   Building2,
   CalendarClock,
   CheckCircle2,
-  Clock3,
   FileText,
   Flame,
   Hash,
@@ -74,7 +73,6 @@ export function BaselineSelectionStep({
           strong: true,
         },
         { icon: CalendarClock, label: "创建时间", value: selectedTemplate.created_at || "-" },
-        { icon: Clock3, label: "更新时间", value: selectedTemplate.updated_at || "-" },
       ]
     : []
 
