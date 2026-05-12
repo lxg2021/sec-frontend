@@ -5,14 +5,20 @@ import { Clock3 } from "lucide-react"
 import { ScanScheduleForm, type ScanSchedule } from "@/shared/components/scan-schedule"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
 
 interface ScanScheduleStepProps {
   canCreatePolicy: boolean
   creating: boolean
   onBack: () => void
   onCreatePolicy: () => void
+  onNameChange: (value: string) => void
   onScheduleChange: (value: ScanSchedule) => void
+  onVersionChange: (value: string) => void
+  policyName: string
   schedule: ScanSchedule
+  version: string
 }
 
 export function ScanScheduleStep({
@@ -20,8 +26,12 @@ export function ScanScheduleStep({
   creating,
   onBack,
   onCreatePolicy,
+  onNameChange,
   onScheduleChange,
+  onVersionChange,
+  policyName,
   schedule,
+  version,
 }: ScanScheduleStepProps) {
   return (
     <Card className="overflow-hidden border-slate-200/80 shadow-lg">
@@ -34,11 +44,32 @@ export function ScanScheduleStep({
           任务计划
         </CardTitle>
         <CardDescription>
-          配置扫描周期与重试策略，然后创建基线扫描策略对象。
+          填写策略名称、版本，并配置扫描周期与重试策略。
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6 p-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="policy-name">策略名称 *</Label>
+            <Input
+              id="policy-name"
+              value={policyName}
+              onChange={(event) => onNameChange(event.target.value)}
+              placeholder="例如：Windows 基线巡检策略"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="policy-version">版本号 *</Label>
+            <Input
+              id="policy-version"
+              value={version}
+              onChange={(event) => onVersionChange(event.target.value)}
+              placeholder="例如：1.0.0"
+            />
+          </div>
+        </div>
+
         <ScanScheduleForm
           value={schedule}
           onChange={onScheduleChange}

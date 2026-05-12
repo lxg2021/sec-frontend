@@ -22,11 +22,13 @@ function numberValue(value: unknown, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback
 }
 
-export interface BaselineTemplate {
+export interface BaselineListItem {
   uuid: string
+  tenant_id: string
   baseline_uuid: string
-  display_name: string
+  baseline_type: string
   original_filename: string
+  display_name: string
   standard: string
   product: string
   os_version: string
@@ -36,11 +38,15 @@ export interface BaselineTemplate {
   low_count: number
   medium_count: number
   high_count: number
-  baseline_type: string
+  based_on_uuids: string[]
+  created_at: string
+  updated_at: string
   description: string
   latest_check_time: string
   host_count: number
 }
+
+export type BaselineTemplate = BaselineListItem
 
 export interface BaselineTemplateItem {
   template_uuid: string
@@ -120,12 +126,15 @@ export interface CreateCustomBaselineResult {
 function normalizeTemplate(value: unknown): BaselineTemplate {
   const record = asRecord(value)
   const uuid = stringValue(record.uuid ?? record.baseline_uuid ?? record.template_uuid)
+  const basedOnUuids = normalizeArray<unknown>(record.based_on_uuids).map((value) => stringValue(value))
 
   return {
     uuid,
+    tenant_id: stringValue(record.tenant_id),
     baseline_uuid: uuid,
-    display_name: stringValue(record.display_name ?? record.name ?? record.title, uuid),
+    baseline_type: stringValue(record.baseline_type ?? record.type),
     original_filename: stringValue(record.original_filename ?? record.filename),
+    display_name: stringValue(record.display_name ?? record.name ?? record.title, uuid),
     standard: stringValue(record.standard),
     product: stringValue(record.product),
     os_version: stringValue(record.os_version),
@@ -135,7 +144,9 @@ function normalizeTemplate(value: unknown): BaselineTemplate {
     low_count: numberValue(record.low_count),
     medium_count: numberValue(record.medium_count),
     high_count: numberValue(record.high_count),
-    baseline_type: stringValue(record.baseline_type ?? record.type),
+    based_on_uuids: basedOnUuids,
+    created_at: stringValue(record.created_at),
+    updated_at: stringValue(record.updated_at),
     description: stringValue(record.description),
     latest_check_time: stringValue(record.latest_check_time ?? record.updated_at ?? record.created_at),
     host_count: numberValue(record.host_count),
@@ -248,6 +259,34 @@ export async function getAllBaselineTemplates(): Promise<BaselineTemplate[]> {
 
   const record = asRecord(result.data)
   return normalizeArray<unknown>(record.templates ?? record.list ?? record.items).map(normalizeTemplate)
+}
+
+export async function getAllBaselines(): Promise<BaselineListItem[]> {
+  const limit = 100
+  const items: BaselineListItem[] = []
+
+  for (let offset = 0; ; offset += limit) {
+    const result = (await http.post("getAllBaselines", {
+      request_id: createRequestId(),
+      limit,
+      offset,
+    })) as ApiResult<unknown>
+
+    if (Array.isArray(result.data)) {
+      items.push(...result.data.map(normalizeTemplate))
+      break
+    }
+
+    const record = asRecord(result.data)
+    const pageItems = normalizeArray<unknown>(record.items ?? record.baselines ?? record.list)
+    items.push(...pageItems.map(normalizeTemplate))
+
+    const pagination = asRecord(record.pagination)
+    const hasNext = Boolean(pagination.has_next ?? pagination.hasNext)
+    if (!hasNext || pageItems.length === 0) break
+  }
+
+  return items
 }
 
 export async function getBaselineTemplateItems(templateUuid: string): Promise<BaselineTemplateItemsData | null> {

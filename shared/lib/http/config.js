@@ -45,6 +45,7 @@ const FALLBACK_CONFIG = {
       approveCollectionSubmission: "/sensor/collection/submissions/approve",
       rejectCollectionSubmission: "/sensor/collection/submissions/reject",
       getBaselineOptions: "/sensor/baseline/options",
+      getAllBaselines: "/sensor/baseline/list",
       getAllBaselineTemplates: "/sensor/baseline/templates/list",
       getBaselineTemplateItems: "/sensor/baseline/templates/items",
       createCustomBaseline: "/sensor/baseline/custom/create",

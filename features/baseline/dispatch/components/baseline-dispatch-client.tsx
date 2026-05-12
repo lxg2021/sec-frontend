@@ -5,10 +5,7 @@ import Link from "next/link"
 import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 
-import { getAllBaselineTemplates, type BaselineTemplate } from "@/features/baseline/custom/api"
-import SharedBaselineSelector, {
-  type BaselineSelectorItem,
-} from "@/shared/components/baseline-selector"
+import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
 import DispatchPreview, {
   type DispatchGroup,
   type DispatchHost,
@@ -21,10 +18,10 @@ import { getAccessToken } from "@/shared/lib/http/auth"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 
+import { BaselineDispatchSelector, type BaselineDispatchSelectorItem } from "./baseline-dispatch-selector"
 import { BaselineSelectionStep } from "./baseline-selection-step"
 import { DispatchStepper, type DispatchStepItem } from "./dispatch-stepper"
 import { DispatchSubmitStep } from "./dispatch-submit-step"
-import { DispatchSummaryCard } from "./dispatch-summary-card"
 import { HostSelectionStep } from "./host-selection-step"
 import { ScanScheduleStep } from "./scan-schedule-step"
 
@@ -55,12 +52,8 @@ interface CreatedPolicy {
 const BASELINE_SELECTOR_TEXT = {
   current: "当前",
   emptyPlaceholder: "暂无可选基线",
-  hosts: (count: number) => `主机 ${count}`,
   checks: (count: number) => `检查项 ${count}`,
-  lastChecked: "最近检查",
-  noCheck: "暂无检查",
   noMatches: "没有匹配的基线",
-  refresh: "刷新",
   searchPlaceholder: "搜索基线名称、标准、产品或配置画像",
   selectPlaceholder: "请选择基线",
   unknown: "未知",
@@ -138,7 +131,7 @@ export function BaselineDispatchClient() {
     }
 
     try {
-      const data = await getAllBaselineTemplates()
+      const data = await getAllBaselines()
       setTemplates(data)
     } catch (error) {
       setTemplates([])
@@ -189,7 +182,7 @@ export function BaselineDispatchClient() {
     }
   }, [selectedTemplateUuid, templates])
 
-  const baselineItems = useMemo<BaselineSelectorItem[]>(() => {
+  const baselineItems = useMemo<BaselineDispatchSelectorItem[]>(() => {
     return templates.map((template) => {
       const standardKey = template.standard.toLowerCase()
       const profileKey = template.profile.toLowerCase()
@@ -203,8 +196,6 @@ export function BaselineDispatchClient() {
         profileLabel:
           knownProfiles.has(profileKey) ? template.profile : template.profile || "未知画像",
         osVersionLabel: template.os_version || template.baseline_version || undefined,
-        lastCheckTime: template.latest_check_time || undefined,
-        hostCount: template.host_count,
         itemCount: template.item_count,
         highCount: template.high_count,
         mediumCount: template.medium_count,
@@ -440,10 +431,6 @@ export function BaselineDispatchClient() {
     ]
   }, [canEnterStep2, canEnterStep3, canEnterStep4, currentStep])
 
-  const currentStepLabel = useMemo(() => {
-    return stepItems.find((item) => item.key === currentStep)?.title || "基线选择"
-  }, [currentStep, stepItems])
-
   const handleStepChange = useCallback(
     (step: number) => {
       if (step === 1) {
@@ -539,12 +526,11 @@ export function BaselineDispatchClient() {
 
   const renderCurrentStep = () => {
     const selector = (
-      <SharedBaselineSelector
+      <BaselineDispatchSelector
         items={baselineItems}
         value={selectedTemplateUuid}
         onValueChange={handleTemplateChange}
-        onRefresh={() => void loadTemplates()}
-        isRefreshing={templatesLoading}
+        loading={templatesLoading}
         className="w-full"
         text={BASELINE_SELECTOR_TEXT}
       />
@@ -556,6 +542,7 @@ export function BaselineDispatchClient() {
           policyName={policyName}
           version={version}
           selector={selector}
+          selectedTemplate={selectedTemplate}
           canNext={canEnterStep2}
           onNameChange={setPolicyName}
           onVersionChange={setVersion}
@@ -632,31 +619,14 @@ export function BaselineDispatchClient() {
           onStepChange={handleStepChange}
         />
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="space-y-6">
-            {renderCurrentStep()}
+        <div className="space-y-6">
+          {renderCurrentStep()}
 
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={resetAll}>
-                重置当前流程
-              </Button>
-            </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={resetAll}>
+              重置当前流程
+            </Button>
           </div>
-
-          <DispatchSummaryCard
-            currentStep={currentStep}
-            stepLabel={currentStepLabel}
-            policyName={policyName}
-            version={version}
-            selectedBaselineName={
-              selectedTemplate?.display_name || selectedTemplate?.baseline_uuid
-            }
-            scheduleSummary={buildScheduleSummary(schedule)}
-            selectedHostCount={deduplicatedHosts.length}
-            offlineHostCount={offlineHostCount}
-            invalidHostCount={invalidHostCount}
-            createdPolicyName={createdPolicy?.name}
-          />
         </div>
       </div>
 
