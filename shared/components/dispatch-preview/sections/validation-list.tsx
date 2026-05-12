@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Info,
   Lightbulb,
-  ShieldAlert,
 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
@@ -71,7 +70,7 @@ function ValidationItem({
           ) : null}
         </CollapsibleTrigger>
 
-        {validation.suggestion ? (
+        {validation.suggestion && open ? (
           <CollapsibleContent>
             <div className="ml-7 px-3 pb-3 pt-0">
               <div className="flex items-start gap-2 rounded-md bg-muted/50 p-2 text-sm text-muted-foreground">
@@ -106,15 +105,7 @@ export function ValidationList({
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <ShieldAlert className="size-4" />
-        <span>风险与校验</span>
-        {errors.length > 0 ? (
-          <span className="ml-auto text-xs font-normal text-destructive">存在阻断问题</span>
-        ) : null}
-      </div>
-
+    <section>
       <div className="space-y-3">
         {showPermissionInfo && permissions?.canSubmit === false ? (
           <Alert variant="destructive">
@@ -134,7 +125,7 @@ export function ValidationList({
           <ValidationItem
             key={`warning-${index}`}
             validation={item}
-            defaultOpen={index === 0}
+            defaultOpen={false}
           />
         ))}
 

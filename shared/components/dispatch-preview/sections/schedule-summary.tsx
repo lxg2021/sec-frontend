@@ -1,6 +1,6 @@
 "use client"
 
-import { Calendar, Clock, Timer, Zap } from "lucide-react"
+import { Timer, Zap } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 
@@ -14,12 +14,7 @@ export function ScheduleSummary({
   const isImmediate = schedule.mode === "immediate"
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-        <Clock className="size-4" />
-        <span>执行计划</span>
-      </div>
-
+    <section>
       <div className="rounded-xl border bg-card p-4">
         <div className="flex items-start gap-4">
           <div
@@ -41,23 +36,6 @@ export function ScheduleSummary({
             </div>
 
             <p className="text-sm text-muted-foreground">{schedule.summary}</p>
-
-            {!isImmediate ? (
-              <div className="flex flex-wrap gap-4 pt-2 text-sm">
-                {schedule.executeAt ? (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Calendar className="size-3.5" />
-                    <span>{schedule.executeAt}</span>
-                  </div>
-                ) : null}
-                {schedule.timezone ? (
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Clock className="size-3.5" />
-                    <span>{schedule.timezone}</span>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
 
             {schedule.cronText ? (
               <div className="mt-2 border-t pt-2">
