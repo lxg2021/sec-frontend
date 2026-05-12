@@ -1,7 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { LayoutGrid, Plus, RefreshCw, SlidersHorizontal } from "lucide-react"
+import { ArrowRight, LayoutGrid, Plus, RefreshCw, SlidersHorizontal } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -191,15 +192,35 @@ export function BaselineTemplateSelector({
         </div>
 
         <div className="mt-2 border-t border-zinc-200/80 pt-2">
-          <div className="flex justify-center">
+          <div className="mx-auto grid w-full max-w-[320px] grid-cols-2 gap-3">
             <Button
               type="button"
               onClick={onCreateBaseline}
-              className="h-11 gap-3 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 px-5 text-base font-semibold text-white shadow-sm shadow-zinc-300/40 transition-transform hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700"
+              disabled={createSelectedCount === 0}
+              className={cn(
+                "h-11 w-full gap-3 rounded-xl px-5 text-base font-semibold text-white shadow-sm transition-transform disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500 disabled:shadow-none disabled:hover:scale-100 disabled:hover:bg-zinc-300",
+                createSelectedCount > 0 && "bg-gradient-to-r from-zinc-950 to-zinc-800 shadow-zinc-300/40 hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700",
+              )}
             >
               <Plus className="h-5 w-5" />
               <span>{t("createBaseline")}</span>
-              <span className="rounded-md bg-white/20 px-2 py-0.5 text-sm tabular-nums">{createSelectedCount}</span>
+              <span
+                className={cn(
+                  "rounded-md px-2 py-0.5 text-sm tabular-nums",
+                  createSelectedCount === 0 ? "bg-white text-zinc-500" : "bg-white/20",
+                )}
+              >
+                {createSelectedCount}
+              </span>
+            </Button>
+            <Button
+              asChild
+              className="h-11 w-full gap-3 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 px-5 text-base font-semibold text-white shadow-sm shadow-zinc-300/40 transition-transform hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700"
+            >
+              <Link href="/frame/baseline/rules">
+                <ArrowRight className="h-5 w-5" />
+                <span>{t("goToRules")}</span>
+              </Link>
             </Button>
           </div>
         </div>
