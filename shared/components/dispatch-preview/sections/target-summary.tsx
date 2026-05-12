@@ -113,10 +113,6 @@ function GroupDetail({
 
 export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
   const [expanded, setExpanded] = useState(false)
-  const hasWarnings =
-    (target.offlineHostCount ?? 0) > 0 ||
-    (target.invalidHostCount ?? 0) > 0 ||
-    (target.ungroupedHostCount ?? 0) > 0
   const rows = [
     {
       icon: Users,
@@ -179,29 +175,6 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
               </div>
             ))}
           </div>
-
-          {hasWarnings ? (
-            <div className="flex flex-wrap gap-2 border-t pt-2">
-              {(target.offlineHostCount ?? 0) > 0 ? (
-                <div className="flex items-center gap-1.5 text-sm text-amber-600">
-                  <WifiOff className="size-3.5" />
-                  <span>离线 {target.offlineHostCount} 台</span>
-                </div>
-              ) : null}
-              {(target.invalidHostCount ?? 0) > 0 ? (
-                <div className="flex items-center gap-1.5 text-sm text-destructive">
-                  <AlertCircle className="size-3.5" />
-                  <span>不可下发 {target.invalidHostCount} 台</span>
-                </div>
-              ) : null}
-              {(target.ungroupedHostCount ?? 0) > 0 ? (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <FolderOpen className="size-3.5" />
-                  <span>未分组 {target.ungroupedHostCount} 台</span>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
         </div>
 
         {target.groups && target.groups.length > 0 ? (
