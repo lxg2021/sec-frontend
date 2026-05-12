@@ -124,7 +124,7 @@
     "baseline": "安全基线",
     "baselinedashboard": "基线概览",
     "baselinecustom": "定义基线",
-    "baselineconfig": "基线配置",
+    "baselineconfig": "基线下发",
     "vulnerability": "漏洞防护",
     "patchdash": "补丁概览",
     "patchinstall": "安装补丁",
