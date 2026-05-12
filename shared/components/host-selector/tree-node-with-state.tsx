@@ -158,8 +158,12 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
 
       {isHost && (
         <div className="flex flex-shrink-0 items-center gap-3">
-          <div className="rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs text-slate-500">{node.ip}</div>
-          <div className="rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs text-slate-500">{node.hostId}</div>
+          <div className="min-w-[16rem] rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs tabular-nums text-slate-500">
+            {node.ip}
+          </div>
+          <div className="min-w-[20rem] rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs tabular-nums text-slate-500">
+            {node.hostId}
+          </div>
           <HostInfoPopover node={node}>
             <Button
               variant="ghost"
