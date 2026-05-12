@@ -68,10 +68,10 @@ export function HostSelectionStep({
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
             <ChevronLeft className="mr-2 h-4 w-4" />
-            返回：任务计划
+            任务计划
           </Button>
           <Button onClick={onNext} disabled={!canNext} className="h-11 px-6">
-            下一步：任务下发
+            任务下发
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

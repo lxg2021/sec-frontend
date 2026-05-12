@@ -89,21 +89,19 @@ export function ScanScheduleStep({
           />
         </section>
 
-        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-end">
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onBack} className="h-11 px-5">
-              <ChevronLeft className="mr-2 h-4 w-4" />
-              返回基线选择
-            </Button>
-            <Button
-              onClick={onCreatePolicy}
-              disabled={!canCreatePolicy || creating}
-              className="h-11 px-6"
-            >
-              {creating ? "创建中..." : "创建策略并继续"}
-              {!creating ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
-            </Button>
-          </div>
+        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
+          <Button variant="outline" onClick={onBack} className="h-11 px-5">
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            基线选择
+          </Button>
+          <Button
+            onClick={onCreatePolicy}
+            disabled={!canCreatePolicy || creating}
+            className="h-11 px-6"
+          >
+            {creating ? "创建中..." : "创建任务"}
+            {!creating ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+          </Button>
         </div>
       </CardContent>
     </Card>

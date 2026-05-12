@@ -4,6 +4,7 @@ import type { ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   CalendarClock,
   CheckCircle2,
@@ -166,7 +167,8 @@ export function BaselineSelectionStep({
 
         <div className="flex justify-end border-t pt-4">
           <Button onClick={onNext} disabled={!canNext} className="h-11 px-6">
-            下一步：任务计划
+            基线选择
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </CardContent>

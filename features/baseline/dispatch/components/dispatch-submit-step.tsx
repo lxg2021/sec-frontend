@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, ChevronLeft, FileText, LoaderCircle, Send } from "lucide-react"
+import { ChevronLeft, FileText, LoaderCircle, Rocket, Send } from "lucide-react"
 
 import type { DispatchPreviewData } from "@/shared/components/dispatch-preview"
 import { ObjectSummary } from "@/shared/components/dispatch-preview/sections/object-summary"
@@ -27,9 +27,7 @@ export function DispatchSubmitStep({
   submitting = false,
 }: DispatchSubmitStepProps) {
   const hasBlockingErrors = data?.validations?.some((item) => item.level === "error") ?? false
-  const hasWarnings = data?.validations?.some((item) => item.level === "warning") ?? false
   const canSubmit = data?.permissions?.canSubmit !== false
-  const warningStyle = (hasWarnings || dangerConfirmRequired) && !hasBlockingErrors && canSubmit
   const disabledReason = hasBlockingErrors
     ? "存在阻断错误，无法提交。"
     : !canSubmit
@@ -89,7 +87,7 @@ export function DispatchSubmitStep({
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Button variant="outline" onClick={onBack} className="h-11 px-5">
               <ChevronLeft className="mr-2 h-4 w-4" />
-              返回：主机选择
+              主机选择
             </Button>
 
             <div className="flex items-center gap-3">
@@ -102,7 +100,7 @@ export function DispatchSubmitStep({
               <Button
                 onClick={onConfirm}
                 disabled={!data || hasBlockingErrors || !canSubmit || submitting}
-                className={warningStyle ? "h-11 px-6 bg-amber-600 hover:bg-amber-700" : "h-11 px-6"}
+                className="h-11 px-6 bg-slate-950 text-white hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-500"
               >
                 {submitting ? (
                   <>
@@ -111,8 +109,8 @@ export function DispatchSubmitStep({
                   </>
                 ) : (
                   <>
-                    {warningStyle ? (
-                      <AlertTriangle className="mr-2 size-4" />
+                    {(dangerConfirmRequired && canSubmit) ? (
+                      <Rocket className="mr-2 size-4" />
                     ) : (
                       <Send className="mr-2 size-4" />
                     )}
