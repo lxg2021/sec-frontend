@@ -608,17 +608,6 @@ export function BaselineDispatchClient() {
 
             <Card className="overflow-hidden border-slate-200/80 shadow-lg">
               <div className="h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-slate-950" />
-              <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
-                  <div className="rounded-xl bg-blue-50 p-2 text-blue-600">
-                    <Server className="h-4 w-4" />
-                  </div>
-                  目标主机
-                </CardTitle>
-                <CardDescription>
-                  从逻辑组或主机树中选择本次基线下发范围。
-                </CardDescription>
-              </CardHeader>
               <CardContent className="p-4">
                 <HostSelector
                   key={selectorVersion}
