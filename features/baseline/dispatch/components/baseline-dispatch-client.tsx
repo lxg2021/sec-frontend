@@ -473,7 +473,7 @@ export function BaselineDispatchClient() {
           </Alert>
         )}
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="space-y-6">
           <div className="space-y-6">
             <Card className="overflow-hidden border-slate-200/80 shadow-lg">
               <div className="h-1 bg-gradient-to-r from-slate-950 via-blue-600 to-cyan-400" />
@@ -643,109 +643,29 @@ export function BaselineDispatchClient() {
               </CardContent>
             </Card>
           </div>
+        </div>
 
-          <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-            <Card className="overflow-hidden border-slate-200/80 shadow-lg">
-              <div className="h-1 bg-gradient-to-r from-slate-950 via-blue-600 to-cyan-400" />
-              <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
-                  <div className="rounded-xl bg-slate-950 p-2 text-white">
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  当前摘要
-                </CardTitle>
-                <CardDescription>确认后进入统一的下发预览。</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4 p-4">
-                <div className="rounded-2xl border bg-slate-50/80 p-4">
-                  <div className="text-xs font-medium text-slate-500">已选模板</div>
-                  <div className="mt-1 text-base font-semibold text-slate-950">
-                    {selectedTemplate?.display_name || "未选择"}
-                  </div>
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-slate-500">
-                    {selectedTemplateSummary.map((item) => (
-                      <div key={item.label} className="rounded-xl bg-white px-3 py-2">
-                        <div>{item.label}</div>
-                        <div className="mt-1 font-medium text-slate-800">{item.value}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl border bg-white p-4 shadow-sm">
-                    <div className="text-xs text-slate-500">主机</div>
-                    <div className="mt-1 text-2xl font-semibold text-slate-950">
-                      {selectedHosts.length.toLocaleString()}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">去重后目标主机</div>
-                  </div>
-                  <div className="rounded-2xl border bg-white p-4 shadow-sm">
-                    <div className="text-xs text-slate-500">节点</div>
-                    <div className="mt-1 text-2xl font-semibold text-slate-950">
-                      {selectedIds.size.toLocaleString()}
-                    </div>
-                    <div className="mt-1 text-xs text-slate-500">当前选择节点数</div>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border bg-white p-4 shadow-sm">
-                  <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                    <Clock3 className="h-4 w-4" />
-                    执行计划摘要
-                  </div>
-                  <div className="mt-2 text-sm font-medium text-slate-950">
-                    {buildScheduleSummary(schedule)}
-                  </div>
-                  <p className="mt-2 text-xs text-slate-500">
-                    当前计划会带入下发预览作为最终确认信息。
-                  </p>
-                </div>
-
-                <div className="space-y-2 rounded-2xl border bg-slate-50/80 p-4">
-                  <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                    <Layers3 className="h-4 w-4 text-blue-600" />
-                    状态检查
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline" className="rounded-full bg-white px-2">
-                      {selectionReady ? "可进入预览" : "等待补全"}
-                    </Badge>
-                    <Badge variant="outline" className="rounded-full bg-white px-2">
-                      离线 {offlineHostCount}
-                    </Badge>
-                    <Badge variant="outline" className="rounded-full bg-white px-2">
-                      不可下发 {invalidHostCount}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    className="h-11 flex-1 gap-2 bg-slate-950 text-white hover:bg-slate-800"
-                    disabled={!selectionReady}
-                    onClick={() => setPreviewOpen(true)}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                    下发预览
-                  </Button>
-                  <Button variant="outline" className="h-11 gap-2" onClick={resetAll}>
-                    重置
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {(invalidHostCount > 0 || offlineHostCount > 0) && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>当前范围包含风险主机</AlertTitle>
-                <AlertDescription>
-                  离线主机 {offlineHostCount} 台，不可下发主机 {invalidHostCount} 台。
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {(invalidHostCount > 0 || offlineHostCount > 0) && (
+            <Alert className="min-w-[320px] flex-1">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>当前范围包含风险主机</AlertTitle>
+              <AlertDescription>
+                离线主机 {offlineHostCount} 台，不可下发主机 {invalidHostCount} 台。
+              </AlertDescription>
+            </Alert>
+          )}
+          <Button variant="outline" className="h-11 gap-2" onClick={resetAll}>
+            重置
+          </Button>
+          <Button
+            className="h-11 gap-2 bg-slate-950 text-white hover:bg-slate-800"
+            disabled={!selectionReady}
+            onClick={() => setPreviewOpen(true)}
+          >
+            <ArrowRight className="h-4 w-4" />
+            下发预览
+          </Button>
         </div>
       </div>
 
