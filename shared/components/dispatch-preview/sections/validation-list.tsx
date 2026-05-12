@@ -62,17 +62,11 @@ function ValidationItem({
         <CollapsibleTrigger className="flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors hover:bg-muted/30">
           <span className={`mt-0.5 ${styles.icon}`}>{icon}</span>
           <div className="min-w-0 flex-1">
-            <p className={`text-sm font-medium ${styles.title}`}>
-              {validation.message}
-            </p>
+            <p className={`text-sm font-medium ${styles.title}`}>{validation.message}</p>
           </div>
           {validation.suggestion ? (
             <span className="mt-0.5 text-muted-foreground">
-              {open ? (
-                <ChevronDown className="size-4" />
-              ) : (
-                <ChevronRight className="size-4" />
-              )}
+              {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
             </span>
           ) : null}
         </CollapsibleTrigger>
@@ -105,8 +99,7 @@ export function ValidationList({
   const warnings = validations.filter((item) => item.level === "warning")
   const infos = validations.filter((item) => item.level === "info")
 
-  const hasAnyValidation =
-    errors.length > 0 || warnings.length > 0 || infos.length > 0
+  const hasAnyValidation = errors.length > 0 || warnings.length > 0 || infos.length > 0
 
   if (!hasAnyValidation && (!showPermissionInfo || permissions?.canSubmit !== false)) {
     return null
@@ -118,9 +111,7 @@ export function ValidationList({
         <ShieldAlert className="size-4" />
         <span>风险与校验</span>
         {errors.length > 0 ? (
-          <span className="ml-auto text-xs font-normal text-destructive">
-            存在阻断问题
-          </span>
+          <span className="ml-auto text-xs font-normal text-destructive">存在阻断问题</span>
         ) : null}
       </div>
 
@@ -130,17 +121,13 @@ export function ValidationList({
             <AlertCircle className="size-4" />
             <AlertTitle>无法提交</AlertTitle>
             <AlertDescription>
-              {permissions.reason || "当前用户权限不足，无法执行此操作"}
+              {permissions.reason || "当前用户权限不足，或提交条件尚未满足。"}
             </AlertDescription>
           </Alert>
         ) : null}
 
         {errors.map((item, index) => (
-          <ValidationItem
-            key={`error-${index}`}
-            validation={item}
-            defaultOpen
-          />
+          <ValidationItem key={`error-${index}`} validation={item} defaultOpen />
         ))}
 
         {warnings.map((item, index) => (
@@ -152,11 +139,7 @@ export function ValidationList({
         ))}
 
         {infos.map((item, index) => (
-          <ValidationItem
-            key={`info-${index}`}
-            validation={item}
-            defaultOpen={false}
-          />
+          <ValidationItem key={`info-${index}`} validation={item} />
         ))}
       </div>
     </section>

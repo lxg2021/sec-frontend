@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, AlertTriangle, LoaderCircle, Send } from "lucide-react"
+import { AlertTriangle, ArrowLeft, LoaderCircle, Send } from "lucide-react"
 
 import { Button } from "@/shared/ui/button"
 
@@ -28,13 +28,12 @@ export function FooterActions({
   const hasBlockingErrors = validations.some((item) => item.level === "error")
   const hasWarnings = validations.some((item) => item.level === "warning")
   const canSubmit = permissions?.canSubmit !== false
-  const needsWarningStyle =
-    (hasWarnings || dangerConfirmRequired) && !hasBlockingErrors && canSubmit
+  const warningStyle = (hasWarnings || dangerConfirmRequired) && !hasBlockingErrors && canSubmit
 
   const disabledReason = hasBlockingErrors
-    ? "存在阻断错误，无法提交"
+    ? "存在阻断错误，无法提交。"
     : !canSubmit
-      ? permissions?.reason || "权限不足"
+      ? permissions?.reason || "当前不满足提交条件。"
       : null
 
   return (
@@ -59,7 +58,7 @@ export function FooterActions({
           <Button
             onClick={onConfirm}
             disabled={hasBlockingErrors || !canSubmit || submitting}
-            className={needsWarningStyle ? "bg-amber-600 hover:bg-amber-700" : undefined}
+            className={warningStyle ? "bg-amber-600 hover:bg-amber-700" : undefined}
           >
             {submitting ? (
               <>
@@ -68,7 +67,7 @@ export function FooterActions({
               </>
             ) : (
               <>
-                {needsWarningStyle ? (
+                {warningStyle ? (
                   <AlertTriangle className="size-4" />
                 ) : (
                   <Send className="size-4" />

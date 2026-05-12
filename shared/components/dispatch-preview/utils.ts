@@ -8,7 +8,7 @@ export function getPreviewStatus(
   data: DispatchPreviewData | undefined,
   loading: boolean,
   error?: string,
-  submitting?: boolean
+  submitting?: boolean,
 ): DispatchPreviewStatus {
   if (submitting) return "submitting"
   if (loading) return "loading"
@@ -40,34 +40,34 @@ export function getStatusTags(data: DispatchPreviewData | undefined): string[] {
   }
 
   if (data.schedule?.mode === "scheduled") {
-    tags.push("定时执行")
+    tags.push("按计划执行")
   }
 
   if (hasErrors) {
     tags.push("部分目标不可下发")
   } else if (hasWarnings) {
-    tags.push("高风险")
+    tags.push("存在风险提示")
   }
 
   if (data.permissions?.canSubmit === false) {
-    tags.push("权限不足")
+    tags.push("权限或条件不足")
   }
 
   return tags
 }
 
 export function getTagVariant(
-  tag: string
+  tag: string,
 ): "default" | "secondary" | "destructive" | "outline" {
   switch (tag) {
     case "立即执行":
       return "default"
-    case "定时执行":
+    case "按计划执行":
       return "secondary"
     case "部分目标不可下发":
-    case "权限不足":
+    case "权限或条件不足":
       return "destructive"
-    case "高风险":
+    case "存在风险提示":
       return "outline"
     default:
       return "secondary"

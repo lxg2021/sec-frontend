@@ -1,12 +1,6 @@
 "use client"
 
-import {
-  FileText,
-  GitBranch,
-  Hash,
-  Layers,
-  Settings,
-} from "lucide-react"
+import { FileText, GitBranch, Hash, Layers, Settings } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 
@@ -46,9 +40,7 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <h4 className="truncate text-base font-medium text-foreground">
-                {object.name}
-              </h4>
+              <h4 className="truncate text-base font-medium text-foreground">{object.name}</h4>
               {object.description ? (
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                   {object.description}

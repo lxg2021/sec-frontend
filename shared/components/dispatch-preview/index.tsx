@@ -2,6 +2,8 @@
 
 import { AlertCircle, FileX, LoaderCircle } from "lucide-react"
 
+import { Badge } from "@/shared/ui/badge"
+import { Button } from "@/shared/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,8 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/shared/ui/dialog"
-import { Badge } from "@/shared/ui/badge"
-import { Button } from "@/shared/ui/button"
 import { Separator } from "@/shared/ui/separator"
 
 import { FooterActions } from "./sections/footer-actions"
@@ -37,7 +37,7 @@ export type {
 export function DispatchPreview({
   open,
   title = "下发预览",
-  subtitle = "请在提交前确认下发对象、目标范围与执行方式",
+  subtitle = "请在提交前确认下发对象、目标范围与执行方式。",
   data,
   submitting = false,
   loading = false,
@@ -70,7 +70,7 @@ export function DispatchPreview({
           <AlertCircle className="mb-4 size-12 text-destructive" />
           <p className="mb-2 text-sm font-medium text-destructive">加载失败</p>
           <p className="mb-4 max-w-xs text-sm text-muted-foreground">
-            {error || "无法加载预览数据，请稍后重试"}
+            {error || "无法加载预览数据，请稍后重试。"}
           </p>
           <Button variant="outline" size="sm" onClick={onClose}>
             关闭
@@ -85,7 +85,7 @@ export function DispatchPreview({
           <FileX className="mb-4 size-12 text-muted-foreground" />
           <p className="mb-2 text-sm font-medium text-foreground">暂无可预览内容</p>
           <p className="max-w-xs text-sm text-muted-foreground">
-            请先选择下发对象和目标主机
+            请先完成对象选择和目标主机选择。
           </p>
         </div>
       )
@@ -136,28 +136,25 @@ export function DispatchPreview({
         ) : null}
 
         {status === "partial" ? (
-          <div className="rounded-md bg-amber-500/10 p-3 text-sm text-amber-600">
-            部分目标明细加载失败，当前展示的信息可能不完整。
+          <div className="rounded-md bg-amber-500/10 p-3 text-sm text-amber-700">
+            部分目标明细未完整返回，当前展示内容可能不是完整视图。
           </div>
         ) : null}
       </div>
     )
   }
 
-  const hideFooter =
-    status === "loading" || status === "error" || status === "empty"
+  const hideFooter = status === "loading" || status === "error" || status === "empty"
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <DialogContent className="flex max-h-[88vh] w-[calc(100vw-2rem)] max-w-4xl flex-col gap-0 overflow-hidden p-0">
         <DialogHeader className="shrink-0 border-b bg-slate-50/70 p-6 pb-4">
           <DialogTitle className="text-lg">{title}</DialogTitle>
-          <DialogDescription className="text-sm">
-            {subtitle}
-          </DialogDescription>
+          <DialogDescription className="text-sm">{subtitle}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 overflow-y-auto">{renderContent()}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto">{renderContent()}</div>
 
         {!hideFooter ? (
           <FooterActions

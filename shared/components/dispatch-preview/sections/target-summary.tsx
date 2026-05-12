@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ComponentType } from "react"
 import {
   AlertCircle,
   ChevronDown,
@@ -20,8 +20,8 @@ import {
   CollapsibleTrigger,
 } from "@/shared/ui/collapsible"
 
-import { getSelectionModeText } from "../utils"
 import type { DispatchGroup, DispatchTarget } from "../types"
+import { getSelectionModeText } from "../utils"
 
 interface TargetSummaryProps {
   target: DispatchTarget
@@ -29,7 +29,7 @@ interface TargetSummaryProps {
 }
 
 interface StatCardProps {
-  icon: React.ComponentType<{ className?: string }>
+  icon: ComponentType<{ className?: string }>
   label: string
   value: number
   suffix?: string
@@ -55,9 +55,7 @@ function StatCard({
         >
           {value.toLocaleString()}
         </span>
-        {suffix ? (
-          <span className="ml-1 text-sm text-muted-foreground">{suffix}</span>
-        ) : null}
+        {suffix ? <span className="ml-1 text-sm text-muted-foreground">{suffix}</span> : null}
       </div>
     </div>
   )
@@ -98,9 +96,7 @@ function GroupDetail({
                 <Monitor className="size-3.5 shrink-0 text-muted-foreground" />
                 <span className="truncate">{host.hostname}</span>
                 {host.ip ? (
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    ({host.ip})
-                  </span>
+                  <span className="shrink-0 text-xs text-muted-foreground">({host.ip})</span>
                 ) : null}
               </div>
               {host.valid === false ? (
@@ -118,7 +114,7 @@ function GroupDetail({
               className="w-full text-muted-foreground"
               onClick={() => setShowAll(true)}
             >
-              查看更多 ({hosts.length - sampleSize} 台)
+              查看更多（剩余 {hosts.length - sampleSize} 台）
             </Button>
           ) : null}
         </div>
@@ -127,10 +123,7 @@ function GroupDetail({
   )
 }
 
-export function TargetSummary({
-  target,
-  sampleSize = 5,
-}: TargetSummaryProps) {
+export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
   const [expanded, setExpanded] = useState(false)
   const hasWarnings =
     (target.offlineHostCount ?? 0) > 0 ||
@@ -148,18 +141,11 @@ export function TargetSummary({
         <div className="space-y-4 p-4">
           <div className="flex items-center justify-between gap-3">
             <span className="text-sm text-muted-foreground">选择方式</span>
-            <Badge variant="outline">
-              {getSelectionModeText(target.selectionMode)}
-            </Badge>
+            <Badge variant="outline">{getSelectionModeText(target.selectionMode)}</Badge>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <StatCard
-              icon={Users}
-              label="逻辑组"
-              value={target.groupCount}
-              suffix="组"
-            />
+            <StatCard icon={Users} label="逻辑组" value={target.groupCount} suffix="组" />
             <StatCard
               icon={Monitor}
               label="去重主机数"
@@ -167,12 +153,7 @@ export function TargetSummary({
               suffix="台"
               highlight
             />
-            <StatCard
-              icon={Server}
-              label="原始目标数"
-              value={target.hostCount}
-              suffix="台"
-            />
+            <StatCard icon={Server} label="原始目标数" value={target.hostCount} suffix="台" />
             <StatCard
               icon={AlertCircle}
               label="不可下发"
@@ -227,21 +208,13 @@ export function TargetSummary({
                 <span className="text-sm font-normal">
                   {expanded ? "收起目标明细" : "展开目标明细"}
                 </span>
-                {expanded ? (
-                  <ChevronDown className="size-4" />
-                ) : (
-                  <ChevronRight className="size-4" />
-                )}
+                {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="divide-y border-t">
                 {target.groups.map((group) => (
-                  <GroupDetail
-                    key={group.id}
-                    group={group}
-                    sampleSize={sampleSize}
-                  />
+                  <GroupDetail key={group.id} group={group} sampleSize={sampleSize} />
                 ))}
               </div>
             </CollapsibleContent>
