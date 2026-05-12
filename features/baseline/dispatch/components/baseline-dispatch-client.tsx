@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle, LayoutGrid, Server, ShieldCheck } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 
 import { getAllBaselineTemplates, type BaselineTemplate } from "@/features/baseline/custom/api"
@@ -19,7 +19,6 @@ import { DEFAULT_SCAN_SCHEDULE, type ScanSchedule } from "@/shared/components/sc
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
 import { getAccessToken } from "@/shared/lib/http/auth"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 
 import { BaselineSelectionStep } from "./baseline-selection-step"
@@ -612,77 +611,6 @@ export function BaselineDispatchClient() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#eef3f8_100%)]">
       <div className="space-y-6 p-6">
-        <section className="rounded-3xl border border-slate-200/80 bg-white/85 p-6 shadow-sm backdrop-blur">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-slate-700 p-3 shadow-lg shadow-slate-300/60">
-                <ShieldCheck className="h-7 w-7 text-white" />
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
-                    基线下发
-                  </h1>
-                  <Badge variant="outline" className="rounded-full bg-white px-3">
-                    四步流程
-                  </Badge>
-                </div>
-
-                <p className="max-w-3xl text-sm leading-6 text-slate-600">
-                  页面按“获取基线 → 创建基线扫描策略 → 选择主机 → 下发预览确认”的顺序组织。
-                  右侧摘要固定展示，左侧根据当前步骤切换内容。
-                </p>
-
-                <div className="flex flex-wrap gap-2 pt-1">
-                  <Badge className="rounded-full bg-slate-950 px-3 text-white">
-                    基线 {templates.length}
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-full px-3">
-                    已选主机 {deduplicatedHosts.length}
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-full px-3">
-                    已选节点 {selectedIds.size}
-                  </Badge>
-                  <Badge variant="secondary" className="rounded-full px-3">
-                    当前步骤 {currentStep}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:w-[420px]">
-              <div className="rounded-2xl border bg-slate-50/80 p-4">
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                  <LayoutGrid className="h-4 w-4" />
-                  当前基线
-                </div>
-                <div className="mt-2 truncate text-2xl font-semibold text-slate-950">
-                  {selectedTemplate?.display_name || "--"}
-                </div>
-                <div className="mt-1 text-sm text-slate-500">
-                  {selectedTemplate
-                    ? `${selectedTemplate.item_count} 条检查项`
-                    : "尚未选择基线"}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border bg-slate-50/80 p-4">
-                <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                  <Server className="h-4 w-4" />
-                  策略对象
-                </div>
-                <div className="mt-2 truncate text-2xl font-semibold text-slate-950">
-                  {createdPolicy?.name || "--"}
-                </div>
-                <div className="mt-1 text-sm text-slate-500">
-                  {createdPolicy ? `版本 ${createdPolicy.version}` : "尚未创建"}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {(templatesError || hostsError) && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
