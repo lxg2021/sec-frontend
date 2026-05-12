@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowRight, ChevronLeft, Server } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import HostSelector from "@/shared/components/host-selector"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
@@ -32,6 +33,7 @@ export function HostSelectionStep({
   selectedNodeCount,
   selectorKey,
 }: HostSelectionStepProps) {
+  const t = useTranslations("pages.baseline.dispatch")
   return (
     <Card className="border bg-card shadow-sm">
       <CardHeader className="border-b border-border pb-4">
@@ -40,9 +42,9 @@ export function HostSelectionStep({
             <Server className="h-5 w-5 text-blue-500" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-foreground">主机选择</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">{t("steps.hostSelection.title")}</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              选择需要接收该基线扫描策略的目标主机范围。
+              {t("hostSelection.description")}
             </CardDescription>
           </div>
         </div>
@@ -51,7 +53,7 @@ export function HostSelectionStep({
       <CardContent className="space-y-5 p-6">
         {error ? (
           <Alert variant="destructive">
-            <AlertTitle>主机数据加载失败</AlertTitle>
+            <AlertTitle>{t("hostSelection.loadFailed")}</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null}
@@ -61,17 +63,33 @@ export function HostSelectionStep({
           data={data}
           loading={loading}
           showHeader={false}
-          emptyText="未获取到主机树数据。"
+          emptyText={t("hostSelection.empty")}
+          text={{
+            title: t("hostSelection.selector.title"),
+            searchPlaceholder: t("hostSelection.selector.searchPlaceholder"),
+            selectAll: t("hostSelection.selector.selectAll"),
+            clear: t("hostSelection.selector.clear"),
+            searchResults: (term, count) => t("hostSelection.selector.searchResults", { term, count }),
+            clearSearch: t("hostSelection.selector.clearSearch"),
+            selectedSummary: (total, hostCount, groupCount, deptCount, companyCount) =>
+              t("hostSelection.selector.selectedSummary", {
+                total,
+                hostCount,
+                groupCount,
+                deptCount,
+                companyCount,
+              }),
+          }}
           onSelectionChange={onSelectionChange}
         />
 
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
             <ChevronLeft className="mr-2 h-4 w-4" />
-            任务计划
+            {t("steps.schedule.title")}
           </Button>
           <Button onClick={onNext} disabled={!canNext} className="h-11 px-6">
-            任务下发
+            {t("steps.dispatchSubmit.title")}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

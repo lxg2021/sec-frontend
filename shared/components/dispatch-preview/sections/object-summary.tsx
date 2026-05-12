@@ -13,24 +13,37 @@ import type { DispatchObject } from "../types"
 
 interface ObjectSummaryProps {
   object: DispatchObject
+  text?: {
+    sectionTitle: string
+    taskName: string
+    targetBaseline: string
+    objectId: string
+    version: string
+    type: string
+    source: string
+    typeMap: Record<string, string>
+    sourceMap: Record<string, string>
+  }
 }
 
-const typeMap: Record<string, string> = {
-  baseline: "基线",
-  patch: "补丁策略",
-  scan: "扫描任务",
-  config: "配置策略",
-}
-
-const modeMap: Record<string, string> = {
-  create: "新增下发",
-  override: "覆盖已有配置",
-  rerun: "重新执行",
-}
-
-const sourceMap: Record<string, string> = {
-  template: "模板",
-  custom: "自定义",
+const defaultText = {
+  sectionTitle: "下发对象",
+  taskName: "任务名称",
+  targetBaseline: "目标基线",
+  objectId: "对象 ID",
+  version: "版本",
+  type: "类型",
+  source: "来源",
+  typeMap: {
+    baseline: "基线",
+    patch: "补丁策略",
+    scan: "扫描任务",
+    config: "配置策略",
+  },
+  sourceMap: {
+    template: "模板",
+    custom: "自定义",
+  },
 }
 
 function SummaryRow({
@@ -55,19 +68,19 @@ function SummaryRow({
   )
 }
 
-export function ObjectSummary({ object }: ObjectSummaryProps) {
+export function ObjectSummary({ object, text = defaultText }: ObjectSummaryProps) {
   const rows = [
     {
       icon: FileText,
       iconClassName: "text-blue-500",
-      label: "任务名称",
+      label: text.taskName,
       value: object.name,
     },
     object.description
       ? {
           icon: Tag,
           iconClassName: "text-amber-600",
-          label: "目标基线",
+          label: text.targetBaseline,
           value: object.description,
         }
       : null,
@@ -75,7 +88,7 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
       ? {
           icon: Hash,
           iconClassName: "text-slate-500",
-          label: "对象 ID",
+          label: text.objectId,
           value: object.id,
         }
       : null,
@@ -83,22 +96,22 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
       ? {
           icon: GitBranch,
           iconClassName: "text-emerald-600",
-          label: "版本",
+          label: text.version,
           value: object.version,
         }
       : null,
     {
       icon: Layers,
       iconClassName: "text-violet-600",
-      label: "类型",
-      value: typeMap[object.type] ?? object.type,
+      label: text.type,
+      value: text.typeMap[object.type] ?? object.type,
     },
     object.sourceType
       ? {
           icon: Layers,
           iconClassName: "text-violet-500",
-          label: "来源",
-          value: sourceMap[object.sourceType] ?? object.sourceType,
+          label: text.source,
+          value: text.sourceMap[object.sourceType] ?? object.sourceType,
         }
       : null,
   ].filter(Boolean) as Array<{
@@ -118,7 +131,7 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
     <section className="space-y-4">
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
         <FileText className="size-4 text-blue-500" />
-        <span>下发对象</span>
+        <span>{text.sectionTitle}</span>
       </div>
 
       <div className="rounded-xl border bg-card p-4">

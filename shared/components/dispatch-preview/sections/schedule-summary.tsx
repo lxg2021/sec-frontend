@@ -8,8 +8,20 @@ import type { DispatchSchedule } from "../types"
 
 export function ScheduleSummary({
   schedule,
+  text = {
+    immediate: "立即执行",
+    scheduled: "按计划执行",
+    immediateTag: "即时任务",
+    scheduledTag: "计划任务",
+  },
 }: {
   schedule: DispatchSchedule
+  text?: {
+    immediate: string
+    scheduled: string
+    immediateTag: string
+    scheduledTag: string
+  }
 }) {
   const isImmediate = schedule.mode === "immediate"
 
@@ -28,10 +40,10 @@ export function ScheduleSummary({
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex items-center gap-2">
               <span className="font-medium text-foreground">
-                {isImmediate ? "立即执行" : "按计划执行"}
+                {isImmediate ? text.immediate : text.scheduled}
               </span>
               <Badge variant={isImmediate ? "default" : "secondary"} className="text-xs">
-                {isImmediate ? "即时任务" : "计划任务"}
+                {isImmediate ? text.immediateTag : text.scheduledTag}
               </Badge>
             </div>
 

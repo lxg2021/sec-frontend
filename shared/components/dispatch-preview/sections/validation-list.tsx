@@ -67,10 +67,18 @@ export function ValidationList({
   validations = [],
   permissions,
   showPermissionInfo = true,
+  text = {
+    cannotSubmit: "无法提交",
+    noPermissionReason: "当前用户权限不足，或提交条件尚未满足。",
+  },
 }: {
   validations?: DispatchValidation[]
   permissions?: DispatchPermissions
   showPermissionInfo?: boolean
+  text?: {
+    cannotSubmit: string
+    noPermissionReason: string
+  }
 }) {
   const errors = validations.filter((item) => item.level === "error")
   const warnings = validations.filter((item) => item.level === "warning")
@@ -88,9 +96,9 @@ export function ValidationList({
         {showPermissionInfo && permissions?.canSubmit === false ? (
           <Alert variant="destructive">
             <AlertCircle className="size-4" />
-            <AlertTitle>无法提交</AlertTitle>
+            <AlertTitle>{text.cannotSubmit}</AlertTitle>
             <AlertDescription>
-              {permissions.reason || "当前用户权限不足，或提交条件尚未满足。"}
+              {permissions.reason || text.noPermissionReason}
             </AlertDescription>
           </Alert>
         ) : null}

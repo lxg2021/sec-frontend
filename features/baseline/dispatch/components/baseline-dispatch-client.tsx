@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { AlertCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
@@ -49,37 +50,33 @@ interface CreatedPolicy {
   baselineName: string
 }
 
-const BASELINE_SELECTOR_TEXT = {
-  current: "当前",
-  emptyPlaceholder: "暂无可选基线",
-  checks: (count: number) => `检查项 ${count}`,
-  noMatches: "没有匹配的基线",
-  searchPlaceholder: "搜索基线名称、标准、产品或配置画像",
-  selectPlaceholder: "请选择基线",
-  unknown: "未知",
-}
-
-function buildScheduleSummary(schedule: ScanSchedule) {
-  const parts = [`每 ${schedule.interval_hours ?? 24} 小时执行一次`]
+function buildScheduleSummary(schedule: ScanSchedule, t: ReturnType<typeof useTranslations>) {
+  const parts = [t("summary.intervalHours", { hours: schedule.interval_hours ?? 24 })]
 
   if (schedule.specific_time) {
-    parts.push(`固定时间 ${schedule.specific_time}`)
+    parts.push(t("summary.specificTime", { time: schedule.specific_time }))
   }
 
-  if ((schedule.random_delay_minutes ?? 0) > 0) {
-    parts.push(`随机延迟 ${schedule.random_delay_minutes} 分钟`)
+  const randomDelayMinutes = schedule.random_delay_minutes ?? 0
+  if (randomDelayMinutes > 0) {
+    parts.push(t("summary.randomDelay", { minutes: randomDelayMinutes }))
   }
 
-  if ((schedule.retry_limit ?? 0) > 0) {
+  const retryLimit = schedule.retry_limit ?? 0
+  const retryIntervalMinutes = schedule.retry_interval_minutes ?? 5
+  if (retryLimit > 0) {
     parts.push(
-      `失败重试 ${schedule.retry_limit} 次，间隔 ${schedule.retry_interval_minutes ?? 5} 分钟`,
+      t("summary.retry", {
+        count: retryLimit,
+        minutes: retryIntervalMinutes,
+      }),
     )
   } else {
-    parts.push("失败不重试")
+    parts.push(t("summary.noRetry"))
   }
 
   if (schedule.scan_on_startup) {
-    parts.push("Agent 启动时执行一次")
+    parts.push(t("summary.scanOnStartup"))
   }
 
   return parts.join("，")
@@ -96,6 +93,7 @@ function getSelectionMode(groupCount: number, hostCount: number) {
 }
 
 export function BaselineDispatchClient() {
+  const t = useTranslations("pages.baseline.dispatch")
   const [currentStep, setCurrentStep] = useState(1)
 
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
@@ -124,7 +122,7 @@ export function BaselineDispatchClient() {
 
     if (!getAccessToken()) {
       setTemplates([])
-      setTemplatesError("缺少登录态，无法加载基线列表。")
+      setTemplatesError(t("errors.templates.noAuth"))
       setTemplatesLoading(false)
       return
     }
@@ -134,11 +132,11 @@ export function BaselineDispatchClient() {
       setTemplates(data)
     } catch (error) {
       setTemplates([])
-      setTemplatesError(error instanceof Error ? error.message : "加载基线列表失败。")
+      setTemplatesError(error instanceof Error ? error.message : t("errors.templates.loadFailed"))
     } finally {
       setTemplatesLoading(false)
     }
-  }, [])
+  }, [t])
 
   const loadHosts = useCallback(async () => {
     setHostsLoading(true)
@@ -146,7 +144,7 @@ export function BaselineDispatchClient() {
 
     if (!getAccessToken()) {
       setHostTree([])
-      setHostsError("缺少登录态，无法加载主机树。")
+      setHostsError(t("errors.hosts.noAuth"))
       setHostsLoading(false)
       return
     }
@@ -156,11 +154,11 @@ export function BaselineDispatchClient() {
       setHostTree(data as HostTreeNode[])
     } catch (error) {
       setHostTree([])
-      setHostsError(error instanceof Error ? error.message : "加载主机树失败。")
+      setHostsError(error instanceof Error ? error.message : t("errors.hosts.loadFailed"))
     } finally {
       setHostsLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void loadTemplates()
@@ -181,6 +179,20 @@ export function BaselineDispatchClient() {
     }
   }, [selectedTemplateUuid, templates])
 
+  const baselineSelectorText = useMemo(
+    () => ({
+      current: t("selector.current"),
+      emptyPlaceholder: t("selector.emptyPlaceholder"),
+      checks: (count: number) => t("selector.checks", { count }),
+      loading: t("selector.loading"),
+      noMatches: t("selector.noMatches"),
+      searchPlaceholder: t("selector.searchPlaceholder"),
+      selectPlaceholder: t("selector.selectPlaceholder"),
+      unknown: t("selector.unknown"),
+    }),
+    [t],
+  )
+
   const baselineItems = useMemo<BaselineDispatchSelectorItem[]>(() => {
     return templates.map((template) => {
       const standardKey = template.standard.toLowerCase()
@@ -190,10 +202,10 @@ export function BaselineDispatchClient() {
         id: template.uuid,
         title: template.display_name || template.baseline_uuid,
         standardKey: knownStandards.has(standardKey) ? standardKey : "other",
-        standardLabel: template.standard ? template.standard.toUpperCase() : "UNKNOWN",
-        productLabel: template.product || "未知产品",
+        standardLabel: template.standard ? template.standard.toUpperCase() : t("selector.unknownUpper"),
+        productLabel: template.product || t("selector.unknownProduct"),
         profileLabel:
-          knownProfiles.has(profileKey) ? template.profile : template.profile || "未知画像",
+          knownProfiles.has(profileKey) ? template.profile : template.profile || t("selector.unknownProfile"),
         osVersionLabel: template.os_version || template.baseline_version || undefined,
         itemCount: template.item_count,
         highCount: template.high_count,
@@ -201,7 +213,7 @@ export function BaselineDispatchClient() {
         lowCount: template.low_count,
       }
     })
-  }, [templates])
+  }, [t, templates])
 
   const selectedTemplate = useMemo(() => {
     return templates.find((item) => item.uuid === selectedTemplateUuid) ?? null
@@ -239,7 +251,7 @@ export function BaselineDispatchClient() {
       const groupId = host.parentId || "__ungrouped__"
       const groupName =
         selectedNodeLookup.get(groupId)?.name ||
-        (groupId === "__ungrouped__" ? "未分组" : "逻辑组")
+        (groupId === "__ungrouped__" ? t("target.ungrouped") : t("target.group"))
 
       const current =
         buckets.get(groupId) || {
@@ -263,7 +275,7 @@ export function BaselineDispatchClient() {
     }
 
     return Array.from(buckets.values())
-  }, [deduplicatedHosts, selectedNodeLookup])
+  }, [deduplicatedHosts, selectedNodeLookup, t])
 
   const offlineHostCount = useMemo(() => {
     return deduplicatedHosts.filter((host) =>
@@ -295,8 +307,8 @@ export function BaselineDispatchClient() {
       validations.push({
         level: "warning",
         code: "OFFLINE_HOSTS",
-        message: `当前选择中包含 ${offlineHostCount} 台离线主机。`,
-        suggestion: "离线主机可能暂时无法及时收到策略，请确认是否继续下发。",
+        message: t("validation.offlineHosts.message", { count: offlineHostCount }),
+        suggestion: t("validation.offlineHosts.suggestion"),
       })
     }
 
@@ -304,8 +316,8 @@ export function BaselineDispatchClient() {
       validations.push({
         level: "error",
         code: "INVALID_HOSTS",
-        message: `当前选择中包含 ${invalidHostCount} 台不可下发主机。`,
-        suggestion: "请先从选择范围中移除不可下发主机，再执行任务下发。",
+        message: t("validation.invalidHosts.message", { count: invalidHostCount }),
+        suggestion: t("validation.invalidHosts.suggestion"),
       })
     }
 
@@ -313,8 +325,8 @@ export function BaselineDispatchClient() {
       validations.push({
         level: "error",
         code: "POLICY_NOT_CREATED",
-        message: "尚未创建基线扫描策略对象。",
-        suggestion: "请回到“任务计划”步骤，先创建策略对象。",
+        message: t("validation.policyNotCreated.message"),
+        suggestion: t("validation.policyNotCreated.suggestion"),
       })
     }
 
@@ -322,13 +334,13 @@ export function BaselineDispatchClient() {
       validations.push({
         level: "error",
         code: "EMPTY_TARGETS",
-        message: "当前没有可下发的目标主机。",
-        suggestion: "请至少选择一台主机，或选择包含主机的逻辑组。",
+        message: t("validation.emptyTargets.message"),
+        suggestion: t("validation.emptyTargets.suggestion"),
       })
     }
 
     return validations
-  }, [createdPolicy, deduplicatedHosts.length, invalidHostCount, offlineHostCount])
+  }, [createdPolicy, deduplicatedHosts.length, invalidHostCount, offlineHostCount, t])
 
   const previewData = useMemo<DispatchPreviewData | undefined>(() => {
     if (!selectedTemplate) return undefined
@@ -337,12 +349,12 @@ export function BaselineDispatchClient() {
       object: {
         type: "baseline",
         id: createdPolicy?.id,
-        name: createdPolicy?.name || policyName || "未命名策略",
+        name: createdPolicy?.name || policyName || t("object.unnamed"),
         version: version || undefined,
         sourceType:
           selectedTemplate.baseline_type?.toLowerCase() === "custom" ? "custom" : "template",
         mode: "create",
-        description: `目标基线：${selectedTemplate.display_name || selectedTemplate.baseline_uuid}`,
+        description: `${t("object.targetBaselinePrefix")}${selectedTemplate.display_name || selectedTemplate.baseline_uuid}`,
       },
       target: {
         selectionMode: getSelectionMode(selectedGroups.length, deduplicatedHosts.length),
@@ -357,8 +369,8 @@ export function BaselineDispatchClient() {
       },
       schedule: {
         mode: "scheduled",
-        summary: buildScheduleSummary(schedule),
-        executeAt: schedule.specific_time ? `每日 ${schedule.specific_time}` : undefined,
+        summary: buildScheduleSummary(schedule, t),
+        executeAt: schedule.specific_time ? t("summary.dailyTime", { time: schedule.specific_time }) : undefined,
         timezone: "Asia/Shanghai",
       },
       validations: previewValidations,
@@ -369,11 +381,11 @@ export function BaselineDispatchClient() {
           invalidHostCount === 0,
         reason:
           invalidHostCount > 0
-            ? "存在不可下发主机。"
+            ? t("permissions.invalidHosts")
             : !createdPolicy
-              ? "请先创建策略对象。"
+              ? t("permissions.createPolicyFirst")
               : deduplicatedHosts.length === 0
-                ? "请先选择目标主机。"
+                ? t("permissions.selectHostsFirst")
                 : undefined,
       },
     }
@@ -389,6 +401,7 @@ export function BaselineDispatchClient() {
     selectedGroups.length,
     selectedHosts.length,
     selectedTemplate,
+    t,
     ungroupedHostCount,
     version,
   ])
@@ -403,33 +416,33 @@ export function BaselineDispatchClient() {
     return [
       {
         key: 1,
-        title: "基线选择",
-        description: "选择目标基线并填写策略基础信息",
+        title: t("steps.baselineSelection.title"),
+        description: t("steps.baselineSelection.description"),
         status: statuses[0],
       },
       {
         key: 2,
-        title: "任务计划",
-        description: "配置扫描周期并创建策略对象",
+        title: t("steps.schedule.title"),
+        description: t("steps.schedule.description"),
         status: statuses[1],
         disabled: !canEnterStep2,
       },
       {
         key: 3,
-        title: "主机选择",
-        description: "选择本次基线下发范围",
+        title: t("steps.hostSelection.title"),
+        description: t("steps.hostSelection.description"),
         status: statuses[2],
         disabled: !canEnterStep3,
       },
       {
         key: 4,
-        title: "任务下发",
-        description: "预览并确认下发",
+        title: t("steps.dispatchSubmit.title"),
+        description: t("steps.dispatchSubmit.description"),
         status: statuses[3],
         disabled: !canEnterStep4,
       },
     ]
-  }, [canEnterStep2, canEnterStep3, canEnterStep4, currentStep])
+  }, [canEnterStep2, canEnterStep3, canEnterStep4, currentStep, t])
 
   const handleStepChange = useCallback(
     (step: number) => {
@@ -488,33 +501,33 @@ export function BaselineDispatchClient() {
 
       setCreatedPolicy(nextPolicy)
       setCurrentStep(3)
-      toast.success("策略对象已创建，可以继续选择主机。")
+      toast.success(t("toast.policyCreated"))
     } finally {
       setCreatingPolicy(false)
     }
-  }, [canCreatePolicy, policyName, selectedTemplate, version])
+  }, [canCreatePolicy, policyName, selectedTemplate, t, version])
 
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) {
-      toast.error(previewData?.permissions?.reason || "当前不满足下发条件。")
+      toast.error(previewData?.permissions?.reason || t("toast.dispatchNotReady"))
       return
     }
 
     setSubmitting(true)
-    const toastId = toast.loading("任务下发中...")
+    const toastId = toast.loading(t("toast.dispatchLoading"))
 
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 800))
-      toast.success("基线下发成功，任务已提交。", { id: toastId })
+      toast.success(t("toast.dispatchSuccess"), { id: toastId })
     } catch (error) {
       toast.error(
-        error instanceof Error ? `基线下发失败：${error.message}` : "基线下发失败，请稍后重试。",
+        error instanceof Error ? t("toast.dispatchFailedWithReason", { reason: error.message }) : t("toast.dispatchFailed"),
         { id: toastId },
       )
     } finally {
       setSubmitting(false)
     }
-  }, [previewData?.permissions?.canSubmit, previewData?.permissions?.reason])
+  }, [previewData?.permissions?.canSubmit, previewData?.permissions?.reason, t])
 
   const renderCurrentStep = () => {
     const selector = (
@@ -524,7 +537,7 @@ export function BaselineDispatchClient() {
         onValueChange={handleTemplateChange}
         loading={templatesLoading}
         className="w-full"
-        text={BASELINE_SELECTOR_TEXT}
+        text={baselineSelectorText}
       />
     )
 
@@ -588,14 +601,14 @@ export function BaselineDispatchClient() {
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#eef3f8_100%)]">
       <div className="space-y-6 p-6">
         {(templatesError || hostsError) && (
-          <Alert variant="destructive">
+            <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>数据加载失败</AlertTitle>
+            <AlertTitle>{t("errors.loadDataTitle")}</AlertTitle>
             <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span>{templatesError || hostsError}</span>
               {!getAccessToken() ? (
                 <Button asChild size="sm" variant="outline" className="shrink-0">
-                  <Link href="/login">前往登录</Link>
+                  <Link href="/login">{t("errors.goLogin")}</Link>
                 </Button>
               ) : null}
             </AlertDescription>

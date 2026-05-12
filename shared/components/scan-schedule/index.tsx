@@ -15,7 +15,27 @@ import { mergeScanScheduleDefaults } from "./defaults"
 import type { ScanScheduleFormProps } from "./types"
 
 export { DEFAULT_SCAN_SCHEDULE, mergeScanScheduleDefaults } from "./defaults"
-export type { ScanSchedule, ScanScheduleFormProps } from "./types"
+export type { ScanSchedule, ScanScheduleFormProps, ScanScheduleFormText } from "./types"
+
+const defaultText = {
+  title: "调度计划配置",
+  description: "配置任务执行周期、随机延迟与重试策略。",
+  modeLabel: "调度模式",
+  modePlaceholder: "选择调度模式",
+  modeInterval: "固定间隔",
+  intervalLabel: "间隔",
+  intervalValue: (hours: number) => `${hours}小时`,
+  fixedTimeLabel: "固定执行时间",
+  randomDelayLabel: "随机延迟",
+  randomDelayValue: (minutes: number) => `${minutes}分钟`,
+  retryCountLabel: "重试次数",
+  retryIntervalLabel: "重试间隔",
+  retryNone: "不重试",
+  retryTimes: (count: number) => `${count} 次`,
+  minutesUnit: "分钟",
+  startupTitle: "Agent 启动时执行扫描",
+  startupDescription: "启动后立即补跑一次扫描任务",
+}
 
 export function ScanScheduleForm({
   value,
@@ -25,8 +45,15 @@ export function ScanScheduleForm({
   className,
   disabled = false,
   showStartup = true,
+  text,
 }: ScanScheduleFormProps) {
   const schedule = mergeScanScheduleDefaults(value)
+  const mergedText = {
+    ...defaultText,
+    ...text,
+    title,
+    description,
+  }
 
   const handleChange = React.useCallback(
     (updates: Partial<typeof schedule>) => {
@@ -37,15 +64,15 @@ export function ScanScheduleForm({
 
   return (
     <Card className={cn("w-full max-w-2xl", className)}>
-      {title || description ? (
+      {mergedText.title || mergedText.description ? (
         <CardHeader className="pb-3">
-          {title ? (
+          {mergedText.title ? (
             <CardTitle className="flex items-center gap-2">
               <Clock className="size-5 text-sky-600" />
-              {title}
+              {mergedText.title}
             </CardTitle>
           ) : null}
-          {description ? <CardDescription>{description}</CardDescription> : null}
+          {mergedText.description ? <CardDescription>{mergedText.description}</CardDescription> : null}
         </CardHeader>
       ) : null}
 
@@ -54,7 +81,7 @@ export function ScanScheduleForm({
           <div className="space-y-2">
             <Label htmlFor="mode" className="flex items-center gap-2">
               <Clock className="size-3.5 text-sky-600" />
-              调度模式
+              {mergedText.modeLabel}
             </Label>
             <div className="flex h-12 items-center">
               <Select
@@ -63,10 +90,10 @@ export function ScanScheduleForm({
                 disabled={disabled}
               >
                 <SelectTrigger id="mode">
-                  <SelectValue placeholder="选择调度模式" />
+                  <SelectValue placeholder={mergedText.modePlaceholder} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="interval">固定间隔</SelectItem>
+                  <SelectItem value="interval">{mergedText.modeInterval}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -76,10 +103,10 @@ export function ScanScheduleForm({
             <div className="flex items-center justify-between">
               <Label htmlFor="interval_hours" className="flex items-center gap-2">
                 <RefreshCw className="size-3.5 text-amber-600" />
-                间隔
+                {mergedText.intervalLabel}
               </Label>
               <span className="text-xs font-medium text-muted-foreground">
-                {schedule.interval_hours ?? 24}小时
+                {mergedText.intervalValue(schedule.interval_hours ?? 24)}
               </span>
             </div>
             <div className="flex h-12 items-center">
@@ -100,7 +127,7 @@ export function ScanScheduleForm({
           <div className="space-y-2">
             <Label htmlFor="specific_time" className="flex items-center gap-2">
               <CalendarClock className="size-3.5 text-blue-600" />
-              固定执行时间
+              {mergedText.fixedTimeLabel}
             </Label>
             <div className="flex h-12 items-center">
               <Input
@@ -120,10 +147,10 @@ export function ScanScheduleForm({
             <div className="flex items-center justify-between">
               <Label htmlFor="random_delay" className="flex items-center gap-1">
                 <Shuffle className="size-3.5 text-violet-600" />
-                随机延迟
+                {mergedText.randomDelayLabel}
               </Label>
               <span className="text-xs text-muted-foreground">
-                {schedule.random_delay_minutes ?? 0}分钟
+                {mergedText.randomDelayValue(schedule.random_delay_minutes ?? 0)}
               </span>
             </div>
             <div className="flex h-12 items-center">
@@ -144,7 +171,7 @@ export function ScanScheduleForm({
           <div className="flex-1 space-y-1">
             <Label className="flex items-center gap-2 font-medium">
               <RefreshCw className="size-3.5 text-amber-600" />
-              重试次数
+              {mergedText.retryCountLabel}
             </Label>
             <Select
               value={String(schedule.retry_limit ?? 3)}
@@ -157,7 +184,7 @@ export function ScanScheduleForm({
               <SelectContent>
                 {Array.from({ length: 6 }, (_, index) => (
                   <SelectItem key={index} value={String(index)}>
-                    {index === 0 ? "不重试" : `${index} 次`}
+                    {index === 0 ? mergedText.retryNone : mergedText.retryTimes(index)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -167,7 +194,7 @@ export function ScanScheduleForm({
           <div className="flex-1 space-y-1">
             <Label className="flex items-center gap-2 font-medium">
               <RefreshCw className="size-3.5 text-amber-600" />
-              重试间隔
+              {mergedText.retryIntervalLabel}
             </Label>
             <div className="flex items-center gap-1">
               <Input
@@ -183,7 +210,7 @@ export function ScanScheduleForm({
                 disabled={disabled || (schedule.retry_limit ?? 0) === 0}
                 className="h-8"
               />
-              <span className="text-xs text-muted-foreground">分钟</span>
+              <span className="text-xs text-muted-foreground">{mergedText.minutesUnit}</span>
             </div>
           </div>
         </div>
@@ -194,10 +221,10 @@ export function ScanScheduleForm({
               <Play className="size-4 text-emerald-600" />
               <div>
                 <Label htmlFor="scan_on_startup" className="cursor-pointer text-sm">
-                  Agent 启动时执行扫描
+                  {mergedText.startupTitle}
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  启动后立即补跑一次扫描任务
+                  {mergedText.startupDescription}
                 </p>
               </div>
             </div>

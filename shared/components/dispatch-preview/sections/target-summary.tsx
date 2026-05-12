@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, type LucideIcon } from "react"
+import { useState } from "react"
 import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
   FolderOpen,
+  type LucideIcon,
   Monitor,
   Server,
   Users,
@@ -25,6 +26,38 @@ import type { DispatchGroup, DispatchTarget } from "../types"
 interface TargetSummaryProps {
   target: DispatchTarget
   sampleSize?: number
+  text?: {
+    sectionTitle: string
+    group: string
+    deduplicatedHosts: string
+    originalTargets: string
+    invalidHosts: string
+    offlineHosts: string
+    ungroupedHosts: string
+    hostUnit: string
+    groupUnit: string
+    hostCountBadge: (count: number) => string
+    invalidDispatch: string
+    viewMore: (count: number) => string
+    expandDetails: string
+    collapseDetails: string
+  }
+}
+const defaultText = {
+  sectionTitle: "目标范围",
+  group: "逻辑组",
+  deduplicatedHosts: "去重主机数",
+  originalTargets: "原始目标数",
+  invalidHosts: "不可下发",
+  offlineHosts: "离线主机",
+  ungroupedHosts: "未分组",
+  hostUnit: "台",
+  groupUnit: "组",
+  hostCountBadge: (count: number) => `${count} 台主机`,
+  invalidDispatch: "不可下发",
+  viewMore: (count: number) => `查看更多（剩余 ${count} 台）`,
+  expandDetails: "展开目标明细",
+  collapseDetails: "收起目标明细",
 }
 
 interface SummaryRowProps {
@@ -52,9 +85,11 @@ function SummaryRow({
 function GroupDetail({
   group,
   sampleSize,
+  text = defaultText,
 }: {
   group: DispatchGroup
   sampleSize: number
+  text?: NonNullable<TargetSummaryProps["text"]>
 }) {
   const [showAll, setShowAll] = useState(false)
   const hosts = group.hosts || []
@@ -69,7 +104,7 @@ function GroupDetail({
           <span className="truncate text-sm font-medium">{group.name}</span>
         </div>
         <Badge variant="secondary" className="shrink-0 text-xs">
-          {group.hostCount} 台主机
+          {text.hostCountBadge(group.hostCount)}
         </Badge>
       </div>
 
@@ -89,7 +124,7 @@ function GroupDetail({
               </div>
               {host.valid === false ? (
                 <Badge variant="destructive" className="shrink-0 text-xs">
-                  不可下发
+                  {text.invalidDispatch}
                 </Badge>
               ) : null}
             </div>
@@ -102,7 +137,7 @@ function GroupDetail({
               className="w-full text-muted-foreground"
               onClick={() => setShowAll(true)}
             >
-              查看更多（剩余 {hosts.length - sampleSize} 台）
+              {text.viewMore(hosts.length - sampleSize)}
             </Button>
           ) : null}
         </div>
@@ -111,44 +146,44 @@ function GroupDetail({
   )
 }
 
-export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
+export function TargetSummary({ target, sampleSize = 5, text = defaultText }: TargetSummaryProps) {
   const [expanded, setExpanded] = useState(false)
   const rows = [
     {
       icon: Users,
       iconClassName: "text-violet-600",
-      label: "逻辑组",
-      value: `${target.groupCount} 组`,
+      label: text.group,
+      value: `${target.groupCount} ${text.groupUnit}`,
     },
     {
       icon: Monitor,
       iconClassName: "text-sky-600",
-      label: "去重主机数",
-      value: `${target.deduplicatedHostCount} 台`,
+      label: text.deduplicatedHosts,
+      value: `${target.deduplicatedHostCount} ${text.hostUnit}`,
     },
     {
       icon: Server,
       iconClassName: "text-slate-600",
-      label: "原始目标数",
-      value: `${target.hostCount} 台`,
+      label: text.originalTargets,
+      value: `${target.hostCount} ${text.hostUnit}`,
     },
     {
       icon: AlertCircle,
       iconClassName: "text-rose-600",
-      label: "不可下发",
-      value: `${target.invalidHostCount ?? 0} 台`,
+      label: text.invalidHosts,
+      value: `${target.invalidHostCount ?? 0} ${text.hostUnit}`,
     },
     {
       icon: WifiOff,
       iconClassName: "text-amber-600",
-      label: "离线主机",
-      value: `${target.offlineHostCount ?? 0} 台`,
+      label: text.offlineHosts,
+      value: `${target.offlineHostCount ?? 0} ${text.hostUnit}`,
     },
     {
       icon: FolderOpen,
       iconClassName: "text-amber-600",
-      label: "未分组",
-      value: `${target.ungroupedHostCount ?? 0} 台`,
+      label: text.ungroupedHosts,
+      value: `${target.ungroupedHostCount ?? 0} ${text.hostUnit}`,
     },
   ]
   const columnCount = 3
@@ -161,7 +196,7 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
     <section className="space-y-4">
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
         <Server className="size-4 text-slate-500" />
-        <span>目标范围</span>
+        <span>{text.sectionTitle}</span>
       </div>
 
       <div className="rounded-xl border bg-card">
@@ -190,14 +225,14 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
                   ) : (
                     <ChevronDown className="size-4 shrink-0" />
                   )}
-                  {expanded ? "收起目标明细" : "展开目标明细"}
+                  {expanded ? text.collapseDetails : text.expandDetails}
                 </span>
               </Button>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="divide-y border-t">
                 {target.groups.map((group) => (
-                  <GroupDetail key={group.id} group={group} sampleSize={sampleSize} />
+                  <GroupDetail key={group.id} group={group} sampleSize={sampleSize} text={text} />
                 ))}
               </div>
             </CollapsibleContent>

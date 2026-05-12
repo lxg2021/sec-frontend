@@ -1259,77 +1259,218 @@
         }
       },
       "dispatch": {
-        "strategySelector": {
-          "title": "策略选择",
-          "filters": "筛选条件",
-          "strategyName": "策略名称",
-          "strategyNamePlaceholder": "输入策略名称...",
-          "strategyType": "策略类型",
-          "selectType": "选择类型",
-          "all": "全部",
-          "priorityLevel": "优先等级",
-          "selectLevel": "选择等级",
-          "status": "状态",
-          "selectStatus": "选择状态",
-          "clear": "清空",
-          "selectedStrategies": "已选策略 ({count})",
-          "strategyList": "策略列表 ({count} 条记录)",
-          "type": "类型",
-          "priority": "优先级",
-          "creator": "创建人",
-          "createdAt": "创建时间",
-          "actions": "操作",
-          "preview": "预览",
-          "pagination": "显示 {start} 到 {end} 条，共 {count} 条记录",
-          "previousPage": "上一页",
-          "nextPage": "下一页",
-          "types": {
-            "baseline": "基线",
-            "patch": "补丁",
-            "rollback": "回溯"
+        "selector": {
+          "current": "当前",
+          "emptyPlaceholder": "暂无可选基线",
+          "loading": "正在加载基线...",
+          "checks": "检查项 {count}",
+          "noMatches": "未找到匹配的基线",
+          "searchPlaceholder": "搜索基线名称、标准、产品或配置档案",
+          "selectPlaceholder": "请选择基线",
+          "unknown": "未知",
+          "unknownUpper": "UNKNOWN",
+          "unknownProduct": "未知产品",
+          "unknownProfile": "未知配置档案"
+        },
+        "steps": {
+          "baselineSelection": {
+            "title": "基线选择",
+            "description": "选择目标基线并填写基础策略信息"
           },
-          "levels": {
-            "high": "高",
-            "medium": "中",
-            "low": "低"
+          "schedule": {
+            "title": "任务计划",
+            "description": "配置扫描周期并创建策略对象"
           },
-          "statuses": {
-            "enabled": "启用",
-            "disabled": "禁用",
-            "draft": "草稿"
+          "hostSelection": {
+            "title": "主机选择",
+            "description": "选择本次基线下发的主机范围"
+          },
+          "dispatchSubmit": {
+            "title": "任务下发",
+            "description": "预览并确认下发内容"
           }
         },
-        "reviewCard": {
-          "title": "下发预览",
-          "deployFailed": "下发失败",
-          "deploySuccess": "下发成功",
-          "selectStrategiesAndHosts": "请确保已选择策略和主机信息",
-          "selectStrategies": "请选择策略信息",
-          "selectHosts": "请选择主机信息",
-          "deploySuccessDescription": "已成功向 {hosts} 台主机下发 {strategies} 个策略",
-          "deployErrorDescription": "策略下发过程中出现错误，请重试",
-          "networkErrorDescription": "网络错误或服务异常，请稍后重试",
-          "selectedStrategies": "选择的策略 ({count})",
-          "noStrategies": "暂未选择策略",
-          "targetHosts": "目标主机 ({count})",
-          "noHosts": "暂未选择主机",
-          "deploying": "下发中...",
-          "deploy": "下发策略",
-          "types": {
-            "baseline": "基线",
-            "patch": "补丁",
-            "rollback": "回溯"
+        "baselineSelection": {
+          "description": "选择本次下发使用的基线模板。",
+          "empty": "选择基线后，这里会显示基线详情。",
+          "risk": {
+            "low": "低风险数量",
+            "medium": "中风险数量",
+            "high": "高风险数量"
           },
-          "levels": {
-            "high": "高",
-            "medium": "中",
-            "low": "低"
-          },
-          "statuses": {
-            "enabled": "启用",
-            "disabled": "禁用",
-            "draft": "草稿"
+          "detail": {
+            "displayName": "显示名称",
+            "tenantId": "租户 ID",
+            "standard": "标准",
+            "baselineType": "基线类型",
+            "product": "产品",
+            "originalFilename": "原始文件名",
+            "osVersion": "系统版本",
+            "baselineVersion": "基线版本",
+            "profile": "配置档案",
+            "itemCount": "检查项数量",
+            "itemCountValue": "{count} 项",
+            "createdAt": "创建时间"
           }
+        },
+        "schedule": {
+          "description": "填写任务名称、版本号，并配置扫描周期和重试策略。",
+          "fields": {
+            "taskName": "任务名称",
+            "taskNamePlaceholder": "例如：Windows 基线巡检任务",
+            "version": "版本号",
+            "versionPlaceholder": "例如：1.0.0"
+          },
+          "form": {
+            "modeLabel": "调度模式",
+            "modePlaceholder": "选择调度模式",
+            "modeInterval": "固定间隔",
+            "intervalLabel": "间隔",
+            "intervalValue": "{hours} 小时",
+            "fixedTimeLabel": "固定执行时间",
+            "randomDelayLabel": "随机延迟",
+            "randomDelayValue": "{minutes} 分钟",
+            "retryCountLabel": "重试次数",
+            "retryIntervalLabel": "重试间隔",
+            "retryNone": "不重试",
+            "retryTimes": "{count} 次",
+            "minutesUnit": "分钟",
+            "startupTitle": "Agent 启动时执行扫描",
+            "startupDescription": "启动后立即补跑一次扫描任务"
+          },
+          "actions": {
+            "creating": "创建中...",
+            "createTask": "创建任务"
+          }
+        },
+        "hostSelection": {
+          "description": "选择需要接收该基线扫描策略的主机范围。",
+          "loadFailed": "加载主机数据失败",
+          "empty": "暂无主机树数据。",
+          "selector": {
+            "title": "主机选择器",
+            "searchPlaceholder": "搜索主机名、IP、主机 ID、MAC 或操作系统...",
+            "selectAll": "全选",
+            "clear": "清空",
+            "searchResults": "搜索“{term}”返回 {count} 条结果。",
+            "clearSearch": "清除搜索",
+            "selectedSummary": "已选 {total} 项 / {hostCount} 台主机 / {groupCount} 个逻辑组 / {deptCount} 个部门 / {companyCount} 个公司"
+          }
+        },
+        "dispatchSubmit": {
+          "description": "确认下发对象、目标范围和执行计划。",
+          "empty": "暂无预览内容，请先完成前面的步骤。",
+          "blockingError": "存在阻断错误，当前不可提交。",
+          "notReady": "当前尚未满足提交条件。",
+          "object": {
+            "sectionTitle": "下发对象",
+            "taskName": "任务名称",
+            "targetBaseline": "目标基线",
+            "objectId": "对象 ID",
+            "version": "版本号",
+            "type": "类型",
+            "source": "来源",
+            "typeMap": {
+              "baseline": "基线",
+              "patch": "补丁策略",
+              "scan": "扫描任务",
+              "config": "配置策略"
+            },
+            "sourceMap": {
+              "template": "模板",
+              "custom": "自定义"
+            }
+          },
+          "target": {
+            "sectionTitle": "目标范围",
+            "group": "逻辑组",
+            "deduplicatedHosts": "去重主机数",
+            "originalTargets": "原始目标数",
+            "invalidHosts": "不可下发",
+            "offlineHosts": "离线主机",
+            "ungroupedHosts": "未分组主机",
+            "hostUnit": "台",
+            "groupUnit": "组",
+            "hostCountBadge": "{count} 台主机",
+            "invalidDispatch": "不可下发",
+            "viewMore": "查看更多（剩余 {count} 台）",
+            "expandDetails": "展开目标明细",
+            "collapseDetails": "收起目标明细"
+          },
+          "schedule": {
+            "immediate": "立即执行",
+            "scheduled": "按计划执行",
+            "immediateTag": "即时任务",
+            "scheduledTag": "计划任务"
+          },
+          "validation": {
+            "cannotSubmit": "无法提交",
+            "noPermissionReason": "当前用户权限不足，或提交条件尚未满足。"
+          },
+          "actions": {
+            "submitting": "提交中...",
+            "confirm": "确认下发"
+          }
+        },
+        "errors": {
+          "loadDataTitle": "数据加载失败",
+          "goLogin": "去登录",
+          "templates": {
+            "noAuth": "缺少登录状态，无法加载基线列表。",
+            "loadFailed": "加载基线列表失败。"
+          },
+          "hosts": {
+            "noAuth": "缺少登录状态，无法加载主机树。",
+            "loadFailed": "加载主机树失败。"
+          }
+        },
+        "validation": {
+          "offlineHosts": {
+            "message": "当前选择中包含 {count} 台离线主机。",
+            "suggestion": "离线主机可能无法及时接收策略，请确认是否继续。"
+          },
+          "invalidHosts": {
+            "message": "当前选择中包含 {count} 台不可下发主机。",
+            "suggestion": "请先移除不可下发主机，再继续提交任务。"
+          },
+          "policyNotCreated": {
+            "message": "尚未创建基线扫描策略对象。",
+            "suggestion": "请先返回任务计划步骤创建策略对象。"
+          },
+          "emptyTargets": {
+            "message": "当前没有可用于下发的目标主机。",
+            "suggestion": "请至少选择一台主机，或选择包含主机的逻辑组。"
+          }
+        },
+        "object": {
+          "unnamed": "未命名策略",
+          "targetBaselinePrefix": "目标基线："
+        },
+        "target": {
+          "ungrouped": "未分组",
+          "group": "逻辑组"
+        },
+        "permissions": {
+          "invalidHosts": "存在不可下发主机。",
+          "createPolicyFirst": "请先创建策略对象。",
+          "selectHostsFirst": "请先选择目标主机。"
+        },
+        "summary": {
+          "intervalHours": "每 {hours} 小时执行一次",
+          "specificTime": "固定时间 {time}",
+          "randomDelay": "随机延迟 {minutes} 分钟",
+          "retry": "失败后重试 {count} 次，间隔 {minutes} 分钟",
+          "noRetry": "失败后不重试",
+          "scanOnStartup": "Agent 启动时执行一次",
+          "dailyTime": "每日 {time}"
+        },
+        "toast": {
+          "policyCreated": "策略对象已创建，可以继续选择主机。",
+          "dispatchNotReady": "当前未满足下发条件。",
+          "dispatchLoading": "任务下发中...",
+          "dispatchSuccess": "基线下发成功，任务已提交。",
+          "dispatchFailed": "基线下发失败，请稍后重试。",
+          "dispatchFailedWithReason": "基线下发失败：{reason}"
         }
       },
       "custom": {

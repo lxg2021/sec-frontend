@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronLeft, FileText, LoaderCircle, Rocket, Send } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import type { DispatchPreviewData } from "@/shared/components/dispatch-preview"
 import { ObjectSummary } from "@/shared/components/dispatch-preview/sections/object-summary"
@@ -26,12 +27,13 @@ export function DispatchSubmitStep({
   onConfirm,
   submitting = false,
 }: DispatchSubmitStepProps) {
+  const t = useTranslations("pages.baseline.dispatch")
   const hasBlockingErrors = data?.validations?.some((item) => item.level === "error") ?? false
   const canSubmit = data?.permissions?.canSubmit !== false
   const disabledReason = hasBlockingErrors
-    ? "存在阻断错误，无法提交。"
+    ? t("dispatchSubmit.blockingError")
     : !canSubmit
-      ? data?.permissions?.reason || "当前不满足提交条件。"
+      ? data?.permissions?.reason || t("dispatchSubmit.notReady")
       : null
 
   return (
@@ -42,9 +44,9 @@ export function DispatchSubmitStep({
             <FileText className="h-5 w-5 text-blue-500" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-foreground">任务下发</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">{t("steps.dispatchSubmit.title")}</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              请在当前页面确认下发对象、目标范围与执行计划。
+              {t("dispatchSubmit.description")}
             </CardDescription>
           </div>
         </div>
@@ -53,20 +55,67 @@ export function DispatchSubmitStep({
       <CardContent className="space-y-0 p-0">
         {!data ? (
           <div className="flex min-h-[320px] items-center justify-center px-6 py-10 text-center text-sm text-slate-500">
-            暂无可预览内容，请先完成前置步骤。
+            {t("dispatchSubmit.empty")}
           </div>
         ) : (
           <div className="space-y-6 p-6">
-            <ObjectSummary object={data.object} />
+            <ObjectSummary
+              object={data.object}
+              text={{
+                sectionTitle: t("dispatchSubmit.object.sectionTitle"),
+                taskName: t("dispatchSubmit.object.taskName"),
+                targetBaseline: t("dispatchSubmit.object.targetBaseline"),
+                objectId: t("dispatchSubmit.object.objectId"),
+                version: t("dispatchSubmit.object.version"),
+                type: t("dispatchSubmit.object.type"),
+                source: t("dispatchSubmit.object.source"),
+                typeMap: {
+                  baseline: t("dispatchSubmit.object.typeMap.baseline"),
+                  patch: t("dispatchSubmit.object.typeMap.patch"),
+                  scan: t("dispatchSubmit.object.typeMap.scan"),
+                  config: t("dispatchSubmit.object.typeMap.config"),
+                },
+                sourceMap: {
+                  template: t("dispatchSubmit.object.sourceMap.template"),
+                  custom: t("dispatchSubmit.object.sourceMap.custom"),
+                },
+              }}
+            />
 
             <Separator />
 
-            <TargetSummary target={data.target} />
+            <TargetSummary
+              target={data.target}
+              text={{
+                sectionTitle: t("dispatchSubmit.target.sectionTitle"),
+                group: t("dispatchSubmit.target.group"),
+                deduplicatedHosts: t("dispatchSubmit.target.deduplicatedHosts"),
+                originalTargets: t("dispatchSubmit.target.originalTargets"),
+                invalidHosts: t("dispatchSubmit.target.invalidHosts"),
+                offlineHosts: t("dispatchSubmit.target.offlineHosts"),
+                ungroupedHosts: t("dispatchSubmit.target.ungroupedHosts"),
+                hostUnit: t("dispatchSubmit.target.hostUnit"),
+                groupUnit: t("dispatchSubmit.target.groupUnit"),
+                hostCountBadge: (count) => t("dispatchSubmit.target.hostCountBadge", { count }),
+                invalidDispatch: t("dispatchSubmit.target.invalidDispatch"),
+                viewMore: (count) => t("dispatchSubmit.target.viewMore", { count }),
+                expandDetails: t("dispatchSubmit.target.expandDetails"),
+                collapseDetails: t("dispatchSubmit.target.collapseDetails"),
+              }}
+            />
 
             {data.schedule ? (
               <>
                 <Separator />
-                <ScheduleSummary schedule={data.schedule} />
+                <ScheduleSummary
+                  schedule={data.schedule}
+                  text={{
+                    immediate: t("dispatchSubmit.schedule.immediate"),
+                    scheduled: t("dispatchSubmit.schedule.scheduled"),
+                    immediateTag: t("dispatchSubmit.schedule.immediateTag"),
+                    scheduledTag: t("dispatchSubmit.schedule.scheduledTag"),
+                  }}
+                />
               </>
             ) : null}
 
@@ -77,6 +126,10 @@ export function DispatchSubmitStep({
                   validations={data.validations}
                   permissions={data.permissions}
                   showPermissionInfo
+                  text={{
+                    cannotSubmit: t("dispatchSubmit.validation.cannotSubmit"),
+                    noPermissionReason: t("dispatchSubmit.validation.noPermissionReason"),
+                  }}
                 />
               </>
             ) : null}
@@ -87,7 +140,7 @@ export function DispatchSubmitStep({
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Button variant="outline" onClick={onBack} className="h-11 px-5">
               <ChevronLeft className="mr-2 h-4 w-4" />
-              主机选择
+              {t("steps.hostSelection.title")}
             </Button>
 
             <div className="flex items-center gap-3">
@@ -105,7 +158,7 @@ export function DispatchSubmitStep({
                 {submitting ? (
                   <>
                     <LoaderCircle className="mr-2 size-4 animate-spin" />
-                    提交中...
+                    {t("dispatchSubmit.actions.submitting")}
                   </>
                 ) : (
                   <>
@@ -114,7 +167,7 @@ export function DispatchSubmitStep({
                     ) : (
                       <Send className="mr-2 size-4" />
                     )}
-                    确认下发
+                    {t("dispatchSubmit.actions.confirm")}
                   </>
                 )}
               </Button>

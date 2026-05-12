@@ -1257,77 +1257,218 @@
         }
       },
       "dispatch": {
-        "strategySelector": {
-          "title": "Strategy Selection",
-          "filters": "Filters",
-          "strategyName": "Strategy name",
-          "strategyNamePlaceholder": "Enter strategy name...",
-          "strategyType": "Strategy type",
-          "selectType": "Select type",
-          "all": "All",
-          "priorityLevel": "Priority level",
-          "selectLevel": "Select level",
-          "status": "Status",
-          "selectStatus": "Select status",
-          "clear": "Clear",
-          "selectedStrategies": "Selected strategies ({count})",
-          "strategyList": "Strategy list ({count} records)",
-          "type": "Type",
-          "priority": "Priority",
-          "creator": "Creator",
-          "createdAt": "Created at",
-          "actions": "Actions",
-          "preview": "Preview",
-          "pagination": "Showing {start} to {end} of {count} records",
-          "previousPage": "Previous",
-          "nextPage": "Next",
-          "types": {
-            "baseline": "Baseline",
-            "patch": "Patch",
-            "rollback": "Rollback"
+        "selector": {
+          "current": "Current",
+          "emptyPlaceholder": "No baselines available",
+          "loading": "Loading baselines...",
+          "checks": "Checks {count}",
+          "noMatches": "No matching baseline found",
+          "searchPlaceholder": "Search baseline name, standard, product, or profile",
+          "selectPlaceholder": "Select a baseline",
+          "unknown": "Unknown",
+          "unknownUpper": "UNKNOWN",
+          "unknownProduct": "Unknown product",
+          "unknownProfile": "Unknown profile"
+        },
+        "steps": {
+          "baselineSelection": {
+            "title": "Baseline Selection",
+            "description": "Choose the target baseline and fill in basic strategy information"
           },
-          "levels": {
-            "high": "High",
-            "medium": "Medium",
-            "low": "Low"
+          "schedule": {
+            "title": "Task Schedule",
+            "description": "Configure scan cadence and create the strategy object"
           },
-          "statuses": {
-            "enabled": "Enabled",
-            "disabled": "Disabled",
-            "draft": "Draft"
+          "hostSelection": {
+            "title": "Host Selection",
+            "description": "Choose the host scope for this baseline dispatch"
+          },
+          "dispatchSubmit": {
+            "title": "Task Dispatch",
+            "description": "Preview and confirm dispatch"
           }
         },
-        "reviewCard": {
-          "title": "Dispatch Preview",
-          "deployFailed": "Dispatch failed",
-          "deploySuccess": "Dispatch succeeded",
-          "selectStrategiesAndHosts": "Select strategies and host information first",
-          "selectStrategies": "Select strategy information",
-          "selectHosts": "Select host information",
-          "deploySuccessDescription": "Successfully dispatched {strategies} strategies to {hosts} hosts",
-          "deployErrorDescription": "An error occurred while dispatching policies. Try again.",
-          "networkErrorDescription": "Network error or service exception. Try again later.",
-          "selectedStrategies": "Selected Strategies ({count})",
-          "noStrategies": "No strategies selected",
-          "targetHosts": "Target Hosts ({count})",
-          "noHosts": "No hosts selected",
-          "deploying": "Dispatching...",
-          "deploy": "Dispatch Strategy",
-          "types": {
-            "baseline": "Baseline",
-            "patch": "Patch",
-            "rollback": "Rollback"
+        "baselineSelection": {
+          "description": "Select the baseline template used for this dispatch.",
+          "empty": "Baseline details will appear here after you select one.",
+          "risk": {
+            "low": "Low Risk Count",
+            "medium": "Medium Risk Count",
+            "high": "High Risk Count"
           },
-          "levels": {
-            "high": "High",
-            "medium": "Medium",
-            "low": "Low"
-          },
-          "statuses": {
-            "enabled": "Enabled",
-            "disabled": "Disabled",
-            "draft": "Draft"
+          "detail": {
+            "displayName": "Display Name",
+            "tenantId": "Tenant ID",
+            "standard": "Standard",
+            "baselineType": "Baseline Type",
+            "product": "Product",
+            "originalFilename": "Original Filename",
+            "osVersion": "OS Version",
+            "baselineVersion": "Baseline Version",
+            "profile": "Profile",
+            "itemCount": "Check Count",
+            "itemCountValue": "{count} items",
+            "createdAt": "Created At"
           }
+        },
+        "schedule": {
+          "description": "Fill in the task name, version, and configure scan cadence and retry behavior.",
+          "fields": {
+            "taskName": "Task Name",
+            "taskNamePlaceholder": "Example: Windows Baseline Inspection Task",
+            "version": "Version",
+            "versionPlaceholder": "Example: 1.0.0"
+          },
+          "form": {
+            "modeLabel": "Schedule Mode",
+            "modePlaceholder": "Select schedule mode",
+            "modeInterval": "Fixed Interval",
+            "intervalLabel": "Interval",
+            "intervalValue": "{hours}h",
+            "fixedTimeLabel": "Fixed Execution Time",
+            "randomDelayLabel": "Random Delay",
+            "randomDelayValue": "{minutes} min",
+            "retryCountLabel": "Retry Count",
+            "retryIntervalLabel": "Retry Interval",
+            "retryNone": "No Retry",
+            "retryTimes": "{count} times",
+            "minutesUnit": "min",
+            "startupTitle": "Run scan when Agent starts",
+            "startupDescription": "Run one catch-up scan immediately after startup"
+          },
+          "actions": {
+            "creating": "Creating...",
+            "createTask": "Create Task"
+          }
+        },
+        "hostSelection": {
+          "description": "Select the target host scope that should receive this baseline scan strategy.",
+          "loadFailed": "Failed to load host data",
+          "empty": "No host tree data available.",
+          "selector": {
+            "title": "Host Selector",
+            "searchPlaceholder": "Search host name, IP, host ID, MAC, or OS...",
+            "selectAll": "Select all",
+            "clear": "Clear",
+            "searchResults": "Search \"{term}\" returned {count} result(s).",
+            "clearSearch": "Clear search",
+            "selectedSummary": "Selected {total} / {hostCount} host(s) / {groupCount} group(s) / {deptCount} department(s) / {companyCount} companie(s)"
+          }
+        },
+        "dispatchSubmit": {
+          "description": "Confirm the dispatch object, target scope, and execution plan.",
+          "empty": "No preview content available yet. Finish the previous steps first.",
+          "blockingError": "Blocking errors exist. Submission is not allowed.",
+          "notReady": "Current submission requirements are not satisfied.",
+          "object": {
+            "sectionTitle": "Dispatch Object",
+            "taskName": "Task Name",
+            "targetBaseline": "Target Baseline",
+            "objectId": "Object ID",
+            "version": "Version",
+            "type": "Type",
+            "source": "Source",
+            "typeMap": {
+              "baseline": "Baseline",
+              "patch": "Patch Strategy",
+              "scan": "Scan Task",
+              "config": "Configuration Strategy"
+            },
+            "sourceMap": {
+              "template": "Template",
+              "custom": "Custom"
+            }
+          },
+          "target": {
+            "sectionTitle": "Target Scope",
+            "group": "Logical Groups",
+            "deduplicatedHosts": "Deduplicated Hosts",
+            "originalTargets": "Original Targets",
+            "invalidHosts": "Invalid Hosts",
+            "offlineHosts": "Offline Hosts",
+            "ungroupedHosts": "Ungrouped Hosts",
+            "hostUnit": "hosts",
+            "groupUnit": "groups",
+            "hostCountBadge": "{count} hosts",
+            "invalidDispatch": "Invalid",
+            "viewMore": "View more ({count} remaining)",
+            "expandDetails": "Expand Target Details",
+            "collapseDetails": "Collapse Target Details"
+          },
+          "schedule": {
+            "immediate": "Run Immediately",
+            "scheduled": "Scheduled Run",
+            "immediateTag": "Immediate Task",
+            "scheduledTag": "Scheduled Task"
+          },
+          "validation": {
+            "cannotSubmit": "Cannot Submit",
+            "noPermissionReason": "The current user lacks permission, or submission requirements are not met."
+          },
+          "actions": {
+            "submitting": "Submitting...",
+            "confirm": "Confirm Dispatch"
+          }
+        },
+        "errors": {
+          "loadDataTitle": "Failed to load data",
+          "goLogin": "Go to Login",
+          "templates": {
+            "noAuth": "Missing login state. Unable to load baseline list.",
+            "loadFailed": "Failed to load baseline list."
+          },
+          "hosts": {
+            "noAuth": "Missing login state. Unable to load host tree.",
+            "loadFailed": "Failed to load host tree."
+          }
+        },
+        "validation": {
+          "offlineHosts": {
+            "message": "The current selection contains {count} offline host(s).",
+            "suggestion": "Offline hosts may not receive the strategy in time. Confirm whether to continue."
+          },
+          "invalidHosts": {
+            "message": "The current selection contains {count} invalid host(s) for dispatch.",
+            "suggestion": "Remove invalid hosts from the selection before dispatching the task."
+          },
+          "policyNotCreated": {
+            "message": "The baseline scan strategy object has not been created yet.",
+            "suggestion": "Go back to the Task Schedule step and create the strategy object first."
+          },
+          "emptyTargets": {
+            "message": "There are no target hosts available for dispatch.",
+            "suggestion": "Select at least one host, or select a logical group that contains hosts."
+          }
+        },
+        "object": {
+          "unnamed": "Unnamed Strategy",
+          "targetBaselinePrefix": "Target baseline: "
+        },
+        "target": {
+          "ungrouped": "Ungrouped",
+          "group": "Logical Group"
+        },
+        "permissions": {
+          "invalidHosts": "Invalid hosts exist for dispatch.",
+          "createPolicyFirst": "Create the strategy object first.",
+          "selectHostsFirst": "Select target hosts first."
+        },
+        "summary": {
+          "intervalHours": "Run every {hours} hour(s)",
+          "specificTime": "Fixed time {time}",
+          "randomDelay": "Random delay {minutes} minute(s)",
+          "retry": "Retry {count} time(s) on failure, interval {minutes} minute(s)",
+          "noRetry": "No retry on failure",
+          "scanOnStartup": "Run once when Agent starts",
+          "dailyTime": "Daily {time}"
+        },
+        "toast": {
+          "policyCreated": "Strategy object created. You can continue with host selection.",
+          "dispatchNotReady": "Current dispatch requirements are not met.",
+          "dispatchLoading": "Dispatching task...",
+          "dispatchSuccess": "Baseline dispatch succeeded. The task has been submitted.",
+          "dispatchFailed": "Baseline dispatch failed. Please try again later.",
+          "dispatchFailedWithReason": "Baseline dispatch failed: {reason}"
         }
       },
       "custom": {

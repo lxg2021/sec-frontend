@@ -39,6 +39,7 @@ interface BaselineDispatchSelectorText {
   current: string
   emptyPlaceholder: string
   checks: (count: number) => string
+  loading: string
   noMatches: string
   searchPlaceholder: string
   selectPlaceholder: string
@@ -110,7 +111,7 @@ export function BaselineDispatchSelector({
   ) : (
     <span className="text-muted-foreground">
       {loading
-        ? "基线加载中..."
+        ? text.loading
         : hasItems
           ? text.selectPlaceholder
           : text.emptyPlaceholder}

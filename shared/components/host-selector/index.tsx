@@ -14,6 +14,27 @@ import { badgeBaseClass, badgeButtonClass } from "@/shared/styles/badge-class"
 import { useTreeData } from "./hooks/use-tree-data"
 import { VirtualizedTree } from "./virtualized-tree"
 
+const defaultText = {
+  title: "Host Selector",
+  searchPlaceholder: "Search host name, IP, host ID, MAC, or OS...",
+  selectAll: "Select all",
+  clear: "Clear",
+  searchResults: (term: string, count: number) => `Search "${term}" returned ${count} result(s).`,
+  clearSearch: "Clear search",
+  selectedSummary: (
+    total: number,
+    hostCount: number,
+    groupCount: number,
+    deptCount: number,
+    companyCount: number,
+  ) =>
+    `Selected ${total}${
+      hostCount > 0 ? ` / ${hostCount} host(s)` : ""
+    }${groupCount > 0 ? ` / ${groupCount} group(s)` : ""}${
+      deptCount > 0 ? ` / ${deptCount} department(s)` : ""
+    }${companyCount > 0 ? ` / ${companyCount} companie(s)` : ""}`,
+}
+
 function findNodeById(nodes: any[], id: string): any | null {
   for (const node of nodes) {
     if (node.id === id) return node
@@ -45,12 +66,14 @@ export default function HostSelector({
   loading = false,
   emptyText = "No host data available.",
   showHeader = true,
+  text = defaultText,
 }: {
   data?: any[]
   onSelectionChange?: (nodes: any[], selectedIds: Set<string>) => void
   loading?: boolean
   emptyText?: string
   showHeader?: boolean
+  text?: typeof defaultText
 }) {
   const [searchTerm, setSearchTerm] = useState("")
   const onSelectionChangeRef = useRef(onSelectionChange)
@@ -211,7 +234,7 @@ export default function HostSelector({
                 <Server className="h-4 w-4 text-blue-600" />
               </div>
               <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-xl font-semibold text-transparent">
-                Host Selector
+                {text.title}
               </span>
               <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
             </CardTitle>
@@ -221,7 +244,7 @@ export default function HostSelector({
             <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-3 z-10 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Search host name, IP, host ID, MAC, or OS..."
+                placeholder={text.searchPlaceholder}
                 value={searchTerm}
                 disabled={loading || !hasData}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -248,7 +271,7 @@ export default function HostSelector({
                 className="h-11 whitespace-nowrap border-slate-200/60 bg-white/80 px-4 text-slate-600 shadow-sm transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
               >
                 <SelectAll className="mr-2 h-4 w-4" />
-                Select all
+                {text.selectAll}
               </Button>
 
               <Button
@@ -259,7 +282,7 @@ export default function HostSelector({
                 className="h-11 whitespace-nowrap border-slate-200/60 bg-white/80 px-4 text-slate-600 shadow-sm transition-all duration-200 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Clear
+                {text.clear}
               </Button>
             </div>
           </div>
@@ -268,10 +291,10 @@ export default function HostSelector({
             <div className="pt-2">
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-blue-200/60 bg-blue-50/80 px-3 py-2 text-sm text-slate-600">
                 <span>
-                  Search &quot;{searchTerm}&quot; returned {flatNodes.length} result(s).
+                  {text.searchResults(searchTerm, flatNodes.length)}
                 </span>
                 <Button variant="ghost" size="sm" onClick={clearSearch} className="h-6 px-2 text-xs">
-                  Clear search
+                  {text.clearSearch}
                 </Button>
               </div>
             </div>
@@ -280,11 +303,13 @@ export default function HostSelector({
           {selectionStats.total > 0 && (
             <div className="flex flex-wrap items-center gap-3 pt-4">
               <Badge className={`${badgeBaseClass} border-blue-100 bg-blue-50/60 text-blue-600 shadow-none transition-colors hover:bg-blue-50`}>
-                Selected {selectionStats.total}
-                {selectionStats.hostCount > 0 && ` / ${selectionStats.hostCount} host(s)`}
-                {selectionStats.groupCount > 0 && ` / ${selectionStats.groupCount} group(s)`}
-                {selectionStats.deptCount > 0 && ` / ${selectionStats.deptCount} department(s)`}
-                {selectionStats.companyCount > 0 && ` / ${selectionStats.companyCount} companie(s)`}
+                {text.selectedSummary(
+                  selectionStats.total,
+                  selectionStats.hostCount,
+                  selectionStats.groupCount,
+                  selectionStats.deptCount,
+                  selectionStats.companyCount,
+                )}
                 <Button
                   variant="ghost"
                   size="sm"

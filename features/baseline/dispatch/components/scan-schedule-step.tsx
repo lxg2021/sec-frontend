@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowRight, CalendarClock, ChevronLeft } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { ScanScheduleForm, type ScanSchedule } from "@/shared/components/scan-schedule"
 import { Button } from "@/shared/ui/button"
@@ -33,6 +34,7 @@ export function ScanScheduleStep({
   schedule,
   version,
 }: ScanScheduleStepProps) {
+  const t = useTranslations("pages.baseline.dispatch")
   return (
     <Card className="border bg-card shadow-sm">
       <CardHeader className="border-b border-border pb-4">
@@ -41,9 +43,9 @@ export function ScanScheduleStep({
             <CalendarClock className="h-5 w-5 text-blue-500" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-foreground">任务计划</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">{t("steps.schedule.title")}</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              填写策略名称、版本，并配置扫描周期与重试策略。
+              {t("schedule.description")}
             </CardDescription>
           </div>
         </div>
@@ -54,25 +56,25 @@ export function ScanScheduleStep({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               <Label htmlFor="policy-name" className="shrink-0 sm:w-24">
-                任务名称 <span className="text-red-500">*</span>
+                {t("schedule.fields.taskName")} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="policy-name"
                 value={policyName}
                 onChange={(event) => onNameChange(event.target.value)}
-                placeholder="例如：Windows 基线巡检策略"
+                placeholder={t("schedule.fields.taskNamePlaceholder")}
                 className="flex-1"
               />
             </div>
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               <Label htmlFor="policy-version" className="shrink-0 sm:w-20">
-                版本号 <span className="text-red-500">*</span>
+                {t("schedule.fields.version")} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="policy-version"
                 value={version}
                 onChange={(event) => onVersionChange(event.target.value)}
-                placeholder="例如：1.0.0"
+                placeholder={t("schedule.fields.versionPlaceholder")}
                 className="flex-1"
               />
             </div>
@@ -85,6 +87,23 @@ export function ScanScheduleStep({
             onChange={onScheduleChange}
             title={null}
             description={null}
+            text={{
+              modeLabel: t("schedule.form.modeLabel"),
+              modePlaceholder: t("schedule.form.modePlaceholder"),
+              modeInterval: t("schedule.form.modeInterval"),
+              intervalLabel: t("schedule.form.intervalLabel"),
+              intervalValue: (hours) => t("schedule.form.intervalValue", { hours }),
+              fixedTimeLabel: t("schedule.form.fixedTimeLabel"),
+              randomDelayLabel: t("schedule.form.randomDelayLabel"),
+              randomDelayValue: (minutes) => t("schedule.form.randomDelayValue", { minutes }),
+              retryCountLabel: t("schedule.form.retryCountLabel"),
+              retryIntervalLabel: t("schedule.form.retryIntervalLabel"),
+              retryNone: t("schedule.form.retryNone"),
+              retryTimes: (count) => t("schedule.form.retryTimes", { count }),
+              minutesUnit: t("schedule.form.minutesUnit"),
+              startupTitle: t("schedule.form.startupTitle"),
+              startupDescription: t("schedule.form.startupDescription"),
+            }}
             className="max-w-none border-0 shadow-none [&_[class*='text-2xl']]:text-base"
           />
         </section>
@@ -92,14 +111,14 @@ export function ScanScheduleStep({
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
             <ChevronLeft className="mr-2 h-4 w-4" />
-            基线选择
+            {t("steps.baselineSelection.title")}
           </Button>
           <Button
             onClick={onCreatePolicy}
             disabled={!canCreatePolicy || creating}
             className="h-11 px-6"
           >
-            {creating ? "创建中..." : "创建任务"}
+            {creating ? t("schedule.actions.creating") : t("schedule.actions.createTask")}
             {!creating ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
           </Button>
         </div>

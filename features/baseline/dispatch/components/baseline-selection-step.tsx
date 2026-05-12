@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import {
   AlertTriangle,
   ArrowRight,
@@ -45,35 +46,36 @@ export function BaselineSelectionStep({
   selectedTemplate,
   selector,
 }: BaselineSelectionStepProps) {
+  const t = useTranslations("pages.baseline.dispatch")
   const detailRows: DetailRow[] = selectedTemplate
     ? [
         { icon: KeyRound, label: "UUID", value: selectedTemplate.uuid, mono: true },
         {
           icon: Tags,
-          label: "显示名称",
+          label: t("baselineSelection.detail.displayName"),
           value: selectedTemplate.display_name || "-",
           strong: true,
         },
-        { icon: Building2, label: "租户 ID", value: selectedTemplate.tenant_id || "-" },
-        { icon: Ruler, label: "标准", value: selectedTemplate.standard || "-" },
-        { icon: Package, label: "基线类型", value: selectedTemplate.baseline_type || "-" },
-        { icon: Monitor, label: "产品", value: selectedTemplate.product || "-" },
+        { icon: Building2, label: t("baselineSelection.detail.tenantId"), value: selectedTemplate.tenant_id || "-" },
+        { icon: Ruler, label: t("baselineSelection.detail.standard"), value: selectedTemplate.standard || "-" },
+        { icon: Package, label: t("baselineSelection.detail.baselineType"), value: selectedTemplate.baseline_type || "-" },
+        { icon: Monitor, label: t("baselineSelection.detail.product"), value: selectedTemplate.product || "-" },
         {
           icon: FileText,
-          label: "原始文件名",
+          label: t("baselineSelection.detail.originalFilename"),
           value: selectedTemplate.original_filename || "-",
           mono: true,
         },
-        { icon: Monitor, label: "OS 版本", value: selectedTemplate.os_version || "-" },
-        { icon: Tags, label: "基线版本", value: selectedTemplate.baseline_version || "-" },
-        { icon: ImageIcon, label: "画像", value: selectedTemplate.profile || "-" },
+        { icon: Monitor, label: t("baselineSelection.detail.osVersion"), value: selectedTemplate.os_version || "-" },
+        { icon: Tags, label: t("baselineSelection.detail.baselineVersion"), value: selectedTemplate.baseline_version || "-" },
+        { icon: ImageIcon, label: t("baselineSelection.detail.profile"), value: selectedTemplate.profile || "-" },
         {
           icon: Hash,
-          label: "检查项数量",
-          value: `${selectedTemplate.item_count ?? 0} 项`,
+          label: t("baselineSelection.detail.itemCount"),
+          value: t("baselineSelection.detail.itemCountValue", { count: selectedTemplate.item_count ?? 0 }),
           strong: true,
         },
-        { icon: CalendarClock, label: "创建时间", value: selectedTemplate.created_at || "-" },
+        { icon: CalendarClock, label: t("baselineSelection.detail.createdAt"), value: selectedTemplate.created_at || "-" },
       ]
     : []
 
@@ -85,9 +87,9 @@ export function BaselineSelectionStep({
             <LayoutGrid className="h-5 w-5 text-blue-500" />
           </div>
           <div>
-            <CardTitle className="text-lg font-semibold text-foreground">基线选择</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">{t("steps.baselineSelection.title")}</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              选择本次下发所依赖的基线模板。
+              {t("baselineSelection.description")}
             </CardDescription>
           </div>
         </div>
@@ -103,7 +105,7 @@ export function BaselineSelectionStep({
                 <div className="bg-white px-4 py-5 text-center transition-colors hover:bg-slate-50">
                   <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                    低风险数量
+                    {t("baselineSelection.risk.low")}
                   </div>
                   <div className="mt-2 text-4xl font-bold leading-none text-emerald-600">
                     {selectedTemplate.low_count ?? 0}
@@ -112,7 +114,7 @@ export function BaselineSelectionStep({
                 <div className="bg-white px-4 py-5 text-center transition-colors hover:bg-slate-50">
                   <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
                     <AlertTriangle className="h-4 w-4 text-amber-500" />
-                    中风险数量
+                    {t("baselineSelection.risk.medium")}
                   </div>
                   <div className="mt-2 text-4xl font-bold leading-none text-amber-500">
                     {selectedTemplate.medium_count ?? 0}
@@ -121,7 +123,7 @@ export function BaselineSelectionStep({
                 <div className="bg-white px-4 py-5 text-center transition-colors hover:bg-slate-50">
                   <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
                     <Flame className="h-4 w-4 text-red-500" />
-                    高风险数量
+                    {t("baselineSelection.risk.high")}
                   </div>
                   <div className="mt-2 text-4xl font-bold leading-none text-red-600">
                     {selectedTemplate.high_count ?? 0}
@@ -160,14 +162,14 @@ export function BaselineSelectionStep({
             </section>
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-6 text-sm text-slate-500">
-              选择一个基线后，这里会显示完整详情。
+              {t("baselineSelection.empty")}
             </div>
           )}
         </div>
 
         <div className="flex justify-end border-t pt-4">
           <Button onClick={onNext} disabled={!canNext} className="h-11 px-6">
-            基线选择
+            {t("steps.baselineSelection.title")}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

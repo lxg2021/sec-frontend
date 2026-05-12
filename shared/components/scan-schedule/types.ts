@@ -10,6 +10,27 @@ export interface ScanSchedule {
   scan_on_startup: boolean
 }
 
+export interface ScanScheduleFormText {
+  loading?: string
+  title?: ReactNode
+  description?: ReactNode
+  modeLabel: string
+  modePlaceholder: string
+  modeInterval: string
+  intervalLabel: string
+  intervalValue: (hours: number) => string
+  fixedTimeLabel: string
+  randomDelayLabel: string
+  randomDelayValue: (minutes: number) => string
+  retryCountLabel: string
+  retryIntervalLabel: string
+  retryNone: string
+  retryTimes: (count: number) => string
+  minutesUnit: string
+  startupTitle: string
+  startupDescription: string
+}
+
 export interface ScanScheduleFormProps {
   value?: Partial<ScanSchedule>
   onChange?: (schedule: ScanSchedule) => void
@@ -18,4 +39,5 @@ export interface ScanScheduleFormProps {
   className?: string
   disabled?: boolean
   showStartup?: boolean
+  text?: ScanScheduleFormText
 }
