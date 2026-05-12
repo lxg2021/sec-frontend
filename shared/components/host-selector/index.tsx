@@ -201,11 +201,11 @@ export default function HostSelector({
 
   return (
     <div className="w-full">
-      <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
+      <Card className="border-0 shadow-none bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
         <CardHeader className="rounded-t-lg border-b border-slate-200/60 bg-gradient-to-r from-slate-50/90 to-blue-50/70 pb-4">
           <CardTitle className="flex items-center gap-3 text-slate-700">
-            <div className="rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 p-1.5 shadow-md">
-              <Server className="h-4 w-4 text-white" />
+            <div className="rounded-md bg-gradient-to-br from-blue-50 to-indigo-100 p-1.5">
+              <Server className="h-4 w-4 text-blue-600" />
             </div>
             <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-xl font-semibold text-transparent">
               Host Selector
@@ -275,13 +275,18 @@ export default function HostSelector({
 
           {selectionStats.total > 0 && (
             <div className="flex flex-wrap items-center gap-3 pt-4">
-              <Badge className={badgeBaseClass}>
+              <Badge className={`${badgeBaseClass} shadow-none transition-colors hover:bg-blue-100`}>
                 Selected {selectionStats.total}
                 {selectionStats.hostCount > 0 && ` / ${selectionStats.hostCount} host(s)`}
                 {selectionStats.groupCount > 0 && ` / ${selectionStats.groupCount} group(s)`}
                 {selectionStats.deptCount > 0 && ` / ${selectionStats.deptCount} department(s)`}
                 {selectionStats.companyCount > 0 && ` / ${selectionStats.companyCount} companie(s)`}
-                <Button variant="ghost" size="sm" onClick={clearSelection} className={badgeButtonClass}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                  className={`${badgeButtonClass} hover:bg-blue-100/80 hover:text-blue-700 hover:border-blue-200`}
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </Badge>

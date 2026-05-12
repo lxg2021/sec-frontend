@@ -4,7 +4,6 @@ import { ArrowRight, ChevronLeft, Server } from "lucide-react"
 
 import HostSelector from "@/shared/components/host-selector"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 
@@ -50,15 +49,6 @@ export function HostSelectionStep({
       </CardHeader>
 
       <CardContent className="space-y-5 p-6">
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary" className="rounded-full px-3">
-            已选主机 {selectedHostCount}
-          </Badge>
-          <Badge variant="secondary" className="rounded-full px-3">
-            已选节点 {selectedNodeCount}
-          </Badge>
-        </div>
-
         {error ? (
           <Alert variant="destructive">
             <AlertTitle>主机数据加载失败</AlertTitle>
