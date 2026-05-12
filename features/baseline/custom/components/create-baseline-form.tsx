@@ -146,9 +146,7 @@ export function CreateBaselineForm({
 
             <CardContent className="grid gap-4 p-4 sm:grid-cols-2">
               <div className="grid gap-2">
-                <Label htmlFor="metadata-standard">
-                  {t("createForm.standardLabel")} <span className="text-destructive">*</span>
-                </Label>
+                <Label htmlFor="metadata-standard">{t("createForm.standardLabel")}</Label>
                 <Select value={standard} onValueChange={onStandardChange}>
                   <SelectTrigger id="metadata-standard" className="h-10 rounded-xl border-zinc-200 bg-white shadow-none focus:border-blue-300">
                     <SelectValue placeholder={t("createForm.standardPlaceholder")} />

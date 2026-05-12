@@ -162,13 +162,6 @@ export default function CustomBaselineClient() {
 
   const selectedTemplateCount = selectedItems.size
   const templateMap = useMemo(() => new Map(templates.map((template) => [template.uuid, template])), [templates])
-  const selectedStandardDefault = useMemo(() => {
-    const firstSelectedTemplateUuid = selectedItems.keys().next().value
-    if (!firstSelectedTemplateUuid) return "custom"
-
-    const firstSelectedTemplate = templateMap.get(firstSelectedTemplateUuid)
-    return firstSelectedTemplate?.standard?.trim() || "custom"
-  }, [selectedItems, templateMap])
   const selectedProfileDefault = useMemo(() => {
     const firstSelectedTemplateUuid = selectedItems.keys().next().value
     if (!firstSelectedTemplateUuid) return "machine"
@@ -276,11 +269,11 @@ export default function CustomBaselineClient() {
       setSubmitError(t("selectAtLeastOneItem"))
       return
     }
-    setSelectedStandard(selectedStandardDefault)
+    setSelectedStandard("custom")
     setSelectedProfile(selectedProfileDefault)
     setBaselineVersion((current) => current || "1.0.0")
     setCreateOpen(true)
-  }, [selectedProfileDefault, selectedStandardDefault, t, totalSelectedCount])
+  }, [selectedProfileDefault, t, totalSelectedCount])
 
   const handleSubmit = useCallback(async () => {
     setSubmitError("")

@@ -1354,7 +1354,7 @@
           "current": "当前",
           "selected": "已选",
           "itemsSuffix": "项",
-          "standardLabel": "标准",
+          "standardLabel": "类型",
           "profileLabel": "配置",
           "versionLabel": "版本",
           "standards": {

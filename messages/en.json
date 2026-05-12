@@ -1352,7 +1352,7 @@
           "current": "Current",
           "selected": "Selected",
           "itemsSuffix": "items",
-          "standardLabel": "Standard",
+          "standardLabel": "Type",
           "profileLabel": "Profile",
           "versionLabel": "Version",
           "standards": {
