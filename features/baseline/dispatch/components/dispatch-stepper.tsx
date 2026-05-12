@@ -23,7 +23,7 @@ export function DispatchStepper({
   onStepChange,
 }: DispatchStepperProps) {
   return (
-    <div className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-sm backdrop-blur">
+    <div className="rounded-3xl bg-white/80 p-6 shadow-sm backdrop-blur">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         {items.map((item, index) => (
           <div key={item.key} className="flex items-center gap-4 xl:flex-1">
@@ -33,7 +33,7 @@ export function DispatchStepper({
               onClick={() => onStepChange?.(item.key)}
               className={cn(
                 "flex min-w-0 items-center gap-4 text-left transition-opacity",
-                item.disabled ? "cursor-not-allowed opacity-45" : "cursor-pointer",
+                item.disabled ? "cursor-not-allowed" : "cursor-pointer",
               )}
             >
               <div
@@ -43,7 +43,7 @@ export function DispatchStepper({
                   item.status === "completed" &&
                     "border-emerald-600 bg-emerald-50 text-emerald-700",
                   item.status === "upcoming" &&
-                    "border-slate-300 bg-white text-slate-400",
+                    "border-slate-300 bg-white text-slate-600",
                 )}
               >
                 {item.status === "completed" ? <Check className="h-5 w-5" /> : item.key}
@@ -52,12 +52,12 @@ export function DispatchStepper({
                 <div
                   className={cn(
                     "text-xl font-medium tracking-tight xl:text-2xl",
-                    item.status === "current" ? "text-slate-950" : "text-slate-500",
+                    item.status === "current" ? "text-slate-950" : "text-slate-700",
                   )}
                 >
                   {item.title}
                 </div>
-                <div className="mt-1 text-sm text-slate-500">{item.description}</div>
+                <div className="mt-1 text-sm text-slate-600">{item.description}</div>
               </div>
             </button>
 
