@@ -204,8 +204,8 @@ export default function HostSelector({
       <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
         <CardHeader className="rounded-t-lg border-b border-slate-200/60 bg-gradient-to-r from-slate-50/90 to-blue-50/70 pb-4">
           <CardTitle className="flex items-center gap-3 text-slate-700">
-            <div className="rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 p-2 shadow-md">
-              <Server className="h-5 w-5 text-white" />
+            <div className="rounded-md bg-gradient-to-br from-blue-500 to-indigo-600 p-1.5 shadow-md">
+              <Server className="h-4 w-4 text-white" />
             </div>
             <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-xl font-semibold text-transparent">
               Host Selector
