@@ -39,7 +39,7 @@ export function DispatchStepper({
               <div
                 className={cn(
                   "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border text-base font-semibold transition-colors",
-                  item.status === "current" && "border-slate-950 bg-white text-slate-950",
+                  item.status === "current" && "border-slate-950 bg-white text-slate-950 animate-step-breathe",
                   item.status === "completed" &&
                     "border-emerald-600 bg-emerald-50 text-emerald-700",
                   item.status === "upcoming" &&
