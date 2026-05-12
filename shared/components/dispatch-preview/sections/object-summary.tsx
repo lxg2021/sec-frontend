@@ -9,8 +9,6 @@ import {
   type LucideIcon,
 } from "lucide-react"
 
-import { Badge } from "@/shared/ui/badge"
-
 import type { DispatchObject } from "../types"
 
 interface ObjectSummaryProps {
@@ -124,19 +122,14 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
       </div>
 
       <div className="rounded-xl border bg-card p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="grid flex-1 gap-x-10 xl:grid-cols-3">
-            {columns.map((column, index) => (
-              <div key={index}>
-                {column.map((row) => (
-                  <SummaryRow key={row.label} {...row} />
-                ))}
-              </div>
-            ))}
-          </div>
-          <Badge variant="secondary" className="shrink-0">
-            {typeMap[object.type] ?? object.type}
-          </Badge>
+        <div className="grid gap-x-10 xl:grid-cols-3">
+          {columns.map((column, index) => (
+            <div key={index}>
+              {column.map((row) => (
+                <SummaryRow key={row.label} {...row} />
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     </section>
