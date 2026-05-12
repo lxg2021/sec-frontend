@@ -18,10 +18,10 @@ interface CreateBaselineFormProps {
   description: string
   standard: string
   profile: string
+  osVersion: string
   baselineVersion: string
   metadata: {
     product: string
-    os_version: string
   } | null
   selectedTemplateCount: number
   selectedItemCount: number
@@ -32,6 +32,7 @@ interface CreateBaselineFormProps {
   onDescriptionChange: (value: string) => void
   onStandardChange: (value: string) => void
   onProfileChange: (value: string) => void
+  onOsVersionChange: (value: string) => void
   onBaselineVersionChange: (value: string) => void
   onReset: () => void
   onSubmit: () => void
@@ -44,6 +45,7 @@ export function CreateBaselineForm({
   description,
   standard,
   profile,
+  osVersion,
   baselineVersion,
   metadata,
   selectedTemplateCount,
@@ -55,6 +57,7 @@ export function CreateBaselineForm({
   onDescriptionChange,
   onStandardChange,
   onProfileChange,
+  onOsVersionChange,
   onBaselineVersionChange,
   onReset,
   onSubmit,
@@ -163,7 +166,13 @@ export function CreateBaselineForm({
 
               <div className="grid gap-2">
                 <Label htmlFor="metadata-os-version">{t("createForm.osVersionLabel")}</Label>
-                <Input id="metadata-os-version" value={metadata?.os_version ?? ""} readOnly className="h-10 rounded-xl border-zinc-200 bg-zinc-50 text-zinc-700 shadow-none" />
+                <Input
+                  id="metadata-os-version"
+                  value={osVersion}
+                  onChange={(event) => onOsVersionChange(event.target.value)}
+                  placeholder={t("createForm.osVersionPlaceholder")}
+                  className="h-10 rounded-xl border-zinc-200 bg-white shadow-none focus-visible:border-blue-300"
+                />
               </div>
 
               <div className="grid gap-2">

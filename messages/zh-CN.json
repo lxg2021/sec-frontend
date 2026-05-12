@@ -1438,11 +1438,12 @@
           "baselineVersionLabel": "自定义基线版本",
           "baselineVersionPlaceholder": "1.0.0",
           "templateMetadataTitle": "模板元数据",
-          "templateMetadataDescription": "以下字段来自当前已选模板集合，将作为创建请求的元数据一并提交。",
+          "templateMetadataDescription": "产品字段来自当前已选模板集合，系统版本支持提交前手工调整。",
           "standardLabel": "标准",
           "standardPlaceholder": "请选择标准类型",
           "productLabel": "产品",
           "osVersionLabel": "系统版本",
+          "osVersionPlaceholder": "any",
           "profileLabel": "配置类型",
           "profilePlaceholder": "请选择配置类型",
           "reset": "重置",
@@ -1455,12 +1456,13 @@
         "nameRequired": "请输入基线名称",
         "standardRequired": "请选择标准类型",
         "profileRequired": "请选择配置类型",
+        "osVersionRequired": "请输入系统版本",
         "baselineVersionRequired": "请输入自定义基线版本",
         "baselineVersionInvalid": "自定义基线版本格式必须为 1.0.0",
         "selectItemsToMerge": "请选择要合并的模板项",
         "templateMetadataUnavailable": "无法读取已选检查项对应的模板元数据",
-        "templateMetadataIncomplete": "所选模板缺少必需的基线元数据",
-        "templateMetadataMismatch": "所选模板的标准、产品、版本或配置类型不一致"
+        "templateMetadataIncomplete": "所选模板缺少必需的产品元数据",
+        "templateMetadataMismatch": "所选模板属于不同产品"
       }
     },
     "vulnerability": {

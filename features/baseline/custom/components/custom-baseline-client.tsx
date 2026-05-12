@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
 import { CheckCircle2, RefreshCw } from "lucide-react"
 
+import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent } from "@/shared/ui/card"
 
@@ -34,17 +35,17 @@ function collectSelectionPayload(selectedItems: Map<string, Set<string>>) {
 function extractTemplateRequestMetadata(template: BaselineTemplate) {
   return {
     product: template.product.trim(),
-    os_version: template.os_version.trim(),
   }
 }
 
 function getTemplateMetadataSignature(template: BaselineTemplate) {
   const metadata = extractTemplateRequestMetadata(template)
-  return [metadata.product, metadata.os_version].join("::")
+  return metadata.product
 }
 
 export default function CustomBaselineClient() {
   const t = useTranslations("pages.baseline.custom")
+  const { toast } = useToast()
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
   const [templatesLoading, setTemplatesLoading] = useState(true)
   const [templatesError, setTemplatesError] = useState("")
@@ -60,6 +61,7 @@ export default function CustomBaselineClient() {
   const [description, setDescription] = useState("")
   const [selectedStandard, setSelectedStandard] = useState("custom")
   const [selectedProfile, setSelectedProfile] = useState("machine")
+  const [osVersion, setOsVersion] = useState("any")
   const [baselineVersion, setBaselineVersion] = useState("")
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -183,7 +185,7 @@ export default function CustomBaselineClient() {
     const baseTemplate = selectedTemplates[0]
     const metadata = extractTemplateRequestMetadata(baseTemplate)
 
-    if (!metadata.product || !metadata.os_version) {
+    if (!metadata.product) {
       return { metadata: null, errorKey: "templateMetadataIncomplete" }
     }
 
@@ -254,6 +256,7 @@ export default function CustomBaselineClient() {
     setDescription("")
     setSelectedStandard("custom")
     setSelectedProfile("machine")
+    setOsVersion("any")
     setBaselineVersion("")
     setItemSearchTerm("")
     setStandardFilter("all")
@@ -269,6 +272,7 @@ export default function CustomBaselineClient() {
     }
     setSelectedStandard("custom")
     setSelectedProfile(selectedProfileDefault)
+    setOsVersion("any")
     setBaselineVersion((current) => current || "1.0.0")
     setCreateOpen(true)
   }, [selectedProfileDefault, t, totalSelectedCount])
@@ -289,6 +293,11 @@ export default function CustomBaselineClient() {
 
     if (!selectedProfile.trim()) {
       setSubmitError(t("profileRequired"))
+      return
+    }
+
+    if (!osVersion.trim()) {
+      setSubmitError(t("osVersionRequired"))
       return
     }
 
@@ -321,18 +330,33 @@ export default function CustomBaselineClient() {
         description: description.trim(),
         standard: selectedStandard.trim(),
         profile: selectedProfile.trim(),
-        ...selectedTemplateMetadataState.metadata,
+        product: selectedTemplateMetadataState.metadata.product,
+        os_version: osVersion.trim(),
         baseline_version: baselineVersion.trim(),
         selected_items: selectedPayload,
       })
       setCreatedResult(result)
       setCreateOpen(false)
+      toast({
+        title: t("createdSuccessTitle"),
+        description: t("createdSuccessDescription", {
+          displayName: result.display_name,
+          itemCount: result.item_count,
+          baselineUuid: result.baseline_uuid,
+        }),
+      })
     } catch (error) {
-      setSubmitError(error instanceof Error && error.message ? error.message : t("createFailed"))
+      const errorMessage = error instanceof Error && error.message ? error.message : t("createFailed")
+      setSubmitError(errorMessage)
+      toast({
+        title: t("createFailed"),
+        description: errorMessage,
+        variant: "destructive",
+      })
     } finally {
       setSubmitting(false)
     }
-  }, [baselineVersion, description, displayName, metadataErrorMessage, selectedItems, selectedProfile, selectedStandard, selectedTemplateMetadataState.metadata, t])
+  }, [baselineVersion, description, displayName, metadataErrorMessage, osVersion, selectedItems, selectedProfile, selectedStandard, selectedTemplateMetadataState.metadata, t, toast])
 
   return (
     <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f8fafc_58%,#eef4ff_100%)]">
@@ -416,6 +440,7 @@ export default function CustomBaselineClient() {
         description={description}
         standard={selectedStandard}
         profile={selectedProfile}
+        osVersion={osVersion}
         baselineVersion={baselineVersion}
         metadata={selectedTemplateMetadataState.metadata}
         selectedTemplateCount={selectedTemplateCount}
@@ -427,6 +452,7 @@ export default function CustomBaselineClient() {
         onDescriptionChange={setDescription}
         onStandardChange={setSelectedStandard}
         onProfileChange={setSelectedProfile}
+        onOsVersionChange={setOsVersion}
         onBaselineVersionChange={setBaselineVersion}
         onReset={handleReset}
         onSubmit={() => void handleSubmit()}

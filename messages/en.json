@@ -1436,11 +1436,12 @@
           "baselineVersionLabel": "Custom baseline version",
           "baselineVersionPlaceholder": "1.0.0",
           "templateMetadataTitle": "Template metadata",
-          "templateMetadataDescription": "These fields come from the selected template set and are submitted as request metadata.",
+          "templateMetadataDescription": "Product comes from the selected templates. OS version can be adjusted manually before submission.",
           "standardLabel": "Standard",
           "standardPlaceholder": "Select a standard",
           "productLabel": "Product",
           "osVersionLabel": "OS version",
+          "osVersionPlaceholder": "any",
           "profileLabel": "Profile",
           "profilePlaceholder": "Select a profile",
           "reset": "Reset",
@@ -1453,12 +1454,13 @@
         "nameRequired": "Enter a baseline name",
         "standardRequired": "Select a standard",
         "profileRequired": "Select a profile",
+        "osVersionRequired": "Enter an OS version",
         "baselineVersionRequired": "Enter a custom baseline version",
         "baselineVersionInvalid": "Custom baseline version must use the format 1.0.0",
         "selectItemsToMerge": "Select items to merge",
         "templateMetadataUnavailable": "Failed to read template metadata for the selected items",
-        "templateMetadataIncomplete": "The selected template is missing required baseline metadata",
-        "templateMetadataMismatch": "The selected templates have different standard, product, version, or profile values"
+        "templateMetadataIncomplete": "The selected template is missing required product metadata",
+        "templateMetadataMismatch": "The selected templates belong to different products"
       }
     },
     "vulnerability": {
