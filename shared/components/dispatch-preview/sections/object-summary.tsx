@@ -1,6 +1,14 @@
 "use client"
 
-import { FileText, GitBranch, Hash, Layers, Settings, type LucideIcon } from "lucide-react"
+import {
+  FileText,
+  GitBranch,
+  Hash,
+  Layers,
+  Settings,
+  Tag,
+  type LucideIcon,
+} from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 
@@ -28,7 +36,7 @@ const sourceMap: Record<string, string> = {
   custom: "自定义",
 }
 
-function MetaItem({
+function SummaryRow({
   icon: Icon,
   iconClassName,
   label,
@@ -40,19 +48,81 @@ function MetaItem({
   value: string
 }) {
   return (
-    <div className="rounded-lg border bg-muted/30 px-4 py-3">
-      <div className="flex items-center gap-2">
-        <Icon className={`size-4 shrink-0 ${iconClassName}`} />
-        <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
-        <span className="ml-auto min-w-0 truncate text-sm text-foreground" title={value}>
-          {value}
-        </span>
-      </div>
+    <div className="flex items-center gap-3 border-b border-border/70 py-4 last:border-b-0">
+      <Icon className={`size-4 shrink-0 ${iconClassName}`} />
+      <span className="w-24 shrink-0 text-sm text-muted-foreground">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-foreground" title={value}>
+        {value}
+      </span>
     </div>
   )
 }
 
 export function ObjectSummary({ object }: ObjectSummaryProps) {
+  const rows = [
+    {
+      icon: FileText,
+      iconClassName: "text-blue-500",
+      label: "任务名称",
+      value: object.name,
+    },
+    object.description
+      ? {
+          icon: Tag,
+          iconClassName: "text-amber-600",
+          label: "目标基线",
+          value: object.description,
+        }
+      : null,
+    object.id
+      ? {
+          icon: Hash,
+          iconClassName: "text-slate-500",
+          label: "对象 ID",
+          value: object.id,
+        }
+      : null,
+    object.version
+      ? {
+          icon: GitBranch,
+          iconClassName: "text-emerald-600",
+          label: "版本",
+          value: object.version,
+        }
+      : null,
+    {
+      icon: Layers,
+      iconClassName: "text-violet-600",
+      label: "类型",
+      value: typeMap[object.type] ?? object.type,
+    },
+    object.sourceType
+      ? {
+          icon: Layers,
+          iconClassName: "text-violet-500",
+          label: "来源",
+          value: sourceMap[object.sourceType] ?? object.sourceType,
+        }
+      : null,
+    object.mode
+      ? {
+          icon: Settings,
+          iconClassName: "text-amber-600",
+          label: "下发方式",
+          value: modeMap[object.mode] ?? object.mode,
+        }
+      : null,
+  ].filter(Boolean) as Array<{
+    icon: LucideIcon
+    iconClassName: string
+    label: string
+    value: string
+  }>
+
+  const midpoint = Math.ceil(rows.length / 2)
+  const leftRows = rows.slice(0, midpoint)
+  const rightRows = rows.slice(midpoint)
+
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -61,58 +131,22 @@ export function ObjectSummary({ object }: ObjectSummaryProps) {
       </div>
 
       <div className="rounded-xl border bg-card p-4">
-        <div className="space-y-4">
-          <div className="rounded-lg border bg-muted/30 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                <div className="truncate text-base font-medium text-foreground">{object.name}</div>
-                {object.description ? (
-                  <p className="min-w-0 truncate text-sm text-muted-foreground">{object.description}</p>
-                ) : null}
-              </div>
-              <Badge variant="secondary" className="shrink-0">
-                {typeMap[object.type] ?? object.type}
-              </Badge>
+        <div className="flex items-start justify-between gap-3">
+          <div className="grid flex-1 gap-x-10 xl:grid-cols-2">
+            <div>
+              {leftRows.map((row) => (
+                <SummaryRow key={row.label} {...row} />
+              ))}
+            </div>
+            <div>
+              {rightRows.map((row) => (
+                <SummaryRow key={row.label} {...row} />
+              ))}
             </div>
           </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {object.id ? (
-              <MetaItem
-                icon={Hash}
-                iconClassName="text-slate-500"
-                label="对象 ID"
-                value={object.id}
-              />
-            ) : null}
-
-            {object.version ? (
-              <MetaItem
-                icon={GitBranch}
-                iconClassName="text-emerald-600"
-                label="版本"
-                value={object.version}
-              />
-            ) : null}
-
-            {object.sourceType ? (
-              <MetaItem
-                icon={Layers}
-                iconClassName="text-violet-600"
-                label="来源"
-                value={sourceMap[object.sourceType] ?? object.sourceType}
-              />
-            ) : null}
-
-            {object.mode ? (
-              <MetaItem
-                icon={Settings}
-                iconClassName="text-amber-600"
-                label="下发方式"
-                value={modeMap[object.mode] ?? object.mode}
-              />
-            ) : null}
-          </div>
+          <Badge variant="secondary" className="shrink-0">
+            {typeMap[object.type] ?? object.type}
+          </Badge>
         </div>
       </div>
     </section>

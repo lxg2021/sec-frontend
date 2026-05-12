@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ComponentType } from "react"
+import { useState, type LucideIcon } from "react"
 import {
   AlertCircle,
   ChevronDown,
@@ -27,37 +27,24 @@ interface TargetSummaryProps {
   sampleSize?: number
 }
 
-interface StatCardProps {
-  icon: ComponentType<{ className?: string }>
+interface SummaryRowProps {
+  icon: LucideIcon
   iconClassName: string
   label: string
-  value: number
-  suffix?: string
-  highlight?: boolean
+  value: string
 }
 
-function StatCard({
+function SummaryRow({
   icon: Icon,
   iconClassName,
   label,
   value,
-  suffix,
-  highlight,
-}: StatCardProps) {
+}: SummaryRowProps) {
   return (
-    <div className="rounded-lg border bg-muted/30 px-4 py-3">
-      <div className="flex items-center gap-2">
-        <Icon className={`size-4 shrink-0 ${iconClassName}`} />
-        <span className="text-sm text-muted-foreground">{label}</span>
-        <div className="ml-auto flex items-baseline gap-1">
-          <span
-            className={`text-xl font-semibold ${highlight ? "text-primary" : "text-foreground"}`}
-          >
-            {value.toLocaleString()}
-          </span>
-          {suffix ? <span className="text-sm text-muted-foreground">{suffix}</span> : null}
-        </div>
-      </div>
+    <div className="flex items-center gap-3 border-b border-border/70 py-4 last:border-b-0">
+      <Icon className={`size-4 shrink-0 ${iconClassName}`} />
+      <span className="w-24 shrink-0 text-sm text-muted-foreground">{label}</span>
+      <span className="min-w-0 flex-1 truncate text-sm text-foreground">{value}</span>
     </div>
   )
 }
@@ -130,6 +117,47 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
     (target.offlineHostCount ?? 0) > 0 ||
     (target.invalidHostCount ?? 0) > 0 ||
     (target.ungroupedHostCount ?? 0) > 0
+  const rows = [
+    {
+      icon: Users,
+      iconClassName: "text-violet-600",
+      label: "逻辑组",
+      value: `${target.groupCount} 组`,
+    },
+    {
+      icon: Monitor,
+      iconClassName: "text-sky-600",
+      label: "去重主机数",
+      value: `${target.deduplicatedHostCount} 台`,
+    },
+    {
+      icon: Server,
+      iconClassName: "text-slate-600",
+      label: "原始目标数",
+      value: `${target.hostCount} 台`,
+    },
+    {
+      icon: AlertCircle,
+      iconClassName: "text-rose-600",
+      label: "不可下发",
+      value: `${target.invalidHostCount ?? 0} 台`,
+    },
+    {
+      icon: WifiOff,
+      iconClassName: "text-amber-600",
+      label: "离线主机",
+      value: `${target.offlineHostCount ?? 0} 台`,
+    },
+    {
+      icon: FolderOpen,
+      iconClassName: "text-amber-600",
+      label: "未分组",
+      value: `${target.ungroupedHostCount ?? 0} 台`,
+    },
+  ]
+  const midpoint = Math.ceil(rows.length / 2)
+  const leftRows = rows.slice(0, midpoint)
+  const rightRows = rows.slice(midpoint)
 
   return (
     <section className="space-y-4">
@@ -140,50 +168,17 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
 
       <div className="rounded-xl border bg-card">
         <div className="space-y-4 p-4">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <StatCard
-              icon={Users}
-              iconClassName="text-violet-600"
-              label="逻辑组"
-              value={target.groupCount}
-              suffix="组"
-            />
-            <StatCard
-              icon={Monitor}
-              iconClassName="text-sky-600"
-              label="去重主机数"
-              value={target.deduplicatedHostCount}
-              suffix="台"
-              highlight
-            />
-            <StatCard
-              icon={Server}
-              iconClassName="text-slate-600"
-              label="原始目标数"
-              value={target.hostCount}
-              suffix="台"
-            />
-            <StatCard
-              icon={AlertCircle}
-              iconClassName="text-rose-600"
-              label="不可下发"
-              value={target.invalidHostCount ?? 0}
-              suffix="台"
-            />
-            <StatCard
-              icon={WifiOff}
-              iconClassName="text-amber-600"
-              label="离线主机"
-              value={target.offlineHostCount ?? 0}
-              suffix="台"
-            />
-            <StatCard
-              icon={FolderOpen}
-              iconClassName="text-amber-600"
-              label="未分组"
-              value={target.ungroupedHostCount ?? 0}
-              suffix="台"
-            />
+          <div className="grid gap-x-10 xl:grid-cols-2">
+            <div>
+              {leftRows.map((row) => (
+                <SummaryRow key={row.label} {...row} />
+              ))}
+            </div>
+            <div>
+              {rightRows.map((row) => (
+                <SummaryRow key={row.label} {...row} />
+              ))}
+            </div>
           </div>
 
           {hasWarnings ? (
