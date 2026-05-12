@@ -21,7 +21,6 @@ import {
 } from "@/shared/ui/collapsible"
 
 import type { DispatchGroup, DispatchTarget } from "../types"
-import { getSelectionModeText } from "../utils"
 
 interface TargetSummaryProps {
   target: DispatchTarget
@@ -139,11 +138,6 @@ export function TargetSummary({ target, sampleSize = 5 }: TargetSummaryProps) {
 
       <div className="rounded-xl border bg-card">
         <div className="space-y-4 p-4">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-sm text-muted-foreground">选择方式</span>
-            <Badge variant="outline">{getSelectionModeText(target.selectionMode)}</Badge>
-          </div>
-
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <StatCard icon={Users} label="逻辑组" value={target.groupCount} suffix="组" />
             <StatCard
