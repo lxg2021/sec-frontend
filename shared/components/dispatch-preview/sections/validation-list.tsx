@@ -1,33 +1,20 @@
 "use client"
 
-import { useState } from "react"
 import {
   AlertCircle,
   AlertTriangle,
-  ChevronDown,
-  ChevronRight,
   Info,
   Lightbulb,
 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/ui/collapsible"
-
 import type { DispatchPermissions, DispatchValidation } from "../types"
 
 function ValidationItem({
   validation,
-  defaultOpen = false,
 }: {
   validation: DispatchValidation
-  defaultOpen?: boolean
 }) {
-  const [open, setOpen] = useState(defaultOpen)
-
   const styles = {
     error: {
       container: "border-destructive/50 bg-destructive/5",
@@ -56,32 +43,23 @@ function ValidationItem({
     )
 
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
-      <div className={`rounded-lg border ${styles.container}`}>
-        <CollapsibleTrigger className="flex w-full items-start gap-3 rounded-lg p-3 text-left transition-colors hover:bg-muted/30">
-          <span className={`mt-0.5 ${styles.icon}`}>{icon}</span>
-          <div className="min-w-0 flex-1">
-            <p className={`text-sm font-medium ${styles.title}`}>{validation.message}</p>
-          </div>
-          {validation.suggestion ? (
-            <span className="mt-0.5 text-muted-foreground">
-              {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-            </span>
-          ) : null}
-        </CollapsibleTrigger>
-
-        {validation.suggestion && open ? (
-          <CollapsibleContent>
-            <div className="ml-7 px-3 pb-3 pt-0">
-              <div className="flex items-start gap-2 rounded-md bg-muted/50 p-2 text-sm text-muted-foreground">
-                <Lightbulb className="mt-0.5 size-4 shrink-0 text-amber-500" />
-                <p>{validation.suggestion}</p>
-              </div>
-            </div>
-          </CollapsibleContent>
-        ) : null}
+    <div className={`rounded-lg border ${styles.container}`}>
+      <div className="flex items-start gap-3 rounded-lg p-3 text-left">
+        <span className={`mt-0.5 ${styles.icon}`}>{icon}</span>
+        <div className="min-w-0 flex-1">
+          <p className={`text-sm font-medium ${styles.title}`}>{validation.message}</p>
+        </div>
       </div>
-    </Collapsible>
+
+      {validation.suggestion ? (
+        <div className="ml-7 px-3 pb-3 pt-0">
+          <div className="flex items-start gap-2 rounded-md bg-muted/50 p-2 text-sm text-muted-foreground">
+            <Lightbulb className="mt-0.5 size-4 shrink-0 text-amber-500" />
+            <p>{validation.suggestion}</p>
+          </div>
+        </div>
+      ) : null}
+    </div>
   )
 }
 
@@ -118,15 +96,11 @@ export function ValidationList({
         ) : null}
 
         {errors.map((item, index) => (
-          <ValidationItem key={`error-${index}`} validation={item} defaultOpen />
+          <ValidationItem key={`error-${index}`} validation={item} />
         ))}
 
         {warnings.map((item, index) => (
-          <ValidationItem
-            key={`warning-${index}`}
-            validation={item}
-            defaultOpen={false}
-          />
+          <ValidationItem key={`warning-${index}`} validation={item} />
         ))}
 
         {infos.map((item, index) => (
