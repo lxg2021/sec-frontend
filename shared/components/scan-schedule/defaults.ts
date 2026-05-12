@@ -3,7 +3,7 @@ import type { ScanSchedule } from "./types"
 export const DEFAULT_SCAN_SCHEDULE: ScanSchedule = {
   mode: "interval",
   interval_hours: 24,
-  random_delay_minutes: 0,
+  random_delay_minutes: 5,
   retry_limit: 3,
   retry_interval_minutes: 5,
   scan_on_startup: false,
