@@ -495,17 +495,26 @@ export function BaselineDispatchClient() {
   }, [canCreatePolicy, policyName, selectedTemplate, version])
 
   const handleConfirmDispatch = useCallback(async () => {
-    if (!previewData?.permissions?.canSubmit) return
+    if (!previewData?.permissions?.canSubmit) {
+      toast.error(previewData?.permissions?.reason || "当前不满足下发条件。")
+      return
+    }
 
     setSubmitting(true)
+    const toastId = toast.loading("任务下发中...")
 
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 800))
-      toast.success("基线下发已提交。")
+      toast.success("基线下发成功，任务已提交。", { id: toastId })
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? `基线下发失败：${error.message}` : "基线下发失败，请稍后重试。",
+        { id: toastId },
+      )
     } finally {
       setSubmitting(false)
     }
-  }, [previewData?.permissions?.canSubmit])
+  }, [previewData?.permissions?.canSubmit, previewData?.permissions?.reason])
 
   const renderCurrentStep = () => {
     const selector = (

@@ -12,6 +12,7 @@ import {
 import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
 import { Toaster } from "@/shared/ui/toaster"
+import { Toaster as SonnerToaster } from "@/shared/ui/sonner"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -382,6 +383,7 @@ export function FrameLayout({ children }) {
 
       </div>
       <Toaster />
+      <SonnerToaster position="top-right" richColors />
     </div>
   )
 }
