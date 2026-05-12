@@ -6,16 +6,16 @@ import {
   AlertCircle,
   ArrowRight,
   Clock3,
-  Layers3,
   LayoutGrid,
-  RefreshCw,
   Server,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 
 import { getAllBaselineTemplates, type BaselineTemplate } from "@/features/baseline/custom/api"
+import SharedBaselineSelector, {
+  type BaselineSelectorItem,
+} from "@/shared/components/baseline-selector"
 import DispatchPreview, {
   type DispatchPreviewData,
 } from "@/shared/components/dispatch-preview"
@@ -23,14 +23,10 @@ import HostSelector from "@/shared/components/host-selector"
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
 import { ScanScheduleForm, type ScanSchedule } from "@/shared/components/scan-schedule"
 import { getAccessToken } from "@/shared/lib/http/auth"
-import { cn } from "@/shared/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
-import { Input } from "@/shared/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
-import { Skeleton } from "@/shared/ui/skeleton"
 import { Toaster } from "@/shared/ui/toaster"
 
 const DEFAULT_SCHEDULE: ScanSchedule = {
@@ -42,8 +38,23 @@ const DEFAULT_SCHEDULE: ScanSchedule = {
   scan_on_startup: false,
 }
 
-function normalizeText(value: string) {
-  return value.trim().toLowerCase()
+const knownStandards = new Set(["cis", "dod", "msft", "tls", "intune", "custom"])
+const knownProfiles = new Set(["machine", "user", "both"])
+
+interface PreviewHostItem {
+  agentId: string
+  hostname: string
+  ip?: string
+  status?: string
+  valid?: boolean
+  invalidReason?: string
+}
+
+interface PreviewGroupBucket {
+  id: string
+  name: string
+  hostCount: number
+  hosts: PreviewHostItem[]
 }
 
 function buildScheduleSummary(schedule: ScanSchedule) {
@@ -64,29 +75,10 @@ function buildScheduleSummary(schedule: ScanSchedule) {
   return parts.join("，")
 }
 
-interface PreviewHostItem {
-  agentId: string
-  hostname: string
-  ip?: string
-  status?: string
-  valid?: boolean
-  invalidReason?: string
-}
-
-interface PreviewGroupBucket {
-  id: string
-  name: string
-  hostCount: number
-  hosts: PreviewHostItem[]
-}
-
 export function BaselineDispatchClient() {
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
   const [templatesLoading, setTemplatesLoading] = useState(true)
   const [templatesError, setTemplatesError] = useState("")
-  const [templateSearch, setTemplateSearch] = useState("")
-  const [standardFilter, setStandardFilter] = useState("all")
-  const [profileFilter, setProfileFilter] = useState("all")
   const [selectedTemplateUuid, setSelectedTemplateUuid] = useState("")
 
   const [hostTree, setHostTree] = useState<any[]>([])
@@ -157,32 +149,44 @@ export function BaselineDispatchClient() {
       return
     }
 
-    if (selectedTemplateUuid && !templates.some((template) => template.uuid === selectedTemplateUuid)) {
+    if (
+      selectedTemplateUuid &&
+      !templates.some((template) => template.uuid === selectedTemplateUuid)
+    ) {
       setSelectedTemplateUuid(templates[0]?.uuid ?? "")
     }
   }, [selectedTemplateUuid, templates])
 
-  const filteredTemplates = useMemo(() => {
-    const search = normalizeText(templateSearch)
+  const baselineSelectorItems = useMemo<BaselineSelectorItem[]>(() => {
+    return templates.map((template) => {
+      const standardKey = template.standard.toLowerCase()
+      const profileKey = template.profile.toLowerCase()
 
-    return templates.filter((template) => {
-      const matchesSearch =
-        !search ||
-        normalizeText(template.display_name).includes(search) ||
-        normalizeText(template.description).includes(search) ||
-        normalizeText(template.standard).includes(search) ||
-        normalizeText(template.product).includes(search) ||
-        normalizeText(template.os_version).includes(search)
-
-      const matchesStandard = standardFilter === "all" || template.standard === standardFilter
-      const matchesProfile = profileFilter === "all" || template.profile === profileFilter
-
-      return matchesSearch && matchesStandard && matchesProfile
+      return {
+        id: template.uuid,
+        title: template.display_name || template.baseline_uuid,
+        standardKey: knownStandards.has(standardKey) ? standardKey : "other",
+        standardLabel: template.standard ? template.standard.toUpperCase() : "UNKNOWN",
+        productLabel: template.product || "未知产品",
+        profileLabel:
+          knownProfiles.has(profileKey) ? template.profile : template.profile || "未知画像",
+        osVersionLabel: template.os_version || template.baseline_version || undefined,
+        lastCheckTime: template.latest_check_time || undefined,
+        hostCount: template.host_count,
+        itemCount: template.item_count,
+        highCount: template.high_count,
+        mediumCount: template.medium_count,
+        lowCount: template.low_count,
+      }
     })
-  }, [profileFilter, standardFilter, templateSearch, templates])
+  }, [templates])
 
   const selectedTemplate = useMemo(() => {
-    return templates.find((template) => template.uuid === selectedTemplateUuid) ?? templates[0] ?? null
+    return (
+      templates.find((template) => template.uuid === selectedTemplateUuid) ??
+      templates[0] ??
+      null
+    )
   }, [selectedTemplateUuid, templates])
 
   const selectedHosts = useMemo(() => {
@@ -205,6 +209,7 @@ export function BaselineDispatchClient() {
       const groupName =
         selectedNodeLookup.get(groupId)?.name ||
         (groupId === "__ungrouped__" ? "未分组" : "逻辑组")
+
       const current =
         buckets.get(groupId) || {
           id: groupId,
@@ -222,22 +227,12 @@ export function BaselineDispatchClient() {
         valid: host.valid,
         invalidReason: host.invalidReason,
       })
+
       buckets.set(groupId, current)
     }
 
     return Array.from(buckets.values())
   }, [selectedHosts, selectedNodeLookup])
-
-  const selectedTemplateSummary = useMemo(() => {
-    if (!selectedTemplate) return []
-
-    return [
-      { label: "条目数", value: `${selectedTemplate.item_count}` },
-      { label: "适用产品", value: selectedTemplate.product || "--" },
-      { label: "标准", value: selectedTemplate.standard || "--" },
-      { label: "画像", value: selectedTemplate.profile || "--" },
-    ]
-  }, [selectedTemplate])
 
   const offlineHostCount = useMemo(() => {
     return selectedHosts.filter((host) =>
@@ -250,7 +245,9 @@ export function BaselineDispatchClient() {
   }, [selectedHosts])
 
   const ungroupedHostCount = useMemo(() => {
-    return selectedHosts.filter((host) => host.parentId === "__ungrouped__" || !host.parentId).length
+    return selectedHosts.filter(
+      (host) => host.parentId === "__ungrouped__" || !host.parentId,
+    ).length
   }, [selectedHosts])
 
   const previewData = useMemo<DispatchPreviewData | undefined>(() => {
@@ -268,7 +265,8 @@ export function BaselineDispatchClient() {
           selectedTemplate.description ||
           `${selectedTemplate.standard} ${selectedTemplate.product} ${selectedTemplate.os_version}`,
         id: selectedTemplate.baseline_uuid,
-        version: selectedTemplate.baseline_version || selectedTemplate.os_version,
+        version:
+          selectedTemplate.baseline_version || selectedTemplate.os_version || undefined,
         sourceType: "template",
         mode: "create",
       },
@@ -301,7 +299,7 @@ export function BaselineDispatchClient() {
                 level: "error" as const,
                 code: "invalid-hosts",
                 message: `${invalidHostCount} 台主机未满足下发条件。`,
-                suggestion: "请先完成 Agent 安装、网络连通性或前置配置检查。",
+                suggestion: "请先完成 Agent 安装、连通性或前置配置检查。",
               },
             ]
           : []),
@@ -310,8 +308,8 @@ export function BaselineDispatchClient() {
               {
                 level: "warning" as const,
                 code: "offline-hosts",
-                message: `${offlineHostCount} 台主机当前离线，可能无法立即接收下发任务。`,
-                suggestion: "可先保留计划，待主机恢复在线后再执行。",
+                message: `${offlineHostCount} 台主机当前离线，可能无法立即接收任务。`,
+                suggestion: "可先保留策略，待主机恢复在线后再执行。",
               },
             ]
           : []),
@@ -335,7 +333,7 @@ export function BaselineDispatchClient() {
           !hostsError,
         reason:
           !selectedTemplate
-            ? "请选择一个基线模板。"
+            ? "请选择一个基线。"
             : selectedHosts.length === 0
               ? "请选择目标主机。"
               : templatesError || hostsError || "",
@@ -372,9 +370,6 @@ export function BaselineDispatchClient() {
   )
 
   const resetAll = useCallback(() => {
-    setTemplateSearch("")
-    setStandardFilter("all")
-    setProfileFilter("all")
     setSchedule(DEFAULT_SCHEDULE)
     setSelectedNodes([])
     setSelectedIds(new Set())
@@ -401,22 +396,27 @@ export function BaselineDispatchClient() {
               <div className="rounded-2xl bg-gradient-to-br from-slate-950 to-slate-700 p-3 shadow-lg shadow-slate-300/60">
                 <ShieldCheck className="h-7 w-7 text-white" />
               </div>
+
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-3xl font-semibold tracking-tight text-slate-950">
                     基线下发
                   </h1>
-                  <Badge variant="outline" className="rounded-full border-slate-200 bg-white px-3">
+                  <Badge
+                    variant="outline"
+                    className="rounded-full border-slate-200 bg-white px-3"
+                  >
                     draft flow
                   </Badge>
                 </div>
+
                 <p className="max-w-3xl text-sm leading-6 text-slate-600">
-                  选择基线模板、目标主机和执行计划后，再进入统一的下发预览确认。
+                  先选择基线，再配置扫描计划，最后选择主机并进入下发预览。
                 </p>
 
                 <div className="flex flex-wrap gap-2 pt-1">
                   <Badge className="rounded-full bg-slate-950 px-3 text-white">
-                    模板 {templates.length}
+                    基线 {templates.length}
                   </Badge>
                   <Badge variant="secondary" className="rounded-full px-3">
                     主机 {selectedHosts.length}
@@ -435,15 +435,18 @@ export function BaselineDispatchClient() {
               <div className="rounded-2xl border bg-slate-50/80 p-4">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                   <LayoutGrid className="h-4 w-4" />
-                  模板状态
+                  当前基线
                 </div>
                 <div className="mt-2 truncate text-2xl font-semibold text-slate-950">
                   {selectedTemplate ? selectedTemplate.display_name : "--"}
                 </div>
                 <div className="mt-1 text-sm text-slate-500">
-                  {selectedTemplate ? `${selectedTemplate.item_count} 条规则` : "尚未选择模板"}
+                  {selectedTemplate
+                    ? `${selectedTemplate.item_count} 条检查项`
+                    : "尚未选择基线"}
                 </div>
               </div>
+
               <div className="rounded-2xl border bg-slate-50/80 p-4">
                 <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
                   <Server className="h-4 w-4" />
@@ -452,9 +455,7 @@ export function BaselineDispatchClient() {
                 <div className="mt-2 text-2xl font-semibold text-slate-950">
                   {selectedHosts.length.toLocaleString()}
                 </div>
-                <div className="mt-1 text-sm text-slate-500">
-                  已选主机
-                </div>
+                <div className="mt-1 text-sm text-slate-500">已选主机</div>
               </div>
             </div>
           </div>
@@ -474,175 +475,77 @@ export function BaselineDispatchClient() {
         )}
 
         <div className="space-y-6">
-          <div className="space-y-6">
-            <Card className="overflow-hidden border-slate-200/80 shadow-lg">
-              <div className="h-1 bg-gradient-to-r from-slate-950 via-blue-600 to-cyan-400" />
-              <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 text-slate-800">
-                      <div className="rounded-xl bg-blue-50 p-2 text-blue-600">
-                        <LayoutGrid className="h-4 w-4" />
-                      </div>
-                      基线模板
-                    </CardTitle>
-                    <CardDescription className="mt-1">
-                      选择一个模板作为本次下发对象。
-                    </CardDescription>
-                  </div>
-
-                  <Button variant="outline" size="sm" onClick={() => void loadTemplates()} disabled={templatesLoading}>
-                    <RefreshCw className={cn("mr-2 h-4 w-4", templatesLoading && "animate-spin")} />
-                    刷新模板
-                  </Button>
+          <Card className="overflow-hidden border-slate-200/80 shadow-lg">
+            <div className="h-1 bg-gradient-to-r from-slate-950 via-blue-600 to-cyan-400" />
+            <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
+              <CardTitle className="flex items-center gap-2 text-slate-800">
+                <div className="rounded-xl bg-blue-50 p-2 text-blue-600">
+                  <LayoutGrid className="h-4 w-4" />
                 </div>
+                基线选择
+              </CardTitle>
+              <CardDescription>展示方式和 /frame/baseline 保持一致。</CardDescription>
+            </CardHeader>
 
-                <div className="grid gap-3 pt-4 md:grid-cols-[minmax(0,1fr)_180px_180px]">
-                  <Input
-                    value={templateSearch}
-                    onChange={(e) => setTemplateSearch(e.target.value)}
-                    placeholder="搜索模板名称、描述、标准、产品或版本"
-                    className="h-11 rounded-xl border-slate-200 bg-white/90 shadow-sm"
-                  />
-                  <Select value={standardFilter} onValueChange={setStandardFilter}>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/90 shadow-sm">
-                      <SelectValue placeholder="标准" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">全部标准</SelectItem>
-                      {Array.from(new Set(templates.map((template) => template.standard).filter(Boolean))).map((standard) => (
-                        <SelectItem key={standard} value={standard}>
-                          {standard}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={profileFilter} onValueChange={setProfileFilter}>
-                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/90 shadow-sm">
-                      <SelectValue placeholder="画像" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">全部画像</SelectItem>
-                      {Array.from(new Set(templates.map((template) => template.profile).filter(Boolean))).map((profile) => (
-                        <SelectItem key={profile} value={profile}>
-                          {profile}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+            <CardContent className="p-4">
+              <SharedBaselineSelector
+                items={baselineSelectorItems}
+                value={selectedTemplateUuid}
+                onValueChange={setSelectedTemplateUuid}
+                onRefresh={() => void loadTemplates()}
+                isRefreshing={templatesLoading}
+                className="w-full"
+                text={{
+                  current: "当前",
+                  emptyPlaceholder: "暂无可选基线",
+                  hosts: (count) => `主机 ${count}`,
+                  checks: (count) => `检查项 ${count}`,
+                  lastChecked: "最近检查",
+                  noCheck: "暂无检查",
+                  noMatches: "没有匹配的基线",
+                  refresh: "刷新",
+                  searchPlaceholder: "搜索基线名称、标准、产品或画像",
+                  selectPlaceholder: "请选择基线",
+                  unknown: "未知",
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="overflow-hidden border-slate-200/80 shadow-lg">
+            <div className="h-1 bg-gradient-to-r from-slate-950 via-slate-700 to-blue-500" />
+            <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
+              <CardTitle className="flex items-center gap-2 text-slate-800">
+                <div className="rounded-xl bg-slate-950 p-2 text-white">
+                  <Clock3 className="h-4 w-4" />
                 </div>
-              </CardHeader>
+                扫描计划
+              </CardTitle>
+              <CardDescription>当前 proto 只支持 interval 模式。</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4">
+              <ScanScheduleForm
+                value={schedule}
+                onChange={setSchedule}
+                title="调度计划配置"
+                description="设置策略执行的周期、随机延迟和重试方式。"
+                className="max-w-none border-slate-200 shadow-none"
+              />
+            </CardContent>
+          </Card>
 
-              <CardContent className="space-y-3 p-4">
-                {templatesLoading ? (
-                  <div className="space-y-3">
-                    {Array.from({ length: 4 }).map((_, index) => (
-                      <Skeleton key={index} className="h-28 rounded-2xl" />
-                    ))}
-                  </div>
-                ) : filteredTemplates.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed bg-slate-50 px-6 py-12 text-center">
-                    <Layers3 className="mx-auto h-12 w-12 text-slate-300" />
-                    <p className="mt-3 text-sm font-medium text-slate-900">没有匹配的基线模板</p>
-                    <p className="mt-1 text-xs text-slate-500">调整搜索条件后重试。</p>
-                  </div>
-                ) : (
-                  <div className="max-h-[540px] space-y-3 overflow-y-auto pr-1">
-                    {filteredTemplates.map((template) => {
-                      const active = selectedTemplateUuid === template.uuid
-
-                      return (
-                        <button
-                          key={template.uuid}
-                          type="button"
-                          onClick={() => setSelectedTemplateUuid(template.uuid)}
-                          className={cn(
-                            "w-full rounded-2xl border p-4 text-left transition-all duration-200",
-                            active
-                              ? "border-blue-300 bg-blue-50/80 shadow-sm ring-1 ring-blue-100"
-                              : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 hover:shadow-sm",
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <span className="truncate text-sm font-semibold text-slate-950">
-                                  {template.display_name}
-                                </span>
-                                {active && (
-                                  <Badge className="rounded-full bg-blue-600 px-2 text-[11px] text-white">
-                                    当前选择
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
-                                {template.description || `${template.standard} · ${template.product} · ${template.os_version}`}
-                              </p>
-                            </div>
-                            <Badge variant="outline" className="shrink-0 rounded-full border-slate-200 bg-white px-2 text-xs text-slate-700">
-                              {template.item_count} 条
-                            </Badge>
-                          </div>
-
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <Badge variant="secondary" className="rounded-full bg-slate-100 px-2 text-xs text-slate-700">
-                              标准: {template.standard || "--"}
-                            </Badge>
-                            <Badge variant="secondary" className="rounded-full bg-slate-100 px-2 text-xs text-slate-700">
-                              画像: {template.profile || "--"}
-                            </Badge>
-                            <Badge variant="secondary" className="rounded-full bg-slate-100 px-2 text-xs text-slate-700">
-                              版本: {template.baseline_version || template.os_version || "--"}
-                            </Badge>
-                            <Badge variant="secondary" className="rounded-full bg-slate-100 px-2 text-xs text-slate-700">
-                              主机: {template.host_count || 0}
-                            </Badge>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden border-slate-200/80 shadow-lg">
-              <div className="h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-slate-950" />
-              <CardContent className="p-4">
-                <HostSelector
-                  key={selectorVersion}
-                  data={hostTree}
-                  loading={hostsLoading}
-                  emptyText="未获取到主机树数据。"
-                  onSelectionChange={handleHostSelectionChange}
-                />
-              </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden border-slate-200/80 shadow-lg">
-              <div className="h-1 bg-gradient-to-r from-slate-950 via-slate-700 to-blue-500" />
-              <CardHeader className="border-b bg-gradient-to-b from-white to-slate-50/60">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
-                  <div className="rounded-xl bg-slate-950 p-2 text-white">
-                    <Clock3 className="h-4 w-4" />
-                  </div>
-                  执行计划
-                </CardTitle>
-                <CardDescription>
-                  配置本次基线检查的执行节奏与重试策略。
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4">
-                <ScanScheduleForm
-                  value={schedule}
-                  onChange={setSchedule}
-                  title="调度计划配置"
-                  description="设置基线下发后主机的检查节奏与执行策略。"
-                  className="max-w-none border-slate-200 shadow-none"
-                />
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="overflow-hidden border-slate-200/80 shadow-lg">
+            <div className="h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-slate-950" />
+            <CardContent className="p-4">
+              <HostSelector
+                key={selectorVersion}
+                data={hostTree}
+                loading={hostsLoading}
+                emptyText="未获取到主机树数据。"
+                onSelectionChange={handleHostSelectionChange}
+              />
+            </CardContent>
+          </Card>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-3">
@@ -655,9 +558,11 @@ export function BaselineDispatchClient() {
               </AlertDescription>
             </Alert>
           )}
+
           <Button variant="outline" className="h-11 gap-2" onClick={resetAll}>
             重置
           </Button>
+
           <Button
             className="h-11 gap-2 bg-slate-950 text-white hover:bg-slate-800"
             disabled={!selectionReady}
