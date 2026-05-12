@@ -1,10 +1,33 @@
 "use client"
 
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect, useRef } from "react"
+
+function collectExpandedIdsByDepth(nodes, maxDepth, level = 0) {
+  const ids = []
+
+  nodes.forEach((node) => {
+    if (level < maxDepth && node.children?.length) {
+      ids.push(node.id)
+      ids.push(...collectExpandedIdsByDepth(node.children, maxDepth, level + 1))
+    }
+  })
+
+  return ids
+}
 
 export function useTreeData(initialData) {
   const [expandedIds, setExpandedIds] = useState(new Set())
   const [selectedIds, setSelectedIds] = useState(new Set())
+  const initializedExpandedRef = useRef(false)
+
+  useEffect(() => {
+    if (initializedExpandedRef.current || initialData.length === 0) {
+      return
+    }
+
+    setExpandedIds(new Set(collectExpandedIdsByDepth(initialData, 2)))
+    initializedExpandedRef.current = true
+  }, [initialData])
 
   const flattenTree = useCallback(
     (nodes, level = 0, parentPath = []) => {
