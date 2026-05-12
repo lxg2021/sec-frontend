@@ -1,33 +1,47 @@
 "use client"
 
-import { AlertCircle, ArrowRight, CheckCircle2, ChevronLeft, FileText } from "lucide-react"
+import { ChevronLeft, FileText } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
+import type { DispatchPreviewData } from "@/shared/components/dispatch-preview"
+import { FooterActions } from "@/shared/components/dispatch-preview/sections/footer-actions"
+import { ObjectSummary } from "@/shared/components/dispatch-preview/sections/object-summary"
+import { ScheduleSummary } from "@/shared/components/dispatch-preview/sections/schedule-summary"
+import { TargetSummary } from "@/shared/components/dispatch-preview/sections/target-summary"
+import { ValidationList } from "@/shared/components/dispatch-preview/sections/validation-list"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Separator } from "@/shared/ui/separator"
 
 interface DispatchSubmitStepProps {
-  canPreview: boolean
-  hasPolicy: boolean
-  invalidHostCount: number
-  offlineHostCount: number
+  data?: DispatchPreviewData
+  dangerConfirmRequired?: boolean
   onBack: () => void
-  onPreview: () => void
-  policyName: string
-  selectedHostCount: number
+  onConfirm: () => void
+  submitting?: boolean
 }
 
 export function DispatchSubmitStep({
-  canPreview,
-  hasPolicy,
-  invalidHostCount,
-  offlineHostCount,
+  data,
+  dangerConfirmRequired = false,
   onBack,
-  onPreview,
-  policyName,
-  selectedHostCount,
+  onConfirm,
+  submitting = false,
 }: DispatchSubmitStepProps) {
+  const statusTags = (() => {
+    if (!data) return []
+
+    const tags: string[] = []
+    const hasErrors = data.validations?.some((item) => item.level === "error")
+    const hasWarnings = data.validations?.some((item) => item.level === "warning")
+
+    if (hasErrors) tags.push("存在错误")
+    if (hasWarnings) tags.push("存在风险")
+    if (data.permissions?.canSubmit) tags.push("可提交")
+
+    return tags
+  })()
+
   return (
     <Card className="border bg-card shadow-sm">
       <CardHeader className="border-b border-border pb-4">
@@ -38,59 +52,74 @@ export function DispatchSubmitStep({
           <div>
             <CardTitle className="text-lg font-semibold text-foreground">任务下发</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              确认策略对象和目标范围，然后进入下发预览。
+              请在当前页面确认下发对象、目标范围与执行计划。
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 p-6">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-2xl border bg-slate-50/70 p-4">
-            <div className="text-xs text-slate-500">策略对象</div>
-            <div className="mt-2 text-sm font-medium text-slate-950">
-              {hasPolicy ? policyName : "尚未创建"}
+      <CardContent className="space-y-0 p-0">
+        {!data ? (
+          <div className="flex min-h-[320px] items-center justify-center px-6 py-10 text-center text-sm text-slate-500">
+            暂无可预览内容，请先完成前置步骤。
+          </div>
+        ) : (
+          <>
+            <div className="space-y-6 p-6">
+              {statusTags.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {statusTags.map((tag) => (
+                    <Badge key={tag} variant="outline">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              ) : null}
+
+              <ObjectSummary object={data.object} />
+
+              <Separator />
+
+              <TargetSummary target={data.target} />
+
+              {data.schedule ? (
+                <>
+                  <Separator />
+                  <ScheduleSummary schedule={data.schedule} />
+                </>
+              ) : null}
+
+              {(data.validations?.length || data.permissions?.canSubmit === false) ? (
+                <>
+                  <Separator />
+                  <ValidationList
+                    validations={data.validations}
+                    permissions={data.permissions}
+                    showPermissionInfo
+                  />
+                </>
+              ) : null}
             </div>
-          </div>
-          <div className="rounded-2xl border bg-slate-50/70 p-4">
-            <div className="text-xs text-slate-500">目标主机</div>
-            <div className="mt-2 text-sm font-medium text-slate-950">{selectedHostCount} 台</div>
-          </div>
-          <div className="rounded-2xl border bg-slate-50/70 p-4">
-            <div className="text-xs text-slate-500">风险提示</div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Badge variant="outline">离线 {offlineHostCount}</Badge>
-              <Badge variant="outline">不可下发 {invalidHostCount}</Badge>
+
+            <div className="border-t">
+              <FooterActions
+                onBack={undefined}
+                onConfirm={onConfirm}
+                confirmText="确认下发"
+                submitting={submitting}
+                readonly={false}
+                validations={data.validations}
+                permissions={data.permissions}
+                dangerConfirmRequired={dangerConfirmRequired}
+              />
             </div>
-          </div>
-        </div>
+          </>
+        )}
 
-        {!hasPolicy ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>策略对象不存在</AlertTitle>
-            <AlertDescription>请先回到“任务计划”步骤，创建基线扫描策略对象。</AlertDescription>
-          </Alert>
-        ) : null}
-
-        {hasPolicy ? (
-          <Alert>
-            <CheckCircle2 className="h-4 w-4" />
-            <AlertTitle>已完成前置配置</AlertTitle>
-            <AlertDescription>
-              当前策略对象和主机范围已就绪，可以先进入下发预览再确认提交。
-            </AlertDescription>
-          </Alert>
-        ) : null}
-
-        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
+        <div className="border-t px-6 pb-6 pt-4">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
             <ChevronLeft className="mr-2 h-4 w-4" />
             返回：主机选择
-          </Button>
-          <Button onClick={onPreview} disabled={!canPreview} className="h-11 px-6">
-            下发预览
-            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </CardContent>

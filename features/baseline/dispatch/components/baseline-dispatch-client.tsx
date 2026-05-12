@@ -6,7 +6,7 @@ import { AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 
 import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
-import DispatchPreview, {
+import {
   type DispatchGroup,
   type DispatchHost,
   type DispatchPreviewData,
@@ -116,7 +116,6 @@ export function BaselineDispatchClient() {
   const [selectedNodes, setSelectedNodes] = useState<HostTreeNode[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const [previewOpen, setPreviewOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const loadTemplates = useCallback(async () => {
@@ -495,11 +494,6 @@ export function BaselineDispatchClient() {
     }
   }, [canCreatePolicy, policyName, selectedTemplate, version])
 
-  const handleOpenPreview = useCallback(() => {
-    if (!previewData) return
-    setPreviewOpen(true)
-  }, [previewData])
-
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) return
 
@@ -507,7 +501,6 @@ export function BaselineDispatchClient() {
 
     try {
       await new Promise((resolve) => window.setTimeout(resolve, 800))
-      setPreviewOpen(false)
       toast.success("基线下发已提交。")
     } finally {
       setSubmitting(false)
@@ -573,14 +566,11 @@ export function BaselineDispatchClient() {
 
     return (
       <DispatchSubmitStep
-        policyName={createdPolicy?.name || policyName}
-        hasPolicy={Boolean(createdPolicy)}
-        selectedHostCount={deduplicatedHosts.length}
-        offlineHostCount={offlineHostCount}
-        invalidHostCount={invalidHostCount}
-        canPreview={Boolean(previewData?.permissions?.canSubmit)}
+        data={previewData}
+        submitting={submitting}
+        dangerConfirmRequired={offlineHostCount > 0}
         onBack={() => setCurrentStep(3)}
-        onPreview={handleOpenPreview}
+        onConfirm={() => void handleConfirmDispatch()}
       />
     )
   }
@@ -613,19 +603,6 @@ export function BaselineDispatchClient() {
           {renderCurrentStep()}
         </div>
       </div>
-
-      <DispatchPreview
-        open={previewOpen}
-        data={previewData}
-        title="下发预览"
-        subtitle="请在提交前确认策略对象、目标主机范围与执行计划。"
-        confirmText="确认下发"
-        submitting={submitting}
-        onClose={() => setPreviewOpen(false)}
-        onBack={() => setPreviewOpen(false)}
-        onConfirm={() => void handleConfirmDispatch()}
-        dangerConfirmRequired={offlineHostCount > 0}
-      />
     </div>
   )
 }
