@@ -20,6 +20,8 @@ import { BaselineTemplateSelector } from "./baseline-template-selector"
 import { CreateBaselineForm } from "./create-baseline-form"
 import { SelectedItemsSummary } from "./selected-items-summary"
 
+const BASELINE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
+
 function collectSelectionPayload(selectedItems: Map<string, Set<string>>) {
   return Array.from(selectedItems.entries())
     .filter(([, itemIds]) => itemIds.size > 0)
@@ -27,6 +29,20 @@ function collectSelectionPayload(selectedItems: Map<string, Set<string>>) {
       template_uuid: templateUuid,
       item_ids: Array.from(itemIds),
     }))
+}
+
+function extractTemplateRequestMetadata(template: BaselineTemplate) {
+  return {
+    standard: template.standard.trim(),
+    product: template.product.trim(),
+    os_version: template.os_version.trim(),
+    profile: template.profile.trim(),
+  }
+}
+
+function getTemplateMetadataSignature(template: BaselineTemplate) {
+  const metadata = extractTemplateRequestMetadata(template)
+  return [metadata.product, metadata.os_version, metadata.profile].join("::")
 }
 
 export default function CustomBaselineClient() {
@@ -44,6 +60,9 @@ export default function CustomBaselineClient() {
   const [selectedItems, setSelectedItems] = useState<Map<string, Set<string>>>(new Map())
   const [displayName, setDisplayName] = useState("")
   const [description, setDescription] = useState("")
+  const [selectedStandard, setSelectedStandard] = useState("custom")
+  const [selectedProfile, setSelectedProfile] = useState("machine")
+  const [baselineVersion, setBaselineVersion] = useState("")
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
@@ -142,8 +161,53 @@ export default function CustomBaselineClient() {
   )
 
   const selectedTemplateCount = selectedItems.size
+  const templateMap = useMemo(() => new Map(templates.map((template) => [template.uuid, template])), [templates])
+  const selectedStandardDefault = useMemo(() => {
+    const firstSelectedTemplateUuid = selectedItems.keys().next().value
+    if (!firstSelectedTemplateUuid) return "custom"
+
+    const firstSelectedTemplate = templateMap.get(firstSelectedTemplateUuid)
+    return firstSelectedTemplate?.standard?.trim() || "custom"
+  }, [selectedItems, templateMap])
+  const selectedProfileDefault = useMemo(() => {
+    const firstSelectedTemplateUuid = selectedItems.keys().next().value
+    if (!firstSelectedTemplateUuid) return "machine"
+
+    const firstSelectedTemplate = templateMap.get(firstSelectedTemplateUuid)
+    return firstSelectedTemplate?.profile?.trim() || "machine"
+  }, [selectedItems, templateMap])
+  const selectedTemplateMetadataState = useMemo(() => {
+    const selectedTemplates = Array.from(selectedItems.keys())
+      .map((templateUuid) => templateMap.get(templateUuid))
+      .filter((template): template is BaselineTemplate => Boolean(template))
+
+    if (selectedTemplates.length === 0) {
+      return { metadata: null, errorKey: "" }
+    }
+
+    if (selectedTemplates.length !== selectedItems.size) {
+      return { metadata: null, errorKey: "templateMetadataUnavailable" }
+    }
+
+    const baseTemplate = selectedTemplates[0]
+    const metadata = extractTemplateRequestMetadata(baseTemplate)
+
+    if (!metadata.product || !metadata.os_version || !metadata.profile) {
+      return { metadata: null, errorKey: "templateMetadataIncomplete" }
+    }
+
+    const metadataSignature = getTemplateMetadataSignature(baseTemplate)
+    if (selectedTemplates.some((template) => getTemplateMetadataSignature(template) !== metadataSignature)) {
+      return { metadata: null, errorKey: "templateMetadataMismatch" }
+    }
+
+    return { metadata, errorKey: "" }
+  }, [selectedItems, templateMap])
+  const metadataErrorMessage = selectedTemplateMetadataState.errorKey ? t(selectedTemplateMetadataState.errorKey) : ""
 
   const handleSelectionChange = useCallback((templateUuid: string, itemIds: Set<string>) => {
+    setSubmitError("")
+    setCreatedResult(null)
     setSelectedItems((current) => {
       const next = new Map(current)
       if (itemIds.size === 0) {
@@ -156,6 +220,8 @@ export default function CustomBaselineClient() {
   }, [])
 
   const handleRemoveTemplate = useCallback((templateUuid: string) => {
+    setSubmitError("")
+    setCreatedResult(null)
     setSelectedItems((current) => {
       const next = new Map(current)
       next.delete(templateUuid)
@@ -164,6 +230,8 @@ export default function CustomBaselineClient() {
   }, [])
 
   const handleRemoveItem = useCallback((templateUuid: string, itemId: string) => {
+    setSubmitError("")
+    setCreatedResult(null)
     setSelectedItems((current) => {
       const next = new Map(current)
       const currentItems = next.get(templateUuid)
@@ -193,6 +261,9 @@ export default function CustomBaselineClient() {
     handleClearAll()
     setDisplayName("")
     setDescription("")
+    setSelectedStandard("custom")
+    setSelectedProfile("machine")
+    setBaselineVersion("")
     setItemSearchTerm("")
     setStandardFilter("all")
     setProfileFilter("all")
@@ -205,8 +276,11 @@ export default function CustomBaselineClient() {
       setSubmitError(t("selectAtLeastOneItem"))
       return
     }
+    setSelectedStandard(selectedStandardDefault)
+    setSelectedProfile(selectedProfileDefault)
+    setBaselineVersion((current) => current || "1.0.0")
     setCreateOpen(true)
-  }, [t, totalSelectedCount])
+  }, [selectedProfileDefault, selectedStandardDefault, t, totalSelectedCount])
 
   const handleSubmit = useCallback(async () => {
     setSubmitError("")
@@ -217,9 +291,34 @@ export default function CustomBaselineClient() {
       return
     }
 
+    if (!selectedStandard.trim()) {
+      setSubmitError(t("standardRequired"))
+      return
+    }
+
+    if (!selectedProfile.trim()) {
+      setSubmitError(t("profileRequired"))
+      return
+    }
+
+    if (!baselineVersion.trim()) {
+      setSubmitError(t("baselineVersionRequired"))
+      return
+    }
+
+    if (!BASELINE_VERSION_PATTERN.test(baselineVersion.trim())) {
+      setSubmitError(t("baselineVersionInvalid"))
+      return
+    }
+
     const selectedPayload = collectSelectionPayload(selectedItems)
     if (selectedPayload.length === 0) {
       setSubmitError(t("selectItemsToMerge"))
+      return
+    }
+
+    if (!selectedTemplateMetadataState.metadata) {
+      setSubmitError(metadataErrorMessage || t("templateMetadataUnavailable"))
       return
     }
 
@@ -229,16 +328,20 @@ export default function CustomBaselineClient() {
       const result = await createCustomBaseline({
         display_name: displayName.trim(),
         description: description.trim(),
+        standard: selectedStandard.trim(),
+        profile: selectedProfile.trim(),
+        ...selectedTemplateMetadataState.metadata,
+        baseline_version: baselineVersion.trim(),
         selected_items: selectedPayload,
       })
       setCreatedResult(result)
       setCreateOpen(false)
-    } catch {
-      setSubmitError(t("createFailed"))
+    } catch (error) {
+      setSubmitError(error instanceof Error && error.message ? error.message : t("createFailed"))
     } finally {
       setSubmitting(false)
     }
-  }, [description, displayName, selectedItems, t])
+  }, [baselineVersion, description, displayName, metadataErrorMessage, selectedItems, selectedProfile, selectedStandard, selectedTemplateMetadataState.metadata, t])
 
   return (
     <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f8fafc_58%,#eef4ff_100%)]">
@@ -320,12 +423,20 @@ export default function CustomBaselineClient() {
         onOpenChange={setCreateOpen}
         displayName={displayName}
         description={description}
+        standard={selectedStandard}
+        profile={selectedProfile}
+        baselineVersion={baselineVersion}
+        metadata={selectedTemplateMetadataState.metadata}
         selectedTemplateCount={selectedTemplateCount}
         selectedItemCount={totalSelectedCount}
-        errorMessage={submitError}
+        errorMessage={submitError || metadataErrorMessage}
         submitting={submitting}
+        submitDisabled={!selectedTemplateMetadataState.metadata}
         onDisplayNameChange={setDisplayName}
         onDescriptionChange={setDescription}
+        onStandardChange={setSelectedStandard}
+        onProfileChange={setSelectedProfile}
+        onBaselineVersionChange={setBaselineVersion}
         onReset={handleReset}
         onSubmit={() => void handleSubmit()}
       />

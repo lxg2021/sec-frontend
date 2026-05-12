@@ -1435,6 +1435,16 @@
           "baselineNamePlaceholder": "例如：Windows Server 自定义基线",
           "descriptionLabel": "说明",
           "descriptionPlaceholder": "补充这个自定义基线的用途、环境或适用范围",
+          "baselineVersionLabel": "自定义基线版本",
+          "baselineVersionPlaceholder": "1.0.0",
+          "templateMetadataTitle": "模板元数据",
+          "templateMetadataDescription": "以下字段来自当前已选模板集合，将作为创建请求的元数据一并提交。",
+          "standardLabel": "标准",
+          "standardPlaceholder": "请选择标准类型",
+          "productLabel": "产品",
+          "osVersionLabel": "系统版本",
+          "profileLabel": "配置类型",
+          "profilePlaceholder": "请选择配置类型",
           "reset": "重置",
           "create": "创建基线",
           "required": "必填",
@@ -1443,7 +1453,14 @@
         },
         "selectAtLeastOneItem": "请至少勾选一项检查项",
         "nameRequired": "请输入基线名称",
-        "selectItemsToMerge": "请选择要合并的模板项"
+        "standardRequired": "请选择标准类型",
+        "profileRequired": "请选择配置类型",
+        "baselineVersionRequired": "请输入自定义基线版本",
+        "baselineVersionInvalid": "自定义基线版本格式必须为 1.0.0",
+        "selectItemsToMerge": "请选择要合并的模板项",
+        "templateMetadataUnavailable": "无法读取已选检查项对应的模板元数据",
+        "templateMetadataIncomplete": "所选模板缺少必需的基线元数据",
+        "templateMetadataMismatch": "所选模板的标准、产品、版本或配置类型不一致"
       }
     },
     "vulnerability": {

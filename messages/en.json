@@ -1433,6 +1433,16 @@
           "baselineNamePlaceholder": "e.g. Windows Server custom baseline",
           "descriptionLabel": "Description",
           "descriptionPlaceholder": "Add the purpose, environment, or scope for this custom baseline",
+          "baselineVersionLabel": "Custom baseline version",
+          "baselineVersionPlaceholder": "1.0.0",
+          "templateMetadataTitle": "Template metadata",
+          "templateMetadataDescription": "These fields come from the selected template set and are submitted as request metadata.",
+          "standardLabel": "Standard",
+          "standardPlaceholder": "Select a standard",
+          "productLabel": "Product",
+          "osVersionLabel": "OS version",
+          "profileLabel": "Profile",
+          "profilePlaceholder": "Select a profile",
           "reset": "Reset",
           "create": "Create baseline",
           "required": "Required",
@@ -1441,7 +1451,14 @@
         },
         "selectAtLeastOneItem": "Select at least one check item",
         "nameRequired": "Enter a baseline name",
-        "selectItemsToMerge": "Select items to merge"
+        "standardRequired": "Select a standard",
+        "profileRequired": "Select a profile",
+        "baselineVersionRequired": "Enter a custom baseline version",
+        "baselineVersionInvalid": "Custom baseline version must use the format 1.0.0",
+        "selectItemsToMerge": "Select items to merge",
+        "templateMetadataUnavailable": "Failed to read template metadata for the selected items",
+        "templateMetadataIncomplete": "The selected template is missing required baseline metadata",
+        "templateMetadataMismatch": "The selected templates have different standard, product, version, or profile values"
       }
     },
     "vulnerability": {

@@ -100,6 +100,11 @@ export interface CreateCustomBaselineSelection {
 export interface CreateCustomBaselineRequest {
   display_name: string
   description: string
+  standard: string
+  product: string
+  os_version: string
+  baseline_version: string
+  profile: string
   selected_items: CreateCustomBaselineSelection[]
 }
 
