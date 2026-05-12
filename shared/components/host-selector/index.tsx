@@ -279,7 +279,7 @@ export default function HostSelector({
 
           {selectionStats.total > 0 && (
             <div className="flex flex-wrap items-center gap-3 pt-4">
-              <Badge className={`${badgeBaseClass} shadow-none transition-colors hover:bg-blue-100`}>
+              <Badge className={`${badgeBaseClass} border-blue-100 bg-blue-50/60 text-blue-600 shadow-none transition-colors hover:bg-blue-50`}>
                 Selected {selectionStats.total}
                 {selectionStats.hostCount > 0 && ` / ${selectionStats.hostCount} host(s)`}
                 {selectionStats.groupCount > 0 && ` / ${selectionStats.groupCount} group(s)`}
@@ -289,7 +289,7 @@ export default function HostSelector({
                   variant="ghost"
                   size="sm"
                   onClick={clearSelection}
-                  className={`${badgeButtonClass} hover:bg-blue-100/80 hover:text-blue-700 hover:border-blue-200`}
+                  className={`${badgeButtonClass} hover:border-blue-100 hover:bg-blue-50 hover:text-blue-600`}
                 >
                   <X className="h-4 w-4" />
                 </Button>

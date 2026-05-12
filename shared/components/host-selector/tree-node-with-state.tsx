@@ -90,8 +90,6 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
     <div
       className={cn(
         "group flex min-w-0 cursor-pointer items-center gap-3 border-b border-slate-100/60 px-3 py-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/60",
-        (isSelected || checkboxState === "indeterminate") && "bg-gradient-to-r from-blue-50/60 to-indigo-50/40",
-        isSelected && "shadow-sm",
       )}
       style={{ paddingLeft }}
     >
