@@ -311,7 +311,7 @@ export default function HostSelector({
                 onToggleExpanded={toggleExpanded}
                 onToggleSelected={toggleSelected}
                 getNodeSelectionState={getNodeSelectionState}
-                height={500}
+                height={480}
                 itemHeight={48}
               />
             </div>
