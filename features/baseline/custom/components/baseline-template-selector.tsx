@@ -197,19 +197,11 @@ export function BaselineTemplateSelector({
               type="button"
               onClick={onCreateBaseline}
               disabled={createSelectedCount === 0}
-              className={cn(
-                "h-11 w-full gap-3 rounded-xl px-5 text-base font-semibold text-white shadow-sm transition-transform disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500 disabled:shadow-none disabled:hover:scale-100 disabled:hover:bg-zinc-300",
-                createSelectedCount > 0 && "bg-gradient-to-r from-zinc-950 to-zinc-800 shadow-zinc-300/40 hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700",
-              )}
+              className="h-11 w-full gap-3 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 px-5 text-base font-semibold text-white shadow-sm shadow-zinc-300/40 transition-transform hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700 disabled:cursor-not-allowed disabled:opacity-100 disabled:hover:scale-100 disabled:hover:from-zinc-950 disabled:hover:to-zinc-800"
             >
               <Plus className="h-5 w-5" />
               <span>{t("createBaseline")}</span>
-              <span
-                className={cn(
-                  "rounded-md px-2 py-0.5 text-sm tabular-nums",
-                  createSelectedCount === 0 ? "bg-white text-zinc-500" : "bg-white/20",
-                )}
-              >
+              <span className="rounded-md bg-white/20 px-2 py-0.5 text-sm tabular-nums">
                 {createSelectedCount}
               </span>
             </Button>
