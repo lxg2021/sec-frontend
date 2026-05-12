@@ -54,7 +54,7 @@ export function ScanScheduleStep({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               <Label htmlFor="policy-name" className="shrink-0 sm:w-24">
-                策略名称 *
+                任务名称 *
               </Label>
               <Input
                 id="policy-name"
