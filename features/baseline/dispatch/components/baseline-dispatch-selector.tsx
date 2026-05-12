@@ -4,8 +4,8 @@ import * as React from "react"
 import {
   CheckIcon,
   ChevronDownIcon,
+  ListChecksIcon,
   SearchIcon,
-  ShieldCheckIcon,
 } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
@@ -84,12 +84,12 @@ export function BaselineDispatchSelector({
   return (
     <div
       className={cn(
-        "flex items-center gap-5 rounded-xl bg-card/50 p-2 shadow-sm backdrop-blur-sm",
+        "flex items-center gap-5 rounded-xl bg-card/50 py-2 pr-2 shadow-sm backdrop-blur-sm",
         className,
       )}
     >
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-        <ShieldCheckIcon className="h-5 w-5" />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+        <ListChecksIcon className="h-4 w-4" />
       </div>
 
       <Popover open={open} onOpenChange={setOpen}>
