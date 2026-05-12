@@ -96,22 +96,24 @@ export function ScanScheduleForm({
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
           <div className="space-y-2">
             <Label htmlFor="specific_time" className="flex items-center gap-2">
               <CalendarClock className="size-3.5 text-blue-600" />
               固定执行时间
             </Label>
-            <Input
-              id="specific_time"
-              type="time"
-              value={schedule.specific_time ?? ""}
-              onChange={(event) =>
-                handleChange({ specific_time: event.target.value || undefined })
-              }
-              disabled={disabled}
-              className="h-9"
-            />
+            <div className="flex h-12 items-center">
+              <Input
+                id="specific_time"
+                type="time"
+                value={schedule.specific_time ?? ""}
+                onChange={(event) =>
+                  handleChange({ specific_time: event.target.value || undefined })
+                }
+                disabled={disabled}
+                className="h-9"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -124,15 +126,17 @@ export function ScanScheduleForm({
                 {schedule.random_delay_minutes ?? 0}分钟
               </span>
             </div>
-            <Slider
-              id="random_delay"
-              min={0}
-              max={120}
-              step={5}
-              value={[schedule.random_delay_minutes ?? 0]}
-              onValueChange={([val]) => handleChange({ random_delay_minutes: val })}
-              disabled={disabled}
-            />
+            <div className="flex h-12 items-center">
+              <Slider
+                id="random_delay"
+                min={0}
+                max={120}
+                step={5}
+                value={[schedule.random_delay_minutes ?? 0]}
+                onValueChange={([val]) => handleChange({ random_delay_minutes: val })}
+                disabled={disabled}
+              />
+            </div>
           </div>
         </div>
 
