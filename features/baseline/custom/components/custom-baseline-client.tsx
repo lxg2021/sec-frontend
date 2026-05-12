@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useTranslations } from "next-intl"
-import { CheckCircle2, RefreshCw } from "lucide-react"
+import { RefreshCw } from "lucide-react"
 
 import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
@@ -14,7 +14,6 @@ import {
   getBaselineTemplateItems,
   type BaselineTemplate,
   type BaselineTemplateItemsData,
-  type CreateCustomBaselineResult,
 } from "../api"
 import { BaselineItemsPanel } from "./baseline-items-panel"
 import { BaselineTemplateSelector } from "./baseline-template-selector"
@@ -66,7 +65,6 @@ export default function CustomBaselineClient() {
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
-  const [createdResult, setCreatedResult] = useState<CreateCustomBaselineResult | null>(null)
 
   const loadTemplates = useCallback(async () => {
     setTemplatesLoading(true)
@@ -200,7 +198,6 @@ export default function CustomBaselineClient() {
 
   const handleSelectionChange = useCallback((templateUuid: string, itemIds: Set<string>) => {
     setSubmitError("")
-    setCreatedResult(null)
     setSelectedItems((current) => {
       const next = new Map(current)
       if (itemIds.size === 0) {
@@ -214,7 +211,6 @@ export default function CustomBaselineClient() {
 
   const handleRemoveTemplate = useCallback((templateUuid: string) => {
     setSubmitError("")
-    setCreatedResult(null)
     setSelectedItems((current) => {
       const next = new Map(current)
       next.delete(templateUuid)
@@ -224,7 +220,6 @@ export default function CustomBaselineClient() {
 
   const handleRemoveItem = useCallback((templateUuid: string, itemId: string) => {
     setSubmitError("")
-    setCreatedResult(null)
     setSelectedItems((current) => {
       const next = new Map(current)
       const currentItems = next.get(templateUuid)
@@ -247,7 +242,6 @@ export default function CustomBaselineClient() {
     setSelectedItems(new Map())
     setSubmitError("")
     setItemsError("")
-    setCreatedResult(null)
   }, [])
 
   const handleReset = useCallback(() => {
@@ -265,7 +259,6 @@ export default function CustomBaselineClient() {
 
   const handleOpenCreate = useCallback(() => {
     setSubmitError("")
-    setCreatedResult(null)
     if (totalSelectedCount === 0) {
       setSubmitError(t("selectAtLeastOneItem"))
       return
@@ -279,7 +272,6 @@ export default function CustomBaselineClient() {
 
   const handleSubmit = useCallback(async () => {
     setSubmitError("")
-    setCreatedResult(null)
 
     if (!displayName.trim()) {
       setSubmitError(t("nameRequired"))
@@ -335,7 +327,6 @@ export default function CustomBaselineClient() {
         baseline_version: baselineVersion.trim(),
         selected_items: selectedPayload,
       })
-      setCreatedResult(result)
       setCreateOpen(false)
       toast({
         title: t("createdSuccessTitle"),
@@ -370,27 +361,6 @@ export default function CustomBaselineClient() {
                 <RefreshCw className="h-4 w-4" />
                 <span>{t("retry")}</span>
               </Button>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {createdResult ? (
-          <Card className="border-emerald-200 bg-emerald-50/70 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/20">
-            <CardContent className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-300" />
-                <div>
-                  <div className="text-sm font-medium text-foreground">{t("createdSuccessTitle")}</div>
-                  <div className="mt-0.5 text-xs text-muted-foreground">
-                    {t("createdSuccessDescription", {
-                      displayName: createdResult.display_name,
-                      itemCount: createdResult.item_count,
-                      baselineUuid: createdResult.baseline_uuid,
-                    })}
-                  </div>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground">{t("createdAt", { createdAt: createdResult.created_at })}</div>
             </CardContent>
           </Card>
         ) : null}
