@@ -15,7 +15,7 @@ import { ActionControlForm } from "./action-control-form"
 import { NetworkPolicyForm } from "./network-policy-form"
 
 import type { DacPolicyFormProps, FilePolicy, RegistryPolicy, ProcessPolicy, NetworkPolicy } from "@/features/dac/types"
-import HostSelector from "@/features/baseline/dispatch/components/host-selector"
+import HostSelector from "@/shared/components/host-selector"
 import { mockData } from "@/features/baseline/dispatch/mock/host-tree"
 import { useToast } from "@/shared/hooks/use-toast"
 import { useTranslations } from "next-intl"

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { HelpCircle, Shield, ShieldCheck  } from "lucide-react"
 
-import HostSelector from "@/features/baseline/dispatch/components/host-selector"
+import HostSelector from "@/shared/components/host-selector"
 import StrategySelector from "@/features/baseline/dispatch/components/strategy-selector"
 import StrategyGuide from "@/features/baseline/dispatch/components/strategy-guide"
 import ReviewCard from "@/features/baseline/dispatch/components/review-card"

@@ -25,6 +25,7 @@
       "approveHost": "/sensor/host-mgr/host/approve-host",
       "getHostSummary": "/sensor/host-mgr/host/host-summary",
       "getAllHostsPagination": "/sensor/host-mgr/host/all-hosts-detail-pagination",
+      "getLogicGroupHosts": "/sensor/host-mgr/host/logic-group-hosts",
       "getHardwareInfo": "/sensor/asset/get-hardware-info",
       "getHardwareSummary": "/sensor/asset/get-hardware-summary",
       "getCPUAssetPagination": "/sensor/asset/get-cpu-asset-pagination",
