@@ -60,6 +60,7 @@ export function HostSelectionStep({
           key={selectorKey}
           data={data}
           loading={loading}
+          showHeader={false}
           emptyText="未获取到主机树数据。"
           onSelectionChange={onSelectionChange}
         />

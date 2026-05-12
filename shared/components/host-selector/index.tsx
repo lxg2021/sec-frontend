@@ -44,11 +44,13 @@ export default function HostSelector({
   onSelectionChange,
   loading = false,
   emptyText = "No host data available.",
+  showHeader = true,
 }: {
   data?: any[]
   onSelectionChange?: (nodes: any[], selectedIds: Set<string>) => void
   loading?: boolean
   emptyText?: string
+  showHeader?: boolean
 }) {
   const [searchTerm, setSearchTerm] = useState("")
   const onSelectionChangeRef = useRef(onSelectionChange)
@@ -203,17 +205,19 @@ export default function HostSelector({
     <div className="w-full">
       <Card className="border-0 shadow-none bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
         <CardHeader className="rounded-t-lg border-b border-slate-200/60 bg-gradient-to-r from-slate-50/90 to-blue-50/70 pb-4">
-          <CardTitle className="flex items-center gap-3 text-slate-700">
-            <div className="rounded-md bg-gradient-to-br from-blue-50 to-indigo-100 p-1.5">
-              <Server className="h-4 w-4 text-blue-600" />
-            </div>
-            <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-xl font-semibold text-transparent">
-              Host Selector
-            </span>
-            <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
-          </CardTitle>
+          {showHeader ? (
+            <CardTitle className="flex items-center gap-3 text-slate-700">
+              <div className="rounded-md bg-gradient-to-br from-blue-50 to-indigo-100 p-1.5">
+                <Server className="h-4 w-4 text-blue-600" />
+              </div>
+              <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-xl font-semibold text-transparent">
+                Host Selector
+              </span>
+              <Sparkles className="h-4 w-4 text-blue-400 opacity-60" />
+            </CardTitle>
+          ) : null}
 
-          <div className="flex flex-col items-stretch gap-3 pt-4 sm:flex-row sm:items-center">
+          <div className={showHeader ? "flex flex-col items-stretch gap-3 pt-4 sm:flex-row sm:items-center" : "flex flex-col items-stretch gap-3 sm:flex-row sm:items-center"}>
             <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-3 z-10 h-4 w-4 text-slate-400" />
               <Input
