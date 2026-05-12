@@ -41,7 +41,7 @@ export function ScanScheduleForm({
         <CardHeader className="pb-3">
           {title ? (
             <CardTitle className="flex items-center gap-2">
-              <Clock className="size-5" />
+              <Clock className="size-5 text-sky-600" />
               {title}
             </CardTitle>
           ) : null}
@@ -52,7 +52,7 @@ export function ScanScheduleForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="mode" className="flex items-center gap-2">
-              <Clock className="size-3.5 text-muted-foreground" />
+              <Clock className="size-3.5 text-sky-600" />
               调度模式
             </Label>
             <Select
@@ -72,7 +72,7 @@ export function ScanScheduleForm({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="interval_hours" className="flex items-center gap-2">
-                <RefreshCw className="size-3.5 text-muted-foreground" />
+                <RefreshCw className="size-3.5 text-amber-600" />
                 间隔
               </Label>
               <span className="text-xs font-medium text-muted-foreground">
@@ -94,7 +94,7 @@ export function ScanScheduleForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="specific_time" className="flex items-center gap-2 text-xs">
-              <CalendarClock className="size-3.5 text-muted-foreground" />
+              <CalendarClock className="size-3.5 text-blue-600" />
               固定执行时间
             </Label>
             <Input
@@ -112,7 +112,7 @@ export function ScanScheduleForm({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="random_delay" className="flex items-center gap-1 text-xs">
-                <Shuffle className="size-3.5" />
+                <Shuffle className="size-3.5 text-violet-600" />
                 随机延迟
               </Label>
               <span className="text-xs text-muted-foreground">
@@ -134,7 +134,7 @@ export function ScanScheduleForm({
         <div className="flex items-end gap-3 rounded-lg border bg-muted/30 p-3">
           <div className="flex-1 space-y-1">
             <Label className="flex items-center gap-2 text-xs font-medium">
-              <RefreshCw className="size-3.5 text-muted-foreground" />
+              <RefreshCw className="size-3.5 text-amber-600" />
               重试次数
             </Label>
             <Select
@@ -156,7 +156,7 @@ export function ScanScheduleForm({
           </div>
           <div className="flex-1 space-y-1">
             <Label className="flex items-center gap-2 text-xs font-medium">
-              <RefreshCw className="size-3.5 text-muted-foreground" />
+              <RefreshCw className="size-3.5 text-amber-600" />
               重试间隔
             </Label>
             <div className="flex items-center gap-1">
@@ -181,7 +181,7 @@ export function ScanScheduleForm({
         {showStartup ? (
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div className="flex items-center gap-2">
-              <Play className="size-4 text-muted-foreground" />
+              <Play className="size-4 text-emerald-600" />
               <div>
                 <Label htmlFor="scan_on_startup" className="cursor-pointer text-sm">
                   Agent 启动时执行扫描
