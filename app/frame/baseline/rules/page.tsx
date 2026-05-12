@@ -1,5 +1,5 @@
-import { BaselineDispatchClient } from "@/features/baseline/dispatch/components/baseline-dispatch-client"
+import { redirect } from "next/navigation"
 
 export default function Page() {
-  return <BaselineDispatchClient />
+  redirect("/frame/baseline/dispatch")
 }

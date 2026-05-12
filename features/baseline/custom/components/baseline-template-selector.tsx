@@ -209,7 +209,7 @@ export function BaselineTemplateSelector({
               asChild
               className="h-11 w-full gap-3 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 px-5 text-base font-semibold text-white shadow-sm shadow-zinc-300/40 transition-transform hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700"
             >
-              <Link href="/frame/baseline/rules">
+              <Link href="/frame/baseline/dispatch">
                 <ArrowRight className="h-5 w-5" />
                 <span>{t("goToRules")}</span>
               </Link>

@@ -48,7 +48,7 @@ export const menuItems = [
     submenu: [
       { id: "baselinedashboard", icon: LayoutDashboard, labelKey: "baselinedashboard", path: "/frame/baseline" },
       { id: "baselinecustom", icon: FilePenLine, labelKey: "baselinecustom", path: "/frame/baseline/custom" },
-      { id: "baselineconfig", icon: Send, labelKey: "baselineconfig", path: "/frame/baseline/rules" },
+      { id: "baselineconfig", icon: Send, labelKey: "baselineconfig", path: "/frame/baseline/dispatch" },
     ],
   },
   {
