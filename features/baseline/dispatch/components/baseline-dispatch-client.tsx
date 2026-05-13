@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { AlertCircle, RefreshCw } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -113,6 +113,7 @@ const REUSABLE_POLICY_PAGE_SIZE = 8
 
 export function BaselineDispatchClient() {
   const t = useTranslations("pages.baseline.dispatch")
+  const locale = useLocale()
   const [currentStep, setCurrentStep] = useState(1)
 
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
@@ -659,6 +660,19 @@ export function BaselineDispatchClient() {
     </section>
   )
 
+  const scheduleHeaderAction = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => void loadReusablePolicies(reusablePoliciesPage)}
+      disabled={reusablePoliciesLoading}
+      className="h-11 rounded-2xl px-5"
+    >
+      <RefreshCw className={reusablePoliciesLoading ? "mr-2 size-4 animate-spin" : "mr-2 size-4"} />
+      {locale.toLowerCase().startsWith("zh") ? "刷新" : "Refresh"}
+    </Button>
+  )
+
   const renderCurrentStep = () => {
     const selector = (
       <BaselineDispatchSelector
@@ -688,6 +702,7 @@ export function BaselineDispatchClient() {
           creating={creatingPolicy}
           canProceed={canCreatePolicy}
           content={scheduleContent}
+          headerAction={scheduleHeaderAction}
           onBack={() => setCurrentStep(1)}
           onPrimaryAction={() => void handleCreatePolicy()}
         />

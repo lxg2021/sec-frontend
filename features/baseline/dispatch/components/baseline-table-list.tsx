@@ -13,7 +13,6 @@ import {
   Clock,
   FileText,
   Hash,
-  RefreshCw,
   RotateCcw,
   Tag,
   Timer,
@@ -189,24 +188,6 @@ export function BaselineTableList({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-sm text-muted-foreground">
-          {pagination ? text.totalRecords(pagination.totalCount) : null}
-        </div>
-        {onRefresh ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={loading}
-            className="h-9 rounded-xl"
-          >
-            <RefreshCw className={cn("mr-2 size-4", loading && "animate-spin")} />
-            {text.refresh}
-          </Button>
-        ) : null}
-      </div>
-
       <div className="overflow-hidden rounded-2xl border border-slate-200">
         <Table className="table-auto">
           <colgroup>
