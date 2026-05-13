@@ -405,3 +405,33 @@ export async function baselineImmediateScan() {
     },
   })
 }
+
+export type BaselineRepairSource = "GPO" | "Intune"
+
+export interface BaselineOneClickRepairPayload {
+  baselineUUID: string
+  source: BaselineRepairSource
+  rescanAfterRepair: boolean
+  backupBeforeRepair: boolean
+  skipRestorePoint: boolean
+  agentIds?: string[]
+}
+
+export async function baselineOneClickRepair({
+  baselineUUID,
+  source,
+  rescanAfterRepair,
+  backupBeforeRepair,
+  skipRestorePoint,
+  agentIds,
+}: BaselineOneClickRepairPayload) {
+  return http.post("baselineOneClickRepair", {
+    request_id: createRequestId(),
+    baseline_uuid: baselineUUID,
+    agent_ids: agentIds?.length ? agentIds : undefined,
+    source,
+    rescan_after_repair: rescanAfterRepair,
+    backup_before_repair: backupBeforeRepair,
+    skip_restore_point: skipRestorePoint,
+  })
+}

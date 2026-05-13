@@ -52,7 +52,8 @@
       "getBaselineCategoryStats": "/sensor/baseline/stats/categories",
       "getBaselineDetail": "/sensor/baseline/detail",
       "getBaselineItemStatistics": "/sensor/baseline/item/statistics",
-      "getBaselineItemHostResults": "/sensor/baseline/item/hosts"
+      "getBaselineItemHostResults": "/sensor/baseline/item/hosts",
+      "baselineOneClickRepair": "/sensor/control/baseline/oneclickrepair"
     }
   }
 }

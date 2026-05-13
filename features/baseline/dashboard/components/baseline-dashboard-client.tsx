@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { BarChart3, Loader2, Play, RefreshCw, Sparkles } from "lucide-react"
 
 import { useToast } from "@/shared/hooks/use-toast"
@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 
 import {
   baselineImmediateScan,
+  baselineOneClickRepair,
+  type BaselineOneClickRepairPayload,
   type BaselineDailyStatsData,
   type BaselineOption,
   type CategoryGroup,
@@ -19,6 +21,7 @@ import {
   fetchBaselineOptions,
   fetchBaselineTrend,
 } from "../api"
+import { BaselineRepairDialog } from "./baseline-repair-dialog"
 import { BaselineSelector } from "./baseline-selector"
 import CategoryTable from "./category-table"
 import OverviewCards from "./overview-cards"
@@ -43,6 +46,7 @@ function getSelectedOption(options: BaselineOption[], currentUUID: string) {
 }
 
 export default function BaselineDashboardClient() {
+  const locale = useLocale()
   const t = useTranslations("pages.baseline.dashboard")
   const { toast } = useToast()
   const [options, setOptions] = useState<BaselineOption[]>([])
@@ -54,8 +58,29 @@ export default function BaselineDashboardClient() {
   const [loadingStats, setLoadingStats] = useState(false)
   const [loadingCategory, setLoadingCategory] = useState(false)
   const [triggeringImmediateScan, setTriggeringImmediateScan] = useState(false)
+  const [triggeringRepair, setTriggeringRepair] = useState(false)
   const [error, setError] = useState("")
   const skipNextStatsLoadRef = useRef(false)
+  const repairCopy = useMemo(
+    () =>
+      locale.toLowerCase().startsWith("zh")
+        ? {
+            repairing: "修复中...",
+            successTitle: "已触发一键修复",
+            successDescription: "一键修复命令已下发，目标主机将开始执行修复。",
+            successDescriptionWithRescan: "一键修复命令已下发，目标主机将开始执行修复，并在完成后触发重扫。",
+            failedTitle: "一键修复失败",
+          }
+        : {
+            repairing: "Repairing...",
+            successTitle: "One-click repair started",
+            successDescription: "The one-click repair command has been dispatched. Target hosts will begin repair shortly.",
+            successDescriptionWithRescan:
+              "The one-click repair command has been dispatched. Target hosts will begin repair and trigger a rescan after completion.",
+            failedTitle: "Failed to start one-click repair",
+          },
+    [locale],
+  )
 
   const selectedOption = useMemo(
     () => options.find((item) => item.baseline_uuid === selectedBaselineUUID) ?? null,
@@ -176,12 +201,33 @@ export default function BaselineDashboardClient() {
     }
   }, [t, toast])
 
-  const handleRepair = useCallback(() => {
-    toast({
-      title: t("repairPendingTitle"),
-      description: t("repairPendingDescription"),
-    })
-  }, [t, toast])
+  const handleRepair = useCallback(async (payload: BaselineOneClickRepairPayload) => {
+    if (!selectedOption) {
+      throw new Error(t("errors.options"))
+    }
+
+    setTriggeringRepair(true)
+
+    try {
+      await baselineOneClickRepair(payload)
+      toast({
+        title: repairCopy.successTitle,
+        description: payload.rescanAfterRepair
+          ? repairCopy.successDescriptionWithRescan
+          : repairCopy.successDescription,
+      })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t("errors.stats")
+      toast({
+        title: repairCopy.failedTitle,
+        description: message,
+        variant: "destructive",
+      })
+      throw err instanceof Error ? err : new Error(message)
+    } finally {
+      setTriggeringRepair(false)
+    }
+  }, [repairCopy, selectedOption, t, toast])
 
   useEffect(() => {
     void loadOptions()
@@ -226,15 +272,24 @@ export default function BaselineDashboardClient() {
                 <span className="font-medium">{triggeringImmediateScan ? t("scanning") : t("scanNow")}</span>
               </Button>
 
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={handleRepair}
-                className="h-10 gap-2 rounded-full px-3 text-teal-500 hover:bg-teal-50 hover:text-teal-700"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="font-medium">{t("repair")}</span>
-              </Button>
+              <BaselineRepairDialog
+                baselineUuid={selectedOption?.baseline_uuid ?? ""}
+                baselineName={selectedOption?.display_name}
+                hostCount={selectedOption?.host_count}
+                disabled={!selectedOption || triggeringRepair}
+                onConfirm={handleRepair}
+                trigger={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={!selectedOption || triggeringRepair}
+                    className="h-10 gap-2 rounded-full px-3 text-teal-500 hover:bg-teal-50 hover:text-teal-700"
+                  >
+                    {triggeringRepair ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    <span className="font-medium">{triggeringRepair ? repairCopy.repairing : t("repair")}</span>
+                  </Button>
+                }
+              />
             </>
           }
           options={options}
@@ -307,6 +362,7 @@ export default function BaselineDashboardClient() {
           </>
         )}
       </div>
+
     </div>
   )
 }
