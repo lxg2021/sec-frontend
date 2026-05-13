@@ -90,17 +90,33 @@ function TextInputField({
   field: ScanScheduleFormField
   disabled: boolean
 }) {
+  const hasError = Boolean(field.error)
+  const errorId = hasError ? `${field.id}-error` : undefined
+
   return (
     <FieldShell label={field.label} icon={field.icon}>
-      <Input
-        id={field.id}
-        value={field.value}
-        onChange={(event) => field.onChange?.(event.target.value)}
-        placeholder={field.placeholder}
-        readOnly={field.readOnly ?? !field.onChange}
-        disabled={disabled}
-        className={cn("h-9 w-full", field.inputClassName)}
-      />
+      <div className="space-y-1.5">
+        <Input
+          id={field.id}
+          value={field.value}
+          onChange={(event) => field.onChange?.(event.target.value)}
+          placeholder={field.placeholder}
+          readOnly={field.readOnly ?? !field.onChange}
+          disabled={disabled}
+          aria-invalid={hasError}
+          aria-describedby={errorId}
+          className={cn(
+            "h-9 w-full",
+            hasError && "border-rose-400 focus-visible:ring-rose-500/30",
+            field.inputClassName,
+          )}
+        />
+        {hasError ? (
+          <p id={errorId} className="text-xs text-rose-500">
+            {field.error}
+          </p>
+        ) : null}
+      </div>
     </FieldShell>
   )
 }

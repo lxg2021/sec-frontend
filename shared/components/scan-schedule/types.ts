@@ -36,6 +36,7 @@ export interface ScanScheduleFormField {
   id: string
   label: ReactNode
   value: string
+  error?: ReactNode
   icon?: ReactNode
   inputClassName?: string
   onChange?: (value: string) => void

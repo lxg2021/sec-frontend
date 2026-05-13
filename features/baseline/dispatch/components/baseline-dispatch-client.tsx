@@ -376,8 +376,13 @@ export function BaselineDispatchClient() {
     }
   }, [isZh])
 
+  const policyVersionError =
+    policyVersion.trim() && !POLICY_VERSION_PATTERN.test(policyVersion.trim())
+      ? (isZh ? "\u7248\u672c\u53f7\u683c\u5f0f\u9700\u4e3a 0.0.0" : "Version must use the 0.0.0 format")
+      : undefined
+
   const scanScheduleFields = useMemo<ScanScheduleFormField[]>(() => {
-    return [
+      return [
         {
           id: "policy-name",
           icon: <FileText className="size-3.5 text-sky-600" />,
@@ -395,6 +400,7 @@ export function BaselineDispatchClient() {
           icon: <Hash className="size-3.5 text-amber-500" />,
           label: isZh ? "\u7248\u672c\u53f7" : "Version",
           value: policyVersion,
+          error: policyVersionError,
           inputClassName: "bg-slate-50",
         onChange: (value) => {
           setPolicyVersion(value)
@@ -403,7 +409,7 @@ export function BaselineDispatchClient() {
         },
       },
     ]
-  }, [isZh, policyName, policyVersion])
+  }, [isZh, policyName, policyVersion, policyVersionError])
 
   const candidatePolicy = useMemo(() => {
     if (selectedReusablePolicy && selectedTemplate) {
