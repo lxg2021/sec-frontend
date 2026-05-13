@@ -59,6 +59,7 @@ const FALLBACK_CONFIG = {
       baselineOneClickRepair: "/sensor/control/baseline/oneclickrepair",
       baselineImmediateScan: "/sensor/control/baseline/immediatescan",
       baselineScanPolicy: "/sensor/control/baseline/scanpolicy",
+      listBaselineScanPolicies: "/sensor/control/baseline/scanpolicy/list",
     },
   },
 }

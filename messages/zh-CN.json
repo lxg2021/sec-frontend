@@ -1377,6 +1377,56 @@
           "creating": "创建中...",
           "reuseTask": "复用任务",
           "createTask": "创建任务"
+        },
+        "reuse": {
+          "listTitle": "可复用任务",
+          "detailTitle": "策略详情",
+          "searchPlaceholder": "搜索任务名称、版本或策略 ID",
+          "updatedAt": "最近更新：{time}",
+          "retry": "重试",
+          "emptyTitle": "暂无可复用任务",
+          "emptyDescription": "当前基线下还没有可复用的任务，请切换到生成新任务。",
+          "sort": {
+            "updated": "最近更新优先",
+            "oldest": "最早更新优先",
+            "name": "按名称排序"
+          },
+          "errors": {
+            "noAuth": "未登录，无法加载可复用任务。",
+            "loadFailed": "加载可复用任务失败。"
+          },
+          "detail": {
+            "idLabel": "策略 ID",
+            "emptyTitle": "未选择任务",
+            "emptyDescription": "请先从左侧选择一个可复用任务，再查看详细配置。",
+            "sections": {
+              "overview": "基础信息",
+              "schedule": "调度配置",
+              "retry": "重试策略",
+              "lifecycle": "时间信息"
+            },
+            "fields": {
+              "baseline": "目标基线",
+              "version": "版本号",
+              "mode": "调度模式",
+              "interval": "执行间隔",
+              "fixedTime": "固定执行时间",
+              "randomDelay": "随机延迟",
+              "startup": "启动补扫",
+              "retryCount": "重试次数",
+              "retryInterval": "重试间隔",
+              "createdAt": "创建时间",
+              "updatedAt": "最近更新"
+            },
+            "values": {
+              "intervalMode": "固定间隔",
+              "enabled": "开启",
+              "disabled": "关闭",
+              "noRetry": "不重试",
+              "notSet": "未设置",
+              "notApplicable": "不适用"
+            }
+          }
         }
       },
         "hostSelection": {
@@ -1505,6 +1555,7 @@
           "policyCreateFailed": "创建基线扫描策略对象失败，请稍后重试。",
           "policyCreateFailedWithReason": "创建基线扫描策略对象失败：{reason}",
           "policyCreated": "策略对象已创建，可以继续选择主机。",
+          "policyReused": "已复用已有任务，可以继续选择主机。",
           "dispatchNotReady": "当前未满足下发条件。",
           "dispatchLoading": "任务下发中...",
           "dispatchSuccess": "基线下发成功，任务已提交。",

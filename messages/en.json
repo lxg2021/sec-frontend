@@ -1375,6 +1375,56 @@
           "creating": "Creating...",
           "reuseTask": "Reuse Task",
           "createTask": "Create Task"
+        },
+        "reuse": {
+          "listTitle": "Reusable Tasks",
+          "detailTitle": "Strategy Details",
+          "searchPlaceholder": "Search task name, version, or strategy ID",
+          "updatedAt": "Updated: {time}",
+          "retry": "Retry",
+          "emptyTitle": "No reusable tasks",
+          "emptyDescription": "No reusable tasks are available for the selected baseline yet. Switch to generate a new task instead.",
+          "sort": {
+            "updated": "Recently Updated",
+            "oldest": "Earliest Updated",
+            "name": "Sort by Name"
+          },
+          "errors": {
+            "noAuth": "You are not logged in. Reusable tasks cannot be loaded.",
+            "loadFailed": "Failed to load reusable tasks."
+          },
+          "detail": {
+            "idLabel": "Strategy ID",
+            "emptyTitle": "No task selected",
+            "emptyDescription": "Select a reusable task from the left to view its detailed configuration.",
+            "sections": {
+              "overview": "Overview",
+              "schedule": "Schedule",
+              "retry": "Retry Strategy",
+              "lifecycle": "Timestamps"
+            },
+            "fields": {
+              "baseline": "Target Baseline",
+              "version": "Version",
+              "mode": "Schedule Mode",
+              "interval": "Run Interval",
+              "fixedTime": "Fixed Execution Time",
+              "randomDelay": "Random Delay",
+              "startup": "Startup Catch-up Scan",
+              "retryCount": "Retry Count",
+              "retryInterval": "Retry Interval",
+              "createdAt": "Created At",
+              "updatedAt": "Updated At"
+            },
+            "values": {
+              "intervalMode": "Fixed Interval",
+              "enabled": "Enabled",
+              "disabled": "Disabled",
+              "noRetry": "No Retry",
+              "notSet": "Not Set",
+              "notApplicable": "N/A"
+            }
+          }
         }
       },
         "hostSelection": {
@@ -1503,6 +1553,7 @@
           "policyCreated": "Strategy object created. You can continue with host selection.",
           "policyCreateFailed": "Failed to create the baseline scan strategy object. Please try again later.",
           "policyCreateFailedWithReason": "Failed to create the baseline scan strategy object: {reason}",
+          "policyReused": "Reused the existing task. You can continue with host selection.",
           "dispatchNotReady": "Current dispatch requirements are not met.",
           "dispatchLoading": "Dispatching task...",
           "dispatchSuccess": "Baseline dispatch succeeded. The task has been submitted.",

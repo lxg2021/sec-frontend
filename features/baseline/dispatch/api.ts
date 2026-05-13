@@ -1,6 +1,6 @@
 "use client"
 
-import type { ScanSchedule } from "@/shared/components/scan-schedule"
+import { mergeScanScheduleDefaults, type ScanSchedule } from "@/shared/components/scan-schedule"
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 
@@ -15,6 +15,26 @@ interface CreateBaselineScanPolicyResponseData {
   id?: string
   name?: string
   version?: string | null
+}
+
+interface ListBaselineScanPoliciesResponseData {
+  pagination?: {
+    current_page?: number
+    page_size?: number
+    total_count?: number
+    total_pages?: number
+    has_previous?: boolean
+    has_next?: boolean
+  } | null
+  items?: Array<{
+    policy_id?: string
+    name?: string
+    version?: string
+    baseline_uuid?: string
+    scan_schedule?: Partial<ScanSchedule> | null
+    created_at?: string
+    updated_at?: string
+  }> | null
 }
 
 export interface CreateBaselineScanPolicyPayload {
@@ -37,11 +57,62 @@ export interface ApplyBaselineScanPolicyPayload {
   agentIds: string[]
 }
 
+export interface ListBaselineScanPoliciesPayload {
+  baselineUUID: string
+  limit?: number
+  offset?: number
+}
+
+export interface BaselineScanPolicyPagination {
+  currentPage: number
+  pageSize: number
+  totalCount: number
+  totalPages: number
+  hasPrevious: boolean
+  hasNext: boolean
+}
+
+export interface ReusableBaselineScanPolicy {
+  id: string
+  name: string
+  version: string
+  baselineUuid: string
+  scanSchedule: ScanSchedule
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BaselineScanPolicyListResult {
+  pagination: BaselineScanPolicyPagination
+  items: ReusableBaselineScanPolicy[]
+}
+
 function normalizeScanSchedule(scanSchedule: ScanSchedule): ScanSchedule {
   return {
     ...scanSchedule,
     specific_time: scanSchedule.specific_time?.trim() || undefined,
   }
+}
+
+function numberValue(value: unknown, fallback = 0) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" ? value.trim() : ""
+}
+
+function normalizeReturnedScanSchedule(value?: Partial<ScanSchedule> | null): ScanSchedule {
+  return mergeScanScheduleDefaults({
+    mode: value?.mode === "interval" ? "interval" : "interval",
+    interval_hours: numberValue(value?.interval_hours, 24),
+    specific_time: stringValue(value?.specific_time) || undefined,
+    random_delay_minutes: numberValue(value?.random_delay_minutes, 0),
+    retry_limit: numberValue(value?.retry_limit, 3),
+    retry_interval_minutes: numberValue(value?.retry_interval_minutes, 5),
+    scan_on_startup: Boolean(value?.scan_on_startup),
+  })
 }
 
 function normalizeAgentIds(agentIds: string[]) {
@@ -80,6 +151,54 @@ export async function createBaselineScanPolicy({
     id: result.data.id,
     name: result.data.name?.trim() || name,
     version: result.data.version?.trim() || version,
+  }
+}
+
+export async function listBaselineScanPolicies({
+  baselineUUID,
+  limit = 100,
+  offset = 0,
+}: ListBaselineScanPoliciesPayload): Promise<BaselineScanPolicyListResult> {
+  const trimmedBaselineUUID = baselineUUID.trim()
+  const result = (await http.post("listBaselineScanPolicies", {
+    request_id: createRequestId(),
+    baseline_uuid: trimmedBaselineUUID,
+    limit,
+    offset,
+  })) as ApiResult<ListBaselineScanPoliciesResponseData | null>
+
+  const items = Array.isArray(result.data?.items) ? result.data.items : []
+  const pagination = result.data?.pagination
+
+  return {
+    pagination: {
+      currentPage: numberValue(pagination?.current_page, 1),
+      pageSize: numberValue(pagination?.page_size, limit),
+      totalCount: numberValue(pagination?.total_count, items.length),
+      totalPages: numberValue(pagination?.total_pages, items.length > 0 ? 1 : 0),
+      hasPrevious: Boolean(pagination?.has_previous),
+      hasNext: Boolean(pagination?.has_next),
+    },
+    items: items
+      .map((item) => {
+        const id = stringValue(item?.policy_id)
+        const version = stringValue(item?.version)
+
+        if (!id || !version) {
+          return null
+        }
+
+        return {
+          id,
+          name: stringValue(item?.name) || id,
+          version,
+          baselineUuid: stringValue(item?.baseline_uuid) || trimmedBaselineUUID,
+          scanSchedule: normalizeReturnedScanSchedule(item?.scan_schedule),
+          createdAt: stringValue(item?.created_at),
+          updatedAt: stringValue(item?.updated_at),
+        } satisfies ReusableBaselineScanPolicy
+      })
+      .filter((item): item is ReusableBaselineScanPolicy => Boolean(item)),
   }
 }
 

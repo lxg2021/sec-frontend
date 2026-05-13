@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { ArrowRight, CalendarClock, ChevronLeft } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -11,31 +12,33 @@ import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
 
 interface ScanScheduleStepProps {
-  canCreatePolicy: boolean
+  canProceed: boolean
   creating: boolean
   mode: SwitchModeValue
   onBack: () => void
-  onCreatePolicy: () => void
+  onPrimaryAction: () => void
   onModeChange: (value: SwitchModeValue) => void
   onNameChange: (value: string) => void
   onScheduleChange: (value: ScanSchedule) => void
   onVersionChange: (value: string) => void
   policyName: string
+  reuseContent?: ReactNode
   schedule: ScanSchedule
   version: string
 }
 
 export function ScanScheduleStep({
-  canCreatePolicy,
+  canProceed,
   creating,
   mode,
   onBack,
-  onCreatePolicy,
+  onPrimaryAction,
   onModeChange,
   onNameChange,
   onScheduleChange,
   onVersionChange,
   policyName,
+  reuseContent,
   schedule,
   version,
 }: ScanScheduleStepProps) {
@@ -66,61 +69,67 @@ export function ScanScheduleStep({
       </CardHeader>
 
       <CardContent className="space-y-6 p-6">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <Label htmlFor="policy-name" className="shrink-0 sm:w-24">
-                {t("schedule.fields.taskName")} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="policy-name"
-                value={policyName}
-                onChange={(event) => onNameChange(event.target.value)}
-                placeholder={t("schedule.fields.taskNamePlaceholder")}
-                className="flex-1"
-              />
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <Label htmlFor="policy-version" className="shrink-0 sm:w-20">
-                {t("schedule.fields.version")} <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="policy-version"
-                value={version}
-                onChange={(event) => onVersionChange(event.target.value)}
-                placeholder={t("schedule.fields.versionPlaceholder")}
-                className="flex-1"
-              />
-            </div>
-          </div>
-        </section>
+        {mode === "reuse" ? (
+          reuseContent
+        ) : (
+          <>
+            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <Label htmlFor="policy-name" className="shrink-0 sm:w-24">
+                    {t("schedule.fields.taskName")} <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="policy-name"
+                    value={policyName}
+                    onChange={(event) => onNameChange(event.target.value)}
+                    placeholder={t("schedule.fields.taskNamePlaceholder")}
+                    className="flex-1"
+                  />
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                  <Label htmlFor="policy-version" className="shrink-0 sm:w-20">
+                    {t("schedule.fields.version")} <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="policy-version"
+                    value={version}
+                    onChange={(event) => onVersionChange(event.target.value)}
+                    placeholder={t("schedule.fields.versionPlaceholder")}
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5">
-          <ScanScheduleForm
-            value={schedule}
-            onChange={onScheduleChange}
-            title={null}
-            description={null}
-            text={{
-              modeLabel: t("schedule.form.modeLabel"),
-              modePlaceholder: t("schedule.form.modePlaceholder"),
-              modeInterval: t("schedule.form.modeInterval"),
-              intervalLabel: t("schedule.form.intervalLabel"),
-              intervalValue: (hours) => t("schedule.form.intervalValue", { hours }),
-              fixedTimeLabel: t("schedule.form.fixedTimeLabel"),
-              randomDelayLabel: t("schedule.form.randomDelayLabel"),
-              randomDelayValue: (minutes) => t("schedule.form.randomDelayValue", { minutes }),
-              retryCountLabel: t("schedule.form.retryCountLabel"),
-              retryIntervalLabel: t("schedule.form.retryIntervalLabel"),
-              retryNone: t("schedule.form.retryNone"),
-              retryTimes: (count) => t("schedule.form.retryTimes", { count }),
-              minutesUnit: t("schedule.form.minutesUnit"),
-              startupTitle: t("schedule.form.startupTitle"),
-              startupDescription: t("schedule.form.startupDescription"),
-            }}
-            className="max-w-none border-0 shadow-none [&_[class*='text-2xl']]:text-base"
-          />
-        </section>
+            <section className="rounded-2xl border border-slate-200 bg-white p-5">
+              <ScanScheduleForm
+                value={schedule}
+                onChange={onScheduleChange}
+                title={null}
+                description={null}
+                text={{
+                  modeLabel: t("schedule.form.modeLabel"),
+                  modePlaceholder: t("schedule.form.modePlaceholder"),
+                  modeInterval: t("schedule.form.modeInterval"),
+                  intervalLabel: t("schedule.form.intervalLabel"),
+                  intervalValue: (hours) => t("schedule.form.intervalValue", { hours }),
+                  fixedTimeLabel: t("schedule.form.fixedTimeLabel"),
+                  randomDelayLabel: t("schedule.form.randomDelayLabel"),
+                  randomDelayValue: (minutes) => t("schedule.form.randomDelayValue", { minutes }),
+                  retryCountLabel: t("schedule.form.retryCountLabel"),
+                  retryIntervalLabel: t("schedule.form.retryIntervalLabel"),
+                  retryNone: t("schedule.form.retryNone"),
+                  retryTimes: (count) => t("schedule.form.retryTimes", { count }),
+                  minutesUnit: t("schedule.form.minutesUnit"),
+                  startupTitle: t("schedule.form.startupTitle"),
+                  startupDescription: t("schedule.form.startupDescription"),
+                }}
+                className="max-w-none border-0 shadow-none [&_[class*='text-2xl']]:text-base"
+              />
+            </section>
+          </>
+        )}
 
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
@@ -128,8 +137,8 @@ export function ScanScheduleStep({
             {t("steps.baselineSelection.title")}
           </Button>
           <Button
-            onClick={onCreatePolicy}
-            disabled={!canCreatePolicy || creating}
+            onClick={onPrimaryAction}
+            disabled={!canProceed || creating}
             className="h-11 px-6"
           >
             {creating

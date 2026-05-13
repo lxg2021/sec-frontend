@@ -2,15 +2,21 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { AlertCircle, CalendarRange, Clock3, History, Repeat2, ShieldCheck } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
   applyBaselineScanPolicy,
   createBaselineScanPolicy,
+  listBaselineScanPolicies,
+  type ReusableBaselineScanPolicy,
 } from "@/features/baseline/dispatch/api"
 import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
+import {
+  BaselinePolicyDetail,
+  type BaselinePolicyDetailData,
+} from "@/shared/components/baseline-policy-detail"
 import {
   type DispatchGroup,
   type DispatchHost,
@@ -24,6 +30,7 @@ import { getAccessToken } from "@/shared/lib/http/auth"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 
+import { BaselinePolicyList } from "./baseline-policy-list"
 import { BaselineDispatchSelector, type BaselineDispatchSelectorItem } from "./baseline-dispatch-selector"
 import { BaselineSelectionStep } from "./baseline-selection-step"
 import { DispatchStepper, type DispatchStepItem } from "./dispatch-stepper"
@@ -55,6 +62,8 @@ interface CreatedPolicy {
   version: string
   baselineUuid: string
   baselineName: string
+  schedule: ScanSchedule
+  source: "created" | "reused"
 }
 
 function buildScheduleSummary(schedule: ScanSchedule, t: ReturnType<typeof useTranslations>) {
@@ -95,8 +104,153 @@ function getSelectionMode(groupCount: number, hostCount: number) {
   return "host" as const
 }
 
+function formatDateTime(value: string, locale: string) {
+  if (!value) {
+    return "-"
+  }
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return date.toLocaleString(locale, {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
+
+function sortReusablePolicies(items: ReusableBaselineScanPolicy[], sortValue: string) {
+  const sorted = [...items]
+
+  sorted.sort((left, right) => {
+    if (sortValue === "name") {
+      return left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+    }
+
+    const leftTime = new Date(left.updatedAt || left.createdAt || 0).getTime()
+    const rightTime = new Date(right.updatedAt || right.createdAt || 0).getTime()
+    const leftValue = Number.isFinite(leftTime) ? leftTime : 0
+    const rightValue = Number.isFinite(rightTime) ? rightTime : 0
+
+    if (sortValue === "oldest") {
+      return leftValue - rightValue
+    }
+
+    return rightValue - leftValue
+  })
+
+  return sorted
+}
+
+function buildReusablePolicyDetailData(
+  policy: ReusableBaselineScanPolicy | null,
+  baselineName: string,
+  locale: string,
+  t: ReturnType<typeof useTranslations>,
+): BaselinePolicyDetailData | null {
+  if (!policy) {
+    return null
+  }
+
+  const retryLimit = policy.scanSchedule.retry_limit ?? 0
+  const retryInterval = policy.scanSchedule.retry_interval_minutes ?? 5
+
+  return {
+    name: policy.name,
+    id: policy.id,
+    version: policy.version,
+    sections: [
+      {
+        key: "overview",
+        title: t("schedule.reuse.detail.sections.overview"),
+        icon: <ShieldCheck className="size-4" />,
+        items: [
+          {
+            label: t("schedule.reuse.detail.fields.baseline"),
+            value: baselineName,
+          },
+          {
+            label: t("schedule.reuse.detail.fields.version"),
+            value: policy.version,
+          },
+        ],
+      },
+      {
+        key: "schedule",
+        title: t("schedule.reuse.detail.sections.schedule"),
+        icon: <CalendarRange className="size-4" />,
+        items: [
+          {
+            label: t("schedule.reuse.detail.fields.mode"),
+            value: t("schedule.reuse.detail.values.intervalMode"),
+          },
+          {
+            label: t("schedule.reuse.detail.fields.interval"),
+            value: t("schedule.form.intervalValue", { hours: policy.scanSchedule.interval_hours ?? 24 }),
+          },
+          {
+            label: t("schedule.reuse.detail.fields.fixedTime"),
+            value: policy.scanSchedule.specific_time || t("schedule.reuse.detail.values.notSet"),
+          },
+          {
+            label: t("schedule.reuse.detail.fields.randomDelay"),
+            value: t("schedule.form.randomDelayValue", { minutes: policy.scanSchedule.random_delay_minutes ?? 0 }),
+          },
+          {
+            label: t("schedule.reuse.detail.fields.startup"),
+            value: policy.scanSchedule.scan_on_startup
+              ? t("schedule.reuse.detail.values.enabled")
+              : t("schedule.reuse.detail.values.disabled"),
+          },
+        ],
+      },
+      {
+        key: "retry",
+        title: t("schedule.reuse.detail.sections.retry"),
+        icon: <Repeat2 className="size-4" />,
+        items: [
+          {
+            label: t("schedule.reuse.detail.fields.retryCount"),
+            value:
+              retryLimit > 0
+                ? t("schedule.form.retryTimes", { count: retryLimit })
+                : t("schedule.reuse.detail.values.noRetry"),
+          },
+          {
+            label: t("schedule.reuse.detail.fields.retryInterval"),
+            value:
+              retryLimit > 0
+                ? `${retryInterval} ${t("schedule.form.minutesUnit")}`
+                : t("schedule.reuse.detail.values.notApplicable"),
+          },
+        ],
+      },
+      {
+        key: "lifecycle",
+        title: t("schedule.reuse.detail.sections.lifecycle"),
+        icon: <History className="size-4" />,
+        items: [
+          {
+            label: t("schedule.reuse.detail.fields.createdAt"),
+            value: formatDateTime(policy.createdAt, locale),
+          },
+          {
+            label: t("schedule.reuse.detail.fields.updatedAt"),
+            value: formatDateTime(policy.updatedAt, locale),
+          },
+        ],
+      },
+    ],
+  }
+}
+
 export function BaselineDispatchClient() {
   const t = useTranslations("pages.baseline.dispatch")
+  const locale = useLocale()
   const [currentStep, setCurrentStep] = useState(1)
 
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
@@ -110,6 +264,12 @@ export function BaselineDispatchClient() {
   const [taskMode, setTaskMode] = useState<SwitchModeValue>("reuse")
   const [createdPolicy, setCreatedPolicy] = useState<CreatedPolicy | null>(null)
   const [creatingPolicy, setCreatingPolicy] = useState(false)
+  const [reusablePolicies, setReusablePolicies] = useState<ReusableBaselineScanPolicy[]>([])
+  const [reusablePoliciesLoading, setReusablePoliciesLoading] = useState(false)
+  const [reusablePoliciesError, setReusablePoliciesError] = useState("")
+  const [reusablePolicySearch, setReusablePolicySearch] = useState("")
+  const [reusablePolicySort, setReusablePolicySort] = useState("updated")
+  const [selectedReusablePolicyId, setSelectedReusablePolicyId] = useState("")
 
   const [hostTree, setHostTree] = useState<HostTreeNode[]>([])
   const [hostsLoading, setHostsLoading] = useState(true)
@@ -164,10 +324,49 @@ export function BaselineDispatchClient() {
     }
   }, [t])
 
+  const loadReusablePolicies = useCallback(async () => {
+    if (!selectedTemplateUuid.trim()) {
+      setReusablePolicies([])
+      setReusablePoliciesError("")
+      setReusablePoliciesLoading(false)
+      return
+    }
+
+    setReusablePoliciesLoading(true)
+    setReusablePoliciesError("")
+
+    if (!getAccessToken()) {
+      setReusablePolicies([])
+      setReusablePoliciesError(t("schedule.reuse.errors.noAuth"))
+      setReusablePoliciesLoading(false)
+      return
+    }
+
+    try {
+      const result = await listBaselineScanPolicies({
+        baselineUUID: selectedTemplateUuid,
+        limit: 100,
+        offset: 0,
+      })
+      setReusablePolicies(result.items)
+    } catch (error) {
+      setReusablePolicies([])
+      setReusablePoliciesError(
+        error instanceof Error ? error.message : t("schedule.reuse.errors.loadFailed"),
+      )
+    } finally {
+      setReusablePoliciesLoading(false)
+    }
+  }, [selectedTemplateUuid, t])
+
   useEffect(() => {
     void loadTemplates()
     void loadHosts()
   }, [loadHosts, loadTemplates])
+
+  useEffect(() => {
+    void loadReusablePolicies()
+  }, [loadReusablePolicies])
 
   useEffect(() => {
     if (!selectedTemplateUuid && templates.length > 0) {
@@ -218,6 +417,50 @@ export function BaselineDispatchClient() {
   const selectedTemplate = useMemo(() => {
     return templates.find((item) => item.uuid === selectedTemplateUuid) ?? null
   }, [selectedTemplateUuid, templates])
+
+  const filteredReusablePolicies = useMemo(() => {
+    const keyword = reusablePolicySearch.trim().toLowerCase()
+    const filtered = keyword
+      ? reusablePolicies.filter((item) => {
+          return (
+            item.name.toLowerCase().includes(keyword) ||
+            item.version.toLowerCase().includes(keyword) ||
+            item.id.toLowerCase().includes(keyword)
+          )
+        })
+      : reusablePolicies
+
+    return sortReusablePolicies(filtered, reusablePolicySort)
+  }, [reusablePolicies, reusablePolicySearch, reusablePolicySort])
+
+  useEffect(() => {
+    if (filteredReusablePolicies.length === 0) {
+      setSelectedReusablePolicyId("")
+      return
+    }
+
+    if (!filteredReusablePolicies.some((item) => item.id === selectedReusablePolicyId)) {
+      setSelectedReusablePolicyId(filteredReusablePolicies[0].id)
+    }
+  }, [filteredReusablePolicies, selectedReusablePolicyId])
+
+  const selectedReusablePolicy = useMemo(() => {
+    return (
+      filteredReusablePolicies.find((item) => item.id === selectedReusablePolicyId) ??
+      filteredReusablePolicies[0] ??
+      null
+    )
+  }, [filteredReusablePolicies, selectedReusablePolicyId])
+
+  useEffect(() => {
+    if (
+      taskMode === "reuse" &&
+      createdPolicy?.source === "reused" &&
+      createdPolicy.id !== (selectedReusablePolicy?.id || "")
+    ) {
+      setCreatedPolicy(null)
+    }
+  }, [createdPolicy, selectedReusablePolicy?.id, taskMode])
 
   const selectedHosts = useMemo(() => {
     return selectedNodes.filter((node) => node?.type === "host")
@@ -294,11 +537,12 @@ export function BaselineDispatchClient() {
   }, [deduplicatedHosts])
 
   const canEnterStep2 = Boolean(selectedTemplateUuid)
-  const canCreatePolicy = Boolean(
-    policyName.trim() && version.trim() && selectedTemplateUuid,
-  )
+  const canCreatePolicy = Boolean(policyName.trim() && version.trim() && selectedTemplateUuid)
+  const canReusePolicy = Boolean(selectedTemplateUuid && selectedReusablePolicy)
+  const canProceedScheduleStep = taskMode === "reuse" ? canReusePolicy : canCreatePolicy
   const canEnterStep3 = canEnterStep2 && Boolean(createdPolicy)
   const canEnterStep4 = canEnterStep3 && deduplicatedHosts.length > 0
+  const effectiveSchedule = createdPolicy?.schedule ?? schedule
 
   const previewValidations = useMemo<DispatchValidation[]>(() => {
     const validations: DispatchValidation[] = []
@@ -350,7 +594,7 @@ export function BaselineDispatchClient() {
         type: "baseline",
         id: createdPolicy?.id,
         name: createdPolicy?.name || policyName || t("object.unnamed"),
-        version: version || undefined,
+        version: createdPolicy?.version || version || undefined,
         sourceType:
           selectedTemplate.baseline_type?.toLowerCase() === "custom" ? "custom" : "template",
         mode: "create",
@@ -369,8 +613,10 @@ export function BaselineDispatchClient() {
       },
       schedule: {
         mode: "scheduled",
-        summary: buildScheduleSummary(schedule, t),
-        executeAt: schedule.specific_time ? t("summary.dailyTime", { time: schedule.specific_time }) : undefined,
+        summary: buildScheduleSummary(effectiveSchedule, t),
+        executeAt: effectiveSchedule.specific_time
+          ? t("summary.dailyTime", { time: effectiveSchedule.specific_time })
+          : undefined,
         timezone: "Asia/Shanghai",
       },
       validations: previewValidations,
@@ -397,7 +643,7 @@ export function BaselineDispatchClient() {
     offlineHostCount,
     policyName,
     previewValidations,
-    schedule,
+    effectiveSchedule,
     selectedGroups.length,
     selectedHosts.length,
     selectedTemplate,
@@ -471,6 +717,8 @@ export function BaselineDispatchClient() {
   const handleTemplateChange = useCallback((value: string) => {
     setSelectedTemplateUuid(value)
     setCreatedPolicy(null)
+    setReusablePolicySearch("")
+    setSelectedReusablePolicyId("")
     setCurrentStep(1)
   }, [])
 
@@ -497,6 +745,11 @@ export function BaselineDispatchClient() {
   const handleSelectionChange = useCallback((nodes: HostTreeNode[], ids: Set<string>) => {
     setSelectedNodes(nodes)
     setSelectedIds(new Set(ids))
+  }, [])
+
+  const handleReusablePolicySelect = useCallback((id: string) => {
+    setSelectedReusablePolicyId(id)
+    setCreatedPolicy(null)
   }, [])
 
   const handleCreatePolicy = useCallback(async () => {
@@ -526,6 +779,8 @@ export function BaselineDispatchClient() {
         version: created.version,
         baselineUuid: selectedTemplate.uuid,
         baselineName: baselineDisplayName,
+        schedule,
+        source: "created",
       })
 
       setCurrentStep(3)
@@ -540,6 +795,38 @@ export function BaselineDispatchClient() {
       setCreatingPolicy(false)
     }
   }, [canCreatePolicy, policyName, schedule, selectedTemplate, t, version])
+
+  const handleReusePolicy = useCallback(() => {
+    if (!selectedTemplate || !selectedReusablePolicy) {
+      return
+    }
+
+    const baselineDisplayName = selectedTemplate.display_name || selectedTemplate.baseline_uuid
+
+    setPolicyName(selectedReusablePolicy.name)
+    setVersion(selectedReusablePolicy.version)
+    setSchedule(selectedReusablePolicy.scanSchedule)
+    setCreatedPolicy({
+      id: selectedReusablePolicy.id,
+      name: selectedReusablePolicy.name,
+      version: selectedReusablePolicy.version,
+      baselineUuid: selectedTemplate.uuid,
+      baselineName: baselineDisplayName,
+      schedule: selectedReusablePolicy.scanSchedule,
+      source: "reused",
+    })
+    setCurrentStep(3)
+    toast.success(t("toast.policyReused"))
+  }, [selectedReusablePolicy, selectedTemplate, t])
+
+  const handleSchedulePrimaryAction = useCallback(async () => {
+    if (taskMode === "reuse") {
+      handleReusePolicy()
+      return
+    }
+
+    await handleCreatePolicy()
+  }, [handleCreatePolicy, handleReusePolicy, taskMode])
 
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) {
@@ -587,6 +874,79 @@ export function BaselineDispatchClient() {
     t,
   ])
 
+  const reusablePolicySortOptions = useMemo(
+    () => [
+      { value: "updated", label: t("schedule.reuse.sort.updated") },
+      { value: "oldest", label: t("schedule.reuse.sort.oldest") },
+      { value: "name", label: t("schedule.reuse.sort.name") },
+    ],
+    [t],
+  )
+
+  const reusablePolicyDetail = useMemo(() => {
+    const baselineName = selectedTemplate?.display_name || selectedTemplate?.baseline_uuid || "-"
+
+    return buildReusablePolicyDetailData(selectedReusablePolicy, baselineName, locale, t)
+  }, [locale, selectedReusablePolicy, selectedTemplate, t])
+
+  const reuseContent = useMemo(() => {
+    return (
+      <div className="grid gap-6 xl:grid-cols-[minmax(320px,0.92fr)_minmax(0,1.08fr)]">
+        <div className="min-w-0">
+          <BaselinePolicyList
+            title={t("schedule.reuse.listTitle")}
+            searchPlaceholder={t("schedule.reuse.searchPlaceholder")}
+            searchValue={reusablePolicySearch}
+            sortValue={reusablePolicySort}
+            sortOptions={reusablePolicySortOptions}
+            items={filteredReusablePolicies.map((item) => ({
+              id: item.id,
+              name: item.name,
+              version: item.version,
+              updatedText: t("schedule.reuse.updatedAt", {
+                time: formatDateTime(item.updatedAt || item.createdAt, locale),
+              }),
+            }))}
+            selectedId={selectedReusablePolicy?.id}
+            loading={reusablePoliciesLoading}
+            error={reusablePoliciesError}
+            emptyTitle={t("schedule.reuse.emptyTitle")}
+            emptyDescription={t("schedule.reuse.emptyDescription")}
+            retryLabel={t("schedule.reuse.retry")}
+            onRetry={() => void loadReusablePolicies()}
+            onSearchChange={setReusablePolicySearch}
+            onSortChange={setReusablePolicySort}
+            onSelect={handleReusablePolicySelect}
+          />
+        </div>
+
+        <div className="min-w-0">
+          <BaselinePolicyDetail
+            title={t("schedule.reuse.detailTitle")}
+            policy={reusablePolicyDetail}
+            loading={reusablePoliciesLoading}
+            idLabel={t("schedule.reuse.detail.idLabel")}
+            emptyTitle={t("schedule.reuse.detail.emptyTitle")}
+            emptyDescription={t("schedule.reuse.detail.emptyDescription")}
+          />
+        </div>
+      </div>
+    )
+  }, [
+    filteredReusablePolicies,
+    handleReusablePolicySelect,
+    loadReusablePolicies,
+    locale,
+    reusablePoliciesError,
+    reusablePoliciesLoading,
+    reusablePolicyDetail,
+    reusablePolicySearch,
+    reusablePolicySort,
+    reusablePolicySortOptions,
+    selectedReusablePolicy?.id,
+    t,
+  ])
+
   const renderCurrentStep = () => {
     const selector = (
       <BaselineDispatchSelector
@@ -615,16 +975,17 @@ export function BaselineDispatchClient() {
         <ScanScheduleStep
           schedule={schedule}
           creating={creatingPolicy}
-          canCreatePolicy={canCreatePolicy}
+          canProceed={canProceedScheduleStep}
           mode={taskMode}
           onNameChange={handlePolicyNameChange}
           onModeChange={handleTaskModeChange}
           onScheduleChange={handleScheduleChange}
           onVersionChange={handleVersionChange}
           policyName={policyName}
+          reuseContent={reuseContent}
           version={version}
           onBack={() => setCurrentStep(1)}
-          onCreatePolicy={() => void handleCreatePolicy()}
+          onPrimaryAction={() => void handleSchedulePrimaryAction()}
         />
       )
     }
