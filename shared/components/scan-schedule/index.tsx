@@ -134,7 +134,7 @@ export function ScanScheduleForm({
         <CardHeader className="pb-4">
           {mergedText.title ? (
             <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-              <Plus className="h-5 w-5 text-primary" />
+              <Plus className="h-5 w-5 text-sky-600" />
               {mergedText.title}
             </CardTitle>
           ) : null}
@@ -149,7 +149,7 @@ export function ScanScheduleForm({
 
           <FieldShell
             label={mergedText.modeLabel}
-            icon={<Clock className="h-3.5 w-3.5 text-primary" />}
+            icon={<Clock className="h-3.5 w-3.5 text-cyan-500" />}
           >
             <Select
               value={schedule.mode}
@@ -167,7 +167,7 @@ export function ScanScheduleForm({
 
           <FieldShell
             label={mergedText.fixedTimeLabel}
-            icon={<Calendar className="h-3.5 w-3.5 text-primary" />}
+            icon={<Calendar className="h-3.5 w-3.5 text-blue-500" />}
           >
             <Input
               id="specific_time"
@@ -189,7 +189,7 @@ export function ScanScheduleForm({
                 htmlFor="interval_hours"
                 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
               >
-                <RefreshCw className="h-3.5 w-3.5 text-primary" />
+                <RefreshCw className="h-3.5 w-3.5 text-amber-500" />
                 {mergedText.intervalLabel}
               </Label>
               <span className="text-sm font-medium tabular-nums">
@@ -218,7 +218,7 @@ export function ScanScheduleForm({
                 htmlFor="random_delay"
                 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
               >
-                <Shuffle className="h-3.5 w-3.5 text-primary" />
+                <Shuffle className="h-3.5 w-3.5 text-violet-500" />
                 {mergedText.randomDelayLabel}
               </Label>
               <span className="text-sm font-medium tabular-nums">
@@ -247,7 +247,7 @@ export function ScanScheduleForm({
         <div className={cn("grid gap-4", showStartup ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2")}>
           <FieldShell
             label={mergedText.retryCountLabel}
-            icon={<RotateCcw className="h-3.5 w-3.5 text-primary" />}
+            icon={<RotateCcw className="h-3.5 w-3.5 text-orange-500" />}
           >
             <Select
               value={String(retryLimit)}
@@ -269,7 +269,7 @@ export function ScanScheduleForm({
 
           <FieldShell
             label={mergedText.retryIntervalLabel}
-            icon={<Timer className="h-3.5 w-3.5 text-primary" />}
+            icon={<Timer className="h-3.5 w-3.5 text-rose-500" />}
           >
             <div className="flex h-9">
               <Input
@@ -294,17 +294,16 @@ export function ScanScheduleForm({
           {showStartup ? (
             <FieldShell
               label={mergedText.startupTitle}
-              icon={<Play className="h-3.5 w-3.5 text-primary" />}
+              icon={<Play className="h-3.5 w-3.5 text-emerald-500" />}
             >
-              <div className="flex h-9 items-center rounded-md border border-input bg-background px-3">
+              <div className="flex h-9 items-center justify-between rounded-md border border-input bg-background px-3">
+                <span className="text-sm text-slate-900">{mergedText.startupInlineLabel}</span>
                 <Switch
                   id="scan_on_startup"
                   checked={schedule.scan_on_startup}
                   onCheckedChange={(checked) => handleChange({ scan_on_startup: checked })}
                   disabled={disabled}
-                  className="mr-3"
                 />
-                <span className="text-sm">{mergedText.startupInlineLabel}</span>
               </div>
             </FieldShell>
           ) : null}
