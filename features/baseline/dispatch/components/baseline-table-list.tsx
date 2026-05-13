@@ -86,6 +86,9 @@ const HEADER_CELL_CLASS_NAME =
 const BODY_CELL_CLASS_NAME =
   "px-2.5 py-3 text-[12px] [&:has([role=checkbox])]:pr-0";
 
+const MAX_VISIBLE_ROWS = 5;
+const SCROLLABLE_TABLE_MAX_HEIGHT_CLASS = "max-h-[300px]";
+
 function getPolicyRowKey(
   item: Pick<ReusableBaselineScanPolicy, "id" | "version">,
 ) {
@@ -188,6 +191,7 @@ export function BaselineTableList({
   const activeSelectedKey = selectedKey ?? internalSelectedKey;
   const items = data?.items ?? [];
   const pagination = data?.pagination;
+  const shouldScroll = !loading && items.length > MAX_VISIBLE_ROWS;
 
   const text = useMemo(
     () =>
@@ -331,7 +335,14 @@ export function BaselineTableList({
   return (
     <TooltipProvider delayDuration={180}>
       <div className="space-y-4">
-        <div className="overflow-hidden rounded-2xl">
+        <div
+          className={cn(
+            "rounded-2xl overflow-x-hidden",
+            shouldScroll
+              ? `${SCROLLABLE_TABLE_MAX_HEIGHT_CLASS} overflow-y-auto`
+              : "overflow-y-hidden",
+          )}
+        >
           <table className="w-full table-fixed text-[12px] leading-5">
             <colgroup>
               {COLUMN_WIDTHS.map((width, index) => (
@@ -340,9 +351,18 @@ export function BaselineTableList({
             </colgroup>
             <TableHeader>
               <TableRow className="bg-slate-50/90">
-                <TableHead className={HEADER_CELL_CLASS_NAME} />
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
+                />
+                <TableHead
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Hash className="size-3.5 shrink-0 text-blue-500" />
@@ -350,7 +370,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <FileText className="size-3.5 shrink-0 text-emerald-500" />
@@ -358,7 +382,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Tag className="size-3.5 shrink-0 text-amber-500" />
@@ -366,7 +394,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Link2 className="size-3.5 shrink-0 text-violet-500" />
@@ -376,7 +408,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <SlidersHorizontal className="size-3.5 shrink-0 text-cyan-500" />
@@ -384,7 +420,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Clock3 className="size-3.5 shrink-0 text-blue-500" />
@@ -394,7 +434,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Clock className="size-3.5 shrink-0 text-emerald-500" />
@@ -404,7 +448,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Shuffle className="size-3.5 shrink-0 text-amber-500" />
@@ -414,7 +462,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <RotateCcw className="size-3.5 shrink-0 text-rose-500" />
@@ -422,7 +474,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <RefreshCcw className="size-3.5 shrink-0 text-orange-500" />
@@ -432,7 +488,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Play className="size-3.5 shrink-0 text-violet-500" />
@@ -442,7 +502,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <CalendarPlus className="size-3.5 shrink-0 text-cyan-500" />
@@ -450,7 +514,11 @@ export function BaselineTableList({
                   </div>
                 </TableHead>
                 <TableHead
-                  className={cn(HEADER_CELL_CLASS_NAME, "whitespace-nowrap")}
+                  className={cn(
+                    HEADER_CELL_CLASS_NAME,
+                    "whitespace-nowrap",
+                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-1.5">
                     <CalendarCheck className="size-3.5 shrink-0 text-rose-500" />
