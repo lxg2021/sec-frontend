@@ -10,9 +10,15 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Clock,
+  Clock3,
   FileText,
   Hash,
   Link2,
+  Play,
+  RefreshCcw,
+  RotateCcw,
+  Shuffle,
+  SlidersHorizontal,
   Tag,
 } from "lucide-react"
 
@@ -80,25 +86,38 @@ export function BaselineTableList({
   const activeSelectedKey = selectedKey ?? internalSelectedKey
   const items = data?.items ?? []
   const pagination = data?.pagination
-  const balancedColumnWidth = "calc((100% - 50px) / 5)"
 
   const text = useMemo(
     () =>
       isZh
         ? {
-            refresh: "刷新",
-            emptyTitle: "暂无基线扫描策略",
-            emptyDescription: "当前基线下还没有可展示的扫描策略。",
+            refresh: "\u5237\u65b0",
+            emptyTitle: "\u6682\u65e0\u57fa\u7ebf\u626b\u63cf\u7b56\u7565",
+            emptyDescription: "\u5f53\u524d\u57fa\u7ebf\u4e0b\u8fd8\u6ca1\u6709\u53ef\u5c55\u793a\u7684\u626b\u63cf\u7b56\u7565\u3002",
             columns: {
-              policyId: "策略 ID",
-              name: "策略名称",
-              version: "版本",
-              baselineUuid: "基线 UUID",
-              createdAt: "创建时间",
-              updatedAt: "更新时间",
+              policyId: "\u7b56\u7565 ID",
+              name: "\u7b56\u7565\u540d\u79f0",
+              version: "\u7248\u672c",
+              baselineUuid: "\u57fa\u7ebf UUID",
+              mode: "\u8c03\u5ea6\u6a21\u5f0f",
+              intervalHours: "\u95f4\u9694",
+              specificTime: "\u56fa\u5b9a\u65f6\u95f4",
+              randomDelayMinutes: "\u968f\u673a\u5ef6\u8fdf",
+              retryLimit: "\u91cd\u8bd5\u6b21\u6570",
+              retryIntervalMinutes: "\u91cd\u8bd5\u95f4\u9694",
+              scanOnStartup: "\u542f\u52a8\u626b\u63cf",
+              createdAt: "\u521b\u5efa\u65f6\u95f4",
+              updatedAt: "\u66f4\u65b0\u65f6\u95f4",
             },
-            pageInfo: (page: number, totalPages: number) => `第 ${page} / ${totalPages} 页`,
-            selectRow: (name: string) => `选择 ${name}`,
+            modeInterval: "\u56fa\u5b9a\u95f4\u9694",
+            retryNone: "\u4e0d\u91cd\u8bd5",
+            startupEnabled: "\u5f00\u542f",
+            startupDisabled: "\u5173\u95ed",
+            hoursUnit: "\u5c0f\u65f6",
+            minutesUnit: "\u5206\u949f",
+            retryTimes: (count: number) => `${count} \u6b21`,
+            pageInfo: (page: number, totalPages: number) => `\u7b2c ${page} / ${totalPages} \u9875`,
+            selectRow: (name: string) => `\u9009\u62e9 ${name}`,
           }
         : {
             refresh: "Refresh",
@@ -109,14 +128,58 @@ export function BaselineTableList({
               name: "Policy Name",
               version: "Version",
               baselineUuid: "Baseline UUID",
+              mode: "Schedule Mode",
+              intervalHours: "Interval",
+              specificTime: "Fixed Time",
+              randomDelayMinutes: "Random Delay",
+              retryLimit: "Retry Count",
+              retryIntervalMinutes: "Retry Interval",
+              scanOnStartup: "Startup Scan",
               createdAt: "Created At",
               updatedAt: "Updated At",
             },
+            modeInterval: "Fixed Interval",
+            retryNone: "No Retry",
+            startupEnabled: "Enabled",
+            startupDisabled: "Disabled",
+            hoursUnit: "h",
+            minutesUnit: "min",
+            retryTimes: (count: number) => `${count}x`,
             pageInfo: (page: number, totalPages: number) => `Page ${page} / ${totalPages}`,
             selectRow: (name: string) => `Select ${name}`,
           },
     [isZh],
   )
+
+  function formatScheduleMode(item: ReusableBaselineScanPolicy) {
+    return item.scanSchedule.mode === "interval" ? text.modeInterval : item.scanSchedule.mode
+  }
+
+  function formatIntervalHours(value?: number) {
+    if (!Number.isFinite(value) || !value || value <= 0) {
+      return "-"
+    }
+    return `${value} ${text.hoursUnit}`
+  }
+
+  function formatSpecificTime(value?: string) {
+    const trimmed = value?.trim()
+    return trimmed ? trimmed : "-"
+  }
+
+  function formatMinutes(value?: number) {
+    if (!Number.isFinite(value)) {
+      return "-"
+    }
+    return `${value} ${text.minutesUnit}`
+  }
+
+  function formatRetryLimit(value?: number) {
+    if (!Number.isFinite(value) || value === 0) {
+      return text.retryNone
+    }
+    return text.retryTimes(value ?? 0)
+  }
 
   function handleSelectItem(policyKey: string) {
     const nextKey = activeSelectedKey === policyKey ? null : policyKey
@@ -156,51 +219,84 @@ export function BaselineTableList({
 
   return (
     <div className="space-y-4">
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <Table className="table-auto">
-          <colgroup>
-            <col style={{ width: "50px" }} />
-            <col />
-            <col style={{ width: balancedColumnWidth }} />
-            <col style={{ width: balancedColumnWidth }} />
-            <col style={{ width: balancedColumnWidth }} />
-            <col style={{ width: balancedColumnWidth }} />
-            <col style={{ width: balancedColumnWidth }} />
-          </colgroup>
+      <div className="overflow-x-auto rounded-2xl border border-slate-200">
+        <Table className="min-w-[2140px] table-auto text-sm">
           <TableHeader>
             <TableRow className="bg-slate-50/90">
               <TableHead className="w-[50px]" />
-              <TableHead className="whitespace-nowrap">
+              <TableHead className="min-w-[280px] whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <Hash className="size-4 text-blue-500" />
                   <span>{text.columns.policyId}</span>
                 </div>
               </TableHead>
-              <TableHead className="whitespace-nowrap">
+              <TableHead className="min-w-[180px] whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <FileText className="size-4 text-emerald-500" />
                   <span>{text.columns.name}</span>
                 </div>
               </TableHead>
-              <TableHead className="whitespace-nowrap">
+              <TableHead className="min-w-[96px] whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <Tag className="size-4 text-amber-500" />
                   <span>{text.columns.version}</span>
                 </div>
               </TableHead>
-              <TableHead className="whitespace-nowrap">
+              <TableHead className="min-w-[240px] whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <Link2 className="size-4 text-violet-500" />
                   <span>{text.columns.baselineUuid}</span>
                 </div>
               </TableHead>
-              <TableHead className="whitespace-nowrap">
+              <TableHead className="min-w-[120px] whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="size-4 text-cyan-500" />
+                  <span>{text.columns.mode}</span>
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[110px] whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <Clock3 className="size-4 text-blue-500" />
+                  <span>{text.columns.intervalHours}</span>
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[120px] whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <Clock className="size-4 text-emerald-500" />
+                  <span>{text.columns.specificTime}</span>
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[130px] whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <Shuffle className="size-4 text-amber-500" />
+                  <span>{text.columns.randomDelayMinutes}</span>
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[120px] whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <RotateCcw className="size-4 text-rose-500" />
+                  <span>{text.columns.retryLimit}</span>
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[140px] whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <RefreshCcw className="size-4 text-orange-500" />
+                  <span>{text.columns.retryIntervalMinutes}</span>
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[120px] whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <Play className="size-4 text-violet-500" />
+                  <span>{text.columns.scanOnStartup}</span>
+                </div>
+              </TableHead>
+              <TableHead className="min-w-[150px] whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <CalendarPlus className="size-4 text-cyan-500" />
                   <span>{text.columns.createdAt}</span>
                 </div>
               </TableHead>
-              <TableHead className="whitespace-nowrap">
+              <TableHead className="min-w-[150px] whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <CalendarCheck className="size-4 text-rose-500" />
                   <span>{text.columns.updatedAt}</span>
@@ -228,6 +324,27 @@ export function BaselineTableList({
                       <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
                     </TableCell>
                     <TableCell>
+                      <div className="h-6 w-20 animate-pulse rounded-full bg-slate-200" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-20 animate-pulse rounded bg-slate-200" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-16 animate-pulse rounded bg-slate-200" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-20 animate-pulse rounded bg-slate-200" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-16 animate-pulse rounded bg-slate-200" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-4 w-20 animate-pulse rounded bg-slate-200" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-6 w-16 animate-pulse rounded-full bg-slate-200" />
+                    </TableCell>
+                    <TableCell>
                       <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
                     </TableCell>
                     <TableCell>
@@ -237,58 +354,92 @@ export function BaselineTableList({
                 ))
               : items.map((item) => {
                   const rowKey = getPolicyRowKey(item)
+
                   return (
-                  <TableRow
-                    key={rowKey}
-                    className={cn("cursor-pointer", activeSelectedKey === rowKey && "bg-slate-50")}
-                    onClick={() => {
-                      handleSelectItem(rowKey)
-                      onRowClick?.(item)
-                    }}
-                  >
-                    <TableCell onClick={(event) => event.stopPropagation()}>
-                      <div
-                        role="radio"
-                        aria-checked={activeSelectedKey === rowKey}
-                        aria-label={text.selectRow(item.name)}
-                        tabIndex={0}
-                        className={cn(
-                          "flex size-4 cursor-pointer items-center justify-center rounded-full border-2 transition-colors",
-                          activeSelectedKey === rowKey
-                            ? "border-primary bg-primary"
-                            : "border-muted-foreground/40 hover:border-primary",
-                        )}
-                        onClick={() => handleSelectItem(rowKey)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault()
-                            handleSelectItem(rowKey)
-                          }
-                        }}
-                      >
-                        {activeSelectedKey === rowKey ? (
-                          <div className="size-2 rounded-full bg-primary-foreground" />
-                        ) : null}
-                      </div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap font-mono text-xs">{item.id}</TableCell>
-                    <TableCell className="max-w-0 truncate font-medium text-slate-950" title={item.name}>
-                      {item.name}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{item.version}</Badge>
-                    </TableCell>
-                    <TableCell className="max-w-0 truncate text-sm text-slate-500" title={item.baselineUuid}>
-                      {item.baselineUuid}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm text-slate-500">
-                      {formatDateTime(item.createdAt, locale)}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm text-slate-500">
-                      {formatDateTime(item.updatedAt, locale)}
-                    </TableCell>
-                  </TableRow>
-                )})}
+                    <TableRow
+                      key={rowKey}
+                      className={cn("cursor-pointer", activeSelectedKey === rowKey && "bg-slate-50")}
+                      onClick={() => {
+                        handleSelectItem(rowKey)
+                        onRowClick?.(item)
+                      }}
+                    >
+                      <TableCell onClick={(event) => event.stopPropagation()}>
+                        <div
+                          role="radio"
+                          aria-checked={activeSelectedKey === rowKey}
+                          aria-label={text.selectRow(item.name)}
+                          tabIndex={0}
+                          className={cn(
+                            "flex size-4 cursor-pointer items-center justify-center rounded-full border-2 transition-colors",
+                            activeSelectedKey === rowKey
+                              ? "border-primary bg-primary"
+                              : "border-muted-foreground/40 hover:border-primary",
+                          )}
+                          onClick={() => handleSelectItem(rowKey)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault()
+                              handleSelectItem(rowKey)
+                            }
+                          }}
+                        >
+                          {activeSelectedKey === rowKey ? (
+                            <div className="size-2 rounded-full bg-primary-foreground" />
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap font-mono text-xs">{item.id}</TableCell>
+                      <TableCell className="max-w-0 truncate font-medium text-slate-950" title={item.name}>
+                        {item.name}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{item.version}</Badge>
+                      </TableCell>
+                      <TableCell className="max-w-0 truncate text-sm text-slate-500" title={item.baselineUuid}>
+                        {item.baselineUuid}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{formatScheduleMode(item)}</Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                        {formatIntervalHours(item.scanSchedule.interval_hours)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                        {formatSpecificTime(item.scanSchedule.specific_time)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                        {formatMinutes(item.scanSchedule.random_delay_minutes)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                        {formatRetryLimit(item.scanSchedule.retry_limit)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                        {item.scanSchedule.retry_limit === 0
+                          ? "-"
+                          : formatMinutes(item.scanSchedule.retry_interval_minutes)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            item.scanSchedule.scan_on_startup
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : "border-slate-200 bg-slate-50 text-slate-600",
+                          )}
+                        >
+                          {item.scanSchedule.scan_on_startup ? text.startupEnabled : text.startupDisabled}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                        {formatDateTime(item.createdAt, locale)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-slate-500">
+                        {formatDateTime(item.updatedAt, locale)}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
           </TableBody>
         </Table>
       </div>
