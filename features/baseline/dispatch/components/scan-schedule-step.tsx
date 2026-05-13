@@ -13,6 +13,7 @@ interface ScanScheduleStepProps {
   headerAction?: ReactNode
   onBack: () => void
   onPrimaryAction: () => void
+  primaryLabel?: ReactNode
 }
 
 export function ScanScheduleStep({
@@ -22,6 +23,7 @@ export function ScanScheduleStep({
   headerAction,
   onBack,
   onPrimaryAction,
+  primaryLabel,
 }: ScanScheduleStepProps) {
   const t = useTranslations("pages.baseline.dispatch")
   return (
@@ -55,8 +57,8 @@ export function ScanScheduleStep({
             disabled={!canProceed || creating}
             className="h-11 px-6"
           >
-            {creating ? t("schedule.actions.creating") : t("schedule.actions.createTask")}
-            {!creating ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
+            {primaryLabel ?? t("schedule.actions.createTask")}
+            <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </CardContent>

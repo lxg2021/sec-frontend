@@ -67,6 +67,20 @@ interface CreatedPolicy {
   schedule: ScanSchedule
 }
 
+function mapReusablePolicyToCreatedPolicy(
+  policy: ReusableBaselineScanPolicy,
+  baselineName: string,
+): CreatedPolicy {
+  return {
+    id: policy.id,
+    name: policy.name,
+    version: policy.version,
+    baselineUuid: policy.baselineUuid,
+    baselineName,
+    schedule: policy.scanSchedule,
+  }
+}
+
 function buildAutoPolicyName(template: BaselineTemplate) {
   const baseName = (template.display_name || template.baseline_uuid || template.uuid).trim()
   return `${baseName}-scan-task`
@@ -130,6 +144,7 @@ export function BaselineDispatchClient() {
 
   const [schedule, setSchedule] = useState<ScanSchedule>(DEFAULT_SCAN_SCHEDULE)
   const [createdPolicy, setCreatedPolicy] = useState<CreatedPolicy | null>(null)
+  const [appliedPolicy, setAppliedPolicy] = useState<CreatedPolicy | null>(null)
   const [creatingPolicy, setCreatingPolicy] = useState(false)
   const [reusablePolicies, setReusablePolicies] = useState<BaselineScanPolicyListResult | null>(null)
   const [reusablePoliciesLoading, setReusablePoliciesLoading] = useState(false)
@@ -190,7 +205,7 @@ export function BaselineDispatchClient() {
     }
   }, [t])
 
-  const loadReusablePolicies = useCallback(async (page: number) => {
+  const loadReusablePolicies = useCallback(async (page: number, preferredSelectedId?: string | null) => {
     if (!selectedTemplateUuid.trim()) {
       setReusablePolicies(null)
       setReusablePoliciesError("")
@@ -217,6 +232,10 @@ export function BaselineDispatchClient() {
 
       setReusablePolicies(result)
       setSelectedReusablePolicyId((current) => {
+        if (preferredSelectedId && result.items.some((item) => item.id === preferredSelectedId)) {
+          return preferredSelectedId
+        }
+
         if (current && result.items.some((item) => item.id === current)) {
           return current
         }
@@ -292,6 +311,10 @@ export function BaselineDispatchClient() {
     return templates.find((item) => item.uuid === selectedTemplateUuid) ?? null
   }, [selectedTemplateUuid, templates])
 
+  const selectedReusablePolicy = useMemo(() => {
+    return reusablePolicies?.items.find((item) => item.id === selectedReusablePolicyId) ?? null
+  }, [reusablePolicies, selectedReusablePolicyId])
+
   const generatedPolicyName = useMemo(() => {
     return selectedTemplate ? buildAutoPolicyName(selectedTemplate) : ""
   }, [selectedTemplate])
@@ -358,6 +381,17 @@ export function BaselineDispatchClient() {
       },
     ]
   }, [generatedPolicyName, generatedPolicyVersion, isZh])
+
+  const candidatePolicy = useMemo(() => {
+    if (selectedReusablePolicy && selectedTemplate) {
+      return mapReusablePolicyToCreatedPolicy(
+        selectedReusablePolicy,
+        selectedTemplate.display_name || selectedTemplate.baseline_uuid,
+      )
+    }
+
+    return createdPolicy
+  }, [createdPolicy, selectedReusablePolicy, selectedTemplate])
 
   const selectedHosts = useMemo(() => {
     return selectedNodes.filter((node) => node?.type === "host")
@@ -435,9 +469,10 @@ export function BaselineDispatchClient() {
 
   const canEnterStep2 = Boolean(selectedTemplateUuid)
   const canCreatePolicy = Boolean(selectedTemplate)
-  const canEnterStep3 = canEnterStep2 && Boolean(createdPolicy)
+  const canApplyPolicy = Boolean(candidatePolicy)
+  const canEnterStep3 = canEnterStep2 && Boolean(appliedPolicy)
   const canEnterStep4 = canEnterStep3 && deduplicatedHosts.length > 0
-  const effectiveSchedule = createdPolicy?.schedule ?? schedule
+  const effectiveSchedule = appliedPolicy?.schedule ?? schedule
 
   const previewValidations = useMemo<DispatchValidation[]>(() => {
     const validations: DispatchValidation[] = []
@@ -460,7 +495,7 @@ export function BaselineDispatchClient() {
       })
     }
 
-    if (!createdPolicy) {
+    if (!appliedPolicy) {
       validations.push({
         level: "error",
         code: "POLICY_NOT_CREATED",
@@ -479,7 +514,7 @@ export function BaselineDispatchClient() {
     }
 
     return validations
-  }, [createdPolicy, deduplicatedHosts.length, invalidHostCount, offlineHostCount, t])
+  }, [appliedPolicy, deduplicatedHosts.length, invalidHostCount, offlineHostCount, t])
 
   const previewData = useMemo<DispatchPreviewData | undefined>(() => {
     if (!selectedTemplate) return undefined
@@ -487,9 +522,9 @@ export function BaselineDispatchClient() {
     return {
       object: {
         type: "baseline",
-        id: createdPolicy?.id,
-        name: createdPolicy?.name || generatedPolicyName || t("object.unnamed"),
-        version: createdPolicy?.version || generatedPolicyVersion || undefined,
+        id: appliedPolicy?.id,
+        name: appliedPolicy?.name || generatedPolicyName || t("object.unnamed"),
+        version: appliedPolicy?.version || generatedPolicyVersion || undefined,
         sourceType:
           selectedTemplate.baseline_type?.toLowerCase() === "custom" ? "custom" : "template",
         mode: "create",
@@ -517,13 +552,13 @@ export function BaselineDispatchClient() {
       validations: previewValidations,
       permissions: {
         canSubmit:
-          Boolean(createdPolicy) &&
+          Boolean(appliedPolicy) &&
           deduplicatedHosts.length > 0 &&
           invalidHostCount === 0,
         reason:
           invalidHostCount > 0
             ? t("permissions.invalidHosts")
-            : !createdPolicy
+            : !appliedPolicy
               ? t("permissions.createPolicyFirst")
               : deduplicatedHosts.length === 0
                 ? t("permissions.selectHostsFirst")
@@ -531,7 +566,7 @@ export function BaselineDispatchClient() {
       },
     }
   }, [
-    createdPolicy,
+    appliedPolicy,
     deduplicatedHosts,
     hostBuckets,
     invalidHostCount,
@@ -611,6 +646,7 @@ export function BaselineDispatchClient() {
 
   const handleTemplateChange = useCallback((value: string) => {
     setSelectedTemplateUuid(value)
+    setAppliedPolicy(null)
     setCreatedPolicy(null)
     setReusablePoliciesPage(1)
     setSelectedReusablePolicyId(null)
@@ -624,16 +660,28 @@ export function BaselineDispatchClient() {
 
   const handleScheduleChange = useCallback((value: ScanSchedule) => {
     setSchedule(value)
+    setAppliedPolicy(null)
     setCreatedPolicy(null)
   }, [])
 
   const handleReusablePolicySelectionChange = useCallback((selectedId: string | null) => {
+    setAppliedPolicy(null)
     setSelectedReusablePolicyId(selectedId)
   }, [])
 
   const handleReusablePolicyRowClick = useCallback((item: ReusableBaselineScanPolicy) => {
     setSelectedReusablePolicyId(item.id)
   }, [])
+
+  const handleApplyTask = useCallback(() => {
+    if (!candidatePolicy) {
+      toast.error(t("validation.policyNotCreated.suggestion"))
+      return
+    }
+
+    setAppliedPolicy(candidatePolicy)
+    setCurrentStep(3)
+  }, [candidatePolicy, t])
 
   const handleCreatePolicy = useCallback(async () => {
     if (!selectedTemplate) return
@@ -665,7 +713,10 @@ export function BaselineDispatchClient() {
         schedule,
       })
 
-      setCurrentStep(3)
+      setAppliedPolicy(null)
+      setReusablePoliciesPage(1)
+      setSelectedReusablePolicyId(created.id)
+      await loadReusablePolicies(1, created.id)
       toast.success(t("toast.policyCreated"))
     } catch (error) {
       toast.error(
@@ -676,7 +727,7 @@ export function BaselineDispatchClient() {
     } finally {
       setCreatingPolicy(false)
     }
-  }, [generatedPolicyName, generatedPolicyVersion, schedule, selectedTemplate, t])
+  }, [generatedPolicyName, generatedPolicyVersion, loadReusablePolicies, schedule, selectedTemplate, t])
 
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) {
@@ -684,7 +735,7 @@ export function BaselineDispatchClient() {
       return
     }
 
-    if (!createdPolicy) {
+    if (!appliedPolicy) {
       toast.error(t("permissions.createPolicyFirst"))
       return
     }
@@ -703,8 +754,8 @@ export function BaselineDispatchClient() {
 
     try {
       await applyBaselineScanPolicy({
-        policyId: createdPolicy.id,
-        version: createdPolicy.version,
+        policyId: appliedPolicy.id,
+        version: appliedPolicy.version,
         agentIds,
       })
       toast.success(t("toast.dispatchSuccess"), { id: toastId })
@@ -717,7 +768,7 @@ export function BaselineDispatchClient() {
       setSubmitting(false)
     }
   }, [
-    createdPolicy,
+    appliedPolicy,
     deduplicatedHosts,
     previewData?.permissions?.canSubmit,
     previewData?.permissions?.reason,
@@ -741,11 +792,22 @@ export function BaselineDispatchClient() {
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="space-y-5">
-          <div className="border-b border-slate-200 pb-4">
+          <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
             <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
               <PlusSquare className="size-4 text-sky-600" />
               {isZh ? "\u521b\u5efa\u4efb\u52a1" : "Create Task"}
             </h3>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void handleCreatePolicy()}
+              disabled={!canCreatePolicy || creatingPolicy}
+              className="h-10 rounded-2xl px-4"
+            >
+              {creatingPolicy
+                ? (isZh ? "\u521b\u5efa\u4e2d..." : "Creating...")
+                : (isZh ? "\u65b0\u5efa\u4efb\u52a1" : "New Task")}
+            </Button>
           </div>
 
           <ScanScheduleForm
@@ -803,11 +865,12 @@ export function BaselineDispatchClient() {
       return (
         <ScanScheduleStep
           creating={creatingPolicy}
-          canProceed={canCreatePolicy}
+          canProceed={canApplyPolicy}
           content={scheduleContent}
           headerAction={scheduleHeaderAction}
           onBack={() => setCurrentStep(1)}
-          onPrimaryAction={() => void handleCreatePolicy()}
+          onPrimaryAction={handleApplyTask}
+          primaryLabel={isZh ? "\u5e94\u7528\u4efb\u52a1" : "Apply Task"}
         />
       )
     }
