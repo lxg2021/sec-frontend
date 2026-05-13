@@ -18,6 +18,7 @@ import {
   type DispatchValidation,
 } from "@/shared/components/dispatch-preview"
 import { DEFAULT_SCAN_SCHEDULE, type ScanSchedule } from "@/shared/components/scan-schedule"
+import { type SwitchModeValue } from "@/shared/components/switch-mode"
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
 import { getAccessToken } from "@/shared/lib/http/auth"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
@@ -106,6 +107,7 @@ export function BaselineDispatchClient() {
   const [policyName, setPolicyName] = useState("")
   const [version, setVersion] = useState("1.0.0")
   const [schedule, setSchedule] = useState<ScanSchedule>(DEFAULT_SCAN_SCHEDULE)
+  const [taskMode, setTaskMode] = useState<SwitchModeValue>("reuse")
   const [createdPolicy, setCreatedPolicy] = useState<CreatedPolicy | null>(null)
   const [creatingPolicy, setCreatingPolicy] = useState(false)
 
@@ -477,6 +479,11 @@ export function BaselineDispatchClient() {
     setCreatedPolicy(null)
   }, [])
 
+  const handleTaskModeChange = useCallback((value: SwitchModeValue) => {
+    setTaskMode(value)
+    setCreatedPolicy(null)
+  }, [])
+
   const handleVersionChange = useCallback((value: string) => {
     setVersion(value)
     setCreatedPolicy(null)
@@ -609,7 +616,9 @@ export function BaselineDispatchClient() {
           schedule={schedule}
           creating={creatingPolicy}
           canCreatePolicy={canCreatePolicy}
+          mode={taskMode}
           onNameChange={handlePolicyNameChange}
+          onModeChange={handleTaskModeChange}
           onScheduleChange={handleScheduleChange}
           onVersionChange={handleVersionChange}
           policyName={policyName}

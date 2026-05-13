@@ -4,6 +4,7 @@ import { ArrowRight, CalendarClock, ChevronLeft } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { ScanScheduleForm, type ScanSchedule } from "@/shared/components/scan-schedule"
+import { SwitchMode, type SwitchModeValue } from "@/shared/components/switch-mode"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
@@ -12,8 +13,10 @@ import { Label } from "@/shared/ui/label"
 interface ScanScheduleStepProps {
   canCreatePolicy: boolean
   creating: boolean
+  mode: SwitchModeValue
   onBack: () => void
   onCreatePolicy: () => void
+  onModeChange: (value: SwitchModeValue) => void
   onNameChange: (value: string) => void
   onScheduleChange: (value: ScanSchedule) => void
   onVersionChange: (value: string) => void
@@ -25,8 +28,10 @@ interface ScanScheduleStepProps {
 export function ScanScheduleStep({
   canCreatePolicy,
   creating,
+  mode,
   onBack,
   onCreatePolicy,
+  onModeChange,
   onNameChange,
   onScheduleChange,
   onVersionChange,
@@ -38,16 +43,25 @@ export function ScanScheduleStep({
   return (
     <Card className="border bg-card shadow-sm">
       <CardHeader className="border-b border-border pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
-            <CalendarClock className="h-5 w-5 text-blue-500" />
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+              <CalendarClock className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold text-foreground">{t("steps.schedule.title")}</CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">
+                {t("schedule.description")}
+              </CardDescription>
+            </div>
           </div>
-          <div>
-            <CardTitle className="text-lg font-semibold text-foreground">{t("steps.schedule.title")}</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              {t("schedule.description")}
-            </CardDescription>
-          </div>
+          <SwitchMode
+            value={mode}
+            onValueChange={onModeChange}
+            reuseLabel={t("schedule.switchMode.reuse")}
+            generateLabel={t("schedule.switchMode.generate")}
+            className="w-full justify-center lg:w-auto lg:justify-start"
+          />
         </div>
       </CardHeader>
 

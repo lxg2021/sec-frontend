@@ -1352,11 +1352,11 @@
             "version": "版本号",
             "versionPlaceholder": "例如：1.0.0"
           },
-          "form": {
-            "modeLabel": "调度模式",
-            "modePlaceholder": "选择调度模式",
-            "modeInterval": "固定间隔",
-            "intervalLabel": "间隔",
+        "form": {
+          "modeLabel": "调度模式",
+          "modePlaceholder": "选择调度模式",
+          "modeInterval": "固定间隔",
+          "intervalLabel": "间隔",
             "intervalValue": "{hours} 小时",
             "fixedTimeLabel": "固定执行时间",
             "randomDelayLabel": "随机延迟",
@@ -1365,15 +1365,19 @@
             "retryIntervalLabel": "重试间隔",
             "retryNone": "不重试",
             "retryTimes": "{count} 次",
-            "minutesUnit": "分钟",
-            "startupTitle": "Agent 启动时执行扫描",
-            "startupDescription": "启动后立即补跑一次扫描任务"
-          },
-          "actions": {
-            "creating": "创建中...",
-            "createTask": "创建任务"
-          }
+          "minutesUnit": "分钟",
+          "startupTitle": "Agent 启动时执行扫描",
+          "startupDescription": "启动后立即补跑一次扫描任务"
         },
+        "switchMode": {
+          "reuse": "复用已有任务",
+          "generate": "生成新任务"
+        },
+        "actions": {
+          "creating": "创建中...",
+          "createTask": "创建任务"
+        }
+      },
         "hostSelection": {
           "description": "选择需要接收该基线扫描策略的主机范围。",
           "loadFailed": "加载主机数据失败",

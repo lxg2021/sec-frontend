@@ -1350,11 +1350,11 @@
             "version": "Version",
             "versionPlaceholder": "Example: 1.0.0"
           },
-          "form": {
-            "modeLabel": "Schedule Mode",
-            "modePlaceholder": "Select schedule mode",
-            "modeInterval": "Fixed Interval",
-            "intervalLabel": "Interval",
+        "form": {
+          "modeLabel": "Schedule Mode",
+          "modePlaceholder": "Select schedule mode",
+          "modeInterval": "Fixed Interval",
+          "intervalLabel": "Interval",
             "intervalValue": "{hours}h",
             "fixedTimeLabel": "Fixed Execution Time",
             "randomDelayLabel": "Random Delay",
@@ -1363,15 +1363,19 @@
             "retryIntervalLabel": "Retry Interval",
             "retryNone": "No Retry",
             "retryTimes": "{count} times",
-            "minutesUnit": "min",
-            "startupTitle": "Run scan when Agent starts",
-            "startupDescription": "Run one catch-up scan immediately after startup"
-          },
-          "actions": {
-            "creating": "Creating...",
-            "createTask": "Create Task"
-          }
+          "minutesUnit": "min",
+          "startupTitle": "Run scan when Agent starts",
+          "startupDescription": "Run one catch-up scan immediately after startup"
         },
+        "switchMode": {
+          "reuse": "Reuse Existing Task",
+          "generate": "Generate New Task"
+        },
+        "actions": {
+          "creating": "Creating...",
+          "createTask": "Create Task"
+        }
+      },
         "hostSelection": {
           "description": "Select the target host scope that should receive this baseline scan strategy.",
           "loadFailed": "Failed to load host data",
