@@ -20,10 +20,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/shared/ui/slider"
 import { Switch } from "@/shared/ui/switch"
 
-import { mergeScanScheduleDefaults } from "./defaults"
+import {
+  MAX_INTERVAL_HOURS,
+  MAX_RANDOM_DELAY_MINUTES,
+  mergeScanScheduleDefaults,
+  sanitizeScanSchedule,
+} from "./defaults"
 import type { ScanScheduleFormField, ScanScheduleFormProps } from "./types"
 
-export { DEFAULT_SCAN_SCHEDULE, mergeScanScheduleDefaults } from "./defaults"
+export {
+  DEFAULT_SCAN_SCHEDULE,
+  MAX_INTERVAL_HOURS,
+  MAX_RANDOM_DELAY_MINUTES,
+  mergeScanScheduleDefaults,
+  sanitizeScanSchedule,
+} from "./defaults"
 export type {
   ScanSchedule,
   ScanScheduleFormField,
@@ -106,7 +117,7 @@ export function ScanScheduleForm({
   showStartup = true,
   text,
 }: ScanScheduleFormProps) {
-  const schedule = mergeScanScheduleDefaults(value)
+  const schedule = sanitizeScanSchedule(value)
   const mergedText = {
     ...defaultText,
     ...text,
@@ -201,14 +212,14 @@ export function ScanScheduleForm({
               value={[intervalHours]}
               onValueChange={([nextValue]) => handleChange({ interval_hours: nextValue })}
               min={1}
-              max={168}
+              max={MAX_INTERVAL_HOURS}
               step={1}
               disabled={disabled}
               className="w-full"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{mergedText.intervalValue(1)}</span>
-              <span>{mergedText.intervalValue(168)}</span>
+              <span>{mergedText.intervalValue(MAX_INTERVAL_HOURS)}</span>
             </div>
           </div>
 
@@ -232,14 +243,14 @@ export function ScanScheduleForm({
                 handleChange({ random_delay_minutes: nextValue })
               }
               min={0}
-              max={120}
+              max={MAX_RANDOM_DELAY_MINUTES}
               step={5}
               disabled={disabled}
               className="w-full"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{mergedText.randomDelayValue(0)}</span>
-              <span>{mergedText.randomDelayValue(120)}</span>
+              <span>{mergedText.randomDelayValue(MAX_RANDOM_DELAY_MINUTES)}</span>
             </div>
           </div>
         </div>

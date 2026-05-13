@@ -23,6 +23,7 @@ import {
 import {
   DEFAULT_SCAN_SCHEDULE,
   ScanScheduleForm,
+  sanitizeScanSchedule,
   type ScanSchedule,
   type ScanScheduleFormField,
   type ScanScheduleFormText,
@@ -91,9 +92,10 @@ function buildAutoPolicyName(template: BaselineTemplate) {
 }
 
 function buildAutoPolicyVersion() {
-  const timestamp = new Date().toISOString().replace(/\D/g, "").slice(0, 14)
-  return `1.0.${timestamp}`
+  return "1.0.0"
 }
+
+const POLICY_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
 
 function buildScheduleSummary(schedule: ScanSchedule, t: ReturnType<typeof useTranslations>) {
   const parts = [t("summary.intervalHours", { hours: schedule.interval_hours ?? 24 })]
@@ -378,7 +380,7 @@ export function BaselineDispatchClient() {
     return [
         {
           id: "policy-name",
-          icon: <FileText className="size-3.5 text-primary" />,
+          icon: <FileText className="size-3.5 text-sky-600" />,
           label: isZh ? "\u7b56\u7565\u540d\u79f0" : "Policy Name",
           value: policyName,
           inputClassName: "bg-slate-50",
@@ -390,7 +392,7 @@ export function BaselineDispatchClient() {
       },
         {
           id: "policy-version",
-          icon: <Hash className="size-3.5 text-primary" />,
+          icon: <Hash className="size-3.5 text-amber-500" />,
           label: isZh ? "\u7248\u672c\u53f7" : "Version",
           value: policyVersion,
           inputClassName: "bg-slate-50",
@@ -489,7 +491,8 @@ export function BaselineDispatchClient() {
   }, [deduplicatedHosts])
 
   const canEnterStep2 = Boolean(selectedTemplateUuid)
-  const canCreatePolicy = Boolean(selectedTemplate && policyName.trim() && policyVersion.trim())
+  const isPolicyVersionValid = POLICY_VERSION_PATTERN.test(policyVersion.trim())
+  const canCreatePolicy = Boolean(selectedTemplate && policyName.trim() && isPolicyVersionValid)
   const canApplyPolicy = Boolean(candidatePolicy)
   const canEnterStep3 = canEnterStep2 && Boolean(appliedPolicy)
   const canEnterStep4 = canEnterStep3 && deduplicatedHosts.length > 0
@@ -680,7 +683,7 @@ export function BaselineDispatchClient() {
   }, [])
 
   const handleScheduleChange = useCallback((value: ScanSchedule) => {
-    setSchedule(value)
+    setSchedule(sanitizeScanSchedule(value))
     setAppliedPolicy(null)
     setCreatedPolicy(null)
   }, [])
@@ -714,10 +717,15 @@ export function BaselineDispatchClient() {
       toast.error(isZh ? "\u8bf7\u5148\u586b\u5199\u7b56\u7565\u540d\u79f0\u548c\u7248\u672c\u53f7" : "Please enter the policy name and version first")
       return
     }
+    if (!POLICY_VERSION_PATTERN.test(policyVersion.trim())) {
+      toast.error(isZh ? "\u7248\u672c\u53f7\u683c\u5f0f\u9700\u4e3a 0.0.0" : "Version must use the 0.0.0 format")
+      return
+    }
 
     setCreatingPolicy(true)
 
     try {
+      const nextSchedule = sanitizeScanSchedule(schedule)
       const baselineDisplayName = selectedTemplate.display_name || selectedTemplate.baseline_uuid
       const baselineFileName =
         selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
@@ -726,7 +734,7 @@ export function BaselineDispatchClient() {
         version: policyVersion.trim(),
         baselineUUID: selectedTemplate.uuid,
         baselineFileName,
-        scanSchedule: schedule,
+        scanSchedule: nextSchedule,
       })
 
       setCreatedPolicy({
@@ -735,8 +743,9 @@ export function BaselineDispatchClient() {
         version: created.version,
         baselineUuid: selectedTemplate.uuid,
         baselineName: baselineDisplayName,
-        schedule,
+        schedule: nextSchedule,
       })
+      setSchedule(nextSchedule)
 
       setAppliedPolicy(null)
       setReusablePoliciesPage(1)
