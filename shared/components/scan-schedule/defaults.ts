@@ -24,20 +24,22 @@ export function mergeScanScheduleDefaults(value?: Partial<ScanSchedule>): ScanSc
 
 export function sanitizeScanSchedule(value?: Partial<ScanSchedule>): ScanSchedule {
   const schedule = mergeScanScheduleDefaults(value)
+  const intervalHours = schedule.interval_hours ?? DEFAULT_SCAN_SCHEDULE.interval_hours ?? MAX_INTERVAL_HOURS
+  const randomDelayMinutes =
+    schedule.random_delay_minutes ?? DEFAULT_SCAN_SCHEDULE.random_delay_minutes ?? 0
+  const retryIntervalMinutes =
+    schedule.retry_interval_minutes ?? DEFAULT_SCAN_SCHEDULE.retry_interval_minutes ?? 1
 
   return {
     ...schedule,
     interval_hours: Math.min(
       MAX_INTERVAL_HOURS,
-      Math.max(MIN_INTERVAL_HOURS, schedule.interval_hours ?? DEFAULT_SCAN_SCHEDULE.interval_hours),
+      Math.max(MIN_INTERVAL_HOURS, intervalHours),
     ),
     random_delay_minutes: Math.min(
       MAX_RANDOM_DELAY_MINUTES,
-      Math.max(
-        MIN_RANDOM_DELAY_MINUTES,
-        schedule.random_delay_minutes ?? DEFAULT_SCAN_SCHEDULE.random_delay_minutes ?? 0,
-      ),
+      Math.max(MIN_RANDOM_DELAY_MINUTES, randomDelayMinutes),
     ),
-    retry_interval_minutes: Math.max(1, schedule.retry_interval_minutes ?? DEFAULT_SCAN_SCHEDULE.retry_interval_minutes ?? 1),
+    retry_interval_minutes: Math.max(1, retryIntervalMinutes),
   }
 }
