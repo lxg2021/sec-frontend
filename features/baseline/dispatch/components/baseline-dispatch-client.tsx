@@ -81,6 +81,10 @@ function mapReusablePolicyToCreatedPolicy(
   }
 }
 
+function getReusablePolicyKey(policy: Pick<ReusableBaselineScanPolicy, "id" | "version">) {
+  return `${policy.id}::${policy.version}`
+}
+
 function buildAutoPolicyName(template: BaselineTemplate) {
   const baseName = (template.display_name || template.baseline_uuid || template.uuid).trim()
   return `${baseName}-scan-task`
@@ -143,6 +147,8 @@ export function BaselineDispatchClient() {
   const [selectedTemplateUuid, setSelectedTemplateUuid] = useState("")
 
   const [schedule, setSchedule] = useState<ScanSchedule>(DEFAULT_SCAN_SCHEDULE)
+  const [policyName, setPolicyName] = useState("")
+  const [policyVersion, setPolicyVersion] = useState("")
   const [createdPolicy, setCreatedPolicy] = useState<CreatedPolicy | null>(null)
   const [appliedPolicy, setAppliedPolicy] = useState<CreatedPolicy | null>(null)
   const [creatingPolicy, setCreatingPolicy] = useState(false)
@@ -150,7 +156,7 @@ export function BaselineDispatchClient() {
   const [reusablePoliciesLoading, setReusablePoliciesLoading] = useState(false)
   const [reusablePoliciesError, setReusablePoliciesError] = useState("")
   const [reusablePoliciesPage, setReusablePoliciesPage] = useState(1)
-  const [selectedReusablePolicyId, setSelectedReusablePolicyId] = useState<string | null>(null)
+  const [selectedReusablePolicyKey, setSelectedReusablePolicyKey] = useState<string | null>(null)
 
   const [hostTree, setHostTree] = useState<HostTreeNode[]>([])
   const [hostsLoading, setHostsLoading] = useState(true)
@@ -205,7 +211,7 @@ export function BaselineDispatchClient() {
     }
   }, [t])
 
-  const loadReusablePolicies = useCallback(async (page: number, preferredSelectedId?: string | null) => {
+  const loadReusablePolicies = useCallback(async (page: number, preferredSelectedKey?: string | null) => {
     if (!selectedTemplateUuid.trim()) {
       setReusablePolicies(null)
       setReusablePoliciesError("")
@@ -231,16 +237,16 @@ export function BaselineDispatchClient() {
       })
 
       setReusablePolicies(result)
-      setSelectedReusablePolicyId((current) => {
-        if (preferredSelectedId && result.items.some((item) => item.id === preferredSelectedId)) {
-          return preferredSelectedId
+      setSelectedReusablePolicyKey((current) => {
+        if (preferredSelectedKey && result.items.some((item) => getReusablePolicyKey(item) === preferredSelectedKey)) {
+          return preferredSelectedKey
         }
 
-        if (current && result.items.some((item) => item.id === current)) {
+        if (current && result.items.some((item) => getReusablePolicyKey(item) === current)) {
           return current
         }
 
-        return result.items[0]?.id ?? null
+        return result.items[0] ? getReusablePolicyKey(result.items[0]) : null
       })
     } catch (error) {
       setReusablePolicies(null)
@@ -312,16 +318,19 @@ export function BaselineDispatchClient() {
   }, [selectedTemplateUuid, templates])
 
   const selectedReusablePolicy = useMemo(() => {
-    return reusablePolicies?.items.find((item) => item.id === selectedReusablePolicyId) ?? null
-  }, [reusablePolicies, selectedReusablePolicyId])
+    return reusablePolicies?.items.find((item) => getReusablePolicyKey(item) === selectedReusablePolicyKey) ?? null
+  }, [reusablePolicies, selectedReusablePolicyKey])
 
-  const generatedPolicyName = useMemo(() => {
-    return selectedTemplate ? buildAutoPolicyName(selectedTemplate) : ""
+  useEffect(() => {
+    if (!selectedTemplate) {
+      setPolicyName("")
+      setPolicyVersion("")
+      return
+    }
+
+    setPolicyName(buildAutoPolicyName(selectedTemplate))
+    setPolicyVersion(buildAutoPolicyVersion())
   }, [selectedTemplate])
-
-  const generatedPolicyVersion = useMemo(() => {
-    return selectedTemplateUuid ? buildAutoPolicyVersion() : ""
-  }, [selectedTemplateUuid])
 
   const scanScheduleFormText = useMemo<ScanScheduleFormText>(() => {
     if (isZh) {
@@ -369,18 +378,28 @@ export function BaselineDispatchClient() {
         id: "policy-name",
         icon: <FileText className="size-3.5 text-sky-600" />,
         label: isZh ? "\u7b56\u7565\u540d\u79f0" : "Policy Name",
-        value: generatedPolicyName,
+        value: policyName,
         inputClassName: "bg-slate-50",
+        onChange: (value) => {
+          setPolicyName(value)
+          setAppliedPolicy(null)
+          setCreatedPolicy(null)
+        },
       },
       {
         id: "policy-version",
         icon: <Hash className="size-3.5 text-amber-600" />,
         label: isZh ? "\u7248\u672c\u53f7" : "Version",
-        value: generatedPolicyVersion,
+        value: policyVersion,
         inputClassName: "bg-slate-50",
+        onChange: (value) => {
+          setPolicyVersion(value)
+          setAppliedPolicy(null)
+          setCreatedPolicy(null)
+        },
       },
     ]
-  }, [generatedPolicyName, generatedPolicyVersion, isZh])
+  }, [isZh, policyName, policyVersion])
 
   const candidatePolicy = useMemo(() => {
     if (selectedReusablePolicy && selectedTemplate) {
@@ -468,7 +487,7 @@ export function BaselineDispatchClient() {
   }, [deduplicatedHosts])
 
   const canEnterStep2 = Boolean(selectedTemplateUuid)
-  const canCreatePolicy = Boolean(selectedTemplate)
+  const canCreatePolicy = Boolean(selectedTemplate && policyName.trim() && policyVersion.trim())
   const canApplyPolicy = Boolean(candidatePolicy)
   const canEnterStep3 = canEnterStep2 && Boolean(appliedPolicy)
   const canEnterStep4 = canEnterStep3 && deduplicatedHosts.length > 0
@@ -523,8 +542,8 @@ export function BaselineDispatchClient() {
       object: {
         type: "baseline",
         id: appliedPolicy?.id,
-        name: appliedPolicy?.name || generatedPolicyName || t("object.unnamed"),
-        version: appliedPolicy?.version || generatedPolicyVersion || undefined,
+        name: appliedPolicy?.name || policyName.trim() || t("object.unnamed"),
+        version: appliedPolicy?.version || policyVersion.trim() || undefined,
         sourceType:
           selectedTemplate.baseline_type?.toLowerCase() === "custom" ? "custom" : "template",
         mode: "create",
@@ -573,8 +592,8 @@ export function BaselineDispatchClient() {
     offlineHostCount,
     previewValidations,
     effectiveSchedule,
-    generatedPolicyName,
-    generatedPolicyVersion,
+    policyName,
+    policyVersion,
     selectedGroups.length,
     selectedHosts.length,
     selectedTemplate,
@@ -649,7 +668,7 @@ export function BaselineDispatchClient() {
     setAppliedPolicy(null)
     setCreatedPolicy(null)
     setReusablePoliciesPage(1)
-    setSelectedReusablePolicyId(null)
+    setSelectedReusablePolicyKey(null)
     setCurrentStep(1)
   }, [])
 
@@ -664,13 +683,13 @@ export function BaselineDispatchClient() {
     setCreatedPolicy(null)
   }, [])
 
-  const handleReusablePolicySelectionChange = useCallback((selectedId: string | null) => {
+  const handleReusablePolicySelectionChange = useCallback((selectedKey: string | null) => {
     setAppliedPolicy(null)
-    setSelectedReusablePolicyId(selectedId)
+    setSelectedReusablePolicyKey(selectedKey)
   }, [])
 
   const handleReusablePolicyRowClick = useCallback((item: ReusableBaselineScanPolicy) => {
-    setSelectedReusablePolicyId(item.id)
+    setSelectedReusablePolicyKey(getReusablePolicyKey(item))
   }, [])
 
   const handleApplyTask = useCallback(() => {
@@ -689,6 +708,10 @@ export function BaselineDispatchClient() {
       toast.error(t("errors.templates.noAuth"))
       return
     }
+    if (!policyName.trim() || !policyVersion.trim()) {
+      toast.error(isZh ? "\u8bf7\u5148\u586b\u5199\u7b56\u7565\u540d\u79f0\u548c\u7248\u672c\u53f7" : "Please enter the policy name and version first")
+      return
+    }
 
     setCreatingPolicy(true)
 
@@ -697,8 +720,8 @@ export function BaselineDispatchClient() {
       const baselineFileName =
         selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
       const created = await createBaselineScanPolicy({
-        name: generatedPolicyName,
-        version: generatedPolicyVersion,
+        name: policyName.trim(),
+        version: policyVersion.trim(),
         baselineUUID: selectedTemplate.uuid,
         baselineFileName,
         scanSchedule: schedule,
@@ -715,8 +738,8 @@ export function BaselineDispatchClient() {
 
       setAppliedPolicy(null)
       setReusablePoliciesPage(1)
-      setSelectedReusablePolicyId(created.id)
-      await loadReusablePolicies(1, created.id)
+      setSelectedReusablePolicyKey(getReusablePolicyKey(created))
+      await loadReusablePolicies(1, getReusablePolicyKey(created))
       toast.success(t("toast.policyCreated"))
     } catch (error) {
       toast.error(
@@ -727,7 +750,7 @@ export function BaselineDispatchClient() {
     } finally {
       setCreatingPolicy(false)
     }
-  }, [generatedPolicyName, generatedPolicyVersion, loadReusablePolicies, schedule, selectedTemplate, t])
+  }, [isZh, loadReusablePolicies, policyName, policyVersion, schedule, selectedTemplate, t])
 
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) {
@@ -786,7 +809,7 @@ export function BaselineDispatchClient() {
           onRefresh={() => void loadReusablePolicies(reusablePoliciesPage)}
           onRowClick={handleReusablePolicyRowClick}
           onSelectionChange={handleReusablePolicySelectionChange}
-          selectedId={selectedReusablePolicyId}
+          selectedKey={selectedReusablePolicyKey}
         />
       </section>
 

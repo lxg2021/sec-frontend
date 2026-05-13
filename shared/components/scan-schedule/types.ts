@@ -37,6 +37,9 @@ export interface ScanScheduleFormField {
   value: string
   icon?: ReactNode
   inputClassName?: string
+  onChange?: (value: string) => void
+  placeholder?: string
+  readOnly?: boolean
 }
 
 export interface ScanScheduleFormProps {

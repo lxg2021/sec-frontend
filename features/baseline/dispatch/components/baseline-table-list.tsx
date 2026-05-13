@@ -39,8 +39,12 @@ interface BaselineTableListProps {
   onPageChange?: (page: number) => void
   onRefresh?: () => void
   onRowClick?: (item: ReusableBaselineScanPolicy) => void
-  onSelectionChange?: (selectedId: string | null) => void
-  selectedId?: string | null
+  onSelectionChange?: (selectedKey: string | null) => void
+  selectedKey?: string | null
+}
+
+function getPolicyRowKey(item: Pick<ReusableBaselineScanPolicy, "id" | "version">) {
+  return `${item.id}::${item.version}`
 }
 
 function formatDateTime(value: string, locale: string) {
@@ -68,12 +72,12 @@ export function BaselineTableList({
   onRefresh,
   onRowClick,
   onSelectionChange,
-  selectedId,
+  selectedKey,
 }: BaselineTableListProps) {
   const locale = useLocale()
   const isZh = locale.toLowerCase().startsWith("zh")
-  const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null)
-  const activeSelectedId = selectedId ?? internalSelectedId
+  const [internalSelectedKey, setInternalSelectedKey] = useState<string | null>(null)
+  const activeSelectedKey = selectedKey ?? internalSelectedKey
   const items = data?.items ?? []
   const pagination = data?.pagination
   const balancedColumnWidth = "calc((100% - 50px) / 5)"
@@ -114,10 +118,10 @@ export function BaselineTableList({
     [isZh],
   )
 
-  function handleSelectItem(policyId: string) {
-    const nextId = activeSelectedId === policyId ? null : policyId
-    setInternalSelectedId(nextId)
-    onSelectionChange?.(nextId)
+  function handleSelectItem(policyKey: string) {
+    const nextKey = activeSelectedKey === policyKey ? null : policyKey
+    setInternalSelectedKey(nextKey)
+    onSelectionChange?.(nextKey)
   }
 
   if (!loading && error) {
@@ -231,36 +235,38 @@ export function BaselineTableList({
                     </TableCell>
                   </TableRow>
                 ))
-              : items.map((item) => (
+              : items.map((item) => {
+                  const rowKey = getPolicyRowKey(item)
+                  return (
                   <TableRow
-                    key={item.id}
-                    className={cn("cursor-pointer", activeSelectedId === item.id && "bg-slate-50")}
+                    key={rowKey}
+                    className={cn("cursor-pointer", activeSelectedKey === rowKey && "bg-slate-50")}
                     onClick={() => {
-                      handleSelectItem(item.id)
+                      handleSelectItem(rowKey)
                       onRowClick?.(item)
                     }}
                   >
                     <TableCell onClick={(event) => event.stopPropagation()}>
                       <div
                         role="radio"
-                        aria-checked={activeSelectedId === item.id}
+                        aria-checked={activeSelectedKey === rowKey}
                         aria-label={text.selectRow(item.name)}
                         tabIndex={0}
                         className={cn(
                           "flex size-4 cursor-pointer items-center justify-center rounded-full border-2 transition-colors",
-                          activeSelectedId === item.id
+                          activeSelectedKey === rowKey
                             ? "border-primary bg-primary"
                             : "border-muted-foreground/40 hover:border-primary",
                         )}
-                        onClick={() => handleSelectItem(item.id)}
+                        onClick={() => handleSelectItem(rowKey)}
                         onKeyDown={(event) => {
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault()
-                            handleSelectItem(item.id)
+                            handleSelectItem(rowKey)
                           }
                         }}
                       >
-                        {activeSelectedId === item.id ? (
+                        {activeSelectedKey === rowKey ? (
                           <div className="size-2 rounded-full bg-primary-foreground" />
                         ) : null}
                       </div>
@@ -282,7 +288,7 @@ export function BaselineTableList({
                       {formatDateTime(item.updatedAt, locale)}
                     </TableCell>
                   </TableRow>
-                ))}
+                )})}
           </TableBody>
         </Table>
       </div>

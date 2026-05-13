@@ -125,6 +125,10 @@ function normalizeAgentIds(agentIds: string[]) {
   )
 }
 
+function getReusablePolicyKey(policy: Pick<ReusableBaselineScanPolicy, "id" | "version">) {
+  return `${policy.id}::${policy.version}`
+}
+
 export async function createBaselineScanPolicy({
   name,
   version,
@@ -170,6 +174,31 @@ export async function listBaselineScanPolicies({
   const items = Array.isArray(result.data?.items) ? result.data.items : []
   const pagination = result.data?.pagination
 
+  const normalizedItems = items
+    .map((item) => {
+      const id = stringValue(item?.policy_id)
+      const version = stringValue(item?.version)
+
+      if (!id || !version) {
+        return null
+      }
+
+      return {
+        id,
+        name: stringValue(item?.name) || id,
+        version,
+        baselineUuid: stringValue(item?.baseline_uuid) || trimmedBaselineUUID,
+        scanSchedule: normalizeReturnedScanSchedule(item?.scan_schedule),
+        createdAt: stringValue(item?.created_at),
+        updatedAt: stringValue(item?.updated_at),
+      } satisfies ReusableBaselineScanPolicy
+    })
+    .filter((item): item is ReusableBaselineScanPolicy => Boolean(item))
+
+  const deduplicatedItems = Array.from(
+    new Map(normalizedItems.map((item) => [getReusablePolicyKey(item), item])).values(),
+  )
+
   return {
     pagination: {
       currentPage: numberValue(pagination?.current_page, 1),
@@ -179,26 +208,7 @@ export async function listBaselineScanPolicies({
       hasPrevious: Boolean(pagination?.has_previous),
       hasNext: Boolean(pagination?.has_next),
     },
-    items: items
-      .map((item) => {
-        const id = stringValue(item?.policy_id)
-        const version = stringValue(item?.version)
-
-        if (!id || !version) {
-          return null
-        }
-
-        return {
-          id,
-          name: stringValue(item?.name) || id,
-          version,
-          baselineUuid: stringValue(item?.baseline_uuid) || trimmedBaselineUUID,
-          scanSchedule: normalizeReturnedScanSchedule(item?.scan_schedule),
-          createdAt: stringValue(item?.created_at),
-          updatedAt: stringValue(item?.updated_at),
-        } satisfies ReusableBaselineScanPolicy
-      })
-      .filter((item): item is ReusableBaselineScanPolicy => Boolean(item)),
+    items: deduplicatedItems,
   }
 }
 

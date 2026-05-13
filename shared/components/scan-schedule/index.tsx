@@ -95,7 +95,9 @@ export function ScanScheduleForm({
                   <Input
                     id={field.id}
                     value={field.value}
-                    readOnly
+                    onChange={(event) => field.onChange?.(event.target.value)}
+                    placeholder={field.placeholder}
+                    readOnly={field.readOnly ?? !field.onChange}
                     disabled={disabled}
                     className={cn("h-9", field.inputClassName)}
                   />
