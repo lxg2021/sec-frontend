@@ -509,6 +509,14 @@ export function BaselineTableList({
                   ))
                 : items.map((item) => {
                     const rowKey = getPolicyRowKey(item);
+                    const createdAtText = formatDateTime(
+                      item.createdAt,
+                      locale,
+                    );
+                    const updatedAtText = formatDateTime(
+                      item.updatedAt,
+                      locale,
+                    );
 
                     return (
                       <TableRow
@@ -569,7 +577,8 @@ export function BaselineTableList({
                         <TableCell className={BODY_CELL_CLASS_NAME}>
                           <Badge
                             variant="secondary"
-                            className="max-w-full truncate px-2 py-0.5 text-[11px]"
+                            className="flex w-full items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap px-2 py-0.5 text-[11px]"
+                            title={item.version}
                           >
                             {item.version}
                           </Badge>
@@ -659,7 +668,12 @@ export function BaselineTableList({
                             "whitespace-nowrap text-slate-500",
                           )}
                         >
-                          {formatDateTime(item.createdAt, locale)}
+                          <span
+                            className="block truncate"
+                            title={createdAtText}
+                          >
+                            {createdAtText}
+                          </span>
                         </TableCell>
                         <TableCell
                           className={cn(
@@ -667,7 +681,12 @@ export function BaselineTableList({
                             "whitespace-nowrap text-slate-500",
                           )}
                         >
-                          {formatDateTime(item.updatedAt, locale)}
+                          <span
+                            className="block truncate"
+                            title={updatedAtText}
+                          >
+                            {updatedAtText}
+                          </span>
                         </TableCell>
                       </TableRow>
                     );
