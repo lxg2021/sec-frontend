@@ -11,8 +11,8 @@ import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { Checkbox } from "@/shared/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/shared/ui/dialog"
-import HostSelector from "@/shared/components/host-selector"
-import { mockData } from "@/features/baseline/dispatch/mock/host-tree"
+import { RemoteHostSelector } from "@/shared/components/host-selector/remote-host-selector"
+import type { HostSelectorHostNode, HostSelectorTreeNode } from "@/shared/components/host-selector/types"
 import { type BaselineScanTask, createBaselineScanTask, type BaselinePolicyType } from "@/features/task/models/baseline-scan-task"
 import type { PeriodUnit, ScheduleMode } from "@/features/task/models/task-base"
 import { useTranslations } from "next-intl"
@@ -102,8 +102,8 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
   policiesRef.current = policies
 
   // 使用 useCallback 并确保依赖项正确
-  const handleHostsSelectionChange = useCallback((nodes: any[], selectedIds: Set<string>) => {
-    const hostNodes = nodes.filter((node) => node.type === "host")
+  const handleHostsSelectionChange = useCallback((nodes: HostSelectorTreeNode[]) => {
+    const hostNodes = nodes.filter((node): node is HostSelectorHostNode => node.type === "host")
     const hostIds = hostNodes.map((node) => node.hostId || node.id)
     setTargetHosts(hostIds.join("; "))
   }, [])
@@ -315,10 +315,7 @@ export function BaselineScanForm({ initialData, onSubmit, onCancel }: BaselineSc
                   </div>
                 </DialogHeader>
                 <div className="flex-1 overflow-y-auto min-h-0">
-                  <HostSelector 
-                    data={mockData} 
-                    onSelectionChange={handleHostsSelectionChange} 
-                  />
+                  <RemoteHostSelector onSelectionChange={handleHostsSelectionChange} />
                 </div>
                 <div className="flex justify-end gap-2 pt-4 border-t flex-shrink-0">
                   <Button 

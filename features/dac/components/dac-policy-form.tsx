@@ -15,8 +15,8 @@ import { ActionControlForm } from "./action-control-form"
 import { NetworkPolicyForm } from "./network-policy-form"
 
 import type { DacPolicyFormProps, FilePolicy, RegistryPolicy, ProcessPolicy, NetworkPolicy } from "@/features/dac/types"
-import HostSelector from "@/shared/components/host-selector"
-import { mockData } from "@/features/baseline/dispatch/mock/host-tree"
+import { RemoteHostSelector } from "@/shared/components/host-selector/remote-host-selector"
+import type { HostSelectorHostNode, HostSelectorTreeNode } from "@/shared/components/host-selector/types"
 import { useToast } from "@/shared/hooks/use-toast"
 import { useTranslations } from "next-intl"
 
@@ -30,9 +30,10 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
 
   const form = useDacPolicyForm()
 
-  const handleHostSelectionChange = (nodes: any[], ids: Set<string>) => {
-    form.setSelectedHosts(nodes)
-    form.setSelectedHostIds(ids)
+  const handleHostSelectionChange = (nodes: HostSelectorTreeNode[]) => {
+    const hostNodes = nodes.filter((node): node is HostSelectorHostNode => node.type === "host")
+    form.setSelectedHosts(hostNodes)
+    form.setSelectedHostIds(new Set(hostNodes.map((node) => node.hostId || node.id)))
   }
 
   const handleConfirmHostSelection = () => {
@@ -366,7 +367,7 @@ export function DacPolicyForm({ onPolicyGenerate }: DacPolicyFormProps) {
               </DialogTitle>
             </DialogHeader>
             <div className="flex-1 overflow-auto min-h-[400px]">
-              <HostSelector data={mockData} onSelectionChange={handleHostSelectionChange} />
+              <RemoteHostSelector onSelectionChange={handleHostSelectionChange} />
             </div>
             <DialogFooter className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">

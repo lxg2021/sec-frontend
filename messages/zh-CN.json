@@ -1415,6 +1415,7 @@
         "errors": {
           "loadDataTitle": "数据加载失败",
           "goLogin": "去登录",
+          "retry": "重试",
           "templates": {
             "noAuth": "缺少登录状态，无法加载基线列表。",
             "loadFailed": "加载基线列表失败。"

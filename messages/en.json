@@ -1413,6 +1413,7 @@
         "errors": {
           "loadDataTitle": "Failed to load data",
           "goLogin": "Go to Login",
+          "retry": "Retry",
           "templates": {
             "noAuth": "Missing login state. Unable to load baseline list.",
             "loadFailed": "Failed to load baseline list."
