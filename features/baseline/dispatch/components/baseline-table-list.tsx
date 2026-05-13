@@ -4,7 +4,6 @@ import { useMemo, useState } from "react"
 import { useLocale } from "next-intl"
 import {
   CalendarCheck,
-  CalendarClock,
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
@@ -13,9 +12,8 @@ import {
   Clock,
   FileText,
   Hash,
-  RotateCcw,
+  Link2,
   Tag,
-  Timer,
 } from "lucide-react"
 
 import type {
@@ -78,13 +76,12 @@ export function BaselineTableList({
   const activeSelectedId = selectedId ?? internalSelectedId
   const items = data?.items ?? []
   const pagination = data?.pagination
-  const balancedColumnWidth = "calc((100% - 50px) / 7)"
+  const balancedColumnWidth = "calc((100% - 50px) / 5)"
 
   const text = useMemo(
     () =>
       isZh
         ? {
-            totalRecords: (count: number) => `共 ${count} 条记录`,
             refresh: "刷新",
             emptyTitle: "暂无基线扫描策略",
             emptyDescription: "当前基线下还没有可展示的扫描策略。",
@@ -92,22 +89,14 @@ export function BaselineTableList({
               policyId: "策略 ID",
               name: "策略名称",
               version: "版本",
-              schedule: "扫描计划",
-              interval: "间隔时间",
-              retry: "重试次数",
+              baselineUuid: "基线 UUID",
               createdAt: "创建时间",
               updatedAt: "更新时间",
-            },
-            schedule: {
-              everyHours: (hours: number) => `每 ${hours} 小时`,
-              specificTime: (value: string) => `指定时间: ${value}`,
-              startup: "开机后补跑",
             },
             pageInfo: (page: number, totalPages: number) => `第 ${page} / ${totalPages} 页`,
             selectRow: (name: string) => `选择 ${name}`,
           }
         : {
-            totalRecords: (count: number) => `${count} records`,
             refresh: "Refresh",
             emptyTitle: "No baseline scan policies",
             emptyDescription: "There are no scan policies available for this baseline yet.",
@@ -115,40 +104,15 @@ export function BaselineTableList({
               policyId: "Policy ID",
               name: "Policy Name",
               version: "Version",
-              schedule: "Scan Schedule",
-              interval: "Interval",
-              retry: "Retry Count",
+              baselineUuid: "Baseline UUID",
               createdAt: "Created At",
               updatedAt: "Updated At",
-            },
-            schedule: {
-              everyHours: (hours: number) => `Every ${hours}h`,
-              specificTime: (value: string) => `At ${value}`,
-              startup: "Catch up on startup",
             },
             pageInfo: (page: number, totalPages: number) => `Page ${page} / ${totalPages}`,
             selectRow: (name: string) => `Select ${name}`,
           },
     [isZh],
   )
-
-  function formatSchedule(item: ReusableBaselineScanPolicy) {
-    const parts: string[] = []
-
-    if (item.scanSchedule.interval_hours) {
-      parts.push(text.schedule.everyHours(item.scanSchedule.interval_hours))
-    }
-
-    if (item.scanSchedule.specific_time) {
-      parts.push(text.schedule.specificTime(item.scanSchedule.specific_time))
-    }
-
-    if (item.scanSchedule.scan_on_startup) {
-      parts.push(text.schedule.startup)
-    }
-
-    return parts.length > 0 ? parts.join(", ") : "-"
-  }
 
   function handleSelectItem(policyId: string) {
     const nextId = activeSelectedId === policyId ? null : policyId
@@ -198,8 +162,6 @@ export function BaselineTableList({
             <col style={{ width: balancedColumnWidth }} />
             <col style={{ width: balancedColumnWidth }} />
             <col style={{ width: balancedColumnWidth }} />
-            <col style={{ width: balancedColumnWidth }} />
-            <col style={{ width: balancedColumnWidth }} />
           </colgroup>
           <TableHeader>
             <TableRow className="bg-slate-50/90">
@@ -224,20 +186,8 @@ export function BaselineTableList({
               </TableHead>
               <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                  <CalendarClock className="size-4 text-violet-500" />
-                  <span>{text.columns.schedule}</span>
-                </div>
-              </TableHead>
-              <TableHead className="whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <Timer className="size-4 text-teal-500" />
-                  <span>{text.columns.interval}</span>
-                </div>
-              </TableHead>
-              <TableHead className="whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <RotateCcw className="size-4 text-orange-500" />
-                  <span>{text.columns.retry}</span>
+                  <Link2 className="size-4 text-violet-500" />
+                  <span>{text.columns.baselineUuid}</span>
                 </div>
               </TableHead>
               <TableHead className="whitespace-nowrap">
@@ -271,13 +221,7 @@ export function BaselineTableList({
                       <div className="h-6 w-16 animate-pulse rounded-full bg-slate-200" />
                     </TableCell>
                     <TableCell>
-                      <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
-                    </TableCell>
-                    <TableCell>
-                      <div className="h-6 w-16 animate-pulse rounded-full bg-slate-200" />
-                    </TableCell>
-                    <TableCell>
-                      <div className="h-6 w-12 animate-pulse rounded-full bg-slate-200" />
+                      <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
                     </TableCell>
                     <TableCell>
                       <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
@@ -290,10 +234,7 @@ export function BaselineTableList({
               : items.map((item) => (
                   <TableRow
                     key={item.id}
-                    className={cn(
-                      "cursor-pointer",
-                      activeSelectedId === item.id && "bg-slate-50",
-                    )}
+                    className={cn("cursor-pointer", activeSelectedId === item.id && "bg-slate-50")}
                     onClick={() => {
                       handleSelectItem(item.id)
                       onRowClick?.(item)
@@ -331,18 +272,8 @@ export function BaselineTableList({
                     <TableCell>
                       <Badge variant="secondary">{item.version}</Badge>
                     </TableCell>
-                    <TableCell className="max-w-0 truncate text-sm text-slate-500" title={formatSchedule(item)}>
-                      {formatSchedule(item)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="outline" className="font-mono">
-                        {item.scanSchedule.interval_hours ? `${item.scanSchedule.interval_hours}h` : "-"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant="outline" className="font-mono">
-                        {item.scanSchedule.retry_limit ?? 0}
-                      </Badge>
+                    <TableCell className="max-w-0 truncate text-sm text-slate-500" title={item.baselineUuid}>
+                      {item.baselineUuid}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-sm text-slate-500">
                       {formatDateTime(item.createdAt, locale)}
