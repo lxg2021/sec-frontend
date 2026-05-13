@@ -24,7 +24,7 @@ export interface BaselinePolicyDetailData {
 }
 
 interface BaselinePolicyDetailProps {
-  title: string
+  title?: string
   policy: BaselinePolicyDetailData | null
   loading?: boolean
   idLabel?: string
@@ -35,16 +35,6 @@ interface BaselinePolicyDetailProps {
 function PolicyDetailLoading() {
   return (
     <div className="rounded-[28px] border border-slate-200 bg-white shadow-[0_12px_32px_-24px_rgba(15,23,42,0.2)]">
-      <div className="space-y-4 border-b border-slate-200 px-8 py-8">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-3">
-            <Skeleton className="h-8 w-72" />
-            <Skeleton className="h-5 w-44" />
-          </div>
-          <Skeleton className="h-10 w-20 rounded-full" />
-        </div>
-      </div>
-
       <div className="space-y-8 px-8 py-8">
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="space-y-4">
@@ -71,31 +61,18 @@ export function BaselinePolicyDetail({
 }: BaselinePolicyDetailProps) {
   return (
     <section className="space-y-5">
-      <header className="space-y-1">
-        <h3 className="text-[28px] font-semibold tracking-tight text-slate-950">
-          {title}
-        </h3>
-      </header>
+      {title ? (
+        <header className="space-y-1">
+          <h3 className="text-[28px] font-semibold tracking-tight text-slate-950">
+            {title}
+          </h3>
+        </header>
+      ) : null}
 
       {loading ? (
         <PolicyDetailLoading />
       ) : policy ? (
         <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_12px_32px_-24px_rgba(15,23,42,0.2)]">
-          <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-8 py-8">
-            <div className="min-w-0">
-              <h4 className="truncate text-[24px] font-semibold tracking-tight text-slate-950">
-                {policy.name}
-              </h4>
-              <p className="mt-2 text-[15px] text-slate-500">
-                {idLabel}: {policy.id}
-              </p>
-            </div>
-
-            <span className="shrink-0 rounded-full bg-slate-50 px-4 py-2 text-[15px] font-semibold text-slate-950">
-              {policy.version}
-            </span>
-          </div>
-
           <div className="space-y-8 px-8 py-8">
             {policy.sections.map((section) => (
               <section key={section.key} className="space-y-4">
