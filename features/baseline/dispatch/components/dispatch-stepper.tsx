@@ -1,6 +1,6 @@
 "use client"
 
-import { Check } from "lucide-react"
+import type { ReactNode } from "react"
 
 import { cn } from "@/shared/lib/utils"
 
@@ -18,79 +18,260 @@ interface DispatchStepperProps {
   onStepChange?: (step: number) => void
 }
 
+const stepCopyOverrides: Partial<Record<number, { title?: string; description?: string }>> = {
+  1: {
+    description: "阅览选择目标基线详细信息",
+  },
+  2: {
+    description: "配置扫描周期并创建任务",
+  },
+  3: {
+    description: "选择基线下发的目标主机",
+  },
+  4: {
+    title: "下发预览",
+    description: "预览确认任务并下发执行",
+  },
+}
+
+function BaselineIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M4 19.5h16" />
+      <path d="M6 16V8.5" />
+      <path d="M12 16V5.5" />
+      <path d="M18 16V11.5" />
+      <circle cx="6" cy="6.5" r="1.8" />
+      <circle cx="12" cy="3.5" r="1.8" />
+      <circle cx="18" cy="9.5" r="1.8" />
+    </svg>
+  )
+}
+
+function TaskPlanIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="4" y="5" width="16" height="15" rx="2.5" />
+      <path d="M8 3.5v3" />
+      <path d="M16 3.5v3" />
+      <path d="M4 10h16" />
+      <path d="M8 13.5h3" />
+      <path d="M8 17h5" />
+      <path d="m15 15 1.5 1.5 3-3" />
+    </svg>
+  )
+}
+
+function HostSelectIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="5" width="18" height="5.5" rx="1.5" />
+      <rect x="3" y="13.5" width="18" height="5.5" rx="1.5" />
+      <path d="M7 8h.01" />
+      <path d="M7 16.5h.01" />
+      <path d="M10 8h7" />
+      <path d="M10 16.5h5" />
+      <path d="m17 15 2 1.5-2 1.5" />
+    </svg>
+  )
+}
+
+function PreviewIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3.5 12s3.2-5.5 8.5-5.5 8.5 5.5 8.5 5.5-3.2 5.5-8.5 5.5S3.5 12 3.5 12Z" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="m15.5 18.5 2.5 2.5" />
+    </svg>
+  )
+}
+
+function getStepIcon(stepKey: number): ReactNode {
+  switch (stepKey) {
+    case 1:
+      return <BaselineIcon className="h-5 w-5" />
+    case 2:
+      return <TaskPlanIcon className="h-5 w-5" />
+    case 3:
+      return <HostSelectIcon className="h-5 w-5" />
+    case 4:
+      return <PreviewIcon className="h-5 w-5" />
+    default:
+      return null
+  }
+}
+
+function StepNode({
+  disabled,
+  icon,
+  isClickable,
+  status,
+}: {
+  disabled?: boolean
+  icon: ReactNode
+  isClickable: boolean
+  status: DispatchStepItem["status"]
+}) {
+  const isCompleted = status === "completed"
+  const isCurrent = status === "current"
+  const isActive = isCompleted || isCurrent
+
+  return (
+    <div
+      className={cn(
+        "relative flex items-center justify-center transition-all duration-500",
+        isCurrent && "scale-[1.06]",
+        disabled && "opacity-70",
+      )}
+    >
+      {isCurrent ? (
+        <div className="absolute inset-[-5px] rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.24)_0%,rgba(59,130,246,0.10)_42%,rgba(255,255,255,0)_74%)] blur-sm" />
+      ) : null}
+
+      <div
+        className={cn(
+          "relative rounded-full p-[3px] transition-all duration-500",
+          isActive
+            ? "bg-[linear-gradient(135deg,#38bdf8_0%,#3b82f6_48%,#2563eb_100%)]"
+            : "bg-slate-200/95",
+          isCurrent && "shadow-[0_10px_28px_-14px_rgba(37,99,235,0.75)]",
+          isClickable && "group-hover:shadow-[0_10px_28px_-16px_rgba(37,99,235,0.55)]",
+        )}
+      >
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-full bg-white transition-all duration-500",
+            isCurrent ? "h-14 w-14" : "h-12 w-12",
+          )}
+        >
+          <div
+            className={cn(
+              "flex items-center justify-center rounded-full transition-all duration-500",
+              isActive
+                ? "bg-[linear-gradient(135deg,#38bdf8_0%,#3b82f6_52%,#2563eb_100%)] text-white"
+                : "bg-slate-100 text-slate-400",
+              isCurrent ? "h-10 w-10" : "h-9 w-9",
+            )}
+          >
+            {icon}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function DispatchStepper({
   currentStep,
   items,
   onStepChange,
 }: DispatchStepperProps) {
   return (
-    <div className="rounded-[28px] border border-slate-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(248,250,252,0.92))] p-3 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.35)] backdrop-blur">
-      <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4 xl:gap-0">
-        {items.map((item, index) => (
-          <div key={item.key} className="relative">
-            {index < items.length - 1 ? (
-              <div
-                className={cn(
-                  "hidden xl:block absolute left-[calc(50%+2.6rem)] right-[-18%] top-8 h-px rounded-full",
-                  item.key < currentStep
-                    ? "bg-gradient-to-r from-sky-500/75 via-sky-400/55 to-emerald-400/40"
-                    : "bg-slate-200/90",
-                )}
-              />
-            ) : null}
+    <div className="rounded-[30px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,249,252,0.96))] px-5 py-6 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.45)] backdrop-blur">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-0">
+        {items.map((item, index) => {
+          const isCompleted = item.key < currentStep
+          const isCurrent = item.key === currentStep
+          const isActive = isCompleted || isCurrent
+          const isClickable = Boolean(onStepChange) && !item.disabled && item.key <= currentStep
+          const displayTitle = stepCopyOverrides[item.key]?.title ?? item.title
+          const displayDescription = stepCopyOverrides[item.key]?.description ?? item.description
 
-            <button
-              type="button"
-              disabled={item.disabled}
-              onClick={() => onStepChange?.(item.key)}
-              className={cn(
-                "group relative flex w-full min-w-0 items-start gap-3 rounded-2xl px-4 py-4 text-left transition-all duration-200",
-                item.disabled
-                  ? "cursor-not-allowed opacity-65"
-                  : "cursor-pointer hover:bg-white/90 hover:shadow-[0_14px_30px_-26px_rgba(15,23,42,0.65)]",
-                item.status === "current" &&
-                  "bg-white shadow-[0_18px_36px_-28px_rgba(14,165,233,0.45)] ring-1 ring-sky-100/90",
-                item.status === "completed" && "bg-slate-50/85",
-              )}
-            >
-              <div
-                className={cn(
-                  "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors",
-                  item.status === "current" &&
-                    "border-sky-500 bg-sky-50 text-sky-700 shadow-[0_0_0_6px_rgba(14,165,233,0.10)]",
-                  item.status === "completed" &&
-                    "border-emerald-600 bg-emerald-50 text-emerald-700",
-                  item.status === "upcoming" &&
-                    "border-slate-200 bg-white text-slate-500",
-                )}
-              >
-                {item.status === "completed" ? <Check className="h-5 w-5" /> : item.key}
-                {item.status === "current" ? (
-                  <span className="absolute -bottom-1 h-2 w-2 rounded-full border border-white bg-sky-500" />
-                ) : null}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div
+          return (
+            <div key={item.key} className="flex items-start xl:flex-1">
+              <div className="flex min-w-0 flex-1 flex-col items-center">
+                <button
+                  type="button"
+                  onClick={() => isClickable && onStepChange?.(item.key)}
+                  disabled={!isClickable}
                   className={cn(
-                    "text-base font-semibold tracking-tight xl:text-[1.05rem]",
-                    item.status === "current" ? "text-slate-950" : "text-slate-700",
+                    "group flex flex-col items-center text-center transition-all duration-300",
+                    isClickable ? "cursor-pointer" : "cursor-default",
                   )}
                 >
-                  {item.title}
-                </div>
-                <div
-                  className={cn(
-                    "mt-1 max-w-[26ch] text-xs leading-5 xl:text-[13px]",
-                    item.status === "current" ? "text-slate-600" : "text-slate-500",
-                  )}
-                >
-                  {item.description}
-                </div>
+                  <StepNode
+                    disabled={item.disabled}
+                    icon={getStepIcon(item.key)}
+                    isClickable={isClickable}
+                    status={item.status}
+                  />
+
+                  <div className="mt-4 min-h-[48px] max-w-[150px]">
+                    <div
+                      className={cn(
+                        "text-[15px] font-semibold tracking-tight transition-colors duration-300",
+                        isActive ? "text-slate-900" : "text-slate-500",
+                      )}
+                    >
+                      {`第 ${item.key} 步：${displayTitle}`}
+                    </div>
+                    <div
+                      className={cn(
+                        "mt-1 text-[12px] leading-5 transition-colors duration-300",
+                        isCurrent ? "text-slate-600" : "text-slate-400",
+                      )}
+                    >
+                      {displayDescription}
+                    </div>
+                  </div>
+                </button>
               </div>
-            </button>
-          </div>
-        ))}
+
+              {index < items.length - 1 ? (
+                <div className="hidden xl:flex xl:flex-1 xl:px-3 xl:pt-7">
+                  <div className="relative h-[3px] w-full overflow-hidden rounded-full bg-slate-200/90">
+                    <div
+                      className={cn(
+                        "absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out",
+                        isCompleted ? "w-full" : isCurrent ? "w-1/2" : "w-0",
+                      )}
+                      style={{
+                        background:
+                          "linear-gradient(90deg, rgba(56,189,248,0.95) 0%, rgba(59,130,246,0.92) 55%, rgba(37,99,235,0.92) 100%)",
+                      }}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
