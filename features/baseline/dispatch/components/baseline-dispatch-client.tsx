@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle, RefreshCw } from "lucide-react"
+import { AlertCircle, FileText, Hash, RefreshCw } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -20,7 +20,13 @@ import {
   type DispatchPreviewData,
   type DispatchValidation,
 } from "@/shared/components/dispatch-preview"
-import { DEFAULT_SCAN_SCHEDULE, type ScanSchedule } from "@/shared/components/scan-schedule"
+import {
+  DEFAULT_SCAN_SCHEDULE,
+  ScanScheduleForm,
+  type ScanSchedule,
+  type ScanScheduleFormField,
+  type ScanScheduleFormText,
+} from "@/shared/components/scan-schedule"
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
 import { getAccessToken } from "@/shared/lib/http/auth"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
@@ -100,7 +106,7 @@ function buildScheduleSummary(schedule: ScanSchedule, t: ReturnType<typeof useTr
     parts.push(t("summary.scanOnStartup"))
   }
 
-  return parts.join("，")
+  return parts.join(", ")
 }
 
 function getSelectionMode(groupCount: number, hostCount: number) {
@@ -114,6 +120,7 @@ const REUSABLE_POLICY_PAGE_SIZE = 8
 export function BaselineDispatchClient() {
   const t = useTranslations("pages.baseline.dispatch")
   const locale = useLocale()
+  const isZh = locale.toLowerCase().startsWith("zh")
   const [currentStep, setCurrentStep] = useState(1)
 
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
@@ -121,7 +128,7 @@ export function BaselineDispatchClient() {
   const [templatesError, setTemplatesError] = useState("")
   const [selectedTemplateUuid, setSelectedTemplateUuid] = useState("")
 
-  const schedule = DEFAULT_SCAN_SCHEDULE
+  const [schedule, setSchedule] = useState<ScanSchedule>(DEFAULT_SCAN_SCHEDULE)
   const [createdPolicy, setCreatedPolicy] = useState<CreatedPolicy | null>(null)
   const [creatingPolicy, setCreatingPolicy] = useState(false)
   const [reusablePolicies, setReusablePolicies] = useState<BaselineScanPolicyListResult | null>(null)
@@ -285,6 +292,73 @@ export function BaselineDispatchClient() {
     return templates.find((item) => item.uuid === selectedTemplateUuid) ?? null
   }, [selectedTemplateUuid, templates])
 
+  const generatedPolicyName = useMemo(() => {
+    return selectedTemplate ? buildAutoPolicyName(selectedTemplate) : ""
+  }, [selectedTemplate])
+
+  const generatedPolicyVersion = useMemo(() => {
+    return selectedTemplateUuid ? buildAutoPolicyVersion() : ""
+  }, [selectedTemplateUuid])
+
+  const scanScheduleFormText = useMemo<ScanScheduleFormText>(() => {
+    if (isZh) {
+      return {
+        modeLabel: "\u8c03\u5ea6\u6a21\u5f0f",
+        modePlaceholder: "\u9009\u62e9\u8c03\u5ea6\u6a21\u5f0f",
+        modeInterval: "\u56fa\u5b9a\u95f4\u9694",
+        intervalLabel: "\u95f4\u9694",
+        intervalValue: (hours: number) => `${hours} \u5c0f\u65f6`,
+        fixedTimeLabel: "\u56fa\u5b9a\u6267\u884c\u65f6\u95f4",
+        randomDelayLabel: "\u968f\u673a\u5ef6\u8fdf",
+        randomDelayValue: (minutes: number) => `${minutes} \u5206\u949f`,
+        retryCountLabel: "\u91cd\u8bd5\u6b21\u6570",
+        retryIntervalLabel: "\u91cd\u8bd5\u95f4\u9694",
+        retryNone: "\u4e0d\u91cd\u8bd5",
+        retryTimes: (count: number) => `${count} \u6b21`,
+        minutesUnit: "\u5206\u949f",
+        startupTitle: "Agent \u542f\u52a8\u65f6\u6267\u884c\u626b\u63cf",
+        startupDescription: "\u542f\u52a8\u540e\u7acb\u5373\u8865\u8dd1\u4e00\u6b21\u626b\u63cf\u4efb\u52a1",
+      }
+    }
+
+    return {
+      modeLabel: "Schedule Mode",
+      modePlaceholder: "Select schedule mode",
+      modeInterval: "Fixed Interval",
+      intervalLabel: "Interval",
+      intervalValue: (hours: number) => `${hours}h`,
+      fixedTimeLabel: "Fixed Execution Time",
+      randomDelayLabel: "Random Delay",
+      randomDelayValue: (minutes: number) => `${minutes} min`,
+      retryCountLabel: "Retry Count",
+      retryIntervalLabel: "Retry Interval",
+      retryNone: "No Retry",
+      retryTimes: (count: number) => `${count} times`,
+      minutesUnit: "min",
+      startupTitle: "Run scan when Agent starts",
+      startupDescription: "Run one catch-up scan immediately after startup",
+    }
+  }, [isZh])
+
+  const scanScheduleFields = useMemo<ScanScheduleFormField[]>(() => {
+    return [
+      {
+        id: "policy-name",
+        icon: <FileText className="size-3.5 text-sky-600" />,
+        label: isZh ? "\u7b56\u7565\u540d\u79f0" : "Policy Name",
+        value: generatedPolicyName,
+        inputClassName: "bg-slate-50",
+      },
+      {
+        id: "policy-version",
+        icon: <Hash className="size-3.5 text-amber-600" />,
+        label: isZh ? "\u7248\u672c\u53f7" : "Version",
+        value: generatedPolicyVersion,
+        inputClassName: "bg-slate-50",
+      },
+    ]
+  }, [generatedPolicyName, generatedPolicyVersion, isZh])
+
   const selectedHosts = useMemo(() => {
     return selectedNodes.filter((node) => node?.type === "host")
   }, [selectedNodes])
@@ -414,8 +488,8 @@ export function BaselineDispatchClient() {
       object: {
         type: "baseline",
         id: createdPolicy?.id,
-        name: createdPolicy?.name || (selectedTemplate ? buildAutoPolicyName(selectedTemplate) : t("object.unnamed")),
-        version: createdPolicy?.version || undefined,
+        name: createdPolicy?.name || generatedPolicyName || t("object.unnamed"),
+        version: createdPolicy?.version || generatedPolicyVersion || undefined,
         sourceType:
           selectedTemplate.baseline_type?.toLowerCase() === "custom" ? "custom" : "template",
         mode: "create",
@@ -464,6 +538,8 @@ export function BaselineDispatchClient() {
     offlineHostCount,
     previewValidations,
     effectiveSchedule,
+    generatedPolicyName,
+    generatedPolicyVersion,
     selectedGroups.length,
     selectedHosts.length,
     selectedTemplate,
@@ -546,6 +622,11 @@ export function BaselineDispatchClient() {
     setSelectedIds(new Set(ids))
   }, [])
 
+  const handleScheduleChange = useCallback((value: ScanSchedule) => {
+    setSchedule(value)
+    setCreatedPolicy(null)
+  }, [])
+
   const handleReusablePolicySelectionChange = useCallback((selectedId: string | null) => {
     setSelectedReusablePolicyId(selectedId)
   }, [])
@@ -567,11 +648,9 @@ export function BaselineDispatchClient() {
       const baselineDisplayName = selectedTemplate.display_name || selectedTemplate.baseline_uuid
       const baselineFileName =
         selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
-      const autoPolicyName = buildAutoPolicyName(selectedTemplate)
-      const autoPolicyVersion = buildAutoPolicyVersion()
       const created = await createBaselineScanPolicy({
-        name: autoPolicyName,
-        version: autoPolicyVersion,
+        name: generatedPolicyName,
+        version: generatedPolicyVersion,
         baselineUUID: selectedTemplate.uuid,
         baselineFileName,
         scanSchedule: schedule,
@@ -597,7 +676,7 @@ export function BaselineDispatchClient() {
     } finally {
       setCreatingPolicy(false)
     }
-  }, [schedule, selectedTemplate, t])
+  }, [generatedPolicyName, generatedPolicyVersion, schedule, selectedTemplate, t])
 
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) {
@@ -660,6 +739,31 @@ export function BaselineDispatchClient() {
         />
       </section>
 
+      <section className="rounded-2xl border border-slate-200 bg-white p-5">
+        <div className="space-y-5">
+          <div className="space-y-1">
+            <h3 className="text-base font-semibold text-slate-900">
+              {isZh ? "\u7b56\u7565\u914d\u7f6e" : "Policy Configuration"}
+            </h3>
+            <p className="text-sm text-slate-500">
+              {isZh
+                ? "\u5c06\u4f7f\u7528\u81ea\u52a8\u751f\u6210\u7684\u7b56\u7565\u540d\u79f0\u3001\u7248\u672c\u53f7\u548c\u8c03\u5ea6\u4fe1\u606f\u521b\u5efa\u626b\u63cf\u7b56\u7565\u5bf9\u8c61"
+                : "Create the scan policy with the generated policy name, version, and schedule."}
+            </p>
+          </div>
+
+          <ScanScheduleForm
+            fields={scanScheduleFields}
+            value={schedule}
+            onChange={handleScheduleChange}
+            title={null}
+            description={null}
+            text={scanScheduleFormText}
+            className="max-w-none border-0 bg-transparent shadow-none"
+          />
+        </div>
+      </section>
+
     </div>
   )
 
@@ -672,7 +776,7 @@ export function BaselineDispatchClient() {
       className="h-11 rounded-2xl px-5"
     >
       <RefreshCw className={reusablePoliciesLoading ? "mr-2 size-4 animate-spin" : "mr-2 size-4"} />
-      {locale.toLowerCase().startsWith("zh") ? "刷新" : "Refresh"}
+      {isZh ? "\u5237\u65b0" : "Refresh"}
     </Button>
   )
 

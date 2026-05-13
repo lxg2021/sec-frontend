@@ -31,6 +31,14 @@ export interface ScanScheduleFormText {
   startupDescription: string
 }
 
+export interface ScanScheduleFormField {
+  id: string
+  label: ReactNode
+  value: string
+  icon?: ReactNode
+  inputClassName?: string
+}
+
 export interface ScanScheduleFormProps {
   value?: Partial<ScanSchedule>
   onChange?: (schedule: ScanSchedule) => void
@@ -38,6 +46,7 @@ export interface ScanScheduleFormProps {
   description?: ReactNode
   className?: string
   disabled?: boolean
+  fields?: ScanScheduleFormField[]
   showStartup?: boolean
   text?: ScanScheduleFormText
 }

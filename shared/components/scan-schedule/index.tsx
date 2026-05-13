@@ -15,7 +15,12 @@ import { mergeScanScheduleDefaults } from "./defaults"
 import type { ScanScheduleFormProps } from "./types"
 
 export { DEFAULT_SCAN_SCHEDULE, mergeScanScheduleDefaults } from "./defaults"
-export type { ScanSchedule, ScanScheduleFormProps, ScanScheduleFormText } from "./types"
+export type {
+  ScanSchedule,
+  ScanScheduleFormField,
+  ScanScheduleFormProps,
+  ScanScheduleFormText,
+} from "./types"
 
 const defaultText = {
   title: "调度计划配置",
@@ -44,6 +49,7 @@ export function ScanScheduleForm({
   description = "配置任务执行周期、随机延迟与重试策略。",
   className,
   disabled = false,
+  fields,
   showStartup = true,
   text,
 }: ScanScheduleFormProps) {
@@ -77,6 +83,28 @@ export function ScanScheduleForm({
       ) : null}
 
       <CardContent className="space-y-4">
+        {fields?.length ? (
+          <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
+            {fields.map((field) => (
+              <div key={field.id} className="space-y-2">
+                <Label htmlFor={field.id} className="flex items-center gap-2">
+                  {field.icon}
+                  {field.label}
+                </Label>
+                <div className="flex h-12 items-center">
+                  <Input
+                    id={field.id}
+                    value={field.value}
+                    readOnly
+                    disabled={disabled}
+                    className={cn("h-9", field.inputClassName)}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
           <div className="space-y-2">
             <Label htmlFor="mode" className="flex items-center gap-2">
