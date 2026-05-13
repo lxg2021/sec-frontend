@@ -8,7 +8,10 @@ import { toast } from "sonner"
 
 import {
   applyBaselineScanPolicy,
+  listBaselineScanPolicies,
   createBaselineScanPolicy,
+  type BaselineScanPolicyListResult,
+  type ReusableBaselineScanPolicy,
 } from "@/features/baseline/dispatch/api"
 import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
 import {
@@ -25,6 +28,7 @@ import { Button } from "@/shared/ui/button"
 
 import { BaselineDispatchSelector, type BaselineDispatchSelectorItem } from "./baseline-dispatch-selector"
 import { BaselineSelectionStep } from "./baseline-selection-step"
+import { BaselineTableList } from "./baseline-table-list"
 import { DispatchStepper, type DispatchStepItem } from "./dispatch-stepper"
 import { DispatchSubmitStep } from "./dispatch-submit-step"
 import { HostSelectionStep } from "./host-selection-step"
@@ -105,6 +109,8 @@ function getSelectionMode(groupCount: number, hostCount: number) {
   return "host" as const
 }
 
+const REUSABLE_POLICY_PAGE_SIZE = 8
+
 export function BaselineDispatchClient() {
   const t = useTranslations("pages.baseline.dispatch")
   const [currentStep, setCurrentStep] = useState(1)
@@ -117,6 +123,11 @@ export function BaselineDispatchClient() {
   const schedule = DEFAULT_SCAN_SCHEDULE
   const [createdPolicy, setCreatedPolicy] = useState<CreatedPolicy | null>(null)
   const [creatingPolicy, setCreatingPolicy] = useState(false)
+  const [reusablePolicies, setReusablePolicies] = useState<BaselineScanPolicyListResult | null>(null)
+  const [reusablePoliciesLoading, setReusablePoliciesLoading] = useState(false)
+  const [reusablePoliciesError, setReusablePoliciesError] = useState("")
+  const [reusablePoliciesPage, setReusablePoliciesPage] = useState(1)
+  const [selectedReusablePolicyId, setSelectedReusablePolicyId] = useState<string | null>(null)
 
   const [hostTree, setHostTree] = useState<HostTreeNode[]>([])
   const [hostsLoading, setHostsLoading] = useState(true)
@@ -171,10 +182,57 @@ export function BaselineDispatchClient() {
     }
   }, [t])
 
+  const loadReusablePolicies = useCallback(async (page: number) => {
+    if (!selectedTemplateUuid.trim()) {
+      setReusablePolicies(null)
+      setReusablePoliciesError("")
+      setReusablePoliciesLoading(false)
+      return
+    }
+
+    setReusablePoliciesLoading(true)
+    setReusablePoliciesError("")
+
+    if (!getAccessToken()) {
+      setReusablePolicies(null)
+      setReusablePoliciesError(t("schedule.reuse.errors.noAuth"))
+      setReusablePoliciesLoading(false)
+      return
+    }
+
+    try {
+      const result = await listBaselineScanPolicies({
+        baselineUUID: selectedTemplateUuid,
+        limit: REUSABLE_POLICY_PAGE_SIZE,
+        offset: (page - 1) * REUSABLE_POLICY_PAGE_SIZE,
+      })
+
+      setReusablePolicies(result)
+      setSelectedReusablePolicyId((current) => {
+        if (current && result.items.some((item) => item.id === current)) {
+          return current
+        }
+
+        return result.items[0]?.id ?? null
+      })
+    } catch (error) {
+      setReusablePolicies(null)
+      setReusablePoliciesError(
+        error instanceof Error ? error.message : t("schedule.reuse.errors.loadFailed"),
+      )
+    } finally {
+      setReusablePoliciesLoading(false)
+    }
+  }, [selectedTemplateUuid, t])
+
   useEffect(() => {
     void loadTemplates()
     void loadHosts()
   }, [loadHosts, loadTemplates])
+
+  useEffect(() => {
+    void loadReusablePolicies(reusablePoliciesPage)
+  }, [loadReusablePolicies, reusablePoliciesPage])
 
   useEffect(() => {
     if (!selectedTemplateUuid && templates.length > 0) {
@@ -477,12 +535,22 @@ export function BaselineDispatchClient() {
   const handleTemplateChange = useCallback((value: string) => {
     setSelectedTemplateUuid(value)
     setCreatedPolicy(null)
+    setReusablePoliciesPage(1)
+    setSelectedReusablePolicyId(null)
     setCurrentStep(1)
   }, [])
 
   const handleSelectionChange = useCallback((nodes: HostTreeNode[], ids: Set<string>) => {
     setSelectedNodes(nodes)
     setSelectedIds(new Set(ids))
+  }, [])
+
+  const handleReusablePolicySelectionChange = useCallback((selectedId: string | null) => {
+    setSelectedReusablePolicyId(selectedId)
+  }, [])
+
+  const handleReusablePolicyRowClick = useCallback((item: ReusableBaselineScanPolicy) => {
+    setSelectedReusablePolicyId(item.id)
   }, [])
 
   const handleCreatePolicy = useCallback(async () => {
@@ -576,6 +644,21 @@ export function BaselineDispatchClient() {
     t,
   ])
 
+  const scheduleContent = (
+    <section className="rounded-2xl border border-slate-200 bg-white p-5">
+      <BaselineTableList
+        data={reusablePolicies}
+        error={reusablePoliciesError}
+        loading={reusablePoliciesLoading}
+        onPageChange={setReusablePoliciesPage}
+        onRefresh={() => void loadReusablePolicies(reusablePoliciesPage)}
+        onRowClick={handleReusablePolicyRowClick}
+        onSelectionChange={handleReusablePolicySelectionChange}
+        selectedId={selectedReusablePolicyId}
+      />
+    </section>
+  )
+
   const renderCurrentStep = () => {
     const selector = (
       <BaselineDispatchSelector
@@ -604,6 +687,7 @@ export function BaselineDispatchClient() {
         <ScanScheduleStep
           creating={creatingPolicy}
           canProceed={canCreatePolicy}
+          content={scheduleContent}
           onBack={() => setCurrentStep(1)}
           onPrimaryAction={() => void handleCreatePolicy()}
         />

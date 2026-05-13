@@ -1,4 +1,5 @@
 "use client"
+import type { ReactNode } from "react"
 import { ArrowRight, CalendarClock, ChevronLeft } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -7,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 
 interface ScanScheduleStepProps {
   canProceed: boolean
+  content?: ReactNode
   creating: boolean
   onBack: () => void
   onPrimaryAction: () => void
@@ -14,6 +16,7 @@ interface ScanScheduleStepProps {
 
 export function ScanScheduleStep({
   canProceed,
+  content,
   creating,
   onBack,
   onPrimaryAction,
@@ -29,13 +32,14 @@ export function ScanScheduleStep({
           <div>
             <CardTitle className="text-lg font-semibold text-foreground">{t("steps.schedule.title")}</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              {t("schedule.description")}
+              {t("steps.schedule.description")}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="p-6">
+      <CardContent className="space-y-6 p-6">
+        {content}
         <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
             <ChevronLeft className="mr-2 h-4 w-4" />
