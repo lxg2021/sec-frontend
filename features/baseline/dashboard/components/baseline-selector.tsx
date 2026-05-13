@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { useMemo } from "react"
 import { useTranslations } from "next-intl"
 
@@ -10,6 +11,7 @@ import SharedBaselineSelector, {
 import type { BaselineOption } from "../api"
 
 interface BaselineSelectorProps {
+  actions?: ReactNode
   options: BaselineOption[]
   value?: string
   onValueChange?: (value: string) => void
@@ -22,6 +24,7 @@ const knownStandards = new Set(["cis", "dod", "msft", "tls", "intune", "custom"]
 const knownProfiles = new Set(["machine", "user", "both"])
 
 export function BaselineSelector({
+  actions,
   options,
   value,
   onValueChange,
@@ -63,6 +66,7 @@ export function BaselineSelector({
 
   return (
     <SharedBaselineSelector
+      actions={actions}
       items={items}
       value={value}
       onValueChange={onValueChange}

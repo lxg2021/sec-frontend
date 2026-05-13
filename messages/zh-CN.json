@@ -1064,10 +1064,18 @@
           "total": "总检查项",
           "count": "{count} 项"
         },
-        "categoryStats": "分类合规统计",
-        "categoryStatsDescription": "按检查分类查看详细合规情况",
-        "refresh": "刷新",
-        "categoryTable": {
+          "categoryStats": "分类合规统计",
+          "categoryStatsDescription": "按检查分类查看详细合规情况",
+          "refresh": "刷新",
+          "scanNow": "立即扫描",
+          "scanning": "触发中...",
+          "scanNowSuccessTitle": "已触发立即扫描",
+          "scanNowSuccessDescription": "基线立即扫描命令已下发，目标主机将开始执行扫描。",
+          "scanNowFailedTitle": "立即扫描失败",
+          "repair": "一键修复",
+          "repairPendingTitle": "修复能力暂未接入",
+          "repairPendingDescription": "修复接口还未提供，当前先保留按钮样式和交互占位。",
+          "categoryTable": {
           "loading": "加载分类统计中...",
           "emptyTitle": "选择分类查看详细信息",
           "emptyDescription": "点击上方任意分类卡片，查看该分类下的详细检查项目和合规状况",

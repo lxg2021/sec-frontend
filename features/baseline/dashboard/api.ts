@@ -396,3 +396,12 @@ export async function fetchBaselineDetail(baselineUUID: string, itemID: string):
 
   return result.data ?? null
 }
+
+export async function baselineImmediateScan() {
+  return http.post("baselineImmediateScan", {
+    request_id: createRequestId(),
+    target: {
+      scan_all: true,
+    },
+  })
+}

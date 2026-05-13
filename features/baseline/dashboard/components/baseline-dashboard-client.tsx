@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
-import { BarChart3, RefreshCw, Shield } from "lucide-react"
+import { BarChart3, Loader2, Play, RefreshCw, Sparkles } from "lucide-react"
 
+import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 
 import {
+  baselineImmediateScan,
   type BaselineDailyStatsData,
   type BaselineOption,
   type CategoryGroup,
@@ -42,6 +44,7 @@ function getSelectedOption(options: BaselineOption[], currentUUID: string) {
 
 export default function BaselineDashboardClient() {
   const t = useTranslations("pages.baseline.dashboard")
+  const { toast } = useToast()
   const [options, setOptions] = useState<BaselineOption[]>([])
   const [selectedBaselineUUID, setSelectedBaselineUUID] = useState("")
   const [dailyStats, setDailyStats] = useState<BaselineDailyStatsData | null>(null)
@@ -50,6 +53,7 @@ export default function BaselineDashboardClient() {
   const [loadingOptions, setLoadingOptions] = useState(true)
   const [loadingStats, setLoadingStats] = useState(false)
   const [loadingCategory, setLoadingCategory] = useState(false)
+  const [triggeringImmediateScan, setTriggeringImmediateScan] = useState(false)
   const [error, setError] = useState("")
   const skipNextStatsLoadRef = useRef(false)
 
@@ -152,6 +156,33 @@ export default function BaselineDashboardClient() {
     }
   }, [loadStats, selectedBaselineUUID, t])
 
+  const handleImmediateScan = useCallback(async () => {
+    setTriggeringImmediateScan(true)
+
+    try {
+      await baselineImmediateScan()
+      toast({
+        title: t("scanNowSuccessTitle"),
+        description: t("scanNowSuccessDescription"),
+      })
+    } catch (err) {
+      toast({
+        title: t("scanNowFailedTitle"),
+        description: err instanceof Error ? err.message : t("errors.stats"),
+        variant: "destructive",
+      })
+    } finally {
+      setTriggeringImmediateScan(false)
+    }
+  }, [t, toast])
+
+  const handleRepair = useCallback(() => {
+    toast({
+      title: t("repairPendingTitle"),
+      description: t("repairPendingDescription"),
+    })
+  }, [t, toast])
+
   useEffect(() => {
     void loadOptions()
   }, [loadOptions])
@@ -177,26 +208,42 @@ export default function BaselineDashboardClient() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-blue-50 p-2">
-              <Shield className="h-6 w-6 text-blue-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-            </div>
-          </div>
+        <BaselineSelector
+          actions={
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => void handleImmediateScan()}
+                disabled={triggeringImmediateScan}
+                className="h-10 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+              >
+                {triggeringImmediateScan ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4 fill-current" />
+                )}
+                <span className="font-medium">{triggeringImmediateScan ? t("scanning") : t("scanNow")}</span>
+              </Button>
 
-          <BaselineSelector
-            options={options}
-            value={selectedBaselineUUID}
-            onValueChange={setSelectedBaselineUUID}
-            onRefresh={() => void refreshDashboard()}
-            isRefreshing={loadingOptions || loadingStats}
-            className="w-full xl:w-auto xl:min-w-[720px]"
-          />
-        </div>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleRepair}
+                className="h-10 gap-2 rounded-full px-3 text-teal-500 hover:bg-teal-50 hover:text-teal-700"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="font-medium">{t("repair")}</span>
+              </Button>
+            </>
+          }
+          options={options}
+          value={selectedBaselineUUID}
+          onValueChange={setSelectedBaselineUUID}
+          onRefresh={() => void refreshDashboard()}
+          isRefreshing={loadingOptions || loadingStats}
+          className="w-full"
+        />
 
         {error && (
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">

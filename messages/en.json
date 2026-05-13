@@ -1062,10 +1062,18 @@
           "total": "Total checks",
           "count": "{count} checks"
         },
-        "categoryStats": "Category Compliance Statistics",
-        "categoryStatsDescription": "View detailed compliance status by check category.",
-        "refresh": "Refresh",
-        "categoryTable": {
+          "categoryStats": "Category Compliance Statistics",
+          "categoryStatsDescription": "View detailed compliance status by check category.",
+          "refresh": "Refresh",
+          "scanNow": "Scan Now",
+          "scanning": "Starting...",
+          "scanNowSuccessTitle": "Immediate scan started",
+          "scanNowSuccessDescription": "The baseline immediate scan command has been dispatched to target hosts.",
+          "scanNowFailedTitle": "Failed to start immediate scan",
+          "repair": "One-click Repair",
+          "repairPendingTitle": "Repair is not connected yet",
+          "repairPendingDescription": "The repair API is not available yet, so this button is currently a UI placeholder.",
+          "categoryTable": {
           "loading": "Loading category statistics...",
           "emptyTitle": "Select a category to view details",
           "emptyDescription": "Click any category card above to inspect its checks and compliance status",

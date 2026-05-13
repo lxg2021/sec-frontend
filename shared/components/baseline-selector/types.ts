@@ -31,6 +31,7 @@ export interface BaselineSelectorText {
 }
 
 export interface BaselineSelectorProps {
+  actions?: ReactNode
   className?: string
   icon?: ReactNode
   isRefreshing?: boolean
