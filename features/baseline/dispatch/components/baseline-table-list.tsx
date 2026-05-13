@@ -79,6 +79,7 @@ export function BaselineTableList({
   const activeSelectedId = selectedId ?? internalSelectedId
   const items = data?.items ?? []
   const pagination = data?.pagination
+  const balancedColumnWidth = "calc((100% - 50px) / 7)"
 
   const text = useMemo(
     () =>
@@ -207,53 +208,64 @@ export function BaselineTableList({
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <Table>
+        <Table className="table-auto">
+          <colgroup>
+            <col style={{ width: "50px" }} />
+            <col />
+            <col style={{ width: balancedColumnWidth }} />
+            <col style={{ width: balancedColumnWidth }} />
+            <col style={{ width: balancedColumnWidth }} />
+            <col style={{ width: balancedColumnWidth }} />
+            <col style={{ width: balancedColumnWidth }} />
+            <col style={{ width: balancedColumnWidth }} />
+            <col style={{ width: balancedColumnWidth }} />
+          </colgroup>
           <TableHeader>
             <TableRow className="bg-slate-50/90">
               <TableHead className="w-[50px]" />
-              <TableHead className="w-[180px]">
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <Hash className="size-4 text-blue-500" />
                   <span>{text.columns.policyId}</span>
                 </div>
               </TableHead>
-              <TableHead>
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <FileText className="size-4 text-emerald-500" />
                   <span>{text.columns.name}</span>
                 </div>
               </TableHead>
-              <TableHead className="w-[100px]">
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <Tag className="size-4 text-amber-500" />
                   <span>{text.columns.version}</span>
                 </div>
               </TableHead>
-              <TableHead className="w-[220px]">
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <CalendarClock className="size-4 text-violet-500" />
                   <span>{text.columns.schedule}</span>
                 </div>
               </TableHead>
-              <TableHead className="w-[100px]">
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <Timer className="size-4 text-teal-500" />
                   <span>{text.columns.interval}</span>
                 </div>
               </TableHead>
-              <TableHead className="w-[100px]">
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <RotateCcw className="size-4 text-orange-500" />
                   <span>{text.columns.retry}</span>
                 </div>
               </TableHead>
-              <TableHead className="w-[160px]">
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <CalendarPlus className="size-4 text-cyan-500" />
                   <span>{text.columns.createdAt}</span>
                 </div>
               </TableHead>
-              <TableHead className="w-[160px]">
+              <TableHead className="whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <CalendarCheck className="size-4 text-rose-500" />
                   <span>{text.columns.updatedAt}</span>
@@ -331,12 +343,16 @@ export function BaselineTableList({
                         ) : null}
                       </div>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                    <TableCell className="font-medium text-slate-950">{item.name}</TableCell>
+                    <TableCell className="whitespace-nowrap font-mono text-xs">{item.id}</TableCell>
+                    <TableCell className="max-w-0 truncate font-medium text-slate-950" title={item.name}>
+                      {item.name}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{item.version}</Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-500">{formatSchedule(item)}</TableCell>
+                    <TableCell className="max-w-0 truncate text-sm text-slate-500" title={formatSchedule(item)}>
+                      {formatSchedule(item)}
+                    </TableCell>
                     <TableCell className="text-center">
                       <Badge variant="outline" className="font-mono">
                         {item.scanSchedule.interval_hours ? `${item.scanSchedule.interval_hours}h` : "-"}
@@ -347,10 +363,10 @@ export function BaselineTableList({
                         {item.scanSchedule.retry_limit ?? 0}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-slate-500">
+                    <TableCell className="whitespace-nowrap text-sm text-slate-500">
                       {formatDateTime(item.createdAt, locale)}
                     </TableCell>
-                    <TableCell className="text-sm text-slate-500">
+                    <TableCell className="whitespace-nowrap text-sm text-slate-500">
                       {formatDateTime(item.updatedAt, locale)}
                     </TableCell>
                   </TableRow>
