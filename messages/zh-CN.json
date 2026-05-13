@@ -1497,6 +1497,8 @@
           "dailyTime": "每日 {time}"
         },
         "toast": {
+          "policyCreateFailed": "创建基线扫描策略对象失败，请稍后重试。",
+          "policyCreateFailedWithReason": "创建基线扫描策略对象失败：{reason}",
           "policyCreated": "策略对象已创建，可以继续选择主机。",
           "dispatchNotReady": "当前未满足下发条件。",
           "dispatchLoading": "任务下发中...",

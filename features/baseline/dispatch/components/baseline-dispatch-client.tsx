@@ -6,6 +6,7 @@ import { AlertCircle } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
+import { createBaselineScanPolicy } from "@/features/baseline/dispatch/api"
 import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
 import {
   type DispatchGroup,
@@ -82,10 +83,6 @@ function buildScheduleSummary(schedule: ScanSchedule, t: ReturnType<typeof useTr
   }
 
   return parts.join("，")
-}
-
-function createPolicyId() {
-  return `baseline-policy-${Date.now()}`
 }
 
 function getSelectionMode(groupCount: number, hostCount: number) {
@@ -472,8 +469,19 @@ export function BaselineDispatchClient() {
     setCurrentStep(1)
   }, [])
 
+  const handlePolicyNameChange = useCallback((value: string) => {
+    setPolicyName(value)
+    setCreatedPolicy(null)
+  }, [])
+
+  const handleVersionChange = useCallback((value: string) => {
+    setVersion(value)
+    setCreatedPolicy(null)
+  }, [])
+
   const handleScheduleChange = useCallback((value: ScanSchedule) => {
     setSchedule(value)
+    setCreatedPolicy(null)
   }, [])
 
   const handleSelectionChange = useCallback((nodes: HostTreeNode[], ids: Set<string>) => {
@@ -483,27 +491,45 @@ export function BaselineDispatchClient() {
 
   const handleCreatePolicy = useCallback(async () => {
     if (!selectedTemplate || !canCreatePolicy) return
+    if (!getAccessToken()) {
+      toast.error(t("errors.templates.noAuth"))
+      return
+    }
 
     setCreatingPolicy(true)
 
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 500))
-
-      const nextPolicy = {
-        id: createPolicyId(),
+      const baselineDisplayName = selectedTemplate.display_name || selectedTemplate.baseline_uuid
+      const baselineFileName =
+        selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
+      const created = await createBaselineScanPolicy({
         name: policyName.trim(),
         version: version.trim(),
-        baselineUuid: selectedTemplate.uuid,
-        baselineName: selectedTemplate.display_name || selectedTemplate.baseline_uuid,
-      }
+        baselineUUID: selectedTemplate.uuid,
+        baselineFileName,
+        scanSchedule: schedule,
+      })
 
-      setCreatedPolicy(nextPolicy)
+      setCreatedPolicy({
+        id: created.id,
+        name: created.name,
+        version: created.version,
+        baselineUuid: selectedTemplate.uuid,
+        baselineName: baselineDisplayName,
+      })
+
       setCurrentStep(3)
       toast.success(t("toast.policyCreated"))
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? t("toast.policyCreateFailedWithReason", { reason: error.message })
+          : t("toast.policyCreateFailed"),
+      )
     } finally {
       setCreatingPolicy(false)
     }
-  }, [canCreatePolicy, policyName, selectedTemplate, t, version])
+  }, [canCreatePolicy, policyName, schedule, selectedTemplate, t, version])
 
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) {
@@ -556,9 +582,9 @@ export function BaselineDispatchClient() {
           schedule={schedule}
           creating={creatingPolicy}
           canCreatePolicy={canCreatePolicy}
-          onNameChange={setPolicyName}
+          onNameChange={handlePolicyNameChange}
           onScheduleChange={handleScheduleChange}
-          onVersionChange={setVersion}
+          onVersionChange={handleVersionChange}
           policyName={policyName}
           version={version}
           onBack={() => setCurrentStep(1)}

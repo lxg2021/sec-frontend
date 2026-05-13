@@ -57,6 +57,7 @@ const FALLBACK_CONFIG = {
       getBaselineItemHostResults: "/sensor/baseline/item/hosts",
       baselineOneClickRepair: "/sensor/control/baseline/oneclickrepair",
       baselineImmediateScan: "/sensor/control/baseline/immediatescan",
+      baselineScanPolicy: "/sensor/control/baseline/scanpolicy",
     },
   },
 }

@@ -1496,6 +1496,8 @@
         },
         "toast": {
           "policyCreated": "Strategy object created. You can continue with host selection.",
+          "policyCreateFailed": "Failed to create the baseline scan strategy object. Please try again later.",
+          "policyCreateFailedWithReason": "Failed to create the baseline scan strategy object: {reason}",
           "dispatchNotReady": "Current dispatch requirements are not met.",
           "dispatchLoading": "Dispatching task...",
           "dispatchSuccess": "Baseline dispatch succeeded. The task has been submitted.",
