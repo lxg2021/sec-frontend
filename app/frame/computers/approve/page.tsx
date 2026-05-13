@@ -447,7 +447,6 @@ export default function LogicGroupsPage() {
               pagination={hostPagination}
               loading={hostStatus === "loading" || savingHosts}
               onQueryChange={handleHostQueryChange}
-              onHostsChange={setHosts}
               onSubmit={handleSubmit}
             />
           </CardContent>
