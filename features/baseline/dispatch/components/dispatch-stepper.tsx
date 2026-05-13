@@ -203,7 +203,7 @@ export function DispatchStepper({
   onStepChange,
 }: DispatchStepperProps) {
   return (
-    <div className="rounded-[30px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,249,252,0.96))] px-5 py-6 shadow-[0_18px_42px_-34px_rgba(15,23,42,0.45)] backdrop-blur">
+    <div className="rounded-[30px] px-5 py-6">
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-0">
         {items.map((item, index) => {
           const isCompleted = item.key < currentStep
