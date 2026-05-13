@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle, FileText, Hash, PlusSquare, RefreshCw } from "lucide-react"
+import { AlertCircle, FileText, Hash, Plus, RefreshCw } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -350,6 +350,7 @@ export function BaselineDispatchClient() {
         minutesUnit: "\u5206\u949f",
         startupTitle: "Agent \u542f\u52a8\u65f6\u6267\u884c\u626b\u63cf",
         startupDescription: "\u542f\u52a8\u540e\u7acb\u5373\u8865\u8dd1\u4e00\u6b21\u626b\u63cf\u4efb\u52a1",
+        startupInlineLabel: "\u542f\u52a8\u65f6\u626b\u63cf",
       }
     }
 
@@ -369,29 +370,30 @@ export function BaselineDispatchClient() {
       minutesUnit: "min",
       startupTitle: "Run scan when Agent starts",
       startupDescription: "Run one catch-up scan immediately after startup",
+      startupInlineLabel: "Scan on startup",
     }
   }, [isZh])
 
   const scanScheduleFields = useMemo<ScanScheduleFormField[]>(() => {
     return [
-      {
-        id: "policy-name",
-        icon: <FileText className="size-3.5 text-sky-600" />,
-        label: isZh ? "\u7b56\u7565\u540d\u79f0" : "Policy Name",
-        value: policyName,
-        inputClassName: "bg-slate-50",
+        {
+          id: "policy-name",
+          icon: <FileText className="size-3.5 text-primary" />,
+          label: isZh ? "\u7b56\u7565\u540d\u79f0" : "Policy Name",
+          value: policyName,
+          inputClassName: "bg-slate-50",
         onChange: (value) => {
           setPolicyName(value)
           setAppliedPolicy(null)
           setCreatedPolicy(null)
         },
       },
-      {
-        id: "policy-version",
-        icon: <Hash className="size-3.5 text-amber-600" />,
-        label: isZh ? "\u7248\u672c\u53f7" : "Version",
-        value: policyVersion,
-        inputClassName: "bg-slate-50",
+        {
+          id: "policy-version",
+          icon: <Hash className="size-3.5 text-primary" />,
+          label: isZh ? "\u7248\u672c\u53f7" : "Version",
+          value: policyVersion,
+          inputClassName: "bg-slate-50",
         onChange: (value) => {
           setPolicyVersion(value)
           setAppliedPolicy(null)
@@ -815,22 +817,11 @@ export function BaselineDispatchClient() {
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="space-y-5">
-          <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <div className="flex items-center gap-4 pb-1">
             <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
-              <PlusSquare className="size-4 text-sky-600" />
+              <Plus className="size-4 text-sky-600" />
               {isZh ? "\u521b\u5efa\u4efb\u52a1" : "Create Task"}
             </h3>
-            <Button
-              type="button"
-              size="sm"
-              onClick={() => void handleCreatePolicy()}
-              disabled={!canCreatePolicy || creatingPolicy}
-              className="h-10 rounded-2xl px-4"
-            >
-              {creatingPolicy
-                ? (isZh ? "\u521b\u5efa\u4e2d..." : "Creating...")
-                : (isZh ? "\u65b0\u5efa\u4efb\u52a1" : "New Task")}
-            </Button>
           </div>
 
           <ScanScheduleForm
@@ -839,6 +830,19 @@ export function BaselineDispatchClient() {
             onChange={handleScheduleChange}
             title={null}
             description={null}
+            action={
+              <Button
+                type="button"
+                onClick={() => void handleCreatePolicy()}
+                disabled={!canCreatePolicy || creatingPolicy}
+                className="h-10 w-full text-base font-medium"
+              >
+                <Plus className="h-4 w-4" />
+                {creatingPolicy
+                  ? (isZh ? "\u521b\u5efa\u4e2d..." : "Creating...")
+                  : (isZh ? "\u65b0\u5efa\u4efb\u52a1" : "New Task")}
+              </Button>
+            }
             text={scanScheduleFormText}
             className="max-w-none border-0 bg-transparent shadow-none"
           />

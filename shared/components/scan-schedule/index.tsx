@@ -1,7 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { CalendarClock, Clock, Play, RefreshCw, Shuffle } from "lucide-react"
+import {
+  Calendar,
+  Clock,
+  Play,
+  Plus,
+  RefreshCw,
+  RotateCcw,
+  Shuffle,
+  Timer,
+} from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -12,7 +21,7 @@ import { Slider } from "@/shared/ui/slider"
 import { Switch } from "@/shared/ui/switch"
 
 import { mergeScanScheduleDefaults } from "./defaults"
-import type { ScanScheduleFormProps } from "./types"
+import type { ScanScheduleFormField, ScanScheduleFormProps } from "./types"
 
 export { DEFAULT_SCAN_SCHEDULE, mergeScanScheduleDefaults } from "./defaults"
 export type {
@@ -28,18 +37,61 @@ const defaultText = {
   modeLabel: "调度模式",
   modePlaceholder: "选择调度模式",
   modeInterval: "固定间隔",
-  intervalLabel: "间隔",
-  intervalValue: (hours: number) => `${hours}小时`,
+  intervalLabel: "执行间隔",
+  intervalValue: (hours: number) => `${hours} 小时`,
   fixedTimeLabel: "固定执行时间",
   randomDelayLabel: "随机延迟",
-  randomDelayValue: (minutes: number) => `${minutes}分钟`,
+  randomDelayValue: (minutes: number) => `${minutes} 分钟`,
   retryCountLabel: "重试次数",
   retryIntervalLabel: "重试间隔",
   retryNone: "不重试",
   retryTimes: (count: number) => `${count} 次`,
   minutesUnit: "分钟",
-  startupTitle: "Agent 启动时执行扫描",
+  startupTitle: "Agent 启动时执行",
   startupDescription: "启动后立即补跑一次扫描任务",
+  startupInlineLabel: "启动时扫描",
+}
+
+function FieldShell({
+  label,
+  icon,
+  children,
+}: {
+  label: React.ReactNode
+  icon?: React.ReactNode
+  children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-2">
+      <Label className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+        {icon}
+        {label}
+      </Label>
+      {children}
+    </div>
+  )
+}
+
+function TextInputField({
+  field,
+  disabled,
+}: {
+  field: ScanScheduleFormField
+  disabled: boolean
+}) {
+  return (
+    <FieldShell label={field.label} icon={field.icon}>
+      <Input
+        id={field.id}
+        value={field.value}
+        onChange={(event) => field.onChange?.(event.target.value)}
+        placeholder={field.placeholder}
+        readOnly={field.readOnly ?? !field.onChange}
+        disabled={disabled}
+        className={cn("h-9 w-full", field.inputClassName)}
+      />
+    </FieldShell>
+  )
 }
 
 export function ScanScheduleForm({
@@ -47,6 +99,7 @@ export function ScanScheduleForm({
   onChange,
   title = "调度计划配置",
   description = "配置任务执行周期、随机延迟与重试策略。",
+  action,
   className,
   disabled = false,
   fields,
@@ -68,13 +121,20 @@ export function ScanScheduleForm({
     [onChange, schedule],
   )
 
+  const policyNameField = fields?.[0]
+  const policyVersionField = fields?.[1]
+  const intervalHours = schedule.interval_hours ?? 24
+  const randomDelayMinutes = schedule.random_delay_minutes ?? 0
+  const retryLimit = schedule.retry_limit ?? 3
+  const retryIntervalMinutes = schedule.retry_interval_minutes ?? 5
+
   return (
-    <Card className={cn("w-full max-w-2xl", className)}>
+    <Card className={cn("mx-auto w-full max-w-4xl border border-border/50 shadow-sm", className)}>
       {mergedText.title || mergedText.description ? (
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-4">
           {mergedText.title ? (
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="size-5 text-sky-600" />
+            <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+              <Plus className="h-5 w-5 text-primary" />
               {mergedText.title}
             </CardTitle>
           ) : null}
@@ -82,133 +142,119 @@ export function ScanScheduleForm({
         </CardHeader>
       ) : null}
 
-      <CardContent className="space-y-4">
-        {fields?.length ? (
-          <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
-            {fields.map((field) => (
-              <div key={field.id} className="space-y-2">
-                <Label htmlFor={field.id} className="flex items-center gap-2">
-                  {field.icon}
-                  {field.label}
-                </Label>
-                <div className="flex h-12 items-center">
-                  <Input
-                    id={field.id}
-                    value={field.value}
-                    onChange={(event) => field.onChange?.(event.target.value)}
-                    placeholder={field.placeholder}
-                    readOnly={field.readOnly ?? !field.onChange}
-                    disabled={disabled}
-                    className={cn("h-9", field.inputClassName)}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : null}
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {policyNameField ? <TextInputField field={policyNameField} disabled={disabled} /> : null}
+          {policyVersionField ? <TextInputField field={policyVersionField} disabled={disabled} /> : null}
 
-        <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
-          <div className="space-y-2">
-            <Label htmlFor="mode" className="flex items-center gap-2">
-              <Clock className="size-3.5 text-sky-600" />
-              {mergedText.modeLabel}
-            </Label>
-            <div className="flex h-12 items-center">
-              <Select
-                value={schedule.mode}
-                onValueChange={(mode: "interval") => handleChange({ mode })}
-                disabled={disabled}
-              >
-                <SelectTrigger id="mode">
-                  <SelectValue placeholder={mergedText.modePlaceholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="interval">{mergedText.modeInterval}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="interval_hours" className="flex items-center gap-2">
-                <RefreshCw className="size-3.5 text-amber-600" />
-                {mergedText.intervalLabel}
-              </Label>
-              <span className="text-xs font-medium text-muted-foreground">
-                {mergedText.intervalValue(schedule.interval_hours ?? 24)}
-              </span>
-            </div>
-            <div className="flex h-12 items-center">
-              <Slider
-                id="interval_hours"
-                min={1}
-                max={168}
-                step={1}
-                value={[schedule.interval_hours ?? 24]}
-                onValueChange={([val]) => handleChange({ interval_hours: val })}
-                disabled={disabled}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
-          <div className="space-y-2">
-            <Label htmlFor="specific_time" className="flex items-center gap-2">
-              <CalendarClock className="size-3.5 text-blue-600" />
-              {mergedText.fixedTimeLabel}
-            </Label>
-            <div className="flex h-12 items-center">
-              <Input
-                id="specific_time"
-                type="time"
-                value={schedule.specific_time ?? ""}
-                onChange={(event) =>
-                  handleChange({ specific_time: event.target.value || undefined })
-                }
-                disabled={disabled}
-                className="h-9"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="random_delay" className="flex items-center gap-1">
-                <Shuffle className="size-3.5 text-violet-600" />
-                {mergedText.randomDelayLabel}
-              </Label>
-              <span className="text-xs text-muted-foreground">
-                {mergedText.randomDelayValue(schedule.random_delay_minutes ?? 0)}
-              </span>
-            </div>
-            <div className="flex h-12 items-center">
-              <Slider
-                id="random_delay"
-                min={0}
-                max={120}
-                step={5}
-                value={[schedule.random_delay_minutes ?? 0]}
-                onValueChange={([val]) => handleChange({ random_delay_minutes: val })}
-                disabled={disabled}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-end gap-3 rounded-lg border bg-muted/30 p-3">
-          <div className="flex-1 space-y-1">
-            <Label className="flex items-center gap-2 font-medium">
-              <RefreshCw className="size-3.5 text-amber-600" />
-              {mergedText.retryCountLabel}
-            </Label>
+          <FieldShell
+            label={mergedText.modeLabel}
+            icon={<Clock className="h-3.5 w-3.5 text-primary" />}
+          >
             <Select
-              value={String(schedule.retry_limit ?? 3)}
-              onValueChange={(val) => handleChange({ retry_limit: Number(val) })}
+              value={schedule.mode}
+              onValueChange={(mode: "interval") => handleChange({ mode })}
               disabled={disabled}
             >
-              <SelectTrigger className="h-8">
+              <SelectTrigger id="mode" className="h-9 w-full">
+                <SelectValue placeholder={mergedText.modePlaceholder} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="interval">{mergedText.modeInterval}</SelectItem>
+              </SelectContent>
+            </Select>
+          </FieldShell>
+
+          <FieldShell
+            label={mergedText.fixedTimeLabel}
+            icon={<Calendar className="h-3.5 w-3.5 text-primary" />}
+          >
+            <Input
+              id="specific_time"
+              type="time"
+              value={schedule.specific_time ?? ""}
+              onChange={(event) =>
+                handleChange({ specific_time: event.target.value || undefined })
+              }
+              disabled={disabled}
+              className="h-9 w-full"
+            />
+          </FieldShell>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="interval_hours"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
+              >
+                <RefreshCw className="h-3.5 w-3.5 text-primary" />
+                {mergedText.intervalLabel}
+              </Label>
+              <span className="text-sm font-medium tabular-nums">
+                {mergedText.intervalValue(intervalHours)}
+              </span>
+            </div>
+            <Slider
+              id="interval_hours"
+              value={[intervalHours]}
+              onValueChange={([nextValue]) => handleChange({ interval_hours: nextValue })}
+              min={1}
+              max={168}
+              step={1}
+              disabled={disabled}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{mergedText.intervalValue(1)}</span>
+              <span>{mergedText.intervalValue(168)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label
+                htmlFor="random_delay"
+                className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
+              >
+                <Shuffle className="h-3.5 w-3.5 text-primary" />
+                {mergedText.randomDelayLabel}
+              </Label>
+              <span className="text-sm font-medium tabular-nums">
+                {mergedText.randomDelayValue(randomDelayMinutes)}
+              </span>
+            </div>
+            <Slider
+              id="random_delay"
+              value={[randomDelayMinutes]}
+              onValueChange={([nextValue]) =>
+                handleChange({ random_delay_minutes: nextValue })
+              }
+              min={0}
+              max={120}
+              step={5}
+              disabled={disabled}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{mergedText.randomDelayValue(0)}</span>
+              <span>{mergedText.randomDelayValue(120)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={cn("grid gap-4", showStartup ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2")}>
+          <FieldShell
+            label={mergedText.retryCountLabel}
+            icon={<RotateCcw className="h-3.5 w-3.5 text-primary" />}
+          >
+            <Select
+              value={String(retryLimit)}
+              onValueChange={(nextValue) => handleChange({ retry_limit: Number(nextValue) })}
+              disabled={disabled}
+            >
+              <SelectTrigger className="h-9 w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -219,53 +265,52 @@ export function ScanScheduleForm({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </FieldShell>
 
-          <div className="flex-1 space-y-1">
-            <Label className="flex items-center gap-2 font-medium">
-              <RefreshCw className="size-3.5 text-amber-600" />
-              {mergedText.retryIntervalLabel}
-            </Label>
-            <div className="flex items-center gap-1">
+          <FieldShell
+            label={mergedText.retryIntervalLabel}
+            icon={<Timer className="h-3.5 w-3.5 text-primary" />}
+          >
+            <div className="flex h-9">
               <Input
                 id="retry_interval"
                 type="number"
                 min={1}
-                value={schedule.retry_interval_minutes ?? 5}
+                value={retryIntervalMinutes}
                 onChange={(event) =>
                   handleChange({
                     retry_interval_minutes: Math.max(1, Number(event.target.value) || 1),
                   })
                 }
-                disabled={disabled || (schedule.retry_limit ?? 0) === 0}
-                className="h-8"
+                disabled={disabled || retryLimit === 0}
+                className="h-full flex-1 rounded-r-none border-r-0"
               />
-              <span className="text-xs text-muted-foreground">{mergedText.minutesUnit}</span>
+              <span className="inline-flex h-full items-center justify-center rounded-r-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                {mergedText.minutesUnit}
+              </span>
             </div>
-          </div>
+          </FieldShell>
+
+          {showStartup ? (
+            <FieldShell
+              label={mergedText.startupTitle}
+              icon={<Play className="h-3.5 w-3.5 text-primary" />}
+            >
+              <div className="flex h-9 items-center rounded-md border border-input bg-background px-3">
+                <Switch
+                  id="scan_on_startup"
+                  checked={schedule.scan_on_startup}
+                  onCheckedChange={(checked) => handleChange({ scan_on_startup: checked })}
+                  disabled={disabled}
+                  className="mr-3"
+                />
+                <span className="text-sm">{mergedText.startupInlineLabel}</span>
+              </div>
+            </FieldShell>
+          ) : null}
         </div>
 
-        {showStartup ? (
-          <div className="flex items-center justify-between rounded-lg border p-3">
-            <div className="flex items-center gap-2">
-              <Play className="size-4 text-emerald-600" />
-              <div>
-                <Label htmlFor="scan_on_startup" className="cursor-pointer text-sm">
-                  {mergedText.startupTitle}
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  {mergedText.startupDescription}
-                </p>
-              </div>
-            </div>
-            <Switch
-              id="scan_on_startup"
-              checked={schedule.scan_on_startup}
-              onCheckedChange={(checked) => handleChange({ scan_on_startup: checked })}
-              disabled={disabled}
-            />
-          </div>
-        ) : null}
+        {action ? <div className="pt-2">{action}</div> : null}
       </CardContent>
     </Card>
   )

@@ -29,6 +29,7 @@ export interface ScanScheduleFormText {
   minutesUnit: string
   startupTitle: string
   startupDescription: string
+  startupInlineLabel?: string
 }
 
 export interface ScanScheduleFormField {
@@ -47,6 +48,7 @@ export interface ScanScheduleFormProps {
   onChange?: (schedule: ScanSchedule) => void
   title?: ReactNode
   description?: ReactNode
+  action?: ReactNode
   className?: string
   disabled?: boolean
   fields?: ScanScheduleFormField[]
