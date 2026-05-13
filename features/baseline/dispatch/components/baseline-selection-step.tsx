@@ -25,6 +25,12 @@ import type { BaselineTemplate } from "@/features/baseline/custom/api"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 
+import {
+  getDispatchBaselineTypeLabel,
+  getDispatchProfileLabel,
+  getDispatchStandardLabel,
+} from "./value-mapping"
+
 interface BaselineSelectionStepProps {
   canNext: boolean
   onNext: () => void
@@ -57,8 +63,20 @@ export function BaselineSelectionStep({
           strong: true,
         },
         { icon: Building2, label: t("baselineSelection.detail.tenantId"), value: selectedTemplate.tenant_id || "-" },
-        { icon: Ruler, label: t("baselineSelection.detail.standard"), value: selectedTemplate.standard || "-" },
-        { icon: Package, label: t("baselineSelection.detail.baselineType"), value: selectedTemplate.baseline_type || "-" },
+        {
+          icon: Ruler,
+          label: t("baselineSelection.detail.standard"),
+          value: selectedTemplate.standard
+            ? getDispatchStandardLabel(selectedTemplate.standard, t, t("selector.unknown"))
+            : "-",
+        },
+        {
+          icon: Package,
+          label: t("baselineSelection.detail.baselineType"),
+          value: selectedTemplate.baseline_type
+            ? getDispatchBaselineTypeLabel(selectedTemplate.baseline_type, t)
+            : "-",
+        },
         { icon: Monitor, label: t("baselineSelection.detail.product"), value: selectedTemplate.product || "-" },
         {
           icon: FileText,
@@ -68,7 +86,13 @@ export function BaselineSelectionStep({
         },
         { icon: Monitor, label: t("baselineSelection.detail.osVersion"), value: selectedTemplate.os_version || "-" },
         { icon: Tags, label: t("baselineSelection.detail.baselineVersion"), value: selectedTemplate.baseline_version || "-" },
-        { icon: ImageIcon, label: t("baselineSelection.detail.profile"), value: selectedTemplate.profile || "-" },
+        {
+          icon: ImageIcon,
+          label: t("baselineSelection.detail.profile"),
+          value: selectedTemplate.profile
+            ? getDispatchProfileLabel(selectedTemplate.profile, t, t("selector.unknown"))
+            : "-",
+        },
         {
           icon: Hash,
           label: t("baselineSelection.detail.itemCount"),

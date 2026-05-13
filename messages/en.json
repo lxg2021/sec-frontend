@@ -1276,25 +1276,42 @@
           "unknown": "Unknown",
           "unknownUpper": "UNKNOWN",
           "unknownProduct": "Unknown product",
-          "unknownProfile": "Unknown profile"
+          "unknownProfile": "Unknown profile",
+          "standard": {
+            "cis": "CIS",
+            "dod": "DoD STIG",
+            "msft": "Microsoft",
+            "tls": "TLS",
+            "intune": "Intune",
+            "custom": "Custom",
+            "other": "Other"
+          },
+          "profile": {
+            "machine": "Machine",
+            "user": "User",
+            "both": "Both"
+          }
         },
         "steps": {
           "baselineSelection": {
             "title": "Baseline Selection",
-            "description": "Choose the target baseline and fill in basic strategy information"
+            "description": "Select the target baseline to apply"
           },
           "schedule": {
             "title": "Task Schedule",
-            "description": "Configure scan cadence and create the strategy object"
+            "description": "Configure the scan and create the task"
           },
           "hostSelection": {
             "title": "Host Selection",
-            "description": "Choose the host scope for this baseline dispatch"
+            "description": "Select the hosts for baseline task dispatch"
           },
           "dispatchSubmit": {
             "title": "Task Dispatch",
-            "description": "Preview and confirm dispatch"
+            "description": "Preview the task and dispatch it"
           }
+        },
+        "stepper": {
+          "stepTitle": "Step {step}: {title}"
         },
         "baselineSelection": {
           "description": "Select the baseline template used for this dispatch.",
@@ -1317,6 +1334,12 @@
             "itemCount": "Check Count",
             "itemCountValue": "{count} items",
             "createdAt": "Created At"
+          },
+          "valueMap": {
+            "baselineType": {
+              "template": "Template",
+              "custom": "Custom"
+            }
           }
         },
         "schedule": {

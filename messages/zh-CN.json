@@ -1278,25 +1278,42 @@
           "unknown": "未知",
           "unknownUpper": "UNKNOWN",
           "unknownProduct": "未知产品",
-          "unknownProfile": "未知配置档案"
+          "unknownProfile": "未知配置档案",
+          "standard": {
+            "cis": "CIS",
+            "dod": "DoD STIG",
+            "msft": "Microsoft",
+            "tls": "TLS",
+            "intune": "Intune",
+            "custom": "自定义",
+            "other": "其他"
+          },
+          "profile": {
+            "machine": "计算机",
+            "user": "用户",
+            "both": "两者"
+          }
         },
         "steps": {
           "baselineSelection": {
             "title": "基线选择",
-            "description": "选择目标基线并填写基础策略信息"
+            "description": "选择应用的目标基线"
           },
           "schedule": {
             "title": "任务计划",
-            "description": "配置扫描周期并创建策略对象"
+            "description": "配置扫描并创建任务"
           },
           "hostSelection": {
             "title": "主机选择",
-            "description": "选择本次基线下发的主机范围"
+            "description": "选择基线任务下发主机"
           },
           "dispatchSubmit": {
             "title": "任务下发",
-            "description": "预览并确认下发内容"
+            "description": "预览任务并下发任务"
           }
+        },
+        "stepper": {
+          "stepTitle": "第 {step} 步：{title}"
         },
         "baselineSelection": {
           "description": "选择本次下发使用的基线模板。",
@@ -1319,6 +1336,12 @@
             "itemCount": "检查项数量",
             "itemCountValue": "{count} 项",
             "createdAt": "创建时间"
+          },
+          "valueMap": {
+            "baselineType": {
+              "template": "模板",
+              "custom": "自定义"
+            }
           }
         },
         "schedule": {

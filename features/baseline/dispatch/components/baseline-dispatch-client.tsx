@@ -25,9 +25,11 @@ import { DispatchStepper, type DispatchStepItem } from "./dispatch-stepper"
 import { DispatchSubmitStep } from "./dispatch-submit-step"
 import { HostSelectionStep } from "./host-selection-step"
 import { ScanScheduleStep } from "./scan-schedule-step"
-
-const knownStandards = new Set(["cis", "dod", "msft", "tls", "intune", "custom"])
-const knownProfiles = new Set(["machine", "user", "both"])
+import {
+  getDispatchProfileLabel,
+  getDispatchStandardKey,
+  getDispatchStandardLabel,
+} from "./value-mapping"
 
 interface HostTreeNode {
   id: string
@@ -195,17 +197,13 @@ export function BaselineDispatchClient() {
 
   const baselineItems = useMemo<BaselineDispatchSelectorItem[]>(() => {
     return templates.map((template) => {
-      const standardKey = template.standard.toLowerCase()
-      const profileKey = template.profile.toLowerCase()
-
       return {
         id: template.uuid,
         title: template.display_name || template.baseline_uuid,
-        standardKey: knownStandards.has(standardKey) ? standardKey : "other",
-        standardLabel: template.standard ? template.standard.toUpperCase() : t("selector.unknownUpper"),
+        standardKey: getDispatchStandardKey(template.standard),
+        standardLabel: getDispatchStandardLabel(template.standard, t, t("selector.unknownUpper")),
         productLabel: template.product || t("selector.unknownProduct"),
-        profileLabel:
-          knownProfiles.has(profileKey) ? template.profile : template.profile || t("selector.unknownProfile"),
+        profileLabel: getDispatchProfileLabel(template.profile, t, t("selector.unknownProfile")),
         osVersionLabel: template.os_version || template.baseline_version || undefined,
         itemCount: template.item_count,
         highCount: template.high_count,

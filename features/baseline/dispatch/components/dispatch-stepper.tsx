@@ -1,6 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/shared/lib/utils"
 
@@ -16,22 +17,6 @@ interface DispatchStepperProps {
   currentStep: number
   items: DispatchStepItem[]
   onStepChange?: (step: number) => void
-}
-
-const stepCopyOverrides: Partial<Record<number, { title?: string; description?: string }>> = {
-  1: {
-    description: "阅览选择目标基线详细信息",
-  },
-  2: {
-    description: "配置扫描周期并创建任务",
-  },
-  3: {
-    description: "选择基线下发的目标主机",
-  },
-  4: {
-    title: "下发预览",
-    description: "预览确认任务并下发执行",
-  },
 }
 
 function BaselineIcon({ className }: { className?: string }) {
@@ -202,6 +187,8 @@ export function DispatchStepper({
   items,
   onStepChange,
 }: DispatchStepperProps) {
+  const t = useTranslations("pages.baseline.dispatch")
+
   return (
     <div className="rounded-[30px] px-5 py-6">
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-0">
@@ -210,8 +197,6 @@ export function DispatchStepper({
           const isCurrent = item.key === currentStep
           const isActive = isCompleted || isCurrent
           const isClickable = Boolean(onStepChange) && !item.disabled && item.key <= currentStep
-          const displayTitle = stepCopyOverrides[item.key]?.title ?? item.title
-          const displayDescription = stepCopyOverrides[item.key]?.description ?? item.description
 
           return (
             <div key={item.key} className="flex items-start xl:flex-1">
@@ -232,22 +217,22 @@ export function DispatchStepper({
                     status={item.status}
                   />
 
-                  <div className="mt-4 min-h-[48px] max-w-[150px]">
+                  <div className="mt-4 w-full max-w-[220px]">
                     <div
                       className={cn(
-                        "text-[15px] font-semibold tracking-tight transition-colors duration-300",
+                        "truncate whitespace-nowrap text-[15px] font-semibold tracking-tight transition-colors duration-300",
                         isActive ? "text-slate-900" : "text-slate-500",
                       )}
                     >
-                      {`第 ${item.key} 步：${displayTitle}`}
+                      {t("stepper.stepTitle", { step: item.key, title: item.title })}
                     </div>
                     <div
                       className={cn(
-                        "mt-1 text-[12px] leading-5 transition-colors duration-300",
+                        "mt-1 truncate whitespace-nowrap text-[12px] leading-5 transition-colors duration-300",
                         isCurrent ? "text-slate-600" : "text-slate-400",
                       )}
                     >
-                      {displayDescription}
+                      {item.description}
                     </div>
                   </div>
                 </button>
