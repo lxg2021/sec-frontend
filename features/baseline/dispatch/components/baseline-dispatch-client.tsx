@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle, CalendarRange, History, RefreshCw, Repeat2, ShieldCheck } from "lucide-react"
+import { AlertCircle, RefreshCw } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -22,10 +22,6 @@ import {
 } from "@/shared/components/dispatch-preview"
 import { DEFAULT_SCAN_SCHEDULE, type ScanSchedule } from "@/shared/components/scan-schedule"
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
-import {
-  BaselinePolicyDetail,
-  type BaselinePolicyDetailData,
-} from "@/shared/components/baseline-policy-detail"
 import { getAccessToken } from "@/shared/lib/http/auth"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
@@ -75,25 +71,6 @@ function buildAutoPolicyVersion() {
   return `1.0.${timestamp}`
 }
 
-function formatDateTime(value: string, locale: string) {
-  if (!value) {
-    return "-"
-  }
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return date.toLocaleString(locale.startsWith("zh") ? "zh-CN" : "en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
 function buildScheduleSummary(schedule: ScanSchedule, t: ReturnType<typeof useTranslations>) {
   const parts = [t("summary.intervalHours", { hours: schedule.interval_hours ?? 24 })]
 
@@ -130,108 +107,6 @@ function getSelectionMode(groupCount: number, hostCount: number) {
   if (groupCount > 0 && hostCount > 0) return "mixed" as const
   if (groupCount > 0) return "group" as const
   return "host" as const
-}
-
-function buildReusablePolicyDetailData(
-  policy: ReusableBaselineScanPolicy | null,
-  baselineName: string,
-  locale: string,
-  t: ReturnType<typeof useTranslations>,
-): BaselinePolicyDetailData | null {
-  if (!policy) {
-    return null
-  }
-
-  const retryLimit = policy.scanSchedule.retry_limit ?? 0
-  const retryInterval = policy.scanSchedule.retry_interval_minutes ?? 5
-
-  return {
-    name: policy.name,
-    id: policy.id,
-    version: policy.version,
-    sections: [
-      {
-        key: "overview",
-        title: t("schedule.reuse.detail.sections.overview"),
-        icon: <ShieldCheck className="size-4" />,
-        items: [
-          {
-            label: t("schedule.reuse.detail.fields.baseline"),
-            value: baselineName,
-          },
-          {
-            label: t("schedule.reuse.detail.fields.version"),
-            value: policy.version,
-          },
-        ],
-      },
-      {
-        key: "schedule",
-        title: t("schedule.reuse.detail.sections.schedule"),
-        icon: <CalendarRange className="size-4" />,
-        items: [
-          {
-            label: t("schedule.reuse.detail.fields.mode"),
-            value: t("schedule.reuse.detail.values.intervalMode"),
-          },
-          {
-            label: t("schedule.reuse.detail.fields.interval"),
-            value: t("schedule.form.intervalValue", { hours: policy.scanSchedule.interval_hours ?? 24 }),
-          },
-          {
-            label: t("schedule.reuse.detail.fields.fixedTime"),
-            value: policy.scanSchedule.specific_time || t("schedule.reuse.detail.values.notSet"),
-          },
-          {
-            label: t("schedule.reuse.detail.fields.randomDelay"),
-            value: t("schedule.form.randomDelayValue", { minutes: policy.scanSchedule.random_delay_minutes ?? 0 }),
-          },
-          {
-            label: t("schedule.reuse.detail.fields.startup"),
-            value: policy.scanSchedule.scan_on_startup
-              ? t("schedule.reuse.detail.values.enabled")
-              : t("schedule.reuse.detail.values.disabled"),
-          },
-        ],
-      },
-      {
-        key: "retry",
-        title: t("schedule.reuse.detail.sections.retry"),
-        icon: <Repeat2 className="size-4" />,
-        items: [
-          {
-            label: t("schedule.reuse.detail.fields.retryCount"),
-            value:
-              retryLimit > 0
-                ? t("schedule.form.retryTimes", { count: retryLimit })
-                : t("schedule.reuse.detail.values.noRetry"),
-          },
-          {
-            label: t("schedule.reuse.detail.fields.retryInterval"),
-            value:
-              retryLimit > 0
-                ? `${retryInterval} ${t("schedule.form.minutesUnit")}`
-                : t("schedule.reuse.detail.values.notApplicable"),
-          },
-        ],
-      },
-      {
-        key: "lifecycle",
-        title: t("schedule.reuse.detail.sections.lifecycle"),
-        icon: <History className="size-4" />,
-        items: [
-          {
-            label: t("schedule.reuse.detail.fields.createdAt"),
-            value: formatDateTime(policy.createdAt, locale),
-          },
-          {
-            label: t("schedule.reuse.detail.fields.updatedAt"),
-            value: formatDateTime(policy.updatedAt, locale),
-          },
-        ],
-      },
-    ],
-  }
 }
 
 const REUSABLE_POLICY_PAGE_SIZE = 8
@@ -409,16 +284,6 @@ export function BaselineDispatchClient() {
   const selectedTemplate = useMemo(() => {
     return templates.find((item) => item.uuid === selectedTemplateUuid) ?? null
   }, [selectedTemplateUuid, templates])
-
-  const selectedReusablePolicy = useMemo(() => {
-    const items = reusablePolicies?.items ?? []
-
-    if (items.length === 0) {
-      return null
-    }
-
-    return items.find((item) => item.id === selectedReusablePolicyId) ?? items[0] ?? null
-  }, [reusablePolicies?.items, selectedReusablePolicyId])
 
   const selectedHosts = useMemo(() => {
     return selectedNodes.filter((node) => node?.type === "host")
@@ -781,7 +646,7 @@ export function BaselineDispatchClient() {
   ])
 
   const scheduleContent = (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <BaselineTableList
           data={reusablePolicies}
@@ -795,18 +660,6 @@ export function BaselineDispatchClient() {
         />
       </section>
 
-      <BaselinePolicyDetail
-        policy={buildReusablePolicyDetailData(
-          selectedReusablePolicy,
-          selectedTemplate?.display_name || selectedTemplate?.baseline_uuid || "-",
-          locale,
-          t,
-        )}
-        loading={reusablePoliciesLoading && !selectedReusablePolicy}
-        idLabel={t("schedule.reuse.detail.idLabel")}
-        emptyTitle={t("schedule.reuse.detail.emptyTitle")}
-        emptyDescription={t("schedule.reuse.detail.emptyDescription")}
-      />
     </div>
   )
 
