@@ -132,7 +132,11 @@ export function ScanScheduleStep({
             disabled={!canCreatePolicy || creating}
             className="h-11 px-6"
           >
-            {creating ? t("schedule.actions.creating") : t("schedule.actions.createTask")}
+            {creating
+              ? t("schedule.actions.creating")
+              : mode === "reuse"
+                ? t("schedule.actions.reuseTask")
+                : t("schedule.actions.createTask")}
             {!creating ? <ArrowRight className="ml-2 h-4 w-4" /> : null}
           </Button>
         </div>

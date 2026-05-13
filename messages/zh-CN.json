@@ -1375,6 +1375,7 @@
         },
         "actions": {
           "creating": "创建中...",
+          "reuseTask": "复用任务",
           "createTask": "创建任务"
         }
       },

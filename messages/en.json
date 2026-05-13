@@ -1373,6 +1373,7 @@
         },
         "actions": {
           "creating": "Creating...",
+          "reuseTask": "Reuse Task",
           "createTask": "Create Task"
         }
       },
