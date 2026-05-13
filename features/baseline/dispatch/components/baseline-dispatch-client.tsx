@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle, FileText, Hash, RefreshCw } from "lucide-react"
+import { AlertCircle, FileText, Hash, PlusSquare, RefreshCw } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -741,15 +741,11 @@ export function BaselineDispatchClient() {
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="space-y-5">
-          <div className="space-y-1">
-            <h3 className="text-base font-semibold text-slate-900">
-              {isZh ? "\u7b56\u7565\u914d\u7f6e" : "Policy Configuration"}
+          <div className="border-b border-slate-200 pb-4">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
+              <PlusSquare className="size-4 text-sky-600" />
+              {isZh ? "\u521b\u5efa\u4efb\u52a1" : "Create Task"}
             </h3>
-            <p className="text-sm text-slate-500">
-              {isZh
-                ? "\u5c06\u4f7f\u7528\u81ea\u52a8\u751f\u6210\u7684\u7b56\u7565\u540d\u79f0\u3001\u7248\u672c\u53f7\u548c\u8c03\u5ea6\u4fe1\u606f\u521b\u5efa\u626b\u63cf\u7b56\u7565\u5bf9\u8c61"
-                : "Create the scan policy with the generated policy name, version, and schedule."}
-            </p>
           </div>
 
           <ScanScheduleForm
