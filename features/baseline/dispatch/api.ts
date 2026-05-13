@@ -8,6 +8,9 @@ interface ApiResult<T> {
   data: T
 }
 
+const CONTROL_TYPE_POLICY = 1
+const CONTROL_STATE_START = 1
+
 interface CreateBaselineScanPolicyResponseData {
   id?: string
   name?: string
@@ -28,11 +31,27 @@ export interface CreatedBaselineScanPolicy {
   version: string
 }
 
+export interface ApplyBaselineScanPolicyPayload {
+  policyId: string
+  version: string
+  agentIds: string[]
+}
+
 function normalizeScanSchedule(scanSchedule: ScanSchedule): ScanSchedule {
   return {
     ...scanSchedule,
     specific_time: scanSchedule.specific_time?.trim() || undefined,
   }
+}
+
+function normalizeAgentIds(agentIds: string[]) {
+  return Array.from(
+    new Set(
+      agentIds
+        .map((agentId) => agentId.trim())
+        .filter(Boolean),
+    ),
+  )
 }
 
 export async function createBaselineScanPolicy({
@@ -62,4 +81,33 @@ export async function createBaselineScanPolicy({
     name: result.data.name?.trim() || name,
     version: result.data.version?.trim() || version,
   }
+}
+
+export async function applyBaselineScanPolicy({
+  policyId,
+  version,
+  agentIds,
+}: ApplyBaselineScanPolicyPayload) {
+  const normalizedAgentIds = normalizeAgentIds(agentIds)
+
+  if (!policyId.trim()) {
+    throw new Error("baseline scan policy id is required")
+  }
+
+  if (!version.trim()) {
+    throw new Error("baseline scan policy version is required")
+  }
+
+  if (normalizedAgentIds.length === 0) {
+    throw new Error("at least one target agent is required")
+  }
+
+  return http.post("applyPMCObject", {
+    request_id: createRequestId(),
+    type: CONTROL_TYPE_POLICY,
+    id: policyId.trim(),
+    version: version.trim(),
+    agent_ids: normalizedAgentIds,
+    control_state: CONTROL_STATE_START,
+  })
 }

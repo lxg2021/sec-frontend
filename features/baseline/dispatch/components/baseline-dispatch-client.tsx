@@ -6,7 +6,10 @@ import { AlertCircle } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
-import { createBaselineScanPolicy } from "@/features/baseline/dispatch/api"
+import {
+  applyBaselineScanPolicy,
+  createBaselineScanPolicy,
+} from "@/features/baseline/dispatch/api"
 import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
 import {
   type DispatchGroup,
@@ -537,11 +540,29 @@ export function BaselineDispatchClient() {
       return
     }
 
+    if (!createdPolicy) {
+      toast.error(t("permissions.createPolicyFirst"))
+      return
+    }
+
+    const agentIds = deduplicatedHosts
+      .map((host) => (host.hostId || host.id || "").trim())
+      .filter(Boolean)
+
+    if (agentIds.length === 0) {
+      toast.error(t("permissions.selectHostsFirst"))
+      return
+    }
+
     setSubmitting(true)
     const toastId = toast.loading(t("toast.dispatchLoading"))
 
     try {
-      await new Promise((resolve) => window.setTimeout(resolve, 800))
+      await applyBaselineScanPolicy({
+        policyId: createdPolicy.id,
+        version: createdPolicy.version,
+        agentIds,
+      })
       toast.success(t("toast.dispatchSuccess"), { id: toastId })
     } catch (error) {
       toast.error(
@@ -551,7 +572,13 @@ export function BaselineDispatchClient() {
     } finally {
       setSubmitting(false)
     }
-  }, [previewData?.permissions?.canSubmit, previewData?.permissions?.reason, t])
+  }, [
+    createdPolicy,
+    deduplicatedHosts,
+    previewData?.permissions?.canSubmit,
+    previewData?.permissions?.reason,
+    t,
+  ])
 
   const renderCurrentStep = () => {
     const selector = (
