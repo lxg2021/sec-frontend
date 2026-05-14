@@ -1711,6 +1711,25 @@
           "highest": "Highest host coverage",
           "average": "Average host coverage",
           "change": "Host coverage change"
+        },
+        "securityDistribution": {
+          "title": "Patch severity distribution",
+          "total": "Total patches",
+          "count": "{count} items",
+          "empty": "No patch data is currently available",
+          "descriptionWithTotal": "{system} • {total} patches in total",
+          "descriptionEmpty": "{system} • No patch data",
+          "severity": {
+            "critical": "Critical",
+            "important": "Important",
+            "moderate": "Moderate",
+            "low": "Low"
+          },
+          "system": {
+            "windows": "Windows",
+            "macos": "macOS",
+            "linux": "Linux"
+          }
         }
       },
       "install": {

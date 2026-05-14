@@ -1713,6 +1713,25 @@
           "highest": "最高主机覆盖率",
           "average": "平均主机覆盖率",
           "change": "主机覆盖率变化"
+        },
+        "securityDistribution": {
+          "title": "补丁安全等级分布",
+          "total": "总补丁",
+          "count": "{count} 项",
+          "empty": "当前没有可用的补丁数据",
+          "descriptionWithTotal": "{system} • 总计 {total} 个补丁",
+          "descriptionEmpty": "{system} • 暂无补丁数据",
+          "severity": {
+            "critical": "关键",
+            "important": "重要",
+            "moderate": "中等",
+            "low": "低"
+          },
+          "system": {
+            "windows": "Windows",
+            "macos": "macOS",
+            "linux": "Linux"
+          }
         }
       },
       "install": {
