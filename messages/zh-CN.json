@@ -1774,6 +1774,21 @@
           "cancel": "取消任务",
           "create": "创建任务"
         },
+        "panel": {
+          "title": "安装任务",
+          "subtitle": "已选择 {vulnerabilities} 个漏洞，涉及 {hosts} 台主机",
+          "emptyTitle": "没有漏洞选中",
+          "emptyDescription": "请从列表中选择漏洞，创建安装任务",
+          "selectedItems": "已选漏洞",
+          "hostCount": "{count} 台主机",
+          "targetHosts": "目标主机:",
+          "moreHosts": "+{count} 更多",
+          "createTask": "创建安装任务",
+          "summary": {
+            "vulnerabilities": "漏洞",
+            "hosts": "主机"
+          }
+        },
         "list": {
           "title": "安装任务",
           "count": "{count} 个任务",

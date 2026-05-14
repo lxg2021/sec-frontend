@@ -1772,6 +1772,21 @@
           "cancel": "Cancel task",
           "create": "Create task"
         },
+        "panel": {
+          "title": "Install Tasks",
+          "subtitle": "{vulnerabilities} vulnerabilities selected across {hosts} hosts",
+          "emptyTitle": "No vulnerabilities selected",
+          "emptyDescription": "Select vulnerabilities from the list to create an install task.",
+          "selectedItems": "Selected Vulnerabilities",
+          "hostCount": "{count} hosts",
+          "targetHosts": "Target hosts:",
+          "moreHosts": "+{count} more",
+          "createTask": "Create Install Task",
+          "summary": {
+            "vulnerabilities": "Vulnerabilities",
+            "hosts": "Hosts"
+          }
+        },
         "list": {
           "title": "Install Tasks",
           "count": "{count} tasks",
