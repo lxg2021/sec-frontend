@@ -1836,7 +1836,10 @@
             "installed": "已安装",
             "pending": "待处理",
             "failed": "失败",
-            "actions": "操作"
+            "actions": "操作",
+            "kb": "KB号",
+            "publishDate": "发布日期",
+            "system": "系统"
           },
           "selectPatchAria": "选择补丁 {title}",
           "viewDetails": "查看详情",

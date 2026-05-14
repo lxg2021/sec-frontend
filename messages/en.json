@@ -1834,7 +1834,10 @@
             "installed": "Installed",
             "pending": "Pending",
             "failed": "Failed",
-            "actions": "Actions"
+            "actions": "Actions",
+            "kb": "KB ID",
+            "publishDate": "Publish Date",
+            "system": "System"
           },
           "selectPatchAria": "Select patch {title}",
           "viewDetails": "View details",
