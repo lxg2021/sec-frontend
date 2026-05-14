@@ -126,8 +126,8 @@
     "baselinecustom": "定义基线",
     "baselineconfig": "基线下发",
     "vulnerability": "漏洞防护",
-    "patchdash": "补丁概览",
-    "patchinstall": "安装补丁",
+    "patchdash": "漏洞概览",
+    "patchinstall": "漏洞修复",
     "patchstatus": "安装状态",
     "attack": "攻击溯源",
     "attdash": "攻击概览",
@@ -1699,8 +1699,8 @@
     },
     "vulnerability": {
       "dashboard": {
-        "title": "补丁管理仪表板",
-        "subtitle": "安全补丁仪表盘",
+        "title": "安全漏洞仪表板",
+        "subtitle": "",
         "lastChecked": "最后检查时间: {time}",
         "windowsAlt": "Windows 系统",
         "linuxAlt": "Linux 系统",

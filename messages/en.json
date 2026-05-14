@@ -1697,8 +1697,8 @@
     },
     "vulnerability": {
       "dashboard": {
-        "title": "Security Patch Dashboard",
-        "subtitle": "Security Patch Dashboard",
+        "title": "Security Vulnerability Dashboard",
+        "subtitle": "",
         "lastChecked": "Last checked: {time}",
         "windowsAlt": "Windows system",
         "linuxAlt": "Linux system",
