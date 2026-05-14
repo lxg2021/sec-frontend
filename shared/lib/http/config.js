@@ -62,6 +62,7 @@ const FALLBACK_CONFIG = {
       getHostPatchSummary: "/sensor/patch/host/summary",
       getHostPatches: "/sensor/patch/host/list",
       getAllPatchCoverageForInstall: "/sensor/patch/patches/coverage-all",
+      createPatchInstallTask: "/sensor/control/patch/installtask",
       applyPMCObject: "/sensor/control/applypmcobject",
       patchImmediateScan: "/sensor/control/patch/immediatescan",
       patchOneClickRepair: "/sensor/control/patch/oneclickrepair",
