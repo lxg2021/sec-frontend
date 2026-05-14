@@ -1784,6 +1784,11 @@
           "targetHosts": "目标主机:",
           "moreHosts": "+{count} 更多",
           "createTask": "创建安装任务",
+          "applyTask": "应用任务",
+          "taskDetailTitle": "任务详情",
+          "taskDetailDescription": "右侧区域预留给创建任务后的详情展示",
+          "taskDetailEmptyTitle": "任务详情待展示",
+          "taskDetailEmptyDescription": "当前先完成左右分栏布局，后续再接入任务详情内容。",
           "summary": {
             "vulnerabilities": "漏洞",
             "hosts": "主机"

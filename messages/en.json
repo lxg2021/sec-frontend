@@ -1782,6 +1782,11 @@
           "targetHosts": "Target hosts:",
           "moreHosts": "+{count} more",
           "createTask": "Create Install Task",
+          "applyTask": "Apply Task",
+          "taskDetailTitle": "Task Details",
+          "taskDetailDescription": "The right section is reserved for details shown after task creation.",
+          "taskDetailEmptyTitle": "Task details pending",
+          "taskDetailEmptyDescription": "This step only splits the layout into two panels. Task details will be wired next.",
           "summary": {
             "vulnerabilities": "Vulnerabilities",
             "hosts": "Hosts"
