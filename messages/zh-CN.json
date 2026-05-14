@@ -1064,18 +1064,18 @@
           "total": "总检查项",
           "count": "{count} 项"
         },
-          "categoryStats": "分类合规统计",
-          "categoryStatsDescription": "按检查分类查看详细合规情况",
-          "refresh": "刷新",
-          "scanNow": "立即扫描",
-          "scanning": "触发中...",
-          "scanNowSuccessTitle": "已触发立即扫描",
-          "scanNowSuccessDescription": "基线立即扫描命令已下发，目标主机将开始执行扫描。",
-          "scanNowFailedTitle": "立即扫描失败",
-          "repair": "一键修复",
-          "repairPendingTitle": "修复能力暂未接入",
-          "repairPendingDescription": "修复接口还未提供，当前先保留按钮样式和交互占位。",
-          "categoryTable": {
+        "categoryStats": "分类合规统计",
+        "categoryStatsDescription": "按检查分类查看详细合规情况",
+        "refresh": "刷新",
+        "scanNow": "立即扫描",
+        "scanning": "触发中...",
+        "scanNowSuccessTitle": "已触发立即扫描",
+        "scanNowSuccessDescription": "基线立即扫描命令已下发，目标主机将开始执行扫描。",
+        "scanNowFailedTitle": "立即扫描失败",
+        "repair": "一键修复",
+        "repairPendingTitle": "修复能力暂未接入",
+        "repairPendingDescription": "修复接口还未提供，当前先保留按钮样式和交互占位。",
+        "categoryTable": {
           "loading": "加载分类统计中...",
           "emptyTitle": "选择分类查看详细信息",
           "emptyDescription": "点击上方任意分类卡片，查看该分类下的详细检查项目和合规状况",
@@ -1352,11 +1352,11 @@
             "version": "版本号",
             "versionPlaceholder": "例如：1.0.0"
           },
-        "form": {
-          "modeLabel": "调度模式",
-          "modePlaceholder": "选择调度模式",
-          "modeInterval": "固定间隔",
-          "intervalLabel": "间隔",
+          "form": {
+            "modeLabel": "调度模式",
+            "modePlaceholder": "选择调度模式",
+            "modeInterval": "固定间隔",
+            "intervalLabel": "间隔",
             "intervalValue": "{hours} 小时",
             "fixedTimeLabel": "固定执行时间",
             "randomDelayLabel": "随机延迟",
@@ -1365,70 +1365,70 @@
             "retryIntervalLabel": "重试间隔",
             "retryNone": "不重试",
             "retryTimes": "{count} 次",
-          "minutesUnit": "分钟",
-          "startupTitle": "Agent 启动时执行扫描",
-          "startupDescription": "启动后立即补跑一次扫描任务"
-        },
-        "switchMode": {
-          "reuse": "复用已有任务",
-          "generate": "生成新任务"
-        },
-        "actions": {
-          "creating": "创建中...",
-          "reuseTask": "复用任务",
-          "createTask": "创建任务"
-        },
-        "reuse": {
-          "listTitle": "可复用任务",
-          "detailTitle": "策略详情",
-          "searchPlaceholder": "搜索任务名称、版本或策略 ID",
-          "updatedAt": "最近更新：{time}",
-          "retry": "重试",
-          "emptyTitle": "暂无可复用任务",
-          "emptyDescription": "当前基线下还没有可复用的任务，请切换到生成新任务。",
-          "sort": {
-            "updated": "最近更新优先",
-            "oldest": "最早更新优先",
-            "name": "按名称排序"
+            "minutesUnit": "分钟",
+            "startupTitle": "Agent 启动时执行扫描",
+            "startupDescription": "启动后立即补跑一次扫描任务"
           },
-          "errors": {
-            "noAuth": "未登录，无法加载可复用任务。",
-            "loadFailed": "加载可复用任务失败。"
+          "switchMode": {
+            "reuse": "复用已有任务",
+            "generate": "生成新任务"
           },
-          "detail": {
-            "idLabel": "策略 ID",
-            "emptyTitle": "未选择任务",
-            "emptyDescription": "请先从左侧选择一个可复用任务，再查看详细配置。",
-            "sections": {
-              "overview": "基础信息",
-              "schedule": "调度配置",
-              "retry": "重试策略",
-              "lifecycle": "时间信息"
+          "actions": {
+            "creating": "创建中...",
+            "reuseTask": "复用任务",
+            "createTask": "创建任务"
+          },
+          "reuse": {
+            "listTitle": "可复用任务",
+            "detailTitle": "策略详情",
+            "searchPlaceholder": "搜索任务名称、版本或策略 ID",
+            "updatedAt": "最近更新：{time}",
+            "retry": "重试",
+            "emptyTitle": "暂无可复用任务",
+            "emptyDescription": "当前基线下还没有可复用的任务，请切换到生成新任务。",
+            "sort": {
+              "updated": "最近更新优先",
+              "oldest": "最早更新优先",
+              "name": "按名称排序"
             },
-            "fields": {
-              "baseline": "目标基线",
-              "version": "版本号",
-              "mode": "调度模式",
-              "interval": "执行间隔",
-              "fixedTime": "固定执行时间",
-              "randomDelay": "随机延迟",
-              "startup": "启动补扫",
-              "retryCount": "重试次数",
-              "retryInterval": "重试间隔",
-              "createdAt": "创建时间",
-              "updatedAt": "最近更新"
+            "errors": {
+              "noAuth": "未登录，无法加载可复用任务。",
+              "loadFailed": "加载可复用任务失败。"
             },
-            "values": {
-              "intervalMode": "固定间隔",
-              "enabled": "开启",
-              "disabled": "关闭",
-              "noRetry": "不重试",
-              "notSet": "未设置",
-              "notApplicable": "不适用"
+            "detail": {
+              "idLabel": "策略 ID",
+              "emptyTitle": "未选择任务",
+              "emptyDescription": "请先从左侧选择一个可复用任务，再查看详细配置。",
+              "sections": {
+                "overview": "基础信息",
+                "schedule": "调度配置",
+                "retry": "重试策略",
+                "lifecycle": "时间信息"
+              },
+              "fields": {
+                "baseline": "目标基线",
+                "version": "版本号",
+                "mode": "调度模式",
+                "interval": "执行间隔",
+                "fixedTime": "固定执行时间",
+                "randomDelay": "随机延迟",
+                "startup": "启动补扫",
+                "retryCount": "重试次数",
+                "retryInterval": "重试间隔",
+                "createdAt": "创建时间",
+                "updatedAt": "最近更新"
+              },
+              "values": {
+                "intervalMode": "固定间隔",
+                "enabled": "开启",
+                "disabled": "关闭",
+                "noRetry": "不重试",
+                "notSet": "未设置",
+                "notApplicable": "不适用"
+              }
             }
           }
-        }
-      },
+        },
         "hostSelection": {
           "description": "选择需要接收该基线扫描策略的主机范围。",
           "loadFailed": "加载主机数据失败",
@@ -1931,6 +1931,62 @@
           "installed": "暂无安装成功主机",
           "failed": "暂无安装失败主机",
           "pending": "暂无待处理主机"
+        }
+      },
+      "hostPatchDetail": {
+        "title": "{host} 补丁详情",
+        "subtitle": "主机 ID: {agentId} | 更新时间: {updatedAt}",
+        "distributionTitle": "安全等级分布",
+        "patchListTitle": "补丁列表（{count}）",
+        "loading": "正在加载主机补丁详情...",
+        "loadFailed": "加载主机补丁详情失败",
+        "empty": "暂无补丁数据",
+        "close": "关闭",
+        "metrics": {
+          "total": "总数",
+          "installed": "已安装",
+          "pending": "待处理",
+          "failed": "失败"
+        },
+        "meta": {
+          "coverage": "覆盖率: {rate}%",
+          "riskScore": "风险分数: {score}",
+          "lastScan": "最后扫描: {time}"
+        },
+        "risk": {
+          "Critical": "高风险",
+          "Important": "中风险",
+          "Moderate": "低风险",
+          "Safe": "安全"
+        },
+        "severity": {
+          "Critical": "关键",
+          "Important": "重要",
+          "Moderate": "中等",
+          "Low": "低"
+        },
+        "status": {
+          "required": "需安装",
+          "pending": "待处理",
+          "failed": "失败",
+          "installed": "已安装",
+          "ignored": "已忽略",
+          "unknown": "未知"
+        },
+        "tabs": {
+          "all": "全部（{count}）",
+          "required": "需安装（{count}）",
+          "pending": "待处理（{count}）",
+          "failed": "失败（{count}）",
+          "installed": "已安装（{count}）",
+          "ignored": "已忽略（{count}）"
+        },
+        "columns": {
+          "patchTitle": "补丁信息",
+          "kb": "KB / 公告",
+          "severity": "安全等级",
+          "status": "状态",
+          "publishDate": "发布日期"
         }
       }
     },

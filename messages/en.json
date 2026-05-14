@@ -1062,18 +1062,18 @@
           "total": "Total checks",
           "count": "{count} checks"
         },
-          "categoryStats": "Category Compliance Statistics",
-          "categoryStatsDescription": "View detailed compliance status by check category.",
-          "refresh": "Refresh",
-          "scanNow": "Scan Now",
-          "scanning": "Starting...",
-          "scanNowSuccessTitle": "Immediate scan started",
-          "scanNowSuccessDescription": "The baseline immediate scan command has been dispatched to target hosts.",
-          "scanNowFailedTitle": "Failed to start immediate scan",
-          "repair": "One-click Repair",
-          "repairPendingTitle": "Repair is not connected yet",
-          "repairPendingDescription": "The repair API is not available yet, so this button is currently a UI placeholder.",
-          "categoryTable": {
+        "categoryStats": "Category Compliance Statistics",
+        "categoryStatsDescription": "View detailed compliance status by check category.",
+        "refresh": "Refresh",
+        "scanNow": "Scan Now",
+        "scanning": "Starting...",
+        "scanNowSuccessTitle": "Immediate scan started",
+        "scanNowSuccessDescription": "The baseline immediate scan command has been dispatched to target hosts.",
+        "scanNowFailedTitle": "Failed to start immediate scan",
+        "repair": "One-click Repair",
+        "repairPendingTitle": "Repair is not connected yet",
+        "repairPendingDescription": "The repair API is not available yet, so this button is currently a UI placeholder.",
+        "categoryTable": {
           "loading": "Loading category statistics...",
           "emptyTitle": "Select a category to view details",
           "emptyDescription": "Click any category card above to inspect its checks and compliance status",
@@ -1350,11 +1350,11 @@
             "version": "Version",
             "versionPlaceholder": "Example: 1.0.0"
           },
-        "form": {
-          "modeLabel": "Schedule Mode",
-          "modePlaceholder": "Select schedule mode",
-          "modeInterval": "Fixed Interval",
-          "intervalLabel": "Interval",
+          "form": {
+            "modeLabel": "Schedule Mode",
+            "modePlaceholder": "Select schedule mode",
+            "modeInterval": "Fixed Interval",
+            "intervalLabel": "Interval",
             "intervalValue": "{hours}h",
             "fixedTimeLabel": "Fixed Execution Time",
             "randomDelayLabel": "Random Delay",
@@ -1363,70 +1363,70 @@
             "retryIntervalLabel": "Retry Interval",
             "retryNone": "No Retry",
             "retryTimes": "{count} times",
-          "minutesUnit": "min",
-          "startupTitle": "Run scan when Agent starts",
-          "startupDescription": "Run one catch-up scan immediately after startup"
-        },
-        "switchMode": {
-          "reuse": "Reuse Existing Task",
-          "generate": "Generate New Task"
-        },
-        "actions": {
-          "creating": "Creating...",
-          "reuseTask": "Reuse Task",
-          "createTask": "Create Task"
-        },
-        "reuse": {
-          "listTitle": "Reusable Tasks",
-          "detailTitle": "Strategy Details",
-          "searchPlaceholder": "Search task name, version, or strategy ID",
-          "updatedAt": "Updated: {time}",
-          "retry": "Retry",
-          "emptyTitle": "No reusable tasks",
-          "emptyDescription": "No reusable tasks are available for the selected baseline yet. Switch to generate a new task instead.",
-          "sort": {
-            "updated": "Recently Updated",
-            "oldest": "Earliest Updated",
-            "name": "Sort by Name"
+            "minutesUnit": "min",
+            "startupTitle": "Run scan when Agent starts",
+            "startupDescription": "Run one catch-up scan immediately after startup"
           },
-          "errors": {
-            "noAuth": "You are not logged in. Reusable tasks cannot be loaded.",
-            "loadFailed": "Failed to load reusable tasks."
+          "switchMode": {
+            "reuse": "Reuse Existing Task",
+            "generate": "Generate New Task"
           },
-          "detail": {
-            "idLabel": "Strategy ID",
-            "emptyTitle": "No task selected",
-            "emptyDescription": "Select a reusable task from the left to view its detailed configuration.",
-            "sections": {
-              "overview": "Overview",
-              "schedule": "Schedule",
-              "retry": "Retry Strategy",
-              "lifecycle": "Timestamps"
+          "actions": {
+            "creating": "Creating...",
+            "reuseTask": "Reuse Task",
+            "createTask": "Create Task"
+          },
+          "reuse": {
+            "listTitle": "Reusable Tasks",
+            "detailTitle": "Strategy Details",
+            "searchPlaceholder": "Search task name, version, or strategy ID",
+            "updatedAt": "Updated: {time}",
+            "retry": "Retry",
+            "emptyTitle": "No reusable tasks",
+            "emptyDescription": "No reusable tasks are available for the selected baseline yet. Switch to generate a new task instead.",
+            "sort": {
+              "updated": "Recently Updated",
+              "oldest": "Earliest Updated",
+              "name": "Sort by Name"
             },
-            "fields": {
-              "baseline": "Target Baseline",
-              "version": "Version",
-              "mode": "Schedule Mode",
-              "interval": "Run Interval",
-              "fixedTime": "Fixed Execution Time",
-              "randomDelay": "Random Delay",
-              "startup": "Startup Catch-up Scan",
-              "retryCount": "Retry Count",
-              "retryInterval": "Retry Interval",
-              "createdAt": "Created At",
-              "updatedAt": "Updated At"
+            "errors": {
+              "noAuth": "You are not logged in. Reusable tasks cannot be loaded.",
+              "loadFailed": "Failed to load reusable tasks."
             },
-            "values": {
-              "intervalMode": "Fixed Interval",
-              "enabled": "Enabled",
-              "disabled": "Disabled",
-              "noRetry": "No Retry",
-              "notSet": "Not Set",
-              "notApplicable": "N/A"
+            "detail": {
+              "idLabel": "Strategy ID",
+              "emptyTitle": "No task selected",
+              "emptyDescription": "Select a reusable task from the left to view its detailed configuration.",
+              "sections": {
+                "overview": "Overview",
+                "schedule": "Schedule",
+                "retry": "Retry Strategy",
+                "lifecycle": "Timestamps"
+              },
+              "fields": {
+                "baseline": "Target Baseline",
+                "version": "Version",
+                "mode": "Schedule Mode",
+                "interval": "Run Interval",
+                "fixedTime": "Fixed Execution Time",
+                "randomDelay": "Random Delay",
+                "startup": "Startup Catch-up Scan",
+                "retryCount": "Retry Count",
+                "retryInterval": "Retry Interval",
+                "createdAt": "Created At",
+                "updatedAt": "Updated At"
+              },
+              "values": {
+                "intervalMode": "Fixed Interval",
+                "enabled": "Enabled",
+                "disabled": "Disabled",
+                "noRetry": "No Retry",
+                "notSet": "Not Set",
+                "notApplicable": "N/A"
+              }
             }
           }
-        }
-      },
+        },
         "hostSelection": {
           "description": "Select the target host scope that should receive this baseline scan strategy.",
           "loadFailed": "Failed to load host data",
@@ -1929,6 +1929,62 @@
           "installed": "No successfully installed hosts",
           "failed": "No failed hosts",
           "pending": "No pending hosts"
+        }
+      },
+      "hostPatchDetail": {
+        "title": "{host} Patch Details",
+        "subtitle": "Host ID: {agentId} | Updated: {updatedAt}",
+        "distributionTitle": "Severity Distribution",
+        "patchListTitle": "Patch List ({count})",
+        "loading": "Loading host patch details...",
+        "loadFailed": "Failed to load host patch details",
+        "empty": "No patch data",
+        "close": "Close",
+        "metrics": {
+          "total": "Total",
+          "installed": "Installed",
+          "pending": "Pending",
+          "failed": "Failed"
+        },
+        "meta": {
+          "coverage": "Coverage: {rate}%",
+          "riskScore": "Risk score: {score}",
+          "lastScan": "Last scan: {time}"
+        },
+        "risk": {
+          "Critical": "High Risk",
+          "Important": "Medium Risk",
+          "Moderate": "Low Risk",
+          "Safe": "Safe"
+        },
+        "severity": {
+          "Critical": "Critical",
+          "Important": "Important",
+          "Moderate": "Moderate",
+          "Low": "Low"
+        },
+        "status": {
+          "required": "Required",
+          "pending": "Pending",
+          "failed": "Failed",
+          "installed": "Installed",
+          "ignored": "Ignored",
+          "unknown": "Unknown"
+        },
+        "tabs": {
+          "all": "All ({count})",
+          "required": "Required ({count})",
+          "pending": "Pending ({count})",
+          "failed": "Failed ({count})",
+          "installed": "Installed ({count})",
+          "ignored": "Ignored ({count})"
+        },
+        "columns": {
+          "patchTitle": "Patch",
+          "kb": "KB / Bulletin",
+          "severity": "Severity",
+          "status": "Status",
+          "publishDate": "Publish Date"
         }
       }
     },
