@@ -1809,7 +1809,7 @@
           "no": "否"
         },
         "patchList": {
-          "title": "补丁列表",
+          "title": "漏洞列表",
           "subtitle": "总共 {count} 个漏洞",
           "count": "{count} 个补丁",
           "selectAll": "全部选择",

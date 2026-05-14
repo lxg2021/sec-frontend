@@ -1807,7 +1807,7 @@
           "no": "No"
         },
         "patchList": {
-          "title": "Patch List",
+          "title": "Vulnerability List",
           "subtitle": "{count} vulnerabilities total",
           "count": "{count} patches",
           "selectAll": "Select all",
