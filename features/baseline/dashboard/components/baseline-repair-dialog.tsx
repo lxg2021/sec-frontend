@@ -2,7 +2,18 @@
 
 import * as React from "react"
 import { useMemo, useState } from "react"
-import { AlertTriangle, Loader2, Wrench } from "lucide-react"
+import {
+  AlertTriangle,
+  DatabaseBackup,
+  FileText,
+  Hash,
+  Loader2,
+  RefreshCw,
+  RotateCcw,
+  Send,
+  Server,
+  Wrench,
+} from "lucide-react"
 import { useLocale } from "next-intl"
 
 import type { BaselineOneClickRepairPayload, BaselineRepairSource } from "../api"
@@ -198,19 +209,28 @@ export function BaselineRepairDialog({
           <div className="rounded-lg border bg-muted/50 p-4">
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">{copy.baselineNameLabel}</span>
+                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                  <FileText className="size-4 text-slate-500" />
+                  {copy.baselineNameLabel}
+                </span>
                 <span className="font-medium text-right">{baselineName || "-"}</span>
               </div>
 
               <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">{copy.baselineUuidLabel}</span>
+                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                  <Hash className="size-4 text-slate-500" />
+                  {copy.baselineUuidLabel}
+                </span>
                 <code className="rounded bg-muted px-2 py-0.5 text-xs">
                   {baselineUuid.slice(0, 8)}...
                 </code>
               </div>
 
               <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">{copy.affectedHostsLabel}</span>
+                <span className="inline-flex items-center gap-2 text-muted-foreground">
+                  <Server className="size-4 text-slate-500" />
+                  {copy.affectedHostsLabel}
+                </span>
                 <Badge variant="secondary">{affectedHostLabel}</Badge>
               </div>
             </div>
@@ -220,7 +240,10 @@ export function BaselineRepairDialog({
 
           <div className="flex items-center justify-between gap-4">
             <div className="space-y-0.5">
-              <Label htmlFor="baseline-repair-source">{copy.sourceLabel}</Label>
+              <Label htmlFor="baseline-repair-source" className="inline-flex items-center gap-2">
+                <Send className="size-4 text-emerald-600" />
+                {copy.sourceLabel}
+              </Label>
               <p className="text-xs text-muted-foreground">{copy.sourceDescription}</p>
             </div>
 
@@ -240,7 +263,10 @@ export function BaselineRepairDialog({
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <Label htmlFor="baseline-repair-backup">{copy.backupLabel}</Label>
+                <Label htmlFor="baseline-repair-backup" className="inline-flex items-center gap-2">
+                  <DatabaseBackup className="size-4 text-cyan-600" />
+                  {copy.backupLabel}
+                </Label>
                 <p className="text-xs text-muted-foreground">{copy.backupDescription}</p>
               </div>
               <Switch
@@ -252,7 +278,10 @@ export function BaselineRepairDialog({
 
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <Label htmlFor="baseline-repair-rescan">{copy.rescanLabel}</Label>
+                <Label htmlFor="baseline-repair-rescan" className="inline-flex items-center gap-2">
+                  <RefreshCw className="size-4 text-blue-600" />
+                  {copy.rescanLabel}
+                </Label>
                 <p className="text-xs text-muted-foreground">{copy.rescanDescription}</p>
               </div>
               <Switch
@@ -264,7 +293,10 @@ export function BaselineRepairDialog({
 
             <div className="flex items-center justify-between gap-4">
               <div className="space-y-0.5">
-                <Label htmlFor="baseline-repair-skip-restore-point">{copy.skipRestorePointLabel}</Label>
+                <Label htmlFor="baseline-repair-skip-restore-point" className="inline-flex items-center gap-2">
+                  <RotateCcw className="size-4 text-rose-600" />
+                  {copy.skipRestorePointLabel}
+                </Label>
                 <p className="text-xs text-muted-foreground">{copy.skipRestorePointDescription}</p>
               </div>
               <Switch
