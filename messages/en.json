@@ -1703,14 +1703,14 @@
         "windowsAlt": "Windows system",
         "linuxAlt": "Linux system",
         "trend": {
-          "title": "Patch install coverage trend",
+          "title": "Host install coverage trend",
           "description": "{system} • Last {days} days",
           "loading": "Loading trend data...",
           "empty": "No trend data",
-          "current": "Current coverage",
-          "highest": "Highest coverage",
-          "average": "Average coverage",
-          "change": "Coverage change"
+          "current": "Current host coverage",
+          "highest": "Highest host coverage",
+          "average": "Average host coverage",
+          "change": "Host coverage change"
         }
       },
       "install": {
