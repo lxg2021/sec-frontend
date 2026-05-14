@@ -1811,7 +1811,7 @@
         "patchList": {
           "title": "补丁列表",
           "count": "{count} 个补丁",
-          "selectAll": "全选",
+          "selectAll": "全部选择",
           "clearAll": "清空选择",
           "searchPlaceholder": "搜索补丁标题或 KB ID...",
           "filterLabel": "筛选:",
