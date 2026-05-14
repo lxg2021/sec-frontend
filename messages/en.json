@@ -1834,7 +1834,7 @@
             "installed": "Installed",
             "pending": "Pending",
             "failed": "Failed",
-            "actions": "Actions",
+            "actions": "Details",
             "kb": "KB ID",
             "publishDate": "Publish Date",
             "system": "System"
