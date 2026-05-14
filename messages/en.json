@@ -1808,6 +1808,7 @@
         },
         "patchList": {
           "title": "Patch List",
+          "subtitle": "{count} vulnerabilities total",
           "count": "{count} patches",
           "selectAll": "Select all",
           "clearAll": "Clear all",
