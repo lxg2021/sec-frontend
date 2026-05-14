@@ -1839,7 +1839,12 @@
           "selectPatchAria": "Select patch {title}",
           "viewDetails": "View details",
           "noMatch": "No matching patches found. Try adjusting the search or filters.",
-          "empty": "No patch data"
+          "empty": "No patch data",
+          "totalPatches": "{count} patches total",
+          "currentRange": "Showing {start}-{end}",
+          "pageSize": "Per page",
+          "previousPage": "Previous",
+          "nextPage": "Next"
         },
         "patchDetail": {
           "description": "Detailed patch information and host deployment status",

@@ -1841,7 +1841,12 @@
           "selectPatchAria": "选择补丁 {title}",
           "viewDetails": "查看详情",
           "noMatch": "未找到匹配的补丁，请调整搜索或筛选条件",
-          "empty": "暂无补丁数据"
+          "empty": "暂无补丁数据",
+          "totalPatches": "共 {count} 个补丁",
+          "currentRange": "当前显示 {start}-{end}",
+          "pageSize": "每页",
+          "previousPage": "上一页",
+          "nextPage": "下一页"
         },
         "patchDetail": {
           "description": "补丁详细信息和主机部署状态",
