@@ -56,6 +56,7 @@ const FALLBACK_CONFIG = {
       getBaselineItemStatistics: "/sensor/baseline/item/statistics",
       getBaselineItemHostResults: "/sensor/baseline/item/hosts",
       getSystemPatchStats: "/sensor/patch/stats/system-patch-stats",
+      getCoverageTrend: "/sensor/patch/stats/coverage-trend",
       applyPMCObject: "/sensor/control/applypmcobject",
       baselineOneClickRepair: "/sensor/control/baseline/oneclickrepair",
       baselineImmediateScan: "/sensor/control/baseline/immediatescan",

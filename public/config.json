@@ -54,6 +54,7 @@
       "getBaselineItemStatistics": "/sensor/baseline/item/statistics",
       "getBaselineItemHostResults": "/sensor/baseline/item/hosts",
       "getSystemPatchStats": "/sensor/patch/stats/system-patch-stats",
+      "getCoverageTrend": "/sensor/patch/stats/coverage-trend",
       "baselineOneClickRepair": "/sensor/control/baseline/oneclickrepair"
     }
   }

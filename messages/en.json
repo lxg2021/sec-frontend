@@ -1701,7 +1701,17 @@
         "subtitle": "Security Patch Dashboard",
         "lastChecked": "Last checked: {time}",
         "windowsAlt": "Windows system",
-        "linuxAlt": "Linux system"
+        "linuxAlt": "Linux system",
+        "trend": {
+          "title": "Patch install coverage trend",
+          "description": "{system} • Last {days} days",
+          "loading": "Loading trend data...",
+          "empty": "No trend data",
+          "current": "Current coverage",
+          "highest": "Highest coverage",
+          "average": "Average coverage",
+          "change": "Coverage change"
+        }
       },
       "install": {
         "dialog": {

@@ -1703,7 +1703,17 @@
         "subtitle": "安全补丁仪表盘",
         "lastChecked": "最后检查时间: {time}",
         "windowsAlt": "Windows 系统",
-        "linuxAlt": "Linux 系统"
+        "linuxAlt": "Linux 系统",
+        "trend": {
+          "title": "补丁安装覆盖率趋势",
+          "description": "{system} • 过去 {days} 天",
+          "loading": "加载趋势数据中...",
+          "empty": "暂无趋势数据",
+          "current": "当前覆盖率",
+          "highest": "最高覆盖率",
+          "average": "平均覆盖率",
+          "change": "覆盖率变化"
+        }
       },
       "install": {
         "dialog": {
