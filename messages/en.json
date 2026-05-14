@@ -1702,6 +1702,20 @@
         "lastChecked": "Last checked: {time}",
         "windowsAlt": "Windows system",
         "linuxAlt": "Linux system",
+        "overview": {
+          "lastCheckedLabel": "Last checked",
+          "refresh": "Refresh",
+          "refreshSuccessTitle": "Dashboard refreshed",
+          "refreshSuccessDescription": "Patch overview data has been updated.",
+          "refreshFailedTitle": "Failed to refresh dashboard",
+          "refreshFailedDescription": "Unable to refresh patch overview data.",
+          "scanNow": "Scan Now",
+          "repair": "One-click Repair",
+          "scanPendingTitle": "Scan action is not connected yet",
+          "scanPendingDescription": "The patch scan API is not available yet. This button is currently a UI placeholder.",
+          "repairPendingTitle": "Repair action is not connected yet",
+          "repairPendingDescription": "The patch repair API is not available yet. This button is currently a UI placeholder."
+        },
         "trend": {
           "title": "Host install coverage trend",
           "description": "{system} • Last {days} days",

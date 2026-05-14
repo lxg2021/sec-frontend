@@ -1704,6 +1704,20 @@
         "lastChecked": "最后检查时间: {time}",
         "windowsAlt": "Windows 系统",
         "linuxAlt": "Linux 系统",
+        "overview": {
+          "lastCheckedLabel": "最后检查",
+          "refresh": "刷新",
+          "refreshSuccessTitle": "已刷新补丁概览",
+          "refreshSuccessDescription": "补丁概览数据已更新。",
+          "refreshFailedTitle": "刷新补丁概览失败",
+          "refreshFailedDescription": "暂时无法刷新补丁概览数据。",
+          "scanNow": "立即扫描",
+          "repair": "一键修复",
+          "scanPendingTitle": "扫描能力暂未接入",
+          "scanPendingDescription": "补丁扫描接口还未提供，当前先保留按钮样式和交互占位。",
+          "repairPendingTitle": "修复能力暂未接入",
+          "repairPendingDescription": "补丁修复接口还未提供，当前先保留按钮样式和交互占位。"
+        },
         "trend": {
           "title": "主机安装覆盖率趋势",
           "description": "{system} • 过去 {days} 天",
