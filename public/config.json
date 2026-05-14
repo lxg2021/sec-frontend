@@ -56,6 +56,7 @@
       "getSystemPatchStats": "/sensor/patch/stats/system-patch-stats",
       "getCoverageTrend": "/sensor/patch/stats/coverage-trend",
       "patchImmediateScan": "/sensor/control/patch/immediatescan",
+      "patchOneClickRepair": "/sensor/control/patch/oneclickrepair",
       "baselineOneClickRepair": "/sensor/control/baseline/oneclickrepair"
     }
   }
