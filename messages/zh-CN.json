@@ -1937,18 +1937,18 @@
         "subtitle": "补丁任务部署"
       },
       "taskStatusPage": {
-        "title": "补丁任务状态",
-        "subtitle": "补丁任务状态",
+        "title": "漏洞任务状态",
+        "subtitle": "漏洞任务状态",
         "refresh": "刷新进度",
         "refreshing": "刷新中...",
-        "cardTitle": "补丁安装任务",
+        "cardTitle": "漏洞安装任务",
         "cardDescription": "共 {count} 个安装任务",
         "lastUpdated": "最近刷新：{time}",
         "loadFailedTitle": "安装任务加载失败",
-        "loadFailedDescription": "无法获取补丁安装任务列表，请稍后重试",
+        "loadFailedDescription": "无法获取漏洞安装任务列表，请稍后重试",
         "retry": "重试",
         "emptyTitle": "暂无安装任务",
-        "emptyDescription": "当前还没有可展示的补丁安装任务。"
+        "emptyDescription": "当前还没有可展示的漏洞安装任务。"
       },
       "taskStatus": {
         "headerTitle": "任务进度",
@@ -1956,7 +1956,7 @@
         "rankAria": "排名 {rank}",
         "operationLabel": "操作:",
         "createdLabel": "创建:",
-        "patchesLabel": "补丁:",
+        "patchesLabel": "漏洞:",
         "hostsLabel": "主机:",
         "install": "安装",
         "uninstall": "卸载",
@@ -1965,8 +1965,8 @@
         "rebootAfterInstall": "安装后重启",
         "rollbackOnFailure": "失败时回滚",
         "retryCount": "重试: {count}",
-        "tableTitle": "补丁安装详情",
-        "patchCount": "{count} 个补丁",
+        "tableTitle": "漏洞安装详情",
+        "patchCount": "{count} 个漏洞",
         "viewDetails": "查看详情",
         "exportList": "导出列表",
         "hostDetailTitle": "{title} - 主机详情",
@@ -2002,7 +2002,7 @@
           "hostCount": "共 {count} 台主机",
           "emptyHosts": "暂无主机执行明细",
           "finishedAt": "完成时间：{time}",
-          "hostPatchCount": "{count} 个补丁",
+          "hostPatchCount": "{count} 个漏洞",
           "hostPatchSuccess": "成功 {count}",
           "hostPatchFailed": "失败 {count}",
           "hostPatchRunning": "进行中 {count}",
@@ -2010,13 +2010,13 @@
           "hostCreatedAt": "创建：{time}",
           "hostUpdatedAt": "更新：{time}",
           "metrics": {
-            "totalPatches": "补丁总数",
+            "totalPatches": "漏洞总数",
             "totalHosts": "主机总数",
             "successHosts": "成功主机",
             "failedHosts": "失败主机"
           },
           "columns": {
-            "patchName": "补丁名称",
+            "patchName": "漏洞名称",
             "securityLevel": "安全等级",
             "status": "状态",
             "stage": "阶段",
