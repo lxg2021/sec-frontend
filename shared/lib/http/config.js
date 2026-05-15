@@ -61,6 +61,7 @@ const FALLBACK_CONFIG = {
       getSecurityLevelDistribution: "/sensor/patch/stats/security-level-distribution",
       getHostPatchSummary: "/sensor/patch/host/summary",
       getHostPatches: "/sensor/patch/host/list",
+      getHostsWithPatchSummary: "/sensor/patch/hosts/summary-list",
       getAllPatchCoverageForInstall: "/sensor/patch/patches/coverage-all",
       getPatchInstallTasks: "/sensor/patch/installtask/list",
       getPatchInstallTaskProgress: "/sensor/patch/installtask/progress",

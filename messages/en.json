@@ -1948,6 +1948,46 @@
         "emptyTitle": "No install tasks",
         "emptyDescription": "There are no patch install tasks to display right now."
       },
+      "hostVulnerabilityPanel": {
+        "title": "Host Vulnerabilities",
+        "description": "Review vulnerability coverage by host and open a host to inspect details.",
+        "descriptionWithTime": "Review vulnerability coverage by host. Last updated: {time}",
+        "refresh": "Refresh",
+        "refreshing": "Refreshing...",
+        "loading": "Loading host vulnerability list...",
+        "loadFailedTitle": "Failed to load host vulnerabilities",
+        "loadFailedDescription": "Unable to fetch the host vulnerability list. Please try again later.",
+        "retry": "Retry",
+        "emptyTitle": "No host vulnerability data",
+        "emptyDescription": "There is no host vulnerability information to display right now.",
+        "coverageLabel": "Coverage",
+        "updatedAt": "Updated: {time}",
+        "openDetail": "View details",
+        "totalLabel": "{total} hosts total, showing {start}-{end}",
+        "pageLabel": "Page {page} / {totalPages}",
+        "pageSizeLabel": "Per page",
+        "previous": "Previous",
+        "next": "Next",
+        "rowAria": "View vulnerability details for {host}",
+        "columns": {
+          "hostInfo": "Host Info",
+          "status": "Status",
+          "system": "System",
+          "os": "OS",
+          "organization": "Organization",
+          "risk": "Risk Level",
+          "coverage": "Coverage",
+          "summary": "Vulnerability Summary",
+          "lastScan": "Last Scan",
+          "actions": "Actions"
+        },
+        "status": {
+          "online": "Online",
+          "offline": "Offline",
+          "inactive": "Inactive",
+          "unknown": "Unknown"
+        }
+      },
       "taskStatus": {
         "headerTitle": "Task Progress",
         "taskCount": "{count} tasks",

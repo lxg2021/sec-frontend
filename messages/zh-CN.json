@@ -1950,6 +1950,46 @@
         "emptyTitle": "暂无安装任务",
         "emptyDescription": "当前还没有可展示的漏洞安装任务。"
       },
+      "hostVulnerabilityPanel": {
+        "title": "主机漏洞",
+        "description": "按主机查看漏洞覆盖情况，点击主机可查看详情。",
+        "descriptionWithTime": "按主机查看漏洞覆盖情况，最近更新时间：{time}",
+        "refresh": "刷新",
+        "refreshing": "刷新中...",
+        "loading": "正在加载主机漏洞列表...",
+        "loadFailedTitle": "加载主机漏洞失败",
+        "loadFailedDescription": "无法获取主机漏洞列表，请稍后重试。",
+        "retry": "重试",
+        "emptyTitle": "暂无主机漏洞数据",
+        "emptyDescription": "当前没有可展示的主机漏洞信息。",
+        "coverageLabel": "覆盖率",
+        "updatedAt": "更新：{time}",
+        "openDetail": "查看详情",
+        "totalLabel": "共 {total} 台主机，当前显示 {start}-{end}",
+        "pageLabel": "第 {page} / {totalPages} 页",
+        "pageSizeLabel": "每页",
+        "previous": "上一页",
+        "next": "下一页",
+        "rowAria": "查看 {host} 的漏洞详情",
+        "columns": {
+          "hostInfo": "主机信息",
+          "status": "状态",
+          "system": "系统",
+          "os": "操作系统",
+          "organization": "组织",
+          "risk": "风险等级",
+          "coverage": "覆盖率",
+          "summary": "漏洞概况",
+          "lastScan": "最近扫描",
+          "actions": "操作"
+        },
+        "status": {
+          "online": "在线",
+          "offline": "离线",
+          "inactive": "未活跃",
+          "unknown": "未知"
+        }
+      },
       "taskStatus": {
         "headerTitle": "任务进度",
         "taskCount": "{count} 个任务",
