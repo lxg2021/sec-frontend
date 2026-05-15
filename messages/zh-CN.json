@@ -1977,6 +1977,11 @@
           "requestedByLabel": "发起人",
           "updatedAtLabel": "最近更新",
           "overallProgress": "总体进度",
+          "totalHostsLabel": "主机",
+          "successHostsLabel": "成功",
+          "failedHostsLabel": "失败",
+          "runningHostsLabel": "进行中",
+          "pendingHostsLabel": "待执行",
           "successHosts": "成功主机 {success}/{total} · 进度 {progress}%",
           "expandHint": "展开后加载任务详情",
           "viewDetail": "查看详情"
