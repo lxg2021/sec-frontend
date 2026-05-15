@@ -1984,6 +1984,7 @@
         "config": {
           "scheduled": "定时执行：{time}",
           "immediate": "立即执行",
+          "randomDelay": "随机延迟：{minutes} 分钟",
           "rebootAfterInstall": "安装后重启",
           "rescanAfterRepair": "修复后重新扫描",
           "backupBeforeRepair": "修复前备份"
