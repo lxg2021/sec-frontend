@@ -55,6 +55,8 @@
       "getBaselineItemHostResults": "/sensor/baseline/item/hosts",
       "getSystemPatchStats": "/sensor/patch/stats/system-patch-stats",
       "getCoverageTrend": "/sensor/patch/stats/coverage-trend",
+      "getPatchInstallTasks": "/sensor/patch/installtask/list",
+      "getPatchInstallTaskProgress": "/sensor/patch/installtask/progress",
       "createPatchInstallTask": "/sensor/control/patch/installtask",
       "patchImmediateScan": "/sensor/control/patch/immediatescan",
       "patchOneClickRepair": "/sensor/control/patch/oneclickrepair",

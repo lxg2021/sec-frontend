@@ -1938,7 +1938,15 @@
         "title": "Patch Task Status",
         "subtitle": "Patch Task Status",
         "refresh": "Refresh Progress",
-        "refreshing": "Refreshing..."
+        "refreshing": "Refreshing...",
+        "cardTitle": "Patch Install Tasks",
+        "cardDescription": "{count} install tasks in total",
+        "lastUpdated": "Last refreshed: {time}",
+        "loadFailedTitle": "Failed to load install tasks",
+        "loadFailedDescription": "Unable to fetch the patch install task list. Please try again later.",
+        "retry": "Retry",
+        "emptyTitle": "No install tasks",
+        "emptyDescription": "There are no patch install tasks to display right now."
       },
       "taskStatus": {
         "headerTitle": "Task Progress",
@@ -1961,6 +1969,78 @@
         "exportList": "Export list",
         "hostDetailTitle": "{title} - Host Details",
         "hostDetailSummary": "KB: {kb} ? {count} hosts total",
+        "summary": {
+          "platformLabel": "Platform",
+          "createdAtLabel": "Created",
+          "requestedByLabel": "Requested By",
+          "updatedAtLabel": "Updated",
+          "overallProgress": "Overall Progress",
+          "successHosts": "Successful hosts {success}/{total} · progress {progress}%",
+          "expandHint": "Expand to load task details",
+          "viewDetail": "View details"
+        },
+        "config": {
+          "scheduled": "Scheduled: {time}",
+          "immediate": "Run now",
+          "rebootAfterInstall": "Reboot after install",
+          "rescanAfterRepair": "Rescan after repair",
+          "backupBeforeRepair": "Backup before repair"
+        },
+        "detail": {
+          "loading": "Loading task details...",
+          "loadFailed": "Failed to load task details",
+          "retry": "Retry",
+          "title": "Host Execution Details",
+          "hostCount": "{count} hosts total",
+          "emptyHosts": "No host execution details",
+          "finishedAt": "Finished: {time}",
+          "hostPatchCount": "{count} patches",
+          "hostPatchSuccess": "Success {count}",
+          "hostPatchFailed": "Failed {count}",
+          "hostPatchRunning": "Running {count}",
+          "hostRetryCount": "Retry {count}",
+          "hostCreatedAt": "Created: {time}",
+          "hostUpdatedAt": "Updated: {time}",
+          "metrics": {
+            "totalPatches": "Total Patches",
+            "totalHosts": "Total Hosts",
+            "successHosts": "Successful Hosts",
+            "failedHosts": "Failed Hosts"
+          },
+          "columns": {
+            "patchName": "Patch Name",
+            "securityLevel": "Security Level",
+            "status": "Status",
+            "stage": "Stage",
+            "startedAt": "Started",
+            "finishedAt": "Finished",
+            "error": "Error"
+          }
+        },
+        "stateLabels": {
+          "success": "Success",
+          "completed": "Completed",
+          "failed": "Failed",
+          "running": "Running",
+          "pending": "Pending",
+          "partial_success": "Partially Successful",
+          "skipped": "Skipped",
+          "cancelled": "Cancelled",
+          "unknown": "Unknown"
+        },
+        "stage": {
+          "download": "Download",
+          "install": "Install",
+          "verify": "Verify",
+          "unknown": "Unknown Stage"
+        },
+        "severityLabels": {
+          "Critical": "Critical",
+          "Important": "Important",
+          "Moderate": "Moderate",
+          "Low": "Low",
+          "Unknown": "Unknown"
+        },
         "status": {
           "completed": "Completed",
           "running": "Running",

@@ -1940,7 +1940,15 @@
         "title": "补丁任务状态",
         "subtitle": "补丁任务状态",
         "refresh": "刷新进度",
-        "refreshing": "刷新中..."
+        "refreshing": "刷新中...",
+        "cardTitle": "补丁安装任务",
+        "cardDescription": "共 {count} 个安装任务",
+        "lastUpdated": "最近刷新：{time}",
+        "loadFailedTitle": "安装任务加载失败",
+        "loadFailedDescription": "无法获取补丁安装任务列表，请稍后重试",
+        "retry": "重试",
+        "emptyTitle": "暂无安装任务",
+        "emptyDescription": "当前还没有可展示的补丁安装任务。"
       },
       "taskStatus": {
         "headerTitle": "任务进度",
@@ -1963,6 +1971,78 @@
         "exportList": "导出列表",
         "hostDetailTitle": "{title} - 主机详情",
         "hostDetailSummary": "KB: {kb} · 共 {count} 台主机",
+        "summary": {
+          "platformLabel": "平台",
+          "createdAtLabel": "创建时间",
+          "requestedByLabel": "发起人",
+          "updatedAtLabel": "最近更新",
+          "overallProgress": "总体进度",
+          "successHosts": "成功主机 {success}/{total} · 进度 {progress}%",
+          "expandHint": "展开后加载任务详情",
+          "viewDetail": "查看详情"
+        },
+        "config": {
+          "scheduled": "定时执行：{time}",
+          "immediate": "立即执行",
+          "rebootAfterInstall": "安装后重启",
+          "rescanAfterRepair": "修复后重新扫描",
+          "backupBeforeRepair": "修复前备份"
+        },
+        "detail": {
+          "loading": "正在加载任务详情...",
+          "loadFailed": "任务详情加载失败",
+          "retry": "重试",
+          "title": "主机执行详情",
+          "hostCount": "共 {count} 台主机",
+          "emptyHosts": "暂无主机执行明细",
+          "finishedAt": "完成时间：{time}",
+          "hostPatchCount": "{count} 个补丁",
+          "hostPatchSuccess": "成功 {count}",
+          "hostPatchFailed": "失败 {count}",
+          "hostPatchRunning": "进行中 {count}",
+          "hostRetryCount": "重试 {count}",
+          "hostCreatedAt": "创建：{time}",
+          "hostUpdatedAt": "更新：{time}",
+          "metrics": {
+            "totalPatches": "补丁总数",
+            "totalHosts": "主机总数",
+            "successHosts": "成功主机",
+            "failedHosts": "失败主机"
+          },
+          "columns": {
+            "patchName": "补丁名称",
+            "securityLevel": "安全等级",
+            "status": "状态",
+            "stage": "阶段",
+            "startedAt": "开始时间",
+            "finishedAt": "结束时间",
+            "error": "错误信息"
+          }
+        },
+        "stateLabels": {
+          "success": "成功",
+          "completed": "已完成",
+          "failed": "失败",
+          "running": "进行中",
+          "pending": "待处理",
+          "partial_success": "部分成功",
+          "skipped": "已跳过",
+          "cancelled": "已取消",
+          "unknown": "未知"
+        },
+        "stage": {
+          "download": "下载",
+          "install": "安装",
+          "verify": "校验",
+          "unknown": "未知阶段"
+        },
+        "severityLabels": {
+          "Critical": "严重",
+          "Important": "重要",
+          "Moderate": "中等",
+          "Low": "低",
+          "Unknown": "未知"
+        },
         "status": {
           "completed": "已完成",
           "running": "进行中",
