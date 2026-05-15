@@ -1960,6 +1960,8 @@
         "retry": "Retry",
         "emptyTitle": "No host vulnerability data",
         "emptyDescription": "There is no host vulnerability information to display right now.",
+        "emptyFilteredTitle": "No matching hosts",
+        "emptyFilteredDescription": "No host vulnerability data matches the current filters.",
         "coverageLabel": "Coverage",
         "updatedAt": "Updated: {time}",
         "openDetail": "View details",
@@ -1986,6 +1988,25 @@
           "offline": "Offline",
           "inactive": "Inactive",
           "unknown": "Unknown"
+        },
+        "filters": {
+          "label": "Filter:",
+          "searchPlaceholder": "Search host ID...",
+          "system": {
+            "all": "All Platforms"
+          },
+          "coverage": {
+            "all": "All Coverage",
+            "incomplete": "Incomplete",
+            "complete": "Complete"
+          },
+          "risk": {
+            "all": "All Risk Levels",
+            "high": "High Risk",
+            "medium": "Medium Risk",
+            "low": "Low Risk",
+            "safe": "Safe"
+          }
         }
       },
       "taskStatus": {

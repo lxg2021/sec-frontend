@@ -1962,6 +1962,8 @@
         "retry": "重试",
         "emptyTitle": "暂无主机漏洞数据",
         "emptyDescription": "当前没有可展示的主机漏洞信息。",
+        "emptyFilteredTitle": "没有匹配的主机",
+        "emptyFilteredDescription": "当前筛选条件下没有匹配的主机漏洞数据。",
         "coverageLabel": "覆盖率",
         "updatedAt": "更新：{time}",
         "openDetail": "查看详情",
@@ -1988,6 +1990,25 @@
           "offline": "离线",
           "inactive": "未活跃",
           "unknown": "未知"
+        },
+        "filters": {
+          "label": "筛选:",
+          "searchPlaceholder": "搜索主机 ID...",
+          "system": {
+            "all": "全部平台"
+          },
+          "coverage": {
+            "all": "全部覆盖率",
+            "incomplete": "未完成",
+            "complete": "已完成"
+          },
+          "risk": {
+            "all": "全部风险等级",
+            "high": "高风险",
+            "medium": "中风险",
+            "low": "低风险",
+            "safe": "安全"
+          }
         }
       },
       "taskStatus": {
