@@ -33,9 +33,9 @@ const StatusIndicator = ({ status }: { status: string }) => {
   const statusConfig = getStatusColor(status)
 
   return (
-    <div className="flex items-center space-x-1 text-sm font-normal mr-4">
+    <div className="flex shrink-0 items-center gap-1 whitespace-nowrap text-sm font-normal">
       <span className={`inline-block h-3 w-3 rounded-full ${statusConfig.bg}`} />
-      <span className={statusConfig.text}>{statusConfig.label}</span>
+      <span className={`whitespace-nowrap ${statusConfig.text}`}>{statusConfig.label}</span>
     </div>
   )
 }
@@ -90,11 +90,13 @@ export const RuleInfoCard = ({ id, ruleMeta }: { id: string; ruleMeta?: AttackRu
               : "bg-gray-100"
         }`}
       >
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col">
-            <div className="flex items-center">
-              <Shield className="h-5 w-5 text-blue-600 mr-2" />
-              <h3 className="text-base text-gray-800">{ruleData.title}</h3>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div className="flex min-w-0 items-start">
+              <Shield className="mr-2 mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+              <h3 className="line-clamp-2 max-w-[260px] text-base leading-snug text-gray-800" title={ruleData.title}>
+                {ruleData.title}
+              </h3>
             </div>
           </div>
           <StatusIndicator status={ruleData.status} />
