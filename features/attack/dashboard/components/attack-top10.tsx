@@ -111,7 +111,10 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                 >
                   <TableCell className="font-medium">
                     <RuleInfoPopover id={r.ruleid}>
-                      <span className="inline-flex cursor-pointer items-center font-mono text-sm font-semibold text-blue-600 transition-colors hover:text-blue-800">
+                      <span
+                        className="inline-flex cursor-pointer items-center font-mono text-sm font-semibold text-blue-600 transition-all duration-150 hover:-translate-y-0.5 hover:text-blue-800 hover:underline hover:decoration-blue-400 hover:underline-offset-4"
+                        title="查看规则详情"
+                      >
                         {r.id}
                       </span>
                     </RuleInfoPopover>
