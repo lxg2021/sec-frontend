@@ -27,7 +27,7 @@ export function HostInfoDialog({
         </DialogTitle>
 
         {/* 主机信息卡片内容 */}
-        <HostInfoCard node={node} className="m-0 p-0 border-none" />
+        <HostInfoCard node={node} className="m-0 p-0 border-none" reserveCloseSpace />
       </DialogContent>
     </Dialog>
   );

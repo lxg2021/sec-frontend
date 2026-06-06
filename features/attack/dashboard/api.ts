@@ -197,6 +197,16 @@ function hostLabel(host: BackendAttackRuleHostStatsItem) {
   return stringValue(host.hostname) || stringValue(host.agent_id)
 }
 
+function hostRef(host: BackendAttackRuleHostStatsItem) {
+  const agentId = stringValue(host.agent_id)
+  const hostname = stringValue(host.hostname)
+  if (!agentId && !hostname) return null
+  return {
+    agentId,
+    hostname: hostname || agentId,
+  }
+}
+
 function buildIndicators(rule: BackendAttackRuleStatsItem): AttckDetail["indicators"] {
   const meta = rule.meta
   const indicators = [
@@ -264,6 +274,7 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
     const stageKeys = stageDefinitions.map((definition) => definition.stageKey).filter(Boolean) as string[]
     const stageValues = stageDefinitions.map((definition) => definition.stageKey || definition.label)
     const hosts = item.hosts.map(hostLabel).filter(Boolean)
+    const hostItems = item.hosts.map(hostRef).filter((host): host is NonNullable<ReturnType<typeof hostRef>> => Boolean(host))
     const severity = normalizeSeverityByCounts(item.rule)
 
     const techniqueId = extractTechniqueId(meta)
@@ -274,6 +285,7 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       stage: stageValues,
       indicators: buildIndicators(item.rule),
       hosts,
+      hostItems,
       severity,
       ruleMeta: meta,
     }
@@ -303,6 +315,7 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       name: stringValue(meta.title) || techniqueId,
       ruleid: stringValue(meta.rule_id),
       hosts,
+      hostItems,
       "affected-hosts": numberValue(item.rule.total_hosts) || hosts.length,
       stage: stageValues[0] || "",
       stages: stageValues,

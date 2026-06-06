@@ -25,10 +25,14 @@ interface BackendLogicGroup {
 interface BackendHostDetail {
   agent_id?: string
   hostname?: string
+  ip?: string[]
   os_type?: string
   os_name?: string
   os_version?: string
   product_id?: string
+  cpu_id?: string
+  harddisk_id?: string[]
+  macs?: string[]
   status?: string
   heartbeat_time?: number | string
   group?: BackendLogicGroup | null
@@ -173,6 +177,10 @@ function toDisplayDate(value?: number | string | null) {
   return new Date(timestamp).toISOString().slice(0, 10)
 }
 
+function toStringList(value?: string[] | null) {
+  return Array.isArray(value) ? value.map((item) => item.trim()).filter(Boolean) : []
+}
+
 function adaptBackendHost(host: BackendHostDetail): AgentInfo {
   const groupPath = (host.group?.full_path || "").split("/").filter(Boolean)
 
@@ -191,6 +199,10 @@ function adaptBackendHost(host: BackendHostDetail): AgentInfo {
     installDate: toDisplayDate(host.heartbeat_time),
     manufacturer: "-",
     model: "-",
+    ip: toStringList(host.ip),
+    cpuId: host.cpu_id || "",
+    harddiskIds: toStringList(host.harddisk_id),
+    macs: toStringList(host.macs),
   }
 }
 

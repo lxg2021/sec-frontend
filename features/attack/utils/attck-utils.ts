@@ -15,6 +15,11 @@ export interface AttackRuleMeta {
   is_invalid?: boolean
 }
 
+export interface AttackHostRef {
+  agentId: string
+  hostname: string
+}
+
 export interface AttckDetail {
   attck: string
   ruleid: string
@@ -22,6 +27,7 @@ export interface AttckDetail {
   stage: string[]
   indicators: AttackIndicator[]
   hosts: string[]
+  hostItems?: AttackHostRef[]
   severity: Severity
   ruleMeta?: AttackRuleMeta
 }
@@ -52,6 +58,7 @@ export interface Top10Item {
   name: string
   ruleid: string
   hosts: string[]
+  hostItems?: AttackHostRef[]
   "affected-hosts": number
   stage: string
   stages?: string[]

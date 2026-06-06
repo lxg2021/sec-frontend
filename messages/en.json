@@ -366,6 +366,18 @@
             "group": "Group",
             "unknown": "Unknown"
           },
+          "infoCard": {
+            "os": "Operating System",
+            "hostname": "Host Name",
+            "cpu": "CPU",
+            "memory": "Memory",
+            "disk": "Storage",
+            "ip": "IP Address",
+            "mac": "MAC Address",
+            "online": "Online",
+            "offline": "Offline",
+            "empty": "-"
+          },
           "hardwarePanel": {
             "empty": "No hardware information",
             "cpuInfo": "CPU Info",

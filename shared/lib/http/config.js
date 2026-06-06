@@ -26,6 +26,7 @@ const FALLBACK_CONFIG = {
       importHosts: "/sensor/host-mgr/host/import-hosts",
       approveHost: "/sensor/host-mgr/host/approve-host",
       getHostSummary: "/sensor/host-mgr/host/host-summary",
+      getSingleHostDetail: "/sensor/host-mgr/host/single-host-detail",
       getAllHostsPagination: "/sensor/host-mgr/host/all-hosts-detail-pagination",
       getLogicGroupHosts: "/sensor/host-mgr/host/logic-group-hosts",
       getHardwareInfo: "/sensor/asset/get-hardware-info",

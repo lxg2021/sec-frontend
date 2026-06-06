@@ -366,6 +366,18 @@
             "group": "组名称",
             "unknown": "未知"
           },
+          "infoCard": {
+            "os": "操作系统",
+            "hostname": "主机名称",
+            "cpu": "CPU",
+            "memory": "内存",
+            "disk": "存储",
+            "ip": "IP地址",
+            "mac": "MAC地址",
+            "online": "在线",
+            "offline": "离线",
+            "empty": "-"
+          },
           "hardwarePanel": {
             "empty": "暂无硬件信息",
             "cpuInfo": "CPU 信息",

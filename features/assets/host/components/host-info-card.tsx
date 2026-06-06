@@ -22,6 +22,7 @@ type HostInfoNode = HostSelectorHostNode & {
 interface HostInfoCardProps {
   node: HostInfoNode | null | undefined
   className?: string
+  reserveCloseSpace?: boolean
 }
 
 const infoFields = [
@@ -53,7 +54,7 @@ function StatusIndicator({ status }: { status: string }) {
   )
 }
 
-export function HostInfoCard({ node, className }: HostInfoCardProps) {
+export function HostInfoCard({ node, className, reserveCloseSpace = false }: HostInfoCardProps) {
   const t = useTranslations("pages.assets.hardware.host.infoCard")
 
   if (!node || node.type !== "host") return null
@@ -66,7 +67,7 @@ export function HostInfoCard({ node, className }: HostInfoCardProps) {
           node.status.toLowerCase() === "online" ? "bg-blue-50" : "bg-gray-100",
         )}
       >
-        <div className="flex items-start justify-between">
+        <div className={cn("flex items-start justify-between gap-4", reserveCloseSpace && "pr-12")}>
           <div className="flex min-w-0 flex-col">
             <div className="flex min-w-0 items-center">
               <Server className="mr-2 h-5 w-5 shrink-0 text-blue-600" />

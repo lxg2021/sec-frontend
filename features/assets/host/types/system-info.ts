@@ -73,4 +73,12 @@ export interface AgentInfo {
 
   /** 设备型号，例如 "XPS 15 9500"、"PRIME Z490-A" */
   model?: string;
+
+  ip?: string[];
+
+  cpuId?: string;
+
+  harddiskIds?: string[];
+
+  macs?: string[];
 }
