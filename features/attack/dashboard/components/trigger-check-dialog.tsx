@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { X } from "lucide-react"
+import { useEffect, useState, type ReactNode } from "react"
+import { CalendarCheck2, CalendarClock, Globe2, Radar, X } from "lucide-react"
 
 import {
   Dialog,
@@ -11,24 +11,17 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog"
 import { cn } from "@/shared/lib/utils"
-import type { BucketType, TriggerCheckPayload } from "@/features/attack/dashboard/types"
+import type { TriggerCheckPayload } from "@/features/attack/dashboard/types"
 import { getTaskStatus, triggerCheck } from "@/features/attack/dashboard/api"
 import { Button } from "@/features/attack/dashboard/components/ui/button"
 
-const BUCKET_OPTIONS: { value: BucketType; label: string }[] = [
-  { value: "fixed", label: "固定区间 (FIXED)" },
-  { value: "hour", label: "按小时 (HOUR)" },
-  { value: "day", label: "按天 (DAY)" },
-]
-
-const TIMEZONE_OPTIONS = ["Asia/Shanghai", "Asia/Hong_Kong", "UTC", "America/New_York"]
+const TIMEZONE_OPTIONS = ["Asia/Shanghai", "UTC"]
 
 interface TriggerCheckDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultStart?: string
   defaultEnd?: string
-  defaultBucketType?: BucketType
   onSuccess?: () => void
 }
 
@@ -39,12 +32,10 @@ export function TriggerCheckDialog({
   onOpenChange,
   defaultStart = "",
   defaultEnd = "",
-  defaultBucketType = "fixed",
   onSuccess,
 }: TriggerCheckDialogProps) {
   const [startTime, setStartTime] = useState(defaultStart)
   const [endTime, setEndTime] = useState(defaultEnd)
-  const [bucketType, setBucketType] = useState<BucketType>(defaultBucketType)
   const [timezone, setTimezone] = useState("Asia/Shanghai")
   const [phase, setPhase] = useState<Phase>("idle")
   const [error, setError] = useState<string | null>(null)
@@ -53,8 +44,7 @@ export function TriggerCheckDialog({
     if (!open) return
     setStartTime(defaultStart)
     setEndTime(defaultEnd)
-    setBucketType(defaultBucketType)
-  }, [defaultBucketType, defaultEnd, defaultStart, open])
+  }, [defaultEnd, defaultStart, open])
 
   const loading = phase === "submitting" || phase === "polling"
 
@@ -96,7 +86,7 @@ export function TriggerCheckDialog({
     const payload: TriggerCheckPayload = {
       start_time: startTime,
       end_time: endTime,
-      bucket_type: bucketType,
+      bucket_type: "fixed",
       timezone,
     }
 
@@ -130,11 +120,16 @@ export function TriggerCheckDialog({
     >
       <DialogContent className="max-w-md rounded-2xl border border-border bg-card p-6 shadow-xl [&>button]:hidden">
         <DialogHeader className="flex flex-row items-start justify-between gap-4 space-y-0 text-left">
-          <div className="space-y-1">
-            <DialogTitle className="text-base font-semibold text-foreground">立即检查</DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              设置时间范围与统计粒度，触发一次攻击溯源检查任务。
-            </DialogDescription>
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-600 ring-1 ring-teal-100">
+              <Radar className="h-5 w-5" />
+            </span>
+            <div className="space-y-1">
+              <DialogTitle className="text-base font-semibold text-foreground">立即检查</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                设置时间范围与时区，执行攻击溯源检查任务
+              </DialogDescription>
+            </div>
           </div>
           <Button
             variant="ghost"
@@ -149,7 +144,12 @@ export function TriggerCheckDialog({
         </DialogHeader>
 
         <div className="mt-5 space-y-4">
-          <Field label="开始时间" required>
+          <Field
+            label="开始时间"
+            required
+            icon={<CalendarClock className="h-3.5 w-3.5" />}
+            iconClassName="bg-emerald-50 text-emerald-600 ring-emerald-100"
+          >
             <input
               type="datetime-local"
               value={startTime}
@@ -159,7 +159,12 @@ export function TriggerCheckDialog({
             />
           </Field>
 
-          <Field label="结束时间" required>
+          <Field
+            label="结束时间"
+            required
+            icon={<CalendarCheck2 className="h-3.5 w-3.5" />}
+            iconClassName="bg-rose-50 text-rose-600 ring-rose-100"
+          >
             <input
               type="datetime-local"
               value={endTime}
@@ -169,22 +174,11 @@ export function TriggerCheckDialog({
             />
           </Field>
 
-          <Field label="统计粒度">
-            <select
-              value={bucketType}
-              onChange={(event) => setBucketType(event.target.value as BucketType)}
-              disabled={loading}
-              className={inputClass}
-            >
-              {BUCKET_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          <Field label="时区">
+          <Field
+            label="时区"
+            icon={<Globe2 className="h-3.5 w-3.5" />}
+            iconClassName="bg-violet-50 text-violet-600 ring-violet-100"
+          >
             <select
               value={timezone}
               onChange={(event) => setTimezone(event.target.value)}
@@ -236,14 +230,23 @@ function Field({
   label,
   required,
   children,
+  icon,
+  iconClassName,
 }: {
   label: string
   required?: boolean
-  children: React.ReactNode
+  children: ReactNode
+  icon?: ReactNode
+  iconClassName?: string
 }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-sm font-medium text-foreground">
+      <span className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+        {icon ? (
+          <span className={cn("flex h-5 w-5 items-center justify-center rounded-md ring-1", iconClassName)}>
+            {icon}
+          </span>
+        ) : null}
         {label}
         {required ? <span className="ml-0.5 text-destructive">*</span> : null}
       </span>

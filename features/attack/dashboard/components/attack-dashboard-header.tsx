@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowRight, ChevronDown, Clock, Loader2, Play, RefreshCw, ShieldAlert } from "lucide-react"
+import { ArrowRight, Clock, Loader2, Play, Radar, RefreshCw } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
 import type { AttackOverview, BucketType } from "@/features/attack/dashboard/types"
@@ -64,16 +64,10 @@ export function AttackDashboardHeader({
     >
       <div className="flex items-center gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-          <ShieldAlert className="h-6 w-6" />
+          <Radar className="h-6 w-6" />
         </div>
         <div className="space-y-1.5">
-          <button
-            type="button"
-            className="group flex items-center gap-1.5 text-lg font-bold tracking-tight text-foreground"
-          >
-            攻击溯源概览
-            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-y-0.5" />
-          </button>
+          <h1 className="text-lg font-bold tracking-tight text-foreground">攻击溯源概览</h1>
           <div className="flex flex-wrap items-center gap-2 text-sm">
             <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold tracking-wide text-secondary-foreground">
               {BUCKET_LABEL[bucket.bucket_type]}
@@ -137,7 +131,6 @@ export function AttackDashboardHeader({
         onOpenChange={setDialogOpen}
         defaultStart={toInputValue(bucket.bucket_start)}
         defaultEnd={toInputValue(bucket.bucket_end)}
-        defaultBucketType={bucket.bucket_type}
         onSuccess={onCheckSuccess}
       />
     </header>
