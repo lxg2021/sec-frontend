@@ -641,6 +641,23 @@
           "allInfectedHosts": "全部感染主机",
           "noData": "暂无数据"
         },
+        "topRiskHosts": {
+          "title": "高风险主机 TOP",
+          "rank": "排名",
+          "host": "主机",
+          "riskScore": "风险分",
+          "rules": "规则",
+          "instances": "实例",
+          "cases": "场景",
+          "groups": "分组",
+          "loading": "加载高风险主机...",
+          "noData": "暂无高风险主机数据",
+          "loadFailed": "高风险主机加载失败",
+          "openFailed": "无法打开主机详情",
+          "missingAgentId": "缺少主机 ID",
+          "hostNotFound": "未查询到主机 {host} 的信息",
+          "loadHostFailed": "主机详情加载失败"
+        },
         "stageChart": {
           "title": "Stage主机分布图",
           "noData": "暂无阶段主机分布数据",

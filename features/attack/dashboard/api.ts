@@ -7,6 +7,7 @@ import type {
   AttackStageHostDistributionItem,
   AttackOverview,
   AttackTaskStatus,
+  AttackTopHostItem,
   BucketType,
   TriggerCheckPayload,
   TriggerCheckResult,
@@ -77,6 +78,21 @@ interface BackendAttackStageHostDistributionItem {
 
 interface BackendAttackStageHostDistributionData {
   items?: BackendAttackStageHostDistributionItem[]
+}
+
+interface BackendAttackHostStatsItem {
+  agent_id?: string
+  hostname?: string
+  total_rules?: number | string
+  total_groups?: number | string
+  total_instances?: number | string
+  total_sources?: number | string
+  risk_score?: number | string
+  total_cases?: number | string
+}
+
+interface BackendTopAttackHostsData {
+  items?: BackendAttackHostStatsItem[]
 }
 
 interface BackendAttackRuleHostStatsItem {
@@ -419,6 +435,29 @@ export async function fetchAttackStageHostDistribution(snapshotId: string): Prom
       host_count: numberValue(item.host_count ?? item.hostCount),
     }))
     .filter((item) => item.stage || item.stage_key)
+}
+
+export async function fetchTopAttackHosts(snapshotId: string, limit = DEFAULT_TOP_LIMIT): Promise<AttackTopHostItem[]> {
+  const normalizedSnapshotId = stringValue(snapshotId)
+  if (!normalizedSnapshotId) return []
+
+  const result = (await http.post("/sensor/analysis/stats/top-attack-hosts", {
+    request_id: createRequestId(),
+    snapshot_id: normalizedSnapshotId,
+    limit,
+  })) as ApiResult<BackendTopAttackHostsData | null>
+
+  const items = Array.isArray(result.data?.items) ? result.data.items : []
+  return items.map((item) => ({
+    agent_id: stringValue(item.agent_id),
+    hostname: stringValue(item.hostname),
+    total_rules: numberValue(item.total_rules),
+    total_groups: numberValue(item.total_groups),
+    total_instances: numberValue(item.total_instances),
+    total_sources: numberValue(item.total_sources),
+    risk_score: numberValue(item.risk_score),
+    total_cases: numberValue(item.total_cases),
+  }))
 }
 
 export async function triggerCheck(payload: TriggerCheckPayload): Promise<TriggerCheckResult> {

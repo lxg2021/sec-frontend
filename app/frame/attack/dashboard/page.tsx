@@ -5,6 +5,7 @@ import AttckHeader from "@/features/attack/dashboard/components/header"
 import { AttackDashboardHeader } from "@/features/attack/dashboard/components/attack-dashboard-header"
 import StageHostDistributionChart from "@/features/attack/dashboard/components/stage-host-distribution-chart"
 import AttackTop10 from "@/features/attack/dashboard/components/attack-top10"
+import TopRiskHosts from "@/features/attack/dashboard/components/top-risk-hosts"
 import { fetchAttackDashboardData, getTaskStatus } from "@/features/attack/dashboard/api"
 import type { AttackOverview } from "@/features/attack/dashboard/types"
 import type { AttckData } from "@/features/attack/utils/attck-utils"
@@ -198,12 +199,15 @@ export default function AttckDashboardPage() {
 
         <AttckHeader data={data} overview={overview} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6">
           <StageHostDistributionChart
             snapshotId={overview.bucket.snapshot_id}
           />
+        </div>
 
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <AttackTop10 top10={data.top10 || []} />
+          <TopRiskHosts snapshotId={overview.bucket.snapshot_id} />
         </div>
       </div>
     </div>

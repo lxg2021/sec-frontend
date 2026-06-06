@@ -50,3 +50,14 @@ export interface AttackStageHostDistributionItem {
   stage_key: string
   host_count: number
 }
+
+export interface AttackTopHostItem {
+  agent_id: string
+  hostname: string
+  total_rules: number
+  total_groups: number
+  total_instances: number
+  total_sources: number
+  risk_score: number
+  total_cases: number
+}

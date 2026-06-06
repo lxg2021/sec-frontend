@@ -639,6 +639,23 @@
           "allInfectedHosts": "All infected hosts",
           "noData": "No data"
         },
+        "topRiskHosts": {
+          "title": "Top Risk Hosts",
+          "rank": "Rank",
+          "host": "Host",
+          "riskScore": "Risk",
+          "rules": "Rules",
+          "instances": "Instances",
+          "cases": "Cases",
+          "groups": "Groups",
+          "loading": "Loading top risk hosts...",
+          "noData": "No top risk host data",
+          "loadFailed": "Failed to load top risk hosts",
+          "openFailed": "Unable to open host details",
+          "missingAgentId": "Missing host ID",
+          "hostNotFound": "No information found for host {host}",
+          "loadHostFailed": "Failed to load host details"
+        },
         "stageChart": {
           "title": "Stage Host Distribution",
           "noData": "No stage host distribution data",
