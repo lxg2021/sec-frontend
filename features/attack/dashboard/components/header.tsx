@@ -76,19 +76,15 @@ export default function AttckHeader({ data, overview }: HeaderProps) {
       </StatCard>
 
       <StatCard title="攻击活动" value={overview.total_instances} icon={Layers3} color="from-violet-400 to-purple-600">
-        <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-          <div className="rounded-lg bg-slate-50 px-2 py-1.5">
-            <div className="text-slate-400">实例</div>
-            <div className="mt-0.5 font-semibold text-slate-700">{formatCount(overview.total_instances)}</div>
-          </div>
-          <div className="rounded-lg bg-slate-50 px-2 py-1.5">
-            <div className="text-slate-400">分组</div>
-            <div className="mt-0.5 font-semibold text-slate-700">{formatCount(overview.total_groups)}</div>
-          </div>
-          <div className="rounded-lg bg-slate-50 px-2 py-1.5">
-            <div className="text-slate-400">场景</div>
-            <div className="mt-0.5 font-semibold text-slate-700">{formatCount(overview.total_cases)}</div>
-          </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-slate-500">攻击实例</span>
+          <span className="font-semibold text-slate-950">{formatCount(overview.total_instances)}</span>
+          <span className="text-slate-300">|</span>
+          <span className="text-slate-500">攻击场景</span>
+          <span className="font-semibold text-slate-950">{formatCount(overview.total_cases)}</span>
+          <span className="text-slate-300">|</span>
+          <span className="text-slate-500">攻击分组</span>
+          <span className="font-semibold text-slate-950">{formatCount(overview.total_groups)}</span>
         </div>
       </StatCard>
 
