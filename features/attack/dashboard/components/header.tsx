@@ -82,9 +82,6 @@ export default function AttckHeader({ data, overview }: HeaderProps) {
           <span className="text-slate-300">|</span>
           <span className="text-slate-500">{t("attackCases")}</span>
           <span className="font-semibold text-slate-950">{formatCount(overview.total_cases)}</span>
-          <span className="text-slate-300">|</span>
-          <span className="text-slate-500">{t("attackGroups")}</span>
-          <span className="font-semibold text-slate-950">{formatCount(overview.total_groups)}</span>
         </div>
       </StatCard>
 
