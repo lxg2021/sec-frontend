@@ -234,8 +234,7 @@ function phaseDefinition(phase: string) {
 }
 
 function extractTechniqueId(meta?: BackendAttackRuleMeta) {
-  const candidates = [...normalizeArray(meta?.tags), ...normalizeArray(meta?.references), stringValue(meta?.title)]
-  for (const candidate of candidates) {
+  for (const candidate of normalizeArray(meta?.tags)) {
     const match = candidate.match(/(?:attack[.:/_-])?(t\d{4}(?:\.\d{3})?)/i)
     if (match?.[1]) return match[1].toUpperCase()
   }
@@ -356,6 +355,7 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       hosts,
       "affected-hosts": numberValue(item.rule.total_hosts) || hosts.length,
       stage: normalizePhase(normalizedPhases[0] || ""),
+      stages: normalizedPhases.map(normalizePhase),
     })
   }
 

@@ -15,7 +15,7 @@ type Row = {
   name: string
   ruleid: string
   hostCount: number
-  stage: string
+  stages: string[]
   hosts: string[]
 }
 
@@ -28,15 +28,15 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
       const id = (t.attck || "").toUpperCase()
       const ruleid = t.ruleid || ""
       const name = t.name || ""
-      const stage = t.stage || ""
+      const stages = Array.isArray(t.stages) && t.stages.length > 0 ? t.stages : t.stage ? [t.stage] : []
 
       return {
-        rowKey: [ruleid, id, name, stage, index].filter(Boolean).join("::"),
+        rowKey: [ruleid, id, name, stages.join(","), index].filter(Boolean).join("::"),
         id,
         name,
         ruleid,
         hostCount: t["affected-hosts"] ?? 0,
-        stage,
+        stages,
         hosts: t.hosts || [],
       }
     })
@@ -92,7 +92,20 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                     <div className="text-sm text-gray-800">{r.name}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-gray-800">{r.stage || "—"}</div>
+                    {r.stages.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {r.stages.map((stage, index) => (
+                          <span
+                            key={`${r.rowKey}:stage:${stage}:${index}`}
+                            className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
+                          >
+                            {stage}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-800">—</div>
+                    )}
                   </TableCell>
                   <TableCell className="flex flex-wrap gap-2">
                     {/* 显示前 N 个主机 */}

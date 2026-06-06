@@ -30,6 +30,7 @@ export interface Top10Item {
   hosts: string[]
   "affected-hosts": number
   stage: string
+  stages?: string[]
 }
 
 export interface AttckData {
