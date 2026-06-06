@@ -366,6 +366,26 @@ export async function getHostsPagination({
   }
 }
 
+export async function getSingleHostDetail({
+  tenantId = "public",
+  agentId,
+}: {
+  tenantId?: string
+  agentId: string
+}): Promise<AgentInfo | null> {
+  const normalizedAgentId = agentId.trim()
+  if (!normalizedAgentId) return null
+
+  const result = await http.post("getSingleHostDetail", {
+    request_id: createRequestId(),
+    tenant_id: tenantId,
+    agent_id: normalizedAgentId,
+  })
+
+  const data = (result.data || null) as BackendHostDetail | null
+  return data ? adaptBackendHost(data) : null
+}
+
 export async function getHardwareInfo({
   tenantId = "public",
   agentId,
