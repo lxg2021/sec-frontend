@@ -3,7 +3,7 @@
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
-import { Trophy } from "lucide-react"
+import { Binary, Hash, Layers3, Monitor, Server, Trophy } from "lucide-react"
 import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
 import type { Top10Item } from "@/features/attack/utils/attck-utils"
 import { useRouter } from "next/navigation"
@@ -19,9 +19,27 @@ type Row = {
   hosts: string[]
 }
 
+function HeaderLabel({
+  icon: Icon,
+  label,
+  color,
+  align = "left",
+}: {
+  icon: typeof Trophy
+  label: string
+  align?: "left" | "right"
+}) {
+  return (
+    <div className={`flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
+      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      <span>{label}</span>
+    </div>
+  )
+}
+
 export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top10Item[] }) {
   const router = useRouter()
-  const DISPLAY_COUNT = 3 // 前 N 个主机
+  const DISPLAY_COUNT = 1 // 前 N 个主机
 
   const rows = useMemo<Row[]>(() => {
     const normalized = (top10 ?? []).map((t, index) => {
@@ -67,11 +85,21 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[100px]">技术</TableHead>
-                <TableHead className="min-w-[200px]">名称</TableHead>
-                <TableHead className="min-w-[120px]">阶段</TableHead>
-                <TableHead className="min-w-[200px]">感染主机</TableHead>
-                <TableHead className="min-w-[120px] text-right">感染主机数</TableHead>
+                <TableHead className="min-w-[100px]">
+                  <HeaderLabel icon={Binary} label="技术" />
+                </TableHead>
+                <TableHead className="w-[220px] min-w-[220px] max-w-[220px]">
+                  <HeaderLabel icon={Hash} label="名称" />
+                </TableHead>
+                <TableHead className="min-w-[160px]">
+                  <HeaderLabel icon={Layers3} label="阶段" />
+                </TableHead>
+                <TableHead className="min-w-[200px]">
+                  <HeaderLabel icon={Monitor} label="感染主机" />
+                </TableHead>
+                <TableHead className="min-w-[120px] text-right">
+                  <HeaderLabel icon={Server} label="主机数" align="right" />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -89,7 +117,9 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                     </RuleInfoPopover>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-gray-800">{r.name}</div>
+                    <div className="w-[220px] truncate text-sm text-gray-800" title={r.name}>
+                      {r.name}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {r.stages.length > 0 ? (
@@ -107,43 +137,56 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                       <div className="text-sm text-gray-800">—</div>
                     )}
                   </TableCell>
-                  <TableCell className="flex flex-wrap gap-2">
+                  <TableCell>
                     {/* 显示前 N 个主机 */}
-                    {r.hosts.slice(0, DISPLAY_COUNT).map((host, index) => (
-                      <span
-                        key={`${r.rowKey}:host:${host}:${index}`}
-                        className="text-sm text-blue-600 underline cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleHostClick(host)
-                        }}
-                      >
-                        {host}
-                      </span>
-                    ))}
+                    <div className="flex min-w-0 items-center gap-2">
+                      {r.hosts.slice(0, DISPLAY_COUNT).map((host, index) => (
+                        <span
+                          key={`${r.rowKey}:host:${host}:${index}`}
+                          className="block max-w-[132px] cursor-pointer truncate text-sm text-slate-700 transition-colors hover:text-blue-700"
+                          title={host}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleHostClick(host)
+                          }}
+                        >
+                          {host}
+                        </span>
+                      ))}
 
-                    {/* 超过 N 个的主机显示 Popover */}
-                    {r.hosts.length > DISPLAY_COUNT && (
-                      <Popover>
-                        <PopoverTrigger>
-                          <span className="text-sm text-gray-500 cursor-pointer hover:text-blue-600">
-                            +{r.hosts.length - DISPLAY_COUNT} more
-                          </span>
-                        </PopoverTrigger>
-                        <PopoverContent className="max-h-64 w-56 overflow-auto rounded-lg shadow-lg p-2 bg-white">
-                          <div className="text-xs font-medium text-gray-500 mb-1">更多主机</div>
-                          {r.hosts.map((host, index) => (
-                            <div
-                              key={`${r.rowKey}:all-host:${host}:${index}`}
-                              className="text-sm text-blue-600 underline cursor-pointer py-1 px-1 rounded hover:bg-blue-50"
-                              onClick={() => handleHostClick(host)}
+                      {/* 超过 N 个的主机显示 Popover */}
+                      {r.hosts.length > DISPLAY_COUNT && (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex h-6 items-center rounded-full bg-blue-50 px-2 text-[11px] font-semibold leading-none text-blue-700 ring-1 ring-inset ring-blue-200 transition-colors hover:bg-blue-100 hover:text-blue-800"
+                              onClick={(e) => e.stopPropagation()}
+                              title={`查看全部 ${r.hosts.length} 台主机`}
                             >
-                              {host}
+                              +{r.hosts.length - DISPLAY_COUNT}
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="max-h-64 w-64 overflow-auto rounded-lg bg-white p-2 shadow-lg">
+                            <div className="mb-2 px-1 text-xs font-medium text-gray-500">全部感染主机</div>
+                            <div className="space-y-1">
+                              {r.hosts.map((host, index) => (
+                                <button
+                                  key={`${r.rowKey}:all-host:${host}:${index}`}
+                                  type="button"
+                                  className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-blue-700 transition-colors hover:bg-blue-50 hover:text-blue-900"
+                                  title={host}
+                                  onClick={() => handleHostClick(host)}
+                                >
+                                  <Monitor className="h-3.5 w-3.5 shrink-0 text-blue-500" aria-hidden="true" />
+                                  <span className="block truncate">{host}</span>
+                                </button>
+                              ))}
                             </div>
-                          ))}
-                        </PopoverContent>
-                      </Popover>
-                    )}
+                          </PopoverContent>
+                        </Popover>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right tabular-nums">{r.hostCount}</TableCell>
                 </TableRow>
