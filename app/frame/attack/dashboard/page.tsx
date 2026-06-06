@@ -231,9 +231,7 @@ export default function AttckDashboardPage() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <StageHostDistributionChart
-            stages={stages}
-            selectedStageSlug={selectedStageSlug}
-            onSelectStage={onSelectStage}
+            snapshotId={overview.bucket.snapshot_id}
           />
 
           <AttackTop10 top10={data.top10 || []} />

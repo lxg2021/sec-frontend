@@ -44,3 +44,9 @@ export interface AttackTaskStatus {
   error_message?: string
   snapshot_id?: string
 }
+
+export interface AttackStageHostDistributionItem {
+  stage: string
+  stage_key: string
+  host_count: number
+}

@@ -632,7 +632,7 @@
           "ariaLabel": "Affected hosts by stage bar chart",
           "affectedHosts": "Affected Hosts",
           "hostTooltip": "Hosts: {count}",
-          "hint": "Tip: Click a bar to select and scroll to the corresponding stage card."
+          "hint": "Tip: Click a bar to highlight the corresponding stage."
         },
         "carousel": {
           "noData": "No stage classification data",

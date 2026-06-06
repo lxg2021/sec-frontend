@@ -4,6 +4,7 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 import { ATTCK_STAGE_DEFINITIONS, getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type {
+  AttackStageHostDistributionItem,
   AttackOverview,
   AttackTaskStatus,
   BucketType,
@@ -64,6 +65,16 @@ interface BackendAttackRuleStatsItem {
 
 interface BackendTopAttackRulesData {
   items?: BackendAttackRuleStatsItem[]
+}
+
+interface BackendAttackStageHostDistributionItem {
+  stage?: string
+  stage_key?: string
+  host_count?: number | string
+}
+
+interface BackendAttackStageHostDistributionData {
+  items?: BackendAttackStageHostDistributionItem[]
 }
 
 interface BackendAttackRuleHostStatsItem {
@@ -374,6 +385,25 @@ export async function fetchAttackDashboardData({
     overview,
     data: adaptDashboardData(overview, detailResults),
   }
+}
+
+export async function fetchAttackStageHostDistribution(snapshotId: string): Promise<AttackStageHostDistributionItem[]> {
+  const normalizedSnapshotId = stringValue(snapshotId)
+  if (!normalizedSnapshotId) return []
+
+  const result = (await http.post("/sensor/analysis/stats/attack-stage-host-distribution", {
+    request_id: createRequestId(),
+    snapshot_id: normalizedSnapshotId,
+  })) as ApiResult<BackendAttackStageHostDistributionData | null>
+
+  const items = Array.isArray(result.data?.items) ? result.data.items : []
+  return items
+    .map((item) => ({
+      stage: stringValue(item.stage),
+      stage_key: stringValue(item.stage_key),
+      host_count: numberValue(item.host_count),
+    }))
+    .filter((item) => item.stage || item.stage_key)
 }
 
 export async function triggerCheck(payload: TriggerCheckPayload): Promise<TriggerCheckResult> {

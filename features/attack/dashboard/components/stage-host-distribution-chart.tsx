@@ -1,18 +1,17 @@
 ﻿"use client"
 
 import type React from "react"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
-import type { AttckStage } from "@/features/attack/utils/attck-utils"
 import { MoreHorizontal } from "lucide-react"
 import { getStageColor } from "@/features/attack/utils/stage-color"
 import { useTranslations } from "next-intl"
 import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
+import { fetchAttackStageHostDistribution } from "@/features/attack/dashboard/api"
+import type { AttackStageHostDistributionItem } from "@/features/attack/dashboard/types"
 
 interface Props {
-  stages: AttckStage[]
-  selectedStageSlug: string | null
-  onSelectStage: (stage: AttckStage) => void
+  snapshotId?: string
 }
 
 type TooltipState =
@@ -27,28 +26,66 @@ function slugify(name: string) {
 }
 
 export default function StageHostDistributionChart({
-  stages,
-  selectedStageSlug,
-  onSelectStage,
+  snapshotId,
 }: Props) {
   const t = useTranslations("pages.attack.dashboard")
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const [tooltip, setTooltip] = useState<TooltipState>(null)
+  const [items, setItems] = useState<AttackStageHostDistributionItem[]>([])
+  const [selectedStageSlug, setSelectedStageSlug] = useState<string | null>(null)
 
   // 固定高度
   const chartHeight = 600
 
+  useEffect(() => {
+    let cancelled = false
+
+    async function loadDistribution() {
+      setItems([])
+      setSelectedStageSlug(null)
+
+      if (!snapshotId) {
+        return
+      }
+
+      try {
+        const result = await fetchAttackStageHostDistribution(snapshotId)
+        if (cancelled) return
+        setItems(result)
+        setSelectedStageSlug((current) => {
+          const normalizedItems = result
+            .map((item) => item.stage_key || slugify(item.stage))
+            .filter((slug) => Boolean(getAttckStageDefinition(slug)))
+          if (current && normalizedItems.includes(current)) {
+            return current
+          }
+          return normalizedItems[0] || null
+        })
+      } catch (error) {
+        console.error("load attack stage host distribution failed", error)
+        if (!cancelled) {
+          setItems([])
+          setSelectedStageSlug(null)
+        }
+      }
+    }
+
+    void loadDistribution()
+
+    return () => {
+      cancelled = true
+    }
+  }, [snapshotId])
+
   const data = useMemo(() => {
-    return stages.map((s) => {
-      const set = new Set<string>()
-      ;(s.details ?? []).forEach((d) =>
-        (d.hosts ?? []).forEach((h) => set.add(h))
-      )
-      const slug = s.stageKey || slugify(s.stage)
-      const label = s.stageKey && getAttckStageDefinition(s.stageKey) ? t(`stages.${s.stageKey}.label`) : s.stage
-      return { stage: s, label, value: set.size, slug }
-    })
-  }, [stages, t])
+    return items.map((item) => {
+      const slug = item.stage_key || slugify(item.stage)
+      const definition = getAttckStageDefinition(slug)
+      if (!definition) return null
+      const label = t(`stages.${definition.key}.label`)
+      return { label, value: item.host_count, slug }
+    }).filter((item): item is { label: string; value: number; slug: string } => Boolean(item))
+  }, [items, t])
 
   const maxVal = Math.max(...data.map((d) => d.value), 1)
   const n = data.length || 1
@@ -147,7 +184,7 @@ export default function StageHostDistributionChart({
                       className="cursor-pointer transition-all duration-200"
                       onMouseMove={(e) => handleMouseMove(e, d.label, d.value)}
                       onMouseLeave={handleMouseLeave}
-                      onClick={() => onSelectStage(d.stage)}
+                      onClick={() => setSelectedStageSlug(d.slug)}
                     />
                     {selected && (
                       <circle

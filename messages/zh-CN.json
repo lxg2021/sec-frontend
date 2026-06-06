@@ -634,7 +634,7 @@
           "ariaLabel": "各阶段受影响主机数量柱状图",
           "affectedHosts": "受影响主机",
           "hostTooltip": "主机：{count}",
-          "hint": "提示：点击条形将选中并定位到对应阶段卡片。"
+          "hint": "提示：点击条形将高亮对应阶段。"
         },
         "carousel": {
           "noData": "暂无阶段分类数据",
