@@ -1,4 +1,5 @@
 import { Shield, User, Calendar, FileText, Tag, ExternalLink, AlertTriangle, Clock } from "lucide-react"
+import type { AttackRuleMeta } from "@/features/attack/utils/attck-utils"
 
 // 规则字段配置数组
 const ruleFields = [
@@ -50,31 +51,35 @@ const formatArrayValue = (value: string[] | string, key?: string) => {
   return value
 }
 
-export const RuleInfoCard = ({ id }: { id: string }) => {
-  // 模拟数据 - 实际使用时会根据id调用后台接口获取
-  const ruleMockData = {
-    id: "ec3ef7be-7dfe-4a72-9ac4-2d162f63de60",
-    title: "activate guest",
-    status: "stable",
-    author: "lxg",
-    date: "2019/12/30",
-    description:
-      "攻击者可能会获取并滥用默认帐户的凭据，作为获得初始访问、持久性、权限升级或防御规避的手段，激活默认的guest账户。",
-    modified: "2024/01/15",
-    references: ["https://attack.mitre.org/techniques/T1078/001/", "https://attack.mitre.org/techniques/T1078/002/"],
-    tags: ["attack.t1078.001"],
-    phases: ["phase.defense evasion"],
+export const RuleInfoCard = ({ id, ruleMeta }: { id: string; ruleMeta?: AttackRuleMeta }) => {
+  if (!ruleMeta) {
+    return (
+      <div className="inline-block min-w-[320px] max-w-[400px] bg-white rounded-lg shadow-md border text-sm">
+        <div className="px-4 py-3 text-sm text-gray-500">暂无规则详情</div>
+      </div>
+    )
   }
 
-  if (!ruleMockData) return null
+  const ruleData = {
+    id: ruleMeta.rule_id || id,
+    title: ruleMeta.title || id,
+    status: ruleMeta.status || "",
+    author: ruleMeta.author || "",
+    date: ruleMeta.rule_date || "",
+    description: ruleMeta.description || "",
+    modified: ruleMeta.modified || "",
+    references: ruleMeta.references || [],
+    tags: ruleMeta.tags || [],
+    phases: ruleMeta.phases || [],
+  }
 
   return (
     <div className="inline-block min-w-[320px] max-w-[400px] bg-white rounded-lg shadow-md border text-sm">
       <div
         className={`px-4 py-3 ${
-          ruleMockData.status.toLowerCase() === "stable"
+          ruleData.status.toLowerCase() === "stable"
             ? "bg-green-50"
-            : ruleMockData.status.toLowerCase() === "experimental"
+            : ruleData.status.toLowerCase() === "experimental"
               ? "bg-yellow-50"
               : "bg-gray-100"
         }`}
@@ -83,10 +88,10 @@ export const RuleInfoCard = ({ id }: { id: string }) => {
           <div className="flex flex-col">
             <div className="flex items-center">
               <Shield className="h-5 w-5 text-blue-600 mr-2" />
-              <h3 className="text-base text-gray-800">{ruleMockData.title}</h3>
+              <h3 className="text-base text-gray-800">{ruleData.title}</h3>
             </div>
           </div>
-          <StatusIndicator status={ruleMockData.status} />
+          <StatusIndicator status={ruleData.status} />
         </div>
       </div>
 
@@ -95,9 +100,9 @@ export const RuleInfoCard = ({ id }: { id: string }) => {
         <div className="flex items-start">
           <FileText className="h-4 w-4 text-blue-500 mr-2 mt-1 flex-shrink-0" />
           <div className="flex-1">
-            <p className="text-xs text-gray-500 mb-1">{ruleMockData.id}</p>
+            <p className="text-xs text-gray-500 mb-1">{ruleData.id}</p>
             <p className="text-xs text-gray-500 mb-2">描述</p>
-            <p className="text-sm text-gray-800 leading-relaxed break-words">{ruleMockData.description}</p>
+            <p className="text-sm text-gray-800 leading-relaxed break-words">{ruleData.description}</p>
           </div>
         </div>
       </div>
@@ -110,8 +115,8 @@ export const RuleInfoCard = ({ id }: { id: string }) => {
             <div className="min-w-0">
               <p className="text-xs text-gray-500">{label}</p>
               <p className="text-sm text-gray-800 truncate">
-                {ruleMockData[key as keyof typeof ruleMockData] ? (
-                  formatArrayValue(ruleMockData[key as keyof typeof ruleMockData] as string[] | string, key)
+                {ruleData[key as keyof typeof ruleData] ? (
+                  formatArrayValue(ruleData[key as keyof typeof ruleData] as string[] | string, key)
                 ) : (
                   <span className="text-gray-400">—</span>
                 )}
@@ -122,13 +127,13 @@ export const RuleInfoCard = ({ id }: { id: string }) => {
       </div>
 
       {/* 参考链接部分 */}
-      {ruleMockData.references && ruleMockData.references.length > 0 && (
+      {ruleData.references && ruleData.references.length > 0 && (
         <div className="px-4 py-3 border-t border-gray-100">
           <div className="flex items-start">
             <ExternalLink className="h-4 w-4 text-blue-500 mr-2 mt-1 flex-shrink-0" />
             <div className="min-w-0">
               <p className="text-xs text-gray-500 mb-2">参考链接</p>
-              {ruleMockData.references.map((ref, index) => (
+              {ruleData.references.map((ref, index) => (
                 <a
                   key={index}
                   href={ref}

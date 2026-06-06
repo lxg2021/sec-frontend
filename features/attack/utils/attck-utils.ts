@@ -1,5 +1,20 @@
 export type Severity = "高" | "中" | "低"
 
+export interface AttackRuleMeta {
+  rule_id?: string
+  title?: string
+  description?: string
+  status?: string
+  author?: string
+  rule_date?: string
+  modified?: string
+  references?: string[]
+  tags?: string[]
+  phases?: string[]
+  rule_file?: string
+  is_invalid?: boolean
+}
+
 export interface AttckDetail {
   attck: string
   ruleid: string
@@ -8,6 +23,7 @@ export interface AttckDetail {
   indicators: string[]
   hosts: string[]
   severity: Severity
+  ruleMeta?: AttackRuleMeta
 }
 
 export interface AttckStage {
@@ -31,6 +47,7 @@ export interface Top10Item {
   "affected-hosts": number
   stage: string
   stages?: string[]
+  ruleMeta?: AttackRuleMeta
 }
 
 export interface AttckData {

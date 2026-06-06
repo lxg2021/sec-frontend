@@ -9,7 +9,14 @@ import type {
   TriggerCheckPayload,
   TriggerCheckResult,
 } from "@/features/attack/dashboard/types"
-import type { AttckData, AttckDetail, AttckStage, Severity, Top10Item } from "@/features/attack/utils/attck-utils"
+import type {
+  AttackRuleMeta,
+  AttckData,
+  AttckDetail,
+  AttckStage,
+  Severity,
+  Top10Item,
+} from "@/features/attack/utils/attck-utils"
 
 interface ApiResult<T> {
   data: T
@@ -25,20 +32,7 @@ interface BackendAttackStatsBucket {
   snapshot_id?: string
 }
 
-interface BackendAttackRuleMeta {
-  rule_id?: string
-  title?: string
-  description?: string
-  status?: string
-  author?: string
-  rule_date?: string
-  modified?: string
-  references?: string[]
-  tags?: string[]
-  phases?: string[]
-  rule_file?: string
-  is_invalid?: boolean
-}
+type BackendAttackRuleMeta = AttackRuleMeta
 
 interface BackendAttackStatsOverviewItem {
   bucket?: BackendAttackStatsBucket
@@ -328,6 +322,7 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       indicators: buildIndicators(item.rule),
       hosts,
       severity,
+      ruleMeta: meta,
     }
 
     for (const rawPhase of normalizedPhases) {
@@ -356,6 +351,7 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       "affected-hosts": numberValue(item.rule.total_hosts) || hosts.length,
       stage: normalizePhase(normalizedPhases[0] || ""),
       stages: normalizedPhases.map(normalizePhase),
+      ruleMeta: meta,
     })
   }
 

@@ -139,7 +139,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
                         <TableRow key={idx}>
 
                           <TableCell className="font-medium">
-                            <RuleInfoPopover id={d.ruleid || ""} side="right">
+                            <RuleInfoPopover id={d.ruleid || ""} side="right" ruleMeta={d.ruleMeta}>
                               <span className="text-gray-800 underline hover:text-blue-600 cursor-pointer">
                                 {id}
                               </span>
