@@ -67,6 +67,14 @@ export default function OverviewCarousel({
     setActiveIndex((i) => (i + 1) % totalPages)
   }
 
+  if (stages.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-muted-foreground">
+        暂无阶段分类数据
+      </div>
+    )
+  }
+
   return (
     <div className="w-full space-y-6">
       {/* 轮播图导航 */}

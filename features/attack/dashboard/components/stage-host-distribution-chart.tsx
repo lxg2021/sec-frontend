@@ -87,6 +87,11 @@ export default function StageHostDistributionChart({
         </div>
       </CardHeader>
       <CardContent className="h-full">
+        {data.length === 0 ? (
+          <div className="flex h-[600px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-muted-foreground">
+            暂无阶段主机分布数据
+          </div>
+        ) : (
         <div
           ref={wrapperRef}
           className="relative w-full"
@@ -190,6 +195,7 @@ export default function StageHostDistributionChart({
             </div>
           )}
         </div>
+        )}
         <div className="mt-2 text-xs text-muted-foreground">
           提示：点击条形将选中并定位到对应阶段卡片。
         </div>

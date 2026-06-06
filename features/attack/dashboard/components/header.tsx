@@ -3,7 +3,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge"
 import type { AttckData, Severity } from "@/features/attack/utils/attck-utils"
-import { formatDateRange, countsFromSeverityEntries } from "@/features/attack/utils/attck-utils"
+import { countsFromSeverityEntries, parseDateSafe } from "@/features/attack/utils/attck-utils"
 import { Activity, Server, ShieldAlert, AlertTriangle, Clock } from "lucide-react"
 import dayjs from "dayjs"
 import { useTranslations } from "next-intl"
@@ -20,44 +20,44 @@ const colorMap: Record<Severity, { chip: string; bar: string }> = {
 
 type HeaderTranslator = ReturnType<typeof useTranslations>
 
-function renderRange(rangeText: string, t: HeaderTranslator) {
-  try {
-    const [startRaw, endRaw] = rangeText.split(" — ");
-    if (!startRaw || !endRaw) throw new Error("Invalid time range format");
+function renderRange(startTime: string, endTime: string, t: HeaderTranslator) {
+  const start = parseDateSafe(startTime)
+  const end = parseDateSafe(endTime)
 
-    const start = dayjs(startRaw).format("YYYY-MM-DD HH:mm");
-    const end = dayjs(endRaw).format("YYYY-MM-DD HH:mm");
-
+  if (!start || !end) {
     return (
-      <div className="mt-1 flex flex-col space-y-2 text-sm text-slate-800 dark:text-white">
+      <div className="mt-1 flex flex-col space-y-2 text-sm text-slate-500 dark:text-slate-300">
         <div className="flex items-center gap-2 font-medium">
           <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-          <span>{t("start")}: {start}</span>
+          <span>{t("start")}: --</span>
         </div>
         <div className="flex items-center gap-2 font-medium">
           <span className="inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
-          <span>{t("end")}: {end}</span>
+          <span>{t("end")}: --</span>
         </div>
       </div>
-    );
-  } catch (error) {
-    console.error("Error parsing time range:", error);
-    return (
-      <div
-        className="mt-1 text-sm text-rose-600 dark:text-rose-400 italic"
-        title="Invalid time format"
-      >
-        {t("timeFormatError", { rangeText })}
-      </div>
-    );
+    )
   }
+
+  return (
+    <div className="mt-1 flex flex-col space-y-2 text-sm text-slate-800 dark:text-white">
+      <div className="flex items-center gap-2 font-medium">
+        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
+        <span>{t("start")}: {dayjs(start).format("YYYY-MM-DD HH:mm")}</span>
+      </div>
+      <div className="flex items-center gap-2 font-medium">
+        <span className="inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
+        <span>{t("end")}: {dayjs(end).format("YYYY-MM-DD HH:mm")}</span>
+      </div>
+    </div>
+  )
 }
 
 export default function AttckHeader({ data }: HeaderProps) {
   const t = useTranslations("pages.attack.dashboard.header")
-  const rangeText = formatDateRange(data.starttime, data.endtime)
   const sevCounts = countsFromSeverityEntries(data.severity)
-  const total = (sevCounts["高"] ?? 0) + (sevCounts["中"] ?? 0) + (sevCounts["低"] ?? 0) || 1
+  const totalCount = (sevCounts["高"] ?? 0) + (sevCounts["中"] ?? 0) + (sevCounts["低"] ?? 0)
+  const barTotal = totalCount || 1
 
   const segments: { key: Severity; labelKey: "high" | "medium" | "low"; value: number }[] = [
     { key: "高", labelKey: "high", value: sevCounts["高"] ?? 0 },
@@ -117,10 +117,10 @@ export default function AttckHeader({ data }: HeaderProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-xs text-muted-foreground mb-2">{t("total", { total })}</div>
+          <div className="text-xs text-muted-foreground mb-2">{t("total", { total: totalCount })}</div>
           <div className="w-full h-2 rounded-full bg-muted overflow-hidden flex mb-2">
             {segments.map((seg) => {
-              const widthPct = `${Math.round((seg.value / total) * 100)}%`
+              const widthPct = `${Math.round((seg.value / barTotal) * 100)}%`
               return (
                 <div
                   key={seg.key}
@@ -156,7 +156,7 @@ export default function AttckHeader({ data }: HeaderProps) {
           </div>
         </CardHeader>
         <CardContent>
-          {renderRange(rangeText, t)}
+          {renderRange(data.starttime, data.endtime, t)}
         </CardContent>
       </Card>
 

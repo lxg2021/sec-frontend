@@ -1,104 +1,157 @@
-﻿"use client"
+"use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import AttckHeader from "@/features/attack/dashboard/components/header"
+import { AttackDashboardHeader } from "@/features/attack/dashboard/components/attack-dashboard-header"
 import StageDetails from "@/features/attack/dashboard/components/stage-details"
 import OverviewCarousel from "@/features/attack/dashboard/components/overview-carousel"
 import StageHostDistributionChart from "@/features/attack/dashboard/components/stage-host-distribution-chart"
 import AttackTop10 from "@/features/attack/dashboard/components/attack-top10"
-import { attckData } from "@/features/attack/mock/dashboard"
-import { Shield, BarChart3, Clock } from "lucide-react"
+import { fetchAttackDashboardData } from "@/features/attack/dashboard/api"
+import type { AttackOverview } from "@/features/attack/dashboard/types"
+import type { AttckData } from "@/features/attack/utils/attck-utils"
+import { BarChart3 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { slugify } from "@/features/attack/utils/stage-color"
 import { useTranslations } from "next-intl"
 
+const EMPTY_DATA: AttckData = {
+  starttime: "",
+  endtime: "",
+  range: "fixed",
+  "affected-hosts": 0,
+  "attck-counts": 0,
+  "stage-counts": 0,
+  severity: [
+    { severity: "高", "affected-hosts": 0 },
+    { severity: "中", "affected-hosts": 0 },
+    { severity: "低", "affected-hosts": 0 },
+  ],
+  top10: [],
+  stages: [],
+}
+
 export default function AttckDashboardPage() {
   const t = useTranslations("pages.attack.dashboard")
-  const data = attckData
+  const [data, setData] = useState<AttckData | null>(null)
+  const [overview, setOverview] = useState<AttackOverview | null>(null)
+  const [checking, setChecking] = useState(false)
+
   const stages = data?.stages || []
-
-  // 默认选中第一个柱形图
   const firstStageSlug = stages.length > 0 ? slugify(stages[0].stage) : null
-  const [selectedStageSlug, setSelectedStageSlug] = useState(firstStageSlug)
+  const [selectedStageSlug, setSelectedStageSlug] = useState<string | null>(null)
 
-  /**
-   * 通过 selectedStageSlug 从 stages 中查找对应的阶段对象。
-   * 当 selectedStageSlug 或 stages 发生变化时重新计算。
-   * 若没有选中阶段，则返回 null
-   * selectedStage: 返回null 或 选中的stage对象
-   */
+  useEffect(() => {
+    void loadDashboard()
+  }, [])
+
+  useEffect(() => {
+    if (!selectedStageSlug && firstStageSlug) {
+      setSelectedStageSlug(firstStageSlug)
+    }
+  }, [firstStageSlug, selectedStageSlug])
+
   const selectedStage = useMemo(() => {
     if (!selectedStageSlug) return null
-    return stages.find(s => slugify(s.stage) === selectedStageSlug) || null
+    return stages.find((stage) => slugify(stage.stage) === selectedStageSlug) || null
   }, [selectedStageSlug, stages])
 
-  /**
-   * 阶段主机分布图的回调函数
-   * 1. 用于触发setSelectedStageSlug(slug)，useMemo
-   * 2. 返回selectedStage对象,用于更新StageDetails组件
-   */
-  function onSelectStage(stage) {
+  async function loadDashboard() {
+    try {
+      const result = await fetchAttackDashboardData()
+      setOverview(result.overview)
+      setData(result.data)
+    } catch (error) {
+      console.error("load attack dashboard failed", error)
+      setOverview({
+        bucket: {
+          bucket_type: "fixed",
+          bucket_start: "",
+          bucket_end: "",
+        },
+        scope: "全部主机",
+        total_rules: 0,
+        total_groups: 0,
+        total_instances: 0,
+        total_sources: 0,
+        total_hosts: 0,
+        total_cases: 0,
+      })
+      setData(EMPTY_DATA)
+    }
+  }
+
+  function onSelectStage(stage: (typeof stages)[number]) {
     const slug = slugify(stage.stage)
     setSelectedStageSlug(slug)
     const el = document.getElementById("stage-details")
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
+  async function handleRefresh() {
+    setChecking(true)
+    await loadDashboard()
+    setChecking(false)
+  }
+
+  async function handleCheckSuccess() {
+    setChecking(true)
+    await loadDashboard()
+    setChecking(false)
+  }
+
+  if (!data || !overview) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="p-6">
+          <div className="rounded-2xl border border-gray-200 bg-white px-6 py-8 text-sm text-gray-500 shadow-sm">
+            正在加载攻击概览...
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
+        <AttackDashboardHeader
+          overview={overview}
+          checking={checking}
+          onRefresh={() => void handleRefresh()}
+          onCheckSuccess={() => void handleCheckSuccess()}
+        />
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <Shield className="h-6 w-6 text-blue-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
-            </div>
-          </div>
-
-          {/* 页面头部 - 添加最后检查时间 */}
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Clock className="h-4 w-4 text-blue-300" />
-            <span>{t("lastChecked", { time: data.endtime })}</span>
-          </div>
-        </div>
-
-        {/* 概览Header组件 */}
         <AttckHeader data={data} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* 攻击阶段主机分布图 */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <StageHostDistributionChart
             stages={stages}
             selectedStageSlug={selectedStageSlug}
             onSelectStage={onSelectStage}
           />
 
-          {/* Attck TOP10 */}
-          <AttackTop10 top10={data?.top10 || []} />
+          <AttackTop10 top10={data.top10 || []} />
         </div>
 
-        {/* Stage统计、详情 */}
         <div className="grid grid-cols-12 gap-6 border-0 shadow-lg">
           <div className="col-span-12">
-            <Card className="bg-white border-gray-200 shadow-sm">
+            <Card className="border-gray-200 bg-white shadow-sm">
               <CardHeader className="pb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-purple-50 rounded-lg">
+                  <div className="rounded-lg bg-purple-50 p-2">
                     <BarChart3 className="h-5 w-5 text-purple-300" />
                   </div>
                   <div>
                     <CardTitle className="text-lg font-medium text-gray-900">{t("stageStats")}</CardTitle>
-                    <CardDescription className="text-sm text-gray-500">{t("stageStatsDescription")}</CardDescription>
+                    <CardDescription className="text-sm text-gray-500">
+                      {t("stageStatsDescription")}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div>
-                  {/* 轮播 */}
                   <OverviewCarousel
                     stages={stages}
                     selectedStageSlug={selectedStageSlug}
@@ -106,7 +159,6 @@ export default function AttckDashboardPage() {
                   />
                 </div>
 
-                {/* 详情 */}
                 <div className="mt-6" id="stage-details">
                   <StageDetails stage={selectedStage} />
                 </div>
@@ -114,7 +166,6 @@ export default function AttckDashboardPage() {
             </Card>
           </div>
         </div>
-
       </div>
     </div>
   )

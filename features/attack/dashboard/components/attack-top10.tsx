@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover"
 
 type Row = {
+  rowKey: string
   id: string
   name: string
   ruleid: string
@@ -23,14 +24,22 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
   const DISPLAY_COUNT = 3 // 前 N 个主机
 
   const rows = useMemo<Row[]>(() => {
-    const normalized = (top10 ?? []).map((t) => ({
-      id: (t.attck || "").toUpperCase(),
-      name: t.name || "",
-      ruleid: t.ruleid || "",
-      hostCount: t["affected-hosts"] ?? 0,
-      stage: t.stage || "",
-      hosts: t.hosts || [],
-    }))
+    const normalized = (top10 ?? []).map((t, index) => {
+      const id = (t.attck || "").toUpperCase()
+      const ruleid = t.ruleid || ""
+      const name = t.name || ""
+      const stage = t.stage || ""
+
+      return {
+        rowKey: [ruleid, id, name, stage, index].filter(Boolean).join("::"),
+        id,
+        name,
+        ruleid,
+        hostCount: t["affected-hosts"] ?? 0,
+        stage,
+        hosts: t.hosts || [],
+      }
+    })
     normalized.sort((a, b) => b.hostCount - a.hostCount)
     return normalized.slice(0, 10)
   }, [top10])
@@ -68,7 +77,7 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
             <TableBody>
               {rows.map((r) => (
                 <TableRow
-                  key={r.id}
+                  key={r.rowKey}
                   className="hover:bg-blue-50 cursor-pointer"
                   title={`查看 ${r.id} 详情`}
                 >
@@ -87,9 +96,9 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                   </TableCell>
                   <TableCell className="flex flex-wrap gap-2">
                     {/* 显示前 N 个主机 */}
-                    {r.hosts.slice(0, DISPLAY_COUNT).map((host) => (
+                    {r.hosts.slice(0, DISPLAY_COUNT).map((host, index) => (
                       <span
-                        key={host}
+                        key={`${r.rowKey}:host:${host}:${index}`}
                         className="text-sm text-blue-600 underline cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation()
@@ -110,9 +119,9 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                         </PopoverTrigger>
                         <PopoverContent className="max-h-64 w-56 overflow-auto rounded-lg shadow-lg p-2 bg-white">
                           <div className="text-xs font-medium text-gray-500 mb-1">更多主机</div>
-                          {r.hosts.map((host) => (
+                          {r.hosts.map((host, index) => (
                             <div
-                              key={host}
+                              key={`${r.rowKey}:all-host:${host}:${index}`}
                               className="text-sm text-blue-600 underline cursor-pointer py-1 px-1 rounded hover:bg-blue-50"
                               onClick={() => handleHostClick(host)}
                             >
