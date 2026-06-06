@@ -326,6 +326,7 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
             <HostInfoCard
               node={selectedHost}
               className="m-0 border-none p-0 shadow-none"
+              reserveCloseSpace
             />
           )}
         </DialogContent>

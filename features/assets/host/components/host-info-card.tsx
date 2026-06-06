@@ -40,7 +40,7 @@ function StatusIndicator({ status }: { status: string }) {
   const isOnline = status.toLowerCase() === "online"
 
   return (
-    <div className="mr-4 flex items-center space-x-1 text-sm font-normal">
+    <div className="flex shrink-0 items-center space-x-1 text-sm font-normal">
       <span
         className={cn(
           "inline-block h-3 w-3 rounded-full",
