@@ -7,13 +7,14 @@ import StageDetails from "@/features/attack/dashboard/components/stage-details"
 import OverviewCarousel from "@/features/attack/dashboard/components/overview-carousel"
 import StageHostDistributionChart from "@/features/attack/dashboard/components/stage-host-distribution-chart"
 import AttackTop10 from "@/features/attack/dashboard/components/attack-top10"
-import { fetchAttackDashboardData } from "@/features/attack/dashboard/api"
+import { fetchAttackDashboardData, getTaskStatus } from "@/features/attack/dashboard/api"
 import type { AttackOverview } from "@/features/attack/dashboard/types"
 import type { AttckData } from "@/features/attack/utils/attck-utils"
 import { BarChart3 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { slugify } from "@/features/attack/utils/stage-color"
 import { useTranslations } from "next-intl"
+import { useToast } from "@/shared/hooks/use-toast"
 
 const EMPTY_DATA: AttckData = {
   starttime: "",
@@ -31,11 +32,21 @@ const EMPTY_DATA: AttckData = {
   stages: [],
 }
 
+const TASK_POLL_INTERVAL_MS = 3000
+const TASK_TIMEOUT_MS = 20 * 60 * 1000
+
+type AsyncTaskState =
+  | { status: "idle"; message?: string }
+  | { status: "pending" | "running"; taskId: string; startedAt: number; message: string }
+  | { status: "success" | "failed" | "timeout"; taskId?: string; message: string }
+
 export default function AttckDashboardPage() {
   const t = useTranslations("pages.attack.dashboard")
+  const { toast } = useToast()
   const [data, setData] = useState<AttckData | null>(null)
   const [overview, setOverview] = useState<AttackOverview | null>(null)
   const [checking, setChecking] = useState(false)
+  const [taskState, setTaskState] = useState<AsyncTaskState>({ status: "idle" })
 
   const stages = data?.stages || []
   const firstStageSlug = stages.length > 0 ? slugify(stages[0].stage) : null
@@ -44,6 +55,84 @@ export default function AttckDashboardPage() {
   useEffect(() => {
     void loadDashboard()
   }, [])
+
+  useEffect(() => {
+    if (taskState.status !== "pending" && taskState.status !== "running") return
+
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const { taskId, startedAt } = taskState
+
+    const poll = async () => {
+      if (cancelled) return
+      if (Date.now() - startedAt >= TASK_TIMEOUT_MS) {
+        setTaskState({
+          status: "timeout",
+          taskId,
+          message: "检查任务已等待超过20分钟，可稍后刷新查看结果",
+        })
+        toast({
+          title: "检查任务等待超时",
+          description: "已等待超过20分钟，可稍后刷新查看结果",
+        })
+        return
+      }
+
+      try {
+        const status = await getTaskStatus(taskId)
+        if (cancelled) return
+
+        if (status.status === "success") {
+          setTaskState({ status: "success", taskId, message: "检查完成，已刷新概览" })
+          await loadDashboard()
+          if (!cancelled) {
+            toast({
+              title: "检查完成",
+              description: "攻击概览已刷新",
+            })
+          }
+          return
+        }
+
+        if (status.status === "failed") {
+          setTaskState({
+            status: "failed",
+            taskId,
+            message: status.error_message || "检查任务执行失败",
+          })
+          toast({
+            title: "检查任务失败",
+            description: status.error_message || "检查任务执行失败",
+            variant: "destructive",
+          })
+          return
+        }
+
+        setTaskState((current) => {
+          if (current.status !== "pending" && current.status !== "running") return current
+          if (current.taskId !== taskId) return current
+          return {
+            ...current,
+            status: status.status === "pending" ? "pending" : "running",
+            message: status.status === "pending" ? "任务排队中" : "检查中...",
+          }
+        })
+      } catch (error) {
+        console.error("poll attack stats task failed", error)
+      }
+
+      if (!cancelled) {
+        timer = setTimeout(poll, TASK_POLL_INTERVAL_MS)
+      }
+    }
+
+    timer = setTimeout(poll, TASK_POLL_INTERVAL_MS)
+
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [taskState, toast])
 
   useEffect(() => {
     if (!selectedStageSlug && firstStageSlug) {
@@ -94,11 +183,19 @@ export default function AttckDashboardPage() {
     setChecking(false)
   }
 
-  async function handleCheckSuccess() {
-    setChecking(true)
-    await loadDashboard()
-    setChecking(false)
+  function handleCheckSubmitted(taskId: string) {
+    setTaskState({
+      status: "pending",
+      taskId,
+      startedAt: Date.now(),
+      message: "任务已提交，等待执行",
+    })
+    toast({
+      title: "检查任务已提交",
+      description: "正在后台执行攻击溯源检查",
+    })
   }
+  const taskChecking = taskState.status === "pending" || taskState.status === "running"
 
   if (!data || !overview) {
     return (
@@ -117,9 +214,9 @@ export default function AttckDashboardPage() {
       <div className="p-6 space-y-6">
         <AttackDashboardHeader
           overview={overview}
-          checking={checking}
+          checking={checking || taskChecking}
           onRefresh={() => void handleRefresh()}
-          onCheckSuccess={() => void handleCheckSuccess()}
+          onCheckSubmitted={handleCheckSubmitted}
         />
 
         <AttckHeader data={data} />

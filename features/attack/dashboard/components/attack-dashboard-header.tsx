@@ -18,7 +18,7 @@ interface AttackDashboardHeaderProps {
   overview: AttackOverview
   checking?: boolean
   onRefresh?: () => void
-  onCheckSuccess?: () => void
+  onCheckSubmitted?: (taskId: string) => void
   className?: string
 }
 
@@ -46,7 +46,7 @@ export function AttackDashboardHeader({
   overview,
   checking = false,
   onRefresh,
-  onCheckSuccess,
+  onCheckSubmitted,
   className,
 }: AttackDashboardHeaderProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -87,7 +87,7 @@ export function AttackDashboardHeader({
               <Clock className="h-4 w-4" />
             </span>
             <div className="flex flex-col">
-              <p className="text-xs leading-none text-slate-400">{checking ? "检查中" : "检查范围"}</p>
+              <p className="text-xs leading-none text-slate-400">检查范围</p>
               <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700 tabular-nums">
                 <span>{rangeStart}</span>
                 <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
@@ -131,7 +131,7 @@ export function AttackDashboardHeader({
         onOpenChange={setDialogOpen}
         defaultStart={toInputValue(bucket.bucket_start)}
         defaultEnd={toInputValue(bucket.bucket_end)}
-        onSuccess={onCheckSuccess}
+        onSubmitted={onCheckSubmitted}
       />
     </header>
   )

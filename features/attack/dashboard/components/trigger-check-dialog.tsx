@@ -12,7 +12,7 @@ import {
 } from "@/shared/ui/dialog"
 import { cn } from "@/shared/lib/utils"
 import type { TriggerCheckPayload } from "@/features/attack/dashboard/types"
-import { getTaskStatus, triggerCheck } from "@/features/attack/dashboard/api"
+import { triggerCheck } from "@/features/attack/dashboard/api"
 import { Button } from "@/features/attack/dashboard/components/ui/button"
 
 const TIMEZONE_OPTIONS = ["Asia/Shanghai", "UTC"]
@@ -22,17 +22,17 @@ interface TriggerCheckDialogProps {
   onOpenChange: (open: boolean) => void
   defaultStart?: string
   defaultEnd?: string
-  onSuccess?: () => void
+  onSubmitted?: (taskId: string) => void
 }
 
-type Phase = "idle" | "submitting" | "polling" | "failed"
+type Phase = "idle" | "submitting" | "failed"
 
 export function TriggerCheckDialog({
   open,
   onOpenChange,
   defaultStart = "",
   defaultEnd = "",
-  onSuccess,
+  onSubmitted,
 }: TriggerCheckDialogProps) {
   const [startTime, setStartTime] = useState(defaultStart)
   const [endTime, setEndTime] = useState(defaultEnd)
@@ -46,7 +46,7 @@ export function TriggerCheckDialog({
     setEndTime(defaultEnd)
   }, [defaultEnd, defaultStart, open])
 
-  const loading = phase === "submitting" || phase === "polling"
+  const loading = phase === "submitting"
 
   const resetState = () => {
     setPhase("idle")
@@ -60,17 +60,6 @@ export function TriggerCheckDialog({
       return "开始时间不能晚于结束时间"
     }
     return null
-  }
-
-  const pollUntilDone = async (taskId: string) => {
-    while (true) {
-      const status = await getTaskStatus(taskId)
-      if (status.status === "success") return
-      if (status.status === "failed") {
-        throw new Error(status.error_message || "检查任务执行失败")
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-    }
   }
 
   const handleConfirm = async () => {
@@ -92,14 +81,15 @@ export function TriggerCheckDialog({
 
     try {
       const result = await triggerCheck(payload)
-      setPhase("polling")
-      await pollUntilDone(result.task_id)
-      onSuccess?.()
+      if (!result.task_id) {
+        throw new Error("检查任务提交失败，未返回任务ID")
+      }
       onOpenChange(false)
       resetState()
+      onSubmitted?.(result.task_id)
     } catch (err) {
       setPhase("failed")
-      setError(err instanceof Error ? err.message : "检查任务执行失败")
+      setError(err instanceof Error ? err.message : "检查任务提交失败")
     }
   }
 
@@ -194,13 +184,6 @@ export function TriggerCheckDialog({
           </Field>
         </div>
 
-        {phase === "polling" ? (
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-            检查中，正在等待任务完成。
-          </div>
-        ) : null}
-
         {error ? (
           <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
@@ -212,7 +195,7 @@ export function TriggerCheckDialog({
             取消
           </Button>
           <Button onClick={handleConfirm} disabled={loading}>
-            {loading ? "检查中..." : "确认"}
+            {loading ? "提交中..." : "确认"}
           </Button>
         </div>
       </DialogContent>
