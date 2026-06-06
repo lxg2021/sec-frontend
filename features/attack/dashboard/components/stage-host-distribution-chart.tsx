@@ -95,7 +95,7 @@ export default function StageHostDistributionChart({
   const n = data.length || 1
 
   const width = 800
-  const margin = { top: 20, right: 20, bottom: 60, left: 50 }
+  const margin = { top: 44, right: 20, bottom: 60, left: 50 }
   const innerW = width - margin.left - margin.right
   const innerH = chartHeight - margin.top - margin.bottom
 
@@ -149,6 +149,11 @@ export default function StageHostDistributionChart({
             aria-label={t("stageChart.ariaLabel")}
             className="w-full h-full select-none"
           >
+            <defs>
+              <filter id="selected-stage-bar-shadow" x="-40%" y="-40%" width="180%" height="180%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#0f172a" floodOpacity="0.18" />
+              </filter>
+            </defs>
             <g transform={`translate(${margin.left},${margin.top})`}>
               {Array.from({ length: 5 }).map((_, i) => {
                 const yVal = Math.round((maxVal * i) / 4)
@@ -175,42 +180,21 @@ export default function StageHostDistributionChart({
                 const y = innerH - h
                 const selected = selectedStageSlug === d.slug
                 return (
-                  <g key={d.label} transform={`translate(${x},0)`}>
+                  <g key={d.slug} transform={`translate(${x},0)`}>
                     <rect
                       x={0}
                       y={y}
                       width={barW}
                       height={h}
                       fill={getStageColor(d.slug)}
-                      stroke={selected ? "#2563eb" : "transparent"}
-                      strokeWidth={selected ? 2 : 0}
+                      opacity={selectedStageSlug && !selected ? 0.58 : 1}
+                      filter={selected ? "url(#selected-stage-bar-shadow)" : undefined}
                       rx={4}
                       className="cursor-pointer transition-all duration-200"
                       onMouseMove={(e) => handleMouseMove(e, d.label, d.value)}
                       onMouseLeave={handleMouseLeave}
                       onClick={() => setSelectedStageSlug(d.slug)}
                     />
-                    {selected && (
-                      <circle
-                        cx={barW / 2}
-                        cy={y - 10}
-                        r={8}
-                        fill="#2563eb"
-                        stroke="white"
-                        strokeWidth={2}
-                      />
-                    )}
-                    {selected && (
-                      <text
-                        x={barW / 2}
-                        y={y - 6}
-                        textAnchor="middle"
-                        fontSize="8"
-                        fill="white"
-                      >
-                        ✓
-                      </text>
-                    )}
                     <text
                       x={barW / 2}
                       y={innerH + 20}
@@ -242,9 +226,6 @@ export default function StageHostDistributionChart({
           )}
         </div>
         )}
-        <div className="mt-2 text-xs text-muted-foreground">
-          {t("stageChart.hint")}
-        </div>
       </CardContent>
     </Card>
   )
