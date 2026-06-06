@@ -657,6 +657,20 @@
           "hostNotFound": "未查询到主机 {host} 的信息",
           "loadHostFailed": "主机详情加载失败"
         },
+        "trend": {
+          "title": "攻击趋势",
+          "instances": "攻击实例",
+          "hosts": "影响主机",
+          "rules": "命中规则",
+          "loading": "加载攻击趋势...",
+          "noData": "暂无攻击趋势数据",
+          "loadFailed": "攻击趋势加载失败",
+          "ranges": {
+            "24h": "24小时",
+            "7d": "7天",
+            "30d": "30天"
+          }
+        },
         "stageChart": {
           "title": "Stage主机分布图",
           "noData": "暂无阶段主机分布数据",

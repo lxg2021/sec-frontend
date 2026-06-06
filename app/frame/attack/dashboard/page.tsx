@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import AttckHeader from "@/features/attack/dashboard/components/header"
 import { AttackDashboardHeader } from "@/features/attack/dashboard/components/attack-dashboard-header"
 import StageHostDistributionChart from "@/features/attack/dashboard/components/stage-host-distribution-chart"
+import AttackStatsTrendChart from "@/features/attack/dashboard/components/attack-stats-trend-chart"
 import AttackTop10 from "@/features/attack/dashboard/components/attack-top10"
 import TopRiskHosts from "@/features/attack/dashboard/components/top-risk-hosts"
 import { fetchAttackDashboardData, getTaskStatus } from "@/features/attack/dashboard/api"
@@ -199,10 +200,11 @@ export default function AttckDashboardPage() {
 
         <AttckHeader data={data} overview={overview} />
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <StageHostDistributionChart
             snapshotId={overview.bucket.snapshot_id}
           />
+          <AttackStatsTrendChart />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

@@ -5,9 +5,11 @@ import { createRequestId } from "@/shared/lib/utils"
 import { ATTCK_STAGE_DEFINITIONS, getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type {
   AttackStageHostDistributionItem,
+  AttackStatsTrendParams,
   AttackOverview,
   AttackTaskStatus,
   AttackTopHostItem,
+  AttackTrendPoint,
   BucketType,
   TriggerCheckPayload,
   TriggerCheckResult,
@@ -93,6 +95,10 @@ interface BackendAttackHostStatsItem {
 
 interface BackendTopAttackHostsData {
   items?: BackendAttackHostStatsItem[]
+}
+
+interface BackendAttackStatsTrendData {
+  items?: BackendAttackStatsOverviewItem[]
 }
 
 interface BackendAttackRuleHostStatsItem {
@@ -458,6 +464,24 @@ export async function fetchTopAttackHosts(snapshotId: string, limit = DEFAULT_TO
     risk_score: numberValue(item.risk_score),
     total_cases: numberValue(item.total_cases),
   }))
+}
+
+export async function fetchAttackStatsTrend({
+  bucketType,
+  startTime,
+  endTime,
+  timezone = "Asia/Shanghai",
+}: AttackStatsTrendParams): Promise<AttackTrendPoint[]> {
+  const result = (await http.post("/sensor/analysis/stats/attack-trend", {
+    request_id: createRequestId(),
+    bucket_type: bucketType,
+    start_time: normalizeTaskTime(startTime),
+    end_time: normalizeTaskTime(endTime),
+    timezone,
+  })) as ApiResult<BackendAttackStatsTrendData | null>
+
+  const items = Array.isArray(result.data?.items) ? result.data.items : []
+  return items.map(buildOverview)
 }
 
 export async function triggerCheck(payload: TriggerCheckPayload): Promise<TriggerCheckResult> {

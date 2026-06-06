@@ -655,6 +655,20 @@
           "hostNotFound": "No information found for host {host}",
           "loadHostFailed": "Failed to load host details"
         },
+        "trend": {
+          "title": "Attack Trend",
+          "instances": "Attack Instances",
+          "hosts": "Affected Hosts",
+          "rules": "Matched Rules",
+          "loading": "Loading attack trend...",
+          "noData": "No attack trend data",
+          "loadFailed": "Failed to load attack trend",
+          "ranges": {
+            "24h": "24h",
+            "7d": "7d",
+            "30d": "30d"
+          }
+        },
         "stageChart": {
           "title": "Stage Host Distribution",
           "noData": "No stage host distribution data",

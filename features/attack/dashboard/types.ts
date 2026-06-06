@@ -61,3 +61,12 @@ export interface AttackTopHostItem {
   risk_score: number
   total_cases: number
 }
+
+export interface AttackTrendPoint extends AttackOverview {}
+
+export interface AttackStatsTrendParams {
+  bucketType: BucketType
+  startTime: string
+  endTime: string
+  timezone?: string
+}
