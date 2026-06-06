@@ -48,6 +48,10 @@ interface BackendAttackStatsOverviewItem {
   total_sources?: number | string
   total_hosts?: number | string
   total_cases?: number | string
+  critical_count?: number | string
+  high_count?: number | string
+  medium_count?: number | string
+  low_count?: number | string
 }
 
 interface BackendAttackStatsOverviewData {
@@ -279,6 +283,10 @@ function buildOverview(raw?: BackendAttackStatsOverviewItem): AttackOverview {
     total_sources: numberValue(raw?.total_sources),
     total_hosts: numberValue(raw?.total_hosts),
     total_cases: numberValue(raw?.total_cases),
+    critical_count: numberValue(raw?.critical_count),
+    high_count: numberValue(raw?.high_count),
+    medium_count: numberValue(raw?.medium_count),
+    low_count: numberValue(raw?.low_count),
   }
 }
 
@@ -291,9 +299,9 @@ function buildEmptyAttckData(overview: AttackOverview): AttckData {
     "attck-counts": overview.total_rules,
     "stage-counts": 0,
     severity: [
-      { severity: "高", "affected-hosts": 0 },
-      { severity: "中", "affected-hosts": 0 },
-      { severity: "低", "affected-hosts": 0 },
+      { severity: "高", "affected-hosts": overview.critical_count + overview.high_count },
+      { severity: "中", "affected-hosts": overview.medium_count },
+      { severity: "低", "affected-hosts": overview.low_count },
     ],
     top10: [],
     stages: [],
@@ -303,7 +311,6 @@ function buildEmptyAttckData(overview: AttackOverview): AttckData {
 function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHosts[]): AttckData {
   const base = buildEmptyAttckData(overview)
   const stageMap = new Map<string, AttckStage>()
-  const severityCounts: Record<Severity, number> = { 高: 0, 中: 0, 低: 0 }
   const top10: Top10Item[] = []
 
   for (const item of rulesWithHosts) {
@@ -312,7 +319,6 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
     const normalizedPhases = phases.length > 0 ? phases : ["unknown"]
     const hosts = item.hosts.map(hostLabel).filter(Boolean)
     const severity = normalizeSeverityByCounts(item.rule)
-    severityCounts[severity] += 1
 
     const techniqueId = extractTechniqueId(meta)
     const detail: AttckDetail = {
@@ -358,11 +364,6 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
   return {
     ...base,
     "stage-counts": stageMap.size,
-    severity: [
-      { severity: "高", "affected-hosts": severityCounts["高"] },
-      { severity: "中", "affected-hosts": severityCounts["中"] },
-      { severity: "低", "affected-hosts": severityCounts["低"] },
-    ],
     top10: top10.slice(0, DEFAULT_TOP_LIMIT),
     stages: Array.from(stageMap.values()),
   }

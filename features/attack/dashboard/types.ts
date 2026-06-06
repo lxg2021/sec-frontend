@@ -20,6 +20,10 @@ export interface AttackOverview {
   total_sources: number
   total_hosts: number
   total_cases: number
+  critical_count: number
+  high_count: number
+  medium_count: number
+  low_count: number
 }
 
 export interface TriggerCheckPayload {
