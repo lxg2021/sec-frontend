@@ -29,6 +29,26 @@ function slugify(name: string) {
     .replace(/^-+|-+$/g, "")
 }
 
+function buildYAxisTicks(maxValue: number) {
+  if (maxValue <= 10) {
+    return Array.from({ length: maxValue + 1 }, (_, index) => index)
+  }
+
+  const targetTickCount = 5
+  const rawStep = maxValue / (targetTickCount - 1)
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep))
+  const normalized = rawStep / magnitude
+  const niceStep =
+    normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10
+  const step = niceStep * magnitude
+  const topValue = Math.ceil(maxValue / step) * step
+
+  return Array.from(
+    { length: Math.floor(topValue / step) + 1 },
+    (_, index) => index * step,
+  )
+}
+
 export default function StageHostDistributionChart({
   snapshotId,
 }: Props) {
@@ -92,6 +112,8 @@ export default function StageHostDistributionChart({
   }, [items, t])
 
   const maxVal = Math.max(...data.map((d) => d.value), 1)
+  const yAxisTicks = buildYAxisTicks(maxVal)
+  const yAxisMax = yAxisTicks[yAxisTicks.length - 1] || maxVal
   const n = data.length || 1
 
   const width = 800
@@ -155,11 +177,10 @@ export default function StageHostDistributionChart({
               </filter>
             </defs>
             <g transform={`translate(${margin.left},${margin.top})`}>
-              {Array.from({ length: 5 }).map((_, i) => {
-                const yVal = Math.round((maxVal * i) / 4)
-                const y = innerH - (yVal / maxVal) * innerH
+              {yAxisTicks.map((yVal) => {
+                const y = innerH - (yVal / yAxisMax) * innerH
                 return (
-                  <g key={i} transform={`translate(0,${y})`}>
+                  <g key={yVal} transform={`translate(0,${y})`}>
                     <line x1={0} x2={innerW} stroke="#e5e7eb" />
                     <text
                       x={-8}
@@ -176,7 +197,7 @@ export default function StageHostDistributionChart({
 
               {data.map((d, i) => {
                 const x = i * (barW + gap)
-                const h = (d.value / maxVal) * innerH
+                const h = (d.value / yAxisMax) * innerH
                 const y = innerH - h
                 const selected = selectedStageSlug === d.slug
                 return (
