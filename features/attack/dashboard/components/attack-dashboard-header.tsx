@@ -58,71 +58,71 @@ export function AttackDashboardHeader({
   return (
     <header
       className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-border bg-card px-6 py-4 shadow-sm md:flex-row md:items-center md:justify-between",
+        "w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]",
         className,
       )}
     >
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-          <Radar className="h-6 w-6" />
-        </div>
-        <div className="space-y-1.5">
-          <h1 className="text-lg font-bold tracking-tight text-foreground">攻击溯源概览</h1>
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="inline-flex items-center rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold tracking-wide text-secondary-foreground">
-              {BUCKET_LABEL[bucket.bucket_type]}
-            </span>
-            <span className="text-muted-foreground">
-              ATT&amp;CK <span className="px-1 text-border">/</span>
-              {scope || "全部主机"}
-            </span>
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
+            <Radar className="h-5 w-5" />
           </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="flex min-w-[220px] items-center gap-3 rounded-2xl bg-slate-50/90 px-3 py-2.5 xl:border-l xl:border-slate-200 xl:bg-transparent xl:pl-5 xl:pr-0">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80 xl:bg-slate-50">
-            <Clock className="h-4 w-4" />
-          </span>
-          <div className="flex flex-col">
-            <p className="text-xs leading-none text-slate-400">{checking ? "检查中" : "检查范围"}</p>
-            <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700 tabular-nums">
-              <span>{rangeStart}</span>
-              <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
-              <span>{rangeEnd}</span>
+          <div className="min-w-0 space-y-1.5">
+            <h1 className="truncate text-lg font-semibold text-slate-950">攻击溯源概览</h1>
+            <div className="flex flex-wrap items-center gap-2.5 text-sm">
+              <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
+                {BUCKET_LABEL[bucket.bucket_type]}
+              </span>
+              <span className="text-slate-500">
+                ATT&amp;CK <span className="px-1 text-slate-200">/</span>
+                {scope || "全部主机"}
+              </span>
             </div>
           </div>
         </div>
 
-        <span className="hidden h-8 w-px bg-border md:block" aria-hidden />
+        <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
+          <div className="flex min-w-[220px] items-center gap-3 rounded-2xl bg-slate-50/90 px-3 py-2.5 lg:border-l lg:border-slate-200 lg:bg-transparent lg:pl-5 lg:pr-0">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80 lg:bg-slate-50">
+              <Clock className="h-4 w-4" />
+            </span>
+            <div className="flex flex-col">
+              <p className="text-xs leading-none text-slate-400">{checking ? "检查中" : "检查范围"}</p>
+              <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700 tabular-nums">
+                <span>{rangeStart}</span>
+                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
+                <span>{rangeEnd}</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setDialogOpen(true)}
-            disabled={checking}
-            className="h-10 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
-          >
-            {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
-            <span className="font-medium">{checking ? "检查中..." : "立即检查"}</span>
-          </Button>
+          <div className="flex items-center gap-1 lg:border-l lg:border-slate-200 lg:pl-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setDialogOpen(true)}
+              disabled={checking}
+              className="h-10 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+            >
+              {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
+              <span className="font-medium">{checking ? "检查中..." : "立即检查"}</span>
+            </Button>
+          </div>
 
-          <span className="h-6 w-px bg-border" aria-hidden />
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onRefresh}
-            disabled={checking}
-            aria-label="刷新概览"
-            className="h-10 w-10 shrink-0 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-          >
-            <RefreshCw className={cn("h-4 w-4", checking && "animate-spin")} />
-            <span className="sr-only">刷新概览</span>
-          </Button>
+          <div className="flex items-center lg:border-l lg:border-slate-200 lg:pl-3">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={onRefresh}
+              disabled={checking}
+              aria-label="刷新概览"
+              className="h-10 w-10 shrink-0 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            >
+              <RefreshCw className={cn("h-4 w-4", checking && "animate-spin")} />
+              <span className="sr-only">刷新概览</span>
+            </Button>
+          </div>
         </div>
       </div>
 
