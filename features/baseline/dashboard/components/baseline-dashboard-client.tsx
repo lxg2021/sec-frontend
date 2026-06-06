@@ -30,8 +30,13 @@ import TrendChart from "./trend-chart"
 
 function toDateOnly(value: string) {
   const trimmed = value.trim()
-  if (!trimmed) return new Date().toISOString().slice(0, 10)
+  if (!trimmed) return toLocalDateOnly(new Date())
   return trimmed.slice(0, 10).replaceAll("/", "-")
+}
+
+function toLocalDateOnly(value: Date) {
+  const pad = (part: number) => String(part).padStart(2, "0")
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`
 }
 
 function shiftDate(date: string, days: number) {
@@ -108,6 +113,8 @@ export default function BaselineDashboardClient() {
     if (!option) return
 
     const statDate = toDateOnly(option.latest_check_time)
+    const trendEndDate = toLocalDateOnly(new Date())
+    const trendStartDate = shiftDate(trendEndDate, -6)
     setLoadingStats(true)
     setLoadingCategory(true)
     setError("")
@@ -115,7 +122,7 @@ export default function BaselineDashboardClient() {
     try {
       const [daily, trend, categories] = await Promise.all([
         fetchBaselineDailyStats(option.baseline_uuid, statDate),
-        fetchBaselineTrend(option.baseline_uuid, shiftDate(statDate, -6), statDate),
+        fetchBaselineTrend(option.baseline_uuid, trendStartDate, trendEndDate),
         fetchBaselineCategoryStats(option.baseline_uuid),
       ])
 
