@@ -87,15 +87,15 @@ export function AttackDashboardHeader({
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="flex min-w-[220px] items-center gap-3 rounded-2xl bg-slate-50/90 px-3 py-2.5 xl:border-l xl:border-slate-200 xl:bg-transparent xl:pl-5 xl:pr-0">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80 xl:bg-slate-50">
             <Clock className="h-4 w-4" />
           </span>
-          <div className="leading-tight">
-            <p className="text-xs text-muted-foreground">{checking ? "检查中" : "检查范围"}</p>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-foreground tabular-nums">
+          <div className="flex flex-col">
+            <p className="text-xs leading-none text-slate-400">{checking ? "检查中" : "检查范围"}</p>
+            <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700 tabular-nums">
               <span>{rangeStart}</span>
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+              <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
               <span>{rangeEnd}</span>
             </div>
           </div>
