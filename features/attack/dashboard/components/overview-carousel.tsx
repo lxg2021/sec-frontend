@@ -77,7 +77,7 @@ export default function OverviewCarousel({
   if (stages.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-gray-200 px-6 py-10 text-center text-sm text-muted-foreground">
-        暂无阶段分类数据
+        {t("carousel.noData")}
       </div>
     )
   }
@@ -92,7 +92,7 @@ export default function OverviewCarousel({
             size="icon"
             onClick={goToPrevious}
             className="h-8 w-8 rounded-full border-gray-300 hover:bg-gray-50 bg-transparent"
-            aria-label="上一页"
+            aria-label={t("carousel.previousPage")}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -101,7 +101,7 @@ export default function OverviewCarousel({
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                aria-label={`第 ${index + 1} 页`}
+                aria-label={t("carousel.pageAria", { page: index + 1 })}
                 className={`w-2 h-2 rounded-full transition-all duration-200 ${
                   index === activeIndex ? "bg-blue-600 w-6" : "bg-gray-300 hover:bg-gray-400"
                 }`}
@@ -113,14 +113,14 @@ export default function OverviewCarousel({
             size="icon"
             onClick={goToNext}
             className="h-8 w-8 rounded-full border-gray-300 hover:bg-gray-50 bg-transparent"
-            aria-label="下一页"
+            aria-label={t("carousel.nextPage")}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="text-sm text-gray-500">
-          {activeIndex + 1} / {totalPages} 页 · 共 {stages.length} 个阶段
+          {t("carousel.summary", { current: activeIndex + 1, total: totalPages, count: stages.length })}
         </div>
       </div>
 

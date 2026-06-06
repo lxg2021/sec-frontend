@@ -87,14 +87,14 @@ export default function StageHostDistributionChart({
             <MoreHorizontal className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
           <CardTitle className="text-base md:text-lg font-semibold text-slate-800 dark:text-white">
-            Stage主机分布图
+            {t("stageChart.title")}
           </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="h-full">
         {data.length === 0 ? (
           <div className="flex h-[600px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-muted-foreground">
-            暂无阶段主机分布数据
+            {t("stageChart.noData")}
           </div>
         ) : (
         <div
@@ -105,7 +105,7 @@ export default function StageHostDistributionChart({
           <svg
             viewBox={`0 0 ${width} ${chartHeight}`}
             role="img"
-            aria-label="各阶段受影响主机数量柱状图"
+            aria-label={t("stageChart.ariaLabel")}
             className="w-full h-full select-none"
           >
             <g transform={`translate(${margin.left},${margin.top})`}>
@@ -186,7 +186,7 @@ export default function StageHostDistributionChart({
             </g>
 
             <text x={12} y={14} fontSize="11" fill="#6b7280">
-              受影响主机
+              {t("stageChart.affectedHosts")}
             </text>
           </svg>
 
@@ -196,13 +196,13 @@ export default function StageHostDistributionChart({
               style={{ left: tooltip.x, top: tooltip.y }}
             >
               <div className="font-medium">{tooltip.label}</div>
-              <div>主机：{tooltip.value}</div>
+              <div>{t("stageChart.hostTooltip", { count: tooltip.value })}</div>
             </div>
           )}
         </div>
         )}
         <div className="mt-2 text-xs text-muted-foreground">
-          提示：点击条形将选中并定位到对应阶段卡片。
+          {t("stageChart.hint")}
         </div>
       </CardContent>
     </Card>

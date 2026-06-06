@@ -7,6 +7,7 @@ import { cn } from "@/shared/lib/utils"
 import type { AttackOverview, BucketType } from "@/features/attack/dashboard/types"
 import { TriggerCheckDialog } from "@/features/attack/dashboard/components/trigger-check-dialog"
 import { Button } from "@/shared/ui/button"
+import { useTranslations } from "next-intl"
 
 const BUCKET_LABEL: Record<BucketType, string> = {
   fixed: "FIXED",
@@ -49,6 +50,7 @@ export function AttackDashboardHeader({
   onCheckSubmitted,
   className,
 }: AttackDashboardHeaderProps) {
+  const t = useTranslations("pages.attack.dashboard")
   const [dialogOpen, setDialogOpen] = useState(false)
   const { bucket, scope } = overview
 
@@ -68,14 +70,14 @@ export function AttackDashboardHeader({
             <Radar className="h-5 w-5" />
           </div>
           <div className="min-w-0 space-y-1.5">
-            <h1 className="truncate text-lg font-semibold text-slate-950">攻击溯源概览</h1>
+            <h1 className="truncate text-lg font-semibold text-slate-950">{t("title")}</h1>
             <div className="flex flex-wrap items-center gap-2.5 text-sm">
               <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
                 {BUCKET_LABEL[bucket.bucket_type]}
               </span>
               <span className="text-slate-500">
                 ATT&amp;CK <span className="px-1 text-slate-200">/</span>
-                {scope || "全部主机"}
+                {scope || t("allHosts")}
               </span>
             </div>
           </div>
@@ -87,7 +89,7 @@ export function AttackDashboardHeader({
               <Clock className="h-4 w-4" />
             </span>
             <div className="flex flex-col">
-              <p className="text-xs leading-none text-slate-400">检查范围</p>
+              <p className="text-xs leading-none text-slate-400">{t("header.checkRange")}</p>
               <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700 tabular-nums">
                 <span>{rangeStart}</span>
                 <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
@@ -105,7 +107,7 @@ export function AttackDashboardHeader({
               className="h-10 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
             >
               {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
-              <span className="font-medium">{checking ? "检查中..." : "立即检查"}</span>
+              <span className="font-medium">{checking ? t("header.checking") : t("header.checkNow")}</span>
             </Button>
           </div>
 
@@ -116,11 +118,11 @@ export function AttackDashboardHeader({
               size="icon"
               onClick={onRefresh}
               disabled={checking}
-              aria-label="刷新概览"
+              aria-label={t("header.refreshOverview")}
               className="h-10 w-10 shrink-0 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
               <RefreshCw className={cn("h-4 w-4", checking && "animate-spin")} />
-              <span className="sr-only">刷新概览</span>
+              <span className="sr-only">{t("header.refreshOverview")}</span>
             </Button>
           </div>
         </div>

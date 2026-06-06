@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { type AttckStage, type Severity, badgeSeverityTextColor } from "@/features/attack/utils/attck-utils"
+import { type AttackIndicator, type AttckStage, type Severity, badgeSeverityTextColor } from "@/features/attack/utils/attck-utils"
 import { getStageIconComponent, getStageIconBgStyle } from "@/features/attack/utils/stage-icon"
 import { getStageColor, slugify } from "@/features/attack/utils/stage-color"
 import { Inspect } from "lucide-react"
@@ -37,6 +37,21 @@ export default function StageDetails({ stage }: StageDetailsProps) {
 
   const details = stage?.details ?? []
 
+  function indicatorLabel(indicator: AttackIndicator) {
+    switch (indicator.type) {
+      case "description":
+        return t("stageDetails.indicatorDescription", { value: indicator.value })
+      case "groups":
+        return t("stageDetails.indicatorGroups", { value: indicator.value })
+      case "instances":
+        return t("stageDetails.indicatorInstances", { value: indicator.value })
+      case "sources":
+        return t("stageDetails.indicatorSources", { value: indicator.value })
+      case "empty":
+        return t("stageDetails.indicatorEmpty")
+    }
+  }
+
   const rows = useMemo(() => {
     const tq = techQuery.trim().toLowerCase()
     const hq = hostQuery.trim().toLowerCase()
@@ -62,7 +77,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
   if (!stage) {
     return (
       <Card className="shadow-md">
-        <CardContent className="p-6 text-center text-muted-foreground">请选择一个阶段查看详情。</CardContent>
+        <CardContent className="p-6 text-center text-muted-foreground">{t("stageDetails.selectStage")}</CardContent>
       </Card>
     )
   }
@@ -86,7 +101,9 @@ export default function StageDetails({ stage }: StageDetailsProps) {
               >
                 <IconComponent className="h-5 w-5 text-white" />
               </div>
-              <CardTitle className="text-lg md:text-xl font-semibold">{stageTitle} 详情</CardTitle>
+              <CardTitle className="text-lg md:text-xl font-semibold">
+                {t("stageDetails.title", { stage: stageTitle })}
+              </CardTitle>
             </div>
           </div>
         </CardHeader>
@@ -98,7 +115,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
               <div className="relative">
                 <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
-                  placeholder="搜索 ATT&CK 技术"
+                  placeholder={t("stageDetails.searchTechnique")}
                   className="pl-9 w-full"
                   value={techQuery}
                   onChange={(e) => setTechQuery(e.target.value)}
@@ -107,7 +124,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
               <div className="relative">
                 <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                 <Input
-                  placeholder="搜索主机"
+                  placeholder={t("stageDetails.searchHost")}
                   className="pl-9 w-full"
                   value={hostQuery}
                   onChange={(e) => setHostQuery(e.target.value)}
@@ -115,24 +132,24 @@ export default function StageDetails({ stage }: StageDetailsProps) {
               </div>
             </div>
             <div className="flex items-center justify-center lg:justify-end text-sm text-muted-foreground min-w-[200px]">
-              结果：{rows.length} / {details.length}
+              {t("stageDetails.resultCount", { filtered: rows.length, total: details.length })}
             </div>
           </div>
 
           {rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">没有匹配的记录。</p>
+            <p className="text-sm text-muted-foreground">{t("stageDetails.noMatchedRecords")}</p>
           ) : (
             <div className="overflow-x-auto -mx-6">
               <div className="min-w-full px-6">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[120px]">ATT&CK 技术</TableHead>
-                      <TableHead className="min-w-[200px]">名称</TableHead>
-                      <TableHead className="min-w-[250px]">指标</TableHead>
-                      <TableHead className="min-w-[200px]">受影响主机</TableHead>
-                      <TableHead className="min-w-[100px]">严重性</TableHead>
-                      <TableHead className="min-w-[120px] text-right">数据钻探</TableHead>
+                      <TableHead className="min-w-[120px]">{t("stageDetails.technique")}</TableHead>
+                      <TableHead className="min-w-[200px]">{t("stageDetails.name")}</TableHead>
+                      <TableHead className="min-w-[250px]">{t("stageDetails.indicators")}</TableHead>
+                      <TableHead className="min-w-[200px]">{t("stageDetails.affectedHosts")}</TableHead>
+                      <TableHead className="min-w-[100px]">{t("stageDetails.severity")}</TableHead>
+                      <TableHead className="min-w-[120px] text-right">{t("stageDetails.drill")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -156,7 +173,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
                           <TableCell>
                             <ul className="list-disc list-inside space-y-1">
                               {d.indicators.map((ind, i) => (
-                                <li key={i} className="text-sm">{ind}</li>
+                                <li key={i} className="text-sm">{indicatorLabel(ind)}</li>
                               ))}
                             </ul>
                           </TableCell>
@@ -171,7 +188,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
                                   e.stopPropagation() // 阻止触发行点击
                                   handleHostClick(host)
                                 }}
-                                title={`查看主机 ${host}`}
+                                title={t("stageDetails.viewHost", { host })}
                               >
                                 {host}
                               </span>
@@ -182,11 +199,11 @@ export default function StageDetails({ stage }: StageDetailsProps) {
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <span className="text-sm text-gray-500 cursor-pointer hover:text-blue-600">
-                                    +{d.hosts.length - DISPLAY_COUNT} more
+                                    {t("stageDetails.more", { count: d.hosts.length - DISPLAY_COUNT })}
                                   </span>
                                 </PopoverTrigger>
                                 <PopoverContent className="max-h-60 w-48 overflow-auto rounded-lg shadow-lg p-2 bg-white">
-                                  <div className="text-xs font-medium text-gray-500 mb-1">所有主机</div>
+                                  <div className="text-xs font-medium text-gray-500 mb-1">{t("stageDetails.allHosts")}</div>
                                   {d.hosts.map((host) => (
                                     <div
                                       key={host}
@@ -203,7 +220,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
 
                           <TableCell>
                             <Badge className={`${badgeSeverityTextColor(d.severity as Severity)} font-normal`}>
-                              {d.severity}
+                              {t(`header.severity.${severityLabelKey(d.severity)}`)}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
@@ -233,4 +250,10 @@ export default function StageDetails({ stage }: StageDetailsProps) {
 function extractTechniqueId(attck: string): string {
   const m = attck.match(/^([A-Z]\d+)/i)
   return m ? m[1].toUpperCase() : attck
+}
+
+function severityLabelKey(severity: Severity) {
+  if (severity === "高") return "high"
+  if (severity === "中") return "medium"
+  return "low"
 }

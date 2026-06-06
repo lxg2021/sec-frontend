@@ -14,6 +14,7 @@ import { cn } from "@/shared/lib/utils"
 import type { TriggerCheckPayload } from "@/features/attack/dashboard/types"
 import { triggerCheck } from "@/features/attack/dashboard/api"
 import { Button } from "@/features/attack/dashboard/components/ui/button"
+import { useTranslations } from "next-intl"
 
 const TIMEZONE_OPTIONS = ["Asia/Shanghai", "UTC"]
 
@@ -34,6 +35,7 @@ export function TriggerCheckDialog({
   defaultEnd = "",
   onSubmitted,
 }: TriggerCheckDialogProps) {
+  const t = useTranslations("pages.attack.dashboard.triggerDialog")
   const [startTime, setStartTime] = useState(defaultStart)
   const [endTime, setEndTime] = useState(defaultEnd)
   const [timezone, setTimezone] = useState("Asia/Shanghai")
@@ -54,10 +56,10 @@ export function TriggerCheckDialog({
   }
 
   const validate = () => {
-    if (!startTime) return "请选择开始时间"
-    if (!endTime) return "请选择结束时间"
+    if (!startTime) return t("missingStart")
+    if (!endTime) return t("missingEnd")
     if (new Date(startTime).getTime() > new Date(endTime).getTime()) {
-      return "开始时间不能晚于结束时间"
+      return t("invalidRange")
     }
     return null
   }
@@ -82,14 +84,14 @@ export function TriggerCheckDialog({
     try {
       const result = await triggerCheck(payload)
       if (!result.task_id) {
-        throw new Error("检查任务提交失败，未返回任务ID")
+        throw new Error(t("missingTaskId"))
       }
       onOpenChange(false)
       resetState()
       onSubmitted?.(result.task_id)
     } catch (err) {
       setPhase("failed")
-      setError(err instanceof Error ? err.message : "检查任务提交失败")
+      setError(err instanceof Error ? err.message : t("submitFailed"))
     }
   }
 
@@ -115,9 +117,9 @@ export function TriggerCheckDialog({
               <Radar className="h-5 w-5" />
             </span>
             <div className="space-y-1">
-              <DialogTitle className="text-base font-semibold text-foreground">立即检查</DialogTitle>
+              <DialogTitle className="text-base font-semibold text-foreground">{t("title")}</DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">
-                设置时间范围与时区，执行攻击溯源检查任务
+                {t("description")}
               </DialogDescription>
             </div>
           </div>
@@ -126,7 +128,7 @@ export function TriggerCheckDialog({
             size="icon-sm"
             onClick={handleCancel}
             disabled={loading}
-            aria-label="关闭"
+            aria-label={t("close")}
             className="text-muted-foreground"
           >
             <X className="h-4 w-4" />
@@ -135,7 +137,7 @@ export function TriggerCheckDialog({
 
         <div className="mt-5 space-y-4">
           <Field
-            label="开始时间"
+            label={t("startTime")}
             required
             icon={<CalendarClock className="h-3.5 w-3.5" />}
             iconClassName="bg-emerald-50 text-emerald-600 ring-emerald-100"
@@ -150,7 +152,7 @@ export function TriggerCheckDialog({
           </Field>
 
           <Field
-            label="结束时间"
+            label={t("endTime")}
             required
             icon={<CalendarCheck2 className="h-3.5 w-3.5" />}
             iconClassName="bg-rose-50 text-rose-600 ring-rose-100"
@@ -165,7 +167,7 @@ export function TriggerCheckDialog({
           </Field>
 
           <Field
-            label="时区"
+            label={t("timezone")}
             icon={<Globe2 className="h-3.5 w-3.5" />}
             iconClassName="bg-violet-50 text-violet-600 ring-violet-100"
           >
@@ -192,10 +194,10 @@ export function TriggerCheckDialog({
 
         <div className="mt-6 flex items-center justify-end gap-2">
           <Button variant="outline" onClick={handleCancel} disabled={loading}>
-            取消
+            {t("cancel")}
           </Button>
           <Button onClick={handleConfirm} disabled={loading}>
-            {loading ? "提交中..." : "确认"}
+            {loading ? t("submitting") : t("confirm")}
           </Button>
         </div>
       </DialogContent>

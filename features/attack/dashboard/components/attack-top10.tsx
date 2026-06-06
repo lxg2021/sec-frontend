@@ -87,7 +87,7 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
           </div>
           <div>
             <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
-              ATT&amp;CK TOP10
+              {t("top10.title")}
             </CardTitle>
           </div>
         </div>
@@ -98,19 +98,19 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
             <TableHeader>
               <TableRow>
                 <TableHead className="min-w-[100px]">
-                  <HeaderLabel icon={Binary} label="技术" />
+                  <HeaderLabel icon={Binary} label={t("top10.technique")} />
                 </TableHead>
                 <TableHead className="w-[220px] min-w-[220px] max-w-[220px]">
-                  <HeaderLabel icon={Hash} label="名称" />
+                  <HeaderLabel icon={Hash} label={t("top10.name")} />
                 </TableHead>
                 <TableHead className="min-w-[160px]">
-                  <HeaderLabel icon={Layers3} label="阶段" />
+                  <HeaderLabel icon={Layers3} label={t("top10.stage")} />
                 </TableHead>
                 <TableHead className="min-w-[200px]">
-                  <HeaderLabel icon={Monitor} label="感染主机" />
+                  <HeaderLabel icon={Monitor} label={t("top10.infectedHost")} />
                 </TableHead>
                 <TableHead className="min-w-[120px] text-right">
-                  <HeaderLabel icon={Server} label="主机数" align="right" />
+                  <HeaderLabel icon={Server} label={t("top10.hostCount")} align="right" />
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -119,13 +119,13 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                 <TableRow
                   key={r.rowKey}
                   className="hover:bg-blue-50 cursor-pointer"
-                  title={`查看 ${r.id} 详情`}
+                  title={t("top10.viewDetail", { id: r.id })}
                 >
                   <TableCell className="font-medium">
                     <RuleInfoPopover id={r.ruleid} ruleMeta={r.ruleMeta}>
                       <span
                         className="inline-flex cursor-pointer items-center font-mono text-sm font-semibold text-blue-600 transition-all duration-150 hover:-translate-y-0.5 hover:text-blue-800 hover:underline hover:decoration-blue-400 hover:underline-offset-4"
-                        title="查看规则详情"
+                        title={t("top10.viewRuleDetail")}
                       >
                         {r.id}
                       </span>
@@ -177,13 +177,13 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                               type="button"
                               className="inline-flex h-6 items-center rounded-full bg-blue-50 px-2 text-[11px] font-semibold leading-none text-blue-700 ring-1 ring-inset ring-blue-200 transition-colors hover:bg-blue-100 hover:text-blue-800"
                               onClick={(e) => e.stopPropagation()}
-                              title={`查看全部 ${r.hosts.length} 台主机`}
+                              title={t("top10.viewAllHosts", { count: r.hosts.length })}
                             >
                               +{r.hosts.length - DISPLAY_COUNT}
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="max-h-64 w-64 overflow-auto rounded-lg bg-white p-2 shadow-lg">
-                            <div className="mb-2 px-1 text-xs font-medium text-gray-500">全部感染主机</div>
+                            <div className="mb-2 px-1 text-xs font-medium text-gray-500">{t("top10.allInfectedHosts")}</div>
                             <div className="space-y-1">
                               {r.hosts.map((host, index) => (
                                 <button
@@ -209,7 +209,7 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
             </TableBody>
           </Table>
         </div>
-        {rows.length === 0 && <div className="text-sm text-muted-foreground py-6">暂无数据</div>}
+        {rows.length === 0 && <div className="text-sm text-muted-foreground py-6">{t("top10.noData")}</div>}
       </CardContent>
     </Card>
   )

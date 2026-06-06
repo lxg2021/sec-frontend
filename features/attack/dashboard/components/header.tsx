@@ -71,31 +71,31 @@ export default function AttckHeader({ data, overview }: HeaderProps) {
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-      <StatCard title="涉及规则" value={overview.total_rules} icon={Activity} color="from-blue-400 to-indigo-600">
-        <p className="mt-1 text-xs text-slate-500">命中的检测规则数量</p>
+      <StatCard title={t("involvedRules")} value={overview.total_rules} icon={Activity} color="from-blue-400 to-indigo-600">
+        <p className="mt-1 text-xs text-slate-500">{t("involvedRulesDescription")}</p>
       </StatCard>
 
-      <StatCard title="攻击活动" value={overview.total_instances} icon={Layers3} color="from-violet-400 to-purple-600">
+      <StatCard title={t("attackActivity")} value={overview.total_instances} icon={Layers3} color="from-violet-400 to-purple-600">
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-slate-500">攻击实例</span>
+          <span className="text-slate-500">{t("attackInstances")}</span>
           <span className="font-semibold text-slate-950">{formatCount(overview.total_instances)}</span>
           <span className="text-slate-300">|</span>
-          <span className="text-slate-500">攻击场景</span>
+          <span className="text-slate-500">{t("attackCases")}</span>
           <span className="font-semibold text-slate-950">{formatCount(overview.total_cases)}</span>
           <span className="text-slate-300">|</span>
-          <span className="text-slate-500">攻击分组</span>
+          <span className="text-slate-500">{t("attackGroups")}</span>
           <span className="font-semibold text-slate-950">{formatCount(overview.total_groups)}</span>
         </div>
       </StatCard>
 
-      <StatCard title="受影响主机" value={overview.total_hosts} icon={Server} color="from-green-400 to-emerald-600">
-        <p className="mt-1 text-xs text-slate-500">涉及到的主机数量</p>
+      <StatCard title={t("affectedHosts")} value={overview.total_hosts} icon={Server} color="from-green-400 to-emerald-600">
+        <p className="mt-1 text-xs text-slate-500">{t("affectedHostsDescription")}</p>
       </StatCard>
 
       <div className="group relative overflow-hidden rounded-lg border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-600 opacity-5 transition-opacity group-hover:opacity-10" />
         <div className="relative flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-          <div className="text-sm font-medium text-slate-600 dark:text-slate-300">安全等级</div>
+          <div className="text-sm font-medium text-slate-600 dark:text-slate-300">{t("securityLevel")}</div>
           <div className="rounded-lg bg-gradient-to-br from-yellow-400 to-red-500 p-2">
             <AlertTriangle className="h-4 w-4 text-white" aria-hidden="true" />
           </div>

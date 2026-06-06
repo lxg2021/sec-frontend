@@ -73,11 +73,11 @@ export default function AttckDashboardPage() {
         setTaskState({
           status: "timeout",
           taskId,
-          message: "检查任务已等待超过20分钟，可稍后刷新查看结果",
+          message: t("task.timeoutMessage"),
         })
         toast({
-          title: "检查任务等待超时",
-          description: "已等待超过20分钟，可稍后刷新查看结果",
+          title: t("task.timeoutTitle"),
+          description: t("task.timeoutDescription"),
         })
         return
       }
@@ -87,12 +87,12 @@ export default function AttckDashboardPage() {
         if (cancelled) return
 
         if (status.status === "success") {
-          setTaskState({ status: "success", taskId, message: "检查完成，已刷新概览" })
+          setTaskState({ status: "success", taskId, message: t("task.successMessage") })
           await loadDashboard()
           if (!cancelled) {
             toast({
-              title: "检查完成",
-              description: "攻击概览已刷新",
+              title: t("task.successTitle"),
+              description: t("task.successDescription"),
             })
           }
           return
@@ -102,11 +102,11 @@ export default function AttckDashboardPage() {
           setTaskState({
             status: "failed",
             taskId,
-            message: status.error_message || "检查任务执行失败",
+            message: status.error_message || t("task.failedMessage"),
           })
           toast({
-            title: "检查任务失败",
-            description: status.error_message || "检查任务执行失败",
+            title: t("task.failedTitle"),
+            description: status.error_message || t("task.failedMessage"),
             variant: "destructive",
           })
           return
@@ -118,7 +118,7 @@ export default function AttckDashboardPage() {
           return {
             ...current,
             status: status.status === "pending" ? "pending" : "running",
-            message: status.status === "pending" ? "任务排队中" : "检查中...",
+            message: status.status === "pending" ? t("task.pendingMessage") : t("task.runningMessage"),
           }
         })
       } catch (error) {
@@ -136,7 +136,7 @@ export default function AttckDashboardPage() {
       cancelled = true
       if (timer) clearTimeout(timer)
     }
-  }, [taskState, toast])
+  }, [taskState, toast, t])
 
   useEffect(() => {
     if (!selectedStageSlug && firstStageSlug) {
@@ -162,7 +162,7 @@ export default function AttckDashboardPage() {
           bucket_start: "",
           bucket_end: "",
         },
-        scope: "全部主机",
+        scope: "",
         total_rules: 0,
         total_groups: 0,
         total_instances: 0,
@@ -196,11 +196,11 @@ export default function AttckDashboardPage() {
       status: "pending",
       taskId,
       startedAt: Date.now(),
-      message: "任务已提交，等待执行",
+      message: t("task.submittedMessage"),
     })
     toast({
-      title: "检查任务已提交",
-      description: "正在后台执行攻击溯源检查",
+      title: t("task.submittedTitle"),
+      description: t("task.submittedDescription"),
     })
   }
   const taskChecking = taskState.status === "pending" || taskState.status === "running"
@@ -210,7 +210,7 @@ export default function AttckDashboardPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="p-6">
           <div className="rounded-2xl border border-gray-200 bg-white px-6 py-8 text-sm text-gray-500 shadow-sm">
-            正在加载攻击概览...
+            {t("loading")}
           </div>
         </div>
       </div>

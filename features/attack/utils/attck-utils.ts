@@ -20,11 +20,18 @@ export interface AttckDetail {
   ruleid: string
   name?: string
   stage: string[]
-  indicators: string[]
+  indicators: AttackIndicator[]
   hosts: string[]
   severity: Severity
   ruleMeta?: AttackRuleMeta
 }
+
+export type AttackIndicator =
+  | { type: "description"; value: string }
+  | { type: "groups"; value: number }
+  | { type: "instances"; value: number }
+  | { type: "sources"; value: number }
+  | { type: "empty" }
 
 export interface AttckStage {
   stageKey?: string

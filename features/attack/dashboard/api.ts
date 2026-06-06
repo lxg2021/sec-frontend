@@ -184,15 +184,15 @@ function hostLabel(host: BackendAttackRuleHostStatsItem) {
   return stringValue(host.hostname) || stringValue(host.agent_id)
 }
 
-function buildIndicators(rule: BackendAttackRuleStatsItem) {
+function buildIndicators(rule: BackendAttackRuleStatsItem): AttckDetail["indicators"] {
   const meta = rule.meta
   const indicators = [
-    meta?.description ? `规则描述：${meta.description}` : "",
-    `命中分组：${numberValue(rule.total_groups)}`,
-    `命中实例：${numberValue(rule.total_instances)}`,
-    `证据数：${numberValue(rule.total_sources)}`,
-  ].filter(Boolean)
-  return indicators.length > 0 ? indicators : ["暂无指标摘要"]
+    meta?.description ? { type: "description" as const, value: meta.description } : null,
+    { type: "groups" as const, value: numberValue(rule.total_groups) },
+    { type: "instances" as const, value: numberValue(rule.total_instances) },
+    { type: "sources" as const, value: numberValue(rule.total_sources) },
+  ].filter((indicator): indicator is Exclude<typeof indicator, null> => Boolean(indicator))
+  return indicators.length > 0 ? indicators : [{ type: "empty" }]
 }
 
 function buildOverview(raw?: BackendAttackStatsOverviewItem): AttackOverview {
@@ -206,7 +206,7 @@ function buildOverview(raw?: BackendAttackStatsOverviewItem): AttackOverview {
       last_request_id: stringValue(bucket?.last_request_id),
       snapshot_id: stringValue(bucket?.snapshot_id),
     },
-    scope: "全部主机",
+    scope: "",
     total_rules: numberValue(raw?.total_rules),
     total_groups: numberValue(raw?.total_groups),
     total_instances: numberValue(raw?.total_instances),
