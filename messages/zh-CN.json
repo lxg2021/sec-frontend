@@ -642,7 +642,7 @@
           "noData": "暂无数据"
         },
         "topRiskHosts": {
-          "title": "高风险主机 TOP",
+          "title": "风险主机 TOP10",
           "rank": "排名",
           "host": "主机",
           "riskScore": "风险分",

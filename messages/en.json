@@ -640,7 +640,7 @@
           "noData": "No data"
         },
         "topRiskHosts": {
-          "title": "Top Risk Hosts",
+          "title": "Risk Hosts TOP10",
           "rank": "Rank",
           "host": "Host",
           "riskScore": "Risk",
