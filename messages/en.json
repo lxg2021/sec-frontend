@@ -580,6 +580,68 @@
         "lastChecked": "Last checked: {time}",
         "stageStats": "ATT&CK Stage Statistics",
         "stageStatsDescription": "View detailed results by ATT&CK stage.",
+        "stages": {
+          "reconnaissance": {
+            "label": "Reconnaissance",
+            "description": "Adversaries gather information about the target organization, assets, identities, or network to prepare follow-on activity."
+          },
+          "resource-development": {
+            "label": "Resource Development",
+            "description": "Adversaries create, purchase, or control infrastructure, accounts, and capabilities to support later operations."
+          },
+          "initial-access": {
+            "label": "Initial Access",
+            "description": "Adversaries attempt to enter the target environment and establish an entry point into systems or networks."
+          },
+          "execution": {
+            "label": "Execution",
+            "description": "Adversaries run malicious code, commands, or tooling on local or remote systems."
+          },
+          "persistence": {
+            "label": "Persistence",
+            "description": "Adversaries maintain access so they do not lose control after restarts, credential changes, or other interruptions."
+          },
+          "privilege-escalation": {
+            "label": "Privilege Escalation",
+            "description": "Adversaries exploit vulnerabilities, misconfigurations, or credentials to gain higher privileges."
+          },
+          "defense-evasion": {
+            "label": "Defense Evasion",
+            "description": "Adversaries hide activity, bypass detections, or weaken security controls."
+          },
+          "credential-access": {
+            "label": "Credential Access",
+            "description": "Adversaries attempt to steal account names, passwords, tokens, or other credential material."
+          },
+          "discovery": {
+            "label": "Discovery",
+            "description": "Adversaries enumerate systems, networks, accounts, and security configuration to understand the environment."
+          },
+          "lateral-movement": {
+            "label": "Lateral Movement",
+            "description": "Adversaries move through the environment to access additional systems or critical assets."
+          },
+          "collection": {
+            "label": "Collection",
+            "description": "Adversaries gather files, credentials, screen content, or business data from the target environment."
+          },
+          "command-and-control": {
+            "label": "Command and Control",
+            "description": "Adversaries establish remote control channels to communicate with compromised systems."
+          },
+          "exfiltration": {
+            "label": "Exfiltration",
+            "description": "Adversaries transfer data out of the target environment through networks, media, or control channels."
+          },
+          "impact": {
+            "label": "Impact",
+            "description": "Adversaries disrupt data, business processes, or system availability to create direct impact."
+          },
+          "unknown": {
+            "label": "Unknown Stage",
+            "description": "This stage comes from rule metadata and does not have a configured description yet."
+          }
+        },
         "header": {
           "attckTechniques": "ATT&CK Techniques",
           "affectedHosts": "Affected Hosts",

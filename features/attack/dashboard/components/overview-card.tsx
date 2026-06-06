@@ -6,6 +6,7 @@ import { getStageColor, slugify } from "@/features/attack/utils/stage-color"
 import { Eye } from "lucide-react"
 
 interface OverviewCardProps {
+  stageKey?: string
   title: string
   description: string
   icon?: string
@@ -15,6 +16,7 @@ interface OverviewCardProps {
 }
 
 export default function OverviewCard({
+  stageKey,
   title,
   description,
   icon,
@@ -22,7 +24,7 @@ export default function OverviewCard({
   onClick,
   selected = false,
 }: OverviewCardProps) {
-  const slug = slugify(title)
+  const slug = stageKey || slugify(title)
   const color = getStageColor(slug)
   const IconComponent = getStageIconComponent(icon)
 

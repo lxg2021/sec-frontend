@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import type { AttckStage } from "@/features/attack/utils/attck-utils"
 import { MoreHorizontal } from "lucide-react"
 import { getStageColor } from "@/features/attack/utils/stage-color"
+import { useTranslations } from "next-intl"
+import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
 
 interface Props {
   stages: AttckStage[]
@@ -29,6 +31,7 @@ export default function StageHostDistributionChart({
   selectedStageSlug,
   onSelectStage,
 }: Props) {
+  const t = useTranslations("pages.attack.dashboard")
   const wrapperRef = useRef<HTMLDivElement | null>(null)
   const [tooltip, setTooltip] = useState<TooltipState>(null)
 
@@ -41,9 +44,11 @@ export default function StageHostDistributionChart({
       ;(s.details ?? []).forEach((d) =>
         (d.hosts ?? []).forEach((h) => set.add(h))
       )
-      return { stage: s, label: s.stage, value: set.size, slug: slugify(s.stage) }
+      const slug = s.stageKey || slugify(s.stage)
+      const label = s.stageKey && getAttckStageDefinition(s.stageKey) ? t(`stages.${s.stageKey}.label`) : s.stage
+      return { stage: s, label, value: set.size, slug }
     })
-  }, [stages])
+  }, [stages, t])
 
   const maxVal = Math.max(...data.map((d) => d.value), 1)
   const n = data.length || 1

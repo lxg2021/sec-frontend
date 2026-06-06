@@ -15,6 +15,8 @@ import { getStageIconComponent, getStageIconBgStyle } from "@/features/attack/ut
 import { getStageColor, slugify } from "@/features/attack/utils/stage-color"
 import { Inspect } from "lucide-react"
 import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
+import { useTranslations } from "next-intl"
+import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
 
 interface StageDetailsProps {
   stage?: AttckStage | null
@@ -23,6 +25,7 @@ interface StageDetailsProps {
 const DISPLAY_COUNT = 3 // 前 N 个显示，其余 +N 弹出
 
 export default function StageDetails({ stage }: StageDetailsProps) {
+  const t = useTranslations("pages.attack.dashboard")
   const router = useRouter()
   const [techOpen, setTechOpen] = useState(false)
   const [techId, setTechId] = useState<string | null>(null)
@@ -67,8 +70,9 @@ export default function StageDetails({ stage }: StageDetailsProps) {
   const IconComponent = getStageIconComponent(stage?.icon)
   if (!IconComponent) console.warn("图标组件未找到", stage?.icon)
 
-  const slug = slugify(stage.stage)
+  const slug = stage.stageKey || slugify(stage.stage)
   const color = getStageColor(slug)
+  const stageTitle = stage.stageKey && getAttckStageDefinition(stage.stageKey) ? t(`stages.${stage.stageKey}.label`) : stage.stage
 
   return (
     <>
@@ -82,7 +86,7 @@ export default function StageDetails({ stage }: StageDetailsProps) {
               >
                 <IconComponent className="h-5 w-5 text-white" />
               </div>
-              <CardTitle className="text-lg md:text-xl font-semibold">{stage.stage} 详情</CardTitle>
+              <CardTitle className="text-lg md:text-xl font-semibold">{stageTitle} 详情</CardTitle>
             </div>
           </div>
         </CardHeader>

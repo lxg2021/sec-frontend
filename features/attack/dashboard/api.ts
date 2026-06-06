@@ -2,6 +2,7 @@
 
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
+import { ATTCK_STAGE_DEFINITIONS, getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type {
   AttackOverview,
   AttackTaskStatus,
@@ -114,79 +115,6 @@ function normalizeTaskTime(value: string) {
   return normalized
 }
 
-const PHASE_DEFINITIONS: Record<string, { label: string; description: string; icon: string }> = {
-  reconnaissance: {
-    label: "侦察 (Reconnaissance)",
-    description: "攻击者收集目标组织、资产、身份或网络信息，为后续攻击活动做准备。",
-    icon: "Binoculars",
-  },
-  "resource development": {
-    label: "资源开发 (Resource Development)",
-    description: "攻击者创建、购买或控制基础设施、账号和能力，用于支撑后续攻击。",
-    icon: "Wrench",
-  },
-  "initial access": {
-    label: "初始访问 (Initial Access)",
-    description: "攻击者尝试进入目标环境，建立进入系统或网络的入口。",
-    icon: "DoorOpen",
-  },
-  execution: {
-    label: "执行 (Execution)",
-    description: "攻击者在本地或远程系统上运行恶意代码或命令。",
-    icon: "Terminal",
-  },
-  persistence: {
-    label: "持久化 (Persistence)",
-    description: "攻击者维持对系统的访问能力，避免重启或凭据变化后失去控制。",
-    icon: "Anchor",
-  },
-  "privilege escalation": {
-    label: "权限提升 (Privilege Escalation)",
-    description: "攻击者通过漏洞、配置缺陷或凭据滥用获取更高权限。",
-    icon: "ArrowUp",
-  },
-  "defense evasion": {
-    label: "防御规避 (Defense Evasion)",
-    description: "攻击者隐藏行为、绕过检测或削弱安全防护能力。",
-    icon: "ShieldOff",
-  },
-  "credential access": {
-    label: "凭据访问 (Credential Access)",
-    description: "攻击者尝试窃取账号、密码、令牌或其他身份凭据。",
-    icon: "Key",
-  },
-  discovery: {
-    label: "发现 (Discovery)",
-    description: "攻击者枚举系统、网络、账号和安全配置，了解目标环境。",
-    icon: "Search",
-  },
-  "lateral movement": {
-    label: "横向移动 (Lateral Movement)",
-    description: "攻击者在环境内部移动，访问更多系统或关键资产。",
-    icon: "ArrowRightLeft",
-  },
-  collection: {
-    label: "收集 (Collection)",
-    description: "攻击者收集目标环境中的文件、凭据、屏幕或业务数据。",
-    icon: "Download",
-  },
-  "command and control": {
-    label: "命令与控制 (Command and Control)",
-    description: "攻击者建立远程控制通道，与受控系统通信。",
-    icon: "Cast",
-  },
-  exfiltration: {
-    label: "数据外传 (Exfiltration)",
-    description: "攻击者通过网络、介质或控制通道将数据带出目标环境。",
-    icon: "Upload",
-  },
-  impact: {
-    label: "影响 (Impact)",
-    description: "攻击者破坏数据、业务流程或系统可用性，造成直接影响。",
-    icon: "Zap",
-  },
-}
-
 function numberValue(value: unknown) {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
@@ -207,6 +135,8 @@ function normalizeBucketType(value: unknown): BucketType {
 }
 
 function normalizePhase(phase: string) {
+  const stage = resolveAttckStage(phase)
+  if (stage) return stage.key
   return phase
     .trim()
     .toLowerCase()
@@ -217,14 +147,21 @@ function normalizePhase(phase: string) {
 }
 
 function phaseDefinition(phase: string) {
-  const normalized = normalizePhase(phase)
-  return (
-    PHASE_DEFINITIONS[normalized] || {
-      label: phase || "未知阶段",
-      description: "该阶段来自分析规则元数据，当前没有配置详细说明。",
-      icon: "Eye",
+  const stage = resolveAttckStage(phase) ?? getAttckStageDefinition(phase)
+  if (stage) {
+    return {
+      stageKey: stage.key,
+      label: stage.key,
+      description: "",
+      icon: stage.icon,
     }
-  )
+  }
+  return {
+    stageKey: undefined,
+    label: phase || "unknown",
+    description: "",
+    icon: "Eye",
+  }
 }
 
 function extractTechniqueId(meta?: BackendAttackRuleMeta) {
@@ -310,6 +247,9 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
     const meta = item.rule.meta || {}
     const phases = normalizeArray(meta.phases)
     const normalizedPhases = phases.length > 0 ? phases : ["unknown"]
+    const stageDefinitions = normalizedPhases.map(phaseDefinition)
+    const stageKeys = stageDefinitions.map((definition) => definition.stageKey).filter(Boolean) as string[]
+    const stageValues = stageDefinitions.map((definition) => definition.stageKey || definition.label)
     const hosts = item.hosts.map(hostLabel).filter(Boolean)
     const severity = normalizeSeverityByCounts(item.rule)
 
@@ -318,16 +258,17 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       attck: techniqueId,
       ruleid: stringValue(meta.rule_id),
       name: stringValue(meta.title) || techniqueId,
-      stage: normalizedPhases.map(normalizePhase),
+      stage: stageValues,
       indicators: buildIndicators(item.rule),
       hosts,
       severity,
       ruleMeta: meta,
     }
 
-    for (const rawPhase of normalizedPhases) {
-      const normalizedPhase = normalizePhase(rawPhase)
-      const definition = phaseDefinition(rawPhase)
+    for (let index = 0; index < normalizedPhases.length; index += 1) {
+      const rawPhase = normalizedPhases[index]
+      const definition = stageDefinitions[index]
+      const normalizedPhase = definition.stageKey || normalizePhase(rawPhase)
       const existing = stageMap.get(normalizedPhase)
       if (existing) {
         existing.count += 1
@@ -335,6 +276,7 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       } else {
         stageMap.set(normalizedPhase, {
           stage: definition.label,
+          stageKey: definition.stageKey,
           description: definition.description,
           icon: definition.icon,
           count: 1,
@@ -349,8 +291,9 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
       ruleid: stringValue(meta.rule_id),
       hosts,
       "affected-hosts": numberValue(item.rule.total_hosts) || hosts.length,
-      stage: normalizePhase(normalizedPhases[0] || ""),
-      stages: normalizedPhases.map(normalizePhase),
+      stage: stageValues[0] || "",
+      stages: stageValues,
+      stageKeys,
       ruleMeta: meta,
     })
   }
@@ -359,9 +302,21 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
 
   return {
     ...base,
-    "stage-counts": stageMap.size,
+    "stage-counts": ATTCK_STAGE_DEFINITIONS.length,
     top10: top10.slice(0, DEFAULT_TOP_LIMIT),
-    stages: Array.from(stageMap.values()),
+    stages: ATTCK_STAGE_DEFINITIONS.map((definition) => {
+      const existing = stageMap.get(definition.key)
+      return (
+        existing || {
+          stage: definition.key,
+          stageKey: definition.key,
+          description: "",
+          icon: definition.icon,
+          count: 0,
+          details: [],
+        }
+      )
+    }),
   }
 }
 

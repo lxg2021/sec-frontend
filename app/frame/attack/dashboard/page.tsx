@@ -16,6 +16,10 @@ import { slugify } from "@/features/attack/utils/stage-color"
 import { useTranslations } from "next-intl"
 import { useToast } from "@/shared/hooks/use-toast"
 
+function stageIdentity(stage: { stageKey?: string; stage: string }) {
+  return stage.stageKey || slugify(stage.stage)
+}
+
 const EMPTY_DATA: AttckData = {
   starttime: "",
   endtime: "",
@@ -49,7 +53,7 @@ export default function AttckDashboardPage() {
   const [taskState, setTaskState] = useState<AsyncTaskState>({ status: "idle" })
 
   const stages = data?.stages || []
-  const firstStageSlug = stages.length > 0 ? slugify(stages[0].stage) : null
+  const firstStageSlug = stages.length > 0 ? stageIdentity(stages[0]) : null
   const [selectedStageSlug, setSelectedStageSlug] = useState<string | null>(null)
 
   useEffect(() => {
@@ -142,7 +146,7 @@ export default function AttckDashboardPage() {
 
   const selectedStage = useMemo(() => {
     if (!selectedStageSlug) return null
-    return stages.find((stage) => slugify(stage.stage) === selectedStageSlug) || null
+    return stages.find((stage) => stageIdentity(stage) === selectedStageSlug) || null
   }, [selectedStageSlug, stages])
 
   async function loadDashboard() {
@@ -165,13 +169,17 @@ export default function AttckDashboardPage() {
         total_sources: 0,
         total_hosts: 0,
         total_cases: 0,
+        critical_count: 0,
+        high_count: 0,
+        medium_count: 0,
+        low_count: 0,
       })
       setData(EMPTY_DATA)
     }
   }
 
   function onSelectStage(stage: (typeof stages)[number]) {
-    const slug = slugify(stage.stage)
+    const slug = stageIdentity(stage)
     setSelectedStageSlug(slug)
     const el = document.getElementById("stage-details")
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })

@@ -6,6 +6,12 @@ import OverviewCard from "./overview-card"
 import type { AttckStage } from "@/features/attack/utils/attck-utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { slugify } from "@/features/attack/utils/stage-color"
+import { useTranslations } from "next-intl"
+import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
+
+function stageIdentity(stage: AttckStage) {
+  return stage.stageKey || slugify(stage.stage)
+}
 
 function useResponsivePerPage() {
   const [perPage, setPerPage] = useState(4)
@@ -36,6 +42,7 @@ export default function OverviewCarousel({
   selectedStageSlug,
   onSelectStage,
 }: OverviewCarouselProps) {
+  const t = useTranslations("pages.attack.dashboard")
   const perPage = useResponsivePerPage()
   const totalPages = Math.max(1, Math.ceil(stages.length / perPage))
   const [activeIndex, setActiveIndex] = useState(0)
@@ -49,7 +56,7 @@ export default function OverviewCarousel({
   // 外部选中时自动定位页
   useEffect(() => {
     if (!selectedStageSlug || !stages.length) return
-    const index = stages.findIndex((s) => slugify(s.stage) === selectedStageSlug)
+    const index = stages.findIndex((s) => stageIdentity(s) === selectedStageSlug)
     if (index >= 0) {
       setActiveIndex(Math.floor(index / perPage))
     }
@@ -120,13 +127,19 @@ export default function OverviewCarousel({
       {/* 阶段卡片轮播 */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         {currentPageData.map((stage, idx) => {
-          const slug = slugify(stage.stage)
+          const slug = stageIdentity(stage)
           const isSelected = selectedStageSlug === slug
+          const title = stage.stageKey && getAttckStageDefinition(stage.stageKey) ? t(`stages.${stage.stageKey}.label`) : stage.stage
+          const description =
+            stage.stageKey && getAttckStageDefinition(stage.stageKey)
+              ? t(`stages.${stage.stageKey}.description`)
+              : stage.description
           return (
             <OverviewCard
               key={slug || stage.stage || idx}
-              title={stage.stage}
-              description={stage.description}
+              stageKey={stage.stageKey}
+              title={title}
+              description={description}
               icon={stage.icon}
               count={stage.count}
               onClick={() => onSelectStage(stage)}

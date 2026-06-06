@@ -1,4 +1,4 @@
-// src/lib/stageColor.ts
+import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
 
 export const PALETTE = [
   "#3b82f6",
@@ -22,6 +22,9 @@ const usedColors = new Set<string>()
 let nextColorIndex = 0
 
 export function getStageColor(stageSlug: string): string {
+  const stage = getAttckStageDefinition(stageSlug)
+  if (stage) return stage.color
+
   // 如果已经分配过，直接返回
   if (assignedColors.has(stageSlug)) {
     return assignedColors.get(stageSlug)!

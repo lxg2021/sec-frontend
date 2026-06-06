@@ -8,6 +8,8 @@ import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-
 import type { Top10Item } from "@/features/attack/utils/attck-utils"
 import { useRouter } from "next/navigation"
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover"
+import { useTranslations } from "next-intl"
+import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
 
 type Row = {
   rowKey: string
@@ -16,6 +18,7 @@ type Row = {
   ruleid: string
   hostCount: number
   stages: string[]
+  stageKeys: string[]
   hosts: string[]
   ruleMeta?: Top10Item["ruleMeta"]
 }
@@ -23,7 +26,6 @@ type Row = {
 function HeaderLabel({
   icon: Icon,
   label,
-  color,
   align = "left",
 }: {
   icon: typeof Trophy
@@ -39,6 +41,7 @@ function HeaderLabel({
 }
 
 export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top10Item[] }) {
+  const t = useTranslations("pages.attack.dashboard")
   const router = useRouter()
   const DISPLAY_COUNT = 1 // 前 N 个主机
 
@@ -47,15 +50,17 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
       const id = (t.attck || "").toUpperCase()
       const ruleid = t.ruleid || ""
       const name = t.name || ""
+      const stageKeys = Array.isArray(t.stageKeys) && t.stageKeys.length > 0 ? t.stageKeys : []
       const stages = Array.isArray(t.stages) && t.stages.length > 0 ? t.stages : t.stage ? [t.stage] : []
 
       return {
-        rowKey: [ruleid, id, name, stages.join(","), index].filter(Boolean).join("::"),
+        rowKey: [ruleid, id, name, (stageKeys.length > 0 ? stageKeys : stages).join(","), index].filter(Boolean).join("::"),
         id,
         name,
         ruleid,
         hostCount: t["affected-hosts"] ?? 0,
         stages,
+        stageKeys,
         hosts: t.hosts || [],
         ruleMeta: t.ruleMeta,
       }
@@ -63,6 +68,11 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
     normalized.sort((a, b) => b.hostCount - a.hostCount)
     return normalized.slice(0, 10)
   }, [top10])
+
+  function stageLabel(stage: string) {
+    if (!stage) return stage
+    return getAttckStageDefinition(stage) ? t(`stages.${stage}.label`) : stage
+  }
 
   const handleHostClick = (host: string) => {
     router.push(`/hosts/${host}`)
@@ -129,12 +139,12 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                   <TableCell>
                     {r.stages.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
-                        {r.stages.map((stage, index) => (
+                        {(r.stageKeys.length > 0 ? r.stageKeys : r.stages).map((stage, index) => (
                           <span
                             key={`${r.rowKey}:stage:${stage}:${index}`}
                             className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700"
                           >
-                            {stage}
+                            {stageLabel(stage)}
                           </span>
                         ))}
                       </div>

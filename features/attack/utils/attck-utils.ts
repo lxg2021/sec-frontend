@@ -27,6 +27,7 @@ export interface AttckDetail {
 }
 
 export interface AttckStage {
+  stageKey?: string
   stage: string
   description: string
   count: number
@@ -47,6 +48,7 @@ export interface Top10Item {
   "affected-hosts": number
   stage: string
   stages?: string[]
+  stageKeys?: string[]
   ruleMeta?: AttackRuleMeta
 }
 
