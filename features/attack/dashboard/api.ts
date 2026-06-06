@@ -69,7 +69,9 @@ interface BackendTopAttackRulesData {
 
 interface BackendAttackStageHostDistributionItem {
   stage?: string
+  stageKey?: string
   stage_key?: string
+  hostCount?: number | string
   host_count?: number | string
 }
 
@@ -400,8 +402,8 @@ export async function fetchAttackStageHostDistribution(snapshotId: string): Prom
   return items
     .map((item) => ({
       stage: stringValue(item.stage),
-      stage_key: stringValue(item.stage_key),
-      host_count: numberValue(item.host_count),
+      stage_key: stringValue(item.stage_key) || stringValue(item.stageKey),
+      host_count: numberValue(item.host_count ?? item.hostCount),
     }))
     .filter((item) => item.stage || item.stage_key)
 }

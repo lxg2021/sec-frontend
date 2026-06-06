@@ -18,6 +18,10 @@ type TooltipState =
   | { visible: boolean; x: number; y: number; label: string; value: number }
   | null
 
+function isValidBackendStageKey(stageKey: string) {
+  return Boolean(stageKey) && !stageKey.includes(".")
+}
+
 function slugify(name: string) {
   return name
     .toLowerCase()
@@ -55,7 +59,7 @@ export default function StageHostDistributionChart({
         setSelectedStageSlug((current) => {
           const normalizedItems = result
             .map((item) => item.stage_key || slugify(item.stage))
-            .filter((slug) => Boolean(getAttckStageDefinition(slug)))
+            .filter(isValidBackendStageKey)
           if (current && normalizedItems.includes(current)) {
             return current
           }
@@ -80,9 +84,9 @@ export default function StageHostDistributionChart({
   const data = useMemo(() => {
     return items.map((item) => {
       const slug = item.stage_key || slugify(item.stage)
+      if (!isValidBackendStageKey(slug)) return null
       const definition = getAttckStageDefinition(slug)
-      if (!definition) return null
-      const label = t(`stages.${definition.key}.label`)
+      const label = definition ? t(`stages.${definition.key}.label`) : item.stage
       return { label, value: item.host_count, slug }
     }).filter((item): item is { label: string; value: number; slug: string } => Boolean(item))
   }, [items, t])
