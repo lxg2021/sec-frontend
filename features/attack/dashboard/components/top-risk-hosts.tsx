@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, Layers3, Loader2, Monitor, Server, ShieldAlert, Target } from "lucide-react"
+import { AlertTriangle, Layers3, Loader2, Monitor, ShieldAlert, Target } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
@@ -30,10 +30,16 @@ function HeaderLabel({
 }: {
   icon: typeof ShieldAlert
   label: string
-  align?: "left" | "right"
+  align?: "left" | "center" | "right"
 }) {
   return (
-    <div className={cn("flex items-center gap-1.5", align === "right" && "justify-end")}>
+    <div
+      className={cn(
+        "flex items-center gap-1.5",
+        align === "center" && "justify-center",
+        align === "right" && "justify-end",
+      )}
+    >
       <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       <span>{label}</span>
     </div>
@@ -209,17 +215,14 @@ export default function TopRiskHosts({ snapshotId, limit = 10 }: TopRiskHostsPro
                   <TableHead className="w-[76px] whitespace-nowrap text-right">
                     <HeaderLabel icon={ShieldAlert} label={t("topRiskHosts.riskScore")} align="right" />
                   </TableHead>
-                  <TableHead className="w-[64px] whitespace-nowrap text-right">
-                    <HeaderLabel icon={Target} label={t("topRiskHosts.rules")} align="right" />
+                  <TableHead className="w-[90px] whitespace-nowrap text-center">
+                    <HeaderLabel icon={Target} label={t("topRiskHosts.rules")} align="center" />
                   </TableHead>
-                  <TableHead className="w-[64px] whitespace-nowrap text-right">
-                    <HeaderLabel icon={AlertTriangle} label={t("topRiskHosts.instances")} align="right" />
+                  <TableHead className="w-[90px] whitespace-nowrap text-center">
+                    <HeaderLabel icon={AlertTriangle} label={t("topRiskHosts.instances")} align="center" />
                   </TableHead>
-                  <TableHead className="w-[64px] whitespace-nowrap text-right">
-                    <HeaderLabel icon={Layers3} label={t("topRiskHosts.cases")} align="right" />
-                  </TableHead>
-                  <TableHead className="w-[64px] whitespace-nowrap text-right">
-                    <HeaderLabel icon={Server} label={t("topRiskHosts.groups")} align="right" />
+                  <TableHead className="w-[90px] whitespace-nowrap text-center">
+                    <HeaderLabel icon={Layers3} label={t("topRiskHosts.cases")} align="center" />
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -259,10 +262,9 @@ export default function TopRiskHosts({ snapshotId, limit = 10 }: TopRiskHostsPro
                       <TableCell className={cn("text-right font-semibold tabular-nums", riskClassName(row.risk_score))}>
                         {row.risk_score}
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">{row.total_rules}</TableCell>
-                      <TableCell className="text-right tabular-nums">{row.total_instances}</TableCell>
-                      <TableCell className="text-right tabular-nums">{row.total_cases}</TableCell>
-                      <TableCell className="text-right tabular-nums">{row.total_groups}</TableCell>
+                      <TableCell className="text-center tabular-nums">{row.total_rules}</TableCell>
+                      <TableCell className="text-center tabular-nums">{row.total_instances}</TableCell>
+                      <TableCell className="text-center tabular-nums">{row.total_cases}</TableCell>
                     </TableRow>
                   )
                 })}
