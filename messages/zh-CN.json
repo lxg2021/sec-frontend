@@ -131,6 +131,7 @@
     "patchstatus": "安装状态",
     "attack": "攻击溯源",
     "attdash": "攻击概览",
+    "attdetail": "攻击详情",
     "attdrill": "溯源详情",
     "attpositioning": "数据定位",
     "response": "处置响应",

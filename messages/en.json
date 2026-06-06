@@ -131,6 +131,7 @@
     "patchstatus": "Install Status",
     "attack": "Attack Trace",
     "attdash": "Attack Overview",
+    "attdetail": "Attack Details",
     "attdrill": "Trace Details",
     "attpositioning": "Data Positioning",
     "response": "Response",
