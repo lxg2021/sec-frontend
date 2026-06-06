@@ -58,7 +58,7 @@ export default function StageHostDistributionChart({
   const [items, setItems] = useState<AttackStageHostDistributionItem[]>([])
   const [selectedStageSlug, setSelectedStageSlug] = useState<string | null>(null)
 
-  const chartHeight = 300
+  const chartHeight = 354
 
   useEffect(() => {
     let cancelled = false
@@ -116,12 +116,12 @@ export default function StageHostDistributionChart({
   const n = data.length || 1
 
   const width = 800
-  const margin = { top: 36, right: 20, bottom: 48, left: 44 }
+  const margin = { top: 18, right: 12, bottom: 32, left: 34 }
   const innerW = width - margin.left - margin.right
   const innerH = chartHeight - margin.top - margin.bottom
 
-  const gap = 12
-  const barW = Math.max(8, Math.min(40, (innerW - gap * (n - 1)) / n))
+  const slotW = innerW / n
+  const barW = Math.max(8, Math.min(40, slotW * 0.55))
 
   function handleMouseMove(e: React.MouseEvent, label: string, value: number) {
     const rect = wrapperRef.current?.getBoundingClientRect()
@@ -143,7 +143,7 @@ export default function StageHostDistributionChart({
 
   return (
     <Card className="border-0 shadow-lg rounded-xl">
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
+      <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg">
             <MoreHorizontal className="h-5 w-5 text-white" aria-hidden="true" />
@@ -153,9 +153,9 @@ export default function StageHostDistributionChart({
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-5 pb-4 pt-0">
         {data.length === 0 ? (
-          <div className="flex h-[300px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-muted-foreground">
+          <div className="flex h-[354px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-muted-foreground">
             {t("stageChart.noData")}
           </div>
         ) : (
@@ -195,7 +195,7 @@ export default function StageHostDistributionChart({
               })}
 
               {data.map((d, i) => {
-                const x = i * (barW + gap)
+                const x = i * slotW + (slotW - barW) / 2
                 const h = (d.value / yAxisMax) * innerH
                 const y = innerH - h
                 const selected = selectedStageSlug === d.slug
