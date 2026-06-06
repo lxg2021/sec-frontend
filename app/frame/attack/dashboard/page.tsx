@@ -219,7 +219,7 @@ export default function AttckDashboardPage() {
           onCheckSubmitted={handleCheckSubmitted}
         />
 
-        <AttckHeader data={data} />
+        <AttckHeader data={data} overview={overview} />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <StageHostDistributionChart

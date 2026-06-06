@@ -1,15 +1,16 @@
-﻿"use client"
+"use client"
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/shared/ui/card";
-import { Badge } from "@/shared/ui/badge"
-import type { AttckData, Severity } from "@/features/attack/utils/attck-utils"
-import { countsFromSeverityEntries, parseDateSafe } from "@/features/attack/utils/attck-utils"
-import { Activity, Server, ShieldAlert, AlertTriangle, Clock } from "lucide-react"
-import dayjs from "dayjs"
+import type { ReactNode } from "react"
+import { Activity, AlertTriangle, Layers3, Server } from "lucide-react"
 import { useTranslations } from "next-intl"
+
+import type { AttackOverview } from "@/features/attack/dashboard/types"
+import type { AttckData, Severity } from "@/features/attack/utils/attck-utils"
+import { countsFromSeverityEntries } from "@/features/attack/utils/attck-utils"
 
 interface HeaderProps {
   data: AttckData
+  overview: AttackOverview
 }
 
 const colorMap: Record<Severity, { chip: string; bar: string }> = {
@@ -18,42 +19,45 @@ const colorMap: Record<Severity, { chip: string; bar: string }> = {
   低: { chip: "bg-green-100 text-green-700", bar: "bg-green-500" },
 }
 
-type HeaderTranslator = ReturnType<typeof useTranslations>
+function formatCount(value: number) {
+  return new Intl.NumberFormat().format(value || 0)
+}
 
-function renderRange(startTime: string, endTime: string, t: HeaderTranslator) {
-  const start = parseDateSafe(startTime)
-  const end = parseDateSafe(endTime)
-
-  if (!start || !end) {
-    return (
-      <div className="mt-1 flex flex-col space-y-2 text-sm text-slate-500 dark:text-slate-300">
-        <div className="flex items-center gap-2 font-medium">
-          <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-          <span>{t("start")}: --</span>
-        </div>
-        <div className="flex items-center gap-2 font-medium">
-          <span className="inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
-          <span>{t("end")}: --</span>
-        </div>
-      </div>
-    )
-  }
-
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  color,
+  children,
+}: {
+  title: string
+  value: number
+  icon: typeof Activity
+  color: string
+  children?: ReactNode
+}) {
   return (
-    <div className="mt-1 flex flex-col space-y-2 text-sm text-slate-800 dark:text-white">
-      <div className="flex items-center gap-2 font-medium">
-        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-400"></span>
-        <span>{t("start")}: {dayjs(start).format("YYYY-MM-DD HH:mm")}</span>
+    <div className="group relative overflow-hidden rounded-lg border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5 transition-opacity group-hover:opacity-10`} />
+      <div className="relative flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+        <div className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</div>
+        <div className={`rounded-lg bg-gradient-to-br p-2 ${color}`}>
+          <Icon className="h-4 w-4 text-white" aria-hidden="true" />
+        </div>
       </div>
-      <div className="flex items-center gap-2 font-medium">
-        <span className="inline-flex h-2 w-2 rounded-full bg-rose-500"></span>
-        <span>{t("end")}: {dayjs(end).format("YYYY-MM-DD HH:mm")}</span>
+      <div className="relative p-6 pt-2">
+        <div className="flex items-baseline justify-between">
+          <div className={`bg-gradient-to-br ${color} bg-clip-text text-2xl font-bold text-transparent`}>
+            {formatCount(value)}
+          </div>
+        </div>
+        {children}
       </div>
     </div>
   )
 }
 
-export default function AttckHeader({ data }: HeaderProps) {
+export default function AttckHeader({ data, overview }: HeaderProps) {
   const t = useTranslations("pages.attack.dashboard.header")
   const sevCounts = countsFromSeverityEntries(data.severity)
   const totalCount = (sevCounts["高"] ?? 0) + (sevCounts["中"] ?? 0) + (sevCounts["低"] ?? 0)
@@ -66,100 +70,68 @@ export default function AttckHeader({ data }: HeaderProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-      <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 opacity-5 group-hover:opacity-10 transition-opacity" />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            {t("attckTechniques")}
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-gradient-to-br from-blue-400 to-indigo-600">
-            <Activity className="h-4 w-4 text-white" aria-hidden="true" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold bg-gradient-to-br from-blue-400 to-indigo-600 bg-clip-text text-transparent">
-              {data["attck-counts"]}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <StatCard title="涉及规则" value={overview.total_rules} icon={Activity} color="from-blue-400 to-indigo-600">
+        <p className="mt-1 text-xs text-slate-500">命中的检测规则数量</p>
+      </StatCard>
 
-      <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-400 to-emerald-600 opacity-5 group-hover:opacity-10 transition-opacity" />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            {t("affectedHosts")}
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-gradient-to-br from-green-400 to-emerald-600">
-            <Server className="h-4 w-4 text-white" aria-hidden="true" />
+      <StatCard title="攻击活动" value={overview.total_instances} icon={Layers3} color="from-violet-400 to-purple-600">
+        <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+          <div className="rounded-lg bg-slate-50 px-2 py-1.5">
+            <div className="text-slate-400">实例</div>
+            <div className="mt-0.5 font-semibold text-slate-700">{formatCount(overview.total_instances)}</div>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold bg-gradient-to-br from-green-400 to-emerald-600 bg-clip-text text-transparent">
-              {data["affected-hosts"]}
-            </div>
+          <div className="rounded-lg bg-slate-50 px-2 py-1.5">
+            <div className="text-slate-400">分组</div>
+            <div className="mt-0.5 font-semibold text-slate-700">{formatCount(overview.total_groups)}</div>
           </div>
-        </CardContent>
-      </Card>
+          <div className="rounded-lg bg-slate-50 px-2 py-1.5">
+            <div className="text-slate-400">场景</div>
+            <div className="mt-0.5 font-semibold text-slate-700">{formatCount(overview.total_cases)}</div>
+          </div>
+        </div>
+      </StatCard>
 
+      <StatCard title="受影响主机" value={overview.total_hosts} icon={Server} color="from-green-400 to-emerald-600">
+        <p className="mt-1 text-xs text-slate-500">涉及到的主机数量</p>
+      </StatCard>
 
-      <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-600 opacity-5 group-hover:opacity-10 transition-opacity" />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            {t("riskLevel")}
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-gradient-to-br from-yellow-400 to-red-500">
+      <div className="group relative overflow-hidden rounded-lg border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-600 opacity-5 transition-opacity group-hover:opacity-10" />
+        <div className="relative flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+          <div className="text-sm font-medium text-slate-600 dark:text-slate-300">安全等级</div>
+          <div className="rounded-lg bg-gradient-to-br from-yellow-400 to-red-500 p-2">
             <AlertTriangle className="h-4 w-4 text-white" aria-hidden="true" />
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-xs text-muted-foreground mb-2">{t("total", { total: totalCount })}</div>
-          <div className="w-full h-2 rounded-full bg-muted overflow-hidden flex mb-2">
+        </div>
+        <div className="relative p-6 pt-2">
+          <div className="mb-2 text-xs text-muted-foreground">{t("total", { total: totalCount })}</div>
+          <div className="mb-2 flex h-2 w-full overflow-hidden rounded-full bg-muted">
             {segments.map((seg) => {
               const widthPct = `${Math.round((seg.value / barTotal) * 100)}%`
               return (
                 <div
                   key={seg.key}
-                  className={`${colorMap[seg.key].bar}`}
+                  className={colorMap[seg.key].bar}
                   style={{ width: widthPct }}
                   title={`${t(`severity.${seg.labelKey}`)}: ${seg.value}`}
                 />
               )
             })}
           </div>
-          <div className="flex items-center justify-evenly w-full">
+          <div className="flex w-full items-center justify-evenly">
             {segments.map((seg) => (
               <span
                 key={seg.key}
-                className={`text-xs px-2 py-0.5 rounded-full ${colorMap[seg.key].chip}`}
+                className={`rounded-full px-2 py-0.5 text-xs ${colorMap[seg.key].chip}`}
                 title={`${t(`severity.${seg.labelKey}`)}: ${seg.value}`}
               >
                 {t(`severity.${seg.labelKey}`)} {seg.value}
               </span>
             ))}
           </div>
-        </CardContent>
-      </Card>
-
-      <Card className="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-200 to-cyan-400 opacity-5 group-hover:opacity-10 transition-opacity" />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            {t("detectionPeriod")}
-          </CardTitle>
-          <div className="p-2 rounded-lg bg-gradient-to-br from-teal-400 to-cyan-600">
-            <Clock className="h-4 w-4 text-white" aria-hidden="true" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {renderRange(data.starttime, data.endtime, t)}
-        </CardContent>
-      </Card>
-
+        </div>
+      </div>
     </div>
   )
 }
