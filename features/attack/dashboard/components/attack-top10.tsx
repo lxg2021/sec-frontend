@@ -9,8 +9,9 @@ import type { AttackHostRef, Top10Item } from "@/features/attack/utils/attck-uti
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover"
 import { useTranslations } from "next-intl"
 import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
-import { getSingleHostDetail } from "@/features/assets/host/api"
+import { getHardwareInfo, getSingleHostDetail } from "@/features/assets/host/api"
 import { HostInfoCard } from "@/features/assets/host/components/host-info-card"
+import type { AgentHardwareInfo } from "@/features/assets/host/types/hardware"
 import type { AgentInfo } from "@/features/assets/host/types/system-info"
 import type { HostSelectorHostNode } from "@/shared/components/host-selector/types"
 import { useToast } from "@/shared/hooks/use-toast"
@@ -54,7 +55,22 @@ function joinDisplay(values?: string[] | null) {
   return Array.isArray(values) && values.length > 0 ? values.join(", ") : "-"
 }
 
-function toHostInfoNode(host: AgentInfo): HostSelectorHostNode {
+function uniqueDisplay(values: string[]) {
+  const normalized = Array.from(new Set(values.map((value) => value.trim()).filter((value) => value && value !== "-")))
+  return normalized.length > 0 ? normalized.join(", ") : "-"
+}
+
+function formatMemory(hardware?: AgentHardwareInfo | null) {
+  const totalMiB = hardware?.rams.reduce((sum, ram) => sum + (Number(ram.sizeMiB) || 0), 0) || 0
+  if (totalMiB <= 0) return "-"
+  if (totalMiB >= 1024) return `${Math.round((totalMiB / 1024) * 10) / 10} GB`
+  return `${totalMiB} MB`
+}
+
+function toHostInfoNode(host: AgentInfo, hardware?: AgentHardwareInfo | null): HostSelectorHostNode {
+  const cpuNames = uniqueDisplay(hardware?.cpu.sockets.map((cpu) => cpu.model) || [])
+  const diskNames = uniqueDisplay(hardware?.disks.disks.map((disk) => disk.model) || [])
+
   return {
     id: `host:${host.hostId}`,
     type: "host",
@@ -65,16 +81,16 @@ function toHostInfoNode(host: AgentInfo): HostSelectorHostNode {
     os: [host.osName, host.osVersion].filter(Boolean).join(" ") || host.osType || "-",
     ip: joinDisplay(host.ip),
     mac: joinDisplay(host.macs),
-    cpu: host.cpuId || "-",
-    memory: "-",
-    disk: joinDisplay(host.harddiskIds),
+    cpu: cpuNames !== "-" ? cpuNames : host.cpuId || "-",
+    memory: formatMemory(hardware),
+    disk: diskNames !== "-" ? diskNames : joinDisplay(host.harddiskIds),
   }
 }
 
 export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top10Item[] }) {
   const t = useTranslations("pages.attack.dashboard")
   const { toast } = useToast()
-  const [selectedHost, setSelectedHost] = useState<AgentInfo | null>(null)
+  const [selectedHost, setSelectedHost] = useState<HostSelectorHostNode | null>(null)
   const [loadingHostId, setLoadingHostId] = useState<string | null>(null)
   const DISPLAY_COUNT = 1 // 前 N 个主机
 
@@ -132,7 +148,15 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
         })
         return
       }
-      setSelectedHost(detail)
+
+      let hardware: AgentHardwareInfo | null = null
+      try {
+        hardware = await getHardwareInfo({ agentId, host: detail })
+      } catch {
+        hardware = null
+      }
+
+      setSelectedHost(toHostInfoNode(detail, hardware))
     } catch (error) {
       toast({
         title: "主机详情加载失败",
@@ -300,9 +324,8 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
           </DialogTitle>
           {selectedHost && (
             <HostInfoCard
-              node={toHostInfoNode(selectedHost)}
+              node={selectedHost}
               className="m-0 border-none p-0 shadow-none"
-              reserveCloseSpace
             />
           )}
         </DialogContent>
