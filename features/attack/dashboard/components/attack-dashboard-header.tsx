@@ -109,7 +109,7 @@ export function AttackDashboardHeader({
               className="h-10 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
             >
               <CalendarClock className="h-4 w-4" />
-              <span className="font-medium">选择窗口</span>
+              <span className="font-medium">{t("header.selectWindow")}</span>
             </Button>
             <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
             <Button
@@ -153,8 +153,6 @@ export function AttackDashboardHeader({
       <TriggerCheckDialog
         open={checkDialogOpen}
         onOpenChange={setCheckDialogOpen}
-        defaultStart={toShanghaiInputValue(bucket.bucket_start)}
-        defaultEnd={toShanghaiInputValue(bucket.bucket_end)}
         onSubmitted={onCheckSubmitted}
       />
     </header>

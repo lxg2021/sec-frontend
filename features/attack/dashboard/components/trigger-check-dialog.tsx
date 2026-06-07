@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState, type ReactNode } from "react"
-import { CalendarCheck2, CalendarClock, Globe2, Radar, X } from "lucide-react"
+import { CalendarCheck2, CalendarClock, Globe2, Loader2, Radar, X } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { triggerCheck } from "@/features/attack/dashboard/api"
+import { fetchAttackTriggerDefaultRange, triggerCheck } from "@/features/attack/dashboard/api"
 import type { TriggerCheckPayload } from "@/features/attack/dashboard/types"
 import { Button } from "@/features/attack/dashboard/components/ui/button"
 import {
@@ -21,34 +21,53 @@ const TIMEZONE_OPTIONS = ["Asia/Shanghai", "UTC"]
 interface TriggerCheckDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  defaultStart?: string
-  defaultEnd?: string
   onSubmitted?: (taskId: string) => void
 }
 
-type Phase = "idle" | "submitting" | "failed"
+type Phase = "idle" | "loading" | "submitting" | "failed"
 
 export function TriggerCheckDialog({
   open,
   onOpenChange,
-  defaultStart = "",
-  defaultEnd = "",
   onSubmitted,
 }: TriggerCheckDialogProps) {
   const t = useTranslations("pages.attack.dashboard.triggerDialog")
-  const [startTime, setStartTime] = useState(defaultStart)
-  const [endTime, setEndTime] = useState(defaultEnd)
+  const [startTime, setStartTime] = useState("")
+  const [endTime, setEndTime] = useState("")
   const [timezone, setTimezone] = useState("Asia/Shanghai")
   const [phase, setPhase] = useState<Phase>("idle")
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!open) return
-    setStartTime(defaultStart)
-    setEndTime(defaultEnd)
-  }, [defaultEnd, defaultStart, open])
+    let cancelled = false
 
-  const loading = phase === "submitting"
+    setPhase("loading")
+    setError(null)
+    setStartTime("")
+    setEndTime("")
+
+    fetchAttackTriggerDefaultRange(timezone)
+      .then((range) => {
+        if (cancelled) return
+        setStartTime(range.start_time)
+        setEndTime(range.end_time)
+        setPhase("idle")
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setPhase("failed")
+        setError(err instanceof Error ? err.message : t("loadDefaultFailed"))
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, timezone, t])
+
+  const loadingDefaults = phase === "loading"
+  const submitting = phase === "submitting"
+  const busy = loadingDefaults || submitting
 
   const resetState = () => {
     setPhase("idle")
@@ -96,7 +115,7 @@ export function TriggerCheckDialog({
   }
 
   const handleCancel = () => {
-    if (loading) return
+    if (submitting) return
     onOpenChange(false)
     resetState()
   }
@@ -105,7 +124,7 @@ export function TriggerCheckDialog({
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (loading) return
+        if (submitting) return
         onOpenChange(nextOpen)
         if (!nextOpen) resetState()
       }}
@@ -127,7 +146,7 @@ export function TriggerCheckDialog({
             variant="ghost"
             size="icon-sm"
             onClick={handleCancel}
-            disabled={loading}
+            disabled={submitting}
             aria-label={t("close")}
             className="text-muted-foreground"
           >
@@ -144,9 +163,10 @@ export function TriggerCheckDialog({
           >
             <input
               type="datetime-local"
+              step={1}
               value={startTime}
               onChange={(event) => setStartTime(event.target.value)}
-              disabled={loading}
+              disabled={busy}
               className={inputClass}
             />
           </Field>
@@ -159,9 +179,10 @@ export function TriggerCheckDialog({
           >
             <input
               type="datetime-local"
+              step={1}
               value={endTime}
               onChange={(event) => setEndTime(event.target.value)}
-              disabled={loading}
+              disabled={busy}
               className={inputClass}
             />
           </Field>
@@ -174,7 +195,7 @@ export function TriggerCheckDialog({
             <select
               value={timezone}
               onChange={(event) => setTimezone(event.target.value)}
-              disabled={loading}
+              disabled={busy}
               className={inputClass}
             >
               {TIMEZONE_OPTIONS.map((option) => (
@@ -193,11 +214,20 @@ export function TriggerCheckDialog({
         ) : null}
 
         <div className="mt-6 flex items-center justify-end gap-2">
-          <Button variant="outline" onClick={handleCancel} disabled={loading}>
+          <Button variant="outline" onClick={handleCancel} disabled={submitting}>
             {t("cancel")}
           </Button>
-          <Button onClick={handleConfirm} disabled={loading}>
-            {loading ? t("submitting") : t("confirm")}
+          <Button onClick={handleConfirm} disabled={busy}>
+            {loadingDefaults ? (
+              <>
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                {t("loadingDefaults")}
+              </>
+            ) : submitting ? (
+              t("submitting")
+            ) : (
+              t("confirm")
+            )}
           </Button>
         </div>
       </DialogContent>

@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog"
 import { useToast } from "@/shared/hooks/use-toast"
+import { useTranslations } from "next-intl"
 
 interface SelectAttackWindowDialogProps {
   open: boolean
@@ -96,6 +97,7 @@ export function SelectAttackWindowDialog({
   onSnapshotChange,
   onCheckSubmitted,
 }: SelectAttackWindowDialogProps) {
+  const t = useTranslations("pages.attack.dashboard.selectWindowDialog")
   const { toast } = useToast()
   const [timelineGranularity, setTimelineGranularity] = useState<Granularity>("day")
   const [timelineData, setTimelineData] = useState<GetAttackEventTimelineDistributionData | null>(null)
@@ -207,28 +209,28 @@ export function SelectAttackWindowDialog({
           onOpenChange(false)
           onCheckSubmitted?.(resolved.task_id)
           toast({
-            title: "检查任务已提交",
+            title: t("taskSubmittedTitle"),
             description: `${startTime} - ${endTime}`,
           })
           return
         }
-        setError("当前窗口没有可用快照，检查任务提交失败")
+        setError(t("missingSnapshotAndTask"))
         return
       }
 
       const resolvedSnapshot = await fetchAttackSnapshotById(resolved.snapshot_id)
       if (!resolvedSnapshot) {
-        throw new Error(`未找到快照 ${resolved.snapshot_id}`)
+        throw new Error(t("snapshotNotFound", { snapshotId: resolved.snapshot_id }))
       }
 
       onSnapshotChange?.(resolvedSnapshot)
       toast({
-        title: "窗口已应用",
+        title: t("appliedTitle"),
         description: `${startTime} - ${endTime}`,
       })
       onOpenChange(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "应用窗口失败")
+      setError(err instanceof Error ? err.message : t("applyFailed"))
     } finally {
       setTimelineLoading(false)
       setApplying(false)
@@ -246,7 +248,7 @@ export function SelectAttackWindowDialog({
     >
       <DialogContent className="max-h-[88vh] max-w-5xl overflow-hidden rounded-xl border border-border bg-card p-0 shadow-xl [&>button]:hidden">
         <DialogHeader className="sr-only">
-          <DialogTitle>选择窗口</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <div className="flex h-11 items-center justify-end px-4 pt-2">
           <Button
@@ -254,7 +256,7 @@ export function SelectAttackWindowDialog({
             size="icon-sm"
             onClick={handleCancel}
             disabled={busy}
-            aria-label="关闭"
+            aria-label={t("close")}
             className="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm hover:bg-slate-50 hover:text-slate-700"
           >
             <X className="h-4 w-4" />
@@ -273,18 +275,18 @@ export function SelectAttackWindowDialog({
           <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">
             {selectedTimelineRange ? (
               <span className="inline-flex min-w-0 items-center">
-                已选择：{selectedTimelineRange.start.bucket_start}
+                {t("selectedRangePrefix")} {selectedTimelineRange.start.bucket_start}
                 <ArrowRight className="mx-1.5 inline h-3.5 w-3.5 text-slate-400" />
                 {selectedTimelineRange.end.bucket_end}
               </span>
             ) : (
-              "请先拖动下方时间轴选择窗口"
+              t("selectRangeHint")
             )}
           </div>
 
           {timelineError ? (
             <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              攻击时间分布加载失败
+              {t("timelineLoadFailed")}
             </p>
           ) : null}
 
@@ -297,10 +299,10 @@ export function SelectAttackWindowDialog({
 
         <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-4 py-3">
           <Button variant="outline" onClick={handleCancel} disabled={busy}>
-            取消
+            {t("cancel")}
           </Button>
           <Button onClick={() => void handleConfirm()} disabled={busy || !selectedTimelineRange}>
-            {busy ? "处理中" : "确认"}
+            {busy ? t("processing") : t("confirm")}
           </Button>
         </div>
       </DialogContent>

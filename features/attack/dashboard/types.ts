@@ -38,6 +38,14 @@ export interface TriggerCheckResult {
   status: string
 }
 
+export interface AttackTriggerDefaultRange {
+  start_time: string
+  end_time: string
+  timezone: string
+  reserve_seconds: number
+  last_success_time: string
+}
+
 export interface AttackTaskStatus {
   task_id: string
   status: string

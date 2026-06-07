@@ -626,7 +626,70 @@
           "missingEnd": "请选择结束时间",
           "invalidRange": "开始时间不能晚于结束时间",
           "missingTaskId": "检查任务提交失败，未返回任务ID",
-          "submitFailed": "检查任务提交失败"
+          "submitFailed": "检查任务提交失败",
+          "loadingDefaults": "加载中...",
+          "loadDefaultFailed": "加载默认检查范围失败"
+        },
+        "selectWindowDialog": {
+          "title": "选择窗口",
+          "close": "关闭",
+          "cancel": "取消",
+          "confirm": "确认",
+          "processing": "处理中",
+          "taskSubmittedTitle": "检查任务已提交",
+          "missingSnapshotAndTask": "当前窗口没有可用快照，检查任务提交失败",
+          "snapshotNotFound": "未找到快照 {snapshotId}",
+          "appliedTitle": "窗口已应用",
+          "applyFailed": "应用窗口失败",
+          "selectedRangePrefix": "已选择：",
+          "selectRangeHint": "请先拖动下方时间轴选择窗口",
+          "timelineLoadFailed": "攻击时间分布加载失败"
+        },
+        "timeline": {
+          "title": "攻击时间分布",
+          "ariaLabel": "攻击时间分布",
+          "granularityAria": "选择时间粒度",
+          "metricAria": "选择展示指标",
+          "hourDisabled": "时间范围超过 3 个月，请先缩小范围后再按小时查看",
+          "loading": "加载中...",
+          "noData": "该时间范围内暂无数据",
+          "granularity": {
+            "hour": "按小时",
+            "day": "按天",
+            "month": "按月"
+          },
+          "coverage": {
+            "covered": {
+              "label": "已覆盖",
+              "description": "整个时间范围已确认检测覆盖"
+            },
+            "partial": {
+              "label": "部分覆盖",
+              "description": "只有部分时间范围确认检测覆盖"
+            },
+            "unknown": {
+              "label": "覆盖未知",
+              "description": "没有可靠 coverage ledger，无法判断覆盖情况"
+            }
+          },
+          "metrics": {
+            "total_rules": {
+              "label": "命中规则",
+              "description": "按 rule_id 去重后的命中规则数"
+            },
+            "total_instances": {
+              "label": "攻击实例",
+              "description": "按 instance_id 去重后的攻击实例数"
+            },
+            "total_hosts": {
+              "label": "影响主机",
+              "description": "按非空 agent_id 去重后的影响主机数"
+            },
+            "total_cases": {
+              "label": "攻击场景",
+              "description": "按 case_id 去重后的攻击场景数"
+            }
+          }
         },
         "top10": {
           "title": "ATT&CK TOP10",
@@ -798,6 +861,7 @@
           "securityLevel": "安全等级",
           "affectedHostsDescription": "涉及到的主机数量",
           "checkRange": "检查范围",
+          "selectWindow": "选择窗口",
           "snapshotEmpty": "暂无检查范围",
           "snapshotLoadFailed": "检查范围加载失败",
           "snapshotDialogTitle": "选择检查范围",

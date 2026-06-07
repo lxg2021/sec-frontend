@@ -619,12 +619,75 @@
           "close": "Close",
           "cancel": "Cancel",
           "confirm": "Confirm",
+          "loadingDefaults": "Loading...",
           "submitting": "Submitting...",
           "missingStart": "Select a start time",
           "missingEnd": "Select an end time",
           "invalidRange": "Start time cannot be later than end time",
           "missingTaskId": "Check task submission failed. No task ID was returned.",
+          "loadDefaultFailed": "Failed to load the default check range",
           "submitFailed": "Check task submission failed"
+        },
+        "selectWindowDialog": {
+          "title": "Select Window",
+          "close": "Close",
+          "cancel": "Cancel",
+          "confirm": "Confirm",
+          "processing": "Processing",
+          "taskSubmittedTitle": "Check task submitted",
+          "missingSnapshotAndTask": "No snapshot is available for the selected window, and the check task submission failed.",
+          "snapshotNotFound": "Snapshot {snapshotId} was not found",
+          "appliedTitle": "Window applied",
+          "applyFailed": "Failed to apply window",
+          "selectedRangePrefix": "Selected:",
+          "selectRangeHint": "Drag the timeline below to select a window first",
+          "timelineLoadFailed": "Failed to load attack time distribution"
+        },
+        "timeline": {
+          "title": "Attack Time Distribution",
+          "ariaLabel": "Attack time distribution",
+          "granularityAria": "Select time granularity",
+          "metricAria": "Select display metric",
+          "hourDisabled": "The selected time range exceeds 3 months. Narrow the range before switching to hourly view.",
+          "loading": "Loading...",
+          "noData": "No data in this time range",
+          "granularity": {
+            "hour": "Hour",
+            "day": "Day",
+            "month": "Month"
+          },
+          "coverage": {
+            "covered": {
+              "label": "Covered",
+              "description": "The entire selected time range has confirmed detection coverage."
+            },
+            "partial": {
+              "label": "Partially Covered",
+              "description": "Only part of the selected time range has confirmed detection coverage."
+            },
+            "unknown": {
+              "label": "Coverage Unknown",
+              "description": "Coverage could not be determined from the current ledger data."
+            }
+          },
+          "metrics": {
+            "total_rules": {
+              "label": "Matched Rules",
+              "description": "Number of matched rules after deduplicating by rule_id"
+            },
+            "total_instances": {
+              "label": "Attack Instances",
+              "description": "Number of attack instances after deduplicating by instance_id"
+            },
+            "total_hosts": {
+              "label": "Affected Hosts",
+              "description": "Number of affected hosts after deduplicating non-empty agent_id"
+            },
+            "total_cases": {
+              "label": "Attack Cases",
+              "description": "Number of attack cases after deduplicating by case_id"
+            }
+          }
         },
         "top10": {
           "title": "ATT&CK TOP10",
@@ -796,6 +859,7 @@
           "securityLevel": "Security Level",
           "affectedHostsDescription": "Number of involved hosts",
           "checkRange": "Check Range",
+          "selectWindow": "Select Window",
           "snapshotEmpty": "No check ranges",
           "snapshotLoadFailed": "Failed to load check ranges",
           "snapshotDialogTitle": "Select Check Range",

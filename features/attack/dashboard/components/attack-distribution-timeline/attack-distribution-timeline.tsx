@@ -12,6 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { useTranslations } from "next-intl"
 
 import { cn } from "@/shared/lib/utils"
 import { COVERAGE_META, GRANULARITY_OPTIONS, METRICS } from "./config"
@@ -112,6 +113,7 @@ export function AttackDistributionTimeline({
   onRangeChange,
   className,
 }: AttackDistributionTimelineProps) {
+  const t = useTranslations("pages.attack.dashboard.timeline")
   const [activeMetric, setActiveMetric] = useState<MetricKey>(defaultMetric)
 
   const metricMeta = METRICS.find((m) => m.key === activeMetric) ?? METRICS[0]
@@ -169,7 +171,7 @@ export function AttackDistributionTimeline({
         "flex flex-col gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground sm:p-6",
         className,
       )}
-      aria-label="攻击时间分布"
+      aria-label={t("ariaLabel")}
     >
       <header className="flex flex-col gap-3 pr-10 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-2.5">
@@ -178,20 +180,20 @@ export function AttackDistributionTimeline({
           </div>
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold leading-none">攻击时间分布</h2>
+              <h2 className="text-base font-semibold leading-none">{t("title")}</h2>
               <span
                 className={cn(
                   "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
                   coverageMeta.className,
                 )}
-                title={coverageMeta.description}
+                title={t(`coverage.${data.coverage_status}.description`)}
               >
-                {coverageMeta.label}
+                {t(`coverage.${data.coverage_status}.label`)}
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
               {data.start_time}
-              <span className="mx-1.5 text-muted-foreground/60">→</span>
+              <span className="mx-1.5 text-muted-foreground/60">-&gt;</span>
               {data.end_time}
               <span className="ml-2 text-muted-foreground/60">({data.timezone})</span>
             </p>
@@ -201,7 +203,7 @@ export function AttackDistributionTimeline({
         <div
           className="inline-flex shrink-0 rounded-lg border border-border bg-muted/50 p-0.5"
           role="group"
-          aria-label="选择时间粒度"
+          aria-label={t("granularityAria")}
         >
           {GRANULARITY_OPTIONS.map((opt) => {
             const active = opt.value === data.granularity
@@ -213,7 +215,7 @@ export function AttackDistributionTimeline({
                 disabled={disabled}
                 onClick={() => handleGranularityClick(opt.value)}
                 aria-pressed={active}
-                title={disabled ? "时间范围超过 3 个月，请先缩小范围后再按小时查看" : undefined}
+                title={disabled ? t("hourDisabled") : undefined}
                 className={cn(
                   "rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45",
                   active
@@ -221,7 +223,7 @@ export function AttackDistributionTimeline({
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {opt.label}
+                {t(`granularity.${opt.value}`)}
               </button>
             )
           })}
@@ -231,7 +233,7 @@ export function AttackDistributionTimeline({
       <div
         className="flex flex-wrap items-center gap-1 border-b border-border"
         role="tablist"
-        aria-label="选择展示指标"
+        aria-label={t("metricAria")}
       >
         {METRICS.map((metric) => {
           const active = metric.key === activeMetric
@@ -243,7 +245,7 @@ export function AttackDistributionTimeline({
               role="tab"
               aria-selected={active}
               onClick={() => setActiveMetric(metric.key)}
-              title={metric.description}
+              title={t(`metrics.${metric.key}.description`)}
               className={cn(
                 "relative -mb-px flex items-center gap-2 rounded-t-md px-3 py-2 text-sm transition-colors",
                 active
@@ -256,7 +258,7 @@ export function AttackDistributionTimeline({
                 style={{ backgroundColor: metric.color }}
                 aria-hidden="true"
               />
-              <span className="font-medium">{metric.label}</span>
+              <span className="font-medium">{t(`metrics.${metric.key}.label`)}</span>
               <span
                 className={cn(
                   "tabular-nums",
@@ -280,11 +282,11 @@ export function AttackDistributionTimeline({
       <div className="attack-timeline-chart relative h-72 w-full">
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-muted/40">
-            <span className="text-sm text-muted-foreground">加载中…</span>
+            <span className="text-sm text-muted-foreground">{t("loading")}</span>
           </div>
         ) : chartData.length === 0 ? (
           <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-muted/40">
-            <span className="text-sm text-muted-foreground">该时间范围内暂无数据</span>
+            <span className="text-sm text-muted-foreground">{t("noData")}</span>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
@@ -317,7 +319,7 @@ export function AttackDistributionTimeline({
                   return (
                     <div className="rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-md">
                       <p className="mb-1 text-xs text-muted-foreground">
-                        {point.bucket_start} → {point.bucket_end}
+                        {point.bucket_start} -&gt; {point.bucket_end}
                       </p>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1">
                         {METRICS.map((m) => (
@@ -328,7 +330,7 @@ export function AttackDistributionTimeline({
                               m.key === activeMetric && "font-semibold",
                             )}
                           >
-                            <span className="text-muted-foreground">{m.label}</span>
+                            <span className="text-muted-foreground">{t(`metrics.${m.key}.label`)}</span>
                             <span className="tabular-nums">{point[m.key].toLocaleString()}</span>
                           </div>
                         ))}

@@ -10,6 +10,7 @@ import type {
   AttackOverview,
   AttackSnapshotPagination,
   AttackTaskStatus,
+  AttackTriggerDefaultRange,
   AttackTopHostItem,
   AttackTrendPoint,
   BucketType,
@@ -176,6 +177,14 @@ interface BackendTriggerStatTaskData {
   status?: string
 }
 
+interface BackendAttackTriggerDefaultRangeData {
+  start_time?: string
+  end_time?: string
+  timezone?: string
+  reserve_seconds?: number | string
+  last_success_time?: string
+}
+
 interface BackendTaskStatusData {
   task_id?: string
   status?: string
@@ -204,6 +213,13 @@ function normalizeTaskTime(value: string) {
     return `${normalized}:00`
   }
   return normalized
+}
+
+function toDateTimeLocalValue(value: string) {
+  const normalized = normalizeTaskTime(value)
+  if (!normalized) return ""
+  const match = normalized.match(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}(?::\d{2})?)/)
+  return match ? `${match[1]}T${match[2]}` : normalized.replace(" ", "T")
 }
 
 function numberValue(value: unknown) {
@@ -719,6 +735,24 @@ export async function triggerCheck(payload: TriggerCheckPayload): Promise<Trigge
   return {
     task_id: stringValue(result.data?.task_id),
     status: stringValue(result.data?.status),
+  }
+}
+
+export async function fetchAttackTriggerDefaultRange(
+  timezone = "Asia/Shanghai",
+): Promise<AttackTriggerDefaultRange> {
+  const result = (await http.post("/sensor/analysis/stats/attack-trigger-default-range", {
+    request_id: createRequestId(),
+    timezone,
+  })) as ApiResult<BackendAttackTriggerDefaultRangeData | null>
+
+  const data = result.data
+  return {
+    start_time: toDateTimeLocalValue(stringValue(data?.start_time)),
+    end_time: toDateTimeLocalValue(stringValue(data?.end_time)),
+    timezone: stringValue(data?.timezone) || timezone,
+    reserve_seconds: numberValue(data?.reserve_seconds),
+    last_success_time: toDateTimeLocalValue(stringValue(data?.last_success_time)),
   }
 }
 
