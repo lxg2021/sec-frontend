@@ -200,8 +200,10 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                   <TableHead className="min-w-[200px]">
                     <HeaderLabel icon={Monitor} label={t("top10.infectedHost")} />
                   </TableHead>
-                  <TableHead className="min-w-[120px] text-right">
-                    <HeaderLabel icon={Server} label={t("top10.hostCount")} align="right" />
+                  <TableHead className="w-[108px] min-w-[108px] px-0 text-center">
+                    <div className="flex justify-center whitespace-nowrap">
+                      <HeaderLabel icon={Server} label={t("top10.hostCount")} />
+                    </div>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -308,7 +310,7 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">{r.hostCount}</TableCell>
+                    <TableCell className="px-0 text-center tabular-nums">{r.hostCount}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
