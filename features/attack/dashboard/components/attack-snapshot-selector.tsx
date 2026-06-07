@@ -14,12 +14,22 @@ interface AttackSnapshotSelectorProps {
 
 function formatTime(value?: string) {
   if (!value) return "--"
-  const date = new Date(value)
+  const normalized = value.trim().replace(" ", "T")
+  const date = new Date(`${normalized}Z`)
   if (Number.isNaN(date.getTime())) return value
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
-    date.getHours(),
-  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`
 }
 
 export function AttackSnapshotSelector({ snapshot }: AttackSnapshotSelectorProps) {

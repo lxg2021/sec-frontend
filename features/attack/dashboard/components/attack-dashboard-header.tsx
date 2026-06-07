@@ -26,14 +26,31 @@ interface AttackDashboardHeaderProps {
   className?: string
 }
 
-function toInputValue(value?: string) {
+function parseOverviewBucketTime(value?: string) {
   if (!value) return ""
-  const date = new Date(value)
+  const normalized = value.trim().replace(" ", "T")
+  if (!normalized) return ""
+  const hasExplicitTimezone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(normalized)
+  const date = new Date(hasExplicitTimezone ? normalized : `${normalized}Z`)
   if (Number.isNaN(date.getTime())) return ""
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
-    date.getHours(),
-  )}:${pad(date.getMinutes())}`
+  return date
+}
+
+function toShanghaiInputValue(value?: string) {
+  const date = parseOverviewBucketTime(value)
+  if (!date) return ""
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`
 }
 
 export function AttackDashboardHeader({
@@ -127,8 +144,8 @@ export function AttackDashboardHeader({
       <SelectAttackWindowDialog
         open={windowDialogOpen}
         onOpenChange={setWindowDialogOpen}
-        defaultStart={toInputValue(bucket.bucket_start)}
-        defaultEnd={toInputValue(bucket.bucket_end)}
+        defaultStart={toShanghaiInputValue(bucket.bucket_start)}
+        defaultEnd={toShanghaiInputValue(bucket.bucket_end)}
         onSnapshotChange={onSnapshotChange}
         onCheckSubmitted={onCheckSubmitted}
       />
@@ -136,8 +153,8 @@ export function AttackDashboardHeader({
       <TriggerCheckDialog
         open={checkDialogOpen}
         onOpenChange={setCheckDialogOpen}
-        defaultStart={toInputValue(bucket.bucket_start)}
-        defaultEnd={toInputValue(bucket.bucket_end)}
+        defaultStart={toShanghaiInputValue(bucket.bucket_start)}
+        defaultEnd={toShanghaiInputValue(bucket.bucket_end)}
         onSubmitted={onCheckSubmitted}
       />
     </header>
