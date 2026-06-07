@@ -84,3 +84,11 @@ export interface AttackSnapshotsResult {
   items: AttackOverview[]
   pagination: AttackSnapshotPagination
 }
+
+export interface ResolveAttackStatsRangeSnapshotResult {
+  snapshot_id: string
+  task_id: string
+  status: string
+  source: string
+  coverage_status: string
+}

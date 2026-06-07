@@ -45,6 +45,18 @@ function formatBucketLabel(value: string, granularity: Granularity): string {
   }
 }
 
+function parseTimelineTime(value: string): Date | null {
+  if (!value) return null
+  const date = new Date(value.replace(" ", "T"))
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function addMonths(date: Date, months: number): Date {
+  const next = new Date(date)
+  next.setMonth(next.getMonth() + months)
+  return next
+}
+
 function BrushTraveller(props: {
   x?: number
   y?: number
@@ -103,6 +115,12 @@ export function AttackDistributionTimeline({
 
   const metricMeta = METRICS.find((m) => m.key === activeMetric) ?? METRICS[0]
   const coverageMeta = COVERAGE_META[data.coverage_status] ?? COVERAGE_META.unknown
+  const hourGranularityDisabled = useMemo(() => {
+    const start = parseTimelineTime(data.start_time)
+    const end = parseTimelineTime(data.end_time)
+    if (!start || !end) return false
+    return end > addMonths(start, 3)
+  }, [data.end_time, data.start_time])
 
   const chartData = useMemo(
     () =>
@@ -124,6 +142,7 @@ export function AttackDistributionTimeline({
   }, [data])
 
   const handleGranularityClick = (g: Granularity) => {
+    if (g === "hour" && hourGranularityDisabled) return
     onGranularityChange?.(g)
   }
 
@@ -180,14 +199,17 @@ export function AttackDistributionTimeline({
         >
           {GRANULARITY_OPTIONS.map((opt) => {
             const active = opt.value === data.granularity
+            const disabled = opt.value === "hour" && hourGranularityDisabled
             return (
               <button
                 key={opt.value}
                 type="button"
+                disabled={disabled}
                 onClick={() => handleGranularityClick(opt.value)}
                 aria-pressed={active}
+                title={disabled ? "时间范围超过 3 个月，请先缩小范围后再按小时查看" : undefined}
                 className={cn(
-                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45",
                   active
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground",

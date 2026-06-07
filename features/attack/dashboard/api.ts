@@ -13,6 +13,7 @@ import type {
   AttackTopHostItem,
   AttackTrendPoint,
   BucketType,
+  ResolveAttackStatsRangeSnapshotResult,
   TriggerCheckPayload,
   TriggerCheckResult,
 } from "@/features/attack/dashboard/types"
@@ -131,6 +132,14 @@ interface BackendAttackEventTimelineData {
   total_hosts?: number | string
   total_cases?: number | string
   items?: BackendAttackEventTimelinePoint[]
+}
+
+interface BackendResolveAttackStatsRangeSnapshotData {
+  snapshot_id?: string
+  task_id?: string
+  status?: string
+  source?: string
+  coverage_status?: string
 }
 
 interface BackendPaginationInfo {
@@ -534,6 +543,24 @@ export async function fetchAttackSnapshots({
   }
 }
 
+export async function fetchAttackSnapshotById(snapshotId: string): Promise<AttackOverview | null> {
+  const normalizedSnapshotId = stringValue(snapshotId)
+  if (!normalizedSnapshotId) return null
+
+  let page = 1
+  const pageSize = 100
+
+  while (page <= 20) {
+    const result = await fetchAttackSnapshots({ bucketType: "fixed", page, pageSize })
+    const matched = result.items.find((item) => item.bucket.snapshot_id === normalizedSnapshotId)
+    if (matched) return matched
+    if (!result.pagination.has_next) break
+    page += 1
+  }
+
+  return null
+}
+
 export async function fetchAttackStageHostDistribution(snapshotId: string): Promise<AttackStageHostDistributionItem[]> {
   const normalizedSnapshotId = stringValue(snapshotId)
   if (!normalizedSnapshotId) return []
@@ -644,6 +671,34 @@ export async function fetchAttackEventTimelineDistribution({
       total_hosts: numberValue(item.total_hosts),
       total_cases: numberValue(item.total_cases),
     })),
+  }
+}
+
+export async function resolveAttackStatsRangeSnapshot({
+  startTime,
+  endTime,
+  timezone = "Asia/Shanghai",
+  autoTriggerDetection = false,
+}: {
+  startTime: string
+  endTime: string
+  timezone?: string
+  autoTriggerDetection?: boolean
+}): Promise<ResolveAttackStatsRangeSnapshotResult> {
+  const result = (await http.post("/sensor/analysis/stats/attack-range-snapshot", {
+    request_id: createRequestId(),
+    start_time: normalizeTaskTime(startTime),
+    end_time: normalizeTaskTime(endTime),
+    timezone,
+    auto_trigger_detection: autoTriggerDetection,
+  })) as ApiResult<BackendResolveAttackStatsRangeSnapshotData | null>
+
+  return {
+    snapshot_id: stringValue(result.data?.snapshot_id),
+    task_id: stringValue(result.data?.task_id),
+    status: stringValue(result.data?.status),
+    source: stringValue(result.data?.source),
+    coverage_status: stringValue(result.data?.coverage_status),
   }
 }
 

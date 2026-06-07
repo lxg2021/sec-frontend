@@ -2,7 +2,11 @@
 
 import { useEffect, useState, type ReactNode } from "react"
 import { CalendarCheck2, CalendarClock, Globe2, Radar, X } from "lucide-react"
+import { useTranslations } from "next-intl"
 
+import { triggerCheck } from "@/features/attack/dashboard/api"
+import type { TriggerCheckPayload } from "@/features/attack/dashboard/types"
+import { Button } from "@/features/attack/dashboard/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -11,10 +15,6 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog"
 import { cn } from "@/shared/lib/utils"
-import type { TriggerCheckPayload } from "@/features/attack/dashboard/types"
-import { triggerCheck } from "@/features/attack/dashboard/api"
-import { Button } from "@/features/attack/dashboard/components/ui/button"
-import { useTranslations } from "next-intl"
 
 const TIMEZONE_OPTIONS = ["Asia/Shanghai", "UTC"]
 

@@ -1,11 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, Play, Radar, RefreshCw } from "lucide-react"
+import { CalendarClock, Loader2, Play, Radar, RefreshCw } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
 import type { AttackOverview, BucketType } from "@/features/attack/dashboard/types"
 import { AttackSnapshotSelector } from "@/features/attack/dashboard/components/attack-snapshot-selector"
+import { SelectAttackWindowDialog } from "@/features/attack/dashboard/components/select-attack-window-dialog"
 import { TriggerCheckDialog } from "@/features/attack/dashboard/components/trigger-check-dialog"
 import { Button } from "@/shared/ui/button"
 import { useTranslations } from "next-intl"
@@ -44,7 +45,8 @@ export function AttackDashboardHeader({
   className,
 }: AttackDashboardHeaderProps) {
   const t = useTranslations("pages.attack.dashboard")
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [windowDialogOpen, setWindowDialogOpen] = useState(false)
+  const [checkDialogOpen, setCheckDialogOpen] = useState(false)
   const { bucket, scope } = overview
 
   return (
@@ -85,7 +87,18 @@ export function AttackDashboardHeader({
             <Button
               type="button"
               variant="ghost"
-              onClick={() => setDialogOpen(true)}
+              onClick={() => setWindowDialogOpen(true)}
+              disabled={checking}
+              className="h-10 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+            >
+              <CalendarClock className="h-4 w-4" />
+              <span className="font-medium">选择窗口</span>
+            </Button>
+            <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setCheckDialogOpen(true)}
               disabled={checking}
               className="h-10 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
             >
@@ -111,9 +124,17 @@ export function AttackDashboardHeader({
         </div>
       </div>
 
+      <SelectAttackWindowDialog
+        open={windowDialogOpen}
+        onOpenChange={setWindowDialogOpen}
+        defaultStart={toInputValue(bucket.bucket_start)}
+        defaultEnd={toInputValue(bucket.bucket_end)}
+        onSnapshotChange={onSnapshotChange}
+      />
+
       <TriggerCheckDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        open={checkDialogOpen}
+        onOpenChange={setCheckDialogOpen}
         defaultStart={toInputValue(bucket.bucket_start)}
         defaultEnd={toInputValue(bucket.bucket_end)}
         onSubmitted={onCheckSubmitted}
