@@ -595,8 +595,8 @@
         "lastChecked": "最后检查时间: {time}",
         "allHosts": "全部主机",
         "loading": "正在加载攻击概览...",
-        "stageStats": "ATT&CK Stage 分类统计",
-        "stageStatsDescription": "按 Stage 分类查看详细情况",
+        "stageStats": "ATT&CK 阶段分布",
+        "stageStatsDescription": "按阶段查看统计结果",
         "task": {
           "submittedMessage": "任务已提交，等待执行",
           "submittedTitle": "检查任务已提交",

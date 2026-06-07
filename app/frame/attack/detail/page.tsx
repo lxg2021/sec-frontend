@@ -1,15 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { BarChart3 } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 
 import { fetchAttackDashboardData } from "@/features/attack/dashboard/api"
 import OverviewCarousel from "@/features/attack/dashboard/components/overview-carousel"
-import StageDetails from "@/features/attack/dashboard/components/stage-details"
 import type { AttckData } from "@/features/attack/utils/attck-utils"
 import { slugify } from "@/features/attack/utils/stage-color"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 
 function stageIdentity(stage: { stageKey?: string; stage: string }) {
   return stage.stageKey || slugify(stage.stage)
@@ -48,11 +45,6 @@ export default function AttackDetailPage() {
     }
   }, [firstStageSlug, selectedStageSlug])
 
-  const selectedStage = useMemo(() => {
-    if (!selectedStageSlug) return null
-    return stages.find((stage) => stageIdentity(stage) === selectedStageSlug) || null
-  }, [selectedStageSlug, stages])
-
   async function loadDetail() {
     try {
       const result = await fetchAttackDashboardData()
@@ -66,8 +58,6 @@ export default function AttackDetailPage() {
   function onSelectStage(stage: (typeof stages)[number]) {
     const slug = stageIdentity(stage)
     setSelectedStageSlug(slug)
-    const el = document.getElementById("stage-details")
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" })
   }
 
   if (!data) {
@@ -85,32 +75,11 @@ export default function AttackDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <CardHeader className="pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="rounded-lg bg-purple-50 p-2">
-                <BarChart3 className="h-5 w-5 text-purple-300" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-medium text-gray-900">{t("stageStats")}</CardTitle>
-                <CardDescription className="text-sm text-gray-500">
-                  {t("stageStatsDescription")}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <OverviewCarousel
-              stages={stages}
-              selectedStageSlug={selectedStageSlug}
-              onSelectStage={onSelectStage}
-            />
-
-            <div className="mt-6" id="stage-details">
-              <StageDetails stage={selectedStage} />
-            </div>
-          </CardContent>
-        </Card>
+        <OverviewCarousel
+          stages={stages}
+          selectedStageSlug={selectedStageSlug}
+          onSelectStage={onSelectStage}
+        />
       </div>
     </div>
   )

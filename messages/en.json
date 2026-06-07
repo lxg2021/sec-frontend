@@ -593,8 +593,8 @@
         "lastChecked": "Last checked: {time}",
         "allHosts": "All hosts",
         "loading": "Loading attack overview...",
-        "stageStats": "ATT&CK Stage Statistics",
-        "stageStatsDescription": "View detailed results by ATT&CK stage.",
+        "stageStats": "ATT&CK Stage Distribution",
+        "stageStatsDescription": "View statistics by stage.",
         "task": {
           "submittedMessage": "Task submitted and waiting to run",
           "submittedTitle": "Check task submitted",
