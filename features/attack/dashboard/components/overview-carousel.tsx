@@ -1,34 +1,91 @@
-﻿"use client"
+"use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { Button } from "@/shared/ui/button"
-import OverviewCard from "./overview-card"
 import type { AttckStage } from "@/features/attack/utils/attck-utils"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { slugify } from "@/features/attack/utils/stage-color"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Eye } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
+import { getStageColor, slugify } from "@/features/attack/utils/stage-color"
+import { getStageIconBgStyle, getStageIconComponent } from "@/features/attack/utils/stage-icon"
 
 function stageIdentity(stage: AttckStage) {
   return stage.stageKey || slugify(stage.stage)
 }
 
-function useResponsivePerPage() {
-  const [perPage, setPerPage] = useState(4)
-  useEffect(() => {
-    const compute = () => {
-      const w = window.innerWidth
-      let newPerPage = 4
-      if (w < 640) newPerPage = 1
-      else if (w < 1024) newPerPage = 2
-      else if (w < 1280) newPerPage = 3
-      setPerPage((prev) => (prev !== newPerPage ? newPerPage : prev))
-    }
-    compute()
-    window.addEventListener("resize", compute)
-    return () => window.removeEventListener("resize", compute)
-  }, [])
-  return perPage
+interface StageCardProps {
+  stageKey?: string
+  title: string
+  description: string
+  icon?: string
+  count: number
+  onClick?: () => void
+  selected?: boolean
+}
+
+function StageCard({
+  stageKey,
+  title,
+  description,
+  icon,
+  count,
+  onClick,
+  selected = false,
+}: StageCardProps) {
+  const slug = stageKey || slugify(title)
+  const color = getStageColor(slug)
+  const IconComponent = getStageIconComponent(icon)
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative w-full cursor-pointer text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      aria-pressed={selected}
+      title={description}
+    >
+      {selected && (
+        <div className="absolute -top-2 -right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-blue-500">
+          <Eye className="h-3 w-3 text-white" />
+        </div>
+      )}
+
+      <Card
+        className={`relative overflow-hidden rounded-lg border-0 bg-transparent shadow-none transition-shadow transition-transform duration-300 hover:-translate-y-1 hover:scale-105 ${
+          selected ? "ring-2 ring-blue-500 shadow-lg" : ""
+        }`}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 opacity-5"
+          style={{
+            background: `linear-gradient(to bottom right, ${color}, ${color}cc)`,
+          }}
+        />
+
+        <CardHeader className="relative z-10 flex flex-row items-center justify-between px-6 pt-6 pb-2">
+          <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            {title}
+          </CardTitle>
+          <div
+            className="flex items-center justify-center rounded-lg p-2"
+            style={getStageIconBgStyle(color)}
+          >
+            <IconComponent className="h-5 w-5 text-white" />
+          </div>
+        </CardHeader>
+
+        <CardContent className="relative z-10 space-y-2 px-6 pb-6 pt-1">
+          <p className="line-clamp-3 text-xs text-slate-600 dark:text-slate-400">
+            {description}
+          </p>
+          <div className="flex items-baseline justify-between">
+            <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">
+              <span style={{ color }}>{count}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </button>
+  )
 }
 
 interface OverviewCarouselProps {
@@ -43,36 +100,6 @@ export default function OverviewCarousel({
   onSelectStage,
 }: OverviewCarouselProps) {
   const t = useTranslations("pages.attack.dashboard")
-  const perPage = useResponsivePerPage()
-  const totalPages = Math.max(1, Math.ceil(stages.length / perPage))
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  // 保证 activeIndex 不超过最大页数
-  useEffect(() => {
-    const maxIndex = totalPages - 1
-    setActiveIndex((idx) => Math.min(idx, maxIndex))
-  }, [totalPages])
-
-  // 外部选中时自动定位页
-  useEffect(() => {
-    if (!selectedStageSlug || !stages.length) return
-    const index = stages.findIndex((s) => stageIdentity(s) === selectedStageSlug)
-    if (index >= 0) {
-      setActiveIndex(Math.floor(index / perPage))
-    }
-  }, [selectedStageSlug, stages, perPage])
-
-  const currentPageData = useMemo(() => {
-    const start = activeIndex * perPage
-    return stages.slice(start, start + perPage)
-  }, [stages, activeIndex, perPage])
-
-  function goToPrevious() {
-    setActiveIndex((i) => (i - 1 + totalPages) % totalPages)
-  }
-  function goToNext() {
-    setActiveIndex((i) => (i + 1) % totalPages)
-  }
 
   if (stages.length === 0) {
     return (
@@ -83,68 +110,32 @@ export default function OverviewCarousel({
   }
 
   return (
-    <div className="w-full space-y-6">
-      {/* 轮播图导航 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goToPrevious}
-            className="h-8 w-8 rounded-full border-gray-300 hover:bg-gray-50 bg-transparent"
-            aria-label={t("carousel.previousPage")}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center space-x-2">
-            {Array.from({ length: totalPages }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setActiveIndex(index)}
-                aria-label={t("carousel.pageAria", { page: index + 1 })}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === activeIndex ? "bg-blue-600 w-6" : "bg-gray-300 hover:bg-gray-400"
-                }`}
-              />
-            ))}
-          </div>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={goToNext}
-            className="h-8 w-8 rounded-full border-gray-300 hover:bg-gray-50 bg-transparent"
-            aria-label={t("carousel.nextPage")}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="text-sm text-gray-500">
-          {t("carousel.summary", { current: activeIndex + 1, total: totalPages, count: stages.length })}
-        </div>
-      </div>
-
-      {/* 阶段卡片轮播 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-        {currentPageData.map((stage, idx) => {
+    <div className="w-full">
+      <div className="grid grid-cols-[repeat(14,minmax(0,1fr))] gap-1">
+        {stages.map((stage, idx) => {
           const slug = stageIdentity(stage)
           const isSelected = selectedStageSlug === slug
-          const title = stage.stageKey && getAttckStageDefinition(stage.stageKey) ? t(`stages.${stage.stageKey}.label`) : stage.stage
+          const title =
+            stage.stageKey && getAttckStageDefinition(stage.stageKey)
+              ? t(`stages.${stage.stageKey}.label`)
+              : stage.stage
           const description =
             stage.stageKey && getAttckStageDefinition(stage.stageKey)
               ? t(`stages.${stage.stageKey}.description`)
               : stage.description
+
           return (
-            <OverviewCard
-              key={slug || stage.stage || idx}
-              stageKey={stage.stageKey}
-              title={title}
-              description={description}
-              icon={stage.icon}
-              count={stage.count}
-              onClick={() => onSelectStage(stage)}
-              selected={isSelected}
-            />
+            <div key={slug || stage.stage || idx} className="min-w-0">
+              <StageCard
+                stageKey={stage.stageKey}
+                title={title}
+                description={description}
+                icon={stage.icon}
+                count={stage.count}
+                onClick={() => onSelectStage(stage)}
+                selected={isSelected}
+              />
+            </div>
           )
         })}
       </div>
