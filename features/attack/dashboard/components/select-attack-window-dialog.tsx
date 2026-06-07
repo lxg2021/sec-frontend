@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ArrowRight, X } from "lucide-react"
 
 import {
@@ -30,6 +30,7 @@ interface SelectAttackWindowDialogProps {
   defaultStart?: string
   defaultEnd?: string
   onSnapshotChange?: (snapshot: AttackOverview) => void
+  onCheckSubmitted?: (taskId: string) => void
 }
 
 function formatTime(value?: string) {
@@ -61,15 +62,42 @@ function isTimelineRangeWithinThreeMonths(startTime: string, endTime: string) {
   return end <= addMonths(start, 3)
 }
 
+function clampTimelineTime(value: string, min?: string, max?: string) {
+  const current = parseTimelineTime(value)
+  const minDate = min ? parseTimelineTime(min) : null
+  const maxDate = max ? parseTimelineTime(max) : null
+  if (!current) return value
+  if (min && minDate && current < minDate) return min
+  if (max && maxDate && current > maxDate) return max
+  return value
+}
+
+function withTimelineBounds(
+  range: { start: AttackEventTimelinePoint; end: AttackEventTimelinePoint },
+  data: GetAttackEventTimelineDistributionData,
+) {
+  return {
+    start: {
+      ...range.start,
+      bucket_start: clampTimelineTime(range.start.bucket_start, data.start_time, data.end_time),
+    },
+    end: {
+      ...range.end,
+      bucket_end: clampTimelineTime(range.end.bucket_end, data.start_time, data.end_time),
+    },
+  }
+}
+
 export function SelectAttackWindowDialog({
   open,
   onOpenChange,
   defaultStart = "",
   defaultEnd = "",
   onSnapshotChange,
+  onCheckSubmitted,
 }: SelectAttackWindowDialogProps) {
   const { toast } = useToast()
-  const [timelineGranularity, setTimelineGranularity] = useState<Granularity>("month")
+  const [timelineGranularity, setTimelineGranularity] = useState<Granularity>("day")
   const [timelineData, setTimelineData] = useState<GetAttackEventTimelineDistributionData | null>(null)
   const [timelineLoading, setTimelineLoading] = useState(false)
   const [timelineError, setTimelineError] = useState(false)
@@ -79,20 +107,15 @@ export function SelectAttackWindowDialog({
     start: AttackEventTimelinePoint
     end: AttackEventTimelinePoint
   } | null>(null)
-  const [appliedTimelineRange, setAppliedTimelineRange] = useState<{
-    startTime: string
-    endTime: string
-  } | null>(null)
-  const skipNextTimelineLoadRef = useRef(false)
 
   useEffect(() => {
     if (!open) return
-    if (skipNextTimelineLoadRef.current) {
-      skipNextTimelineLoadRef.current = false
-      return
-    }
 
     let cancelled = false
+
+    setError(null)
+    setSelectedTimelineRange(null)
+    setTimelineData(null)
 
     async function loadTimeline() {
       setTimelineLoading(true)
@@ -101,12 +124,14 @@ export function SelectAttackWindowDialog({
         const result = await fetchAttackEventTimelineDistribution({
           granularity: timelineGranularity,
           timezone: "Asia/Shanghai",
-          startTime: appliedTimelineRange?.startTime,
-          endTime: appliedTimelineRange?.endTime,
         })
         if (!cancelled) {
           setTimelineData(result)
-          setSelectedTimelineRange(null)
+          const first = result.items[0]
+          const last = result.items[result.items.length - 1]
+          setSelectedTimelineRange(
+            first && last ? withTimelineBounds({ start: first, end: last }, result) : null,
+          )
         }
       } catch (err) {
         console.error("load attack event timeline failed", err)
@@ -125,7 +150,7 @@ export function SelectAttackWindowDialog({
     return () => {
       cancelled = true
     }
-  }, [appliedTimelineRange, open, timelineGranularity])
+  }, [open, timelineGranularity])
 
   const busy = timelineLoading || applying
   const timelinePreviewData: GetAttackEventTimelineDistributionData = useMemo(
@@ -168,26 +193,27 @@ export function SelectAttackWindowDialog({
     setTimelineError(false)
     setError(null)
     try {
-      const nextTimeline = await fetchAttackEventTimelineDistribution({
-        granularity: nextGranularity,
-        timezone: "Asia/Shanghai",
-        startTime,
-        endTime,
-      })
-      skipNextTimelineLoadRef.current = true
       setTimelineGranularity(nextGranularity)
-      setAppliedTimelineRange({ startTime, endTime })
-      setTimelineData(nextTimeline)
-      setSelectedTimelineRange(null)
 
       const resolved = await resolveAttackStatsRangeSnapshot({
         startTime,
         endTime,
         timezone: "Asia/Shanghai",
+        autoTriggerDetection: true,
       })
 
       if (!resolved.snapshot_id) {
-        throw new Error(resolved.status || "当前窗口没有可用快照，需要先完成检查")
+        if (resolved.task_id) {
+          onOpenChange(false)
+          onCheckSubmitted?.(resolved.task_id)
+          toast({
+            title: "检查任务已提交",
+            description: `${startTime} - ${endTime}`,
+          })
+          return
+        }
+        setError("当前窗口没有可用快照，检查任务提交失败")
+        return
       }
 
       const resolvedSnapshot = await fetchAttackSnapshotById(resolved.snapshot_id)
@@ -219,27 +245,29 @@ export function SelectAttackWindowDialog({
       }}
     >
       <DialogContent className="max-h-[88vh] max-w-5xl overflow-hidden rounded-xl border border-border bg-card p-0 shadow-xl [&>button]:hidden">
-        <DialogHeader className="flex flex-row items-center justify-between gap-3 space-y-0 border-b border-slate-100 px-4 py-2.5 text-left">
-          <DialogTitle className="text-base font-semibold text-foreground">选择窗口</DialogTitle>
+        <DialogHeader className="sr-only">
+          <DialogTitle>选择窗口</DialogTitle>
+        </DialogHeader>
+        <div className="flex h-11 items-center justify-end px-4 pt-2">
           <Button
             variant="ghost"
             size="icon-sm"
             onClick={handleCancel}
             disabled={busy}
             aria-label="关闭"
-            className="text-muted-foreground"
+            className="h-8 w-8 rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm hover:bg-slate-50 hover:text-slate-700"
           >
             <X className="h-4 w-4" />
           </Button>
-        </DialogHeader>
+        </div>
 
-        <div className="max-h-[calc(88vh-112px)] space-y-3 overflow-y-auto px-4 py-3">
+        <div className="max-h-[calc(88vh-120px)] space-y-3 overflow-y-auto px-4 pb-4">
           <AttackDistributionTimeline
             data={timelinePreviewData}
             loading={timelineLoading}
             onGranularityChange={setTimelineGranularity}
-            onRangeChange={setSelectedTimelineRange}
-            className="gap-3 rounded-lg p-3 sm:p-3"
+            onRangeChange={(range) => setSelectedTimelineRange(withTimelineBounds(range, timelinePreviewData))}
+            className="gap-3 rounded-lg p-3 sm:p-3 [&_.attack-timeline-chart]:h-60"
           />
 
           <div className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-600">

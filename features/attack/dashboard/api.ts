@@ -215,6 +215,11 @@ function stringValue(value: unknown) {
   return typeof value === "string" ? value.trim() : ""
 }
 
+function normalizeSnapshotId(value: unknown) {
+  const normalized = stringValue(value)
+  return normalized && normalized !== "0" ? normalized : ""
+}
+
 function normalizeArray(items: unknown): string[] {
   return Array.isArray(items) ? items.map((item) => stringValue(item)).filter(Boolean) : []
 }
@@ -317,7 +322,7 @@ function buildOverview(raw?: BackendAttackStatsOverviewItem): AttackOverview {
       bucket_end: stringValue(bucket?.bucket_end),
       trigger_source: stringValue(bucket?.trigger_source),
       last_request_id: stringValue(bucket?.last_request_id),
-      snapshot_id: stringValue(bucket?.snapshot_id),
+      snapshot_id: normalizeSnapshotId(bucket?.snapshot_id),
     },
     scope: "",
     total_rules: numberValue(raw?.total_rules),
@@ -544,7 +549,7 @@ export async function fetchAttackSnapshots({
 }
 
 export async function fetchAttackSnapshotById(snapshotId: string): Promise<AttackOverview | null> {
-  const normalizedSnapshotId = stringValue(snapshotId)
+  const normalizedSnapshotId = normalizeSnapshotId(snapshotId)
   if (!normalizedSnapshotId) return null
 
   let page = 1
@@ -562,7 +567,7 @@ export async function fetchAttackSnapshotById(snapshotId: string): Promise<Attac
 }
 
 export async function fetchAttackStageHostDistribution(snapshotId: string): Promise<AttackStageHostDistributionItem[]> {
-  const normalizedSnapshotId = stringValue(snapshotId)
+  const normalizedSnapshotId = normalizeSnapshotId(snapshotId)
   if (!normalizedSnapshotId) return []
 
   const result = (await http.post("/sensor/analysis/stats/attack-stage-host-distribution", {
@@ -581,7 +586,7 @@ export async function fetchAttackStageHostDistribution(snapshotId: string): Prom
 }
 
 export async function fetchTopAttackHosts(snapshotId: string, limit = DEFAULT_TOP_LIMIT): Promise<AttackTopHostItem[]> {
-  const normalizedSnapshotId = stringValue(snapshotId)
+  const normalizedSnapshotId = normalizeSnapshotId(snapshotId)
   if (!normalizedSnapshotId) return []
 
   const result = (await http.post("/sensor/analysis/stats/top-attack-hosts", {
@@ -694,7 +699,7 @@ export async function resolveAttackStatsRangeSnapshot({
   })) as ApiResult<BackendResolveAttackStatsRangeSnapshotData | null>
 
   return {
-    snapshot_id: stringValue(result.data?.snapshot_id),
+    snapshot_id: normalizeSnapshotId(result.data?.snapshot_id),
     task_id: stringValue(result.data?.task_id),
     status: stringValue(result.data?.status),
     source: stringValue(result.data?.source),
@@ -727,6 +732,6 @@ export async function getTaskStatus(taskId: string): Promise<AttackTaskStatus> {
     task_id: stringValue(result.data?.task_id),
     status: stringValue(result.data?.status),
     error_message: stringValue(result.data?.error_message),
-    snapshot_id: stringValue(result.data?.snapshot_id),
+    snapshot_id: normalizeSnapshotId(result.data?.snapshot_id),
   }
 }

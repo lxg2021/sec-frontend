@@ -130,6 +130,7 @@ export function AttackDashboardHeader({
         defaultStart={toInputValue(bucket.bucket_start)}
         defaultEnd={toInputValue(bucket.bucket_end)}
         onSnapshotChange={onSnapshotChange}
+        onCheckSubmitted={onCheckSubmitted}
       />
 
       <TriggerCheckDialog

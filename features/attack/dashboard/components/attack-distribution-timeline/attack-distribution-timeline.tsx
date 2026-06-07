@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { ActivitySquare } from "lucide-react"
 import {
   Area,
   AreaChart,
@@ -170,26 +171,31 @@ export function AttackDistributionTimeline({
       )}
       aria-label="攻击时间分布"
     >
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold leading-none">攻击时间分布</h2>
-            <span
-              className={cn(
-                "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
-                coverageMeta.className,
-              )}
-              title={coverageMeta.description}
-            >
-              {coverageMeta.label}
-            </span>
+      <header className="flex flex-col gap-3 pr-10 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-600 ring-1 ring-orange-100">
+            <ActivitySquare className="h-4 w-4" />
           </div>
-          <p className="text-sm text-muted-foreground">
-            {data.start_time}
-            <span className="mx-1.5 text-muted-foreground/60">→</span>
-            {data.end_time}
-            <span className="ml-2 text-muted-foreground/60">({data.timezone})</span>
-          </p>
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold leading-none">攻击时间分布</h2>
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                  coverageMeta.className,
+                )}
+                title={coverageMeta.description}
+              >
+                {coverageMeta.label}
+              </span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {data.start_time}
+              <span className="mx-1.5 text-muted-foreground/60">→</span>
+              {data.end_time}
+              <span className="ml-2 text-muted-foreground/60">({data.timezone})</span>
+            </p>
+          </div>
         </div>
 
         <div
@@ -271,7 +277,7 @@ export function AttackDistributionTimeline({
         })}
       </div>
 
-      <div className="relative h-72 w-full">
+      <div className="attack-timeline-chart relative h-72 w-full">
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-muted/40">
             <span className="text-sm text-muted-foreground">加载中…</span>
