@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowRight, Clock, Loader2, Play, Radar, RefreshCw } from "lucide-react"
+import { Loader2, Play, Radar, RefreshCw } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
 import type { AttackOverview, BucketType } from "@/features/attack/dashboard/types"
+import { AttackSnapshotSelector } from "@/features/attack/dashboard/components/attack-snapshot-selector"
 import { TriggerCheckDialog } from "@/features/attack/dashboard/components/trigger-check-dialog"
 import { Button } from "@/shared/ui/button"
 import { useTranslations } from "next-intl"
@@ -20,17 +21,8 @@ interface AttackDashboardHeaderProps {
   checking?: boolean
   onRefresh?: () => void
   onCheckSubmitted?: (taskId: string) => void
+  onSnapshotChange?: (snapshot: AttackOverview) => void
   className?: string
-}
-
-function formatTime(value?: string) {
-  if (!value) return "--"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
-    date.getHours(),
-  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
 function toInputValue(value?: string) {
@@ -48,14 +40,12 @@ export function AttackDashboardHeader({
   checking = false,
   onRefresh,
   onCheckSubmitted,
+  onSnapshotChange,
   className,
 }: AttackDashboardHeaderProps) {
   const t = useTranslations("pages.attack.dashboard")
   const [dialogOpen, setDialogOpen] = useState(false)
   const { bucket, scope } = overview
-
-  const rangeStart = formatTime(bucket.bucket_start)
-  const rangeEnd = formatTime(bucket.bucket_end)
 
   return (
     <header
@@ -84,19 +74,12 @@ export function AttackDashboardHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
-          <div className="flex min-w-[220px] items-center gap-3 rounded-2xl bg-slate-50/90 px-3 py-2.5 lg:border-l lg:border-slate-200 lg:bg-transparent lg:pl-5 lg:pr-0">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80 lg:bg-slate-50">
-              <Clock className="h-4 w-4" />
-            </span>
-            <div className="flex flex-col">
-              <p className="text-xs leading-none text-slate-400">{t("header.checkRange")}</p>
-              <div className="mt-1 flex items-center gap-1.5 text-sm font-medium text-slate-700 tabular-nums">
-                <span>{rangeStart}</span>
-                <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
-                <span>{rangeEnd}</span>
-              </div>
-            </div>
-          </div>
+          <AttackSnapshotSelector
+            value={bucket.snapshot_id}
+            snapshot={overview}
+            disabled={checking}
+            onChange={(snapshot) => onSnapshotChange?.(snapshot)}
+          />
 
           <div className="flex items-center gap-1 lg:border-l lg:border-slate-200 lg:pl-4">
             <Button

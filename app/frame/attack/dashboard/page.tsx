@@ -156,10 +156,37 @@ export default function AttckDashboardPage() {
     }
   }
 
+  async function handleSnapshotChange(snapshot: AttackOverview) {
+    setChecking(true)
+    try {
+      const result = await fetchAttackDashboardData({ overview: snapshot })
+      setOverview(result.overview)
+      setData(result.data)
+    } catch (error) {
+      console.error("load selected attack snapshot failed", error)
+      toast({
+        title: t("header.snapshotLoadFailed"),
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      })
+    } finally {
+      setChecking(false)
+    }
+  }
+
   async function handleRefresh() {
     setChecking(true)
-    await loadDashboard()
-    setChecking(false)
+    try {
+      if (overview?.bucket.snapshot_id) {
+        const result = await fetchAttackDashboardData({ overview })
+        setOverview(result.overview)
+        setData(result.data)
+      } else {
+        await loadDashboard()
+      }
+    } finally {
+      setChecking(false)
+    }
   }
 
   function handleCheckSubmitted(taskId: string) {
@@ -196,6 +223,7 @@ export default function AttckDashboardPage() {
           checking={checking || taskChecking}
           onRefresh={() => void handleRefresh()}
           onCheckSubmitted={handleCheckSubmitted}
+          onSnapshotChange={(snapshot) => void handleSnapshotChange(snapshot)}
         />
 
         <AttckHeader data={data} overview={overview} />

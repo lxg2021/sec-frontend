@@ -5,8 +5,10 @@ import { createRequestId } from "@/shared/lib/utils"
 import { ATTCK_STAGE_DEFINITIONS, getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type {
   AttackStageHostDistributionItem,
+  AttackSnapshotsResult,
   AttackStatsTrendParams,
   AttackOverview,
+  AttackSnapshotPagination,
   AttackTaskStatus,
   AttackTopHostItem,
   AttackTrendPoint,
@@ -101,6 +103,20 @@ interface BackendAttackStatsTrendData {
   items?: BackendAttackStatsOverviewItem[]
 }
 
+interface BackendPaginationInfo {
+  current_page?: number | string
+  page_size?: number | string
+  total_count?: number | string
+  total_pages?: number | string
+  has_previous?: boolean
+  has_next?: boolean
+}
+
+interface BackendAttackStatsSnapshotsData {
+  items?: BackendAttackStatsOverviewItem[]
+  pagination?: BackendPaginationInfo
+}
+
 interface BackendAttackRuleHostStatsItem {
   agent_id?: string
   hostname?: string
@@ -135,6 +151,7 @@ interface RuleWithHosts {
 
 export interface FetchAttackDashboardOptions {
   bucketType?: BucketType
+  overview?: AttackOverview
   topLimit?: number
 }
 
@@ -265,6 +282,27 @@ function buildOverview(raw?: BackendAttackStatsOverviewItem): AttackOverview {
   }
 }
 
+function normalizePagination(
+  pagination: BackendPaginationInfo | undefined,
+  page: number,
+  pageSize: number,
+  itemCount: number,
+): AttackSnapshotPagination {
+  const totalCount = numberValue(pagination?.total_count ?? itemCount)
+  const totalPages = numberValue(pagination?.total_pages ?? Math.ceil(totalCount / Math.max(pageSize, 1)))
+  const currentPage = numberValue(pagination?.current_page ?? page) || page
+  const normalizedPageSize = numberValue(pagination?.page_size ?? pageSize) || pageSize
+
+  return {
+    current_page: currentPage,
+    page_size: normalizedPageSize,
+    total_count: totalCount,
+    total_pages: totalPages,
+    has_previous: Boolean(pagination?.has_previous ?? currentPage > 1),
+    has_next: Boolean(pagination?.has_next ?? currentPage < totalPages),
+  }
+}
+
 function buildEmptyAttckData(overview: AttackOverview): AttckData {
   return {
     starttime: overview.bucket.bucket_start,
@@ -379,9 +417,10 @@ export async function fetchAttackOverview(bucketType: BucketType = DEFAULT_BUCKE
 
 export async function fetchAttackDashboardData({
   bucketType = DEFAULT_BUCKET_TYPE,
+  overview: selectedOverview,
   topLimit = DEFAULT_TOP_LIMIT,
 }: FetchAttackDashboardOptions = {}): Promise<{ overview: AttackOverview; data: AttckData }> {
-  const overview = await fetchAttackOverview(bucketType)
+  const overview = selectedOverview || await fetchAttackOverview(bucketType)
   const snapshotId = overview.bucket.snapshot_id
 
   if (!snapshotId) {
@@ -421,6 +460,35 @@ export async function fetchAttackDashboardData({
   return {
     overview,
     data: adaptDashboardData(overview, detailResults),
+  }
+}
+
+export async function fetchAttackSnapshots({
+  bucketType,
+  page = 1,
+  pageSize = 50,
+}: {
+  bucketType?: BucketType
+  page?: number
+  pageSize?: number
+} = {}): Promise<AttackSnapshotsResult> {
+  const payload: Record<string, unknown> = {
+    request_id: createRequestId(),
+    page,
+    page_size: pageSize,
+  }
+
+  if (bucketType) {
+    payload.bucket_type = bucketType
+  }
+
+  const result = (await http.post("/sensor/analysis/stats/attack-snapshots", payload)) as ApiResult<BackendAttackStatsSnapshotsData | null>
+
+  const items = Array.isArray(result.data?.items) ? result.data.items.map(buildOverview) : []
+
+  return {
+    items,
+    pagination: normalizePagination(result.data?.pagination, page, pageSize, items.length),
   }
 }
 

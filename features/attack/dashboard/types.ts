@@ -70,3 +70,17 @@ export interface AttackStatsTrendParams {
   endTime: string
   timezone?: string
 }
+
+export interface AttackSnapshotPagination {
+  current_page: number
+  page_size: number
+  total_count: number
+  total_pages: number
+  has_previous: boolean
+  has_next: boolean
+}
+
+export interface AttackSnapshotsResult {
+  items: AttackOverview[]
+  pagination: AttackSnapshotPagination
+}
