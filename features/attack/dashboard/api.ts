@@ -17,6 +17,10 @@ import type {
   TriggerCheckResult,
 } from "@/features/attack/dashboard/types"
 import type {
+  GetAttackEventTimelineDistributionData,
+  Granularity,
+} from "@/features/attack/dashboard/components/attack-distribution-timeline"
+import type {
   AttackRuleMeta,
   AttckData,
   AttckDetail,
@@ -103,6 +107,32 @@ interface BackendAttackStatsTrendData {
   items?: BackendAttackStatsOverviewItem[]
 }
 
+interface BackendAttackEventTimelinePoint {
+  bucket_start?: string
+  bucket_end?: string
+  total_sources?: number | string
+  total_instances?: number | string
+  total_groups?: number | string
+  total_rules?: number | string
+  total_hosts?: number | string
+  total_cases?: number | string
+}
+
+interface BackendAttackEventTimelineData {
+  start_time?: string
+  end_time?: string
+  timezone?: string
+  granularity?: string
+  coverage_status?: string
+  total_sources?: number | string
+  total_instances?: number | string
+  total_groups?: number | string
+  total_rules?: number | string
+  total_hosts?: number | string
+  total_cases?: number | string
+  items?: BackendAttackEventTimelinePoint[]
+}
+
 interface BackendPaginationInfo {
   current_page?: number | string
   page_size?: number | string
@@ -184,6 +214,18 @@ function normalizeBucketType(value: unknown): BucketType {
   const normalized = stringValue(value).toLowerCase()
   if (normalized === "hour" || normalized === "day") return normalized
   return "fixed"
+}
+
+function normalizeGranularity(value: unknown): Granularity {
+  const normalized = stringValue(value).toLowerCase()
+  if (normalized === "hour" || normalized === "month") return normalized
+  return "day"
+}
+
+function normalizeCoverageStatus(value: unknown): GetAttackEventTimelineDistributionData["coverage_status"] {
+  const normalized = stringValue(value).toLowerCase()
+  if (normalized === "covered" || normalized === "partial") return normalized
+  return "unknown"
 }
 
 function normalizePhase(phase: string) {
@@ -550,6 +592,59 @@ export async function fetchAttackStatsTrend({
 
   const items = Array.isArray(result.data?.items) ? result.data.items : []
   return items.map(buildOverview)
+}
+
+export async function fetchAttackEventTimelineDistribution({
+  granularity = "day",
+  startTime,
+  endTime,
+  timezone = "Asia/Shanghai",
+}: {
+  granularity?: Granularity
+  startTime?: string
+  endTime?: string
+  timezone?: string
+} = {}): Promise<GetAttackEventTimelineDistributionData> {
+  const payload: Record<string, unknown> = {
+    request_id: createRequestId(),
+    granularity,
+    timezone,
+  }
+
+  if (startTime) payload.start_time = normalizeTaskTime(startTime)
+  if (endTime) payload.end_time = normalizeTaskTime(endTime)
+
+  const result = (await http.post(
+    "/sensor/analysis/stats/attack-event-timeline",
+    payload,
+  )) as ApiResult<BackendAttackEventTimelineData | null>
+
+  const data = result.data
+  const items = Array.isArray(data?.items) ? data.items : []
+
+  return {
+    start_time: stringValue(data?.start_time),
+    end_time: stringValue(data?.end_time),
+    timezone: stringValue(data?.timezone) || timezone,
+    granularity: normalizeGranularity(data?.granularity || granularity),
+    coverage_status: normalizeCoverageStatus(data?.coverage_status),
+    total_sources: numberValue(data?.total_sources),
+    total_instances: numberValue(data?.total_instances),
+    total_groups: numberValue(data?.total_groups),
+    total_rules: numberValue(data?.total_rules),
+    total_hosts: numberValue(data?.total_hosts),
+    total_cases: numberValue(data?.total_cases),
+    items: items.map((item) => ({
+      bucket_start: stringValue(item.bucket_start),
+      bucket_end: stringValue(item.bucket_end),
+      total_sources: numberValue(item.total_sources),
+      total_instances: numberValue(item.total_instances),
+      total_groups: numberValue(item.total_groups),
+      total_rules: numberValue(item.total_rules),
+      total_hosts: numberValue(item.total_hosts),
+      total_cases: numberValue(item.total_cases),
+    })),
+  }
 }
 
 export async function triggerCheck(payload: TriggerCheckPayload): Promise<TriggerCheckResult> {
