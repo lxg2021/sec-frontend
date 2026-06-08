@@ -225,7 +225,6 @@ export function AttackCaseList({
   const pageSize = controlledPageSize ?? localPageSize
   const loadedTotal = items.length
   const totalPages = Math.max(1, Math.ceil(loadedTotal / pageSize))
-  const maxReachablePage = hasMore ? totalPages + 1 : totalPages
   const normalizedPage = Math.min(page, Math.max(1, totalPages))
   const pageStartIndex = (normalizedPage - 1) * pageSize
   const pageEndIndex = Math.min(pageStartIndex + pageSize, loadedTotal)
@@ -351,7 +350,7 @@ export function AttackCaseList({
               variant="outline"
               size="sm"
               onClick={handleNextPage}
-              disabled={loadingMore || normalizedPage >= maxReachablePage}
+              disabled={loadingMore || (!hasMore && normalizedPage >= totalPages)}
             >
               {loadingMore ? t("loadingMore") : t("pagination.next")}
               <ChevronRight className="ml-1 h-4 w-4" />
@@ -372,7 +371,7 @@ function AttackCaseListHeader() {
         <ListTree className="size-6" />
       </div>
       <div className="min-w-0">
-        <CardTitle className="text-2xl font-semibold leading-7 text-slate-950">
+        <CardTitle className="text-lg font-semibold leading-6 text-slate-950">
           {t("title")}
         </CardTitle>
         <CardDescription className="mt-1 text-sm text-slate-500">

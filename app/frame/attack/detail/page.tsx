@@ -17,7 +17,7 @@ import type { AttackCaseTimelineSummary, AttackOverview } from "@/features/attac
 import type { AttckData } from "@/features/attack/utils/attck-utils"
 import { slugify } from "@/features/attack/utils/stage-color"
 
-const CASE_PAGE_SIZE = 20
+const DEFAULT_CASE_PAGE_SIZE = 20
 const DETAIL_TIMEZONE = "Asia/Shanghai"
 
 function stageIdentity(stage: { stageKey?: string; stage: string }) {
@@ -88,6 +88,7 @@ export default function AttackDetailPage() {
   const [caseNextPageToken, setCaseNextPageToken] = useState("")
   const [caseHasMore, setCaseHasMore] = useState(false)
   const [caseLoadingMore, setCaseLoadingMore] = useState(false)
+  const [casePageSize, setCasePageSize] = useState(DEFAULT_CASE_PAGE_SIZE)
 
   useEffect(() => {
     void loadDetail()
@@ -112,7 +113,7 @@ export default function AttackDetailPage() {
     }
   }
 
-  async function loadDetail(selectedOverview?: AttackOverview) {
+  async function loadDetail(selectedOverview?: AttackOverview, nextCasePageSize = casePageSize) {
     try {
       const nextOverview = selectedOverview ?? await fetchAttackOverview()
       const [nextStages, nextCases] = await Promise.all([
@@ -121,7 +122,7 @@ export default function AttackDetailPage() {
           : Promise.resolve(EMPTY_DATA.stages),
         fetchAttackTimelineCases({
           ...buildCaseQueryRange(nextOverview),
-          pageSize: CASE_PAGE_SIZE,
+          pageSize: nextCasePageSize,
         }),
       ])
 
@@ -160,7 +161,7 @@ export default function AttackDetailPage() {
   async function handleSnapshotChange(snapshot: AttackOverview) {
     setChecking(true)
     try {
-      await loadDetail(snapshot)
+      await loadDetail(snapshot, casePageSize)
     } catch (error) {
       console.error("load selected attack snapshot failed", error)
       toast({
@@ -176,7 +177,7 @@ export default function AttackDetailPage() {
   async function handleRefresh() {
     setChecking(true)
     try {
-      await loadDetail(overview ?? undefined)
+      await loadDetail(overview ?? undefined, casePageSize)
     } finally {
       setChecking(false)
     }
@@ -189,7 +190,7 @@ export default function AttackDetailPage() {
     try {
       const nextCases = await fetchAttackTimelineCases({
         ...buildCaseQueryRange(overview),
-        pageSize: CASE_PAGE_SIZE,
+        pageSize: casePageSize,
         pageToken: caseNextPageToken,
       })
       setCaseItems((current) => [...current, ...nextCases.items])
@@ -204,6 +205,31 @@ export default function AttackDetailPage() {
         variant: "destructive",
       })
       return false
+    } finally {
+      setCaseLoadingMore(false)
+    }
+  }
+
+  async function handleCasePageSizeChange(nextPageSize: number) {
+    setCasePageSize(nextPageSize)
+    if (!overview || caseLoadingMore) return
+
+    setCaseLoadingMore(true)
+    try {
+      const nextCases = await fetchAttackTimelineCases({
+        ...buildCaseQueryRange(overview),
+        pageSize: nextPageSize,
+      })
+      setCaseItems(nextCases.items)
+      setCaseNextPageToken(nextCases.page.next_page_token)
+      setCaseHasMore(nextCases.page.has_more)
+    } catch (error) {
+      console.error("reload attack cases failed", error)
+      toast({
+        title: t("cases.loadFailed"),
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      })
     } finally {
       setCaseLoadingMore(false)
     }
@@ -244,7 +270,9 @@ export default function AttackDetailPage() {
           items={caseItems}
           hasMore={caseHasMore}
           loadingMore={caseLoadingMore}
+          pageSize={casePageSize}
           onLoadMore={handleLoadMoreCases}
+          onPageSizeChange={handleCasePageSizeChange}
         />
       </div>
     </div>
