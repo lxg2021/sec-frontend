@@ -16,7 +16,6 @@ import OverviewCarousel from "@/features/attack/dashboard/components/overview-ca
 import type { AttackCaseTimelineSummary, AttackOverview } from "@/features/attack/dashboard/types"
 import type { AttckData } from "@/features/attack/utils/attck-utils"
 import { slugify } from "@/features/attack/utils/stage-color"
-import { Button } from "@/shared/ui/button"
 
 const CASE_PAGE_SIZE = 20
 const DETAIL_TIMEZONE = "Asia/Shanghai"
@@ -184,7 +183,7 @@ export default function AttackDetailPage() {
   }
 
   async function handleLoadMoreCases() {
-    if (!overview || !caseNextPageToken || caseLoadingMore) return
+    if (!overview || !caseNextPageToken || caseLoadingMore) return false
 
     setCaseLoadingMore(true)
     try {
@@ -196,6 +195,7 @@ export default function AttackDetailPage() {
       setCaseItems((current) => [...current, ...nextCases.items])
       setCaseNextPageToken(nextCases.page.next_page_token)
       setCaseHasMore(nextCases.page.has_more)
+      return true
     } catch (error) {
       console.error("load more attack cases failed", error)
       toast({
@@ -203,6 +203,7 @@ export default function AttackDetailPage() {
         description: error instanceof Error ? error.message : undefined,
         variant: "destructive",
       })
+      return false
     } finally {
       setCaseLoadingMore(false)
     }
@@ -239,20 +240,12 @@ export default function AttackDetailPage() {
           selectedStageSlug={selectedStageSlug}
           onSelectStage={onSelectStage}
         />
-        <AttackCaseList items={caseItems} />
-        {caseHasMore ? (
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleLoadMoreCases}
-              disabled={caseLoadingMore}
-              className="rounded-full px-5"
-            >
-              {caseLoadingMore ? t("cases.loadingMore") : t("cases.loadMore")}
-            </Button>
-          </div>
-        ) : null}
+        <AttackCaseList
+          items={caseItems}
+          hasMore={caseHasMore}
+          loadingMore={caseLoadingMore}
+          onLoadMore={handleLoadMoreCases}
+        />
       </div>
     </div>
   )

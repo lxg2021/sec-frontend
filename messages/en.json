@@ -748,6 +748,8 @@
           "summary": "{current} / {total} pages · {count} stages"
         },
         "cases": {
+          "title": "Attack Case List",
+          "description": "View attack cases, stages, techniques, and hit scale by timeline",
           "empty": "No attack cases",
           "viewDetail": "View Details",
           "loadMore": "Load More",
@@ -776,6 +778,14 @@
             "instances": "Attack Instances",
             "groups": "Attack Groups",
             "evidence": "Event Data"
+          },
+          "pagination": {
+            "total": "{total} attack cases, showing {start}-{end}",
+            "moreAvailable": "more available",
+            "page": "Page {page} / {totalPages}",
+            "pageSize": "Per page",
+            "previous": "Previous",
+            "next": "Next"
           }
         },
         "stageDetails": {

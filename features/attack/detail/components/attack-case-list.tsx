@@ -1,15 +1,18 @@
 "use client"
 
-import { useMemo, type ComponentType, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
 import {
   Boxes,
   Bug,
   CalendarClock,
+  ChevronLeft,
+  ChevronRight,
   CircleDot,
   Crosshair,
   FileSearch,
   GitBranch,
+  ListTree,
   ScrollText,
   Server,
   ShieldAlert,
@@ -20,6 +23,22 @@ import {
 import { resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 import { cn } from "@/shared/lib/utils"
+import { Button } from "@/shared/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select"
 import {
   Tooltip,
   TooltipContent,
@@ -33,7 +52,15 @@ interface AttackCaseListProps {
   items: AttackCaseTimelineSummary[]
   onViewDetail?: (caseId: string) => void
   className?: string
+  hasMore?: boolean
+  loadingMore?: boolean
+  pageSize?: number
+  onLoadMore?: () => boolean | Promise<boolean>
+  onPageSizeChange?: (pageSize: number) => void | Promise<void>
 }
+
+const DEFAULT_PAGE_SIZE = 20
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 const SEVERITY_MAP: Record<
   string,
@@ -186,44 +213,173 @@ export function AttackCaseList({
   items,
   onViewDetail,
   className,
+  hasMore = false,
+  loadingMore = false,
+  pageSize: controlledPageSize,
+  onLoadMore,
+  onPageSizeChange,
 }: AttackCaseListProps) {
   const t = useTranslations("pages.attack.dashboard.cases")
+  const [page, setPage] = useState(1)
+  const [localPageSize, setLocalPageSize] = useState(controlledPageSize ?? DEFAULT_PAGE_SIZE)
+  const pageSize = controlledPageSize ?? localPageSize
+  const loadedTotal = items.length
+  const totalPages = Math.max(1, Math.ceil(loadedTotal / pageSize))
+  const maxReachablePage = hasMore ? totalPages + 1 : totalPages
+  const normalizedPage = Math.min(page, Math.max(1, totalPages))
+  const pageStartIndex = (normalizedPage - 1) * pageSize
+  const pageEndIndex = Math.min(pageStartIndex + pageSize, loadedTotal)
+  const visibleItems = items.slice(pageStartIndex, pageEndIndex)
+  const visibleStart = loadedTotal > 0 ? pageStartIndex + 1 : 0
+  const visibleEnd = loadedTotal > 0 ? pageEndIndex : 0
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, Math.max(1, Math.ceil(items.length / pageSize))))
+  }, [items.length, pageSize])
+
+  async function handlePageSizeChange(value: string) {
+    const nextPageSize = Number(value)
+    if (!Number.isFinite(nextPageSize) || nextPageSize <= 0) return
+    setPage(1)
+    if (controlledPageSize === undefined) {
+      setLocalPageSize(nextPageSize)
+    }
+    await onPageSizeChange?.(nextPageSize)
+  }
+
+  async function handleNextPage() {
+    if (normalizedPage < totalPages) {
+      setPage((current) => current + 1)
+      return
+    }
+
+    if (!hasMore || loadingMore || !onLoadMore) return
+    const loaded = await onLoadMore()
+    if (loaded !== false) {
+      setPage((current) => current + 1)
+    }
+  }
+
+  function handlePreviousPage() {
+    setPage((current) => Math.max(current - 1, 1))
+  }
 
   if (items.length === 0) {
     return (
-      <div
+      <Card
         className={cn(
-          "flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card py-16 text-center",
+          "overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm",
           className,
         )}
       >
-        <ShieldCheck className="size-8 text-muted-foreground/50" />
-        <p className="text-sm text-muted-foreground">{t("empty")}</p>
-      </div>
+        <AttackCaseListHeader />
+        <CardContent className="px-6 py-14">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card py-12 text-center">
+            <ShieldCheck className="size-8 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">{t("empty")}</p>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
     <TooltipProvider>
-      <section
+      <Card
         className={cn(
-          "rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm",
+          "overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm",
           className,
         )}
       >
-        <div className="space-y-3">
-          {items.map((item, index) => (
-            <CaseRow
-              key={item.case_id}
-              item={item}
-              isFirst={index === 0}
-              isLast={index === items.length - 1}
-              onViewDetail={onViewDetail}
-            />
-          ))}
-        </div>
-      </section>
+        <AttackCaseListHeader />
+        <CardContent className="px-4 py-3">
+          <div className="space-y-3">
+            {visibleItems.map((item, index) => (
+              <CaseRow
+                key={item.case_id}
+                item={item}
+                isFirst={index === 0}
+                isLast={index === visibleItems.length - 1}
+                onViewDetail={onViewDetail}
+              />
+            ))}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            {t("pagination.total", {
+              total: loadedTotal,
+              start: visibleStart,
+              end: visibleEnd,
+            })}
+            {hasMore ? (
+              <span className="ml-1 text-slate-400">{t("pagination.moreAvailable")}</span>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-slate-500">
+              {t("pagination.page", {
+                page: normalizedPage,
+                totalPages: hasMore ? `${totalPages}+` : totalPages,
+              })}
+            </span>
+            <span className="ml-2 text-slate-500">{t("pagination.pageSize")}</span>
+            <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+              <SelectTrigger className="h-9 w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={String(option)}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handlePreviousPage}
+              disabled={loadingMore || normalizedPage <= 1}
+            >
+              <ChevronLeft className="mr-1 h-4 w-4" />
+              {t("pagination.previous")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={loadingMore || normalizedPage >= maxReachablePage}
+            >
+              {loadingMore ? t("loadingMore") : t("pagination.next")}
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
     </TooltipProvider>
+  )
+}
+
+function AttackCaseListHeader() {
+  const t = useTranslations("pages.attack.dashboard.cases")
+
+  return (
+    <CardHeader className="flex-row items-center gap-3 border-b border-slate-200 px-6 py-5">
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600">
+        <ListTree className="size-6" />
+      </div>
+      <div className="min-w-0">
+        <CardTitle className="text-2xl font-semibold leading-7 text-slate-950">
+          {t("title")}
+        </CardTitle>
+        <CardDescription className="mt-1 text-sm text-slate-500">
+          {t("description")}
+        </CardDescription>
+      </div>
+    </CardHeader>
   )
 }
 

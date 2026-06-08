@@ -750,6 +750,8 @@
           "summary": "{current} / {total} 页 · 共 {count} 个阶段"
         },
         "cases": {
+          "title": "攻击场景列表",
+          "description": "按时间线查看攻击场景、阶段、技术与命中规模",
           "empty": "暂无攻击场景",
           "viewDetail": "查看详情",
           "loadMore": "加载更多",
@@ -778,6 +780,14 @@
             "instances": "攻击实例",
             "groups": "攻击分组",
             "evidence": "事件数据"
+          },
+          "pagination": {
+            "total": "共 {total} 个攻击场景，当前显示 {start}-{end}",
+            "moreAvailable": "还有更多",
+            "page": "第 {page} / {totalPages} 页",
+            "pageSize": "每页",
+            "previous": "上一页",
+            "next": "下一页"
           }
         },
         "stageDetails": {
