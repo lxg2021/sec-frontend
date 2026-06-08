@@ -5,6 +5,7 @@ import { createRequestId } from "@/shared/lib/utils"
 import { ATTCK_STAGE_DEFINITIONS, getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type {
   AttackStageHostDistributionItem,
+  AttackStageInstanceDistributionItem,
   AttackSnapshotsResult,
   AttackStatsTrendParams,
   AttackOverview,
@@ -88,6 +89,18 @@ interface BackendAttackStageHostDistributionItem {
 
 interface BackendAttackStageHostDistributionData {
   items?: BackendAttackStageHostDistributionItem[]
+}
+
+interface BackendAttackStageInstanceDistributionItem {
+  stage?: string
+  stageKey?: string
+  stage_key?: string
+  instanceCount?: number | string
+  instance_count?: number | string
+}
+
+interface BackendAttackStageInstanceDistributionData {
+  items?: BackendAttackStageInstanceDistributionItem[]
 }
 
 interface BackendAttackHostStatsItem {
@@ -599,6 +612,50 @@ export async function fetchAttackStageHostDistribution(snapshotId: string): Prom
       host_count: numberValue(item.host_count ?? item.hostCount),
     }))
     .filter((item) => item.stage || item.stage_key)
+}
+
+export async function fetchAttackStageInstanceDistribution(snapshotId: string): Promise<AttackStageInstanceDistributionItem[]> {
+  const normalizedSnapshotId = normalizeSnapshotId(snapshotId)
+  if (!normalizedSnapshotId) return []
+
+  const result = (await http.post("/sensor/analysis/stats/attack-stage-instance-distribution", {
+    request_id: createRequestId(),
+    snapshot_id: normalizedSnapshotId,
+  })) as ApiResult<BackendAttackStageInstanceDistributionData | null>
+
+  const items = Array.isArray(result.data?.items) ? result.data.items : []
+  return items
+    .map((item) => ({
+      stage: stringValue(item.stage),
+      stage_key: stringValue(item.stage_key) || stringValue(item.stageKey),
+      instance_count: numberValue(item.instance_count ?? item.instanceCount),
+    }))
+    .filter((item) => item.stage || item.stage_key)
+}
+
+export function buildAttackStageCardsFromInstanceDistribution(
+  items: AttackStageInstanceDistributionItem[],
+): AttckStage[] {
+  const countByStageKey = new Map<string, number>()
+
+  for (const item of items) {
+    const fallbackStage = stringValue(item.stage)
+    const definition = getAttckStageDefinition(item.stage_key) ?? resolveAttckStage(item.stage_key) ?? resolveAttckStage(fallbackStage)
+    if (!definition) continue
+    countByStageKey.set(
+      definition.key,
+      (countByStageKey.get(definition.key) ?? 0) + numberValue(item.instance_count),
+    )
+  }
+
+  return ATTCK_STAGE_DEFINITIONS.map((definition) => ({
+    stage: definition.key,
+    stageKey: definition.key,
+    description: "",
+    icon: definition.icon,
+    count: countByStageKey.get(definition.key) ?? 0,
+    details: [],
+  }))
 }
 
 export async function fetchTopAttackHosts(snapshotId: string, limit = DEFAULT_TOP_LIMIT): Promise<AttackTopHostItem[]> {

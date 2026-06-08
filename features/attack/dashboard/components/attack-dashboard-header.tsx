@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import { useState } from "react"
 import { CalendarClock, Loader2, Play, Radar, RefreshCw } from "lucide-react"
 
@@ -17,13 +18,16 @@ const BUCKET_LABEL: Record<BucketType, string> = {
   day: "DAY",
 }
 
-interface AttackDashboardHeaderProps {
+export interface AttackDashboardHeaderProps {
   overview: AttackOverview
   checking?: boolean
   onRefresh?: () => void
   onCheckSubmitted?: (taskId: string) => void
   onSnapshotChange?: (snapshot: AttackOverview) => void
   className?: string
+  title?: ReactNode
+  icon?: ReactNode
+  showCheckAction?: boolean
 }
 
 function parseOverviewBucketTime(value?: string) {
@@ -60,6 +64,9 @@ export function AttackDashboardHeader({
   onCheckSubmitted,
   onSnapshotChange,
   className,
+  title,
+  icon,
+  showCheckAction = true,
 }: AttackDashboardHeaderProps) {
   const t = useTranslations("pages.attack.dashboard")
   const [windowDialogOpen, setWindowDialogOpen] = useState(false)
@@ -76,10 +83,10 @@ export function AttackDashboardHeader({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
-            <Radar className="h-5 w-5" />
+            {icon ?? <Radar className="h-5 w-5" />}
           </div>
           <div className="min-w-0 space-y-1.5">
-            <h1 className="truncate text-lg font-semibold text-slate-950">{t("title")}</h1>
+            <h1 className="truncate text-lg font-semibold text-slate-950">{title ?? t("title")}</h1>
             <div className="flex flex-wrap items-center gap-2.5 text-sm">
               <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
                 {BUCKET_LABEL[bucket.bucket_type]}
@@ -111,17 +118,25 @@ export function AttackDashboardHeader({
               <CalendarClock className="h-4 w-4" />
               <span className="font-medium">{t("header.selectWindow")}</span>
             </Button>
-            <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setCheckDialogOpen(true)}
-              disabled={checking}
-              className="h-10 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
-            >
-              {checking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4 fill-current" />}
-              <span className="font-medium">{checking ? t("header.checking") : t("header.checkNow")}</span>
-            </Button>
+            {showCheckAction ? (
+              <>
+                <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setCheckDialogOpen(true)}
+                  disabled={checking}
+                  className="h-10 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+                >
+                  {checking ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4 fill-current" />
+                  )}
+                  <span className="font-medium">{checking ? t("header.checking") : t("header.checkNow")}</span>
+                </Button>
+              </>
+            ) : null}
           </div>
 
           <div className="flex items-center lg:border-l lg:border-slate-200 lg:pl-3">
@@ -150,11 +165,13 @@ export function AttackDashboardHeader({
         onCheckSubmitted={onCheckSubmitted}
       />
 
-      <TriggerCheckDialog
-        open={checkDialogOpen}
-        onOpenChange={setCheckDialogOpen}
-        onSubmitted={onCheckSubmitted}
-      />
+      {showCheckAction ? (
+        <TriggerCheckDialog
+          open={checkDialogOpen}
+          onOpenChange={setCheckDialogOpen}
+          onSubmitted={onCheckSubmitted}
+        />
+      ) : null}
     </header>
   )
 }
