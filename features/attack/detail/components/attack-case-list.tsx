@@ -600,7 +600,7 @@ function PhaseChips({
         return (
           <span
             key={phase.key}
-            className="shrink-0 rounded-md bg-slate-50 px-1.5 py-0.5 text-xs font-normal leading-5 text-slate-700"
+            className="shrink-0 rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-normal leading-5 text-emerald-700 transition-colors hover:bg-emerald-100"
             title={label}
           >
             {label}
