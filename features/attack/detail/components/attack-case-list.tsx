@@ -341,71 +341,71 @@ function CaseRow({
             "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] focus-visible:ring-2 focus-visible:ring-primary/25",
         )}
       >
-        <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px_126px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_380px_136px]">
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-2">
-              <span
-                className={cn(
-                  "inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold",
-                  severity.badge,
-                )}
-              >
-                <ShieldAlert className="size-3.5" />
-                {t(`severity.${severity.labelKey}`)}
-              </span>
-              <h3
-                className="min-w-0 truncate text-base font-semibold leading-6 text-slate-950"
-                title={title}
-              >
-                {title}
-              </h3>
-            </div>
-
-            <p
-              className="mt-1 line-clamp-1 text-sm leading-5 text-slate-600"
-              title={summary}
-            >
-              {summary}
-            </p>
-
-            <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-              <MetaCluster
-                icon={Target}
-                label={t("labels.caseId")}
-                className="max-w-[190px]"
-              >
+        <div className="min-w-0 space-y-2.5">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px_126px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_380px_136px]">
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
                 <span
-                  className="truncate font-mono text-xs text-slate-500"
-                  title={item.case_id}
+                  className={cn(
+                    "inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold",
+                    severity.badge,
+                  )}
                 >
-                  case-{shortenId(item.case_id, 10, 4)}
+                  <ShieldAlert className="size-3.5" />
+                  {t(`severity.${severity.labelKey}`)}
                 </span>
-              </MetaCluster>
+                <h3
+                  className="min-w-0 truncate text-base font-semibold leading-6 text-slate-950"
+                  title={title}
+                >
+                  {title}
+                </h3>
+              </div>
 
-              <MetaCluster icon={ScrollText} label={t("labels.ruleIds")}>
-                <RuleIdsInline ruleIds={item.rule_ids ?? []} />
-              </MetaCluster>
-
-              <MetaCluster icon={GitBranch} label={t("labels.stage")}>
-                <PhaseChips phases={orderedPhases} />
-              </MetaCluster>
-
-              <MetaCluster
-                icon={Crosshair}
-                label={t("labels.techniques")}
-                className="min-w-[180px] flex-[1_1_180px]"
+              <p
+                className="mt-1 line-clamp-1 text-sm leading-5 text-slate-600"
+                title={summary}
               >
-                <TechniqueChips techniques={techniques} />
-              </MetaCluster>
+                {summary}
+              </p>
             </div>
+
+            <MetricStrip metrics={metrics} />
+            <TimeRange
+              startTime={item.start_time}
+              endTime={item.end_time}
+              onViewDetail={onViewDetail ? () => onViewDetail(item.case_id) : undefined}
+            />
           </div>
 
-          <MetricStrip metrics={metrics} />
-          <TimeRange
-            startTime={item.start_time}
-            endTime={item.end_time}
-            onViewDetail={onViewDetail ? () => onViewDetail(item.case_id) : undefined}
-          />
+          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 px-3 py-2 lg:grid-cols-[190px_230px_150px_minmax(0,1fr)] lg:items-center">
+            <MetaCluster
+              icon={Target}
+              label={t("labels.caseId")}
+            >
+              <span
+                className="truncate font-mono text-xs text-slate-500"
+                title={item.case_id}
+              >
+                case-{shortenId(item.case_id, 10, 4)}
+              </span>
+            </MetaCluster>
+
+            <MetaCluster icon={ScrollText} label={t("labels.ruleIds")}>
+              <RuleIdsInline ruleIds={item.rule_ids ?? []} />
+            </MetaCluster>
+
+            <MetaCluster icon={GitBranch} label={t("labels.stage")}>
+              <PhaseChips phases={orderedPhases} />
+            </MetaCluster>
+
+            <MetaCluster
+              icon={Crosshair}
+              label={t("labels.techniques")}
+            >
+              <TechniqueChips techniques={techniques} />
+            </MetaCluster>
+          </div>
         </div>
       </div>
     </article>
@@ -455,7 +455,7 @@ function RuleIdsInline({ ruleIds }: { ruleIds: string[] }) {
           <button
             type="button"
             onClick={(event) => event.stopPropagation()}
-          className="max-w-[132px] truncate rounded-md bg-blue-50 px-1.5 py-0.5 font-mono text-xs leading-5 text-blue-700 transition-all duration-150 hover:-translate-y-0.5 hover:bg-blue-100 hover:text-blue-800 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+            className="max-w-[132px] truncate rounded-md bg-blue-50 px-1.5 py-0.5 font-mono text-xs leading-5 text-blue-700 transition-all duration-150 hover:-translate-y-0.5 hover:bg-blue-100 hover:text-blue-800 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
             title={ruleId}
             aria-label={`${t("labels.ruleIds")} ${ruleId}`}
           >
