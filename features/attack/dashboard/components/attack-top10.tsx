@@ -8,7 +8,7 @@ import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-
 import type { AttackHostRef, Top10Item } from "@/features/attack/utils/attck-utils"
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/ui/popover"
 import { useTranslations } from "next-intl"
-import { getAttckStageDefinition } from "@/features/attack/constants/attck-stages"
+import { getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import { getHardwareInfo, getSingleHostDetail } from "@/features/assets/host/api"
 import { HostInfoCard } from "@/features/assets/host/components/host-info-card"
 import type { AgentHardwareInfo } from "@/features/assets/host/types/hardware"
@@ -123,7 +123,8 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
 
   function stageLabel(stage: string) {
     if (!stage) return stage
-    return getAttckStageDefinition(stage) ? t(`stages.${stage}.label`) : stage
+    const definition = resolveAttckStage(stage) ?? getAttckStageDefinition(stage)
+    return definition ? t(`stages.${definition.key}.label`) : stage
   }
 
   const handleHostClick = async (host: AttackHostRef) => {

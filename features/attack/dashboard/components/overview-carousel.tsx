@@ -50,7 +50,7 @@ function StageCard({
       )}
 
       <Card
-        className={`relative overflow-hidden rounded-lg border-0 bg-transparent shadow-none transition-shadow transition-transform duration-300 hover:-translate-y-1 hover:scale-105 ${
+        className={`relative min-h-[170px] overflow-hidden rounded-lg border-0 bg-transparent shadow-none transition-shadow transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-sm ${
           selected ? "ring-2 ring-blue-500 shadow-lg" : ""
         }`}
       >
@@ -61,24 +61,24 @@ function StageCard({
           }}
         />
 
-        <CardHeader className="relative z-10 flex flex-row items-center justify-between px-6 pt-6 pb-2">
-          <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300">
+        <CardHeader className="relative z-10 flex flex-row items-start justify-between px-4 pt-4 pb-1.5">
+          <CardTitle className="min-w-0 text-[13px] font-medium leading-4 text-slate-700 dark:text-slate-300 line-clamp-2">
             {title}
           </CardTitle>
           <div
-            className="flex items-center justify-center rounded-lg p-2"
+            className="ml-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg p-1.5"
             style={getStageIconBgStyle(color)}
           >
-            <IconComponent className="h-5 w-5 text-white" />
+            <IconComponent className="h-4 w-4 text-white" />
           </div>
         </CardHeader>
 
-        <CardContent className="relative z-10 space-y-2 px-6 pb-6 pt-1">
-          <p className="line-clamp-3 text-xs text-slate-600 dark:text-slate-400">
+        <CardContent className="relative z-10 space-y-2 px-4 pb-4 pt-0.5">
+          <p className="line-clamp-2 text-[11px] leading-4 text-slate-600 dark:text-slate-400">
             {description}
           </p>
           <div className="flex items-baseline justify-between">
-            <div className="text-2xl font-bold tabular-nums text-slate-900 dark:text-white">
+            <div className="text-xl font-bold tabular-nums text-slate-900 dark:text-white">
               <span style={{ color }}>{count}</span>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function OverviewCarousel({
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-[repeat(14,minmax(0,1fr))] gap-1">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7">
         {stages.map((stage, idx) => {
           const slug = stageIdentity(stage)
           const isSelected = selectedStageSlug === slug

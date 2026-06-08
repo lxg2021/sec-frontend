@@ -90,7 +90,7 @@ export const ATTCK_STAGE_DEFINITIONS: AttckStageDefinition[] = [
   },
   {
     key: "command-and-control",
-    aliases: ["command and control", "command-and-control", "command & control", "c2", "phase.command-and-control", "phase.command and control", "命令与控制"],
+    aliases: ["command and control", "command-and-control", "command control", "command & control", "c2", "phase.command-and-control", "phase.command and control", "phase.command control", "命令与控制"],
     icon: "Cast",
     color: "#14b8a6",
   },
