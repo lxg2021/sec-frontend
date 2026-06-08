@@ -94,16 +94,6 @@ function formatFullTime(value: string) {
   )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
-function formatShortTime(value: string) {
-  if (!value) return "-"
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return value
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(
-    d.getMinutes(),
-  )}`
-}
-
 function shortenId(value: string, head = 8, tail = 4) {
   if (!value) return "-"
   if (value.length <= head + tail + 3) return value
@@ -341,7 +331,7 @@ function CaseRow({
         )}
       >
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px_126px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_380px_136px]">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px_178px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_380px_186px]">
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2">
                 <span
@@ -554,11 +544,11 @@ function TimeRange({
       <div className="min-w-0 text-xs leading-5 text-slate-500">
         <div className="flex items-center gap-1.5 text-slate-700">
           <CalendarClock className="size-3.5 shrink-0 text-slate-400" />
-          <span className="truncate">{formatShortTime(startTime)}</span>
+          <span className="whitespace-nowrap">{formatFullTime(startTime)}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-1.5">
           <CircleDot className="size-3.5 shrink-0 text-slate-300" />
-          <span className="truncate">{formatShortTime(endTime)}</span>
+          <span className="whitespace-nowrap">{formatFullTime(endTime)}</span>
         </div>
       </div>
       {onViewDetail ? (
