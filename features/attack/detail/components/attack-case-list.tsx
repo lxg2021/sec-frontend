@@ -311,11 +311,11 @@ function CaseRow({
           <span className="absolute left-1/2 top-0 h-5 w-px -translate-x-1/2 bg-slate-200" />
         ) : null}
         {!isLast ? (
-          <span className="absolute bottom-0 left-1/2 top-8 w-px -translate-x-1/2 bg-slate-200" />
+          <span className="absolute bottom-0 left-1/2 top-7 w-px -translate-x-1/2 bg-slate-200" />
         ) : null}
         <span
           className={cn(
-            "relative mt-5 flex size-4 items-center justify-center rounded-full bg-white ring-4 ring-white",
+            "relative mt-4 flex size-4 items-center justify-center rounded-full bg-white ring-4 ring-white",
             severity.dot,
           )}
           aria-hidden="true"
@@ -336,12 +336,12 @@ function CaseRow({
           }
         }}
         className={cn(
-          "min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none transition-all duration-150",
+          "min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none transition-all duration-150",
           clickable &&
             "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] focus-visible:ring-2 focus-visible:ring-primary/25",
         )}
       >
-        <div className="min-w-0 space-y-2.5">
+        <div className="min-w-0 space-y-2">
           <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px_126px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_380px_136px]">
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2">
@@ -378,7 +378,7 @@ function CaseRow({
             />
           </div>
 
-          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 px-3 py-2 lg:grid-cols-[190px_230px_150px_minmax(0,1fr)] lg:items-center">
+          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 px-3 py-1.5 lg:grid-cols-[190px_230px_150px_minmax(0,1fr)] lg:items-center">
             <MetaCluster
               icon={Target}
               label={t("labels.caseId")}
@@ -589,7 +589,7 @@ function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
         return (
           <div
             key={metric.key}
-            className="flex min-w-0 flex-col items-center justify-center gap-1 border-r border-slate-200/80 px-1 py-2 text-center last:border-r-0"
+            className="flex min-w-0 flex-col items-center justify-center gap-0.5 border-r border-slate-200/80 px-1 py-1.5 text-center last:border-r-0"
           >
             <span className="flex max-w-full items-center gap-1 truncate text-[11px] leading-4 text-slate-500">
               <Icon className="size-3 shrink-0" />
@@ -619,7 +619,7 @@ function TimeRange({
 
   return (
     <div
-      className="flex h-full min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-2"
+      className="flex h-full min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5"
       title={title}
     >
       <div className="min-w-0 text-xs leading-5 text-slate-500">
