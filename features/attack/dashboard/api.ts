@@ -4,10 +4,12 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 import { ATTCK_STAGE_DEFINITIONS, getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type {
+  AttackCaseTimelineSummary,
   AttackStageHostDistributionItem,
   AttackStageInstanceDistributionItem,
   AttackSnapshotsResult,
   AttackStatsTrendParams,
+  AttackTimelineCasesResult,
   AttackOverview,
   AttackSnapshotPagination,
   AttackTaskStatus,
@@ -205,6 +207,36 @@ interface BackendTaskStatusData {
   snapshot_id?: string
 }
 
+interface BackendAttackTimelinePageInfo {
+  next_page_token?: string
+  has_more?: boolean
+}
+
+interface BackendAttackCaseTimelineSummary {
+  case_id?: string
+  tenant_id?: string
+  title?: string
+  summary?: string
+  severity?: string
+  primary_phase?: string
+  phases?: unknown
+  start_time?: string
+  end_time?: string
+  rule_count?: number | string
+  group_count?: number | string
+  instance_count?: number | string
+  evidence_count?: number | string
+  host_count?: number | string
+  rule_ids?: unknown
+  tags?: unknown
+  agent_ids?: unknown
+}
+
+interface BackendAttackTimelineCasesData {
+  items?: BackendAttackCaseTimelineSummary[]
+  page?: BackendAttackTimelinePageInfo
+}
+
 interface RuleWithHosts {
   rule: BackendAttackRuleStatsItem
   hosts: BackendAttackRuleHostStatsItem[]
@@ -269,6 +301,28 @@ function normalizeCoverageStatus(value: unknown): GetAttackEventTimelineDistribu
   const normalized = stringValue(value).toLowerCase()
   if (normalized === "covered" || normalized === "partial") return normalized
   return "unknown"
+}
+
+function buildAttackCaseTimelineSummary(raw: BackendAttackCaseTimelineSummary): AttackCaseTimelineSummary {
+  return {
+    case_id: stringValue(raw.case_id),
+    tenant_id: stringValue(raw.tenant_id),
+    title: stringValue(raw.title),
+    summary: stringValue(raw.summary),
+    severity: stringValue(raw.severity),
+    primary_phase: stringValue(raw.primary_phase),
+    phases: normalizeArray(raw.phases),
+    start_time: stringValue(raw.start_time),
+    end_time: stringValue(raw.end_time),
+    rule_count: numberValue(raw.rule_count),
+    group_count: numberValue(raw.group_count),
+    instance_count: numberValue(raw.instance_count),
+    evidence_count: numberValue(raw.evidence_count),
+    host_count: numberValue(raw.host_count),
+    rule_ids: normalizeArray(raw.rule_ids),
+    tags: normalizeArray(raw.tags),
+    agent_ids: normalizeArray(raw.agent_ids),
+  }
 }
 
 function normalizePhase(phase: string) {
@@ -679,6 +733,46 @@ export async function fetchTopAttackHosts(snapshotId: string, limit = DEFAULT_TO
     risk_score: numberValue(item.risk_score),
     total_cases: numberValue(item.total_cases),
   }))
+}
+
+export async function fetchAttackTimelineCases({
+  startTime,
+  endTime,
+  timezone = "Asia/Shanghai",
+  pageSize = 20,
+  pageToken = "",
+}: {
+  startTime?: string
+  endTime?: string
+  timezone?: string
+  pageSize?: number
+  pageToken?: string
+} = {}): Promise<AttackTimelineCasesResult> {
+  const payload: Record<string, unknown> = {
+    request_id: createRequestId(),
+    timezone,
+    page_size: pageSize,
+  }
+
+  if (pageToken) {
+    payload.page_token = pageToken
+  }
+  if (startTime && endTime) {
+    payload.start_time = normalizeTaskTime(startTime)
+    payload.end_time = normalizeTaskTime(endTime)
+  }
+
+  const result = (await http.post("/sensor/analysis/list/cases", payload)) as ApiResult<BackendAttackTimelineCasesData | null>
+  const items = Array.isArray(result.data?.items) ? result.data.items : []
+  const page = result.data?.page
+
+  return {
+    items: items.map(buildAttackCaseTimelineSummary).filter((item) => item.case_id),
+    page: {
+      next_page_token: stringValue(page?.next_page_token),
+      has_more: Boolean(page?.has_more),
+    },
+  }
 }
 
 export async function fetchAttackStatsTrend({

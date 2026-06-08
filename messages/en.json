@@ -747,6 +747,27 @@
           "pageAria": "Page {page}",
           "summary": "{current} / {total} pages · {count} stages"
         },
+        "cases": {
+          "empty": "No attack cases",
+          "viewDetail": "View Details",
+          "loadMore": "Load More",
+          "loadingMore": "Loading...",
+          "loadFailed": "Failed to load attack details",
+          "severity": {
+            "critical": "Critical",
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low",
+            "unknown": "Unknown"
+          },
+          "metrics": {
+            "rules": "Rules",
+            "hosts": "Hosts",
+            "instances": "Instances",
+            "groups": "Groups",
+            "evidence": "Evidence"
+          }
+        },
         "stageDetails": {
           "selectStage": "Select a stage to view details.",
           "title": "{stage} Details",

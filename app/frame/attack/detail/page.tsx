@@ -6,17 +6,58 @@ import { useToast } from "@/shared/hooks/use-toast"
 
 import {
   buildAttackStageCardsFromInstanceDistribution,
+  fetchAttackTimelineCases,
   fetchAttackOverview,
   fetchAttackStageInstanceDistribution,
 } from "@/features/attack/dashboard/api"
 import { AttackDetailHeader } from "@/features/attack/detail/components/attack-detail-header"
+import { AttackCaseList } from "@/features/attack/detail/components/attack-case-list"
 import OverviewCarousel from "@/features/attack/dashboard/components/overview-carousel"
-import type { AttackOverview } from "@/features/attack/dashboard/types"
+import type { AttackCaseTimelineSummary, AttackOverview } from "@/features/attack/dashboard/types"
 import type { AttckData } from "@/features/attack/utils/attck-utils"
 import { slugify } from "@/features/attack/utils/stage-color"
+import { Button } from "@/shared/ui/button"
+
+const CASE_PAGE_SIZE = 20
+const DETAIL_TIMEZONE = "Asia/Shanghai"
 
 function stageIdentity(stage: { stageKey?: string; stage: string }) {
   return stage.stageKey || slugify(stage.stage)
+}
+
+function parseOverviewBucketTime(value?: string) {
+  if (!value) return null
+  const normalized = value.trim().replace(" ", "T")
+  if (!normalized) return null
+  const hasExplicitTimezone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(normalized)
+  const date = new Date(hasExplicitTimezone ? normalized : `${normalized}Z`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function toTimezoneTimeText(value?: string, timeZone = DETAIL_TIMEZONE) {
+  const date = parseOverviewBucketTime(value)
+  if (!date) return ""
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`
+}
+
+function buildCaseQueryRange(nextOverview: AttackOverview) {
+  const startTime = toTimezoneTimeText(nextOverview.bucket.bucket_start)
+  const endTime = toTimezoneTimeText(nextOverview.bucket.bucket_end)
+  return startTime && endTime
+    ? { startTime, endTime, timezone: DETAIL_TIMEZONE }
+    : { timezone: DETAIL_TIMEZONE }
 }
 
 const EMPTY_DATA: AttckData = {
@@ -44,6 +85,10 @@ export default function AttackDetailPage() {
   const firstStageSlug = stages.length > 0 ? stageIdentity(stages[0]) : null
   const [selectedStageSlug, setSelectedStageSlug] = useState<string | null>(null)
   const [checking, setChecking] = useState(false)
+  const [caseItems, setCaseItems] = useState<AttackCaseTimelineSummary[]>([])
+  const [caseNextPageToken, setCaseNextPageToken] = useState("")
+  const [caseHasMore, setCaseHasMore] = useState(false)
+  const [caseLoadingMore, setCaseLoadingMore] = useState(false)
 
   useEffect(() => {
     void loadDetail()
@@ -71,14 +116,21 @@ export default function AttackDetailPage() {
   async function loadDetail(selectedOverview?: AttackOverview) {
     try {
       const nextOverview = selectedOverview ?? await fetchAttackOverview()
-      const nextStages = nextOverview.bucket.snapshot_id
-        ? buildAttackStageCardsFromInstanceDistribution(
-            await fetchAttackStageInstanceDistribution(nextOverview.bucket.snapshot_id),
-          )
-        : EMPTY_DATA.stages
+      const [nextStages, nextCases] = await Promise.all([
+        nextOverview.bucket.snapshot_id
+          ? fetchAttackStageInstanceDistribution(nextOverview.bucket.snapshot_id).then(buildAttackStageCardsFromInstanceDistribution)
+          : Promise.resolve(EMPTY_DATA.stages),
+        fetchAttackTimelineCases({
+          ...buildCaseQueryRange(nextOverview),
+          pageSize: CASE_PAGE_SIZE,
+        }),
+      ])
 
       setOverview(nextOverview)
       setData(buildDetailData(nextOverview, nextStages))
+      setCaseItems(nextCases.items)
+      setCaseNextPageToken(nextCases.page.next_page_token)
+      setCaseHasMore(nextCases.page.has_more)
     } catch (error) {
       console.error("load attack detail failed", error)
       setOverview({
@@ -100,6 +152,9 @@ export default function AttackDetailPage() {
         low_count: 0,
       })
       setData(EMPTY_DATA)
+      setCaseItems([])
+      setCaseNextPageToken("")
+      setCaseHasMore(false)
     }
   }
 
@@ -125,6 +180,31 @@ export default function AttackDetailPage() {
       await loadDetail(overview ?? undefined)
     } finally {
       setChecking(false)
+    }
+  }
+
+  async function handleLoadMoreCases() {
+    if (!overview || !caseNextPageToken || caseLoadingMore) return
+
+    setCaseLoadingMore(true)
+    try {
+      const nextCases = await fetchAttackTimelineCases({
+        ...buildCaseQueryRange(overview),
+        pageSize: CASE_PAGE_SIZE,
+        pageToken: caseNextPageToken,
+      })
+      setCaseItems((current) => [...current, ...nextCases.items])
+      setCaseNextPageToken(nextCases.page.next_page_token)
+      setCaseHasMore(nextCases.page.has_more)
+    } catch (error) {
+      console.error("load more attack cases failed", error)
+      toast({
+        title: t("cases.loadFailed"),
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      })
+    } finally {
+      setCaseLoadingMore(false)
     }
   }
 
@@ -159,6 +239,20 @@ export default function AttackDetailPage() {
           selectedStageSlug={selectedStageSlug}
           onSelectStage={onSelectStage}
         />
+        <AttackCaseList items={caseItems} />
+        {caseHasMore ? (
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleLoadMoreCases}
+              disabled={caseLoadingMore}
+              className="rounded-full px-5"
+            >
+              {caseLoadingMore ? t("cases.loadingMore") : t("cases.loadMore")}
+            </Button>
+          </div>
+        ) : null}
       </div>
     </div>
   )

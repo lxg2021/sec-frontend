@@ -78,6 +78,36 @@ export interface AttackTopHostItem {
 
 export interface AttackTrendPoint extends AttackOverview {}
 
+export interface AttackCaseTimelineSummary {
+  case_id: string
+  tenant_id: string
+  title: string
+  summary: string
+  severity: string
+  primary_phase: string
+  phases: string[]
+  start_time: string
+  end_time: string
+  rule_count: number
+  group_count: number
+  instance_count: number
+  evidence_count: number
+  host_count: number
+  rule_ids: string[]
+  tags: string[]
+  agent_ids: string[]
+}
+
+export interface AttackTimelinePageInfo {
+  next_page_token: string
+  has_more: boolean
+}
+
+export interface AttackTimelineCasesResult {
+  items: AttackCaseTimelineSummary[]
+  page: AttackTimelinePageInfo
+}
+
 export interface AttackStatsTrendParams {
   bucketType: BucketType
   startTime: string

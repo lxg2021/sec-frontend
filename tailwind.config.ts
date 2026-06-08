@@ -59,6 +59,13 @@ const config: Config = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
+  			severity: {
+  				critical: '#dc2626',
+  				high: '#ef4444',
+  				medium: '#f59e0b',
+  				low: '#22c55e'
+  			},
+  			technique: '#2563eb',
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',
   				foreground: 'hsl(var(--sidebar-foreground))',

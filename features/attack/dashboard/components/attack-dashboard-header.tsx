@@ -27,6 +27,7 @@ export interface AttackDashboardHeaderProps {
   className?: string
   title?: ReactNode
   icon?: ReactNode
+  iconContainerClassName?: string
   showCheckAction?: boolean
 }
 
@@ -66,6 +67,7 @@ export function AttackDashboardHeader({
   className,
   title,
   icon,
+  iconContainerClassName,
   showCheckAction = true,
 }: AttackDashboardHeaderProps) {
   const t = useTranslations("pages.attack.dashboard")
@@ -82,7 +84,12 @@ export function AttackDashboardHeader({
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
+          <div
+            className={cn(
+              "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600",
+              iconContainerClassName,
+            )}
+          >
             {icon ?? <Radar className="h-5 w-5" />}
           </div>
           <div className="min-w-0 space-y-1.5">

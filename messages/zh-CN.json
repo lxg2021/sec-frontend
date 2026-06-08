@@ -749,6 +749,27 @@
           "pageAria": "第 {page} 页",
           "summary": "{current} / {total} 页 · 共 {count} 个阶段"
         },
+        "cases": {
+          "empty": "暂无攻击场景",
+          "viewDetail": "查看详情",
+          "loadMore": "加载更多",
+          "loadingMore": "加载中...",
+          "loadFailed": "攻击明细加载失败",
+          "severity": {
+            "critical": "严重",
+            "high": "高危",
+            "medium": "中危",
+            "low": "低危",
+            "unknown": "未知"
+          },
+          "metrics": {
+            "rules": "规则",
+            "hosts": "主机",
+            "instances": "实例",
+            "groups": "分组",
+            "evidence": "证据"
+          }
+        },
         "stageDetails": {
           "selectStage": "请选择一个阶段查看详情。",
           "title": "{stage} 详情",
