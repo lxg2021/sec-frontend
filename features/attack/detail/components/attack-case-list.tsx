@@ -10,7 +10,6 @@ import {
 } from "react"
 import { useTranslations } from "next-intl"
 import {
-  Boxes,
   Bug,
   CalendarClock,
   ChevronLeft,
@@ -463,7 +462,7 @@ function CaseRow({
       label: t("metrics.rules"),
       value: item.rule_count,
       icon: ScrollText,
-      iconClassName: "text-sky-500",
+      iconClassName: "text-slate-400",
       content: (
         <RuleCountValue
           count={item.rule_count}
@@ -477,28 +476,21 @@ function CaseRow({
       label: t("metrics.hosts"),
       value: item.host_count,
       icon: Server,
-      iconClassName: "text-indigo-500",
+      iconClassName: "text-slate-400",
     },
     {
       key: "instances",
       label: t("metrics.instances"),
       value: item.instance_count,
       icon: Bug,
-      iconClassName: "text-rose-500",
-    },
-    {
-      key: "groups",
-      label: t("metrics.groups"),
-      value: item.group_count,
-      icon: Boxes,
-      iconClassName: "text-violet-500",
+      iconClassName: "text-slate-400",
     },
     {
       key: "evidence",
       label: t("metrics.evidence"),
       value: item.evidence_count,
       icon: FileSearch,
-      iconClassName: "text-cyan-500",
+      iconClassName: "text-slate-400",
     },
   ]
   const clickable = Boolean(onViewDetail)
@@ -541,7 +533,7 @@ function CaseRow({
         )}
       >
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_440px_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_520px_max-content]">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_352px_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content]">
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span
@@ -682,7 +674,7 @@ function RuleCountValue({
         <button
           type="button"
           onClick={(event) => event.stopPropagation()}
-          className="tabular-nums text-sm font-medium leading-5 text-blue-600 transition-colors hover:text-blue-800 hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+          className="tabular-nums text-sm font-medium leading-5 text-blue-600 underline underline-offset-4 transition-colors hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
           title={t("ruleList.open")}
         >
           {count}
@@ -757,7 +749,7 @@ function RuleCountDetailTrigger({
           event.stopPropagation()
           void loadRuleDetail()
         }}
-        className="tabular-nums text-sm font-medium leading-5 text-blue-600 transition-colors hover:text-blue-800 hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+        className="tabular-nums text-sm font-medium leading-5 text-blue-600 underline underline-offset-4 transition-colors hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
         title={t("ruleList.open")}
       >
         {count}
@@ -797,9 +789,6 @@ function RuleIdDetailTrigger({
         className="group flex w-full min-w-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
         title={ruleId}
       >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600 ring-1 ring-blue-100 transition-colors group-hover:bg-white">
-          <ShieldCheck className="size-4" />
-        </span>
         <span className="min-w-0 flex-1 truncate font-mono text-xs leading-5 text-blue-700 group-hover:text-blue-900">
           {ruleId}
         </span>
@@ -913,7 +902,7 @@ function TechniqueChips({ techniques }: { techniques: string[] }) {
 
 function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
   return (
-    <div className="grid min-w-0 grid-cols-5 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]">
+    <div className="grid min-w-0 grid-cols-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]">
       {metrics.map((metric) => {
         const Icon = metric.icon
 
