@@ -268,6 +268,7 @@ export default function AttackDetailPage() {
         />
         <AttackCaseList
           items={caseItems}
+          snapshotId={overview.bucket.snapshot_id}
           hasMore={caseHasMore}
           loadingMore={caseLoadingMore}
           pageSize={casePageSize}

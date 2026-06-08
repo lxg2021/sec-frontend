@@ -19,6 +19,7 @@ import {
   CircleDot,
   Copy,
   Crosshair,
+  ExternalLink,
   FileSearch,
   GitBranch,
   ListTree,
@@ -30,7 +31,10 @@ import {
 } from "lucide-react"
 
 import { resolveAttckStage } from "@/features/attack/constants/attck-stages"
+import { fetchAttackRuleDetail } from "@/features/attack/dashboard/api"
 import type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
+import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
+import type { AttackRuleMeta } from "@/features/attack/utils/attck-utils"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 import {
@@ -49,6 +53,11 @@ import {
   SelectValue,
 } from "@/shared/ui/select"
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/ui/popover"
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -61,6 +70,7 @@ interface AttackCaseListProps {
   items: AttackCaseTimelineSummary[]
   onViewDetail?: (caseId: string) => void
   className?: string
+  snapshotId?: string
   hasMore?: boolean
   loadingMore?: boolean
   pageSize?: number
@@ -109,6 +119,7 @@ type MetricItem = {
   value: number
   icon: ComponentType<{ className?: string }>
   iconClassName: string
+  content?: ReactNode
 }
 
 function getSeverity(severity: string) {
@@ -241,6 +252,7 @@ export function AttackCaseList({
   items,
   onViewDetail,
   className,
+  snapshotId = "",
   hasMore = false,
   loadingMore = false,
   pageSize: controlledPageSize,
@@ -327,6 +339,7 @@ export function AttackCaseList({
                 item={item}
                 isFirst={index === 0}
                 isLast={index === visibleItems.length - 1}
+                snapshotId={snapshotId}
                 onViewDetail={onViewDetail}
               />
             ))}
@@ -414,11 +427,13 @@ function CaseRow({
   item,
   isFirst,
   isLast,
+  snapshotId,
   onViewDetail,
 }: {
   item: AttackCaseTimelineSummary
   isFirst: boolean
   isLast: boolean
+  snapshotId?: string
   onViewDetail?: (caseId: string) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
@@ -449,6 +464,13 @@ function CaseRow({
       value: item.rule_count,
       icon: ScrollText,
       iconClassName: "text-sky-500",
+      content: (
+        <RuleCountValue
+          count={item.rule_count}
+          ruleIds={item.rule_ids}
+          snapshotId={snapshotId}
+        />
+      ),
     },
     {
       key: "hosts",
@@ -619,6 +641,174 @@ function CaseIdPill({ value }: { value: string }) {
   )
 }
 
+function uniqueRuleIds(ruleIds: string[]) {
+  return Array.from(new Set(ruleIds.map((ruleId) => ruleId.trim()).filter(Boolean)))
+}
+
+function RuleCountValue({
+  count,
+  ruleIds,
+  snapshotId,
+}: {
+  count: number
+  ruleIds: string[]
+  snapshotId?: string
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+  const ids = useMemo(() => uniqueRuleIds(ruleIds), [ruleIds])
+  const clickable = Boolean(snapshotId && ids.length > 0)
+
+  if (!clickable) {
+    return (
+      <span className="tabular-nums text-sm font-normal leading-5 text-slate-900">
+        {count}
+      </span>
+    )
+  }
+
+  if (ids.length === 1) {
+    return (
+      <RuleCountDetailTrigger
+        count={count}
+        ruleId={ids[0]}
+        snapshotId={snapshotId || ""}
+      />
+    )
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          onClick={(event) => event.stopPropagation()}
+          className="tabular-nums text-sm font-medium leading-5 text-blue-600 transition-colors hover:text-blue-800 hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+          title={t("ruleList.open")}
+        >
+          {count}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="center"
+        side="bottom"
+        className="w-[360px] overflow-hidden rounded-xl border-slate-200 p-0 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/80 px-3 py-2.5">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 ring-1 ring-sky-100">
+            <ScrollText className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <div className="text-sm font-medium leading-5 text-slate-800">
+              {t("ruleList.title", { count: ids.length })}
+            </div>
+            <div className="text-xs leading-4 text-slate-500">
+              {t("ruleList.description")}
+            </div>
+          </div>
+        </div>
+        <div className="max-h-64 overflow-y-auto bg-white p-2">
+          <div className="space-y-1">
+            {ids.map((ruleId) => (
+              <RuleIdDetailTrigger
+                key={ruleId}
+                ruleId={ruleId}
+                snapshotId={snapshotId || ""}
+              />
+            ))}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function RuleCountDetailTrigger({
+  count,
+  ruleId,
+  snapshotId,
+}: {
+  count: number
+  ruleId: string
+  snapshotId: string
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+  const [ruleMeta, setRuleMeta] = useState<AttackRuleMeta | undefined>(undefined)
+  const [loaded, setLoaded] = useState(false)
+
+  async function loadRuleDetail() {
+    if (loaded) return
+    setLoaded(true)
+    try {
+      const meta = await fetchAttackRuleDetail({ snapshotId, ruleId })
+      setRuleMeta(meta ?? { rule_id: ruleId, title: ruleId })
+    } catch {
+      setRuleMeta({ rule_id: ruleId, title: ruleId })
+    }
+  }
+
+  return (
+    <RuleInfoPopover id={ruleId} side="bottom" ruleMeta={ruleMeta}>
+      <button
+        type="button"
+        onMouseEnter={() => void loadRuleDetail()}
+        onFocus={() => void loadRuleDetail()}
+        onClick={(event) => {
+          event.stopPropagation()
+          void loadRuleDetail()
+        }}
+        className="tabular-nums text-sm font-medium leading-5 text-blue-600 transition-colors hover:text-blue-800 hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+        title={t("ruleList.open")}
+      >
+        {count}
+      </button>
+    </RuleInfoPopover>
+  )
+}
+
+function RuleIdDetailTrigger({
+  ruleId,
+  snapshotId,
+}: {
+  ruleId: string
+  snapshotId: string
+}) {
+  const [ruleMeta, setRuleMeta] = useState<AttackRuleMeta | undefined>(undefined)
+  const [loaded, setLoaded] = useState(false)
+
+  async function handleOpenChange(open: boolean) {
+    if (!open || loaded) return
+    setLoaded(true)
+    try {
+      const meta = await fetchAttackRuleDetail({ snapshotId, ruleId })
+      setRuleMeta(meta ?? { rule_id: ruleId, title: ruleId })
+    } catch {
+      setRuleMeta({ rule_id: ruleId, title: ruleId })
+    }
+  }
+
+  return (
+    <RuleInfoPopover id={ruleId} side="right" ruleMeta={ruleMeta}>
+      <button
+        type="button"
+        onMouseEnter={() => void handleOpenChange(true)}
+        onFocus={() => void handleOpenChange(true)}
+        onClick={(event) => event.stopPropagation()}
+        className="group flex w-full min-w-0 items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+        title={ruleId}
+      >
+        <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-blue-50 text-blue-600 ring-1 ring-blue-100 transition-colors group-hover:bg-white">
+          <ShieldCheck className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1 truncate font-mono text-xs leading-5 text-blue-700 group-hover:text-blue-900">
+          {ruleId}
+        </span>
+        <ExternalLink className="size-3.5 shrink-0 text-slate-300 transition-colors group-hover:text-blue-500" />
+      </button>
+    </RuleInfoPopover>
+  )
+}
+
 function MetaCluster({
   icon: Icon,
   label,
@@ -736,9 +926,11 @@ function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
               <Icon className={cn("size-3 shrink-0", metric.iconClassName)} />
               <span>{metric.label}</span>
             </span>
-            <span className="tabular-nums text-sm font-normal leading-5 text-slate-900">
-              {metric.value}
-            </span>
+            {metric.content ?? (
+              <span className="tabular-nums text-sm font-normal leading-5 text-slate-900">
+                {metric.value}
+              </span>
+            )}
           </div>
         )
       })}

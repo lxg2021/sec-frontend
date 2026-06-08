@@ -759,6 +759,11 @@
           "loadFailed": "攻击明细加载失败",
           "copyCaseId": "复制场景ID",
           "copiedCaseId": "已复制场景ID",
+          "ruleList": {
+            "open": "查看命中规则",
+            "title": "命中规则 {count} 条",
+            "description": "选择规则查看详情"
+          },
           "severity": {
             "critical": "严重",
             "high": "高危",

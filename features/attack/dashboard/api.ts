@@ -735,6 +735,28 @@ export async function fetchTopAttackHosts(snapshotId: string, limit = DEFAULT_TO
   }))
 }
 
+export async function fetchAttackRuleDetail({
+  snapshotId,
+  ruleId,
+}: {
+  snapshotId: string
+  ruleId: string
+}): Promise<AttackRuleMeta | null> {
+  const normalizedSnapshotId = normalizeSnapshotId(snapshotId)
+  const normalizedRuleId = stringValue(ruleId)
+  if (!normalizedSnapshotId || !normalizedRuleId) return null
+
+  const result = (await http.post("/sensor/analysis/stats/attack-rule-detail", {
+    request_id: createRequestId(),
+    snapshot_id: normalizedSnapshotId,
+    rule_id: normalizedRuleId,
+    page: 1,
+    page_size: 1,
+  })) as ApiResult<BackendAttackRuleDetailData | null>
+
+  return result.data?.rule?.meta || null
+}
+
 export async function fetchAttackTimelineCases({
   startTime,
   endTime,

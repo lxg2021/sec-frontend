@@ -757,6 +757,11 @@
           "loadFailed": "Failed to load attack details",
           "copyCaseId": "Copy Case ID",
           "copiedCaseId": "Case ID copied",
+          "ruleList": {
+            "open": "View matched rules",
+            "title": "{count} matched rules",
+            "description": "Select a rule to view details"
+          },
           "severity": {
             "critical": "Critical",
             "high": "High",
