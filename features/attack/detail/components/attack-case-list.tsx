@@ -17,7 +17,6 @@ import {
   Target,
 } from "lucide-react"
 
-import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
 import { resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 import { cn } from "@/shared/lib/utils"
@@ -378,21 +377,17 @@ function CaseRow({
             />
           </div>
 
-          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 px-3 py-1.5 lg:grid-cols-[190px_230px_150px_minmax(0,1fr)] lg:items-center">
+          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 px-3 py-1.5 lg:grid-cols-[max-content_max-content_minmax(0,1fr)] lg:items-center">
             <MetaCluster
               icon={Target}
               label={t("labels.caseId")}
             >
               <span
-                className="truncate font-mono text-xs text-slate-500"
+                className="whitespace-nowrap font-mono text-xs text-slate-500"
                 title={item.case_id}
               >
-                case-{shortenId(item.case_id, 10, 4)}
+                {item.case_id}
               </span>
-            </MetaCluster>
-
-            <MetaCluster icon={ScrollText} label={t("labels.ruleIds")}>
-              <RuleIdsInline ruleIds={item.rule_ids ?? []} />
             </MetaCluster>
 
             <MetaCluster icon={GitBranch} label={t("labels.stage")}>
@@ -439,66 +434,20 @@ function MetaCluster({
   )
 }
 
-function RuleIdsInline({ ruleIds }: { ruleIds: string[] }) {
-  const t = useTranslations("pages.attack.dashboard.cases")
-  const visibleRuleIds = ruleIds.slice(0, 2)
-  const hiddenRuleIds = ruleIds.slice(2)
-
-  if (ruleIds.length === 0) {
-    return <span className="text-sm text-slate-400">-</span>
-  }
-
-  return (
-    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-      {visibleRuleIds.map((ruleId) => (
-        <RuleInfoPopover key={ruleId} id={ruleId} side="right">
-          <button
-            type="button"
-            onClick={(event) => event.stopPropagation()}
-            className="max-w-[132px] truncate rounded-md bg-blue-50 px-1.5 py-0.5 font-mono text-xs leading-5 text-blue-700 transition-all duration-150 hover:-translate-y-0.5 hover:bg-blue-100 hover:text-blue-800 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-            title={ruleId}
-            aria-label={`${t("labels.ruleIds")} ${ruleId}`}
-          >
-            {shortenId(ruleId, 12, 5)}
-          </button>
-        </RuleInfoPopover>
-      ))}
-      {hiddenRuleIds.length > 0 ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="cursor-default rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-xs leading-5 text-slate-600">
-              +{hiddenRuleIds.length}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="flex max-w-[320px] flex-col gap-1 font-mono text-xs">
-              {ruleIds.map((ruleId) => (
-                <span key={ruleId}>{ruleId}</span>
-              ))}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
-    </div>
-  )
-}
-
 function PhaseChips({
   phases,
 }: {
   phases: ReturnType<typeof buildOrderedPhases>
 }) {
   const stageT = useTranslations("pages.attack.dashboard.stages")
-  const visiblePhases = phases.slice(0, 2)
-  const extraPhases = phases.slice(2)
 
   if (phases.length === 0) {
     return <span className="text-sm text-slate-400">-</span>
   }
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-      {visiblePhases.map((phase) => {
+    <div className="flex min-w-0 flex-nowrap items-center gap-1.5 whitespace-nowrap">
+      {phases.map((phase) => {
         const label = phase.stageKey
           ? stageT(`${phase.stageKey}.label`)
           : phase.fallbackLabel
@@ -506,33 +455,13 @@ function PhaseChips({
         return (
           <span
             key={phase.key}
-            className="max-w-[92px] truncate rounded-md bg-slate-50 px-1.5 py-0.5 text-xs font-normal leading-5 text-slate-700"
+            className="shrink-0 rounded-md bg-slate-50 px-1.5 py-0.5 text-xs font-normal leading-5 text-slate-700"
             title={label}
           >
             {label}
           </span>
         )
       })}
-      {extraPhases.length > 0 ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="cursor-default rounded-md bg-slate-100 px-1.5 py-0.5 text-xs leading-5 text-slate-500">
-              +{extraPhases.length}
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            <div className="flex flex-col gap-0.5 text-xs">
-              {extraPhases.map((phase) => (
-                <span key={phase.key}>
-                  {phase.stageKey
-                    ? stageT(`${phase.stageKey}.label`)
-                    : phase.fallbackLabel}
-                </span>
-              ))}
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
     </div>
   )
 }
