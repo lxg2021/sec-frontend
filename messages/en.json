@@ -760,6 +760,10 @@
             "low": "Low",
             "unknown": "Unknown"
           },
+          "summary": {
+            "autoAcross": "Auto aggregated from {instances} attack instances across {groups} attack groups.",
+            "autoMulti": "Auto aggregated from {instances} attack instances across {groups} attack groups and {rules} rules."
+          },
           "metrics": {
             "rules": "Rules",
             "hosts": "Hosts",

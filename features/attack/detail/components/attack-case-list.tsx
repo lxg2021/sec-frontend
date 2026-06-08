@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/ui/tooltip"
+import { resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 
 export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
@@ -92,11 +93,11 @@ function formatTime(value: string) {
   )}:${pad(d.getMinutes())}`
 }
 
-function extractTechniques(tags: string[]) {
+function extractTechniques(values: string[]) {
   const techniques: string[] = []
   const seen = new Set<string>()
-  for (const tag of tags) {
-    const match = tag.match(/T\d{4}(?:[./]\d{3})?/i)
+  for (const value of values) {
+    const match = value.match(/T\d{4}(?:[./]\d{3})?/i)
     if (match?.[0]) {
       const technique = match[0].replace("/", ".").toUpperCase()
       if (!seen.has(technique)) {
@@ -106,6 +107,71 @@ function extractTechniques(tags: string[]) {
     }
   }
   return techniques
+}
+
+function normalizeUnknownPhase(phase: string) {
+  return phase
+    .trim()
+    .replace(/^phase[.:_-]\s*/i, "")
+    .replace(/^phase\./i, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ")
+}
+
+function buildOrderedPhases(item: AttackCaseTimelineSummary) {
+  const phases = [
+    item.primary_phase,
+    ...item.phases.filter((phase) => phase !== item.primary_phase),
+  ].filter(Boolean)
+
+  const seen = new Set<string>()
+  return phases
+    .map((phase) => {
+      const stage = resolveAttckStage(phase)
+      const key = stage?.key || normalizeUnknownPhase(phase).toLowerCase()
+      return {
+        key,
+        raw: phase,
+        stageKey: stage?.key,
+        fallbackLabel: normalizeUnknownPhase(phase),
+      }
+    })
+    .filter((phase) => {
+      if (!phase.key || seen.has(phase.key)) return false
+      seen.add(phase.key)
+      return true
+    })
+}
+
+function matchAutoSummary(summary: string) {
+  const acrossMatch = summary.match(
+    /^Auto aggregated from (\d+) instance\(s\) across (\d+) group\(s\)\.?$/i,
+  )
+  if (acrossMatch) {
+    return {
+      instances: Number(acrossMatch[1]),
+      groups: Number(acrossMatch[2]),
+      rules: null,
+    }
+  }
+
+  const multiMatch = summary.match(
+    /^Auto aggregated from (\d+) instance\(s\), (\d+) group\(s\), (\d+) rule\(s\)\.?$/i,
+  )
+  if (multiMatch) {
+    return {
+      instances: Number(multiMatch[1]),
+      groups: Number(multiMatch[2]),
+      rules: Number(multiMatch[3]),
+    }
+  }
+
+  return null
+}
+
+function formatCaseTitle(title: string) {
+  const normalized = title.trim()
+  return normalized.replace(/^攻击链[:：]\s*/i, "") || normalized
 }
 
 function Metric({
@@ -170,16 +236,28 @@ function CaseCard({
   onViewDetail?: (caseId: string) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
+  const stageT = useTranslations("pages.attack.dashboard.stages")
   const severity = getSeverity(item.severity)
-  const techniques = useMemo(() => extractTechniques(item.tags), [item.tags])
+  const techniques = useMemo(() => extractTechniques([...item.tags, ...item.rule_ids]), [item.tags, item.rule_ids])
 
   const visibleTechniques = techniques.slice(0, 4)
   const extraTechniques = techniques.slice(4)
 
-  const orderedPhases = [
-    item.primary_phase,
-    ...item.phases.filter((p) => p !== item.primary_phase),
-  ].filter(Boolean)
+  const orderedPhases = useMemo(() => buildOrderedPhases(item), [item])
+  const title = formatCaseTitle(item.title)
+  const autoSummary = matchAutoSummary(item.summary)
+  const summary = autoSummary
+    ? autoSummary.rules === null
+      ? t("summary.autoAcross", {
+          instances: autoSummary.instances,
+          groups: autoSummary.groups,
+        })
+      : t("summary.autoMulti", {
+          instances: autoSummary.instances,
+          groups: autoSummary.groups,
+          rules: autoSummary.rules,
+        })
+    : item.summary
 
   return (
     <article
@@ -205,10 +283,10 @@ function CaseCard({
               </span>
             </div>
             <h3 className="text-pretty text-base font-semibold leading-snug text-foreground">
-              {item.title}
+              {title}
             </h3>
             <p className="line-clamp-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {item.summary}
+              {summary}
             </p>
           </div>
 
@@ -225,7 +303,7 @@ function CaseCard({
 
         <div className="flex flex-wrap items-center gap-1.5">
           {orderedPhases.map((phase, idx) => (
-            <div key={phase} className="flex items-center gap-1.5">
+            <div key={phase.key} className="flex items-center gap-1.5">
               {idx > 0 && (
                 <ChevronRight className="size-3 text-muted-foreground/40" />
               )}
@@ -237,7 +315,7 @@ function CaseCard({
                     : "bg-muted text-muted-foreground",
                 )}
               >
-                {phase}
+                {phase.stageKey ? stageT(`${phase.stageKey}.label`) : phase.fallbackLabel}
               </span>
             </div>
           ))}
