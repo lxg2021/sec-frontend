@@ -527,11 +527,15 @@ function CaseRow({
           }
         }}
         className={cn(
-          "min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none transition-all duration-150",
+          "group/case-row relative min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/25 hover:shadow-[0_16px_32px_rgba(15,23,42,0.10)]",
           clickable &&
-            "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] focus-visible:ring-2 focus-visible:ring-primary/25",
+            "cursor-pointer focus-visible:ring-2 focus-visible:ring-primary/25",
         )}
       >
+        <span
+          className="pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full bg-blue-500 opacity-0 transition-opacity duration-200 group-hover/case-row:opacity-100"
+          aria-hidden="true"
+        />
         <div className="min-w-0 space-y-2">
           <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_352px_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content]">
             <div className="min-w-0">
