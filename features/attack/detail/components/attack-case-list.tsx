@@ -99,6 +99,7 @@ type MetricItem = {
   label: string
   value: number
   icon: ComponentType<{ className?: string }>
+  iconClassName: string
 }
 
 function getSeverity(severity: string) {
@@ -420,30 +421,35 @@ function CaseRow({
       label: t("metrics.rules"),
       value: item.rule_count,
       icon: ScrollText,
+      iconClassName: "text-sky-500",
     },
     {
       key: "hosts",
       label: t("metrics.hosts"),
       value: item.host_count,
       icon: Server,
+      iconClassName: "text-indigo-500",
     },
     {
       key: "instances",
       label: t("metrics.instances"),
       value: item.instance_count,
       icon: Bug,
+      iconClassName: "text-rose-500",
     },
     {
       key: "groups",
       label: t("metrics.groups"),
       value: item.group_count,
       icon: Boxes,
+      iconClassName: "text-violet-500",
     },
     {
       key: "evidence",
       label: t("metrics.evidence"),
       value: item.evidence_count,
       icon: FileSearch,
+      iconClassName: "text-cyan-500",
     },
   ]
   const clickable = Boolean(onViewDetail)
@@ -486,7 +492,7 @@ function CaseRow({
         )}
       >
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px_178px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_380px_186px]">
+          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_420px_232px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_460px_248px]">
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2">
                 <span
@@ -499,7 +505,7 @@ function CaseRow({
                   {t(`severity.${severity.labelKey}`)}
                 </span>
                 <h3
-                  className="min-w-0 truncate text-base font-semibold leading-6 text-slate-950"
+                  className="w-[420px] max-w-full shrink truncate text-base font-semibold leading-6 text-slate-950 2xl:w-[520px]"
                   title={title}
                 >
                   {title}
@@ -656,7 +662,7 @@ function TechniqueChips({ techniques }: { techniques: string[] }) {
 
 function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
   return (
-    <div className="grid min-w-0 grid-cols-5 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
+    <div className="grid min-w-0 grid-cols-5 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]">
       {metrics.map((metric) => {
         const Icon = metric.icon
 
@@ -666,7 +672,7 @@ function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
             className="flex min-w-0 flex-col items-center justify-center gap-0.5 border-r border-slate-200/80 px-1 py-1.5 text-center last:border-r-0"
           >
             <span className="flex max-w-full items-center gap-1 truncate text-[11px] leading-4 text-slate-500">
-              <Icon className="size-3 shrink-0" />
+              <Icon className={cn("size-3 shrink-0", metric.iconClassName)} />
               <span className="truncate">{metric.label}</span>
             </span>
             <span className="tabular-nums text-sm font-normal leading-5 text-slate-900">
@@ -693,16 +699,16 @@ function TimeRange({
 
   return (
     <div
-      className="flex h-full min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5"
+      className="flex h-full min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-4 py-1.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]"
       title={title}
     >
       <div className="min-w-0 text-xs leading-5 text-slate-500">
         <div className="flex items-center gap-1.5 text-slate-700">
-          <CalendarClock className="size-3.5 shrink-0 text-slate-400" />
+          <CalendarClock className="size-3.5 shrink-0 text-sky-500" />
           <span className="whitespace-nowrap">{formatFullTime(startTime)}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-1.5">
-          <CircleDot className="size-3.5 shrink-0 text-slate-300" />
+          <CircleDot className="size-3.5 shrink-0 text-indigo-400" />
           <span className="whitespace-nowrap">{formatFullTime(endTime)}</span>
         </div>
       </div>
