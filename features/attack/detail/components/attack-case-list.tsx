@@ -519,7 +519,7 @@ function CaseRow({
         )}
       >
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_440px_210px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_520px_248px]">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_440px_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_520px_max-content]">
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span
@@ -760,7 +760,7 @@ function TimeRange({
 
   return (
     <div
-      className="flex h-full min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-4 py-1.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]"
+      className="flex h-full w-fit min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]"
       title={title}
     >
       <div className="min-w-0 text-xs leading-5 text-slate-500">
