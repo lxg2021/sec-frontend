@@ -336,8 +336,6 @@ export function AttackCaseList({
               <CaseRow
                 key={item.case_id}
                 item={item}
-                isFirst={index === 0}
-                isLast={index === visibleItems.length - 1}
                 snapshotId={snapshotId}
                 onViewDetail={onViewDetail}
               />
@@ -424,14 +422,10 @@ function AttackCaseListHeader() {
 
 function CaseRow({
   item,
-  isFirst,
-  isLast,
   snapshotId,
   onViewDetail,
 }: {
   item: AttackCaseTimelineSummary
-  isFirst: boolean
-  isLast: boolean
   snapshotId?: string
   onViewDetail?: (caseId: string) => void
 }) {
@@ -496,25 +490,7 @@ function CaseRow({
   const clickable = Boolean(onViewDetail)
 
   return (
-    <article className="grid grid-cols-[36px_minmax(0,1fr)] gap-0">
-      <div className="relative flex justify-center">
-        {!isFirst ? (
-          <span className="absolute left-1/2 top-0 h-5 w-px -translate-x-1/2 bg-slate-200" />
-        ) : null}
-        {!isLast ? (
-          <span className="absolute bottom-0 left-1/2 top-7 w-px -translate-x-1/2 bg-slate-200" />
-        ) : null}
-        <span
-          className={cn(
-            "relative mt-4 flex size-4 items-center justify-center rounded-full bg-white ring-4 ring-white",
-            severity.dot,
-          )}
-          aria-hidden="true"
-        >
-          <span className="size-2 rounded-full bg-white/85" />
-        </span>
-      </div>
-
+    <article>
       <div
         role={clickable ? "button" : undefined}
         tabIndex={clickable ? 0 : undefined}
