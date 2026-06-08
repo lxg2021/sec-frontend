@@ -764,12 +764,18 @@
             "autoAcross": "Auto aggregated from {instances} attack instances across {groups} attack groups.",
             "autoMulti": "Auto aggregated from {instances} attack instances across {groups} attack groups and {rules} rules."
           },
+          "labels": {
+            "caseId": "Case ID",
+            "ruleIds": "Rule IDs",
+            "stage": "Attack Stage",
+            "techniques": "ATT&CK Techniques"
+          },
           "metrics": {
             "rules": "Rules",
             "hosts": "Hosts",
-            "instances": "Instances",
-            "groups": "Groups",
-            "evidence": "Evidence"
+            "instances": "Attack Instances",
+            "groups": "Attack Groups",
+            "evidence": "Event Data"
           }
         },
         "stageDetails": {

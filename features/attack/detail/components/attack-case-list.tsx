@@ -1,11 +1,12 @@
 "use client"
 
-import { useMemo, type ComponentType } from "react"
+import { useMemo, type ComponentType, type ReactNode } from "react"
 import { useTranslations } from "next-intl"
 import {
   Boxes,
   Bug,
   CalendarClock,
+  CircleDot,
   Crosshair,
   FileSearch,
   GitBranch,
@@ -16,6 +17,9 @@ import {
   Target,
 } from "lucide-react"
 
+import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
+import { resolveAttckStage } from "@/features/attack/constants/attck-stages"
+import type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 import { cn } from "@/shared/lib/utils"
 import {
   Tooltip,
@@ -23,8 +27,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/ui/tooltip"
-import { resolveAttckStage } from "@/features/attack/constants/attck-stages"
-import type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 
 export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 
@@ -66,24 +68,11 @@ const SEVERITY_MAP: Record<
   },
 }
 
-const TABLE_GRID =
-  "lg:grid-cols-[96px_minmax(200px,0.95fr)_minmax(112px,0.48fr)_minmax(140px,0.58fr)_180px_70px_70px_86px_86px_86px_124px]"
-
-function HeaderCell({
-  icon: Icon,
-  label,
-  className,
-}: {
-  icon: ComponentType<{ className?: string }>
+type MetricItem = {
+  key: string
   label: string
-  className?: string
-}) {
-  return (
-    <span className={cn("flex items-center gap-1.5 whitespace-nowrap", className)}>
-      <Icon className="size-3.5 text-muted-foreground/70" />
-      <span>{label}</span>
-    </span>
-  )
+  value: number
+  icon: ComponentType<{ className?: string }>
 }
 
 function getSeverity(severity: string) {
@@ -103,7 +92,7 @@ function formatFullTime(value: string) {
   const pad = (n: number) => String(n).padStart(2, "0")
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
     d.getHours(),
-  )}:${pad(d.getMinutes())}`
+  )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
 function formatShortTime(value: string) {
@@ -125,6 +114,7 @@ function shortenId(value: string, head = 8, tail = 4) {
 function extractTechniques(values: string[]) {
   const techniques: string[] = []
   const seen = new Set<string>()
+
   for (const value of values) {
     const match = value.match(/T\d{4}(?:[./]\d{3})?/i)
     if (match?.[0]) {
@@ -135,6 +125,7 @@ function extractTechniques(values: string[]) {
       }
     }
   }
+
   return techniques
 }
 
@@ -227,74 +218,17 @@ export function AttackCaseList({
     <TooltipProvider>
       <section
         className={cn(
-          "overflow-hidden rounded-2xl border border-border bg-card",
+          "rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-sm",
           className,
         )}
       >
-        <div
-          className={cn(
-            "hidden min-h-11 items-center gap-3 border-b border-border bg-muted/20 px-5 text-sm font-semibold text-muted-foreground lg:grid",
-            TABLE_GRID,
-          )}
-        >
-          <HeaderCell
-            icon={ShieldAlert}
-            label={t("columns.risk")}
-          />
-          <HeaderCell
-            icon={Target}
-            label={t("columns.scene")}
-          />
-          <HeaderCell
-            icon={GitBranch}
-            label={t("columns.stage")}
-          />
-          <HeaderCell
-            icon={Crosshair}
-            label={t("columns.technique")}
-          />
-          <HeaderCell
-            icon={ScrollText}
-            label={t("columns.ruleIds")}
-            className="justify-center"
-          />
-          <HeaderCell
-            icon={ScrollText}
-            label={t("metrics.rules")}
-            className="justify-center"
-          />
-          <HeaderCell
-            icon={Server}
-            label={t("metrics.hosts")}
-            className="justify-center"
-          />
-          <HeaderCell
-            icon={Bug}
-            label={t("metrics.instances")}
-            className="justify-center"
-          />
-          <HeaderCell
-            icon={Boxes}
-            label={t("metrics.groups")}
-            className="justify-center"
-          />
-          <HeaderCell
-            icon={FileSearch}
-            label={t("metrics.evidence")}
-            className="justify-center"
-          />
-          <HeaderCell
-            icon={CalendarClock}
-            label={t("columns.timeRange")}
-            className="justify-center"
-          />
-        </div>
-
-        <div className="divide-y divide-border">
-          {items.map((item) => (
+        <div className="space-y-3">
+          {items.map((item, index) => (
             <CaseRow
               key={item.case_id}
               item={item}
+              isFirst={index === 0}
+              isLast={index === items.length - 1}
               onViewDetail={onViewDetail}
             />
           ))}
@@ -306,9 +240,13 @@ export function AttackCaseList({
 
 function CaseRow({
   item,
+  isFirst,
+  isLast,
   onViewDetail,
 }: {
   item: AttackCaseTimelineSummary
+  isFirst: boolean
+  isLast: boolean
   onViewDetail?: (caseId: string) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
@@ -332,115 +270,215 @@ function CaseRow({
           rules: autoSummary.rules,
         })
     : item.summary
-
+  const metrics: MetricItem[] = [
+    {
+      key: "rules",
+      label: t("metrics.rules"),
+      value: item.rule_count,
+      icon: ScrollText,
+    },
+    {
+      key: "hosts",
+      label: t("metrics.hosts"),
+      value: item.host_count,
+      icon: Server,
+    },
+    {
+      key: "instances",
+      label: t("metrics.instances"),
+      value: item.instance_count,
+      icon: Bug,
+    },
+    {
+      key: "groups",
+      label: t("metrics.groups"),
+      value: item.group_count,
+      icon: Boxes,
+    },
+    {
+      key: "evidence",
+      label: t("metrics.evidence"),
+      value: item.evidence_count,
+      icon: FileSearch,
+    },
+  ]
   const clickable = Boolean(onViewDetail)
 
   return (
-    <article
-      role={clickable ? "button" : undefined}
-      tabIndex={clickable ? 0 : undefined}
-      onClick={() => onViewDetail?.(item.case_id)}
-      onKeyDown={(event) => {
-        if (!clickable) return
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault()
-          onViewDetail?.(item.case_id)
-        }
-      }}
-      className={cn(
-        "grid min-h-[100px] gap-3 px-5 py-4 outline-none transition-colors lg:items-center",
-        TABLE_GRID,
-        clickable &&
-          "cursor-pointer hover:bg-muted/25 focus-visible:bg-muted/25 focus-visible:ring-2 focus-visible:ring-primary/25",
-      )}
-    >
-      <div>
+    <article className="grid grid-cols-[36px_minmax(0,1fr)] gap-0">
+      <div className="relative flex justify-center">
+        {!isFirst ? (
+          <span className="absolute left-1/2 top-0 h-5 w-px -translate-x-1/2 bg-slate-200" />
+        ) : null}
+        {!isLast ? (
+          <span className="absolute bottom-0 left-1/2 top-8 w-px -translate-x-1/2 bg-slate-200" />
+        ) : null}
         <span
           className={cn(
-            "inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold",
-            severity.badge,
+            "relative mt-5 flex size-4 items-center justify-center rounded-full bg-white ring-4 ring-white",
+            severity.dot,
           )}
+          aria-hidden="true"
         >
-          <ShieldCheck className="size-3.5" />
-          {t(`severity.${severity.labelKey}`)}
+          <span className="size-2 rounded-full bg-white/85" />
         </span>
       </div>
 
-      <div className="min-w-0">
-        <h3
-          className="truncate text-base font-semibold leading-6 text-foreground"
-          title={title}
-        >
-          {title}
-        </h3>
-        <p
-          className="mt-0.5 line-clamp-1 text-sm leading-5 text-muted-foreground"
-          title={summary}
-        >
-          {summary}
-        </p>
-        <p className="mt-1 truncate font-mono text-xs text-muted-foreground/55">
-          case-{shortenId(item.case_id, 10, 4)}
-        </p>
-      </div>
-
-      <PhaseChips phases={orderedPhases} />
-      <TechniqueChips techniques={techniques} />
-
-      <RuleIdsCell ruleIds={item.rule_ids ?? []} />
-      <CountCell value={item.rule_count} label={t("metrics.rules")} />
-      <CountCell value={item.host_count} label={t("metrics.hosts")} />
-      <CountCell value={item.instance_count} label={t("metrics.instances")} />
-      <CountCell value={item.group_count} label={t("metrics.groups")} />
-      <CountCell value={item.evidence_count} label={t("metrics.evidence")} />
-
       <div
-        className="min-w-0 text-center text-sm leading-5 text-muted-foreground"
-        title={`${formatFullTime(item.start_time)} - ${formatFullTime(item.end_time)}`}
+        role={clickable ? "button" : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onClick={() => onViewDetail?.(item.case_id)}
+        onKeyDown={(event) => {
+          if (!clickable) return
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault()
+            onViewDetail?.(item.case_id)
+          }
+        }}
+        className={cn(
+          "min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none transition-all duration-150",
+          clickable &&
+            "cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_14px_28px_rgba(15,23,42,0.08)] focus-visible:ring-2 focus-visible:ring-primary/25",
+        )}
       >
-        <div className="truncate text-foreground/75">
-          {formatShortTime(item.start_time)}
-        </div>
-        <div className="truncate text-muted-foreground/70">
-          {formatShortTime(item.end_time)}
+        <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_360px_126px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_380px_136px]">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className={cn(
+                  "inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold",
+                  severity.badge,
+                )}
+              >
+                <ShieldAlert className="size-3.5" />
+                {t(`severity.${severity.labelKey}`)}
+              </span>
+              <h3
+                className="min-w-0 truncate text-base font-semibold leading-6 text-slate-950"
+                title={title}
+              >
+                {title}
+              </h3>
+            </div>
+
+            <p
+              className="mt-1 line-clamp-1 text-sm leading-5 text-slate-600"
+              title={summary}
+            >
+              {summary}
+            </p>
+
+            <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+              <MetaCluster
+                icon={Target}
+                label={t("labels.caseId")}
+                className="max-w-[190px]"
+              >
+                <span
+                  className="truncate font-mono text-xs text-slate-500"
+                  title={item.case_id}
+                >
+                  case-{shortenId(item.case_id, 10, 4)}
+                </span>
+              </MetaCluster>
+
+              <MetaCluster icon={ScrollText} label={t("labels.ruleIds")}>
+                <RuleIdsInline ruleIds={item.rule_ids ?? []} />
+              </MetaCluster>
+
+              <MetaCluster icon={GitBranch} label={t("labels.stage")}>
+                <PhaseChips phases={orderedPhases} />
+              </MetaCluster>
+
+              <MetaCluster
+                icon={Crosshair}
+                label={t("labels.techniques")}
+                className="min-w-[180px] flex-[1_1_180px]"
+              >
+                <TechniqueChips techniques={techniques} />
+              </MetaCluster>
+            </div>
+          </div>
+
+          <MetricStrip metrics={metrics} />
+          <TimeRange
+            startTime={item.start_time}
+            endTime={item.end_time}
+            onViewDetail={onViewDetail ? () => onViewDetail(item.case_id) : undefined}
+          />
         </div>
       </div>
     </article>
   )
 }
 
-function RuleIdsCell({ ruleIds }: { ruleIds: string[] }) {
-  const visibleRuleId = ruleIds[0]
-  const extraRuleIds = ruleIds.slice(1)
+function MetaCluster({
+  icon: Icon,
+  label,
+  children,
+  className,
+}: {
+  icon: ComponentType<{ className?: string }>
+  label: string
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 items-center gap-1.5",
+        className,
+      )}
+    >
+      <span className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-500">
+        <Icon className="size-3.5" />
+        {label}
+      </span>
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  )
+}
 
-  if (!visibleRuleId) {
-    return <span className="text-center text-sm text-muted-foreground/60">-</span>
+function RuleIdsInline({ ruleIds }: { ruleIds: string[] }) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+  const visibleRuleIds = ruleIds.slice(0, 2)
+  const hiddenRuleIds = ruleIds.slice(2)
+
+  if (ruleIds.length === 0) {
+    return <span className="text-sm text-slate-400">-</span>
   }
 
   return (
-    <div className="flex min-w-0 items-center justify-center gap-1.5">
-      <span
-        className="max-w-[154px] truncate font-mono text-xs text-muted-foreground"
-        title={visibleRuleId}
-      >
-        {shortenId(visibleRuleId, 12, 6)}
-      </span>
-      {extraRuleIds.length > 0 && (
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+      {visibleRuleIds.map((ruleId) => (
+        <RuleInfoPopover key={ruleId} id={ruleId} side="right">
+          <button
+            type="button"
+            onClick={(event) => event.stopPropagation()}
+          className="max-w-[132px] truncate rounded-md bg-blue-50 px-1.5 py-0.5 font-mono text-xs leading-5 text-blue-700 transition-all duration-150 hover:-translate-y-0.5 hover:bg-blue-100 hover:text-blue-800 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+            title={ruleId}
+            aria-label={`${t("labels.ruleIds")} ${ruleId}`}
+          >
+            {shortenId(ruleId, 12, 5)}
+          </button>
+        </RuleInfoPopover>
+      ))}
+      {hiddenRuleIds.length > 0 ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="cursor-default rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-              +{extraRuleIds.length}
+            <span className="cursor-default rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-xs leading-5 text-slate-600">
+              +{hiddenRuleIds.length}
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            <div className="flex flex-col gap-0.5 font-mono text-xs">
-              {extraRuleIds.map((ruleId) => (
+            <div className="flex max-w-[320px] flex-col gap-1 font-mono text-xs">
+              {ruleIds.map((ruleId) => (
                 <span key={ruleId}>{ruleId}</span>
               ))}
             </div>
           </TooltipContent>
         </Tooltip>
-      )}
+      ) : null}
     </div>
   )
 }
@@ -454,32 +492,31 @@ function PhaseChips({
   const visiblePhases = phases.slice(0, 2)
   const extraPhases = phases.slice(2)
 
+  if (phases.length === 0) {
+    return <span className="text-sm text-slate-400">-</span>
+  }
+
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-      {visiblePhases.map((phase, index) => (
-        <span
-          key={phase.key}
-          className={cn(
-            "max-w-[88px] truncate rounded-md px-2 py-0.5 text-xs font-normal",
-            index === 0
-              ? "bg-muted text-foreground"
-              : "bg-muted/70 text-muted-foreground",
-          )}
-          title={
-            phase.stageKey
-              ? stageT(`${phase.stageKey}.label`)
-              : phase.fallbackLabel
-          }
-        >
-          {phase.stageKey
-            ? stageT(`${phase.stageKey}.label`)
-            : phase.fallbackLabel}
-        </span>
-      ))}
-      {extraPhases.length > 0 && (
+      {visiblePhases.map((phase) => {
+        const label = phase.stageKey
+          ? stageT(`${phase.stageKey}.label`)
+          : phase.fallbackLabel
+
+        return (
+          <span
+            key={phase.key}
+            className="max-w-[92px] truncate rounded-md bg-slate-50 px-1.5 py-0.5 text-xs font-normal leading-5 text-slate-700"
+            title={label}
+          >
+            {label}
+          </span>
+        )
+      })}
+      {extraPhases.length > 0 ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="cursor-default rounded-md bg-muted px-1.5 py-0.5 text-xs font-semibold text-muted-foreground">
+            <span className="cursor-default rounded-md bg-slate-100 px-1.5 py-0.5 text-xs leading-5 text-slate-500">
               +{extraPhases.length}
             </span>
           </TooltipTrigger>
@@ -495,21 +532,21 @@ function PhaseChips({
             </div>
           </TooltipContent>
         </Tooltip>
-      )}
+      ) : null}
     </div>
   )
 }
 
 function TechniqueChips({ techniques }: { techniques: string[] }) {
-  const visibleTechniques = techniques.length > 3 ? techniques.slice(0, 2) : techniques
-  const hiddenTechniques = techniques.slice(visibleTechniques.length)
+  const visibleTechniques = techniques.slice(0, 5)
+  const hiddenTechniques = techniques.slice(5)
 
   if (techniques.length === 0) {
-    return <span className="text-sm text-muted-foreground/60">-</span>
+    return <span className="text-sm text-slate-400">-</span>
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-1 justify-items-start gap-1">
+    <div className="flex max-h-[66px] min-w-0 flex-wrap items-center gap-1.5 overflow-hidden">
       {visibleTechniques.map((technique) => (
         <a
           key={technique}
@@ -517,39 +554,96 @@ function TechniqueChips({ techniques }: { techniques: string[] }) {
           target="_blank"
           rel="noopener noreferrer"
           onClick={(event) => event.stopPropagation()}
-          className="max-w-[118px] truncate rounded-md border border-technique/30 bg-technique/10 px-1.5 py-0.5 font-mono text-xs leading-4 text-technique transition-colors hover:bg-technique/20"
+          className="max-w-[96px] truncate rounded-md bg-blue-50 px-1.5 py-0.5 font-mono text-xs leading-5 text-blue-700 transition-colors hover:bg-blue-100 hover:text-blue-800"
           title={technique}
         >
           {technique}
         </a>
       ))}
-      {hiddenTechniques.length > 0 && (
+      {hiddenTechniques.length > 0 ? (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="cursor-default rounded-md bg-muted px-1.5 py-0.5 text-xs leading-4 text-muted-foreground">
+            <span className="cursor-default rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-xs leading-5 text-slate-600">
               +{hiddenTechniques.length}
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            <div className="flex flex-col gap-0.5 font-mono text-xs">
+            <div className="grid max-w-[280px] grid-cols-2 gap-x-3 gap-y-1 font-mono text-xs">
               {techniques.map((technique) => (
                 <span key={technique}>{technique}</span>
               ))}
             </div>
           </TooltipContent>
         </Tooltip>
-      )}
+      ) : null}
     </div>
   )
 }
 
-function CountCell({ value, label }: { value: number; label: string }) {
+function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
   return (
-    <div className="flex items-center gap-2 lg:block lg:text-center">
-      <span className="text-xs text-muted-foreground lg:hidden">{label}</span>
-      <span className="tabular-nums text-base font-normal leading-none text-foreground">
-        {value}
-      </span>
+    <div className="grid min-w-0 grid-cols-5 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
+      {metrics.map((metric) => {
+        const Icon = metric.icon
+
+        return (
+          <div
+            key={metric.key}
+            className="flex min-w-0 flex-col items-center justify-center gap-1 border-r border-slate-200/80 px-1 py-2 text-center last:border-r-0"
+          >
+            <span className="flex max-w-full items-center gap-1 truncate text-[11px] leading-4 text-slate-500">
+              <Icon className="size-3 shrink-0" />
+              <span className="truncate">{metric.label}</span>
+            </span>
+            <span className="tabular-nums text-sm font-normal leading-5 text-slate-900">
+              {metric.value}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function TimeRange({
+  startTime,
+  endTime,
+  onViewDetail,
+}: {
+  startTime: string
+  endTime: string
+  onViewDetail?: () => void
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+  const title = `${formatFullTime(startTime)} - ${formatFullTime(endTime)}`
+
+  return (
+    <div
+      className="flex h-full min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-2"
+      title={title}
+    >
+      <div className="min-w-0 text-xs leading-5 text-slate-500">
+        <div className="flex items-center gap-1.5 text-slate-700">
+          <CalendarClock className="size-3.5 shrink-0 text-slate-400" />
+          <span className="truncate">{formatShortTime(startTime)}</span>
+        </div>
+        <div className="mt-0.5 flex items-center gap-1.5">
+          <CircleDot className="size-3.5 shrink-0 text-slate-300" />
+          <span className="truncate">{formatShortTime(endTime)}</span>
+        </div>
+      </div>
+      {onViewDetail ? (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onViewDetail()
+          }}
+          className="shrink-0 text-xs font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+        >
+          {t("viewDetail")}
+        </button>
+      ) : null}
     </div>
   )
 }

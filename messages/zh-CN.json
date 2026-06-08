@@ -766,12 +766,18 @@
             "autoAcross": "自动聚合自 {instances} 个攻击实例，涉及 {groups} 个攻击分组。",
             "autoMulti": "自动聚合自 {instances} 个攻击实例，涉及 {groups} 个攻击分组、{rules} 条规则。"
           },
+          "labels": {
+            "caseId": "场景ID",
+            "ruleIds": "规则IDS",
+            "stage": "攻击阶段",
+            "techniques": "ATT&CK 技术"
+          },
           "metrics": {
             "rules": "规则",
             "hosts": "主机",
-            "instances": "实例",
-            "groups": "分组",
-            "evidence": "证据"
+            "instances": "攻击实例",
+            "groups": "攻击分组",
+            "evidence": "事件数据"
           }
         },
         "stageDetails": {
