@@ -1,6 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react"
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type MouseEvent,
+  type ReactNode,
+} from "react"
 import { useTranslations } from "next-intl"
 import {
   Boxes,
@@ -8,7 +15,9 @@ import {
   CalendarClock,
   ChevronLeft,
   ChevronRight,
+  Check,
   CircleDot,
+  Copy,
   Crosshair,
   FileSearch,
   GitBranch,
@@ -208,6 +217,23 @@ function matchAutoSummary(summary: string) {
 function formatCaseTitle(title: string) {
   const normalized = title.trim()
   return normalized.replace(/^攻击链[:：]\s*/i, "") || normalized
+}
+
+async function copyText(value: string) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(value)
+    return
+  }
+
+  const textarea = document.createElement("textarea")
+  textarea.value = value
+  textarea.setAttribute("readonly", "")
+  textarea.style.position = "fixed"
+  textarea.style.opacity = "0"
+  document.body.appendChild(textarea)
+  textarea.select()
+  document.execCommand("copy")
+  document.body.removeChild(textarea)
 }
 
 export function AttackCaseList({
@@ -492,9 +518,9 @@ function CaseRow({
         )}
       >
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_420px_232px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_460px_248px]">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_340px_210px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_460px_248px]">
             <div className="min-w-0">
-              <div className="flex min-w-0 items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span
                   className={cn(
                     "inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold",
@@ -505,7 +531,7 @@ function CaseRow({
                   {t(`severity.${severity.labelKey}`)}
                 </span>
                 <h3
-                  className="w-[420px] max-w-full shrink truncate text-base font-semibold leading-6 text-slate-950 2xl:w-[520px]"
+                  className="w-[220px] shrink-0 truncate text-base font-semibold leading-6 text-slate-950 2xl:w-[520px]"
                   title={title}
                 >
                   {title}
@@ -533,12 +559,7 @@ function CaseRow({
               icon={Target}
               label={t("labels.caseId")}
             >
-              <span
-                className="whitespace-nowrap font-mono text-xs text-slate-500"
-                title={item.case_id}
-              >
-                {item.case_id}
-              </span>
+              <CaseIdPill value={item.case_id} />
             </MetaCluster>
 
             <MetaCluster icon={GitBranch} label={t("labels.stage")}>
@@ -555,6 +576,45 @@ function CaseRow({
         </div>
       </div>
     </article>
+  )
+}
+
+function CaseIdPill({ value }: { value: string }) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    if (!copied) return
+    const timer = window.setTimeout(() => setCopied(false), 1200)
+    return () => window.clearTimeout(timer)
+  }, [copied])
+
+  async function handleCopy(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
+    event.stopPropagation()
+    await copyText(value)
+    setCopied(true)
+  }
+
+  return (
+    <span
+      className="group inline-flex max-w-full items-center gap-1.5 rounded-md bg-indigo-50/80 px-2 py-0.5 text-indigo-700 ring-1 ring-indigo-100/80 transition-colors hover:bg-indigo-100/80"
+      title={value}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <span className="min-w-0 select-all whitespace-nowrap font-mono text-xs leading-5 text-indigo-700">
+        {value}
+      </span>
+      <button
+        type="button"
+        aria-label={copied ? t("copiedCaseId") : t("copyCaseId")}
+        title={copied ? t("copiedCaseId") : t("copyCaseId")}
+        onClick={handleCopy}
+        className="inline-flex size-5 shrink-0 items-center justify-center rounded text-indigo-500 transition-all hover:bg-white/80 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-200"
+      >
+        {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+      </button>
+    </span>
   )
 }
 

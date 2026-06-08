@@ -755,6 +755,8 @@
           "loadMore": "Load More",
           "loadingMore": "Loading...",
           "loadFailed": "Failed to load attack details",
+          "copyCaseId": "Copy Case ID",
+          "copiedCaseId": "Case ID copied",
           "severity": {
             "critical": "Critical",
             "high": "High",
