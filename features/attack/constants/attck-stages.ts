@@ -116,6 +116,7 @@ function normalizeStageInput(value: string) {
     .toLowerCase()
     .replace(/^phase[.:_-]\s*/, "")
     .replace(/^phase\./, "")
+    .replace(/^[.:_-]+/, "")
     .replace(/&/g, "and")
     .replace(/[_-]+/g, " ")
     .replace(/\s+/g, " ")

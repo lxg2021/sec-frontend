@@ -160,6 +160,7 @@ function normalizeUnknownPhase(phase: string) {
     .trim()
     .replace(/^phase[.:_-]\s*/i, "")
     .replace(/^phase\./i, "")
+    .replace(/^[.:_-]+/, "")
     .replace(/[-_]+/g, " ")
     .replace(/\s+/g, " ")
 }
@@ -518,7 +519,7 @@ function CaseRow({
         )}
       >
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_340px_210px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_460px_248px]">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_440px_210px] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_520px_248px]">
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span
@@ -731,9 +732,9 @@ function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
             key={metric.key}
             className="flex min-w-0 flex-col items-center justify-center gap-0.5 border-r border-slate-200/80 px-1 py-1.5 text-center last:border-r-0"
           >
-            <span className="flex max-w-full items-center gap-1 truncate text-[11px] leading-4 text-slate-500">
+            <span className="flex max-w-full items-center justify-center gap-0.5 whitespace-nowrap text-[10px] leading-4 text-slate-500">
               <Icon className={cn("size-3 shrink-0", metric.iconClassName)} />
-              <span className="truncate">{metric.label}</span>
+              <span>{metric.label}</span>
             </span>
             <span className="tabular-nums text-sm font-normal leading-5 text-slate-900">
               {metric.value}
