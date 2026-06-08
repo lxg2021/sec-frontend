@@ -3,17 +3,20 @@
 import { useMemo, type ComponentType } from "react"
 import { useTranslations } from "next-intl"
 import {
-  ArrowRight,
   Boxes,
   Bug,
-  ChevronRight,
+  CalendarClock,
+  Crosshair,
   FileSearch,
+  GitBranch,
+  ScrollText,
   Server,
+  ShieldAlert,
   ShieldCheck,
+  Target,
 } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
-import { Button } from "@/shared/ui/button"
 import {
   Tooltip,
   TooltipContent,
@@ -36,39 +39,51 @@ const SEVERITY_MAP: Record<
   {
     labelKey: string
     dot: string
-    text: string
-    bar: string
     badge: string
   }
 > = {
   critical: {
     labelKey: "critical",
     dot: "bg-severity-critical",
-    text: "text-severity-critical",
-    bar: "bg-severity-critical",
-    badge: "bg-severity-critical/10 text-severity-critical",
+    badge:
+      "border-severity-critical/30 bg-severity-critical/10 text-severity-critical",
   },
   high: {
     labelKey: "high",
     dot: "bg-severity-high",
-    text: "text-severity-high",
-    bar: "bg-severity-high",
-    badge: "bg-severity-high/10 text-severity-high",
+    badge: "border-severity-high/30 bg-severity-high/10 text-severity-high",
   },
   medium: {
     labelKey: "medium",
     dot: "bg-severity-medium",
-    text: "text-severity-medium",
-    bar: "bg-severity-medium",
-    badge: "bg-severity-medium/10 text-severity-medium",
+    badge:
+      "border-severity-medium/30 bg-severity-medium/10 text-severity-medium",
   },
   low: {
     labelKey: "low",
     dot: "bg-severity-low",
-    text: "text-severity-low",
-    bar: "bg-severity-low",
-    badge: "bg-severity-low/10 text-severity-low",
+    badge: "border-severity-low/30 bg-severity-low/10 text-severity-low",
   },
+}
+
+const TABLE_GRID =
+  "lg:grid-cols-[96px_minmax(200px,0.95fr)_minmax(112px,0.48fr)_minmax(140px,0.58fr)_180px_70px_70px_86px_86px_86px_124px]"
+
+function HeaderCell({
+  icon: Icon,
+  label,
+  className,
+}: {
+  icon: ComponentType<{ className?: string }>
+  label: string
+  className?: string
+}) {
+  return (
+    <span className={cn("flex items-center gap-1.5 whitespace-nowrap", className)}>
+      <Icon className="size-3.5 text-muted-foreground/70" />
+      <span>{label}</span>
+    </span>
+  )
 }
 
 function getSeverity(severity: string) {
@@ -76,14 +91,12 @@ function getSeverity(severity: string) {
     SEVERITY_MAP[severity?.toLowerCase()] ?? {
       labelKey: "unknown",
       dot: "bg-muted-foreground",
-      text: "text-muted-foreground",
-      bar: "bg-border",
-      badge: "bg-muted text-muted-foreground",
+      badge: "border-border bg-muted text-muted-foreground",
     }
   )
 }
 
-function formatTime(value: string) {
+function formatFullTime(value: string) {
   if (!value) return "-"
   const d = new Date(value)
   if (Number.isNaN(d.getTime())) return value
@@ -91,6 +104,22 @@ function formatTime(value: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(
     d.getHours(),
   )}:${pad(d.getMinutes())}`
+}
+
+function formatShortTime(value: string) {
+  if (!value) return "-"
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return value
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(
+    d.getMinutes(),
+  )}`
+}
+
+function shortenId(value: string, head = 8, tail = 4) {
+  if (!value) return "-"
+  if (value.length <= head + tail + 3) return value
+  return `${value.slice(0, head)}...${value.slice(-tail)}`
 }
 
 function extractTechniques(values: string[]) {
@@ -131,7 +160,6 @@ function buildOrderedPhases(item: AttackCaseTimelineSummary) {
       const key = stage?.key || normalizeUnknownPhase(phase).toLowerCase()
       return {
         key,
-        raw: phase,
         stageKey: stage?.key,
         fallbackLabel: normalizeUnknownPhase(phase),
       }
@@ -174,28 +202,6 @@ function formatCaseTitle(title: string) {
   return normalized.replace(/^攻击链[:：]\s*/i, "") || normalized
 }
 
-function Metric({
-  value,
-  label,
-  icon: Icon,
-}: {
-  value: number
-  label: string
-  icon: ComponentType<{ className?: string }>
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <Icon className="size-4 text-muted-foreground/70" />
-      <div className="flex items-baseline gap-1">
-        <span className="tabular-nums text-sm font-semibold text-foreground">
-          {value}
-        </span>
-        <span className="text-xs text-muted-foreground">{label}</span>
-      </div>
-    </div>
-  )
-}
-
 export function AttackCaseList({
   items,
   onViewDetail,
@@ -219,16 +225,86 @@ export function AttackCaseList({
 
   return (
     <TooltipProvider>
-      <div className={cn("flex flex-col gap-3", className)}>
-        {items.map((item) => (
-          <CaseCard key={item.case_id} item={item} onViewDetail={onViewDetail} />
-        ))}
-      </div>
+      <section
+        className={cn(
+          "overflow-hidden rounded-2xl border border-border bg-card",
+          className,
+        )}
+      >
+        <div
+          className={cn(
+            "hidden min-h-11 items-center gap-3 border-b border-border bg-muted/20 px-5 text-sm font-semibold text-muted-foreground lg:grid",
+            TABLE_GRID,
+          )}
+        >
+          <HeaderCell
+            icon={ShieldAlert}
+            label={t("columns.risk")}
+          />
+          <HeaderCell
+            icon={Target}
+            label={t("columns.scene")}
+          />
+          <HeaderCell
+            icon={GitBranch}
+            label={t("columns.stage")}
+          />
+          <HeaderCell
+            icon={Crosshair}
+            label={t("columns.technique")}
+          />
+          <HeaderCell
+            icon={ScrollText}
+            label={t("columns.ruleIds")}
+            className="justify-center"
+          />
+          <HeaderCell
+            icon={ScrollText}
+            label={t("metrics.rules")}
+            className="justify-center"
+          />
+          <HeaderCell
+            icon={Server}
+            label={t("metrics.hosts")}
+            className="justify-center"
+          />
+          <HeaderCell
+            icon={Bug}
+            label={t("metrics.instances")}
+            className="justify-center"
+          />
+          <HeaderCell
+            icon={Boxes}
+            label={t("metrics.groups")}
+            className="justify-center"
+          />
+          <HeaderCell
+            icon={FileSearch}
+            label={t("metrics.evidence")}
+            className="justify-center"
+          />
+          <HeaderCell
+            icon={CalendarClock}
+            label={t("columns.timeRange")}
+            className="justify-center"
+          />
+        </div>
+
+        <div className="divide-y divide-border">
+          {items.map((item) => (
+            <CaseRow
+              key={item.case_id}
+              item={item}
+              onViewDetail={onViewDetail}
+            />
+          ))}
+        </div>
+      </section>
     </TooltipProvider>
   )
 }
 
-function CaseCard({
+function CaseRow({
   item,
   onViewDetail,
 }: {
@@ -236,13 +312,11 @@ function CaseCard({
   onViewDetail?: (caseId: string) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
-  const stageT = useTranslations("pages.attack.dashboard.stages")
   const severity = getSeverity(item.severity)
-  const techniques = useMemo(() => extractTechniques([...item.tags, ...item.rule_ids]), [item.tags, item.rule_ids])
-
-  const visibleTechniques = techniques.slice(0, 4)
-  const extraTechniques = techniques.slice(4)
-
+  const techniques = useMemo(
+    () => extractTechniques([...(item.tags ?? []), ...(item.rule_ids ?? [])]),
+    [item.tags, item.rule_ids],
+  )
   const orderedPhases = useMemo(() => buildOrderedPhases(item), [item])
   const title = formatCaseTitle(item.title)
   const autoSummary = matchAutoSummary(item.summary)
@@ -259,159 +333,109 @@ function CaseCard({
         })
     : item.summary
 
+  const clickable = Boolean(onViewDetail)
+
   return (
     <article
-      className="group relative flex overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-foreground/15 hover:shadow-sm"
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={() => onViewDetail?.(item.case_id)}
+      onKeyDown={(event) => {
+        if (!clickable) return
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          onViewDetail?.(item.case_id)
+        }
+      }}
+      className={cn(
+        "grid min-h-[100px] gap-3 px-5 py-4 outline-none transition-colors lg:items-center",
+        TABLE_GRID,
+        clickable &&
+          "cursor-pointer hover:bg-muted/25 focus-visible:bg-muted/25 focus-visible:ring-2 focus-visible:ring-primary/25",
+      )}
     >
-      <div className={cn("w-1 shrink-0", severity.bar)} aria-hidden />
+      <div>
+        <span
+          className={cn(
+            "inline-flex h-6 items-center gap-1.5 rounded-full border px-2.5 text-xs font-semibold",
+            severity.badge,
+          )}
+        >
+          <ShieldCheck className="size-3.5" />
+          {t(`severity.${severity.labelKey}`)}
+        </span>
+      </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
-                  severity.badge,
-                )}
-              >
-                <span className={cn("size-1.5 rounded-full", severity.dot)} />
-                {t(`severity.${severity.labelKey}`)}
-              </span>
-              <span className="font-mono text-xs text-muted-foreground/70">
-                {item.case_id}
-              </span>
-            </div>
-            <h3 className="text-pretty text-base font-semibold leading-snug text-foreground">
-              {title}
-            </h3>
-            <p className="line-clamp-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {summary}
-            </p>
-          </div>
+      <div className="min-w-0">
+        <h3
+          className="truncate text-base font-semibold leading-6 text-foreground"
+          title={title}
+        >
+          {title}
+        </h3>
+        <p
+          className="mt-0.5 line-clamp-1 text-sm leading-5 text-muted-foreground"
+          title={summary}
+        >
+          {summary}
+        </p>
+        <p className="mt-1 truncate font-mono text-xs text-muted-foreground/55">
+          case-{shortenId(item.case_id, 10, 4)}
+        </p>
+      </div>
 
-          <div className="hidden shrink-0 flex-col items-end gap-0.5 text-xs text-muted-foreground sm:flex">
-            <span className="font-medium text-foreground">
-              {formatTime(item.start_time)}
-            </span>
-            <span className="flex items-center gap-1">
-              <ArrowRight className="size-3" />
-              {formatTime(item.end_time)}
-            </span>
-          </div>
+      <PhaseChips phases={orderedPhases} />
+      <TechniqueChips techniques={techniques} />
+
+      <RuleIdsCell ruleIds={item.rule_ids ?? []} />
+      <CountCell value={item.rule_count} label={t("metrics.rules")} />
+      <CountCell value={item.host_count} label={t("metrics.hosts")} />
+      <CountCell value={item.instance_count} label={t("metrics.instances")} />
+      <CountCell value={item.group_count} label={t("metrics.groups")} />
+      <CountCell value={item.evidence_count} label={t("metrics.evidence")} />
+
+      <div
+        className="min-w-0 text-center text-sm leading-5 text-muted-foreground"
+        title={`${formatFullTime(item.start_time)} - ${formatFullTime(item.end_time)}`}
+      >
+        <div className="truncate text-foreground/75">
+          {formatShortTime(item.start_time)}
         </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {orderedPhases.map((phase, idx) => (
-            <div key={phase.key} className="flex items-center gap-1.5">
-              {idx > 0 && (
-                <ChevronRight className="size-3 text-muted-foreground/40" />
-              )}
-              <span
-                className={cn(
-                  "rounded-md px-2 py-0.5 text-xs font-medium",
-                  idx === 0
-                    ? "bg-foreground/10 text-foreground"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                {phase.stageKey ? stageT(`${phase.stageKey}.label`) : phase.fallbackLabel}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {techniques.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-xs text-muted-foreground/70">ATT&CK</span>
-            {visibleTechniques.map((technique) => (
-              <a
-                key={technique}
-                href={`https://attack.mitre.org/techniques/${technique.replace(".", "/")}/`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-md border border-technique/30 bg-technique/10 px-1.5 py-0.5 font-mono text-xs text-technique transition-colors hover:bg-technique/20"
-              >
-                {technique}
-              </a>
-            ))}
-            {extraTechniques.length > 0 && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-default rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                    +{extraTechniques.length}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <div className="flex flex-col gap-0.5 font-mono text-xs">
-                    {extraTechniques.map((technique) => (
-                      <span key={technique}>{technique}</span>
-                    ))}
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-        )}
-
-        <div className="border-t border-border/60" />
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <RuleMetric item={item} />
-            <HostMetric item={item} />
-            <Metric value={item.instance_count} label={t("metrics.instances")} icon={Bug} />
-            <Metric value={item.group_count} label={t("metrics.groups")} icon={Boxes} />
-            <Metric
-              value={item.evidence_count}
-              label={t("metrics.evidence")}
-              icon={FileSearch}
-            />
-          </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-mr-2 text-muted-foreground hover:text-foreground"
-            onClick={() => onViewDetail?.(item.case_id)}
-          >
-            {t("viewDetail")}
-            <ChevronRight className="size-4" />
-          </Button>
+        <div className="truncate text-muted-foreground/70">
+          {formatShortTime(item.end_time)}
         </div>
       </div>
     </article>
   )
 }
 
-function RuleMetric({ item }: { item: AttackCaseTimelineSummary }) {
-  const t = useTranslations("pages.attack.dashboard.cases")
+function RuleIdsCell({ ruleIds }: { ruleIds: string[] }) {
+  const visibleRuleId = ruleIds[0]
+  const extraRuleIds = ruleIds.slice(1)
+
+  if (!visibleRuleId) {
+    return <span className="text-center text-sm text-muted-foreground/60">-</span>
+  }
 
   return (
-    <div className="flex items-center gap-2">
-      <ShieldCheck className="size-4 text-muted-foreground/70" />
-      <div className="flex items-baseline gap-1">
-        <span className="tabular-nums text-sm font-semibold text-foreground">
-          {item.rule_count}
-        </span>
-        <span className="text-xs text-muted-foreground">{t("metrics.rules")}</span>
-      </div>
-      {item.rule_ids[0] && (
-        <span className="font-mono text-xs text-muted-foreground/80">
-          {item.rule_ids[0]}
-        </span>
-      )}
-      {item.rule_ids.length > 1 && (
+    <div className="flex min-w-0 items-center justify-center gap-1.5">
+      <span
+        className="max-w-[154px] truncate font-mono text-xs text-muted-foreground"
+        title={visibleRuleId}
+      >
+        {shortenId(visibleRuleId, 12, 6)}
+      </span>
+      {extraRuleIds.length > 0 && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="cursor-default rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-              +{item.rule_ids.length - 1}
+            <span className="cursor-default rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+              +{extraRuleIds.length}
             </span>
           </TooltipTrigger>
           <TooltipContent>
             <div className="flex flex-col gap-0.5 font-mono text-xs">
-              {item.rule_ids.slice(1).map((id) => (
-                <span key={id}>{id}</span>
+              {extraRuleIds.map((ruleId) => (
+                <span key={ruleId}>{ruleId}</span>
               ))}
             </div>
           </TooltipContent>
@@ -421,39 +445,111 @@ function RuleMetric({ item }: { item: AttackCaseTimelineSummary }) {
   )
 }
 
-function HostMetric({ item }: { item: AttackCaseTimelineSummary }) {
-  const t = useTranslations("pages.attack.dashboard.cases")
+function PhaseChips({
+  phases,
+}: {
+  phases: ReturnType<typeof buildOrderedPhases>
+}) {
+  const stageT = useTranslations("pages.attack.dashboard.stages")
+  const visiblePhases = phases.slice(0, 2)
+  const extraPhases = phases.slice(2)
 
   return (
-    <div className="flex items-center gap-2">
-      <Server className="size-4 text-muted-foreground/70" />
-      <div className="flex items-baseline gap-1">
-        <span className="tabular-nums text-sm font-semibold text-foreground">
-          {item.host_count}
+    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+      {visiblePhases.map((phase, index) => (
+        <span
+          key={phase.key}
+          className={cn(
+            "max-w-[88px] truncate rounded-md px-2 py-0.5 text-xs font-normal",
+            index === 0
+              ? "bg-muted text-foreground"
+              : "bg-muted/70 text-muted-foreground",
+          )}
+          title={
+            phase.stageKey
+              ? stageT(`${phase.stageKey}.label`)
+              : phase.fallbackLabel
+          }
+        >
+          {phase.stageKey
+            ? stageT(`${phase.stageKey}.label`)
+            : phase.fallbackLabel}
         </span>
-        <span className="text-xs text-muted-foreground">{t("metrics.hosts")}</span>
-      </div>
-      {item.agent_ids[0] && (
-        <span className="max-w-[120px] truncate font-mono text-xs text-muted-foreground/80">
-          {item.agent_ids[0]}
-        </span>
-      )}
-      {item.agent_ids.length > 1 && (
+      ))}
+      {extraPhases.length > 0 && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <span className="cursor-default rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-              +{item.agent_ids.length - 1}
+            <span className="cursor-default rounded-md bg-muted px-1.5 py-0.5 text-xs font-semibold text-muted-foreground">
+              +{extraPhases.length}
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            <div className="flex flex-col gap-0.5 font-mono text-xs">
-              {item.agent_ids.slice(1).map((id) => (
-                <span key={id}>{id}</span>
+            <div className="flex flex-col gap-0.5 text-xs">
+              {extraPhases.map((phase) => (
+                <span key={phase.key}>
+                  {phase.stageKey
+                    ? stageT(`${phase.stageKey}.label`)
+                    : phase.fallbackLabel}
+                </span>
               ))}
             </div>
           </TooltipContent>
         </Tooltip>
       )}
+    </div>
+  )
+}
+
+function TechniqueChips({ techniques }: { techniques: string[] }) {
+  const visibleTechniques = techniques.length > 3 ? techniques.slice(0, 2) : techniques
+  const hiddenTechniques = techniques.slice(visibleTechniques.length)
+
+  if (techniques.length === 0) {
+    return <span className="text-sm text-muted-foreground/60">-</span>
+  }
+
+  return (
+    <div className="grid min-w-0 grid-cols-1 justify-items-start gap-1">
+      {visibleTechniques.map((technique) => (
+        <a
+          key={technique}
+          href={`https://attack.mitre.org/techniques/${technique.replace(".", "/")}/`}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => event.stopPropagation()}
+          className="max-w-[118px] truncate rounded-md border border-technique/30 bg-technique/10 px-1.5 py-0.5 font-mono text-xs leading-4 text-technique transition-colors hover:bg-technique/20"
+          title={technique}
+        >
+          {technique}
+        </a>
+      ))}
+      {hiddenTechniques.length > 0 && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="cursor-default rounded-md bg-muted px-1.5 py-0.5 text-xs leading-4 text-muted-foreground">
+              +{hiddenTechniques.length}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="flex flex-col gap-0.5 font-mono text-xs">
+              {techniques.map((technique) => (
+                <span key={technique}>{technique}</span>
+              ))}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </div>
+  )
+}
+
+function CountCell({ value, label }: { value: number; label: string }) {
+  return (
+    <div className="flex items-center gap-2 lg:block lg:text-center">
+      <span className="text-xs text-muted-foreground lg:hidden">{label}</span>
+      <span className="tabular-nums text-base font-normal leading-none text-foreground">
+        {value}
+      </span>
     </div>
   )
 }
