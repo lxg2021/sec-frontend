@@ -765,6 +765,12 @@
             "title": "命中规则 {count} 条",
             "description": "选择规则查看详情"
           },
+          "caseLocator": {
+            "placeholder": "输入 Case ID",
+            "locate": "定位",
+            "empty": "未选择 Case ID",
+            "notFound": "当前已加载列表未找到该 Case ID"
+          },
           "severity": {
             "critical": "严重",
             "high": "高危",

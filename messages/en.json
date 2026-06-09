@@ -763,6 +763,12 @@
             "title": "{count} matched rules",
             "description": "Select a rule to view details"
           },
+          "caseLocator": {
+            "placeholder": "Enter Case ID",
+            "locate": "Locate",
+            "empty": "No Case ID selected",
+            "notFound": "Case ID was not found in the loaded list"
+          },
           "severity": {
             "critical": "Critical",
             "high": "High",

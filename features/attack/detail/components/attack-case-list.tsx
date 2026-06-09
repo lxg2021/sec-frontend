@@ -282,6 +282,9 @@ export function AttackCaseList({
   const [page, setPage] = useState(1)
   const [localPageSize, setLocalPageSize] = useState(controlledPageSize ?? DEFAULT_PAGE_SIZE)
   const [caseItems, setCaseItems] = useState(items)
+  const [selectedCaseId, setSelectedCaseId] = useState("")
+  const [caseIdQuery, setCaseIdQuery] = useState("")
+  const [pendingScrollCaseId, setPendingScrollCaseId] = useState("")
   const pageSize = controlledPageSize ?? localPageSize
   const loadedTotal = caseItems.length
   const totalPages = Math.max(1, Math.ceil(loadedTotal / pageSize))
@@ -297,13 +300,60 @@ export function AttackCaseList({
   }, [items])
 
   useEffect(() => {
+    if (!selectedCaseId) return
+    if (caseItems.some((item) => item.case_id === selectedCaseId)) return
+    setSelectedCaseId("")
+    setCaseIdQuery("")
+  }, [caseItems, selectedCaseId])
+
+  useEffect(() => {
     setPage((current) => Math.min(current, Math.max(1, Math.ceil(caseItems.length / pageSize))))
   }, [caseItems.length, pageSize])
+
+  useEffect(() => {
+    if (!pendingScrollCaseId) return
+    const timer = window.setTimeout(() => {
+      const target = Array.from(document.querySelectorAll<HTMLElement>("[data-attack-case-id]")).find(
+        (node) => node.dataset.attackCaseId === pendingScrollCaseId,
+      )
+      target?.scrollIntoView({ block: "center", behavior: "smooth" })
+      setPendingScrollCaseId("")
+    }, 80)
+    return () => window.clearTimeout(timer)
+  }, [pendingScrollCaseId, normalizedPage, visibleItems])
 
   function handleCaseUpdated(nextItem: AttackCaseTimelineSummary) {
     setCaseItems((current) =>
       current.map((item) => (item.case_id === nextItem.case_id ? nextItem : item)),
     )
+  }
+
+  function handleSelectCase(caseId: string) {
+    setSelectedCaseId(caseId)
+    setCaseIdQuery(caseId)
+  }
+
+  function handleLocateCase() {
+    const normalizedQuery = caseIdQuery.trim()
+    if (!normalizedQuery) return
+
+    const matchedIndex = caseItems.findIndex(
+      (item) => item.case_id.toLowerCase() === normalizedQuery.toLowerCase(),
+    )
+
+    if (matchedIndex < 0) {
+      toast({
+        title: t("caseLocator.notFound"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    const matched = caseItems[matchedIndex]
+    setSelectedCaseId(matched.case_id)
+    setCaseIdQuery(matched.case_id)
+    setPage(Math.floor(matchedIndex / pageSize) + 1)
+    setPendingScrollCaseId(matched.case_id)
   }
 
   async function handlePageSizeChange(value: string) {
@@ -341,7 +391,13 @@ export function AttackCaseList({
           className,
         )}
       >
-        <AttackCaseListHeader />
+        <AttackCaseListHeader
+          selectedCaseId=""
+          caseIdQuery={caseIdQuery}
+          canLocate={false}
+          onCaseIdQueryChange={setCaseIdQuery}
+          onLocateCase={handleLocateCase}
+        />
         <CardContent className="px-6 py-14">
           <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card py-12 text-center">
             <ShieldCheck className="size-8 text-muted-foreground/50" />
@@ -360,7 +416,13 @@ export function AttackCaseList({
           className,
         )}
       >
-        <AttackCaseListHeader />
+        <AttackCaseListHeader
+          selectedCaseId={selectedCaseId}
+          caseIdQuery={caseIdQuery}
+          canLocate={caseItems.length > 0}
+          onCaseIdQueryChange={setCaseIdQuery}
+          onLocateCase={handleLocateCase}
+        />
         <CardContent className="px-4 py-3">
           <div className="space-y-3">
             {visibleItems.map((item, index) => (
@@ -368,6 +430,8 @@ export function AttackCaseList({
                 key={item.case_id}
                 item={item}
                 snapshotId={snapshotId}
+                selected={item.case_id === selectedCaseId}
+                onSelect={handleSelectCase}
                 onViewDetail={onViewDetail}
                 onCaseUpdated={handleCaseUpdated}
               />
@@ -432,7 +496,19 @@ export function AttackCaseList({
   )
 }
 
-function AttackCaseListHeader() {
+function AttackCaseListHeader({
+  selectedCaseId,
+  caseIdQuery,
+  canLocate,
+  onCaseIdQueryChange,
+  onLocateCase,
+}: {
+  selectedCaseId: string
+  caseIdQuery: string
+  canLocate: boolean
+  onCaseIdQueryChange: (value: string) => void
+  onLocateCase: () => void
+}) {
   const t = useTranslations("pages.attack.dashboard.cases")
   const router = useRouter()
 
@@ -451,17 +527,48 @@ function AttackCaseListHeader() {
           </CardDescription>
         </div>
       </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={() => router.push("/frame/attack/drill")}
-        className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
-        title={t("traceAction")}
-      >
-        <Route className="size-4" />
-        {t("traceAction")}
-      </Button>
+      <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+        <div
+          className="flex h-10 min-w-[320px] max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white px-3 shadow-sm"
+          title={selectedCaseId || t("caseLocator.empty")}
+        >
+          <Target className="size-4 shrink-0 text-slate-400" />
+          <Input
+            value={caseIdQuery}
+            disabled={!canLocate}
+            onChange={(event) => onCaseIdQueryChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault()
+                onLocateCase()
+              }
+            }}
+            placeholder={t("caseLocator.placeholder")}
+            className="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 py-0 font-mono text-xs text-slate-700 shadow-none ring-offset-transparent placeholder:font-sans placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            disabled={!canLocate || !caseIdQuery.trim()}
+            onClick={onLocateCase}
+            className="h-7 shrink-0 rounded-full px-2 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700 disabled:text-slate-300"
+          >
+            {t("caseLocator.locate")}
+          </Button>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/frame/attack/drill")}
+          className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+          title={t("traceAction")}
+        >
+          <Route className="size-4" />
+          {t("traceAction")}
+        </Button>
+      </div>
     </CardHeader>
   )
 }
@@ -469,11 +576,15 @@ function AttackCaseListHeader() {
 function CaseRow({
   item,
   snapshotId,
+  selected,
+  onSelect,
   onViewDetail,
   onCaseUpdated,
 }: {
   item: AttackCaseTimelineSummary
   snapshotId?: string
+  selected?: boolean
+  onSelect?: (caseId: string) => void
   onViewDetail?: (caseId: string) => void
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
@@ -537,29 +648,33 @@ function CaseRow({
       iconClassName: "text-slate-400",
     },
   ]
-  const clickable = Boolean(onViewDetail)
+  const clickable = true
 
   return (
-    <article>
+    <article data-attack-case-id={item.case_id}>
       <div
         role={clickable ? "button" : undefined}
         tabIndex={clickable ? 0 : undefined}
-        onClick={() => onViewDetail?.(item.case_id)}
+        aria-selected={selected || undefined}
+        onClick={() => onSelect?.(item.case_id)}
         onKeyDown={(event) => {
           if (!clickable) return
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault()
-            onViewDetail?.(item.case_id)
+            onSelect?.(item.case_id)
           }
         }}
         className={cn(
           "group/case-row relative min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/25 hover:shadow-[0_16px_32px_rgba(15,23,42,0.10)]",
-          clickable &&
-            "cursor-pointer focus-visible:ring-2 focus-visible:ring-primary/25",
+          clickable && "cursor-pointer focus-visible:ring-2 focus-visible:ring-primary/25",
+          selected && "border-cyan-300 bg-cyan-50/20 shadow-[0_16px_32px_rgba(14,116,144,0.12)]",
         )}
       >
         <span
-          className="pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full bg-blue-500 opacity-0 transition-opacity duration-200 group-hover/case-row:opacity-100"
+          className={cn(
+            "pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full bg-blue-500 opacity-0 transition-opacity duration-200 group-hover/case-row:opacity-100",
+            selected && "bg-cyan-500 opacity-100",
+          )}
           aria-hidden="true"
         />
         <div className="min-w-0 space-y-2">
