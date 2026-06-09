@@ -14,18 +14,16 @@ import nodeRegistry, { getNodeRegistry } from "@/features/attack/graph/center/re
 import edgeRegistry, { getEdgeRegistry } from "@/features/attack/graph/center/register-edge-center";
 import NodeEdgeAccordion from "@/features/attack/graph/components/node-edge-accordion";
 import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet";
-import { Shield, Clock, Workflow } from "lucide-react"
+import { Shield } from "lucide-react"
 import {
   Card,
   CardHeader,
   CardContent,
   CardTitle,
-  CardDescription
 } from "@/shared/ui/card";
-import { KillChainTimeline } from "@/features/attack/kill-chain/components/kill-chain-timeline"
-import { initialNodes, initialLinks, demoUpdates } from "@/features/attack/mock/drill";
+import { initialNodes, initialLinks } from "@/features/attack/mock/drill";
 import { useTranslations } from "next-intl"
-import { AttackCaseInvestigationTimeline } from "@/features/attack/detail/components/attack-case-investigation-timeline"
+import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
 
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
@@ -33,7 +31,6 @@ const DRILL_TIMEZONE = "Asia/Shanghai"
 export default function App() {
   const t = useTranslations("pages.attack.drill")
 
-  const [resetKey, setResetKey] = useState(0)
   const [nodes, setNodes] = useState<GraphNode<any>[]>(initialNodes);
   const [links, setLinks] = useState<GraphLink<{}>[]>(initialLinks);
   const [timelineCaseId, setTimelineCaseId] = useState("");
@@ -117,7 +114,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
-        <AttackCaseInvestigationTimeline
+        <AttackCaseStoryTimelineRender
           caseId={timelineCaseId}
           timezone={DRILL_TIMEZONE}
           noCaseDescription="No CaseID was provided for this investigation view."
@@ -137,30 +134,6 @@ export default function App() {
             </div>
           </div>
         </div>
-
-        {/* Kill Chain Timeline */}
-        <Card className="bg-white border-gray-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Workflow className="h-5 w-5 text-blue-400" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-bold text-gray-900">{t("timeline")}</CardTitle>
-                <CardDescription className="text-sm text-gray-500">
-                  {t("timelineDescription")}
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-
-          <CardContent>
-            <div className="w-full overflow-x-auto">  {/* Added overflow-x-auto for horizontal scrolling */}
-              {/* Kill Chain Timeline */}
-              <KillChainTimeline key={resetKey} dynamicData={demoUpdates[2]} />
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Graph 可视化 */}
         <Card className="bg-white border border-gray-200 shadow-sm">
