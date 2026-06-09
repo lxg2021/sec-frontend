@@ -882,7 +882,7 @@ function TechniqueChips({ techniques }: { techniques: string[] }) {
 
 function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
   return (
-    <div className="grid min-w-0 grid-cols-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-white hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]">
+    <div className="grid min-w-0 grid-cols-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
       {metrics.map((metric) => {
         const Icon = metric.icon
 
@@ -921,7 +921,7 @@ function TimeRange({
 
   return (
     <div
-      className="flex h-full w-fit min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50/60 hover:shadow-[0_10px_22px_rgba(15,23,42,0.06)]"
+      className="flex h-full w-fit min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5"
       title={title}
     >
       <div className="min-w-0 text-xs leading-5 text-slate-500">
