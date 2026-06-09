@@ -25,8 +25,10 @@ import {
 import { KillChainTimeline } from "@/features/attack/kill-chain/components/kill-chain-timeline"
 import { initialNodes, initialLinks, demoUpdates } from "@/features/attack/mock/drill";
 import { useTranslations } from "next-intl"
+import { AttackCaseInvestigationTimeline } from "@/features/attack/detail/components/attack-case-investigation-timeline"
 
 
+const DRILL_TIMEZONE = "Asia/Shanghai"
 
 export default function App() {
   const t = useTranslations("pages.attack.drill")
@@ -34,6 +36,7 @@ export default function App() {
   const [resetKey, setResetKey] = useState(0)
   const [nodes, setNodes] = useState<GraphNode<any>[]>(initialNodes);
   const [links, setLinks] = useState<GraphLink<{}>[]>(initialLinks);
+  const [timelineCaseId, setTimelineCaseId] = useState("");
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [treeRootId, setTreeRootId] = useState<string | null>(null);
@@ -86,6 +89,15 @@ export default function App() {
     setIsDragging(false);
   }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setTimelineCaseId(
+      params.get("caseId")?.trim() ||
+      params.get("case_id")?.trim() ||
+      "",
+    )
+  }, [])
+
   /* 添加全局鼠标事件监听器 */
   useEffect(() => {
     if (isDragging) {
@@ -105,6 +117,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
+        <AttackCaseInvestigationTimeline
+          caseId={timelineCaseId}
+          timezone={DRILL_TIMEZONE}
+          noCaseDescription="No CaseID was provided for this investigation view."
+          noCaseHint="Select a case in Attack Details and click Trace Attack to open this timeline."
+        />
+
         {/* 页面标题 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
