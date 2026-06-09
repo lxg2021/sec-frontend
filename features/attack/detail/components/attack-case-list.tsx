@@ -665,15 +665,15 @@ function CaseRow({
           }
         }}
         className={cn(
-          "group/case-row relative min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:bg-blue-50/25 hover:shadow-[0_16px_32px_rgba(15,23,42,0.10)]",
-          clickable && "cursor-pointer focus-visible:ring-2 focus-visible:ring-primary/25",
-          selected && "border-cyan-300 bg-cyan-50/20 shadow-[0_16px_32px_rgba(14,116,144,0.12)]",
+          "group/case-row relative min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none hover:shadow-[0_16px_32px_rgba(15,23,42,0.10)]",
+          clickable && "cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-200",
+          selected && "border-blue-300 bg-blue-50/20 ring-1 ring-blue-200 shadow-[0_16px_32px_rgba(37,99,235,0.10)]",
         )}
       >
         <span
           className={cn(
-            "pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full bg-blue-500 opacity-0 transition-opacity duration-200",
-            selected && "bg-cyan-500 opacity-100",
+            "pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full opacity-0",
+            selected && "bg-blue-500 opacity-100",
           )}
           aria-hidden="true"
         />
