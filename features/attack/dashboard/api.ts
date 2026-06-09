@@ -4,12 +4,18 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 import { ATTCK_STAGE_DEFINITIONS, getAttckStageDefinition, resolveAttckStage } from "@/features/attack/constants/attck-stages"
 import type {
+  AttackCaseTimelineGroup,
+  AttackCaseTimelineResult,
   AttackCaseTimelineSummary,
+  AttackGroupTimelineInstance,
+  AttackGroupTimelineSummary,
+  AttackIocEvidence,
   AttackStageHostDistributionItem,
   AttackStageInstanceDistributionItem,
   AttackSnapshotsResult,
   AttackStatsTrendParams,
   AttackTimelineCasesResult,
+  AttackTimelineEvidenceItem,
   AttackOverview,
   AttackSnapshotPagination,
   AttackTaskStatus,
@@ -232,6 +238,84 @@ interface BackendAttackCaseTimelineSummary {
   agent_ids?: unknown
 }
 
+interface BackendAttackIocEvidence {
+  attack_mark?: string
+  marker?: string
+  rule_id?: string
+  candidate_type?: string
+  candidate_field?: string
+  candidate_value?: string
+  certificate?: string
+  decision?: string
+  hit_source?: string
+  ioc_storage?: string
+  ioc_entry_id?: string
+  ioc_type?: string
+  ioc_value_subtype?: string
+  ioc_normalized_value?: string
+  ioc_display_value?: string
+  ioc_indicator_key?: string
+  risk_score?: number | string
+  confidence?: number | string
+  summary_json?: string
+}
+
+interface BackendAttackTimelineEvidenceItem {
+  evidence_id?: string
+  occurred_at?: string
+  primary_phase?: string
+  phases?: unknown
+  rule_id?: string
+  rule_title?: string
+  instance_id?: string
+  group_id?: string
+  agent_id?: string
+  source_unique_id?: string
+  event_type?: number | string
+  event_name?: string
+  detection_name?: string
+  find_string?: string
+  matched_attack_marks?: unknown
+  ioc_evidences?: BackendAttackIocEvidence[]
+}
+
+interface BackendAttackGroupTimelineSummary {
+  group_id?: string
+  rule_id?: string
+  tenant_id?: string
+  agent_id?: string
+  primary_phase?: string
+  phases?: unknown
+  start_time?: string
+  end_time?: string
+  instance_count?: number | string
+  evidence_count?: number | string
+}
+
+interface BackendAttackGroupTimelineInstance {
+  instance_id?: string
+  group_id?: string
+  rule_id?: string
+  tenant_id?: string
+  agent_id?: string
+  primary_phase?: string
+  phases?: unknown
+  start_time?: string
+  end_time?: string
+  evidence_count?: number | string
+  items?: BackendAttackTimelineEvidenceItem[]
+}
+
+interface BackendAttackCaseTimelineGroup {
+  group?: BackendAttackGroupTimelineSummary
+  instances?: BackendAttackGroupTimelineInstance[]
+}
+
+interface BackendAttackCaseTimelineData {
+  case?: BackendAttackCaseTimelineSummary
+  groups?: BackendAttackCaseTimelineGroup[]
+}
+
 interface BackendAttackTimelineCasesData {
   items?: BackendAttackCaseTimelineSummary[]
   page?: BackendAttackTimelinePageInfo
@@ -326,6 +410,95 @@ function buildAttackCaseTimelineSummary(raw: BackendAttackCaseTimelineSummary): 
     rule_ids: normalizeArray(raw.rule_ids),
     tags: normalizeArray(raw.tags),
     agent_ids: normalizeArray(raw.agent_ids),
+  }
+}
+
+function buildAttackIocEvidence(raw: BackendAttackIocEvidence): AttackIocEvidence {
+  return {
+    attack_mark: stringValue(raw.attack_mark),
+    marker: stringValue(raw.marker),
+    rule_id: stringValue(raw.rule_id),
+    candidate_type: stringValue(raw.candidate_type),
+    candidate_field: stringValue(raw.candidate_field),
+    candidate_value: stringValue(raw.candidate_value),
+    certificate: stringValue(raw.certificate),
+    decision: stringValue(raw.decision),
+    hit_source: stringValue(raw.hit_source),
+    ioc_storage: stringValue(raw.ioc_storage),
+    ioc_entry_id: stringValue(raw.ioc_entry_id),
+    ioc_type: stringValue(raw.ioc_type),
+    ioc_value_subtype: stringValue(raw.ioc_value_subtype),
+    ioc_normalized_value: stringValue(raw.ioc_normalized_value),
+    ioc_display_value: stringValue(raw.ioc_display_value),
+    ioc_indicator_key: stringValue(raw.ioc_indicator_key),
+    risk_score: numberValue(raw.risk_score),
+    confidence: numberValue(raw.confidence),
+    summary_json: stringValue(raw.summary_json),
+  }
+}
+
+function buildAttackTimelineEvidenceItem(raw: BackendAttackTimelineEvidenceItem): AttackTimelineEvidenceItem {
+  return {
+    evidence_id: stringValue(raw.evidence_id),
+    occurred_at: stringValue(raw.occurred_at),
+    primary_phase: stringValue(raw.primary_phase),
+    phases: normalizeArray(raw.phases),
+    rule_id: stringValue(raw.rule_id),
+    rule_title: stringValue(raw.rule_title),
+    instance_id: stringValue(raw.instance_id),
+    group_id: stringValue(raw.group_id),
+    agent_id: stringValue(raw.agent_id),
+    source_unique_id: stringValue(raw.source_unique_id),
+    event_type: numberValue(raw.event_type),
+    event_name: stringValue(raw.event_name),
+    detection_name: stringValue(raw.detection_name),
+    find_string: stringValue(raw.find_string),
+    matched_attack_marks: normalizeArray(raw.matched_attack_marks),
+    ioc_evidences: Array.isArray(raw.ioc_evidences)
+      ? raw.ioc_evidences.map(buildAttackIocEvidence)
+      : [],
+  }
+}
+
+function buildAttackGroupTimelineSummary(raw: BackendAttackGroupTimelineSummary = {}): AttackGroupTimelineSummary {
+  return {
+    group_id: stringValue(raw.group_id),
+    rule_id: stringValue(raw.rule_id),
+    tenant_id: stringValue(raw.tenant_id),
+    agent_id: stringValue(raw.agent_id),
+    primary_phase: stringValue(raw.primary_phase),
+    phases: normalizeArray(raw.phases),
+    start_time: stringValue(raw.start_time),
+    end_time: stringValue(raw.end_time),
+    instance_count: numberValue(raw.instance_count),
+    evidence_count: numberValue(raw.evidence_count),
+  }
+}
+
+function buildAttackGroupTimelineInstance(raw: BackendAttackGroupTimelineInstance): AttackGroupTimelineInstance {
+  const items = Array.isArray(raw.items) ? raw.items.map(buildAttackTimelineEvidenceItem) : []
+
+  return {
+    instance_id: stringValue(raw.instance_id),
+    group_id: stringValue(raw.group_id),
+    rule_id: stringValue(raw.rule_id),
+    tenant_id: stringValue(raw.tenant_id),
+    agent_id: stringValue(raw.agent_id),
+    primary_phase: stringValue(raw.primary_phase),
+    phases: normalizeArray(raw.phases),
+    start_time: stringValue(raw.start_time),
+    end_time: stringValue(raw.end_time),
+    evidence_count: numberValue(raw.evidence_count),
+    items,
+  }
+}
+
+function buildAttackCaseTimelineGroup(raw: BackendAttackCaseTimelineGroup): AttackCaseTimelineGroup {
+  return {
+    group: buildAttackGroupTimelineSummary(raw.group),
+    instances: Array.isArray(raw.instances)
+      ? raw.instances.map(buildAttackGroupTimelineInstance).filter((item) => item.instance_id || item.items.length > 0)
+      : [],
   }
 }
 
@@ -798,6 +971,32 @@ export async function fetchAttackTimelineCases({
       next_page_token: stringValue(page?.next_page_token),
       has_more: Boolean(page?.has_more),
     },
+  }
+}
+
+export async function fetchAttackCaseTimeline({
+  caseId,
+  timezone = "Asia/Shanghai",
+}: {
+  caseId: string
+  timezone?: string
+}): Promise<AttackCaseTimelineResult | null> {
+  const normalizedCaseId = stringValue(caseId)
+  if (!normalizedCaseId) return null
+
+  const result = (await http.post("/sensor/analysis/timeline/case", {
+    request_id: createRequestId(),
+    case_id: normalizedCaseId,
+    timezone,
+  })) as ApiResult<BackendAttackCaseTimelineData | null>
+
+  if (!result.data?.case) return null
+
+  return {
+    case: buildAttackCaseTimelineSummary(result.data.case),
+    groups: Array.isArray(result.data.groups)
+      ? result.data.groups.map(buildAttackCaseTimelineGroup)
+      : [],
   }
 }
 

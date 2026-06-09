@@ -528,6 +528,9 @@ function AttackCaseListHeader({
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
   const router = useRouter()
+  const traceHref = selectedCaseId
+    ? `/frame/attack/drill?caseId=${encodeURIComponent(selectedCaseId)}`
+    : ""
 
   return (
     <CardHeader className="gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
@@ -578,9 +581,13 @@ function AttackCaseListHeader({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/frame/attack/drill")}
+          disabled={!selectedCaseId}
+          onClick={() => {
+            if (!traceHref) return
+            router.push(traceHref)
+          }}
           className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
-          title={t("traceAction")}
+          title={selectedCaseId || t("caseLocator.empty")}
         >
           <Route className="size-4" />
           {t("traceAction")}

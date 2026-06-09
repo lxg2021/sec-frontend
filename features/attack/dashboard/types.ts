@@ -98,6 +98,84 @@ export interface AttackCaseTimelineSummary {
   agent_ids: string[]
 }
 
+export interface AttackIocEvidence {
+  attack_mark: string
+  marker: string
+  rule_id: string
+  candidate_type: string
+  candidate_field: string
+  candidate_value: string
+  certificate: string
+  decision: string
+  hit_source: string
+  ioc_storage: string
+  ioc_entry_id: string
+  ioc_type: string
+  ioc_value_subtype: string
+  ioc_normalized_value: string
+  ioc_display_value: string
+  ioc_indicator_key: string
+  risk_score: number
+  confidence: number
+  summary_json: string
+}
+
+export interface AttackTimelineEvidenceItem {
+  evidence_id: string
+  occurred_at: string
+  primary_phase: string
+  phases: string[]
+  rule_id: string
+  rule_title: string
+  instance_id: string
+  group_id: string
+  agent_id: string
+  source_unique_id: string
+  event_type: number
+  event_name: string
+  detection_name: string
+  find_string: string
+  matched_attack_marks: string[]
+  ioc_evidences: AttackIocEvidence[]
+}
+
+export interface AttackGroupTimelineSummary {
+  group_id: string
+  rule_id: string
+  tenant_id: string
+  agent_id: string
+  primary_phase: string
+  phases: string[]
+  start_time: string
+  end_time: string
+  instance_count: number
+  evidence_count: number
+}
+
+export interface AttackGroupTimelineInstance {
+  instance_id: string
+  group_id: string
+  rule_id: string
+  tenant_id: string
+  agent_id: string
+  primary_phase: string
+  phases: string[]
+  start_time: string
+  end_time: string
+  evidence_count: number
+  items: AttackTimelineEvidenceItem[]
+}
+
+export interface AttackCaseTimelineGroup {
+  group: AttackGroupTimelineSummary
+  instances: AttackGroupTimelineInstance[]
+}
+
+export interface AttackCaseTimelineResult {
+  case: AttackCaseTimelineSummary
+  groups: AttackCaseTimelineGroup[]
+}
+
 export interface AttackTimelinePageInfo {
   next_page_token: string
   has_more: boolean
