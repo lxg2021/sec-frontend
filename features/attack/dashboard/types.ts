@@ -136,6 +136,7 @@ export interface AttackTimelineEvidenceItem {
   detection_name: string
   find_string: string
   matched_attack_marks: string[]
+  attack_techniques: string[]
   ioc_evidences: AttackIocEvidence[]
 }
 

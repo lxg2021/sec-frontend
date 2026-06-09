@@ -92,6 +92,7 @@ const STAGE_LABELS: Record<AttckStageKey, string> = {
 
 interface AttackCaseStoryTimelineRenderProps {
   caseId?: string
+  snapshotId?: string
   timezone?: string
   className?: string
   noCaseDescription?: string
@@ -115,6 +116,7 @@ export interface AttackCaseStoryTimelineStep {
   sourceUniqueId: string
   agentId: string
   attackMarks: string[]
+  techniques: string[]
   iocEvidences: AttackIocEvidence[]
   slots: EventSourceDescriptionSlot[]
   describeStatus: string
@@ -139,6 +141,42 @@ function compactId(value: string, visible = 10) {
 
 function firstFilled(...values: string[]) {
   return values.find((value) => value.trim())?.trim() ?? ""
+}
+
+function isRuleDetectionMarker(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f-]{27,}:\d+:[a-z0-9_.-]+$/i.test(value.trim())
+}
+
+function extractTechniques(values: string[]) {
+  const techniques: string[] = []
+  const seen = new Set<string>()
+
+  for (const value of values) {
+    const match = value.match(/T\d{4}(?:[./]\d{3})?/i)
+    if (!match?.[0]) continue
+
+    const technique = match[0].replace("/", ".").toUpperCase()
+    if (seen.has(technique)) continue
+
+    seen.add(technique)
+    techniques.push(technique)
+  }
+
+  return techniques
+}
+
+function formatBehavior(value: string) {
+  return value.trim().replace(/_/g, " ").replace(/\s+/g, " ")
+}
+
+function fallbackEvidenceSummary(item: AttackTimelineEvidenceItem) {
+  return firstFilled(
+    item.detection_name,
+    item.rule_title,
+    item.event_name,
+    isRuleDetectionMarker(item.find_string) ? "" : item.find_string,
+    "Timeline evidence",
+  )
 }
 
 function formatClock(value: string) {
@@ -313,13 +351,7 @@ function buildStorySteps(
       const stage = stageKey === "unknown" ? null : ATTCK_STAGE_DEFINITIONS.find((entry) => entry.key === stageKey)
       const descriptionItem = descriptions.get(descriptionKeyId(item))
       const description = descriptionItem?.description ?? null
-      const fallbackSummary = firstFilled(
-        item.find_string,
-        item.detection_name,
-        item.rule_title,
-        item.event_name,
-        "Timeline evidence",
-      )
+      const fallbackSummary = fallbackEvidenceSummary(item)
       const summary = firstFilled(description?.summary ?? "", description?.short_summary ?? "", fallbackSummary)
       const ruleTitle = firstFilled(item.rule_title, item.detection_name, item.rule_id, instance.rule_id)
 
@@ -340,6 +372,7 @@ function buildStorySteps(
         sourceUniqueId: item.source_unique_id,
         agentId: item.agent_id || instance.agent_id,
         attackMarks: item.matched_attack_marks,
+        techniques: extractTechniques(item.attack_techniques),
         iocEvidences: item.ioc_evidences,
         slots: description?.slots ?? [],
         describeStatus: descriptionItem?.describe_status ?? "",
@@ -350,9 +383,11 @@ function buildStorySteps(
 
 function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
   const slots = visibleSlots(step.slots)
-  const rule = firstFilled(step.ruleTitle, step.detectionName, step.ruleId)
   const firstIoc = step.iocEvidences[0]
-  const firstMark = step.attackMarks[0]
+  const techniques = step.techniques.length > 0 ? step.techniques.join(", ") : ""
+  const ruleId = step.ruleId.trim()
+  const ruleTitle = step.ruleTitle.trim()
+  const behavior = formatBehavior(step.detectionName)
   const status =
     step.describeStatus && step.describeStatus !== "ok"
       ? firstFilled(step.missReason, step.describeStatus)
@@ -360,9 +395,11 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
 
   const lines = [
     step.summary,
-    rule ? `Rule: ${rule}` : "",
+    ruleId ? `RuleID: ${ruleId}` : "",
+    ruleTitle ? `Rule Title: ${ruleTitle}` : "",
+    behavior ? `Suspicious Behavior: ${behavior}` : "",
+    techniques ? `ATT&CK: ${techniques}` : "",
     firstIoc ? `IOC: ${formatIocLine(firstIoc)}` : "",
-    firstMark ? `ATT&CK: ${firstMark}` : "",
     status ? `Source description: ${status}` : "",
   ].filter(Boolean)
 
@@ -573,6 +610,7 @@ function LoadingState() {
 
 export function AttackCaseStoryTimelineRender({
   caseId = "",
+  snapshotId: _snapshotId = "",
   timezone = "Asia/Shanghai",
   className,
   noCaseDescription,

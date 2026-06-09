@@ -281,6 +281,7 @@ interface BackendAttackTimelineEvidenceItem {
   detection_name?: string
   find_string?: string
   matched_attack_marks?: unknown
+  attack_techniques?: unknown
   ioc_evidences?: BackendAttackIocEvidence[]
 }
 
@@ -563,6 +564,7 @@ function buildAttackTimelineEvidenceItem(raw: BackendAttackTimelineEvidenceItem)
     detection_name: stringValue(raw.detection_name),
     find_string: stringValue(raw.find_string),
     matched_attack_marks: normalizeArray(raw.matched_attack_marks),
+    attack_techniques: normalizeArray(raw.attack_techniques),
     ioc_evidences: Array.isArray(raw.ioc_evidences)
       ? raw.ioc_evidences.map(buildAttackIocEvidence)
       : [],

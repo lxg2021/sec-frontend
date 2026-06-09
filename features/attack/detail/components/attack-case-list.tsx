@@ -410,6 +410,7 @@ export function AttackCaseList({
       >
         <AttackCaseListHeader
           selectedCaseId=""
+          snapshotId={snapshotId}
           caseIdQuery={caseIdQuery}
           canLocate={false}
           onCaseIdQueryChange={setCaseIdQuery}
@@ -435,6 +436,7 @@ export function AttackCaseList({
       >
         <AttackCaseListHeader
           selectedCaseId={selectedCaseId}
+          snapshotId={snapshotId}
           caseIdQuery={caseIdQuery}
           canLocate={caseItems.length > 0}
           onCaseIdQueryChange={setCaseIdQuery}
@@ -515,12 +517,14 @@ export function AttackCaseList({
 
 function AttackCaseListHeader({
   selectedCaseId,
+  snapshotId,
   caseIdQuery,
   canLocate,
   onCaseIdQueryChange,
   onLocateCase,
 }: {
   selectedCaseId: string
+  snapshotId?: string
   caseIdQuery: string
   canLocate: boolean
   onCaseIdQueryChange: (value: string) => void
@@ -529,7 +533,9 @@ function AttackCaseListHeader({
   const t = useTranslations("pages.attack.dashboard.cases")
   const router = useRouter()
   const traceHref = selectedCaseId
-    ? `/frame/attack/drill?caseId=${encodeURIComponent(selectedCaseId)}`
+    ? `/frame/attack/drill?caseId=${encodeURIComponent(selectedCaseId)}${
+        snapshotId ? `&snapshotId=${encodeURIComponent(snapshotId)}` : ""
+      }`
     : ""
 
   return (
