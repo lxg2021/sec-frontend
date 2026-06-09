@@ -882,14 +882,14 @@ function TechniqueChips({ techniques }: { techniques: string[] }) {
 
 function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
   return (
-    <div className="grid min-w-0 grid-cols-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/70">
+    <div className="grid min-w-0 grid-cols-4 overflow-hidden rounded-lg">
       {metrics.map((metric) => {
         const Icon = metric.icon
 
         return (
           <div
             key={metric.key}
-            className="flex min-w-0 flex-col items-center justify-center gap-0.5 border-r border-slate-200/80 px-1 py-1.5 text-center last:border-r-0"
+            className="flex min-w-0 flex-col items-center justify-center gap-0.5 border-r border-slate-100 px-1 py-1.5 text-center last:border-r-0"
           >
             <span className="flex max-w-full items-center justify-center gap-0.5 whitespace-nowrap text-[10px] leading-4 text-slate-500">
               <Icon className={cn("size-3 shrink-0", metric.iconClassName)} />
@@ -921,16 +921,16 @@ function TimeRange({
 
   return (
     <div
-      className="flex h-full w-fit min-w-0 flex-col justify-center rounded-xl border border-slate-200 bg-white px-3 py-1.5"
+      className="flex h-full w-fit min-w-0 flex-col justify-center px-3 py-1.5"
       title={title}
     >
-      <div className="min-w-0 text-xs leading-5 text-slate-500">
-        <div className="flex items-center gap-1.5 text-slate-700">
-          <CalendarClock className="size-3.5 shrink-0 text-sky-500" />
+      <div className="min-w-0 text-xs leading-5 text-slate-600">
+        <div className="flex items-center gap-1.5">
+          <CalendarClock className="size-3.5 shrink-0 text-slate-400" />
           <span className="whitespace-nowrap">{formatFullTime(startTime)}</span>
         </div>
         <div className="mt-0.5 flex items-center gap-1.5">
-          <CircleDot className="size-3.5 shrink-0 text-indigo-400" />
+          <CircleDot className="size-3.5 shrink-0 text-slate-400" />
           <span className="whitespace-nowrap">{formatFullTime(endTime)}</span>
         </div>
       </div>
