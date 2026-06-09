@@ -282,6 +282,7 @@ interface BackendAttackTimelineEvidenceItem {
   find_string?: string
   matched_attack_marks?: unknown
   attack_techniques?: unknown
+  attackTechniques?: unknown
   ioc_evidences?: BackendAttackIocEvidence[]
 }
 
@@ -548,6 +549,8 @@ function buildAttackIocEvidence(raw: BackendAttackIocEvidence): AttackIocEvidenc
 }
 
 function buildAttackTimelineEvidenceItem(raw: BackendAttackTimelineEvidenceItem): AttackTimelineEvidenceItem {
+  const attackTechniques = normalizeArray(raw.attack_techniques)
+
   return {
     evidence_id: stringValue(raw.evidence_id),
     occurred_at: stringValue(raw.occurred_at),
@@ -564,7 +567,9 @@ function buildAttackTimelineEvidenceItem(raw: BackendAttackTimelineEvidenceItem)
     detection_name: stringValue(raw.detection_name),
     find_string: stringValue(raw.find_string),
     matched_attack_marks: normalizeArray(raw.matched_attack_marks),
-    attack_techniques: normalizeArray(raw.attack_techniques),
+    attack_techniques: attackTechniques.length > 0
+      ? attackTechniques
+      : normalizeArray(raw.attackTechniques),
     ioc_evidences: Array.isArray(raw.ioc_evidences)
       ? raw.ioc_evidences.map(buildAttackIocEvidence)
       : [],
