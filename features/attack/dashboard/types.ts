@@ -186,6 +186,8 @@ export interface BatchDescribeEventSourceItem {
 
 export interface BatchDescribeEventSourcesResult {
   items: BatchDescribeEventSourceItem[]
+  story_summary: string
+  story_short_summary: string
 }
 
 export interface AttackGroupTimelineSummary {

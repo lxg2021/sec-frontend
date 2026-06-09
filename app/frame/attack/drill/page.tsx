@@ -34,6 +34,7 @@ export default function App() {
   const [nodes, setNodes] = useState<GraphNode<any>[]>(initialNodes);
   const [links, setLinks] = useState<GraphLink<{}>[]>(initialLinks);
   const [timelineCaseId, setTimelineCaseId] = useState("");
+  const [timelineSnapshotId, setTimelineSnapshotId] = useState("");
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [treeRootId, setTreeRootId] = useState<string | null>(null);
@@ -93,6 +94,11 @@ export default function App() {
       params.get("case_id")?.trim() ||
       "",
     )
+    setTimelineSnapshotId(
+      params.get("snapshotId")?.trim() ||
+      params.get("snapshot_id")?.trim() ||
+      "",
+    )
   }, [])
 
   /* 添加全局鼠标事件监听器 */
@@ -116,6 +122,7 @@ export default function App() {
       <div className="p-6 space-y-6">
         <AttackCaseStoryTimelineRender
           caseId={timelineCaseId}
+          snapshotId={timelineSnapshotId}
           timezone={DRILL_TIMEZONE}
           noCaseDescription="No CaseID was provided for this investigation view."
           noCaseHint="Select a case in Attack Details and click Trace Attack to open this timeline."

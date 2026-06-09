@@ -369,6 +369,8 @@ interface BackendBatchDescribeEventSourceItem {
 
 interface BackendBatchDescribeEventSourcesData {
   items?: BackendBatchDescribeEventSourceItem[]
+  story_summary?: string
+  story_short_summary?: string
 }
 
 interface BackendAttackTimelineCasesData {
