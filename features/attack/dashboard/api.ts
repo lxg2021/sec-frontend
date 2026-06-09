@@ -22,7 +22,12 @@ import type {
   AttackTriggerDefaultRange,
   AttackTopHostItem,
   AttackTrendPoint,
+  BatchDescribeEventSourceItem,
+  BatchDescribeEventSourcesResult,
   BucketType,
+  EventSourceDescription,
+  EventSourceDescriptionKey,
+  EventSourceDescriptionSlot,
   ResolveAttackStatsRangeSnapshotResult,
   TriggerCheckPayload,
   TriggerCheckResult,
@@ -316,6 +321,54 @@ interface BackendAttackCaseTimelineData {
   groups?: BackendAttackCaseTimelineGroup[]
 }
 
+interface BackendEventSourceDescriptionKey {
+  event_type?: number | string
+  event_name?: string
+  source_unique_id?: string
+}
+
+interface BackendEventSourceDescriptionSlot {
+  slot_id?: string
+  role?: string
+  entity_type?: string
+  label?: string
+  display_value?: string
+  raw_value?: string
+  raw_value_json?: string
+  value_type?: string
+  source_fields?: unknown
+  order?: number | string
+  primary?: boolean
+  sensitive?: boolean
+  redacted?: boolean
+  children?: BackendEventSourceDescriptionSlot[]
+}
+
+interface BackendEventSourceDescription {
+  schema_version?: string
+  source_table?: string
+  event_kind?: string
+  category?: string
+  action?: string
+  title?: string
+  pattern?: string
+  summary?: string
+  short_summary?: string
+  slots?: BackendEventSourceDescriptionSlot[]
+}
+
+interface BackendBatchDescribeEventSourceItem {
+  key?: BackendEventSourceDescriptionKey
+  found?: boolean
+  description?: BackendEventSourceDescription
+  miss_reason?: string
+  describe_status?: string
+}
+
+interface BackendBatchDescribeEventSourcesData {
+  items?: BackendBatchDescribeEventSourceItem[]
+}
+
 interface BackendAttackTimelineCasesData {
   items?: BackendAttackCaseTimelineSummary[]
   page?: BackendAttackTimelinePageInfo
@@ -371,6 +424,62 @@ function normalizeSnapshotId(value: unknown) {
 
 function normalizeArray(items: unknown): string[] {
   return Array.isArray(items) ? items.map((item) => stringValue(item)).filter(Boolean) : []
+}
+
+function buildEventSourceDescriptionKey(raw: BackendEventSourceDescriptionKey = {}): EventSourceDescriptionKey {
+  return {
+    event_type: numberValue(raw.event_type),
+    event_name: stringValue(raw.event_name),
+    source_unique_id: stringValue(raw.source_unique_id),
+  }
+}
+
+function buildEventSourceDescriptionSlot(raw: BackendEventSourceDescriptionSlot = {}): EventSourceDescriptionSlot {
+  return {
+    slot_id: stringValue(raw.slot_id),
+    role: stringValue(raw.role),
+    entity_type: stringValue(raw.entity_type),
+    label: stringValue(raw.label),
+    display_value: stringValue(raw.display_value),
+    raw_value: stringValue(raw.raw_value),
+    raw_value_json: stringValue(raw.raw_value_json),
+    value_type: stringValue(raw.value_type),
+    source_fields: normalizeArray(raw.source_fields),
+    order: numberValue(raw.order),
+    primary: Boolean(raw.primary),
+    sensitive: Boolean(raw.sensitive),
+    redacted: Boolean(raw.redacted),
+    children: Array.isArray(raw.children)
+      ? raw.children.map(buildEventSourceDescriptionSlot)
+      : [],
+  }
+}
+
+function buildEventSourceDescription(raw: BackendEventSourceDescription = {}): EventSourceDescription {
+  return {
+    schema_version: stringValue(raw.schema_version),
+    source_table: stringValue(raw.source_table),
+    event_kind: stringValue(raw.event_kind),
+    category: stringValue(raw.category),
+    action: stringValue(raw.action),
+    title: stringValue(raw.title),
+    pattern: stringValue(raw.pattern),
+    summary: stringValue(raw.summary),
+    short_summary: stringValue(raw.short_summary),
+    slots: Array.isArray(raw.slots)
+      ? raw.slots.map(buildEventSourceDescriptionSlot)
+      : [],
+  }
+}
+
+function buildBatchDescribeEventSourceItem(raw: BackendBatchDescribeEventSourceItem = {}): BatchDescribeEventSourceItem {
+  return {
+    key: buildEventSourceDescriptionKey(raw.key),
+    found: Boolean(raw.found),
+    description: raw.description ? buildEventSourceDescription(raw.description) : null,
+    miss_reason: stringValue(raw.miss_reason),
+    describe_status: stringValue(raw.describe_status),
+  }
 }
 
 function normalizeBucketType(value: unknown): BucketType {
@@ -998,6 +1107,62 @@ export async function fetchAttackCaseTimeline({
       ? result.data.groups.map(buildAttackCaseTimelineGroup)
       : [],
   }
+}
+
+export async function batchDescribeEventSourcesByKeys({
+  keys,
+  tenantId,
+  language = "en-US",
+  includeEventSource = false,
+  includeAllFields = false,
+}: {
+  keys: EventSourceDescriptionKey[]
+  tenantId?: string
+  language?: string
+  includeEventSource?: boolean
+  includeAllFields?: boolean
+}): Promise<BatchDescribeEventSourcesResult> {
+  const normalizedKeys = keys
+    .map((key) => ({
+      event_type: numberValue(key.event_type),
+      event_name: stringValue(key.event_name),
+      source_unique_id: stringValue(key.source_unique_id),
+    }))
+    .filter((key) => key.event_type > 0 && key.source_unique_id)
+
+  if (normalizedKeys.length === 0) {
+    return { items: [] }
+  }
+
+  const items: BatchDescribeEventSourceItem[] = []
+  const chunkSize = 1000
+
+  for (let index = 0; index < normalizedKeys.length; index += chunkSize) {
+    const chunk = normalizedKeys.slice(index, index + chunkSize)
+    const payload: Record<string, unknown> = {
+      request_id: createRequestId(),
+      keys: chunk,
+      language,
+      include_event_source: includeEventSource,
+      include_all_fields: includeAllFields,
+    }
+
+    const normalizedTenantId = stringValue(tenantId)
+    if (normalizedTenantId) {
+      payload.tenant_id = normalizedTenantId
+    }
+
+    const result = (await http.post(
+      "/sensor/analysis/event-source/describe",
+      payload,
+    )) as ApiResult<BackendBatchDescribeEventSourcesData | null>
+
+    if (Array.isArray(result.data?.items)) {
+      items.push(...result.data.items.map(buildBatchDescribeEventSourceItem))
+    }
+  }
+
+  return { items }
 }
 
 export async function updateAttackCaseFriendlyName({

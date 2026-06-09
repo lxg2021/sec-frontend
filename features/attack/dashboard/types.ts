@@ -139,6 +139,54 @@ export interface AttackTimelineEvidenceItem {
   ioc_evidences: AttackIocEvidence[]
 }
 
+export interface EventSourceDescriptionKey {
+  event_type: number
+  event_name: string
+  source_unique_id: string
+}
+
+export interface EventSourceDescriptionSlot {
+  slot_id: string
+  role: string
+  entity_type: string
+  label: string
+  display_value: string
+  raw_value: string
+  raw_value_json: string
+  value_type: string
+  source_fields: string[]
+  order: number
+  primary: boolean
+  sensitive: boolean
+  redacted: boolean
+  children: EventSourceDescriptionSlot[]
+}
+
+export interface EventSourceDescription {
+  schema_version: string
+  source_table: string
+  event_kind: string
+  category: string
+  action: string
+  title: string
+  pattern: string
+  summary: string
+  short_summary: string
+  slots: EventSourceDescriptionSlot[]
+}
+
+export interface BatchDescribeEventSourceItem {
+  key: EventSourceDescriptionKey
+  found: boolean
+  description: EventSourceDescription | null
+  miss_reason: string
+  describe_status: string
+}
+
+export interface BatchDescribeEventSourcesResult {
+  items: BatchDescribeEventSourceItem[]
+}
+
 export interface AttackGroupTimelineSummary {
   group_id: string
   rule_id: string
