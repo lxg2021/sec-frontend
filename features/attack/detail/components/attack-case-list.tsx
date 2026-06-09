@@ -672,7 +672,7 @@ function CaseRow({
       >
         <span
           className={cn(
-            "pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full bg-blue-500 opacity-0 transition-opacity duration-200 group-hover/case-row:opacity-100",
+            "pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full bg-blue-500 opacity-0 transition-opacity duration-200",
             selected && "bg-cyan-500 opacity-100",
           )}
           aria-hidden="true"
