@@ -179,11 +179,12 @@ function fallbackEvidenceSummary(item: AttackTimelineEvidenceItem) {
   )
 }
 
-function formatClock(value: string) {
+function formatOccurredAt(value: string) {
   if (!value) return "-"
   const normalized = value.trim()
-  const timeMatch = normalized.match(/(\d{2}:\d{2}(?::\d{2})?)/)
-  if (timeMatch) return timeMatch[1]
+  const timeMatch = normalized.match(/(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2})?)/)
+  if (timeMatch) return `${timeMatch[1]} ${timeMatch[2]}`
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return normalized
   return normalized
 }
 
@@ -358,7 +359,7 @@ function buildStorySteps(
       return {
         id: firstFilled(item.evidence_id, `${item.event_type}-${item.source_unique_id}-${index}`),
         occurredAt: item.occurred_at,
-        timeLabel: formatClock(item.occurred_at),
+        timeLabel: formatOccurredAt(item.occurred_at),
         phaseKey: stageKey,
         phaseLabel: stage ? STAGE_LABELS[stage.key] : "Unknown",
         phaseColor: stage?.color ?? "#64748b",
@@ -468,7 +469,7 @@ function AttackCaseStoryTimelineBody({
       </div>
 
       <div className="relative">
-        <div className="absolute bottom-4 left-[120px] top-4 w-px bg-slate-200" />
+        <div className="absolute bottom-4 left-[176px] top-4 w-px bg-slate-200" />
 
         <div className="space-y-4">
           {steps.map((step) => {
@@ -478,10 +479,10 @@ function AttackCaseStoryTimelineBody({
             return (
               <div
                 key={step.id}
-                className="relative grid grid-cols-[72px_40px_minmax(0,1fr)] gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm hover:shadow-md"
+                className="relative grid grid-cols-[minmax(164px,176px)_40px_minmax(0,1fr)] gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm hover:shadow-md"
                 style={{ borderLeftColor: borderColor, borderLeftWidth: 3 }}
               >
-                <div className="pt-1 text-right font-mono text-sm font-semibold tabular-nums text-slate-700">
+                <div className="pt-1 text-right font-mono text-xs font-semibold tabular-nums whitespace-nowrap text-slate-700">
                   {step.timeLabel}
                 </div>
 
