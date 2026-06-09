@@ -24,7 +24,6 @@ import {
   GitBranch,
   ListTree,
   Loader2,
-  Pencil,
   ScrollText,
   Server,
   ShieldAlert,
@@ -694,32 +693,27 @@ function CaseSummaryEditor({
   }
 
   return (
-    <div
-      className="mt-4 flex min-w-0 items-center gap-1.5 pl-2 text-sm leading-5 text-slate-600"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <FileText className="size-3.5 shrink-0 text-slate-400" />
-      <span className="shrink-0 text-xs text-slate-500">
-        {t("summary.label")}
-      </span>
-      <span className="min-w-0 flex-1 truncate" title={summary}>
-        {summary || "-"}
-      </span>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <button
-            type="button"
-            className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
-            title={t("summary.edit")}
-            aria-label={t("summary.edit")}
-          >
-            <Pencil className="size-3.5" />
-          </button>
-        </DialogTrigger>
-        <DialogContent
-          className="max-w-xl gap-4 rounded-2xl border-slate-200 p-0 shadow-2xl"
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="mt-4 flex min-w-0 max-w-full items-center gap-1.5 pl-2 text-left text-sm leading-5 text-slate-600 transition-colors hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+          title={summary}
           onClick={(event) => event.stopPropagation()}
         >
+          <span className="inline-flex w-[58px] shrink-0 items-center gap-1.5 text-xs text-slate-500">
+            <FileText className="size-3.5 shrink-0 text-slate-400" />
+            {t("summary.label")}
+          </span>
+          <span className="min-w-0 flex-1 truncate">
+            {summary || "-"}
+          </span>
+        </button>
+      </DialogTrigger>
+      <DialogContent
+        className="max-w-xl gap-4 rounded-2xl border-slate-200 p-0 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
           <DialogHeader className="border-b border-slate-100 px-5 py-4 pr-12">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
@@ -759,9 +753,8 @@ function CaseSummaryEditor({
               {t("summary.save")}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
