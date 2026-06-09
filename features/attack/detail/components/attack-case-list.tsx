@@ -66,6 +66,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog"
+import { Input } from "@/shared/ui/input"
 import {
   Popover,
   PopoverContent,
@@ -556,11 +557,12 @@ function CaseRow({
                   <ShieldAlert className="size-3.5" />
                   {t(`severity.${severity.labelKey}`)}
                 </span>
-                <h3
-                  className="w-[220px] shrink-0 truncate text-base font-semibold leading-6 text-slate-950 2xl:w-[520px]"
-                  title={title}
-                >
-                  {title}
+                <h3 className="w-[220px] shrink-0 leading-6 2xl:w-[520px]">
+                  <CaseTitleEditor
+                    item={item}
+                    title={title}
+                    onCaseUpdated={onCaseUpdated}
+                  />
                 </h3>
               </div>
 
@@ -643,6 +645,115 @@ function CaseIdPill({ value }: { value: string }) {
   )
 }
 
+function CaseTitleEditor({
+  item,
+  title,
+  onCaseUpdated,
+}: {
+  item: AttackCaseTimelineSummary
+  title: string
+  onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState(title)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!open) {
+      setDraft(title)
+    }
+  }, [open, title])
+
+  async function handleSave() {
+    const nextTitle = draft.trim()
+    if (!nextTitle || saving) return
+
+    setSaving(true)
+    try {
+      const nextItem =
+        (await updateAttackCaseFriendlyName({
+          caseId: item.case_id,
+          title: nextTitle,
+        })) ?? null
+
+      onCaseUpdated?.({
+        ...item,
+        title: nextItem?.title || nextTitle,
+      })
+      setOpen(false)
+      toast({ title: t("titleEdit.saveSuccess") })
+    } catch (error) {
+      toast({
+        title: t("titleEdit.saveFailed"),
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="block w-full truncate text-left text-base font-semibold leading-6 text-slate-950 transition-colors hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+          title={title}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {title || "-"}
+        </button>
+      </DialogTrigger>
+      <DialogContent
+        className="max-w-xl gap-4 rounded-2xl border-slate-200 p-0 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <DialogHeader className="border-b border-slate-100 px-5 py-4 pr-12">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+              <FileText className="size-4.5" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="text-base font-semibold leading-6 text-slate-950">
+                {t("titleEdit.dialogTitle")}
+              </DialogTitle>
+              <DialogDescription className="mt-0.5 text-xs leading-5 text-slate-500">
+                {t("titleEdit.dialogDescription")}
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogHeader>
+        <div className="px-5">
+          <Input
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder={t("titleEdit.placeholder")}
+            className="rounded-xl border-slate-200 text-sm focus-visible:ring-blue-200"
+          />
+        </div>
+        <DialogFooter className="gap-2 border-t border-slate-100 px-5 py-4 sm:space-x-0">
+          <DialogClose asChild>
+            <Button type="button" variant="outline" disabled={saving}>
+              {t("titleEdit.cancel")}
+            </Button>
+          </DialogClose>
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={saving || !draft.trim()}
+            className="bg-blue-600 text-white hover:bg-blue-700"
+          >
+            {saving ? <Loader2 className="size-4 animate-spin" /> : null}
+            {t("titleEdit.save")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function CaseSummaryEditor({
   item,
   summary,
@@ -701,7 +812,7 @@ function CaseSummaryEditor({
           title={summary}
           onClick={(event) => event.stopPropagation()}
         >
-          <span className="inline-flex w-[58px] shrink-0 items-center gap-1.5 text-xs text-slate-500">
+          <span className="inline-flex w-[55px] shrink-0 items-center gap-1.5 text-xs text-slate-500">
             <FileText className="size-3.5 shrink-0 text-slate-400" />
             {t("summary.label")}
           </span>

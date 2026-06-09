@@ -784,6 +784,16 @@
             "autoAcross": "自动聚合自 {instances} 个攻击实例，涉及 {groups} 个攻击分组。",
             "autoMulti": "自动聚合自 {instances} 个攻击实例，涉及 {groups} 个攻击分组、{rules} 条规则。"
           },
+          "titleEdit": {
+            "edit": "编辑标题",
+            "dialogTitle": "编辑标题",
+            "dialogDescription": "修改当前攻击场景的标题",
+            "placeholder": "请输入标题",
+            "cancel": "取消",
+            "save": "保存",
+            "saveSuccess": "标题已保存",
+            "saveFailed": "标题保存失败"
+          },
           "labels": {
             "caseId": "场景ID",
             "ruleIds": "规则IDS",

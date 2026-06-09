@@ -782,6 +782,16 @@
             "autoAcross": "Auto aggregated from {instances} attack instances across {groups} attack groups.",
             "autoMulti": "Auto aggregated from {instances} attack instances across {groups} attack groups and {rules} rules."
           },
+          "titleEdit": {
+            "edit": "Edit title",
+            "dialogTitle": "Edit Title",
+            "dialogDescription": "Update the title for this attack case",
+            "placeholder": "Enter title",
+            "cancel": "Cancel",
+            "save": "Save",
+            "saveSuccess": "Title saved",
+            "saveFailed": "Failed to save title"
+          },
           "labels": {
             "caseId": "Case ID",
             "ruleIds": "Rule IDs",
