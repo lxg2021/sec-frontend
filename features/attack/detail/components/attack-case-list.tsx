@@ -106,6 +106,8 @@ const SEVERITY_MAP: Record<
     labelKey: string
     dot: string
     badge: string
+    selected: string
+    selectedMarker: string
   }
 > = {
   critical: {
@@ -113,22 +115,34 @@ const SEVERITY_MAP: Record<
     dot: "bg-severity-critical",
     badge:
       "border-severity-critical/30 bg-severity-critical/10 text-severity-critical",
+    selected:
+      "border-severity-critical bg-white ring-1 ring-severity-critical/25 shadow-[0_16px_32px_rgba(220,38,38,0.12)] focus-visible:ring-severity-critical/35",
+    selectedMarker: "bg-severity-critical",
   },
   high: {
     labelKey: "high",
     dot: "bg-severity-high",
     badge: "border-severity-high/30 bg-severity-high/10 text-severity-high",
+    selected:
+      "border-severity-high bg-white ring-1 ring-severity-high/25 shadow-[0_16px_32px_rgba(239,68,68,0.12)] focus-visible:ring-severity-high/35",
+    selectedMarker: "bg-severity-high",
   },
   medium: {
     labelKey: "medium",
     dot: "bg-severity-medium",
     badge:
       "border-severity-medium/30 bg-severity-medium/10 text-severity-medium",
+    selected:
+      "border-severity-medium bg-white ring-1 ring-severity-medium/25 shadow-[0_16px_32px_rgba(245,158,11,0.12)] focus-visible:ring-severity-medium/35",
+    selectedMarker: "bg-severity-medium",
   },
   low: {
     labelKey: "low",
     dot: "bg-severity-low",
     badge: "border-severity-low/30 bg-severity-low/10 text-severity-low",
+    selected:
+      "border-severity-low bg-white ring-1 ring-severity-low/25 shadow-[0_16px_32px_rgba(34,197,94,0.12)] focus-visible:ring-severity-low/35",
+    selectedMarker: "bg-severity-low",
   },
 }
 
@@ -147,6 +161,9 @@ function getSeverity(severity: string) {
       labelKey: "unknown",
       dot: "bg-muted-foreground",
       badge: "border-border bg-muted text-muted-foreground",
+      selected:
+        "border-muted-foreground bg-white ring-1 ring-muted-foreground/20 shadow-[0_16px_32px_rgba(15,23,42,0.10)] focus-visible:ring-muted-foreground/30",
+      selectedMarker: "bg-muted-foreground",
     }
   )
 }
@@ -666,14 +683,15 @@ function CaseRow({
         }}
         className={cn(
           "group/case-row relative min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none hover:shadow-[0_16px_32px_rgba(15,23,42,0.10)]",
-          clickable && "cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-200",
-          selected && "border-blue-300 bg-blue-50/20 ring-1 ring-blue-200 shadow-[0_16px_32px_rgba(37,99,235,0.10)]",
+          clickable && "cursor-pointer focus-visible:ring-2 focus-visible:ring-slate-300",
+          selected && severity.selected,
         )}
       >
         <span
           className={cn(
             "pointer-events-none absolute inset-y-3 left-0 w-1 rounded-r-full opacity-0",
-            selected && "bg-blue-500 opacity-100",
+            selected && severity.selectedMarker,
+            selected && "opacity-100",
           )}
           aria-hidden="true"
         />
