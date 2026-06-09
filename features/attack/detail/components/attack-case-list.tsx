@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react"
 import { useLocale, useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import {
   Bug,
   CalendarClock,
@@ -24,6 +25,7 @@ import {
   GitBranch,
   ListTree,
   Loader2,
+  Route,
   ScrollText,
   Server,
   ShieldAlert,
@@ -432,20 +434,34 @@ export function AttackCaseList({
 
 function AttackCaseListHeader() {
   const t = useTranslations("pages.attack.dashboard.cases")
+  const router = useRouter()
 
   return (
-    <CardHeader className="flex-row items-center gap-3 border-b border-slate-200 px-6 py-5">
-      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600">
-        <ListTree className="size-6" />
+    <CardHeader className="gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600">
+          <ListTree className="size-6" />
+        </div>
+        <div className="min-w-0">
+          <CardTitle className="text-lg font-semibold leading-6 text-slate-950">
+            {t("title")}
+          </CardTitle>
+          <CardDescription className="mt-1 text-sm text-slate-500">
+            {t("description")}
+          </CardDescription>
+        </div>
       </div>
-      <div className="min-w-0">
-        <CardTitle className="text-lg font-semibold leading-6 text-slate-950">
-          {t("title")}
-        </CardTitle>
-        <CardDescription className="mt-1 text-sm text-slate-500">
-          {t("description")}
-        </CardDescription>
-      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => router.push("/frame/attack/drill")}
+        className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+        title={t("traceAction")}
+      >
+        <Route className="size-4" />
+        {t("traceAction")}
+      </Button>
     </CardHeader>
   )
 }

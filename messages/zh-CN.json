@@ -754,6 +754,7 @@
           "description": "按时间线查看攻击场景、阶段、技术与命中规模",
           "empty": "暂无攻击场景",
           "viewDetail": "查看详情",
+          "traceAction": "攻击溯源",
           "loadMore": "加载更多",
           "loadingMore": "加载中...",
           "loadFailed": "攻击明细加载失败",

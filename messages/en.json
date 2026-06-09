@@ -752,6 +752,7 @@
           "description": "View attack cases, stages, techniques, and hit scale by timeline",
           "empty": "No attack cases",
           "viewDetail": "View Details",
+          "traceAction": "Trace Attack",
           "loadMore": "Load More",
           "loadingMore": "Loading...",
           "loadFailed": "Failed to load attack details",
