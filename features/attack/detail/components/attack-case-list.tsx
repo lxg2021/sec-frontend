@@ -77,7 +77,7 @@ interface AttackCaseListProps {
   onPageSizeChange?: (pageSize: number) => void | Promise<void>
 }
 
-const DEFAULT_PAGE_SIZE = 20
+const DEFAULT_PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 const SEVERITY_MAP: Record<

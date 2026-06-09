@@ -17,7 +17,7 @@ import type { AttackCaseTimelineSummary, AttackOverview } from "@/features/attac
 import type { AttckData } from "@/features/attack/utils/attck-utils"
 import { slugify } from "@/features/attack/utils/stage-color"
 
-const DEFAULT_CASE_PAGE_SIZE = 20
+const DEFAULT_CASE_PAGE_SIZE = 10
 const DETAIL_TIMEZONE = "Asia/Shanghai"
 
 function stageIdentity(stage: { stageKey?: string; stage: string }) {
