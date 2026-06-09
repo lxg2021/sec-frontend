@@ -658,8 +658,6 @@ function CaseTitleEditor({
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
-  const locale = useLocale()
-  const isEnglish = locale.toLowerCase().startsWith("en")
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(title)
   const [saving, setSaving] = useState(false)
