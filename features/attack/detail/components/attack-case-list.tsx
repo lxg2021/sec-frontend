@@ -546,7 +546,7 @@ function CaseRow({
         />
         <div className="min-w-0 space-y-2">
           <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_352px_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content]">
-            <div className="min-w-0">
+            <div className="min-w-0 self-start">
               <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span
                   className={cn(
@@ -695,7 +695,7 @@ function CaseSummaryEditor({
 
   return (
     <div
-      className="mt-1 flex min-w-0 items-center gap-1.5 pl-2 text-sm leading-5 text-slate-600"
+      className="mt-4 flex min-w-0 items-center gap-1.5 pl-2 text-sm leading-5 text-slate-600"
       onClick={(event) => event.stopPropagation()}
     >
       <FileText className="size-3.5 shrink-0 text-slate-400" />
