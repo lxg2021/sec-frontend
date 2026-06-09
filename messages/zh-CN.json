@@ -772,6 +772,15 @@
             "unknown": "未知"
           },
           "summary": {
+            "label": "摘要",
+            "edit": "编辑摘要",
+            "dialogTitle": "编辑摘要",
+            "dialogDescription": "修改当前攻击场景的摘要信息",
+            "placeholder": "请输入摘要",
+            "cancel": "取消",
+            "save": "保存",
+            "saveSuccess": "摘要已保存",
+            "saveFailed": "摘要保存失败",
             "autoAcross": "自动聚合自 {instances} 个攻击实例，涉及 {groups} 个攻击分组。",
             "autoMulti": "自动聚合自 {instances} 个攻击实例，涉及 {groups} 个攻击分组、{rules} 条规则。"
           },

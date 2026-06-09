@@ -19,9 +19,12 @@ import {
   Copy,
   Crosshair,
   ExternalLink,
+  FileText,
   FileSearch,
   GitBranch,
   ListTree,
+  Loader2,
+  Pencil,
   ScrollText,
   Server,
   ShieldAlert,
@@ -30,7 +33,10 @@ import {
 } from "lucide-react"
 
 import { resolveAttckStage } from "@/features/attack/constants/attck-stages"
-import { fetchAttackRuleDetail } from "@/features/attack/dashboard/api"
+import {
+  fetchAttackRuleDetail,
+  updateAttackCaseFriendlyName,
+} from "@/features/attack/dashboard/api"
 import type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
 import type { AttackRuleMeta } from "@/features/attack/utils/attck-utils"
@@ -52,16 +58,28 @@ import {
   SelectValue,
 } from "@/shared/ui/select"
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/dialog"
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/ui/popover"
+import { Textarea } from "@/shared/ui/textarea"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/ui/tooltip"
+import { toast } from "@/shared/hooks/use-toast"
 
 export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 
@@ -261,19 +279,30 @@ export function AttackCaseList({
   const t = useTranslations("pages.attack.dashboard.cases")
   const [page, setPage] = useState(1)
   const [localPageSize, setLocalPageSize] = useState(controlledPageSize ?? DEFAULT_PAGE_SIZE)
+  const [caseItems, setCaseItems] = useState(items)
   const pageSize = controlledPageSize ?? localPageSize
-  const loadedTotal = items.length
+  const loadedTotal = caseItems.length
   const totalPages = Math.max(1, Math.ceil(loadedTotal / pageSize))
   const normalizedPage = Math.min(page, Math.max(1, totalPages))
   const pageStartIndex = (normalizedPage - 1) * pageSize
   const pageEndIndex = Math.min(pageStartIndex + pageSize, loadedTotal)
-  const visibleItems = items.slice(pageStartIndex, pageEndIndex)
+  const visibleItems = caseItems.slice(pageStartIndex, pageEndIndex)
   const visibleStart = loadedTotal > 0 ? pageStartIndex + 1 : 0
   const visibleEnd = loadedTotal > 0 ? pageEndIndex : 0
 
   useEffect(() => {
-    setPage((current) => Math.min(current, Math.max(1, Math.ceil(items.length / pageSize))))
-  }, [items.length, pageSize])
+    setCaseItems(items)
+  }, [items])
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, Math.max(1, Math.ceil(caseItems.length / pageSize))))
+  }, [caseItems.length, pageSize])
+
+  function handleCaseUpdated(nextItem: AttackCaseTimelineSummary) {
+    setCaseItems((current) =>
+      current.map((item) => (item.case_id === nextItem.case_id ? nextItem : item)),
+    )
+  }
 
   async function handlePageSizeChange(value: string) {
     const nextPageSize = Number(value)
@@ -302,7 +331,7 @@ export function AttackCaseList({
     setPage((current) => Math.max(current - 1, 1))
   }
 
-  if (items.length === 0) {
+  if (caseItems.length === 0) {
     return (
       <Card
         className={cn(
@@ -338,6 +367,7 @@ export function AttackCaseList({
                 item={item}
                 snapshotId={snapshotId}
                 onViewDetail={onViewDetail}
+                onCaseUpdated={handleCaseUpdated}
               />
             ))}
           </div>
@@ -424,10 +454,12 @@ function CaseRow({
   item,
   snapshotId,
   onViewDetail,
+  onCaseUpdated,
 }: {
   item: AttackCaseTimelineSummary
   snapshotId?: string
   onViewDetail?: (caseId: string) => void
+  onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
   const severity = getSeverity(item.severity)
@@ -533,12 +565,11 @@ function CaseRow({
                 </h3>
               </div>
 
-              <p
-                className="mt-1 line-clamp-1 text-sm leading-5 text-slate-600"
-                title={summary}
-              >
-                {summary}
-              </p>
+              <CaseSummaryEditor
+                item={item}
+                summary={summary}
+                onCaseUpdated={onCaseUpdated}
+              />
             </div>
 
             <MetricStrip metrics={metrics} />
@@ -549,7 +580,7 @@ function CaseRow({
             />
           </div>
 
-          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 px-3 py-1.5 lg:grid-cols-[max-content_max-content_minmax(0,1fr)] lg:items-center">
+          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 py-1.5 pl-2 pr-3 lg:grid-cols-[max-content_max-content_minmax(0,1fr)] lg:items-center">
             <MetaCluster
               icon={Target}
               label={t("labels.caseId")}
@@ -610,6 +641,127 @@ function CaseIdPill({ value }: { value: string }) {
         {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
       </button>
     </span>
+  )
+}
+
+function CaseSummaryEditor({
+  item,
+  summary,
+  onCaseUpdated,
+}: {
+  item: AttackCaseTimelineSummary
+  summary: string
+  onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+  const [open, setOpen] = useState(false)
+  const [draft, setDraft] = useState(summary)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!open) {
+      setDraft(summary)
+    }
+  }, [open, summary])
+
+  async function handleSave() {
+    const nextSummary = draft.trim()
+    if (!nextSummary || saving) return
+
+    setSaving(true)
+    try {
+      const nextItem =
+        (await updateAttackCaseFriendlyName({
+          caseId: item.case_id,
+          summary: nextSummary,
+        })) ?? null
+
+      onCaseUpdated?.({
+        ...item,
+        summary: nextItem?.summary || nextSummary,
+      })
+      setOpen(false)
+      toast({ title: t("summary.saveSuccess") })
+    } catch (error) {
+      toast({
+        title: t("summary.saveFailed"),
+        description: error instanceof Error ? error.message : undefined,
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div
+      className="mt-1 flex min-w-0 items-center gap-1.5 pl-2 text-sm leading-5 text-slate-600"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <FileText className="size-3.5 shrink-0 text-slate-400" />
+      <span className="shrink-0 text-xs text-slate-500">
+        {t("summary.label")}
+      </span>
+      <span className="min-w-0 flex-1 truncate" title={summary}>
+        {summary || "-"}
+      </span>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+            title={t("summary.edit")}
+            aria-label={t("summary.edit")}
+          >
+            <Pencil className="size-3.5" />
+          </button>
+        </DialogTrigger>
+        <DialogContent
+          className="max-w-xl gap-4 rounded-2xl border-slate-200 p-0 shadow-2xl"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <DialogHeader className="border-b border-slate-100 px-5 py-4 pr-12">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                <FileText className="size-4.5" />
+              </span>
+              <div className="min-w-0">
+                <DialogTitle className="text-base font-semibold leading-6 text-slate-950">
+                  {t("summary.dialogTitle")}
+                </DialogTitle>
+                <DialogDescription className="mt-0.5 text-xs leading-5 text-slate-500">
+                  {t("summary.dialogDescription")}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          <div className="px-5">
+            <Textarea
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder={t("summary.placeholder")}
+              className="min-h-32 resize-y rounded-xl border-slate-200 text-sm leading-6 focus-visible:ring-blue-200"
+            />
+          </div>
+          <DialogFooter className="gap-2 border-t border-slate-100 px-5 py-4 sm:space-x-0">
+            <DialogClose asChild>
+              <Button type="button" variant="outline" disabled={saving}>
+                {t("summary.cancel")}
+              </Button>
+            </DialogClose>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={saving || !draft.trim()}
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              {saving ? <Loader2 className="size-4 animate-spin" /> : null}
+              {t("summary.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   )
 }
 

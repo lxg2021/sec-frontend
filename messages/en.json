@@ -770,6 +770,15 @@
             "unknown": "Unknown"
           },
           "summary": {
+            "label": "Summary",
+            "edit": "Edit summary",
+            "dialogTitle": "Edit Summary",
+            "dialogDescription": "Update the summary for this attack case",
+            "placeholder": "Enter summary",
+            "cancel": "Cancel",
+            "save": "Save",
+            "saveSuccess": "Summary saved",
+            "saveFailed": "Failed to save summary",
             "autoAcross": "Auto aggregated from {instances} attack instances across {groups} attack groups.",
             "autoMulti": "Auto aggregated from {instances} attack instances across {groups} attack groups and {rules} rules."
           },

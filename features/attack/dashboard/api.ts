@@ -237,6 +237,10 @@ interface BackendAttackTimelineCasesData {
   page?: BackendAttackTimelinePageInfo
 }
 
+interface BackendUpdateAttackCaseFriendlyNameData {
+  case?: BackendAttackCaseTimelineSummary
+}
+
 interface RuleWithHosts {
   rule: BackendAttackRuleStatsItem
   hosts: BackendAttackRuleHostStatsItem[]
@@ -795,6 +799,38 @@ export async function fetchAttackTimelineCases({
       has_more: Boolean(page?.has_more),
     },
   }
+}
+
+export async function updateAttackCaseFriendlyName({
+  caseId,
+  title,
+  summary,
+}: {
+  caseId: string
+  title?: string
+  summary?: string
+}): Promise<AttackCaseTimelineSummary | null> {
+  const normalizedCaseId = stringValue(caseId)
+  if (!normalizedCaseId) return null
+
+  const payload: Record<string, unknown> = {
+    request_id: createRequestId(),
+    case_id: normalizedCaseId,
+  }
+
+  if (title !== undefined) {
+    payload.title = title
+  }
+  if (summary !== undefined) {
+    payload.summary = summary
+  }
+
+  const result = (await http.post(
+    "/sensor/analysis/timeline/case/friendly-name",
+    payload,
+  )) as ApiResult<BackendUpdateAttackCaseFriendlyNameData | null>
+
+  return result.data?.case ? buildAttackCaseTimelineSummary(result.data.case) : null
 }
 
 export async function fetchAttackStatsTrend({
