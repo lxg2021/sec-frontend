@@ -8,7 +8,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   Bug,
   CalendarClock,
@@ -462,6 +462,8 @@ function CaseRow({
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
+  const locale = useLocale()
+  const isEnglish = locale.toLowerCase().startsWith("en")
   const severity = getSeverity(item.severity)
   const techniques = useMemo(
     () => extractTechniques([...(item.tags ?? []), ...(item.rule_ids ?? [])]),
@@ -585,6 +587,7 @@ function CaseRow({
             <MetaCluster
               icon={Target}
               label={t("labels.caseId")}
+              labelClassName={isEnglish ? "w-20" : undefined}
             >
               <CaseIdPill value={item.case_id} />
             </MetaCluster>
@@ -655,6 +658,8 @@ function CaseTitleEditor({
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
+  const locale = useLocale()
+  const isEnglish = locale.toLowerCase().startsWith("en")
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(title)
   const [saving, setSaving] = useState(false)
@@ -764,6 +769,8 @@ function CaseSummaryEditor({
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
+  const locale = useLocale()
+  const isEnglish = locale.toLowerCase().startsWith("en")
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState(summary)
   const [saving, setSaving] = useState(false)
@@ -812,7 +819,12 @@ function CaseSummaryEditor({
           title={summary}
           onClick={(event) => event.stopPropagation()}
         >
-          <span className="inline-flex w-[55px] shrink-0 items-center gap-1.5 text-xs text-slate-500">
+          <span
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-slate-500",
+              isEnglish ? "w-20" : "w-[55px]",
+            )}
+          >
             <FileText className="size-3.5 shrink-0 text-slate-400" />
             {t("summary.label")}
           </span>
@@ -1039,11 +1051,13 @@ function MetaCluster({
   label,
   children,
   className,
+  labelClassName,
 }: {
   icon: ComponentType<{ className?: string }>
   label: string
   children: ReactNode
   className?: string
+  labelClassName?: string
 }) {
   return (
     <div
@@ -1052,7 +1066,7 @@ function MetaCluster({
         className,
       )}
     >
-      <span className="inline-flex shrink-0 items-center gap-1 text-xs text-slate-500">
+      <span className={cn("inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs text-slate-500", labelClassName)}>
         <Icon className="size-3.5" />
         {label}
       </span>
