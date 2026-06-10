@@ -11,6 +11,7 @@ import {
   ArrowUp,
   Binoculars,
   Bug,
+  CalendarClock,
   Cast,
   DoorOpen,
   Download,
@@ -1234,16 +1235,19 @@ export function AttackCaseStoryTimelineRender({
             <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
               <button
                 type="button"
-                className="max-w-full rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-1 text-left font-mono text-xs font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-1 text-left font-mono text-xs font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
                 title="返回攻击详情并定位到该 Case"
                 onClick={() => router.push(buildAttackDetailHref(summary.case_id, snapshotId))}
               >
-                Case {summary.case_id}
+                <FileText className="size-3.5 shrink-0" />
+                <span className="min-w-0 truncate">Case {summary.case_id}</span>
               </button>
-              <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
+                <ShieldAlert className="size-3.5 shrink-0" />
                 {summary.severity || "unknown"}
               </span>
-              <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-500">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50/60 px-2.5 py-1 text-xs font-medium text-blue-700">
+                <CalendarClock className="size-3.5 shrink-0" />
                 {formatRange(summary.start_time, summary.end_time)}
               </span>
             </div>
