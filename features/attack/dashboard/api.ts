@@ -241,6 +241,8 @@ interface BackendAttackCaseTimelineSummary {
   rule_ids?: unknown
   tags?: unknown
   agent_ids?: unknown
+  attack_techniques?: unknown
+  attackTechniques?: unknown
 }
 
 interface BackendAttackIocEvidence {
@@ -505,6 +507,8 @@ function normalizeCoverageStatus(value: unknown): GetAttackEventTimelineDistribu
 }
 
 function buildAttackCaseTimelineSummary(raw: BackendAttackCaseTimelineSummary): AttackCaseTimelineSummary {
+  const attackTechniques = normalizeArray(raw.attack_techniques)
+
   return {
     case_id: stringValue(raw.case_id),
     tenant_id: stringValue(raw.tenant_id),
@@ -523,6 +527,9 @@ function buildAttackCaseTimelineSummary(raw: BackendAttackCaseTimelineSummary): 
     rule_ids: normalizeArray(raw.rule_ids),
     tags: normalizeArray(raw.tags),
     agent_ids: normalizeArray(raw.agent_ids),
+    attack_techniques: attackTechniques.length > 0
+      ? attackTechniques
+      : normalizeArray(raw.attackTechniques),
   }
 }
 
@@ -1140,10 +1147,16 @@ export async function batchDescribeEventSourcesByKeys({
     .filter((key) => key.event_type > 0 && key.source_unique_id)
 
   if (normalizedKeys.length === 0) {
-    return { items: [] }
+    return {
+      items: [],
+      story_summary: "",
+      story_short_summary: "",
+    }
   }
 
   const items: BatchDescribeEventSourceItem[] = []
+  const storySummaryParts: string[] = []
+  const storyShortSummaryParts: string[] = []
   const chunkSize = 1000
 
   for (let index = 0; index < normalizedKeys.length; index += chunkSize) {
@@ -1169,9 +1182,31 @@ export async function batchDescribeEventSourcesByKeys({
     if (Array.isArray(result.data?.items)) {
       items.push(...result.data.items.map(buildBatchDescribeEventSourceItem))
     }
+    const storySummary = stringValue(result.data?.story_summary)
+    if (storySummary) {
+      storySummaryParts.push(storySummary)
+    }
+    const storyShortSummary = stringValue(result.data?.story_short_summary)
+    if (storyShortSummary) {
+      storyShortSummaryParts.push(storyShortSummary)
+    }
   }
 
-  return { items }
+  return {
+    items,
+    story_summary: joinStoryParts(storySummaryParts, ". "),
+    story_short_summary: joinStoryParts(storyShortSummaryParts, " -> "),
+  }
+}
+
+function joinStoryParts(parts: string[], separator: string) {
+  const cleaned = parts
+    .map((part) => stringValue(part))
+    .filter((part) => Boolean(part))
+
+  if (cleaned.length === 0) return ""
+  if (cleaned.length === 1) return cleaned[0]
+  return cleaned.join(separator)
 }
 
 export async function updateAttackCaseFriendlyName({

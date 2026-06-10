@@ -96,6 +96,7 @@ export interface AttackCaseTimelineSummary {
   rule_ids: string[]
   tags: string[]
   agent_ids: string[]
+  attack_techniques: string[]
 }
 
 export interface AttackIocEvidence {

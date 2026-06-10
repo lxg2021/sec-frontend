@@ -623,8 +623,13 @@ function CaseRow({
   const isEnglish = locale.toLowerCase().startsWith("en")
   const severity = getSeverity(item.severity)
   const techniques = useMemo(
-    () => extractTechniques([...(item.tags ?? []), ...(item.rule_ids ?? [])]),
-    [item.tags, item.rule_ids],
+    () => {
+      const explicitTechniques = extractTechniques(item.attack_techniques ?? [])
+      return explicitTechniques.length > 0
+        ? explicitTechniques
+        : extractTechniques([...(item.tags ?? []), ...(item.rule_ids ?? [])])
+    },
+    [item.attack_techniques, item.tags, item.rule_ids],
   )
   const orderedPhases = useMemo(() => buildOrderedPhases(item), [item])
   const title = formatCaseTitle(item.title)

@@ -125,6 +125,7 @@ export interface AttackCaseStoryTimelineStep {
 
 interface AttackCaseStoryTimelineBodyProps {
   steps: AttackCaseStoryTimelineStep[]
+  storySummary: string
   className?: string
 }
 
@@ -193,6 +194,10 @@ function formatRange(startTime: string, endTime: string) {
   if (!startTime) return endTime
   if (!endTime) return startTime
   return `${startTime} - ${endTime}`
+}
+
+function formatStorySummary(value: string) {
+  return value.trim().replace(/\s+/g, " ")
 }
 
 function formatIocLine(ioc: AttackIocEvidence) {
@@ -449,6 +454,7 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
 
 function AttackCaseStoryTimelineBody({
   steps,
+  storySummary,
   className,
 }: AttackCaseStoryTimelineBodyProps) {
   if (steps.length === 0) {
@@ -462,10 +468,8 @@ function AttackCaseStoryTimelineBody({
 
   return (
     <div className={cn("min-w-0", className)}>
-      <div className="mb-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-        <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-medium text-slate-600">
-          {steps.length} evidence events
-        </span>
+      <div className="mb-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
+        {storySummary || "Story summary is not available for this case."}
       </div>
 
       <div className="relative">
@@ -619,6 +623,7 @@ export function AttackCaseStoryTimelineRender({
 }: AttackCaseStoryTimelineRenderProps) {
   const [data, setData] = useState<AttackCaseTimelineResult | null>(null)
   const [descriptions, setDescriptions] = useState<BatchDescribeEventSourceItem[]>([])
+  const [storySummary, setStorySummary] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [describeWarning, setDescribeWarning] = useState<string | null>(null)
@@ -628,6 +633,7 @@ export function AttackCaseStoryTimelineRender({
     if (!normalizedCaseId) {
       setData(null)
       setDescriptions([])
+      setStorySummary("")
       setError(null)
       setDescribeWarning(null)
       setLoading(false)
@@ -660,15 +666,18 @@ export function AttackCaseStoryTimelineRender({
           includeAllFields: false,
         })
         setDescriptions(described.items)
+        setStorySummary(formatStorySummary(described.story_summary || described.story_short_summary))
       } catch (err) {
         console.error("describe attack story source events failed", err)
         setDescriptions([])
+        setStorySummary("")
         setDescribeWarning("Source event descriptions are unavailable; fallback evidence text is shown.")
       }
     } catch (err) {
       console.error("load attack case timeline failed", err)
       setData(null)
       setDescriptions([])
+      setStorySummary("")
       setError(err instanceof Error ? err.message : "Failed to load attack story")
     } finally {
       setLoading(false)
@@ -683,6 +692,7 @@ export function AttackCaseStoryTimelineRender({
       if (!normalizedCaseId) {
         setData(null)
         setDescriptions([])
+        setStorySummary("")
         setError(null)
         setDescribeWarning(null)
         setLoading(false)
@@ -704,6 +714,7 @@ export function AttackCaseStoryTimelineRender({
         const keys = buildDescriptionKeys(events)
         if (keys.length === 0) {
           setDescriptions([])
+          setStorySummary("")
           return
         }
 
@@ -717,11 +728,13 @@ export function AttackCaseStoryTimelineRender({
           })
           if (!cancelled) {
             setDescriptions(described.items)
+            setStorySummary(formatStorySummary(described.story_summary || described.story_short_summary))
           }
         } catch (err) {
           console.error("describe attack story source events failed", err)
           if (!cancelled) {
             setDescriptions([])
+            setStorySummary("")
             setDescribeWarning("Source event descriptions are unavailable; fallback evidence text is shown.")
           }
         }
@@ -730,6 +743,7 @@ export function AttackCaseStoryTimelineRender({
         if (!cancelled) {
           setData(null)
           setDescriptions([])
+          setStorySummary("")
           setError(err instanceof Error ? err.message : "Failed to load attack story")
         }
       } finally {
@@ -840,7 +854,7 @@ export function AttackCaseStoryTimelineRender({
             {describeWarning}
           </div>
         ) : null}
-        <AttackCaseStoryTimelineBody steps={storySteps} />
+        <AttackCaseStoryTimelineBody steps={storySteps} storySummary={storySummary} />
       </CardContent>
     </Card>
   )
