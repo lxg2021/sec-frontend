@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, type ComponentType } from "react"
+import { useRouter } from "next/navigation"
 import {
   Activity,
   AlertTriangle,
@@ -473,6 +474,8 @@ function AttackCaseStoryTimelineBody({
   storySummary,
   className,
 }: AttackCaseStoryTimelineBodyProps) {
+  const router = useRouter()
+
   if (steps.length === 0) {
     return (
       <div className={cn("rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center", className)}>
@@ -530,26 +533,21 @@ function AttackCaseStoryTimelineBody({
                     >
                       {step.eventName || "Evidence"}
                     </span>
-                    {step.eventType > 0 ? (
-                      <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-500">
-                        type {step.eventType}
-                      </span>
+                    {step.agentId ? (
+                      <button
+                        type="button"
+                        className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
+                        onClick={() => router.push(`/frame/assets/host-info?agentId=${encodeURIComponent(step.agentId)}`)}
+                        title={step.agentId}
+                      >
+                        HostID: {compactId(step.agentId, 10)}
+                      </button>
                     ) : null}
                   </div>
 
                   <StepBranches step={step} />
 
                   <div className="mt-3 flex min-w-0 flex-wrap gap-1.5 text-[11px] text-slate-400">
-                    {step.sourceUniqueId ? (
-                      <span className="rounded-md bg-slate-50 px-1.5 py-0.5 font-mono">
-                        src {compactId(step.sourceUniqueId, 12)}
-                      </span>
-                    ) : null}
-                    {step.agentId ? (
-                      <span className="rounded-md bg-slate-50 px-1.5 py-0.5 font-mono">
-                        host {compactId(step.agentId, 10)}
-                      </span>
-                    ) : null}
                     {step.iocEvidences.length > 1 ? (
                       <span className="rounded-md bg-slate-50 px-1.5 py-0.5">
                         +{step.iocEvidences.length - 1} IOC
