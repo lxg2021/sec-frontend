@@ -358,6 +358,8 @@ export function AttackCaseList({
   }
 
   function handleViewDetail(caseId: string) {
+    handleSelectCase(caseId)
+
     if (onViewDetail) {
       onViewDetail(caseId)
       return
