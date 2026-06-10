@@ -35,6 +35,7 @@ import { TooltipProvider } from "@/shared/ui/tooltip"
 import { toast } from "@/shared/hooks/use-toast"
 import { AttackCaseRow } from "./attack-case-row"
 import { buildTraceHref } from "../utils/attack-case-format"
+import { dedupeAttackCaseItems } from "../utils/attack-case-list-data"
 
 export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
 
@@ -70,7 +71,7 @@ export function AttackCaseList({
   const router = useRouter()
   const [page, setPage] = useState(1)
   const [localPageSize, setLocalPageSize] = useState(controlledPageSize ?? DEFAULT_PAGE_SIZE)
-  const [caseItems, setCaseItems] = useState(items)
+  const [caseItems, setCaseItems] = useState(() => dedupeAttackCaseItems(items))
   const [selectedCaseId, setSelectedCaseId] = useState("")
   const [caseIdQuery, setCaseIdQuery] = useState("")
   const [pendingScrollCaseId, setPendingScrollCaseId] = useState("")
@@ -88,7 +89,7 @@ export function AttackCaseList({
   const visibleEnd = loadedTotal > 0 ? pageEndIndex : 0
 
   useEffect(() => {
-    setCaseItems(items)
+    setCaseItems(dedupeAttackCaseItems(items))
   }, [items])
 
   useEffect(() => {
@@ -179,7 +180,9 @@ export function AttackCaseList({
 
   function handleCaseUpdated(nextItem: AttackCaseTimelineSummary) {
     setCaseItems((current) =>
-      current.map((item) => (item.case_id === nextItem.case_id ? nextItem : item)),
+      dedupeAttackCaseItems(
+        current.map((item) => (item.case_id === nextItem.case_id ? nextItem : item)),
+      ),
     )
   }
 

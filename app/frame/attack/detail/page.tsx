@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslations } from "next-intl"
 import { useToast } from "@/shared/hooks/use-toast"
 
@@ -12,6 +12,10 @@ import {
 } from "@/features/attack/dashboard/api"
 import { AttackDetailHeader } from "@/features/attack/detail/components/attack-detail-header"
 import { AttackCaseList } from "@/features/attack/detail/components/attack-case-list"
+import {
+  dedupeAttackCaseItems,
+  mergeAttackCaseItems,
+} from "@/features/attack/detail/utils/attack-case-list-data"
 import OverviewCarousel from "@/features/attack/dashboard/components/overview-carousel"
 import type { AttackCaseTimelineSummary, AttackOverview } from "@/features/attack/dashboard/types"
 import type { AttckData } from "@/features/attack/utils/attck-utils"
@@ -90,6 +94,10 @@ export default function AttackDetailPage() {
   const [caseLoadingMore, setCaseLoadingMore] = useState(false)
   const [casePageSize, setCasePageSize] = useState(DEFAULT_CASE_PAGE_SIZE)
   const [targetCaseId, setTargetCaseId] = useState("")
+  const loadingCasePageRequestRef = useRef<{
+    token: string
+    promise: Promise<boolean>
+  } | null>(null)
 
   useEffect(() => {
     void loadDetail()
@@ -139,7 +147,7 @@ export default function AttackDetailPage() {
 
       setOverview(nextOverview)
       setData(buildDetailData(nextOverview, nextStages))
-      setCaseItems(nextCases.items)
+      setCaseItems(dedupeAttackCaseItems(nextCases.items))
       setCaseNextPageToken(nextCases.page.next_page_token)
       setCaseHasMore(nextCases.page.has_more)
     } catch (error) {
@@ -195,30 +203,47 @@ export default function AttackDetailPage() {
   }
 
   async function handleLoadMoreCases() {
-    if (!overview || !caseNextPageToken || caseLoadingMore) return false
-
-    setCaseLoadingMore(true)
-    try {
-      const nextCases = await fetchAttackTimelineCases({
-        ...buildCaseQueryRange(overview),
-        pageSize: casePageSize,
-        pageToken: caseNextPageToken,
-      })
-      setCaseItems((current) => [...current, ...nextCases.items])
-      setCaseNextPageToken(nextCases.page.next_page_token)
-      setCaseHasMore(nextCases.page.has_more)
-      return true
-    } catch (error) {
-      console.error("load more attack cases failed", error)
-      toast({
-        title: t("cases.loadFailed"),
-        description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
-      })
-      return false
-    } finally {
-      setCaseLoadingMore(false)
+    if (!overview || !caseNextPageToken) return false
+    if (loadingCasePageRequestRef.current?.token === caseNextPageToken) {
+      return loadingCasePageRequestRef.current.promise
     }
+    if (caseLoadingMore) return false
+
+    const loadingPageToken = caseNextPageToken
+    setCaseLoadingMore(true)
+
+    const request = (async () => {
+      try {
+        const nextCases = await fetchAttackTimelineCases({
+          ...buildCaseQueryRange(overview),
+          pageSize: casePageSize,
+          pageToken: loadingPageToken,
+        })
+        setCaseItems((current) => mergeAttackCaseItems(current, nextCases.items))
+        setCaseNextPageToken(nextCases.page.next_page_token)
+        setCaseHasMore(nextCases.page.has_more)
+        return true
+      } catch (error) {
+        console.error("load more attack cases failed", error)
+        toast({
+          title: t("cases.loadFailed"),
+          description: error instanceof Error ? error.message : undefined,
+          variant: "destructive",
+        })
+        return false
+      } finally {
+        if (loadingCasePageRequestRef.current?.token === loadingPageToken) {
+          loadingCasePageRequestRef.current = null
+        }
+        setCaseLoadingMore(false)
+      }
+    })()
+
+    loadingCasePageRequestRef.current = {
+      token: loadingPageToken,
+      promise: request,
+    }
+    return request
   }
 
   async function handleCasePageSizeChange(nextPageSize: number) {
@@ -231,7 +256,7 @@ export default function AttackDetailPage() {
         ...buildCaseQueryRange(overview),
         pageSize: nextPageSize,
       })
-      setCaseItems(nextCases.items)
+      setCaseItems(dedupeAttackCaseItems(nextCases.items))
       setCaseNextPageToken(nextCases.page.next_page_token)
       setCaseHasMore(nextCases.page.has_more)
     } catch (error) {
