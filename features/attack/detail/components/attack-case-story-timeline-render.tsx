@@ -585,7 +585,7 @@ function TimelineEventCard({
         {step.agentId ? (
           <button
             type="button"
-            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-wait disabled:opacity-70"
+            className="rounded-lg border border-sky-100 bg-sky-50/60 px-2.5 py-1 font-mono text-[11px] font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 disabled:cursor-wait disabled:opacity-70"
             disabled={loadingHost}
             onClick={() => onHostClick(step.agentId)}
             title={step.agentId}
@@ -593,7 +593,7 @@ function TimelineEventCard({
             {loadingHost ? (
               <Loader2 className="mr-1 inline size-3 animate-spin align-[-2px]" />
             ) : null}
-            HostID: {compactId(step.agentId, 12)}
+            HostID: {step.agentId}
           </button>
         ) : null}
       </div>
