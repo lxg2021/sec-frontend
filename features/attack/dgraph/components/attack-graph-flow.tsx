@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import ReactFlow, {
   Background,
   Controls,
+  Handle,
   MarkerType,
   MiniMap,
   Position,
@@ -114,17 +115,31 @@ function AttackGraphFlowNode({
   selected,
 }: NodeProps<AttackGraphFlowNodeData>) {
   return (
-    <AttackGraphNode
-      data={{
-        key: data.key,
-        entityType: data.entityType,
-        displayName: data.displayName,
-        properties: data.properties,
-      }}
-      compact={data.compact}
-      muted={data.missingFromResponse}
-      selected={selected}
-    />
+    <div className="relative">
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!h-2 !w-2 !border-0 !bg-transparent"
+        isConnectable={false}
+      />
+      <AttackGraphNode
+        data={{
+          key: data.key,
+          entityType: data.entityType,
+          displayName: data.displayName,
+          properties: data.properties,
+        }}
+        compact={data.compact}
+        muted={data.missingFromResponse}
+        selected={selected}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!h-2 !w-2 !border-0 !bg-transparent"
+        isConnectable={false}
+      />
+    </div>
   );
 }
 

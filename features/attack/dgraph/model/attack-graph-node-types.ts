@@ -1,4 +1,4 @@
-export const DGRAPH_ENTITY_NODE_PRESENTATION_KIND_COUNT = 25;
+export const DGRAPH_ENTITY_NODE_PRESENTATION_KIND_COUNT = 24;
 
 export type AttackGraphEntityType =
   | "Account"
@@ -65,7 +65,6 @@ export type AttackGraphEntityPresentationKind =
   | "powershell"
   | "process"
   | "registry"
-  | "scheduled-job"
   | "service"
   | "task"
   | "token-impersonation"
@@ -108,7 +107,7 @@ export const ENTITY_TYPE_TO_PRESENTATION_KIND: Record<
   Process: "process",
   RegistryKey: "registry",
   RegistryValue: "registry",
-  ScheduledJob: "scheduled-job",
+  ScheduledJob: "task",
   Service: "service",
   Task: "task",
   TokenImpersonation: "token-impersonation",
@@ -145,4 +144,3 @@ export function getAttackGraphNodePresentationKind(
   }
   return "unknown";
 }
-

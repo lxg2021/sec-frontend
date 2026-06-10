@@ -1,5 +1,7 @@
 export * from "./components/attack-graph-node";
 export * from "./components/attack-graph-flow";
+export * from "./components/attack-graph-node-gallery";
+export * from "./api";
 export * from "./model/attack-graph-adapter";
 export * from "./model/attack-graph-data";
 export * from "./model/attack-graph-edge-presentation";
