@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react"
+import { useEffect, useMemo, useState, type ComponentType } from "react"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
   Activity,
@@ -137,6 +137,7 @@ interface AttackCaseStoryTimelineBodyProps {
   steps: AttackCaseStoryTimelineStep[]
   storySummary: string
   snapshotId: string
+  eventCount: number
   className?: string
 }
 
@@ -200,6 +201,13 @@ function formatOccurredAt(value: string) {
   return normalized
 }
 
+function splitOccurredAt(value: string) {
+  const label = formatOccurredAt(value)
+  const match = label.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)$/)
+  if (!match) return { date: "", time: label }
+  return { date: match[1], time: match[2] }
+}
+
 function formatRange(startTime: string, endTime: string) {
   if (!startTime && !endTime) return "-"
   if (!startTime) return endTime
@@ -256,13 +264,6 @@ function formatIocLine(ioc: AttackIocEvidence) {
   const type = firstFilled(ioc.ioc_type, ioc.candidate_type, ioc.hit_source)
   if (type && value) return `${type}: ${value}`
   return value || type || "IOC evidence matched"
-}
-
-function visibleSlots(slots: EventSourceDescriptionSlot[]) {
-  return slots
-    .filter((slot) => slot.primary && slot.display_value)
-    .sort((left, right) => left.order - right.order)
-    .slice(0, 4)
 }
 
 function normalizeStageCandidates(...values: string[]): AttckStageKey[] {
@@ -438,19 +439,6 @@ function buildStorySteps(
     })
 }
 
-function DetailBranchLine({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex min-w-0 gap-3">
-      <div className="flex w-7 shrink-0 justify-end pt-2">
-        <span className="h-px w-5 bg-slate-300" />
-      </div>
-      <div className="min-w-0 text-sm leading-6 text-slate-500">
-        {children}
-      </div>
-    </div>
-  )
-}
-
 function StoryRuleDetailTrigger({
   ruleId,
   ruleTitle,
@@ -491,7 +479,7 @@ function StoryRuleDetailTrigger({
           event.stopPropagation()
           void loadRuleDetail()
         }}
-        className="font-mono text-blue-600 underline underline-offset-4 transition-colors hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+        className="font-mono text-xs font-semibold text-blue-600 transition-colors hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
         title={ruleId}
       >
         {ruleId}
@@ -520,14 +508,48 @@ function AttackTechniqueLinks({ techniques }: { techniques: string[] }) {
   )
 }
 
-function StepBranches({
+function EvidenceChip({
+  label,
+  value,
+  title,
+  monoValue = false,
+}: {
+  label: string
+  value: string
+  title?: string
+  monoValue?: boolean
+}) {
+  if (!value) return null
+
+  return (
+    <span
+      className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs leading-4 text-slate-600"
+      title={title || `${label}: ${value}`}
+    >
+      <span className="shrink-0 font-semibold text-slate-400">{label}</span>
+      <span className={cn("min-w-0 truncate font-semibold text-slate-700", monoValue && "font-mono")}>
+        {value}
+      </span>
+    </span>
+  )
+}
+
+function TimelineEventCard({
   step,
   snapshotId,
+  loadingHost,
+  onHostClick,
 }: {
   step: AttackCaseStoryTimelineStep
   snapshotId: string
+  loadingHost: boolean
+  onHostClick: (agentId: string) => void
 }) {
-  const slots = visibleSlots(step.slots)
+  const primarySlots = step.slots
+    .filter((slot) => slot.primary && slot.display_value)
+    .sort((left, right) => left.order - right.order)
+  const slots = primarySlots.slice(0, 4)
+  const hiddenSlotCount = Math.max(primarySlots.length - slots.length, 0)
   const firstIoc = step.iocEvidences[0]
   const ruleId = step.ruleId.trim()
   const ruleTitle = step.ruleTitle.trim()
@@ -536,82 +558,243 @@ function StepBranches({
     step.describeStatus && step.describeStatus !== "ok"
       ? firstFilled(step.missReason, step.describeStatus)
       : ""
-
-  const detailLines = [
-    behavior ? `suspicious behavior: ${behavior}` : "",
-    firstIoc ? `IOC: ${formatIocLine(firstIoc)}` : "",
-    status ? `Source description: ${status}` : "",
-  ].filter(Boolean)
+  const borderColor = `${step.phaseColor}66`
+  const subtleColor = `${step.phaseColor}12`
 
   return (
-    <div className="mt-3 space-y-2">
-      <div className="flex min-w-0 gap-3">
-        <div className="flex w-7 shrink-0 justify-end pt-2">
-          <span className="h-px w-5 bg-slate-400" />
-        </div>
-        <p className="min-w-0 text-sm font-medium leading-6 text-slate-800">
-          {step.summary}
-        </p>
+    <div
+      className="min-w-0 rounded-lg border bg-white px-4 py-3 shadow-sm"
+      style={{ borderColor, borderLeftColor: step.phaseColor, borderLeftWidth: 3 }}
+    >
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <h3 className="min-w-0 text-base font-semibold leading-6 text-slate-950">
+          {step.phaseLabel}
+        </h3>
+        <span
+          className="rounded-lg border px-2.5 py-1 text-xs font-semibold"
+          style={{
+            borderColor,
+            color: step.phaseColor,
+            backgroundColor: subtleColor,
+          }}
+        >
+          {step.eventName || "Evidence"}
+        </span>
+        {step.agentId ? (
+          <button
+            type="button"
+            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-wait disabled:opacity-70"
+            disabled={loadingHost}
+            onClick={() => onHostClick(step.agentId)}
+            title={step.agentId}
+          >
+            {loadingHost ? (
+              <Loader2 className="mr-1 inline size-3 animate-spin align-[-2px]" />
+            ) : null}
+            HostID: {compactId(step.agentId, 12)}
+          </button>
+        ) : null}
       </div>
 
-      {ruleId || ruleTitle ? (
-        <div className="flex min-w-0 gap-3">
-          <div className="flex w-7 shrink-0 justify-end pt-2">
-            <span className="h-px w-5 bg-slate-300" />
-          </div>
-          <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6 text-slate-500">
-            {ruleId ? (
-              <span className="shrink-0 whitespace-nowrap">
-                ruleid:{" "}
-                <StoryRuleDetailTrigger
-                  ruleId={ruleId}
-                  ruleTitle={ruleTitle}
-                  snapshotId={snapshotId}
-                />
-              </span>
-            ) : null}
-            {ruleTitle ? (
-              <span className="min-w-0">
-                rule title: <span className="font-medium text-slate-600">{ruleTitle}</span>
-              </span>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+      <p className="mt-2 min-w-0 text-sm leading-6 text-slate-700">
+        {step.summary}
+      </p>
 
-      {step.techniques.length > 0 ? (
-        <DetailBranchLine>
-          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-            <span className="shrink-0">ATT&CK:</span>
+      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-8 gap-y-2 text-sm leading-5 text-slate-500">
+        {ruleId ? (
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <span className="shrink-0 text-xs font-medium text-slate-500">ruleid:</span>
+            <StoryRuleDetailTrigger
+              ruleId={ruleId}
+              ruleTitle={ruleTitle}
+              snapshotId={snapshotId}
+            />
+          </span>
+        ) : null}
+        {ruleTitle ? (
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <span className="shrink-0 text-xs font-medium text-slate-500">rule title:</span>
+            <span className="min-w-0 truncate text-sm font-medium text-slate-700">{ruleTitle}</span>
+          </span>
+        ) : null}
+        {step.techniques.length > 0 ? (
+          <span className="inline-flex min-w-0 items-center gap-2 rounded-md bg-blue-50 px-2 py-0.5">
+            <span className="shrink-0 text-xs font-semibold text-slate-500">ATT&CK:</span>
             <AttackTechniqueLinks techniques={step.techniques} />
-          </div>
-        </DetailBranchLine>
-      ) : null}
+          </span>
+        ) : null}
+      </div>
 
-      {detailLines.map((line, index) => (
-        <DetailBranchLine key={`${step.id}-detail-line-${index}`}>
-          <p className="min-w-0">
-            {line}
-          </p>
-        </DetailBranchLine>
-      ))}
+      <div className="mt-3 flex min-w-0 flex-wrap gap-2">
+        <EvidenceChip label="suspicious behavior:" value={behavior} />
+        {firstIoc ? <EvidenceChip label="IOC:" value={formatIocLine(firstIoc)} /> : null}
+        {status ? <EvidenceChip label="source description:" value={status} /> : null}
+      </div>
 
       {slots.length > 0 ? (
-        <div className="ml-10 flex min-w-0 flex-wrap gap-1.5 pt-1">
+        <div className="mt-2 flex min-w-0 flex-wrap gap-2">
           {slots.map((slot) => (
-            <span
+            <EvidenceChip
               key={`${step.id}-${slot.slot_id}`}
-              className="inline-flex max-w-full items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600"
+              label={slot.label}
+              value={slot.display_value}
               title={`${slot.label}: ${slot.display_value}`}
-            >
-              <span className="shrink-0 text-slate-400">{slot.label}</span>
-              <span className="min-w-0 truncate font-medium text-slate-700">
-                {slot.display_value}
-              </span>
-            </span>
+              monoValue={slot.value_type === "path" || /command|line|path|process|file/i.test(slot.label)}
+            />
           ))}
+          {hiddenSlotCount > 0 ? (
+            <span className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-400">
+              +{hiddenSlotCount} fields
+            </span>
+          ) : null}
         </div>
       ) : null}
+
+      {(step.iocEvidences.length > 1 || step.attackMarks.length > 1) ? (
+        <div className="mt-2 flex min-w-0 flex-wrap gap-1.5 text-[11px] text-slate-400">
+          {step.iocEvidences.length > 1 ? (
+            <span className="rounded-md bg-slate-50 px-1.5 py-0.5">
+              +{step.iocEvidences.length - 1} IOC
+            </span>
+          ) : null}
+          {step.attackMarks.length > 1 ? (
+            <span className="rounded-md bg-slate-50 px-1.5 py-0.5">
+              +{step.attackMarks.length - 1} marks
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+function TimelineEventRow({
+  step,
+  snapshotId,
+  loadingHost,
+  onHostClick,
+  isLast,
+}: {
+  step: AttackCaseStoryTimelineStep
+  snapshotId: string
+  loadingHost: boolean
+  onHostClick: (agentId: string) => void
+  isLast: boolean
+}) {
+  const Icon = STAGE_ICONS[step.phaseKey] ?? Bug
+  const occurredAt = splitOccurredAt(step.occurredAt)
+  const borderColor = `${step.phaseColor}66`
+
+  return (
+    <div className="grid min-w-[900px] grid-cols-[112px_56px_minmax(0,1fr)] gap-3">
+      <div className="pt-5 text-right">
+        <div className="font-mono text-xs font-semibold tabular-nums text-slate-800">
+          {occurredAt.time}
+        </div>
+        {occurredAt.date ? (
+          <div className="mt-1 font-mono text-[11px] font-semibold tabular-nums text-slate-400">
+            {occurredAt.date}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="relative flex justify-center pt-3">
+        <span
+          className={cn(
+            "absolute left-1/2 top-0 w-px -translate-x-1/2 bg-slate-200",
+            isLast ? "bottom-5" : "-bottom-4",
+          )}
+        />
+        <div
+          className="relative z-10 flex size-10 items-center justify-center rounded-full border bg-white shadow-sm"
+          style={{ borderColor, color: step.phaseColor, backgroundColor: `${step.phaseColor}10` }}
+        >
+          <Icon className="size-[18px]" />
+        </div>
+      </div>
+
+      <TimelineEventCard
+        step={step}
+        snapshotId={snapshotId}
+        loadingHost={loadingHost}
+        onHostClick={onHostClick}
+      />
+    </div>
+  )
+}
+
+function StorySummaryStrip({
+  storySummary,
+  eventCount,
+}: {
+  storySummary: string
+  eventCount: number
+}) {
+  return (
+    <div className="mb-5 flex min-w-0 items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
+      <span className="h-7 w-1 shrink-0 rounded-full bg-blue-600" />
+      <p className="min-w-0 flex-1 truncate">
+        {storySummary || "Story summary is not available for this case."}
+      </p>
+      <span className="shrink-0 text-xs font-semibold text-slate-400">
+        {eventCount} events
+      </span>
+    </div>
+  )
+}
+
+function TimelineFrame({
+  steps,
+  snapshotId,
+  loadingHostId,
+  onHostClick,
+}: {
+  steps: AttackCaseStoryTimelineStep[]
+  snapshotId: string
+  loadingHostId: string | null
+  onHostClick: (agentId: string) => void
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-x-auto">
+        <div className="grid min-w-[900px] grid-cols-[112px_56px_minmax(0,1fr)] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-500">
+          <div className="pl-2">Time</div>
+          <div className="text-center">Phase</div>
+          <div>Story evidence with IOC and source fields</div>
+        </div>
+        <div className="max-h-[720px] overflow-y-auto px-4 py-4">
+          <div className="space-y-4">
+            {steps.map((step, index) => (
+              <TimelineEventRow
+                key={step.id}
+                step={step}
+                snapshotId={snapshotId}
+                loadingHost={loadingHostId === step.agentId}
+                onHostClick={onHostClick}
+                isLast={index === steps.length - 1}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FactsStrip({
+  items,
+}: {
+  items: Array<[string, number]>
+}) {
+  return (
+    <div className="flex min-w-0 flex-wrap items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+      {items.map(([label, value], index) => (
+        <div key={label} className="flex items-center">
+          {index > 0 ? <span className="mx-4 h-5 w-px bg-slate-200" /> : null}
+          <span className="text-xs font-semibold text-slate-400">{label}</span>
+          <span className="ml-3 text-sm font-bold tabular-nums text-slate-950">{value}</span>
+        </div>
+      ))}
     </div>
   )
 }
@@ -620,6 +803,7 @@ function AttackCaseStoryTimelineBody({
   steps,
   storySummary,
   snapshotId,
+  eventCount,
   className,
 }: AttackCaseStoryTimelineBodyProps) {
   const [hostDialogOpen, setHostDialogOpen] = useState(false)
@@ -672,88 +856,13 @@ function AttackCaseStoryTimelineBody({
   return (
     <>
     <div className={cn("min-w-0", className)}>
-      <div className="mb-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
-        {storySummary || "Story summary is not available for this case."}
-      </div>
-
-      <div className="relative">
-        <div className="absolute bottom-4 left-[176px] top-4 w-px bg-slate-200" />
-
-        <div className="space-y-4">
-          {steps.map((step) => {
-            const Icon = STAGE_ICONS[step.phaseKey] ?? Bug
-            const borderColor = `${step.phaseColor}66`
-
-            return (
-              <div
-                key={step.id}
-                className="relative grid grid-cols-[minmax(164px,176px)_40px_minmax(0,1fr)] gap-3 rounded-lg border border-slate-200 bg-white px-4 py-4 shadow-sm hover:shadow-md"
-                style={{ borderLeftColor: borderColor, borderLeftWidth: 3 }}
-              >
-                <div className="pt-1 text-right font-mono text-xs font-semibold tabular-nums whitespace-nowrap text-slate-700">
-                  {step.timeLabel}
-                </div>
-
-                <div className="relative flex justify-center pt-0.5">
-                  <div
-                    className="z-10 flex size-9 items-center justify-center rounded-full border bg-white shadow-sm"
-                    style={{ borderColor, color: step.phaseColor }}
-                  >
-                    <Icon className="size-[18px]" />
-                  </div>
-                </div>
-
-                <div className="min-w-0">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <h3 className="min-w-0 text-base font-semibold leading-6 text-slate-950">
-                      {step.phaseLabel}
-                    </h3>
-                    <span
-                      className="rounded-full border px-2 py-0.5 text-xs font-semibold"
-                      style={{
-                        borderColor,
-                        color: step.phaseColor,
-                        backgroundColor: "#fff",
-                      }}
-                    >
-                      {step.eventName || "Evidence"}
-                    </span>
-                    {step.agentId ? (
-                      <button
-                        type="button"
-                        className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
-                        disabled={loadingHostId === step.agentId}
-                        onClick={() => void handleHostClick(step.agentId)}
-                        title={step.agentId}
-                      >
-                        {loadingHostId === step.agentId ? (
-                          <Loader2 className="mr-1 inline size-3 animate-spin align-[-2px]" />
-                        ) : null}
-                        HostID: {compactId(step.agentId, 10)}
-                      </button>
-                    ) : null}
-                  </div>
-
-                  <StepBranches step={step} snapshotId={snapshotId} />
-
-                  <div className="mt-3 flex min-w-0 flex-wrap gap-1.5 text-[11px] text-slate-400">
-                    {step.iocEvidences.length > 1 ? (
-                      <span className="rounded-md bg-slate-50 px-1.5 py-0.5">
-                        +{step.iocEvidences.length - 1} IOC
-                      </span>
-                    ) : null}
-                    {step.attackMarks.length > 1 ? (
-                      <span className="rounded-md bg-slate-50 px-1.5 py-0.5">
-                        +{step.attackMarks.length - 1} marks
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      <StorySummaryStrip storySummary={storySummary} eventCount={eventCount || steps.length} />
+      <TimelineFrame
+        steps={steps}
+        snapshotId={snapshotId}
+        loadingHostId={loadingHostId}
+        onHostClick={(agentId) => void handleHostClick(agentId)}
+      />
     </div>
 
     <Dialog
@@ -815,15 +924,19 @@ function EmptyState({
   return (
     <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-950">
-          <Activity className="size-5 text-slate-500" />
-          Attack Story
-        </CardTitle>
-        <CardDescription>
-          {hasCaseId
-            ? "No timeline data was returned for this case."
-            : noCaseDescription ?? "Select an attack case to inspect its story timeline."}
-        </CardDescription>
+        <div className="flex min-w-0 items-center gap-3">
+          <Activity className="size-5 shrink-0 text-slate-500" />
+          <div className="min-w-0">
+            <CardTitle className="text-lg font-semibold text-slate-950">
+              Attack Story
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {hasCaseId
+                ? "No timeline data was returned for this case."
+                : noCaseDescription ?? "Select an attack case to inspect its story timeline."}
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="px-6 py-10">
         <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
@@ -843,11 +956,17 @@ function LoadingState() {
   return (
     <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-950">
-          <Loader2 className="size-5 animate-spin text-blue-600" />
-          Loading attack story
-        </CardTitle>
-        <CardDescription>Fetching timeline evidence and source event descriptions.</CardDescription>
+        <div className="flex min-w-0 items-center gap-3">
+          <Loader2 className="size-5 shrink-0 animate-spin text-blue-600" />
+          <div className="min-w-0">
+            <CardTitle className="text-lg font-semibold text-slate-950">
+              Loading attack story
+            </CardTitle>
+            <CardDescription className="mt-1">
+              Fetching timeline evidence and source event descriptions.
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4 px-6 py-6">
         <div className="h-8 w-72 rounded-lg bg-slate-100" />
@@ -1029,11 +1148,15 @@ export function AttackCaseStoryTimelineRender({
     return (
       <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm", className)}>
         <CardHeader className="border-b border-slate-200 px-6 py-5">
-          <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-950">
-            <AlertTriangle className="size-5 text-rose-500" />
-            Attack Story
-          </CardTitle>
-          <CardDescription>{error}</CardDescription>
+          <div className="flex min-w-0 items-center gap-3">
+            <AlertTriangle className="size-5 shrink-0 text-rose-500" />
+            <div className="min-w-0">
+              <CardTitle className="text-lg font-semibold text-slate-950">
+                Attack Story
+              </CardTitle>
+              <CardDescription className="mt-1">{error}</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4 px-6 py-6">
           <p className="text-sm text-slate-500">Unable to load story timeline for this CaseID.</p>
@@ -1055,15 +1178,19 @@ export function AttackCaseStoryTimelineRender({
   return (
     <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm", className)}>
       <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
-            <CardTitle className="flex min-w-0 items-center gap-2 text-lg font-semibold text-slate-950">
-              <ShieldAlert className="size-5 text-blue-600" />
-              <span className="truncate">Attack Story</span>
-            </CardTitle>
-            <CardDescription className="mt-1">
-              Case investigation timeline from GetCaseTimeline and source event descriptions.
-            </CardDescription>
+            <div className="flex min-w-0 items-center gap-3">
+              <ShieldAlert className="size-5 shrink-0 text-blue-600" />
+              <div className="min-w-0">
+                <CardTitle className="truncate text-lg font-semibold text-slate-950">
+                  Attack Story
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  Case investigation timeline from GetCaseTimeline and source event descriptions.
+                </CardDescription>
+              </div>
+            </div>
             <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
               <span className="max-w-full truncate rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
                 Case {compactId(summary.case_id, 24)}
@@ -1076,22 +1203,14 @@ export function AttackCaseStoryTimelineRender({
               </span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {[
+          <FactsStrip
+            items={[
               ["Rules", summary.rule_count],
               ["Hosts", summary.host_count],
               ["Instances", summary.instance_count],
               ["Evidence", summary.evidence_count],
-            ].map(([label, value]) => (
-              <div
-                key={label}
-                className="min-w-[104px] rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
-              >
-                <div className="text-xs font-medium text-slate-500">{label}</div>
-                <div className="mt-1 text-lg font-semibold tabular-nums text-slate-950">{value}</div>
-              </div>
-            ))}
-          </div>
+            ]}
+          />
         </div>
       </CardHeader>
       <CardContent className="min-w-0 max-w-full px-6 py-5">
@@ -1104,6 +1223,7 @@ export function AttackCaseStoryTimelineRender({
           steps={storySteps}
           storySummary={storySummary}
           snapshotId={snapshotId}
+          eventCount={summary.evidence_count}
         />
       </CardContent>
     </Card>
