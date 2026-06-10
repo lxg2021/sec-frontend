@@ -821,6 +821,60 @@
             "next": "Next"
           }
         },
+        "caseStory": {
+          "title": "Attack Story",
+          "description": "Case investigation timeline from GetCaseTimeline and source event descriptions.",
+          "backToCaseList": "Return to the attack case list and locate this Case",
+          "caseButtonTitle": "Return to attack details and locate this Case",
+          "describeWarning": "Source event descriptions are unavailable; fallback evidence text is shown.",
+          "loadErrorFallback": "Failed to load attack story",
+          "loadErrorMessage": "Unable to load story timeline for this CaseID.",
+          "retry": "Retry",
+          "unknown": "Unknown",
+          "eventFallback": "Evidence",
+          "fallbackEvidence": "Timeline evidence",
+          "iocFallback": "IOC evidence matched",
+          "summaryFallback": "Story summary is not available for this case.",
+          "summaryEvents": "{count} events",
+          "moreFields": "+{count} fields",
+          "moreIoc": "+{count} IOC",
+          "moreMarks": "+{count} marks",
+          "facts": {
+            "rules": "Rules",
+            "hosts": "Hosts",
+            "instances": "Instances",
+            "evidence": "Evidence"
+          },
+          "labels": {
+            "ruleId": "ruleid:",
+            "ruleTitle": "rule title:",
+            "suspiciousBehavior": "suspicious behavior:",
+            "sourceDescription": "source description:"
+          },
+          "table": {
+            "time": "Time",
+            "phase": "Phase",
+            "evidence": "Story evidence with IOC and source fields"
+          },
+          "empty": {
+            "noTimelineData": "No timeline data was returned for this case.",
+            "selectCaseDescription": "Select an attack case to inspect its story timeline.",
+            "timelineEvidenceHint": "Timeline evidence will appear here when available.",
+            "openCaseHint": "Open this view with a CaseID to load the investigation story.",
+            "noEvidence": "No story evidence is available for this case."
+          },
+          "loading": {
+            "title": "Loading attack story",
+            "description": "Fetching timeline evidence and source event descriptions."
+          },
+          "host": {
+            "infoTitle": "Host info",
+            "loading": "Loading host info",
+            "loadFailed": "Failed to load host info",
+            "failedFallback": "Failed to load host info.",
+            "notFound": "Host not found: {host}"
+          }
+        },
         "stageDetails": {
           "selectStage": "Select a stage to view details.",
           "title": "{stage} Details",

@@ -823,6 +823,60 @@
             "next": "下一页"
           }
         },
+        "caseStory": {
+          "title": "攻击故事",
+          "description": "基于 GetCaseTimeline 和事件源描述的 Case 调查时间线。",
+          "backToCaseList": "返回攻击场景列表并定位当前 Case",
+          "caseButtonTitle": "返回攻击详情并定位到该 Case",
+          "describeWarning": "事件源描述暂不可用，当前展示降级后的证据文本。",
+          "loadErrorFallback": "攻击故事加载失败",
+          "loadErrorMessage": "无法加载该 CaseID 的故事时间线。",
+          "retry": "重试",
+          "unknown": "未知",
+          "eventFallback": "证据",
+          "fallbackEvidence": "时间线证据",
+          "iocFallback": "命中 IOC 证据",
+          "summaryFallback": "该 Case 暂无故事摘要。",
+          "summaryEvents": "{count} 个事件",
+          "moreFields": "+{count} 个字段",
+          "moreIoc": "+{count} 个 IOC",
+          "moreMarks": "+{count} 个标记",
+          "facts": {
+            "rules": "规则",
+            "hosts": "主机",
+            "instances": "实例",
+            "evidence": "证据"
+          },
+          "labels": {
+            "ruleId": "规则ID:",
+            "ruleTitle": "规则标题:",
+            "suspiciousBehavior": "可疑行为:",
+            "sourceDescription": "源描述:"
+          },
+          "table": {
+            "time": "时间",
+            "phase": "阶段",
+            "evidence": "故事证据、IOC 与源字段"
+          },
+          "empty": {
+            "noTimelineData": "该 Case 未返回时间线数据。",
+            "selectCaseDescription": "请选择攻击场景查看故事时间线。",
+            "timelineEvidenceHint": "存在可用数据时，时间线证据会显示在这里。",
+            "openCaseHint": "请携带 CaseID 打开该页面以加载调查故事。",
+            "noEvidence": "该 Case 暂无故事证据。"
+          },
+          "loading": {
+            "title": "正在加载攻击故事",
+            "description": "正在获取时间线证据和事件源描述。"
+          },
+          "host": {
+            "infoTitle": "主机信息",
+            "loading": "正在加载主机信息",
+            "loadFailed": "主机信息加载失败",
+            "failedFallback": "主机信息加载失败。",
+            "notFound": "未找到主机: {host}"
+          }
+        },
         "stageDetails": {
           "selectStage": "请选择一个阶段查看详情。",
           "title": "{stage} 详情",

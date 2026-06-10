@@ -89,9 +89,20 @@ export default function AttackDetailPage() {
   const [caseHasMore, setCaseHasMore] = useState(false)
   const [caseLoadingMore, setCaseLoadingMore] = useState(false)
   const [casePageSize, setCasePageSize] = useState(DEFAULT_CASE_PAGE_SIZE)
+  const [targetCaseId, setTargetCaseId] = useState("")
 
   useEffect(() => {
     void loadDetail()
+  }, [])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    setTargetCaseId(
+      params.get("caseId")?.trim() ||
+      params.get("case_id")?.trim() ||
+      params.get("targetCaseId")?.trim() ||
+      "",
+    )
   }, [])
 
   useEffect(() => {
@@ -269,6 +280,7 @@ export default function AttackDetailPage() {
         <AttackCaseList
           items={caseItems}
           snapshotId={overview.bucket.snapshot_id}
+          targetCaseId={targetCaseId}
           hasMore={caseHasMore}
           loadingMore={caseLoadingMore}
           pageSize={casePageSize}

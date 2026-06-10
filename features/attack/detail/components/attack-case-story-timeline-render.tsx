@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, type ComponentType } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
@@ -191,13 +192,13 @@ function formatBehavior(value: string) {
   return value.trim().replace(/_/g, " ").replace(/\s+/g, " ")
 }
 
-function fallbackEvidenceSummary(item: AttackTimelineEvidenceItem) {
+function fallbackEvidenceSummary(item: AttackTimelineEvidenceItem, fallbackText = "Timeline evidence") {
   return firstFilled(
     item.detection_name,
     item.rule_title,
     item.event_name,
     isRuleDetectionMarker(item.find_string) ? "" : item.find_string,
-    "Timeline evidence",
+    fallbackText,
   )
 }
 
@@ -275,11 +276,11 @@ function buildAttackDetailHref(caseId: string, snapshotId: string) {
   return `/frame/attack/detail?${params.toString()}`
 }
 
-function formatIocLine(ioc: AttackIocEvidence) {
+function formatIocLine(ioc: AttackIocEvidence, fallbackText = "IOC evidence matched") {
   const value = firstFilled(ioc.ioc_display_value, ioc.ioc_normalized_value, ioc.candidate_value, ioc.marker)
   const type = firstFilled(ioc.ioc_type, ioc.candidate_type, ioc.hit_source)
   if (type && value) return `${type}: ${value}`
-  return value || type || "IOC evidence matched"
+  return value || type || fallbackText
 }
 
 function normalizeStageCandidates(...values: string[]): AttckStageKey[] {
@@ -417,6 +418,11 @@ function buildDescriptionMap(items: BatchDescribeEventSourceItem[]) {
 function buildStorySteps(
   events: TimelineEvent[],
   descriptions: Map<string, BatchDescribeEventSourceItem>,
+  options: {
+    fallbackEvidenceText?: string
+    unknownStageLabel?: string
+    stageLabel?: (stage: AttckStageKey) => string
+  } = {},
 ): AttackCaseStoryTimelineStep[] {
   return [...events]
     .sort((left, right) => compareOccurredAt(left.item.occurred_at, right.item.occurred_at))
@@ -425,7 +431,7 @@ function buildStorySteps(
       const stage = stageKey === "unknown" ? null : ATTCK_STAGE_DEFINITIONS.find((entry) => entry.key === stageKey)
       const descriptionItem = descriptions.get(descriptionKeyId(item))
       const description = descriptionItem?.description ?? null
-      const fallbackSummary = fallbackEvidenceSummary(item)
+      const fallbackSummary = fallbackEvidenceSummary(item, options.fallbackEvidenceText)
       const summary = firstFilled(description?.summary ?? "", description?.short_summary ?? "", fallbackSummary)
       const ruleTitle = firstFilled(item.rule_title, item.detection_name, item.rule_id, instance.rule_id)
 
@@ -434,7 +440,7 @@ function buildStorySteps(
         occurredAt: item.occurred_at,
         timeLabel: formatOccurredAt(item.occurred_at),
         phaseKey: stageKey,
-        phaseLabel: stage ? STAGE_LABELS[stage.key] : "Unknown",
+        phaseLabel: stage ? options.stageLabel?.(stage.key) ?? STAGE_LABELS[stage.key] : options.unknownStageLabel ?? "Unknown",
         phaseColor: stage?.color ?? "#64748b",
         summary,
         shortSummary: firstFilled(description?.short_summary ?? "", summary),
@@ -563,6 +569,7 @@ function TimelineEventCard({
   loadingHost: boolean
   onHostClick: (agentId: string) => void
 }) {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
   const primarySlots = step.slots
     .filter((slot) => slot.primary && slot.display_value)
     .sort((left, right) => left.order - right.order)
@@ -596,7 +603,7 @@ function TimelineEventCard({
             backgroundColor: subtleColor,
           }}
         >
-          {step.eventName || "Evidence"}
+          {step.eventName || t("eventFallback")}
         </span>
         {step.agentId ? (
           <button
@@ -621,7 +628,7 @@ function TimelineEventCard({
       <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-8 gap-y-2 text-sm leading-5 text-slate-500">
         {ruleId ? (
           <span className="inline-flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-xs font-medium text-slate-500">ruleid:</span>
+            <span className="shrink-0 text-xs font-medium text-slate-500">{t("labels.ruleId")}</span>
             <StoryRuleDetailTrigger
               ruleId={ruleId}
               ruleTitle={ruleTitle}
@@ -631,7 +638,7 @@ function TimelineEventCard({
         ) : null}
         {ruleTitle ? (
           <span className="inline-flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-xs font-medium text-slate-500">rule title:</span>
+            <span className="shrink-0 text-xs font-medium text-slate-500">{t("labels.ruleTitle")}</span>
             <span className="min-w-0 truncate text-sm font-medium text-slate-700">{ruleTitle}</span>
           </span>
         ) : null}
@@ -644,15 +651,15 @@ function TimelineEventCard({
       </div>
 
       <div className="mt-3 flex min-w-0 flex-wrap gap-2">
-        <EvidenceChip label="可疑行为:" value={behavior} valueClassName="text-orange-600" />
+        <EvidenceChip label={t("labels.suspiciousBehavior")} value={behavior} valueClassName="text-orange-600" />
         {firstIoc ? (
           <EvidenceChip
             label="IOC:"
-            value={formatIocLine(firstIoc)}
+            value={formatIocLine(firstIoc, t("iocFallback"))}
             valueClassName="text-rose-600"
           />
         ) : null}
-        {status ? <EvidenceChip label="source description:" value={status} /> : null}
+        {status ? <EvidenceChip label={t("labels.sourceDescription")} value={status} /> : null}
       </div>
 
       {slots.length > 0 ? (
@@ -668,7 +675,7 @@ function TimelineEventCard({
           ))}
           {hiddenSlotCount > 0 ? (
             <span className="inline-flex items-center rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-400">
-              +{hiddenSlotCount} fields
+              {t("moreFields", { count: hiddenSlotCount })}
             </span>
           ) : null}
         </div>
@@ -678,12 +685,12 @@ function TimelineEventCard({
         <div className="mt-2 flex min-w-0 flex-wrap gap-1.5 text-[11px] text-slate-400">
           {step.iocEvidences.length > 1 ? (
             <span className="rounded-md bg-slate-50 px-1.5 py-0.5">
-              +{step.iocEvidences.length - 1} IOC
+              {t("moreIoc", { count: step.iocEvidences.length - 1 })}
             </span>
           ) : null}
           {step.attackMarks.length > 1 ? (
             <span className="rounded-md bg-slate-50 px-1.5 py-0.5">
-              +{step.attackMarks.length - 1} marks
+              {t("moreMarks", { count: step.attackMarks.length - 1 })}
             </span>
           ) : null}
         </div>
@@ -754,14 +761,16 @@ function StorySummaryStrip({
   storySummary: string
   eventCount: number
 }) {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
+
   return (
     <div className="mb-5 flex min-w-0 items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
       <span className="h-7 w-1 shrink-0 rounded-full bg-blue-600" />
       <p className="min-w-0 flex-1 truncate">
-        {storySummary || "Story summary is not available for this case."}
+        {storySummary || t("summaryFallback")}
       </p>
       <span className="shrink-0 text-xs font-semibold text-slate-400">
-        {eventCount} events
+        {t("summaryEvents", { count: eventCount })}
       </span>
     </div>
   )
@@ -778,13 +787,15 @@ function TimelineFrame({
   loadingHostId: string | null
   onHostClick: (agentId: string) => void
 }) {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
+
   return (
     <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
       <div className="overflow-x-auto">
         <div className="grid min-w-[900px] grid-cols-[112px_56px_minmax(0,1fr)] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-500">
-          <div className="pl-2">Time</div>
-          <div className="text-center">Phase</div>
-          <div>Story evidence with IOC and source fields</div>
+          <div className="pl-2">{t("table.time")}</div>
+          <div className="text-center">{t("table.phase")}</div>
+          <div>{t("table.evidence")}</div>
         </div>
         <div className="max-h-[720px] overflow-y-auto px-4 py-4">
           <div className="space-y-4">
@@ -851,6 +862,7 @@ function AttackCaseStoryTimelineBody({
   eventCount,
   className,
 }: AttackCaseStoryTimelineBodyProps) {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
   const [hostDialogOpen, setHostDialogOpen] = useState(false)
   const [selectedHostId, setSelectedHostId] = useState("")
   const [selectedHost, setSelectedHost] = useState<HostSelectorHostNode | null>(null)
@@ -870,7 +882,7 @@ function AttackCaseStoryTimelineBody({
     try {
       const detail = await getSingleHostDetail({ agentId: normalizedAgentId })
       if (!detail) {
-        setHostInfoError(`Host not found: ${normalizedAgentId}`)
+        setHostInfoError(t("host.notFound", { host: normalizedAgentId }))
         return
       }
 
@@ -883,7 +895,7 @@ function AttackCaseStoryTimelineBody({
 
       setSelectedHost(toHostInfoNode(detail, hardware))
     } catch (error) {
-      setHostInfoError(error instanceof Error ? error.message : "Failed to load host info.")
+      setHostInfoError(error instanceof Error ? error.message : t("host.failedFallback"))
     } finally {
       setLoadingHostId(null)
     }
@@ -893,7 +905,7 @@ function AttackCaseStoryTimelineBody({
     return (
       <div className={cn("rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center", className)}>
         <FileText className="mx-auto size-8 text-slate-400" />
-        <p className="mt-3 text-sm text-slate-500">No story evidence is available for this case.</p>
+        <p className="mt-3 text-sm text-slate-500">{t("empty.noEvidence")}</p>
       </div>
     )
   }
@@ -923,19 +935,19 @@ function AttackCaseStoryTimelineBody({
     >
       <DialogContent className="w-auto max-w-[600px] border-none p-0 shadow-xl">
         <DialogTitle className="m-0 h-0 overflow-hidden p-0">
-          <VisuallyHidden>{selectedHost?.hostname || selectedHostId || "Host info"}</VisuallyHidden>
+          <VisuallyHidden>{selectedHost?.hostname || selectedHostId || t("host.infoTitle")}</VisuallyHidden>
         </DialogTitle>
         {loadingHostId ? (
           <div className="flex min-w-[420px] flex-col items-center justify-center gap-3 rounded-lg border bg-white px-8 py-10 text-sm text-slate-500">
             <Loader2 className="size-5 animate-spin text-blue-600" />
-            <div>Loading host info</div>
+            <div>{t("host.loading")}</div>
             <div className="max-w-[360px] truncate font-mono text-xs text-slate-400">{selectedHostId}</div>
           </div>
         ) : hostInfoError ? (
           <div className="min-w-[420px] rounded-lg border bg-white px-5 py-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-rose-600">
               <AlertTriangle className="size-4" />
-              Failed to load host info
+              {t("host.loadFailed")}
             </div>
             <p className="mt-2 break-words text-sm leading-6 text-slate-500">{hostInfoError}</p>
             {selectedHostId ? (
@@ -964,6 +976,7 @@ function EmptyState({
   noCaseDescription?: string
   noCaseHint?: string
 }) {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
   const hasCaseId = Boolean(caseId?.trim())
 
   return (
@@ -973,12 +986,12 @@ function EmptyState({
           <StoryHeaderIcon icon={Activity} tone="slate" />
           <div className="min-w-0">
             <CardTitle className="text-lg font-semibold text-slate-950">
-              Attack Story
+              {t("title")}
             </CardTitle>
             <CardDescription className="mt-1">
               {hasCaseId
-                ? "No timeline data was returned for this case."
-                : noCaseDescription ?? "Select an attack case to inspect its story timeline."}
+                ? t("empty.noTimelineData")
+                : noCaseDescription ?? t("empty.selectCaseDescription")}
             </CardDescription>
           </div>
         </div>
@@ -988,8 +1001,8 @@ function EmptyState({
           <FileSearch className="size-8 text-slate-400" />
           <p className="text-sm text-slate-500">
             {hasCaseId
-              ? "Timeline evidence will appear here when available."
-              : noCaseHint ?? "Open this view with a CaseID to load the investigation story."}
+              ? t("empty.timelineEvidenceHint")
+              : noCaseHint ?? t("empty.openCaseHint")}
           </p>
         </div>
       </CardContent>
@@ -998,6 +1011,8 @@ function EmptyState({
 }
 
 function LoadingState() {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
+
   return (
     <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 px-6 py-5">
@@ -1007,10 +1022,10 @@ function LoadingState() {
           </div>
           <div className="min-w-0">
             <CardTitle className="text-lg font-semibold text-slate-950">
-              Loading attack story
+              {t("loading.title")}
             </CardTitle>
             <CardDescription className="mt-1">
-              Fetching timeline evidence and source event descriptions.
+              {t("loading.description")}
             </CardDescription>
           </div>
         </div>
@@ -1033,6 +1048,9 @@ export function AttackCaseStoryTimelineRender({
   noCaseDescription,
   noCaseHint,
 }: AttackCaseStoryTimelineRenderProps) {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
+  const stageT = useTranslations("pages.attack.dashboard.stages")
+  const locale = useLocale()
   const [data, setData] = useState<AttackCaseTimelineResult | null>(null)
   const [descriptions, setDescriptions] = useState<BatchDescribeEventSourceItem[]>([])
   const [storySummary, setStorySummary] = useState("")
@@ -1040,6 +1058,10 @@ export function AttackCaseStoryTimelineRender({
   const [error, setError] = useState<string | null>(null)
   const [describeWarning, setDescribeWarning] = useState<string | null>(null)
   const router = useRouter()
+  const descriptionLanguage = useMemo(
+    () => (locale.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US"),
+    [locale],
+  )
 
   async function loadTimeline(nextCaseId = caseId) {
     const normalizedCaseId = nextCaseId.trim()
@@ -1074,7 +1096,7 @@ export function AttackCaseStoryTimelineRender({
         const described = await batchDescribeEventSourcesByKeys({
           keys,
           tenantId: result?.case.tenant_id,
-          language: "en-US",
+          language: descriptionLanguage,
           includeEventSource: false,
           includeAllFields: false,
         })
@@ -1084,14 +1106,14 @@ export function AttackCaseStoryTimelineRender({
         console.error("describe attack story source events failed", err)
         setDescriptions([])
         setStorySummary("")
-        setDescribeWarning("Source event descriptions are unavailable; fallback evidence text is shown.")
+        setDescribeWarning(t("describeWarning"))
       }
     } catch (err) {
       console.error("load attack case timeline failed", err)
       setData(null)
       setDescriptions([])
       setStorySummary("")
-      setError(err instanceof Error ? err.message : "Failed to load attack story")
+      setError(err instanceof Error ? err.message : t("loadErrorFallback"))
     } finally {
       setLoading(false)
     }
@@ -1135,7 +1157,7 @@ export function AttackCaseStoryTimelineRender({
           const described = await batchDescribeEventSourcesByKeys({
             keys,
             tenantId: result?.case.tenant_id,
-            language: "en-US",
+            language: descriptionLanguage,
             includeEventSource: false,
             includeAllFields: false,
           })
@@ -1148,7 +1170,7 @@ export function AttackCaseStoryTimelineRender({
           if (!cancelled) {
             setDescriptions([])
             setStorySummary("")
-            setDescribeWarning("Source event descriptions are unavailable; fallback evidence text is shown.")
+            setDescribeWarning(t("describeWarning"))
           }
         }
       } catch (err) {
@@ -1157,7 +1179,7 @@ export function AttackCaseStoryTimelineRender({
           setData(null)
           setDescriptions([])
           setStorySummary("")
-          setError(err instanceof Error ? err.message : "Failed to load attack story")
+          setError(err instanceof Error ? err.message : t("loadErrorFallback"))
         }
       } finally {
         if (!cancelled) {
@@ -1170,13 +1192,18 @@ export function AttackCaseStoryTimelineRender({
     return () => {
       cancelled = true
     }
-  }, [caseId, timezone])
+  }, [caseId, descriptionLanguage, t, timezone])
 
   const events = useMemo(() => flattenTimelineEvents(data), [data])
   const descriptionMap = useMemo(() => buildDescriptionMap(descriptions), [descriptions])
   const storySteps = useMemo(
-    () => buildStorySteps(events, descriptionMap),
-    [events, descriptionMap],
+    () =>
+      buildStorySteps(events, descriptionMap, {
+        fallbackEvidenceText: t("fallbackEvidence"),
+        unknownStageLabel: t("unknown"),
+        stageLabel: (stage) => stageT(`${stage}.label`),
+      }),
+    [descriptionMap, events, stageT, t],
   )
 
   if (!caseId.trim()) {
@@ -1200,17 +1227,17 @@ export function AttackCaseStoryTimelineRender({
             <StoryHeaderIcon icon={AlertTriangle} tone="rose" />
             <div className="min-w-0">
               <CardTitle className="text-lg font-semibold text-slate-950">
-                Attack Story
+                {t("title")}
               </CardTitle>
               <CardDescription className="mt-1">{error}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4 px-6 py-6">
-          <p className="text-sm text-slate-500">Unable to load story timeline for this CaseID.</p>
+          <p className="text-sm text-slate-500">{t("loadErrorMessage")}</p>
           <Button type="button" variant="outline" size="sm" onClick={() => void loadTimeline()}>
             <RefreshCw className="mr-2 size-4" />
-            Retry
+            {t("retry")}
           </Button>
         </CardContent>
       </Card>
@@ -1233,14 +1260,14 @@ export function AttackCaseStoryTimelineRender({
               <div className="min-w-0">
                 <div className="flex min-w-0 items-center gap-2">
                   <CardTitle className="truncate text-lg font-semibold text-slate-950">
-                    Attack Story
+                    {t("title")}
                   </CardTitle>
                   <TooltipProvider delayDuration={150}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          aria-label="返回攻击场景列表并定位当前 Case"
+                          aria-label={t("backToCaseList")}
                           className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-sky-100 bg-sky-50/80 text-sky-700 shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 motion-reduce:transform-none motion-reduce:transition-none"
                           onClick={() => router.push(buildAttackDetailHref(summary.case_id, snapshotId))}
                         >
@@ -1248,13 +1275,13 @@ export function AttackCaseStoryTimelineRender({
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="text-xs">
-                        返回攻击场景列表并定位当前 Case
+                        {t("backToCaseList")}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
                 <CardDescription className="mt-1">
-                  Case investigation timeline from GetCaseTimeline and source event descriptions.
+                  {t("description")}
                 </CardDescription>
               </div>
             </div>
@@ -1262,7 +1289,7 @@ export function AttackCaseStoryTimelineRender({
               <button
                 type="button"
                 className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-1 text-left font-mono text-xs font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
-                title="返回攻击详情并定位到该 Case"
+                title={t("caseButtonTitle")}
                 onClick={() => router.push(buildAttackDetailHref(summary.case_id, snapshotId))}
               >
                 <FileText className="size-3.5 shrink-0" />
@@ -1270,7 +1297,7 @@ export function AttackCaseStoryTimelineRender({
               </button>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
                 <ShieldAlert className="size-3.5 shrink-0" />
-                {summary.severity || "unknown"}
+                {summary.severity || t("unknown")}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50/60 px-2.5 py-1 text-xs font-medium text-blue-700">
                 <CalendarClock className="size-3.5 shrink-0" />
@@ -1280,10 +1307,10 @@ export function AttackCaseStoryTimelineRender({
           </div>
           <FactsStrip
             items={[
-              ["Rules", summary.rule_count],
-              ["Hosts", summary.host_count],
-              ["Instances", summary.instance_count],
-              ["Evidence", summary.evidence_count],
+              [t("facts.rules"), summary.rule_count],
+              [t("facts.hosts"), summary.host_count],
+              [t("facts.instances"), summary.instance_count],
+              [t("facts.evidence"), summary.evidence_count],
             ]}
           />
         </div>
