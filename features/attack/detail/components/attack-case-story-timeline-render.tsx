@@ -513,11 +513,13 @@ function EvidenceChip({
   value,
   title,
   monoValue = false,
+  valueClassName,
 }: {
   label: string
   value: string
   title?: string
   monoValue?: boolean
+  valueClassName?: string
 }) {
   if (!value) return null
 
@@ -527,7 +529,7 @@ function EvidenceChip({
       title={title || `${label}: ${value}`}
     >
       <span className="shrink-0 font-semibold text-slate-400">{label}</span>
-      <span className={cn("min-w-0 truncate font-semibold text-slate-700", monoValue && "font-mono")}>
+      <span className={cn("min-w-0 truncate font-semibold text-slate-700", monoValue && "font-mono", valueClassName)}>
         {value}
       </span>
     </span>
@@ -626,8 +628,14 @@ function TimelineEventCard({
       </div>
 
       <div className="mt-3 flex min-w-0 flex-wrap gap-2">
-        <EvidenceChip label="suspicious behavior:" value={behavior} />
-        {firstIoc ? <EvidenceChip label="IOC:" value={formatIocLine(firstIoc)} /> : null}
+        <EvidenceChip label="可疑行为:" value={behavior} valueClassName="text-orange-600" />
+        {firstIoc ? (
+          <EvidenceChip
+            label="IOC:"
+            value={formatIocLine(firstIoc)}
+            valueClassName="text-rose-600"
+          />
+        ) : null}
         {status ? <EvidenceChip label="source description:" value={status} /> : null}
       </div>
 
