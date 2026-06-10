@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState, type ComponentType } from "react"
+import { useRouter } from "next/navigation"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
   Activity,
@@ -257,6 +258,13 @@ function toHostInfoNode(host: AgentInfo, hardware?: AgentHardwareInfo | null): H
 
 function techniqueHref(technique: string) {
   return `https://attack.mitre.org/techniques/${technique.replace(".", "/")}/`
+}
+
+function buildAttackDetailHref(caseId: string, snapshotId: string) {
+  const params = new URLSearchParams()
+  params.set("caseId", caseId)
+  if (snapshotId.trim()) params.set("snapshotId", snapshotId.trim())
+  return `/frame/attack/detail?${params.toString()}`
 }
 
 function formatIocLine(ioc: AttackIocEvidence) {
@@ -1023,6 +1031,7 @@ export function AttackCaseStoryTimelineRender({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [describeWarning, setDescribeWarning] = useState<string | null>(null)
+  const router = useRouter()
 
   async function loadTimeline(nextCaseId = caseId) {
     const normalizedCaseId = nextCaseId.trim()
@@ -1223,9 +1232,14 @@ export function AttackCaseStoryTimelineRender({
               </div>
             </div>
             <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
-              <span className="max-w-full truncate rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-xs font-semibold text-slate-700">
-                Case {compactId(summary.case_id, 24)}
-              </span>
+              <button
+                type="button"
+                className="max-w-full rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-1 text-left font-mono text-xs font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                title="返回攻击详情并定位到该 Case"
+                onClick={() => router.push(buildAttackDetailHref(summary.case_id, snapshotId))}
+              >
+                Case {summary.case_id}
+              </button>
               <span className="rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600">
                 {summary.severity || "unknown"}
               </span>

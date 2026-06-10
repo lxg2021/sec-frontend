@@ -90,6 +90,7 @@ interface AttackCaseListProps {
   onViewDetail?: (caseId: string) => void
   className?: string
   snapshotId?: string
+  targetCaseId?: string
   hasMore?: boolean
   loadingMore?: boolean
   pageSize?: number
@@ -295,6 +296,7 @@ export function AttackCaseList({
   onViewDetail,
   className,
   snapshotId = "",
+  targetCaseId = "",
   hasMore = false,
   loadingMore = false,
   pageSize: controlledPageSize,
@@ -309,6 +311,9 @@ export function AttackCaseList({
   const [selectedCaseId, setSelectedCaseId] = useState("")
   const [caseIdQuery, setCaseIdQuery] = useState("")
   const [pendingScrollCaseId, setPendingScrollCaseId] = useState("")
+  const [autoLoadingCaseId, setAutoLoadingCaseId] = useState("")
+  const [autoLocateFailedCaseId, setAutoLocateFailedCaseId] = useState("")
+  const [autoLocatedCaseId, setAutoLocatedCaseId] = useState("")
   const pageSize = controlledPageSize ?? localPageSize
   const loadedTotal = caseItems.length
   const totalPages = Math.max(1, Math.ceil(loadedTotal / pageSize))
@@ -331,6 +336,11 @@ export function AttackCaseList({
   }, [caseItems, selectedCaseId])
 
   useEffect(() => {
+    setAutoLocateFailedCaseId("")
+    setAutoLocatedCaseId("")
+  }, [targetCaseId])
+
+  useEffect(() => {
     setPage((current) => Math.min(current, Math.max(1, Math.ceil(caseItems.length / pageSize))))
   }, [caseItems.length, pageSize])
 
@@ -345,6 +355,64 @@ export function AttackCaseList({
     }, 80)
     return () => window.clearTimeout(timer)
   }, [pendingScrollCaseId, normalizedPage, visibleItems])
+
+  useEffect(() => {
+    const normalizedTarget = targetCaseId.trim()
+    if (!normalizedTarget) return
+    if (autoLocatedCaseId === normalizedTarget) return
+
+    const matchedIndex = caseItems.findIndex(
+      (item) => item.case_id.toLowerCase() === normalizedTarget.toLowerCase(),
+    )
+
+    if (matchedIndex >= 0) {
+      const matched = caseItems[matchedIndex]
+      if (selectedCaseId !== matched.case_id) {
+        setSelectedCaseId(matched.case_id)
+      }
+      setCaseIdQuery(matched.case_id)
+      setPage(Math.floor(matchedIndex / pageSize) + 1)
+      setPendingScrollCaseId(matched.case_id)
+      setAutoLocatedCaseId(normalizedTarget)
+      return
+    }
+
+    setCaseIdQuery(normalizedTarget)
+    if (
+      !hasMore ||
+      !onLoadMore ||
+      loadingMore ||
+      autoLoadingCaseId === normalizedTarget ||
+      autoLocateFailedCaseId === normalizedTarget
+    ) {
+      return
+    }
+
+    setAutoLoadingCaseId(normalizedTarget)
+    void Promise.resolve(onLoadMore())
+      .then((loaded) => {
+        if (loaded === false) {
+          setAutoLocateFailedCaseId(normalizedTarget)
+        }
+      })
+      .catch(() => {
+        setAutoLocateFailedCaseId(normalizedTarget)
+      })
+      .finally(() => {
+        setAutoLoadingCaseId("")
+      })
+  }, [
+    autoLoadingCaseId,
+    autoLocatedCaseId,
+    autoLocateFailedCaseId,
+    caseItems,
+    hasMore,
+    loadingMore,
+    onLoadMore,
+    pageSize,
+    selectedCaseId,
+    targetCaseId,
+  ])
 
   function handleCaseUpdated(nextItem: AttackCaseTimelineSummary) {
     setCaseItems((current) =>
