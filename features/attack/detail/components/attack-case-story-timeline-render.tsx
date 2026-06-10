@@ -399,11 +399,8 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
       ? firstFilled(step.missReason, step.describeStatus)
       : ""
 
-  const lines = [
-    step.summary,
-    ruleId ? `RuleID: ${ruleId}` : "",
-    ruleTitle ? `Rule Title: ${ruleTitle}` : "",
-    behavior ? `Suspicious Behavior: ${behavior}` : "",
+  const detailLines = [
+    behavior ? `suspicious behavior: ${behavior}` : "",
     techniques ? `ATT&CK: ${techniques}` : "",
     firstIoc ? `IOC: ${formatIocLine(firstIoc)}` : "",
     status ? `Source description: ${status}` : "",
@@ -411,22 +408,41 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
 
   return (
     <div className="mt-3 space-y-2">
-      {lines.map((line, index) => (
-        <div key={`${step.id}-line-${index}`} className="flex min-w-0 gap-3">
+      <div className="flex min-w-0 gap-3">
+        <div className="flex w-7 shrink-0 justify-end pt-2">
+          <span className="h-px w-5 bg-slate-400" />
+        </div>
+        <p className="min-w-0 text-sm font-medium leading-6 text-slate-800">
+          {step.summary}
+        </p>
+      </div>
+
+      {ruleId || ruleTitle ? (
+        <div className="flex min-w-0 gap-3">
           <div className="flex w-7 shrink-0 justify-end pt-2">
-            <span
-              className={cn(
-                "h-px w-5 bg-slate-300",
-                index === 0 && "bg-slate-400",
-              )}
-            />
+            <span className="h-px w-5 bg-slate-300" />
           </div>
-          <p
-            className={cn(
-              "min-w-0 text-sm leading-6",
-              index === 0 ? "font-medium text-slate-800" : "text-slate-500",
-            )}
-          >
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6 text-slate-500">
+            {ruleId ? (
+              <span className="shrink-0 whitespace-nowrap">
+                ruleid: <span className="font-mono text-slate-600">{ruleId}</span>
+              </span>
+            ) : null}
+            {ruleTitle ? (
+              <span className="min-w-0">
+                rule title: <span className="font-medium text-slate-600">{ruleTitle}</span>
+              </span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {detailLines.map((line, index) => (
+        <div key={`${step.id}-detail-line-${index}`} className="flex min-w-0 gap-3">
+          <div className="flex w-7 shrink-0 justify-end pt-2">
+            <span className="h-px w-5 bg-slate-300" />
+          </div>
+          <p className="min-w-0 text-sm leading-6 text-slate-500">
             {line}
           </p>
         </div>
