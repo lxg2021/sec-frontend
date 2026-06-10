@@ -40,8 +40,16 @@ export interface AttackGraphNodeModel {
   displayName: string;
   presentationKind: AttackGraphNodePresentationKind;
   properties: Record<string, string>;
+  evidenceHit?: boolean;
+  evidenceRefs?: AttackGraphEvidenceRef[];
   missingFromResponse?: boolean;
   position?: AttackGraphPoint;
+}
+
+export interface AttackGraphEvidenceRef {
+  evidenceKey: string;
+  relationType: string;
+  properties: Record<string, string>;
 }
 
 export interface AttackGraphEdgeModel {
@@ -71,6 +79,9 @@ export interface AttackGraphModel {
     returnedNodeCount: number;
     returnedEdgeCount: number;
     missingEndpointNodeCount: number;
+    hiddenCaseNodeCount: number;
+    hiddenCaseEdgeCount: number;
+    evidenceHitNodeCount: number;
     duplicateNodeCount: number;
     duplicateEdgeCount: number;
     skippedEdgeCount: number;
@@ -94,4 +105,3 @@ export interface AttackGraphLayoutResult extends AttackGraphModel {
   width: number;
   height: number;
 }
-

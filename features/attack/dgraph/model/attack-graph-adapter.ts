@@ -6,6 +6,7 @@ import {
 import { getAttackGraphNodePresentationKind } from "./attack-graph-node-types";
 import type {
   AttackGraphEdgeModel,
+  AttackGraphEvidenceRef,
   AttackGraphModel,
   AttackGraphNodeModel,
   GraphCaseEdgeDto,
@@ -15,11 +16,27 @@ import type {
 
 export interface BuildAttackGraphModelOptions {
   includeMissingEndpointNodes?: boolean;
+  hideCaseStructure?: boolean;
 }
 
 const DEFAULT_OPTIONS: Required<BuildAttackGraphModelOptions> = {
   includeMissingEndpointNodes: true,
+  hideCaseStructure: true,
 };
+
+const CASE_ENTITY_TYPES = new Set([
+  "AttackCase",
+  "AttackCaseGroup",
+  "AttackCaseInstance",
+  "AttackCaseEvidence",
+]);
+
+const CASE_STRUCTURE_RELATION_TYPES = new Set([
+  "CASE_HAS_GROUP",
+  "GROUP_HAS_INSTANCE",
+  "INSTANCE_HAS_EVIDENCE",
+  "EVIDENCE_REFER_ENTITY",
+]);
 
 export function buildAttackGraphModel(
   response: GraphCaseResponseDto,
@@ -28,14 +45,31 @@ export function buildAttackGraphModel(
   const mergedOptions = { ...DEFAULT_OPTIONS, ...options };
   const rawNodes = Array.isArray(response.nodes) ? response.nodes : [];
   const rawEdges = Array.isArray(response.edges) ? response.edges : [];
+  const rawNodeTypeByKey = new Map<string, string>();
+  for (const rawNode of rawNodes) {
+    const key = stringValue(rawNode.key);
+    if (key) {
+      rawNodeTypeByKey.set(key, stringValue(rawNode.entity_type));
+    }
+  }
+  const evidenceRefsByTarget = collectEvidenceRefsByTarget(
+    rawEdges,
+    rawNodeTypeByKey,
+  );
 
   const nodesByKey = new Map<string, AttackGraphNodeModel>();
   let duplicateNodeCount = 0;
+  let hiddenCaseNodeCount = 0;
   for (const rawNode of rawNodes) {
     const node = normalizeNode(rawNode);
     if (!node) {
       continue;
     }
+    if (mergedOptions.hideCaseStructure && isCaseEntityType(node.entityType)) {
+      hiddenCaseNodeCount += 1;
+      continue;
+    }
+    applyEvidenceRefs(node, evidenceRefsByTarget.get(node.key));
     if (nodesByKey.has(node.key)) {
       duplicateNodeCount += 1;
     }
@@ -46,6 +80,7 @@ export function buildAttackGraphModel(
   let duplicateEdgeCount = 0;
   let skippedEdgeCount = 0;
   let missingEndpointNodeCount = 0;
+  let hiddenCaseEdgeCount = 0;
 
   for (const rawEdge of rawEdges) {
     const edge = normalizeEdge(rawEdge);
@@ -53,14 +88,27 @@ export function buildAttackGraphModel(
       skippedEdgeCount += 1;
       continue;
     }
+    if (
+      mergedOptions.hideCaseStructure &&
+      isCaseStructureRelationType(edge.relationType)
+    ) {
+      hiddenCaseEdgeCount += 1;
+      continue;
+    }
 
     if (mergedOptions.includeMissingEndpointNodes) {
       if (!nodesByKey.has(edge.source)) {
-        nodesByKey.set(edge.source, buildMissingEndpointNode(edge.source));
+        nodesByKey.set(
+          edge.source,
+          buildMissingEndpointNode(edge.source, evidenceRefsByTarget),
+        );
         missingEndpointNodeCount += 1;
       }
       if (!nodesByKey.has(edge.target)) {
-        nodesByKey.set(edge.target, buildMissingEndpointNode(edge.target));
+        nodesByKey.set(
+          edge.target,
+          buildMissingEndpointNode(edge.target, evidenceRefsByTarget),
+        );
         missingEndpointNodeCount += 1;
       }
     }
@@ -85,6 +133,11 @@ export function buildAttackGraphModel(
       returnedNodeCount: nodesByKey.size,
       returnedEdgeCount: edgesById.size,
       missingEndpointNodeCount,
+      hiddenCaseNodeCount,
+      hiddenCaseEdgeCount,
+      evidenceHitNodeCount: [...nodesByKey.values()].filter(
+        (node) => node.evidenceHit,
+      ).length,
       duplicateNodeCount,
       duplicateEdgeCount,
       skippedEdgeCount,
@@ -153,8 +206,11 @@ function normalizeEdge(rawEdge: GraphCaseEdgeDto): AttackGraphEdgeModel | null {
   };
 }
 
-function buildMissingEndpointNode(key: string): AttackGraphNodeModel {
-  return {
+function buildMissingEndpointNode(
+  key: string,
+  evidenceRefsByTarget: Map<string, AttackGraphEvidenceRef[]> = new Map(),
+): AttackGraphNodeModel {
+  const node: AttackGraphNodeModel = {
     id: key,
     key,
     entityType: "",
@@ -163,6 +219,8 @@ function buildMissingEndpointNode(key: string): AttackGraphNodeModel {
     properties: {},
     missingFromResponse: true,
   };
+  applyEvidenceRefs(node, evidenceRefsByTarget.get(key));
+  return node;
 }
 
 function buildEdgeId(input: {
@@ -202,6 +260,58 @@ function normalizeProperties(
   return normalized;
 }
 
+function collectEvidenceRefsByTarget(
+  rawEdges: GraphCaseEdgeDto[],
+  rawNodeTypeByKey: Map<string, string>,
+): Map<string, AttackGraphEvidenceRef[]> {
+  const refsByTarget = new Map<string, AttackGraphEvidenceRef[]>();
+  for (const rawEdge of rawEdges) {
+    const relationType = stringValue(rawEdge.relation_type);
+    if (relationType !== "EVIDENCE_REFER_ENTITY") {
+      continue;
+    }
+
+    const source = stringValue(rawEdge.source_key);
+    const target = stringValue(rawEdge.target_key);
+    if (!source || !target) {
+      continue;
+    }
+
+    const sourceType = rawNodeTypeByKey.get(source);
+    if (sourceType && sourceType !== "AttackCaseEvidence") {
+      continue;
+    }
+
+    const refs = refsByTarget.get(target) ?? [];
+    refs.push({
+      evidenceKey: source,
+      relationType,
+      properties: normalizeProperties(rawEdge.properties),
+    });
+    refsByTarget.set(target, refs);
+  }
+  return refsByTarget;
+}
+
+function applyEvidenceRefs(
+  node: AttackGraphNodeModel,
+  evidenceRefs: AttackGraphEvidenceRef[] | undefined,
+) {
+  if (!evidenceRefs?.length) {
+    return;
+  }
+  node.evidenceHit = true;
+  node.evidenceRefs = evidenceRefs;
+}
+
+function isCaseEntityType(entityType: string) {
+  return CASE_ENTITY_TYPES.has(entityType);
+}
+
+function isCaseStructureRelationType(relationType: string) {
+  return CASE_STRUCTURE_RELATION_TYPES.has(relationType);
+}
+
 function pickDisplayName(
   explicitName: string | undefined,
   properties: Record<string, string>,
@@ -239,4 +349,3 @@ function pickDisplayName(
 function stringValue(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
-

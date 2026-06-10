@@ -1,19 +1,7 @@
 ﻿// page.tsx
 "use client";
 
-import React, { useState, useCallback, useRef, useEffect } from "react";
-import GraphVisualization from "@/features/attack/graph/components/graph-visualization";
-import {
-  GraphNode,
-  GraphLink,
-} from "@/features/attack/graph/interface";
-import "reactflow/dist/base.css";
-
-// 引入注册中心
-import nodeRegistry, { getNodeRegistry } from "@/features/attack/graph/center/register-node-center";
-import edgeRegistry, { getEdgeRegistry } from "@/features/attack/graph/center/register-edge-center";
-import NodeEdgeAccordion from "@/features/attack/graph/components/node-edge-accordion";
-import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/sheet";
+import React, { useEffect, useMemo, useState } from "react";
 import { Shield } from "lucide-react"
 import {
   Card,
@@ -21,9 +9,10 @@ import {
   CardContent,
   CardTitle,
 } from "@/shared/ui/card";
-import { initialNodes, initialLinks } from "@/features/attack/mock/drill";
 import { useTranslations } from "next-intl"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
+import { AttackGraphFlow, fetchGraphCase } from "@/features/attack/dgraph"
+import type { GraphCaseResponseDto } from "@/features/attack/dgraph"
 
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
@@ -31,61 +20,11 @@ const DRILL_TIMEZONE = "Asia/Shanghai"
 export default function App() {
   const t = useTranslations("pages.attack.drill")
 
-  const [nodes, setNodes] = useState<GraphNode<any>[]>(initialNodes);
-  const [links, setLinks] = useState<GraphLink<{}>[]>(initialLinks);
   const [timelineCaseId, setTimelineCaseId] = useState("");
   const [timelineSnapshotId, setTimelineSnapshotId] = useState("");
-  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [treeRootId, setTreeRootId] = useState<string | null>(null);
-  const [sheetWidth, setSheetWidth] = useState(800);
-
-  /* 拖拽相关状态和引用 */
-  const [isDragging, setIsDragging] = useState(false);
-  const startXRef = useRef(0);
-  const startWidthRef = useRef(0);
-
-  /* 节点点击处理函数 */
-  const handleNodeClick = useCallback((event: React.MouseEvent, node: any) => {
-    setCurrentNodeId(node.id);
-    setTreeRootId(node.id);
-    setIsSheetOpen(true);
-  }, []);
-
-  /* 边点击处理函数 */
-  const handleEdgeClick = useCallback((event: React.MouseEvent, edge: any) => {
-  }, []);
-
-  /* 关闭抽屉 */
-  const handleCloseSheet = useCallback(() => {
-    setIsSheetOpen(false);
-    setTreeRootId(null);
-  }, []);
-
-  /* 处理鼠标按下，开始拖拽 */
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    startXRef.current = e.clientX;
-    startWidthRef.current = sheetWidth;
-  };
-
-  /* 处理鼠标移动，更新宽度 */
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-    const delta = startXRef.current - e.clientX;
-    const newWidth = startWidthRef.current + delta;
-
-    /* 限制宽度范围，比如最小800px，最大1200px */
-    if (newWidth >= 800 && newWidth <= 1200) {
-      setSheetWidth(newWidth);
-    }
-  }, [isDragging]);
-
-  /* 处理鼠标抬起，结束拖拽 */
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+  const [graphResponse, setGraphResponse] = useState<GraphCaseResponseDto | null>(null);
+  const [graphLoading, setGraphLoading] = useState(false);
+  const [graphError, setGraphError] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -101,21 +40,54 @@ export default function App() {
     )
   }, [])
 
-  /* 添加全局鼠标事件监听器 */
+  const graphNodeCount = useMemo(
+    () => graphResponse?.nodes?.length ?? 0,
+    [graphResponse],
+  )
+  const graphEdgeCount = useMemo(
+    () => graphResponse?.edges?.length ?? 0,
+    [graphResponse],
+  )
+
   useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    } else {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+    const caseId = timelineCaseId.trim()
+    if (!caseId) {
+      setGraphResponse(null)
+      setGraphError("")
+      setGraphLoading(false)
+      return
     }
 
+    let cancelled = false
+    setGraphLoading(true)
+    setGraphError("")
+
+    fetchGraphCase({
+      caseId,
+      includeScopeDrill: true,
+    })
+      .then((response) => {
+        if (cancelled) return
+        setGraphResponse(response)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        setGraphResponse(null)
+        setGraphError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load GraphCase data.",
+        )
+      })
+      .finally(() => {
+        if (cancelled) return
+        setGraphLoading(false)
+      })
+
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+      cancelled = true
+    }
+  }, [timelineCaseId])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,6 +125,11 @@ export default function App() {
                 <CardTitle className="text-lg md:text-xl font-semibold">
                   {t("graph")}
                 </CardTitle>
+                {graphResponse ? (
+                  <span className="rounded-sm bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
+                    {graphNodeCount} nodes / {graphEdgeCount} edges
+                  </span>
+                ) : null}
               </div>
             </div>
           </CardHeader>
@@ -160,61 +137,63 @@ export default function App() {
           {/* 分割线 */}
           <div className="border-t border-gray-100" />
 
-          <CardContent>
+          <CardContent className="p-0">
             <div className="w-full h-[760px]">
-              <GraphVisualization
-                nodes={nodes}
-                links={links}
-                nodeConfigs={getNodeRegistry()}
-                edgeConfigs={getEdgeRegistry()}
-                direction="LR"
-                forceLayout={true}
-                onNodeClick={handleNodeClick}
-                onEdgeClick={handleEdgeClick}
-              />
+              {!timelineCaseId.trim() ? (
+                <GraphStateMessage
+                  title="No CaseID"
+                  description="Select a case in Attack Details and click Trace Attack to load the GraphCase view."
+                />
+              ) : graphLoading ? (
+                <GraphStateMessage
+                  title="Loading GraphCase"
+                  description={`Fetching graph data for case ${timelineCaseId}.`}
+                />
+              ) : graphError ? (
+                <GraphStateMessage
+                  title="GraphCase Load Failed"
+                  description={graphError}
+                />
+              ) : graphResponse && graphNodeCount > 0 ? (
+                <AttackGraphFlow
+                  response={graphResponse}
+                  className="h-full"
+                  layoutOptions={{
+                    direction: "LR",
+                    nodeSep: 88,
+                    rankSep: 136,
+                  }}
+                />
+              ) : (
+                <GraphStateMessage
+                  title="No Graph Data"
+                  description={`GraphCase returned no nodes for case ${timelineCaseId}.`}
+                />
+              )}
             </div>
           </CardContent>
         </Card>
-
-        {/* 使用 Sheet 组件 */}
-        <div className="bg-white shadow-sm mb-6">
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen} modal={false}>
-            <SheetContent
-              side="right"
-              className="p-0 flex flex-col"
-              style={{
-                width: `${Math.max(240, sheetWidth)}px`,
-                minWidth: '680px',
-                maxWidth: 'none',
-                marginTop: '48px',
-              }}
-              onInteractOutside={(e) => e.preventDefault()}
-            >
-              {/* 添加隐藏的 SheetTitle 用于可访问性 */}
-              <SheetTitle className="sr-only">{t("sheetTitle")}</SheetTitle>
-
-              {/* 拖拽条 */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize bg-gray-200 hover:bg-gray-300 z-10"
-                onMouseDown={handleMouseDown}
-              />
-
-              {/* NodeEdgeAccordion 组件 */}
-              <NodeEdgeAccordion
-                nodes={nodes}
-                links={links}
-                treeRootId={treeRootId}
-              />
-            </SheetContent>
-          </Sheet>
-
-          {/* 拖拽时的遮罩，防止文本选中 */}
-          {isDragging && (
-            <div className="fixed inset-0 z-50 cursor-col-resize" />
-          )}
-        </div>
-
       </div>
     </div >
+  )
+}
+
+function GraphStateMessage({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="flex h-full min-h-[420px] items-center justify-center px-6 text-center">
+      <div className="max-w-md">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100">
+          <Shield className="h-5 w-5 text-slate-500" />
+        </div>
+        <div className="text-sm font-semibold text-slate-800">{title}</div>
+        <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+      </div>
+    </div>
   )
 }

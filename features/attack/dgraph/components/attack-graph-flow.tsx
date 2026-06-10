@@ -48,6 +48,9 @@ type AttackGraphFlowEdgeData = AttackGraphEdgeModel;
 
 const NODE_WIDTH = 148;
 const NODE_HEIGHT = 76;
+const NODE_ICON_SIZE = 44;
+const NODE_ICON_OFFSET = (NODE_WIDTH - NODE_ICON_SIZE) / 2;
+const NODE_ICON_CENTER_Y = NODE_ICON_SIZE / 2;
 
 const nodeTypes: NodeTypes = {
   attackGraphNode: AttackGraphFlowNode,
@@ -120,6 +123,11 @@ function AttackGraphFlowNode({
         type="target"
         position={Position.Left}
         className="!h-2 !w-2 !border-0 !bg-transparent"
+        style={{
+          left: NODE_ICON_OFFSET,
+          top: NODE_ICON_CENTER_Y,
+          transform: "translate(0, -50%)",
+        }}
         isConnectable={false}
       />
       <AttackGraphNode
@@ -128,6 +136,8 @@ function AttackGraphFlowNode({
           entityType: data.entityType,
           displayName: data.displayName,
           properties: data.properties,
+          evidenceHit: data.evidenceHit,
+          evidenceRefs: data.evidenceRefs,
         }}
         compact={data.compact}
         muted={data.missingFromResponse}
@@ -137,6 +147,11 @@ function AttackGraphFlowNode({
         type="source"
         position={Position.Right}
         className="!h-2 !w-2 !border-0 !bg-transparent"
+        style={{
+          right: NODE_ICON_OFFSET,
+          top: NODE_ICON_CENTER_Y,
+          transform: "translate(0, -50%)",
+        }}
         isConnectable={false}
       />
     </div>

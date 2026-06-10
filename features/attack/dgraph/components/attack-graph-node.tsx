@@ -15,6 +15,8 @@ export interface AttackGraphNodeData {
   display_name?: string;
   displayName?: string;
   properties?: Record<string, string | number | boolean | null | undefined>;
+  evidenceHit?: boolean;
+  evidenceRefs?: unknown[];
 }
 
 export interface AttackGraphNodeProps {
@@ -61,6 +63,10 @@ export function AttackGraphNode({
   const entityType = data.entity_type || data.entityType || "";
   const presentation = getAttackGraphNodePresentation(entityType);
   const title = pickNodeTitle(data);
+  const evidenceCount = data.evidenceRefs?.length ?? 0;
+  const evidenceTitle = evidenceCount
+    ? `${evidenceCount} evidence hit${evidenceCount > 1 ? "s" : ""}`
+    : "Evidence hit";
 
   return (
     <div
@@ -88,7 +94,16 @@ export function AttackGraphNode({
           draggable={false}
         />
         {selected ? (
-          <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
+          <span className="absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
+        ) : null}
+        {data.evidenceHit ? (
+          <span
+            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border border-white bg-white text-[10px] font-bold leading-none text-rose-600 shadow-[0_2px_6px_rgba(15,23,42,0.18)] ring-1 ring-rose-200/80"
+            title={evidenceTitle}
+            aria-label={evidenceTitle}
+          >
+            <span className="-mt-px">!</span>
+          </span>
         ) : null}
       </div>
 
