@@ -7,6 +7,7 @@ import {
   Activity,
   AlertTriangle,
   Anchor,
+  ArrowLeft,
   ArrowRightLeft,
   ArrowUp,
   Binoculars,
@@ -65,6 +66,12 @@ import {
   CardTitle,
 } from "@/shared/ui/card"
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip"
 import type { HostSelectorHostNode } from "@/shared/components/host-selector/types"
 
 const STAGE_ICONS: Record<AttckStageKey | "unknown", ComponentType<{ className?: string }>> = {
@@ -1224,9 +1231,28 @@ export function AttackCaseStoryTimelineRender({
             <div className="flex min-w-0 items-center gap-4">
               <StoryHeaderIcon icon={ShieldAlert} tone="teal" />
               <div className="min-w-0">
-                <CardTitle className="truncate text-lg font-semibold text-slate-950">
-                  Attack Story
-                </CardTitle>
+                <div className="flex min-w-0 items-center gap-2">
+                  <CardTitle className="truncate text-lg font-semibold text-slate-950">
+                    Attack Story
+                  </CardTitle>
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="返回攻击场景列表并定位当前 Case"
+                          className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-sky-100 bg-sky-50/80 text-sky-700 shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 motion-reduce:transform-none motion-reduce:transition-none"
+                          onClick={() => router.push(buildAttackDetailHref(summary.case_id, snapshotId))}
+                        >
+                          <ArrowLeft className="size-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        返回攻击场景列表并定位当前 Case
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <CardDescription className="mt-1">
                   Case investigation timeline from GetCaseTimeline and source event descriptions.
                 </CardDescription>
