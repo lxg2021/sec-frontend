@@ -799,6 +799,27 @@ function FactsStrip({
   )
 }
 
+function StoryHeaderIcon({
+  icon: Icon,
+  tone = "teal",
+}: {
+  icon: ComponentType<{ className?: string }>
+  tone?: "teal" | "slate" | "blue" | "rose"
+}) {
+  const toneClassName = {
+    teal: "bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600",
+    slate: "bg-gradient-to-br from-slate-50 via-slate-50 to-slate-100 text-slate-500",
+    blue: "bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-100 text-blue-600",
+    rose: "bg-gradient-to-br from-rose-50 via-red-50 to-rose-100 text-rose-600",
+  }[tone]
+
+  return (
+    <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl", toneClassName)}>
+      <Icon className="h-6 w-6" />
+    </div>
+  )
+}
+
 function AttackCaseStoryTimelineBody({
   steps,
   storySummary,
@@ -924,8 +945,8 @@ function EmptyState({
   return (
     <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <Activity className="size-5 shrink-0 text-slate-500" />
+        <div className="flex min-w-0 items-center gap-4">
+          <StoryHeaderIcon icon={Activity} tone="slate" />
           <div className="min-w-0">
             <CardTitle className="text-lg font-semibold text-slate-950">
               Attack Story
@@ -956,8 +977,10 @@ function LoadingState() {
   return (
     <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <div className="flex min-w-0 items-center gap-3">
-          <Loader2 className="size-5 shrink-0 animate-spin text-blue-600" />
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-100 text-blue-600">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
           <div className="min-w-0">
             <CardTitle className="text-lg font-semibold text-slate-950">
               Loading attack story
@@ -1148,8 +1171,8 @@ export function AttackCaseStoryTimelineRender({
     return (
       <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm", className)}>
         <CardHeader className="border-b border-slate-200 px-6 py-5">
-          <div className="flex min-w-0 items-center gap-3">
-            <AlertTriangle className="size-5 shrink-0 text-rose-500" />
+          <div className="flex min-w-0 items-center gap-4">
+            <StoryHeaderIcon icon={AlertTriangle} tone="rose" />
             <div className="min-w-0">
               <CardTitle className="text-lg font-semibold text-slate-950">
                 Attack Story
@@ -1180,8 +1203,8 @@ export function AttackCaseStoryTimelineRender({
       <CardHeader className="border-b border-slate-200 px-6 py-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-3">
-              <ShieldAlert className="size-5 shrink-0 text-blue-600" />
+            <div className="flex min-w-0 items-center gap-4">
+              <StoryHeaderIcon icon={ShieldAlert} tone="teal" />
               <div className="min-w-0">
                 <CardTitle className="truncate text-lg font-semibold text-slate-950">
                   Attack Story
