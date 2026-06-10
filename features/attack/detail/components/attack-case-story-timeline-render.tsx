@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ComponentType } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import {
   Activity,
   AlertTriangle,
@@ -35,8 +35,15 @@ import {
 } from "@/features/attack/constants/attck-stages"
 import {
   batchDescribeEventSourcesByKeys,
+  fetchAttackRuleDetail,
   fetchAttackCaseTimeline,
 } from "@/features/attack/dashboard/api"
+import { getHardwareInfo, getSingleHostDetail } from "@/features/assets/host/api"
+import { HostInfoCard } from "@/features/assets/host/components/host-info-card"
+import type { AgentHardwareInfo } from "@/features/assets/host/types/hardware"
+import type { AgentInfo } from "@/features/assets/host/types/system-info"
+import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
+import type { AttackRuleMeta } from "@/features/attack/utils/attck-utils"
 import type {
   AttackCaseTimelineResult,
   AttackGroupTimelineInstance,
@@ -55,6 +62,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card"
+import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog"
+import type { HostSelectorHostNode } from "@/shared/components/host-selector/types"
 
 const STAGE_ICONS: Record<AttckStageKey | "unknown", ComponentType<{ className?: string }>> = {
   "reconnaissance": Binoculars,
@@ -127,6 +136,7 @@ export interface AttackCaseStoryTimelineStep {
 interface AttackCaseStoryTimelineBodyProps {
   steps: AttackCaseStoryTimelineStep[]
   storySummary: string
+  snapshotId: string
   className?: string
 }
 
@@ -199,6 +209,46 @@ function formatRange(startTime: string, endTime: string) {
 
 function formatStorySummary(value: string) {
   return value.trim().replace(/\s+/g, " ")
+}
+
+function joinDisplay(values?: string[] | null) {
+  return Array.isArray(values) && values.length > 0 ? values.join(", ") : "-"
+}
+
+function uniqueDisplay(values: string[]) {
+  const normalized = Array.from(new Set(values.map((value) => value.trim()).filter((value) => value && value !== "-")))
+  return normalized.length > 0 ? normalized.join(", ") : "-"
+}
+
+function formatMemory(hardware?: AgentHardwareInfo | null) {
+  const totalMiB = hardware?.rams.reduce((sum, ram) => sum + (Number(ram.sizeMiB) || 0), 0) || 0
+  if (totalMiB <= 0) return "-"
+  if (totalMiB >= 1024) return `${Math.round((totalMiB / 1024) * 10) / 10} GB`
+  return `${totalMiB} MB`
+}
+
+function toHostInfoNode(host: AgentInfo, hardware?: AgentHardwareInfo | null): HostSelectorHostNode {
+  const cpuNames = uniqueDisplay(hardware?.cpu.sockets.map((cpu) => cpu.model) || [])
+  const diskNames = uniqueDisplay(hardware?.disks.disks.map((disk) => disk.model) || [])
+
+  return {
+    id: `host:${host.hostId}`,
+    type: "host",
+    name: host.hostname || host.hostId,
+    hostname: host.hostname || host.hostId,
+    hostId: host.hostId,
+    status: host.status,
+    os: [host.osName, host.osVersion].filter(Boolean).join(" ") || host.osType || "-",
+    ip: joinDisplay(host.ip),
+    mac: joinDisplay(host.macs),
+    cpu: cpuNames !== "-" ? cpuNames : host.cpuId || "-",
+    memory: formatMemory(hardware),
+    disk: diskNames !== "-" ? diskNames : joinDisplay(host.harddiskIds),
+  }
+}
+
+function techniqueHref(technique: string) {
+  return `https://attack.mitre.org/techniques/${technique.replace(".", "/")}/`
 }
 
 function formatIocLine(ioc: AttackIocEvidence) {
@@ -388,10 +438,97 @@ function buildStorySteps(
     })
 }
 
-function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
+function DetailBranchLine({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 gap-3">
+      <div className="flex w-7 shrink-0 justify-end pt-2">
+        <span className="h-px w-5 bg-slate-300" />
+      </div>
+      <div className="min-w-0 text-sm leading-6 text-slate-500">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function StoryRuleDetailTrigger({
+  ruleId,
+  ruleTitle,
+  snapshotId,
+}: {
+  ruleId: string
+  ruleTitle: string
+  snapshotId: string
+}) {
+  const fallbackMeta: AttackRuleMeta = { rule_id: ruleId, title: ruleTitle || ruleId }
+  const [ruleMeta, setRuleMeta] = useState<AttackRuleMeta | undefined>(fallbackMeta)
+  const [loaded, setLoaded] = useState(false)
+
+  async function loadRuleDetail() {
+    if (loaded) return
+    setLoaded(true)
+
+    if (!snapshotId.trim()) {
+      setRuleMeta(fallbackMeta)
+      return
+    }
+
+    try {
+      const meta = await fetchAttackRuleDetail({ snapshotId, ruleId })
+      setRuleMeta(meta ?? fallbackMeta)
+    } catch {
+      setRuleMeta(fallbackMeta)
+    }
+  }
+
+  return (
+    <RuleInfoPopover id={ruleId} side="right" ruleMeta={ruleMeta}>
+      <button
+        type="button"
+        onMouseEnter={() => void loadRuleDetail()}
+        onFocus={() => void loadRuleDetail()}
+        onClick={(event) => {
+          event.stopPropagation()
+          void loadRuleDetail()
+        }}
+        className="font-mono text-blue-600 underline underline-offset-4 transition-colors hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+        title={ruleId}
+      >
+        {ruleId}
+      </button>
+    </RuleInfoPopover>
+  )
+}
+
+function AttackTechniqueLinks({ techniques }: { techniques: string[] }) {
+  return (
+    <div className="inline-flex min-w-0 flex-wrap items-center gap-1.5 align-middle">
+      {techniques.map((technique) => (
+        <a
+          key={technique}
+          href={techniqueHref(technique)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => event.stopPropagation()}
+          className="max-w-[96px] truncate rounded-md bg-blue-50 px-1.5 py-0.5 font-mono text-xs leading-5 text-blue-700 transition-colors hover:bg-blue-100 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+          title={technique}
+        >
+          {technique}
+        </a>
+      ))}
+    </div>
+  )
+}
+
+function StepBranches({
+  step,
+  snapshotId,
+}: {
+  step: AttackCaseStoryTimelineStep
+  snapshotId: string
+}) {
   const slots = visibleSlots(step.slots)
   const firstIoc = step.iocEvidences[0]
-  const techniques = step.techniques.length > 0 ? step.techniques.join(", ") : ""
   const ruleId = step.ruleId.trim()
   const ruleTitle = step.ruleTitle.trim()
   const behavior = formatBehavior(step.detectionName)
@@ -402,7 +539,6 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
 
   const detailLines = [
     behavior ? `suspicious behavior: ${behavior}` : "",
-    techniques ? `ATT&CK: ${techniques}` : "",
     firstIoc ? `IOC: ${formatIocLine(firstIoc)}` : "",
     status ? `Source description: ${status}` : "",
   ].filter(Boolean)
@@ -426,7 +562,12 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-4 gap-y-1 text-sm leading-6 text-slate-500">
             {ruleId ? (
               <span className="shrink-0 whitespace-nowrap">
-                ruleid: <span className="font-mono text-slate-600">{ruleId}</span>
+                ruleid:{" "}
+                <StoryRuleDetailTrigger
+                  ruleId={ruleId}
+                  ruleTitle={ruleTitle}
+                  snapshotId={snapshotId}
+                />
               </span>
             ) : null}
             {ruleTitle ? (
@@ -438,15 +579,21 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
         </div>
       ) : null}
 
-      {detailLines.map((line, index) => (
-        <div key={`${step.id}-detail-line-${index}`} className="flex min-w-0 gap-3">
-          <div className="flex w-7 shrink-0 justify-end pt-2">
-            <span className="h-px w-5 bg-slate-300" />
+      {step.techniques.length > 0 ? (
+        <DetailBranchLine>
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="shrink-0">ATT&CK:</span>
+            <AttackTechniqueLinks techniques={step.techniques} />
           </div>
-          <p className="min-w-0 text-sm leading-6 text-slate-500">
+        </DetailBranchLine>
+      ) : null}
+
+      {detailLines.map((line, index) => (
+        <DetailBranchLine key={`${step.id}-detail-line-${index}`}>
+          <p className="min-w-0">
             {line}
           </p>
-        </div>
+        </DetailBranchLine>
       ))}
 
       {slots.length > 0 ? (
@@ -472,9 +619,46 @@ function StepBranches({ step }: { step: AttackCaseStoryTimelineStep }) {
 function AttackCaseStoryTimelineBody({
   steps,
   storySummary,
+  snapshotId,
   className,
 }: AttackCaseStoryTimelineBodyProps) {
-  const router = useRouter()
+  const [hostDialogOpen, setHostDialogOpen] = useState(false)
+  const [selectedHostId, setSelectedHostId] = useState("")
+  const [selectedHost, setSelectedHost] = useState<HostSelectorHostNode | null>(null)
+  const [loadingHostId, setLoadingHostId] = useState<string | null>(null)
+  const [hostInfoError, setHostInfoError] = useState("")
+
+  async function handleHostClick(agentId: string) {
+    const normalizedAgentId = agentId.trim()
+    if (!normalizedAgentId) return
+
+    setHostDialogOpen(true)
+    setSelectedHostId(normalizedAgentId)
+    setSelectedHost(null)
+    setHostInfoError("")
+    setLoadingHostId(normalizedAgentId)
+
+    try {
+      const detail = await getSingleHostDetail({ agentId: normalizedAgentId })
+      if (!detail) {
+        setHostInfoError(`Host not found: ${normalizedAgentId}`)
+        return
+      }
+
+      let hardware: AgentHardwareInfo | null = null
+      try {
+        hardware = await getHardwareInfo({ agentId: normalizedAgentId, host: detail })
+      } catch {
+        hardware = null
+      }
+
+      setSelectedHost(toHostInfoNode(detail, hardware))
+    } catch (error) {
+      setHostInfoError(error instanceof Error ? error.message : "Failed to load host info.")
+    } finally {
+      setLoadingHostId(null)
+    }
+  }
 
   if (steps.length === 0) {
     return (
@@ -486,6 +670,7 @@ function AttackCaseStoryTimelineBody({
   }
 
   return (
+    <>
     <div className={cn("min-w-0", className)}>
       <div className="mb-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm leading-6 text-slate-700">
         {storySummary || "Story summary is not available for this case."}
@@ -537,15 +722,19 @@ function AttackCaseStoryTimelineBody({
                       <button
                         type="button"
                         className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[11px] font-medium text-slate-500 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700"
-                        onClick={() => router.push(`/frame/assets/host-info?agentId=${encodeURIComponent(step.agentId)}`)}
+                        disabled={loadingHostId === step.agentId}
+                        onClick={() => void handleHostClick(step.agentId)}
                         title={step.agentId}
                       >
+                        {loadingHostId === step.agentId ? (
+                          <Loader2 className="mr-1 inline size-3 animate-spin align-[-2px]" />
+                        ) : null}
                         HostID: {compactId(step.agentId, 10)}
                       </button>
                     ) : null}
                   </div>
 
-                  <StepBranches step={step} />
+                  <StepBranches step={step} snapshotId={snapshotId} />
 
                   <div className="mt-3 flex min-w-0 flex-wrap gap-1.5 text-[11px] text-slate-400">
                     {step.iocEvidences.length > 1 ? (
@@ -566,6 +755,49 @@ function AttackCaseStoryTimelineBody({
         </div>
       </div>
     </div>
+
+    <Dialog
+      open={hostDialogOpen}
+      onOpenChange={(open) => {
+        setHostDialogOpen(open)
+        if (!open) {
+          setSelectedHost(null)
+          setHostInfoError("")
+          setLoadingHostId(null)
+        }
+      }}
+    >
+      <DialogContent className="w-auto max-w-[600px] border-none p-0 shadow-xl">
+        <DialogTitle className="m-0 h-0 overflow-hidden p-0">
+          <VisuallyHidden>{selectedHost?.hostname || selectedHostId || "Host info"}</VisuallyHidden>
+        </DialogTitle>
+        {loadingHostId ? (
+          <div className="flex min-w-[420px] flex-col items-center justify-center gap-3 rounded-lg border bg-white px-8 py-10 text-sm text-slate-500">
+            <Loader2 className="size-5 animate-spin text-blue-600" />
+            <div>Loading host info</div>
+            <div className="max-w-[360px] truncate font-mono text-xs text-slate-400">{selectedHostId}</div>
+          </div>
+        ) : hostInfoError ? (
+          <div className="min-w-[420px] rounded-lg border bg-white px-5 py-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-rose-600">
+              <AlertTriangle className="size-4" />
+              Failed to load host info
+            </div>
+            <p className="mt-2 break-words text-sm leading-6 text-slate-500">{hostInfoError}</p>
+            {selectedHostId ? (
+              <p className="mt-2 truncate font-mono text-xs text-slate-400">{selectedHostId}</p>
+            ) : null}
+          </div>
+        ) : selectedHost ? (
+          <HostInfoCard
+            node={selectedHost}
+            className="m-0 border-none p-0 shadow-none"
+            reserveCloseSpace
+          />
+        ) : null}
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
 
@@ -629,7 +861,7 @@ function LoadingState() {
 
 export function AttackCaseStoryTimelineRender({
   caseId = "",
-  snapshotId: _snapshotId = "",
+  snapshotId = "",
   timezone = "Asia/Shanghai",
   className,
   noCaseDescription,
@@ -868,7 +1100,11 @@ export function AttackCaseStoryTimelineRender({
             {describeWarning}
           </div>
         ) : null}
-        <AttackCaseStoryTimelineBody steps={storySteps} storySummary={storySummary} />
+        <AttackCaseStoryTimelineBody
+          steps={storySteps}
+          storySummary={storySummary}
+          snapshotId={snapshotId}
+        />
       </CardContent>
     </Card>
   )
