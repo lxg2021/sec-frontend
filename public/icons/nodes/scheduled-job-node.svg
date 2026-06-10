@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="no"?>
+<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+  <g transform="matrix(1.14 0 0 1.14 -72 -72)">
+  <rect x="168" y="178" width="612" height="610" rx="92" fill="none" stroke="#8E24AA" stroke-width="76"/>
+  <path d="M168 328h612" stroke="#CE93D8" stroke-width="76" stroke-linecap="round"/>
+  <path d="M308 124v166M640 124v166" stroke="#8E24AA" stroke-width="72" stroke-linecap="round"/>
+  <path d="M302 480h110M302 610h110M500 480h86" stroke="#BA68C8" stroke-width="54" stroke-linecap="round"/>
+  <circle cx="676" cy="642" r="154" fill="#F3E5F5" stroke="#8E24AA" stroke-width="64"/>
+  <path d="M676 548v98l72 44" fill="none" stroke="#8E24AA" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M476 664l88-132h70l-52 96h84L538 796l28-132h-90z" fill="#F9A825"/>
+  </g>
+</svg>

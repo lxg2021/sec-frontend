@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="no"?>
+<svg class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+  <g transform="translate(-113 -113) scale(1.22)">
+  <rect x="102" y="292" width="274" height="274" rx="58" fill="#607D8B"/>
+  <rect x="648" y="292" width="274" height="274" rx="58" fill="#607D8B"/>
+  <path d="M342 386h340c68 0 124 56 124 124v52h-72v-52c0-28-24-52-52-52H342v-72z" fill="#90A4AE"/>
+  <path d="M682 638H342c-68 0-124-56-124-124v-52h72v52c0 28 24 52 52 52h340v72z" fill="#90A4AE"/>
+  <circle cx="239" cy="429" r="70" fill="#ECEFF1"/>
+  <circle cx="785" cy="429" r="70" fill="#ECEFF1"/>
+  <path d="M234 358h76v142h-76c-39 0-71-32-71-71s32-71 71-71z" fill="#455A64"/>
+  <path d="M790 500h-76V358h76c39 0 71 32 71 71s-32 71-71 71z" fill="#455A64"/>
+  <rect x="392" y="696" width="240" height="72" rx="36" fill="#607D8B"/>
+  </g>
+</svg>
