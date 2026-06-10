@@ -178,6 +178,12 @@ function formatFullTime(value: string) {
   )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
+function buildTraceHref(caseId: string, snapshotId?: string) {
+  return `/frame/attack/drill?caseId=${encodeURIComponent(caseId)}${
+    snapshotId ? `&snapshotId=${encodeURIComponent(snapshotId)}` : ""
+  }`
+}
+
 function shortenId(value: string, head = 8, tail = 4) {
   if (!value) return "-"
   if (value.length <= head + tail + 3) return value
@@ -296,6 +302,7 @@ export function AttackCaseList({
   onPageSizeChange,
 }: AttackCaseListProps) {
   const t = useTranslations("pages.attack.dashboard.cases")
+  const router = useRouter()
   const [page, setPage] = useState(1)
   const [localPageSize, setLocalPageSize] = useState(controlledPageSize ?? DEFAULT_PAGE_SIZE)
   const [caseItems, setCaseItems] = useState(items)
@@ -348,6 +355,15 @@ export function AttackCaseList({
   function handleSelectCase(caseId: string) {
     setSelectedCaseId(caseId)
     setCaseIdQuery(caseId)
+  }
+
+  function handleViewDetail(caseId: string) {
+    if (onViewDetail) {
+      onViewDetail(caseId)
+      return
+    }
+
+    router.push(buildTraceHref(caseId, snapshotId))
   }
 
   function handleLocateCase() {
@@ -410,7 +426,6 @@ export function AttackCaseList({
       >
         <AttackCaseListHeader
           selectedCaseId=""
-          snapshotId={snapshotId}
           caseIdQuery={caseIdQuery}
           canLocate={false}
           onCaseIdQueryChange={setCaseIdQuery}
@@ -436,7 +451,6 @@ export function AttackCaseList({
       >
         <AttackCaseListHeader
           selectedCaseId={selectedCaseId}
-          snapshotId={snapshotId}
           caseIdQuery={caseIdQuery}
           canLocate={caseItems.length > 0}
           onCaseIdQueryChange={setCaseIdQuery}
@@ -451,7 +465,7 @@ export function AttackCaseList({
                 snapshotId={snapshotId}
                 selected={item.case_id === selectedCaseId}
                 onSelect={handleSelectCase}
-                onViewDetail={onViewDetail}
+                onViewDetail={handleViewDetail}
                 onCaseUpdated={handleCaseUpdated}
               />
             ))}
@@ -517,26 +531,18 @@ export function AttackCaseList({
 
 function AttackCaseListHeader({
   selectedCaseId,
-  snapshotId,
   caseIdQuery,
   canLocate,
   onCaseIdQueryChange,
   onLocateCase,
 }: {
   selectedCaseId: string
-  snapshotId?: string
   caseIdQuery: string
   canLocate: boolean
   onCaseIdQueryChange: (value: string) => void
   onLocateCase: () => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
-  const router = useRouter()
-  const traceHref = selectedCaseId
-    ? `/frame/attack/drill?caseId=${encodeURIComponent(selectedCaseId)}${
-        snapshotId ? `&snapshotId=${encodeURIComponent(snapshotId)}` : ""
-      }`
-    : ""
 
   return (
     <CardHeader className="gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
@@ -583,21 +589,6 @@ function AttackCaseListHeader({
             {t("caseLocator.locate")}
           </Button>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={!selectedCaseId}
-          onClick={() => {
-            if (!traceHref) return
-            router.push(traceHref)
-          }}
-          className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
-          title={selectedCaseId || t("caseLocator.empty")}
-        >
-          <Route className="size-4" />
-          {t("traceAction")}
-        </Button>
       </div>
     </CardHeader>
   )
@@ -714,7 +705,7 @@ function CaseRow({
           aria-hidden="true"
         />
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_352px_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content]">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_352px_max-content_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content_max-content]">
             <div className="min-w-0 self-start">
               <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span
@@ -746,7 +737,10 @@ function CaseRow({
             <TimeRange
               startTime={item.start_time}
               endTime={item.end_time}
-              onViewDetail={onViewDetail ? () => onViewDetail(item.case_id) : undefined}
+            />
+            <CaseTraceAction
+              disabled={!onViewDetail}
+              onClick={() => onViewDetail?.(item.case_id)}
             />
           </div>
 
@@ -1345,13 +1339,10 @@ function MetricStrip({ metrics }: { metrics: MetricItem[] }) {
 function TimeRange({
   startTime,
   endTime,
-  onViewDetail,
 }: {
   startTime: string
   endTime: string
-  onViewDetail?: () => void
 }) {
-  const t = useTranslations("pages.attack.dashboard.cases")
   const title = `${formatFullTime(startTime)} - ${formatFullTime(endTime)}`
 
   return (
@@ -1369,18 +1360,35 @@ function TimeRange({
           <span className="whitespace-nowrap">{formatFullTime(endTime)}</span>
         </div>
       </div>
-      {onViewDetail ? (
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            onViewDetail()
-          }}
-          className="shrink-0 text-xs font-medium text-blue-600 transition-colors hover:text-blue-800 hover:underline hover:underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-        >
-          {t("viewDetail")}
-        </button>
-      ) : null}
     </div>
+  )
+}
+
+function CaseTraceAction({
+  disabled,
+  onClick,
+}: {
+  disabled: boolean
+  onClick: () => void
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      disabled={disabled}
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onClick()
+      }}
+      className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700 focus-visible:ring-cyan-300 disabled:text-slate-300"
+      title={t("traceAction")}
+    >
+      <Route className="size-4" />
+      <span className="whitespace-nowrap">{t("traceAction")}</span>
+    </Button>
   )
 }
