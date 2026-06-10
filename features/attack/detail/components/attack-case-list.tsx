@@ -269,6 +269,15 @@ function matchAutoSummary(summary: string) {
   return null
 }
 
+function isNestedInteractiveTarget(target: EventTarget | null, currentTarget: HTMLElement) {
+  if (!(target instanceof HTMLElement)) return false
+
+  const interactiveTarget = target.closest(
+    "a,button,input,textarea,select,[contenteditable='true']",
+  )
+  return Boolean(interactiveTarget && interactiveTarget !== currentTarget)
+}
+
 function formatCaseTitle(title: string) {
   const normalized = title.trim()
   return normalized.replace(/^攻击链[:：]\s*/i, "") || normalized
@@ -753,6 +762,11 @@ function CaseRow({
         tabIndex={clickable ? 0 : undefined}
         aria-selected={selected || undefined}
         onClick={() => onSelect?.(item.case_id)}
+        onDoubleClick={(event) => {
+          if (!clickable || isNestedInteractiveTarget(event.target, event.currentTarget)) return
+          event.preventDefault()
+          onViewDetail?.(item.case_id)
+        }}
         onKeyDown={(event) => {
           if (!clickable) return
           if (event.key === "Enter" || event.key === " ") {
