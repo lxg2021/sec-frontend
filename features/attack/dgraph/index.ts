@@ -11,3 +11,4 @@ export * from "./model/attack-graph-layout";
 export * from "./model/attack-graph-layout-rules";
 export * from "./model/attack-graph-node-presentation";
 export * from "./model/attack-graph-node-types";
+export * from "./model/attack-graph-routing-rules";

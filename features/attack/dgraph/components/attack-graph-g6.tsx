@@ -19,11 +19,14 @@ import {
   compareAttackGraphEdgesByLayout,
   compareAttackGraphNodesByLayout,
   getAttackGraphNodeLayoutRule,
-  getAttackGraphRelationLayoutRule,
   getAttackGraphRelationLayoutWeight,
-  type AttackGraphPreferredEdgeShape,
 } from "../model/attack-graph-layout-rules";
 import { getAttackGraphNodePresentation } from "../model/attack-graph-node-presentation";
+import {
+  getAttackGraphEdgeRoutingRule,
+  type AttackGraphEdgeLabelPlacement,
+  type AttackGraphEdgeRouteKind,
+} from "../model/attack-graph-routing-rules";
 
 export interface AttackGraphG6Props {
   response: GraphCaseResponseDto;
@@ -63,6 +66,7 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
         ranksep: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.ranksep,
         nodesep: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.nodesep,
         edgeLabelSpace: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.edgeLabelSpace,
+        controlPoints: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.controlPoints,
         nodeOrder,
         nodesepFunc: getG6NodeSep,
       },
@@ -124,19 +128,22 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
           if (datum.source === datum.target) {
             return "cubic";
           }
-          return toG6EdgeType(
-            String(datum.data?.preferredShape ?? "curved"),
-          );
+          return toG6EdgeType(String(datum.data?.routeKind ?? "smooth"));
         },
         style: (datum) => {
           const relationType = String(datum.data?.relationType ?? "");
           const relationLabel = String(
             datum.data?.relationLabel ?? formatRelationLabel(relationType),
           );
+          const labelPlacement = mapG6LabelPlacement(
+            String(datum.data?.labelPlacement ?? "center"),
+          );
+          const routeKind = String(datum.data?.routeKind ?? "smooth");
           const edgeStyle = getAttackGraphEdgeStyle(relationType);
           const stroke = String(edgeStyle.stroke ?? "#64748b");
           return {
             stroke,
+            ...getG6EdgeRoutingStyle(routeKind),
             lineWidth: Number(edgeStyle.strokeWidth ?? 1.8),
             opacity: Number(edgeStyle.opacity ?? 0.82),
             lineDash: parseLineDash(edgeStyle.strokeDasharray),
@@ -144,7 +151,7 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
             endArrowSize: 8,
             label: true,
             labelText: relationLabel,
-            labelPlacement: "center",
+            labelPlacement,
             labelOffsetY: -8,
             labelAutoRotate: false,
             labelFontSize: 11,
@@ -158,9 +165,6 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
             labelPadding: [2, 6],
             labelMaxWidth: "65%",
             labelWordWrap: true,
-            loop: true,
-            loopType: "arc",
-            loopDist: 72,
           };
         },
         state: {
@@ -311,7 +315,11 @@ function toG6GraphData(
     edges: sortedEdges.map((edge) => {
       const sourceNode = nodeById.get(edge.source);
       const targetNode = nodeById.get(edge.target);
-      const layoutRule = getAttackGraphRelationLayoutRule(edge.relationType);
+      const routingRule = getAttackGraphEdgeRoutingRule(
+        edge.relationType,
+        sourceNode,
+        targetNode,
+      );
       return {
         id: edge.id,
         source: edge.source,
@@ -319,10 +327,16 @@ function toG6GraphData(
         data: {
           relationType: edge.relationType,
           relationLabel: formatRelationLabel(edge.relationType),
-          layoutRole: layoutRule.role,
-          layoutDirection: layoutRule.direction,
-          layoutPriority: layoutRule.priority,
-          preferredShape: layoutRule.preferredShape,
+          routeKind: routingRule.route,
+          labelPlacement: routingRule.labelPlacement,
+          avoidDiagonal: routingRule.avoidDiagonal,
+          allowStraightOnlyWhenSameLane:
+            routingRule.allowStraightOnlyWhenSameLane,
+          parallelStrategy: routingRule.parallelStrategy,
+          sourceLane: routingRule.sourceLane,
+          targetLane: routingRule.targetLane,
+          sameLane: routingRule.sameLane,
+          selfLoop: routingRule.selfLoop,
           layoutWeight: getAttackGraphRelationLayoutWeight(edge.relationType),
           sourceLabel: sourceNode?.displayName ?? edge.source,
           sourceType: sourceNode?.entityType ?? "",
@@ -349,18 +363,50 @@ function getG6NodeSep(node: unknown): number {
   return ATTACK_GRAPH_DAGRE_LAYOUT_RULE.nodesep;
 }
 
-function toG6EdgeType(preferredShape: string) {
-  const shape = preferredShape as AttackGraphPreferredEdgeShape;
-  if (shape === "straight") {
+function toG6EdgeType(routeKind: string) {
+  const route = routeKind as AttackGraphEdgeRouteKind;
+  if (route === "straight") {
     return "line";
   }
-  if (shape === "orthogonal") {
+  if (route === "orthogonal") {
     return "polyline";
   }
-  if (shape === "loop") {
+  if (route === "loop") {
     return "cubic";
   }
   return "cubic-horizontal";
+}
+
+function getG6EdgeRoutingStyle(routeKind: string): Record<string, unknown> {
+  const route = routeKind as AttackGraphEdgeRouteKind;
+  if (route === "orthogonal") {
+    return {
+      router: {
+        type: "orth",
+        offset: 28,
+      },
+      radius: 6,
+    };
+  }
+  if (route === "loop") {
+    return {
+      loop: true,
+      loopType: "arc",
+      loopDist: 72,
+    };
+  }
+  return {};
+}
+
+function mapG6LabelPlacement(labelPlacement: string) {
+  const placement = labelPlacement as AttackGraphEdgeLabelPlacement;
+  if (placement === "source-side") {
+    return "start" as const;
+  }
+  if (placement === "target-side") {
+    return "end" as const;
+  }
+  return "center" as const;
 }
 
 function parseLineDash(value: unknown): number[] | undefined {
