@@ -13,6 +13,16 @@ import type {
   GraphCaseResponseDto,
 } from "../model/attack-graph-data";
 import { getAttackGraphEdgeStyle } from "../model/attack-graph-edge-presentation";
+import {
+  ATTACK_GRAPH_DAGRE_LAYOUT_RULE,
+  ATTACK_GRAPH_LAYOUT_LANES,
+  compareAttackGraphEdgesByLayout,
+  compareAttackGraphNodesByLayout,
+  getAttackGraphNodeLayoutRule,
+  getAttackGraphRelationLayoutRule,
+  getAttackGraphRelationLayoutWeight,
+  type AttackGraphPreferredEdgeShape,
+} from "../model/attack-graph-layout-rules";
 import { getAttackGraphNodePresentation } from "../model/attack-graph-node-presentation";
 
 export interface AttackGraphG6Props {
@@ -21,8 +31,6 @@ export interface AttackGraphG6Props {
 }
 
 const NODE_SIZE = 48;
-const RAW_GRAPH_RANK_SEP = 190;
-const RAW_GRAPH_NODE_SEP = 96;
 
 export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -43,6 +51,7 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
     let taskSettled = false;
     let destroyRequested = false;
     let destroyed = false;
+    const nodeOrder = getG6NodeOrder(graphData);
     const g6Graph = new Graph({
       container,
       autoResize: true,
@@ -50,10 +59,12 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
       animation: false,
       layout: {
         type: "antv-dagre",
-        rankdir: "LR",
-        ranksep: RAW_GRAPH_RANK_SEP,
-        nodesep: RAW_GRAPH_NODE_SEP,
-        edgeLabelSpace: true,
+        rankdir: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.rankdir,
+        ranksep: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.ranksep,
+        nodesep: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.nodesep,
+        edgeLabelSpace: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.edgeLabelSpace,
+        nodeOrder,
+        nodesepFunc: getG6NodeSep,
       },
       node: {
         type: "image",
@@ -109,8 +120,14 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
         },
       },
       edge: {
-        type: (datum) =>
-          datum.source === datum.target ? "cubic" : "cubic-horizontal",
+        type: (datum) => {
+          if (datum.source === datum.target) {
+            return "cubic";
+          }
+          return toG6EdgeType(
+            String(datum.data?.preferredShape ?? "curved"),
+          );
+        },
         style: (datum) => {
           const relationType = String(datum.data?.relationType ?? "");
           const relationLabel = String(
@@ -206,9 +223,9 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
         {
           type: "process-parallel-edges",
           mode: "bundle",
-          distance: 26,
+          distance: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.parallelEdgeDistance,
           loopMode: "spread",
-          loopDistance: 18,
+          loopDistance: ATTACK_GRAPH_DAGRE_LAYOUT_RULE.parallelLoopDistance,
         },
       ],
     });
@@ -269,10 +286,14 @@ function toG6GraphData(
   edges: AttackGraphEdgeModel[],
 ): GraphData {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
+  const sortedNodes = [...nodes].sort(compareAttackGraphNodesByLayout);
+  const sortedEdges = [...edges].sort(compareAttackGraphEdgesByLayout);
 
   return {
-    nodes: nodes.map((node) => {
+    nodes: sortedNodes.map((node) => {
       const presentation = getAttackGraphNodePresentation(node.entityType);
+      const layoutRule = getAttackGraphNodeLayoutRule(node.entityType);
+      const laneRule = ATTACK_GRAPH_LAYOUT_LANES[layoutRule.lane];
       return {
         id: node.id,
         data: {
@@ -280,12 +301,17 @@ function toG6GraphData(
           entityType: node.entityType,
           image: presentation.image,
           evidenceHit: Boolean(node.evidenceHit),
+          layoutLane: layoutRule.lane,
+          layoutLaneOrder: laneRule.order,
+          layoutRole: layoutRule.role,
+          layoutOrder: layoutRule.order,
         },
       };
     }),
-    edges: edges.map((edge) => {
+    edges: sortedEdges.map((edge) => {
       const sourceNode = nodeById.get(edge.source);
       const targetNode = nodeById.get(edge.target);
+      const layoutRule = getAttackGraphRelationLayoutRule(edge.relationType);
       return {
         id: edge.id,
         source: edge.source,
@@ -293,6 +319,11 @@ function toG6GraphData(
         data: {
           relationType: edge.relationType,
           relationLabel: formatRelationLabel(edge.relationType),
+          layoutRole: layoutRule.role,
+          layoutDirection: layoutRule.direction,
+          layoutPriority: layoutRule.priority,
+          preferredShape: layoutRule.preferredShape,
+          layoutWeight: getAttackGraphRelationLayoutWeight(edge.relationType),
           sourceLabel: sourceNode?.displayName ?? edge.source,
           sourceType: sourceNode?.entityType ?? "",
           targetLabel: targetNode?.displayName ?? edge.target,
@@ -301,6 +332,35 @@ function toG6GraphData(
       };
     }),
   };
+}
+
+function getG6NodeOrder(graphData: GraphData): string[] {
+  return (graphData.nodes ?? []).map((node) => String(node.id));
+}
+
+function getG6NodeSep(node: unknown): number {
+  const nodeData = readRecord(readRecord(node).data);
+  const lane = readString(nodeData.layoutLane);
+  if (lane in ATTACK_GRAPH_LAYOUT_LANES) {
+    return ATTACK_GRAPH_LAYOUT_LANES[
+      lane as keyof typeof ATTACK_GRAPH_LAYOUT_LANES
+    ].nodeGap;
+  }
+  return ATTACK_GRAPH_DAGRE_LAYOUT_RULE.nodesep;
+}
+
+function toG6EdgeType(preferredShape: string) {
+  const shape = preferredShape as AttackGraphPreferredEdgeShape;
+  if (shape === "straight") {
+    return "line";
+  }
+  if (shape === "orthogonal") {
+    return "polyline";
+  }
+  if (shape === "loop") {
+    return "cubic";
+  }
+  return "cubic-horizontal";
 }
 
 function parseLineDash(value: unknown): number[] | undefined {

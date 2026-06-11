@@ -8,5 +8,6 @@ export * from "./model/attack-graph-data";
 export * from "./model/attack-graph-edge-presentation";
 export * from "./model/attack-graph-edge-types";
 export * from "./model/attack-graph-layout";
+export * from "./model/attack-graph-layout-rules";
 export * from "./model/attack-graph-node-presentation";
 export * from "./model/attack-graph-node-types";
