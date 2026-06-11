@@ -3,12 +3,17 @@
 import { useMemo } from "react";
 import ReactFlow, {
   Background,
+  BaseEdge,
   Controls,
+  EdgeLabelRenderer,
   Handle,
   MarkerType,
   MiniMap,
   Position,
+  getBezierPath,
   type Edge as ReactFlowEdge,
+  type EdgeProps,
+  type EdgeTypes,
   type Node as ReactFlowNode,
   type NodeProps,
   type NodeTypes,
@@ -56,6 +61,10 @@ const nodeTypes: NodeTypes = {
   attackGraphNode: AttackGraphFlowNode,
 };
 
+const edgeTypes: EdgeTypes = {
+  attackGraphEdge: AttackGraphFlowEdge,
+};
+
 export function AttackGraphFlow({
   response,
   className,
@@ -90,6 +99,7 @@ export function AttackGraphFlow({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView={fitView}
         minZoom={minZoom}
         maxZoom={maxZoom}
@@ -110,6 +120,71 @@ export function AttackGraphFlow({
         {showControls ? <Controls showInteractive={false} /> : null}
       </ReactFlow>
     </div>
+  );
+}
+
+function AttackGraphFlowEdge({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  markerEnd,
+  style,
+  label,
+  data,
+  selected,
+}: EdgeProps<AttackGraphFlowEdgeData>) {
+  const deltaY = Math.abs(targetY - sourceY);
+  const deltaX = Math.abs(targetX - sourceX);
+  const isCrossLane = deltaY > NODE_HEIGHT * 0.8 && deltaX > NODE_WIDTH * 0.6;
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+    curvature: isCrossLane ? 0.34 : 0.2,
+  });
+  const relationType =
+    typeof label === "string" && label.trim()
+      ? label
+      : data?.relationType || "RELATED";
+  const stroke = String(style?.stroke ?? "#64748b");
+
+  return (
+    <>
+      <BaseEdge
+        id={id}
+        path={edgePath}
+        markerEnd={markerEnd}
+        interactionWidth={18}
+        style={{
+          ...style,
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          opacity: selected ? 1 : style?.opacity,
+        }}
+      />
+      <EdgeLabelRenderer>
+        <div
+          className="nodrag nopan pointer-events-none absolute max-w-[180px] truncate rounded-sm border border-slate-200/80 bg-white/90 px-1.5 py-0.5 text-[10px] font-medium leading-4 text-slate-800 shadow-sm"
+          style={{
+            transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+          }}
+          title={relationType}
+        >
+          <span
+            className="mr-1 inline-block h-1.5 w-1.5 rounded-full align-middle"
+            style={{ backgroundColor: stroke }}
+          />
+          {relationType}
+        </div>
+      </EdgeLabelRenderer>
+    </>
   );
 }
 
@@ -184,7 +259,7 @@ function toReactFlowEdges(
     id: edge.id,
     source: edge.source,
     target: edge.target,
-    type: "smoothstep",
+    type: "attackGraphEdge",
     data: edge,
     label: edge.relationType,
     labelShowBg: true,

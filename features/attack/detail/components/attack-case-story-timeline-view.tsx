@@ -37,6 +37,12 @@ import type { HostSelectorHostNode } from "@/shared/components/host-selector/typ
 import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"
 import { cn } from "@/shared/lib/utils"
 import { Dialog, DialogContent, DialogTitle } from "@/shared/ui/dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip"
 import type { AttackCaseStoryTimelineStep } from "../utils/attack-story-timeline-model"
 import {
   firstFilled,
@@ -86,6 +92,38 @@ function formatMemory(hardware?: AgentHardwareInfo | null) {
   if (totalMiB <= 0) return "-"
   if (totalMiB >= 1024) return `${Math.round((totalMiB / 1024) * 10) / 10} GB`
   return `${totalMiB} MB`
+}
+
+function TruncatedText({
+  value,
+  tooltipValue,
+  className,
+  tooltipClassName,
+}: {
+  value: string
+  tooltipValue?: string
+  className?: string
+  tooltipClassName?: string
+}) {
+  if (!value) return null
+  const displayTooltip = tooltipValue || value
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className={cn("block min-w-0 max-w-full truncate", className)}>
+          {value}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent
+        side="top"
+        align="start"
+        className={cn("max-w-[760px] break-all text-xs leading-5", tooltipClassName)}
+      >
+        {displayTooltip}
+      </TooltipContent>
+    </Tooltip>
+  )
 }
 
 function toHostInfoNode(host: AgentInfo, hardware?: AgentHardwareInfo | null): HostSelectorHostNode {
@@ -194,13 +232,15 @@ function EvidenceChip({
 
   return (
     <span
-      className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs leading-4 text-slate-600"
-      title={title || `${label}: ${value}`}
+      className="inline-flex min-w-0 max-w-full items-center gap-1.5 overflow-hidden rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs leading-4 text-slate-600"
     >
       <span className="shrink-0 font-semibold text-slate-400">{label}</span>
-      <span className={cn("min-w-0 truncate font-semibold text-slate-700", monoValue && "font-mono", valueClassName)}>
-        {value}
-      </span>
+      <TruncatedText
+        value={value}
+        tooltipValue={title || `${label}: ${value}`}
+        className={cn("font-semibold text-slate-700", monoValue && "font-mono", valueClassName)}
+        tooltipClassName={monoValue ? "font-mono" : undefined}
+      />
     </span>
   )
 }
@@ -268,9 +308,9 @@ function TimelineEventCard({
         ) : null}
       </div>
 
-      <p className="mt-2 min-w-0 text-sm leading-6 text-slate-700">
-        {step.summary}
-      </p>
+      <div className="mt-2 min-w-0 text-sm leading-6 text-slate-700">
+        <TruncatedText value={step.summary} />
+      </div>
 
       <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-8 gap-y-2 text-sm leading-5 text-slate-500">
         {ruleId ? (
@@ -286,7 +326,7 @@ function TimelineEventCard({
         {ruleTitle ? (
           <span className="inline-flex min-w-0 items-center gap-2">
             <span className="shrink-0 text-xs font-medium text-slate-500">{t("labels.ruleTitle")}</span>
-            <span className="min-w-0 truncate text-sm font-medium text-slate-700">{ruleTitle}</span>
+            <TruncatedText value={ruleTitle} className="text-sm font-medium text-slate-700" />
           </span>
         ) : null}
         {step.techniques.length > 0 ? (
@@ -413,9 +453,9 @@ function StorySummaryStrip({
   return (
     <div className="mb-5 flex min-w-0 items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
       <span className="h-7 w-1 shrink-0 rounded-full bg-blue-600" />
-      <p className="min-w-0 flex-1 truncate">
-        {storySummary || t("summaryFallback")}
-      </p>
+      <div className="min-w-0 flex-1">
+        <TruncatedText value={storySummary || t("summaryFallback")} />
+      </div>
       <span className="shrink-0 text-xs font-semibold text-slate-400">
         {t("summaryEvents", { count: eventCount })}
       </span>
@@ -559,15 +599,17 @@ export function AttackCaseStoryTimelineBody({
 
   return (
     <>
-    <div className={cn("min-w-0", className)}>
-      <StorySummaryStrip storySummary={storySummary} eventCount={eventCount || steps.length} />
-      <TimelineFrame
-        steps={steps}
-        snapshotId={snapshotId}
-        loadingHostId={loadingHostId}
-        onHostClick={(agentId) => void handleHostClick(agentId)}
-      />
-    </div>
+    <TooltipProvider delayDuration={150}>
+      <div className={cn("min-w-0", className)}>
+        <StorySummaryStrip storySummary={storySummary} eventCount={eventCount || steps.length} />
+        <TimelineFrame
+          steps={steps}
+          snapshotId={snapshotId}
+          loadingHostId={loadingHostId}
+          onHostClick={(agentId) => void handleHostClick(agentId)}
+        />
+      </div>
+    </TooltipProvider>
 
     <Dialog
       open={hostDialogOpen}
