@@ -11,7 +11,7 @@ import {
 } from "@/shared/ui/card";
 import { useTranslations } from "next-intl"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
-import { AttackGraphFlow, fetchGraphCase } from "@/features/attack/dgraph"
+import { AttackGraphG6, fetchGraphCase } from "@/features/attack/dgraph"
 import type { GraphCaseResponseDto } from "@/features/attack/dgraph"
 
 
@@ -155,14 +155,9 @@ export default function App() {
                   description={graphError}
                 />
               ) : graphResponse && graphNodeCount > 0 ? (
-                <AttackGraphFlow
+                <AttackGraphG6
                   response={graphResponse}
                   className="h-full"
-                  layoutOptions={{
-                    direction: "LR",
-                    nodeSep: 88,
-                    rankSep: 136,
-                  }}
                 />
               ) : (
                 <GraphStateMessage
