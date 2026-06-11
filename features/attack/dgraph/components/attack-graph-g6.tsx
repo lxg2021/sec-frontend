@@ -253,6 +253,7 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
         }
 
         if (alignStraightSameLaneChains(g6Graph, graphData)) {
+          g6Graph.setLayout({ type: "preset" });
           await g6Graph.draw();
         }
 
