@@ -34,6 +34,7 @@ export interface AttackGraphG6Props {
 }
 
 const NODE_SIZE = 48;
+const HORIZONTAL_ALIGNMENT_EPSILON = 1;
 
 export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -246,12 +247,20 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
     graphRef.current = g6Graph;
     void g6Graph
       .render()
-      .then(() => {
+      .then(async () => {
         if (disposed || graphRef.current !== g6Graph) {
           return;
         }
 
-        return g6Graph.fitView({ when: "always", direction: "both" });
+        if (alignStraightSameLaneChains(g6Graph, graphData)) {
+          await g6Graph.draw();
+        }
+
+        if (disposed || graphRef.current !== g6Graph) {
+          return;
+        }
+
+        await g6Graph.fitView({ when: "always", direction: "both" });
       })
       .catch((error) => {
         if (!disposed && graphRef.current === g6Graph) {
@@ -398,6 +407,148 @@ function getG6EdgeRoutingStyle(routeKind: string): Record<string, unknown> {
   return {};
 }
 
+function alignStraightSameLaneChains(graph: Graph, graphData: GraphData) {
+  const straightEdges = (graphData.edges ?? []).filter((edge) => {
+    const edgeData = readRecord(edge.data);
+    return (
+      edge.source !== edge.target &&
+      readString(edgeData.routeKind) === "straight" &&
+      readBool(edgeData.sameLane) &&
+      readBool(edgeData.allowStraightOnlyWhenSameLane)
+    );
+  });
+
+  if (!straightEdges.length) {
+    return false;
+  }
+
+  const nodeById = new Map(
+    graph.getNodeData().map((node) => [String(node.id), node]),
+  );
+  const groups = buildStraightChainGroups(straightEdges);
+  const updates: Array<{ id: string; style: { x: number; y: number } }> = [];
+  const updatedNodeIds = new Set<string>();
+
+  for (const group of groups) {
+    const positionedNodes = group
+      .map((id) => {
+        const node = nodeById.get(id);
+        const style = readRecord(node?.style);
+        const x = readNumber(style.x);
+        const y = readNumber(style.y);
+        if (x === null || y === null) {
+          return null;
+        }
+        return { id, x, y };
+      })
+      .filter(Boolean) as Array<{ id: string; x: number; y: number }>;
+
+    if (positionedNodes.length !== group.length) {
+      continue;
+    }
+
+    const uniqueXRanks = new Set(
+      positionedNodes.map((node) => Math.round(node.x / NODE_SIZE)),
+    );
+    if (positionedNodes.length > 2 && uniqueXRanks.size !== positionedNodes.length) {
+      continue;
+    }
+
+    const degree = getGroupMaxStraightDegree(group, straightEdges);
+    if (positionedNodes.length > 2 && degree > 2) {
+      continue;
+    }
+
+    const targetY = getMedian(positionedNodes.map((node) => node.y));
+    for (const node of positionedNodes) {
+      if (
+        Math.abs(node.y - targetY) <= HORIZONTAL_ALIGNMENT_EPSILON ||
+        updatedNodeIds.has(node.id)
+      ) {
+        continue;
+      }
+      updates.push({ id: node.id, style: { x: node.x, y: targetY } });
+      updatedNodeIds.add(node.id);
+    }
+  }
+
+  if (!updates.length) {
+    return false;
+  }
+
+  graph.updateNodeData(updates);
+  return true;
+}
+
+function buildStraightChainGroups(
+  edges: NonNullable<GraphData["edges"]>,
+): string[][] {
+  const adjacency = new Map<string, Set<string>>();
+  for (const edge of edges) {
+    const source = String(edge.source);
+    const target = String(edge.target);
+    if (!adjacency.has(source)) {
+      adjacency.set(source, new Set());
+    }
+    if (!adjacency.has(target)) {
+      adjacency.set(target, new Set());
+    }
+    adjacency.get(source)?.add(target);
+    adjacency.get(target)?.add(source);
+  }
+
+  const groups: string[][] = [];
+  const visited = new Set<string>();
+  for (const start of adjacency.keys()) {
+    if (visited.has(start)) {
+      continue;
+    }
+    const group: string[] = [];
+    const queue = [start];
+    visited.add(start);
+    for (let index = 0; index < queue.length; index += 1) {
+      const current = queue[index];
+      group.push(current);
+      for (const next of adjacency.get(current) ?? []) {
+        if (visited.has(next)) {
+          continue;
+        }
+        visited.add(next);
+        queue.push(next);
+      }
+    }
+    groups.push(group);
+  }
+  return groups;
+}
+
+function getGroupMaxStraightDegree(
+  group: string[],
+  edges: NonNullable<GraphData["edges"]>,
+) {
+  const groupIds = new Set(group);
+  const degreeById = new Map<string, number>();
+  for (const edge of edges) {
+    const source = String(edge.source);
+    const target = String(edge.target);
+    if (!groupIds.has(source) || !groupIds.has(target)) {
+      continue;
+    }
+    degreeById.set(source, (degreeById.get(source) ?? 0) + 1);
+    degreeById.set(target, (degreeById.get(target) ?? 0) + 1);
+  }
+  return Math.max(0, ...degreeById.values());
+}
+
+function getMedian(values: number[]) {
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) {
+    return sorted[middle];
+  }
+  return (sorted[middle - 1] + sorted[middle]) / 2;
+}
+
 function mapG6LabelPlacement(labelPlacement: string) {
   const placement = labelPlacement as AttackGraphEdgeLabelPlacement;
   if (placement === "source-side") {
@@ -471,6 +622,14 @@ function readRecord(value: unknown): Record<string, unknown> {
 
 function readString(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function readBool(value: unknown) {
+  return typeof value === "boolean" ? value : false;
+}
+
+function readNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function escapeHtml(value: string) {
