@@ -252,7 +252,12 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
           return;
         }
 
-        if (alignStraightSameLaneChains(g6Graph, graphData)) {
+        const straightChainChanged = alignStraightSameLaneChains(
+          g6Graph,
+          graphData,
+        );
+
+        if (straightChainChanged) {
           g6Graph.setLayout({ type: "preset" });
           await g6Graph.draw();
         }
@@ -302,6 +307,7 @@ function toG6GraphData(
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const sortedNodes = [...nodes].sort(compareAttackGraphNodesByLayout);
   const sortedEdges = [...edges].sort(compareAttackGraphEdgesByLayout);
+  const relationDegree = getRelationDegree(sortedEdges);
 
   return {
     nodes: sortedNodes.map((node) => {
@@ -329,6 +335,14 @@ function toG6GraphData(
         edge.relationType,
         sourceNode,
         targetNode,
+        {
+          sameRelationSourceOutDegree: relationDegree.sourceOut.get(
+            getRelationDegreeKey(edge.relationType, edge.source),
+          ),
+          sameRelationTargetInDegree: relationDegree.targetIn.get(
+            getRelationDegreeKey(edge.relationType, edge.target),
+          ),
+        },
       );
       return {
         id: edge.id,
@@ -356,6 +370,22 @@ function toG6GraphData(
       };
     }),
   };
+}
+
+function getRelationDegree(edges: AttackGraphEdgeModel[]) {
+  const sourceOut = new Map<string, number>();
+  const targetIn = new Map<string, number>();
+  for (const edge of edges) {
+    const sourceKey = getRelationDegreeKey(edge.relationType, edge.source);
+    const targetKey = getRelationDegreeKey(edge.relationType, edge.target);
+    sourceOut.set(sourceKey, (sourceOut.get(sourceKey) ?? 0) + 1);
+    targetIn.set(targetKey, (targetIn.get(targetKey) ?? 0) + 1);
+  }
+  return { sourceOut, targetIn };
+}
+
+function getRelationDegreeKey(relationType: string, nodeId: string) {
+  return `${relationType}\u0000${nodeId}`;
 }
 
 function getG6NodeOrder(graphData: GraphData): string[] {

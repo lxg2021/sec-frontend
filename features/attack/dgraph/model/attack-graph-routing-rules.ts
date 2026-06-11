@@ -31,6 +31,11 @@ export interface AttackGraphRoutingEdgeLike {
   target: string;
 }
 
+export interface AttackGraphRoutingContext {
+  sameRelationSourceOutDegree?: number;
+  sameRelationTargetInDegree?: number;
+}
+
 export interface AttackGraphEdgeRoutingRule {
   route: AttackGraphEdgeRouteKind;
   labelPlacement: AttackGraphEdgeLabelPlacement;
@@ -157,6 +162,7 @@ export function getAttackGraphEdgeRoutingRule(
   relationType: string | null | undefined,
   sourceNode?: AttackGraphRoutingNodeLike,
   targetNode?: AttackGraphRoutingNodeLike,
+  context: AttackGraphRoutingContext = {},
 ): AttackGraphResolvedEdgeRoutingRule {
   const normalized = String(relationType ?? "").trim();
   const baseRule =
@@ -174,6 +180,9 @@ export function getAttackGraphEdgeRoutingRule(
   const selfLoop =
     Boolean(sourceNode?.id && targetNode?.id) && sourceNode?.id === targetNode?.id;
   const sameLane = sourceLane === targetLane;
+  const isSameRelationBranch =
+    Number(context.sameRelationSourceOutDegree ?? 0) > 1 ||
+    Number(context.sameRelationTargetInDegree ?? 0) > 1;
 
   if (selfLoop) {
     return {
@@ -181,6 +190,20 @@ export function getAttackGraphEdgeRoutingRule(
       route: "loop",
       labelPlacement: "target-side",
       parallelStrategy: "spread-loop",
+      sourceLane,
+      targetLane,
+      sameLane,
+      selfLoop,
+    };
+  }
+
+  if (
+    normalized === "PROCESS_CREATE_PROCESS" &&
+    sameLane &&
+    isSameRelationBranch
+  ) {
+    return {
+      ...processBranch(),
       sourceLane,
       targetLane,
       sameLane,
@@ -234,6 +257,17 @@ function primaryProcessChain(): AttackGraphEdgeRoutingRule {
     allowStraightOnlyWhenSameLane: true,
     allowStraightOnlyWhenShort: true,
     parallelStrategy: "offset",
+  };
+}
+
+function processBranch(): AttackGraphEdgeRoutingRule {
+  return {
+    route: "orthogonal",
+    labelPlacement: "horizontal-segment",
+    avoidDiagonal: true,
+    allowStraightOnlyWhenSameLane: false,
+    allowStraightOnlyWhenShort: false,
+    parallelStrategy: "bundle",
   };
 }
 
