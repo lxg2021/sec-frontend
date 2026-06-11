@@ -107,6 +107,36 @@ function EmptyState({
   )
 }
 
+function MissingCaseState({ caseId }: { caseId: string }) {
+  const t = useTranslations("pages.attack.dashboard.caseStory")
+
+  return (
+    <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200 px-6 py-5">
+        <div className="flex min-w-0 items-center gap-4">
+          <StoryHeaderIcon icon={FileSearch} tone="slate" />
+          <div className="min-w-0">
+            <CardTitle className="text-lg font-semibold text-slate-950">
+              {t("title")}
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {t("missing.description")}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="px-6 py-10">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-6 py-10 text-center">
+          <FileSearch className="size-8 text-amber-500" />
+          <p className="max-w-xl text-sm text-amber-800">
+            {t("missing.hint", { caseId })}
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 function LoadingState() {
   const t = useTranslations("pages.attack.dashboard.caseStory")
 
@@ -153,6 +183,7 @@ export function AttackCaseStoryTimelineRender({
   const [storySummary, setStorySummary] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [caseMissing, setCaseMissing] = useState(false)
   const [describeWarning, setDescribeWarning] = useState<string | null>(null)
   const router = useRouter()
   const descriptionLanguage = useMemo(
@@ -167,6 +198,7 @@ export function AttackCaseStoryTimelineRender({
       setDescriptions([])
       setStorySummary("")
       setError(null)
+      setCaseMissing(false)
       setDescribeWarning(null)
       setLoading(false)
       return
@@ -174,18 +206,27 @@ export function AttackCaseStoryTimelineRender({
 
     setLoading(true)
     setError(null)
+    setCaseMissing(false)
     setDescribeWarning(null)
     try {
       const result = await fetchAttackCaseTimeline({
         caseId: normalizedCaseId,
         timezone,
       })
+      if (!result) {
+        setData(null)
+        setDescriptions([])
+        setStorySummary("")
+        setCaseMissing(true)
+        return
+      }
       setData(result)
 
       const events = flattenTimelineEvents(result)
       const keys = buildDescriptionKeys(events)
       if (keys.length === 0) {
         setDescriptions([])
+        setStorySummary("")
         return
       }
 
@@ -200,13 +241,13 @@ export function AttackCaseStoryTimelineRender({
         setDescriptions(described.items)
         setStorySummary(formatStorySummary(described.story_summary || described.story_short_summary))
       } catch (err) {
-        console.error("describe attack story source events failed", err)
+        logAsyncWarning("describe attack story source events failed", err)
         setDescriptions([])
         setStorySummary("")
         setDescribeWarning(t("describeWarning"))
       }
     } catch (err) {
-      console.error("load attack case timeline failed", err)
+      logAsyncWarning("load attack case timeline failed", err)
       setData(null)
       setDescriptions([])
       setStorySummary("")
@@ -226,6 +267,7 @@ export function AttackCaseStoryTimelineRender({
         setDescriptions([])
         setStorySummary("")
         setError(null)
+        setCaseMissing(false)
         setDescribeWarning(null)
         setLoading(false)
         return
@@ -233,6 +275,7 @@ export function AttackCaseStoryTimelineRender({
 
       setLoading(true)
       setError(null)
+      setCaseMissing(false)
       setDescribeWarning(null)
       try {
         const result = await fetchAttackCaseTimeline({
@@ -240,6 +283,14 @@ export function AttackCaseStoryTimelineRender({
           timezone,
         })
         if (cancelled) return
+
+        if (!result) {
+          setData(null)
+          setDescriptions([])
+          setStorySummary("")
+          setCaseMissing(true)
+          return
+        }
 
         setData(result)
         const events = flattenTimelineEvents(result)
@@ -263,7 +314,7 @@ export function AttackCaseStoryTimelineRender({
             setStorySummary(formatStorySummary(described.story_summary || described.story_short_summary))
           }
         } catch (err) {
-          console.error("describe attack story source events failed", err)
+          logAsyncWarning("describe attack story source events failed", err)
           if (!cancelled) {
             setDescriptions([])
             setStorySummary("")
@@ -271,7 +322,7 @@ export function AttackCaseStoryTimelineRender({
           }
         }
       } catch (err) {
-        console.error("load attack case timeline failed", err)
+        logAsyncWarning("load attack case timeline failed", err)
         if (!cancelled) {
           setData(null)
           setDescriptions([])
@@ -314,6 +365,10 @@ export function AttackCaseStoryTimelineRender({
 
   if (loading) {
     return <LoadingState />
+  }
+
+  if (caseMissing) {
+    return <MissingCaseState caseId={caseId.trim()} />
   }
 
   if (error) {
@@ -427,4 +482,12 @@ export function AttackCaseStoryTimelineRender({
       </CardContent>
     </Card>
   )
+}
+
+function logAsyncWarning(message: string, error: unknown) {
+  if (process.env.NODE_ENV === "production") {
+    return
+  }
+
+  console.warn(message, error instanceof Error ? error.message : error)
 }

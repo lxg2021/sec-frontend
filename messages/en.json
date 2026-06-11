@@ -863,6 +863,10 @@
             "openCaseHint": "Open this view with a CaseID to load the investigation story.",
             "noEvidence": "No story evidence is available for this case."
           },
+          "missing": {
+            "description": "This case no longer exists or has been cleared.",
+            "hint": "Case {caseId} was not found. Refresh the case list after rerunning attack analysis."
+          },
           "loading": {
             "title": "Loading attack story",
             "description": "Fetching timeline evidence and source event descriptions."

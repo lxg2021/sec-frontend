@@ -865,6 +865,10 @@
             "openCaseHint": "请携带 CaseID 打开该页面以加载调查故事。",
             "noEvidence": "该 Case 暂无故事证据。"
           },
+          "missing": {
+            "description": "该 Case 已不存在或已被清理。",
+            "hint": "未找到 Case {caseId}。重新执行攻击分析后，请刷新 Case 列表。"
+          },
           "loading": {
             "title": "正在加载攻击故事",
             "description": "正在获取时间线证据和事件源描述。"

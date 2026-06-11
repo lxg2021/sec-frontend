@@ -1109,11 +1109,19 @@ export async function fetchAttackCaseTimeline({
   const normalizedCaseId = stringValue(caseId)
   if (!normalizedCaseId) return null
 
-  const result = (await http.post("/sensor/analysis/timeline/case", {
-    request_id: createRequestId(),
-    case_id: normalizedCaseId,
-    timezone,
-  })) as ApiResult<BackendAttackCaseTimelineData | null>
+  let result: ApiResult<BackendAttackCaseTimelineData | null>
+  try {
+    result = (await http.post("/sensor/analysis/timeline/case", {
+      request_id: createRequestId(),
+      case_id: normalizedCaseId,
+      timezone,
+    })) as ApiResult<BackendAttackCaseTimelineData | null>
+  } catch (error) {
+    if (isAttackCaseNotFoundError(error, normalizedCaseId)) {
+      return null
+    }
+    throw error
+  }
 
   if (!result.data?.case) return null
 
@@ -1123,6 +1131,25 @@ export async function fetchAttackCaseTimeline({
       ? result.data.groups.map(buildAttackCaseTimelineGroup)
       : [],
   }
+}
+
+function isAttackCaseNotFoundError(error: unknown, caseId: string): boolean {
+  if (!error || typeof error !== "object") return false
+
+  const value = error as {
+    status?: unknown
+    code?: unknown
+    message?: unknown
+  }
+  const status = Number(value.status)
+  const code = Number(value.code)
+  const message = stringValue(value.message).toLowerCase()
+  const normalizedCaseId = stringValue(caseId).toLowerCase()
+
+  if (!message.includes("not found")) return false
+  if (normalizedCaseId && !message.includes(normalizedCaseId)) return false
+
+  return status === 404 || code === 404 || message.includes("case_id")
 }
 
 export async function batchDescribeEventSourcesByKeys({
