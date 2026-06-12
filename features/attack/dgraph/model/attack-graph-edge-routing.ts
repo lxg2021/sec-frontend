@@ -76,7 +76,7 @@ export function buildAttackGraphEdgeRoutes(
   );
   const relationSegments = buildRelationSegments(edges, nodeGeometryById);
 
-  for (const edgeGroup of groupEdgesBySource(edges)) {
+  for (const edgeGroup of groupEdgesBySourceTarget(edges)) {
     const routedEdges = edgeGroup
       .filter((edge) => edge.source !== edge.target)
       .sort((left, right) =>
@@ -85,11 +85,13 @@ export function buildAttackGraphEdgeRoutes(
 
     const count = routedEdges.length;
     routedEdges.forEach((edge, index) => {
-      const fanoutIndex = index - (count - 1) / 2;
+      const magnitude = Math.floor(index / 2) + 1;
+      const direction = index % 2 === 0 ? 1 : -1;
+      const fanoutIndex = direction * magnitude;
       routesByEdgeId.set(edge.id, {
         fanoutCount: count,
         fanoutIndex,
-        fanoutOffset: getFanoutOffset(fanoutIndex, count),
+        fanoutOffset: clamp(fanoutIndex * getFanoutStep(count), -54, 54),
         kind: "relation",
       });
     });
@@ -141,6 +143,15 @@ function createSelfLoopSideCounts() {
   return {} as Partial<Record<AttackGraphSelfLoopSide, number>>;
 }
 
+function groupEdgesBySourceTarget(edges: AttackGraphEdgeModel[]) {
+  const groups = new Map<string, AttackGraphEdgeModel[]>();
+  for (const edge of edges) {
+    const key = `${edge.source}->${edge.target}`;
+    groups.set(key, [...(groups.get(key) ?? []), edge]);
+  }
+  return [...groups.values()];
+}
+
 function groupEdgesBySource(edges: AttackGraphEdgeModel[]) {
   const groups = new Map<string, AttackGraphEdgeModel[]>();
   for (const edge of edges) {
@@ -187,6 +198,13 @@ function compareEdgesForFanout(
   }
 
   return left.id.localeCompare(right.id);
+}
+
+function getFanoutStep(fanoutCount: number) {
+  if (fanoutCount <= 1) return 0;
+  if (fanoutCount <= 3) return 22;
+  if (fanoutCount <= 6) return 19;
+  return 16;
 }
 
 function getFanoutOffset(fanoutIndex: number, fanoutCount: number) {
