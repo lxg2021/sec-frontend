@@ -82,8 +82,8 @@ export function AttackGraphFlowV2({
   showMiniMap = false,
   showBackground = true,
   fitView = false,
-  minZoom = 0.2,
-  maxZoom = 1.6,
+  minZoom = 1,
+  maxZoom = 1,
   onEdgeClick,
   onEdgeMouseEnter,
   onEdgeMouseLeave,
@@ -156,8 +156,8 @@ export function AttackGraphFlowV2({
         rfInstanceRef.current?.fitView({
           duration: 220,
           maxZoom: 1,
-          minZoom: 0.5,
-          padding: 0.18,
+          minZoom: 1,
+          padding: 0,
         });
         hasFittedRef.current = true;
       }, 80);
@@ -258,9 +258,11 @@ export function AttackGraphFlowV2({
           fitView={fitView}
           minZoom={minZoom}
           maxZoom={maxZoom}
-          zoomOnScroll
-          zoomOnPinch
-          panOnScroll
+          panOnDrag
+          panOnScroll={false}
+          preventScrolling={false}
+          zoomOnPinch={false}
+          zoomOnScroll={false}
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable
