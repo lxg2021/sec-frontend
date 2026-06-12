@@ -26,6 +26,7 @@ import type {
 import { layoutAttackGraph } from "../model/attack-graph-layout";
 import {
   ATTACK_GRAPH_NODE_FAMILY_CONFIG,
+  getAttackGraphEntityNodeDisplayName,
   getAttackGraphNodeKindConfig,
   getAttackGraphNodeMergedStateConfig,
   getAttackGraphNodeSize,
@@ -243,9 +244,15 @@ function toReactFlowNodes(
 function toNodeVisualItem(
   node: AttackGraphNodeModel,
 ): AttackGraphFlowV2NodeData {
+  const displayLabel = getAttackGraphEntityNodeDisplayName({
+    entityType: node.entityType,
+    key: node.key,
+    displayName: node.displayName,
+    properties: node.properties,
+  });
   const visualData = toAttackGraphNodeVisualData(
     node.entityType,
-    node.displayName,
+    displayLabel,
     {
       evidenceHit: Boolean(node.evidenceHit),
       missingFromResponse: Boolean(node.missingFromResponse),
@@ -257,7 +264,7 @@ function toNodeVisualItem(
 
   return {
     id: node.id,
-    label: readString(visualData.label) || node.displayName,
+    label: readString(visualData.label) || displayLabel || node.displayName,
     entityLabel: readString(visualData.entityLabel) || nodeConfig.label,
     image: readString(visualData.image) || nodeConfig.image,
     color: nodeConfig.accentColor ?? familyConfig.fill,
