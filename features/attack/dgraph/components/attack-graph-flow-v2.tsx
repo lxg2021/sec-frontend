@@ -337,6 +337,12 @@ function toReactFlowEdges(
                 route: getEdgeRoute(edge, edgeRoutesById),
                 source: sourceGeometry,
                 target: targetGeometry,
+                obstacle:
+                  getEdgeRoute(edge, edgeRoutesById).kind === "skip"
+                    ? options.nodeGeometryById.get(
+                        (getEdgeRoute(edge, edgeRoutesById) as { obstacleId: string }).obstacleId,
+                      )
+                    : undefined,
               }
             : undefined,
         visual,

@@ -60,11 +60,18 @@ export function AttackGraphEdge({
   const pathResult =
     route.kind === "self-loop"
       ? getSelfLoopPath(sourceGeometry, route)
-      : getGraphEdgePath({
-          route,
-          source: sourceGeometry,
-          target: targetGeometry,
-        });
+      : route.kind === "skip"
+        ? getSkipEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+            obstacle: data.geometry?.obstacle,
+          })
+        : getGraphEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+          });
   const stroke =
     visual.colorMode === "gradient"
       ? `url(#${getEdgeGradientId(id, data.interactionState)})`
@@ -253,6 +260,86 @@ function getGraphEdgePath({
     labelAngle,
     labelX: labelPoint.x + normal.x * labelOffset,
     labelY: labelPoint.y + normal.y * labelOffset,
+    path,
+  };
+}
+
+function getSkipEdgePath({
+  route,
+  source,
+  target,
+  obstacle,
+}: {
+  route: Extract<AttackGraphEdgeRouteData, { kind: "skip" }>;
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
+  obstacle?: AttackGraphEdgeEndpointGeometry;
+}) {
+  const deltaX = target.centerX - source.centerX;
+  const deltaY = target.centerY - source.centerY;
+  const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
+  const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
+
+  const sourcePoint = getSideAnchorPoint(source, flowDirection, 0);
+  const targetPoint = getSideAnchorPoint(
+    target,
+    targetDirection,
+    0,
+    MARKER_END_GAP,
+  );
+
+  const obstacleClearance = obstacle ? obstacle.radius + 32 : 72;
+  const detourSign = route.detourSide === "above" ? -1 : 1;
+  const detourLift = detourSign * (obstacleClearance / 0.75);
+
+  const endpointDistance = Math.hypot(
+    targetPoint.x - sourcePoint.x,
+    targetPoint.y - sourcePoint.y,
+  );
+  const controlDistance = clamp(endpointDistance * 0.38, 38, 280);
+
+  const sourceControl = {
+    x: sourcePoint.x + flowDirection * controlDistance,
+    y: sourcePoint.y + deltaY * 0.25 + detourLift,
+  };
+  const targetControl = {
+    x: targetPoint.x - flowDirection * controlDistance,
+    y: targetPoint.y - deltaY * 0.25 + detourLift,
+  };
+
+  const path = [
+    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
+    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
+    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
+    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
+  ].join(" ");
+
+  const labelPoint = getCubicPoint(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+  const normal = getReadableLabelNormal(sourcePoint, targetPoint);
+  const labelAngle = getCubicTangentAngle(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelAngle,
+    labelX: labelPoint.x + normal.x * 16,
+    labelY: labelPoint.y + normal.y * 16,
     path,
   };
 }
