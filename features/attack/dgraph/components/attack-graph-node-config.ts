@@ -1,24 +1,22 @@
-import type { NodeData } from "@antv/g6";
-
 import type { AttackGraphNodePresentationKind } from "../model/attack-graph-node-types";
 import type { AttackGraphNodeFamily } from "../model/attack-graph-node-presentation";
 import { getAttackGraphNodePresentation } from "../model/attack-graph-node-presentation";
 
-export interface AttackG6NodeSize {
+export interface AttackGraphNodeSize {
   width: number;
   height: number;
   icon: number;
   labelMaxWidth: number;
 }
 
-export const ATTACK_G6_NODE_SIZE: AttackG6NodeSize = {
+export const ATTACK_GRAPH_NODE_SIZE: AttackGraphNodeSize = {
   width: 176,
   height: 84,
   icon: 58,
   labelMaxWidth: 176,
 } as const;
 
-export interface AttackG6NodeData {
+export interface AttackGraphNodeVisualData {
   kind: AttackGraphNodePresentationKind;
   label: string;
   entityType: string;
@@ -29,7 +27,7 @@ export interface AttackG6NodeData {
   missingFromResponse: boolean;
 }
 
-type AttackG6NodeIcon =
+type AttackGraphNodeIcon =
   | "case"
   | "evidence"
   | "process"
@@ -43,9 +41,9 @@ type AttackG6NodeIcon =
   | "security"
   | "unknown";
 
-type AttackG6NodeInteractionState = "active" | "selected";
+type AttackGraphNodeInteractionState = "active" | "selected";
 
-export interface AttackG6NodeStateConfig {
+export interface AttackGraphNodeStateConfig {
   size?: number | [number, number];
   haloStroke?: string;
   haloStrokeOpacity?: number;
@@ -56,29 +54,29 @@ export interface AttackG6NodeStateConfig {
   shadowOffsetY?: number;
 }
 
-interface AttackG6NodeFamilyConfig {
+interface AttackGraphNodeFamilyConfig {
   fill: string;
   glow: string;
   haloStroke: string;
-  icon: AttackG6NodeIcon;
+  icon: AttackGraphNodeIcon;
   labelFill: string;
   labelSubFill: string;
-  state?: Partial<Record<AttackG6NodeInteractionState, AttackG6NodeStateConfig>>;
+  state?: Partial<Record<AttackGraphNodeInteractionState, AttackGraphNodeStateConfig>>;
 }
 
-export interface AttackG6NodeKindConfig {
+export interface AttackGraphNodeKindConfig {
   label: string;
   family: AttackGraphNodeFamily;
   image: string;
   accentColor?: string;
-  icon?: AttackG6NodeIcon;
-  size?: Partial<AttackG6NodeSize>;
-  state?: Partial<Record<AttackG6NodeInteractionState, AttackG6NodeStateConfig>>;
+  icon?: AttackGraphNodeIcon;
+  size?: Partial<AttackGraphNodeSize>;
+  state?: Partial<Record<AttackGraphNodeInteractionState, AttackGraphNodeStateConfig>>;
 }
 
-export const ATTACK_G6_NODE_FAMILY_CONFIG: Record<
+export const ATTACK_GRAPH_NODE_FAMILY_CONFIG: Record<
   AttackGraphNodeFamily,
-  AttackG6NodeFamilyConfig
+  AttackGraphNodeFamilyConfig
 > = {
   case: {
     fill: "#334155",
@@ -186,9 +184,9 @@ export const ATTACK_G6_NODE_FAMILY_CONFIG: Record<
   },
 };
 
-export const ATTACK_G6_NODE_KIND_CONFIG: Record<
+export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
   AttackGraphNodePresentationKind,
-  AttackG6NodeKindConfig
+  AttackGraphNodeKindConfig
 > = {
   account: {
     label: "Account",
@@ -425,11 +423,11 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
   },
 };
 
-export const ATTACK_G6_NODE_DEMO_KINDS = Object.keys(
-  ATTACK_G6_NODE_KIND_CONFIG,
+export const ATTACK_GRAPH_NODE_DEMO_KINDS = Object.keys(
+  ATTACK_GRAPH_NODE_KIND_CONFIG,
 ) as AttackGraphNodePresentationKind[];
 
-export function toAttackG6NodeData(
+export function toAttackGraphNodeVisualData(
   entityType: string,
   label: string,
   options: {
@@ -437,129 +435,58 @@ export function toAttackG6NodeData(
     missingFromResponse?: boolean;
   } = {},
 ): Record<string, unknown> {
-  return { ...buildAttackG6NodeData(entityType, label, options) };
+  return { ...buildAttackGraphNodeVisualData(entityType, label, options) };
 }
 
-export function getAttackG6NodeStateStyle(
-  datum: NodeData,
-  state: AttackG6NodeInteractionState,
-): Record<string, unknown> {
-  const nodeData = readNodeData(datum.data);
-  const nodeConfig = getAttackG6NodeKindConfig(nodeData.kind);
-  const familyConfig = ATTACK_G6_NODE_FAMILY_CONFIG[nodeConfig.family];
-  const size = getAttackG6NodeSize(nodeConfig);
-  const stateConfig = getAttackG6NodeMergedStateConfig(
-    nodeConfig,
-    familyConfig,
-    state,
-    size,
-  );
-
-  return {
-    halo: true,
-    ...stateConfig,
-    haloStroke: nodeConfig.accentColor ?? stateConfig.haloStroke,
-    badge: true,
-    badges: getAttackG6NodeBadges(nodeData, state === "selected"),
-  };
+export function getAttackGraphNodeHaloColor(family: AttackGraphNodeFamily) {
+  return ATTACK_GRAPH_NODE_FAMILY_CONFIG[family].haloStroke;
 }
 
-export function getAttackG6NodeStyle(datum: NodeData): Record<string, unknown> {
-  const nodeData = readNodeData(datum.data);
-  const nodeConfig = getAttackG6NodeKindConfig(nodeData.kind);
-  const familyConfig = ATTACK_G6_NODE_FAMILY_CONFIG[nodeConfig.family];
-  const size = getAttackG6NodeSize(nodeConfig);
-  const activeState = getAttackG6NodeMergedStateConfig(
-    nodeConfig,
-    familyConfig,
-    "active",
-    size,
-  );
-  const ringWidth = Math.min(
-    4,
-    Math.max(2, activeState.haloLineWidth / 4),
-  );
-  const ringOpacity = Math.min(0.18, activeState.haloStrokeOpacity);
-  const accentColor = nodeConfig.accentColor ?? familyConfig.fill;
-  const iconSize = Math.max(24, Math.round(size.icon * 0.68));
-
-  return {
-    size: [size.icon, size.icon],
-    opacity: nodeData.missingFromResponse ? 0.5 : 1,
-    fill: "#ffffff",
-    stroke: accentColor,
-    strokeOpacity: ringOpacity,
-    lineWidth: ringWidth,
-    shadowColor: toRgba(familyConfig.glow, 0.1),
-    shadowBlur: 14,
-    shadowOffsetY: 5,
-    icon: true,
-    iconSrc: nodeData.image || nodeConfig.image,
-    iconWidth: iconSize,
-    iconHeight: iconSize,
-    label: true,
-    labelText: nodeData.label || String(datum.id),
-    labelPlacement: "bottom",
-    labelOffsetY: 10,
-    labelFontSize: 12,
-    labelFontWeight: 700,
-    labelFill: familyConfig.labelFill,
-    labelMaxWidth: size.labelMaxWidth,
-    labelWordWrap: true,
-    badge: nodeData.evidenceHit,
-    badges: getAttackG6NodeBadges(nodeData, false),
-  };
-}
-
-export function getAttackG6NodeHaloColor(family: AttackGraphNodeFamily) {
-  return ATTACK_G6_NODE_FAMILY_CONFIG[family].haloStroke;
-}
-
-export function getAttackG6NodeKindConfig(
+export function getAttackGraphNodeKindConfig(
   kind: AttackGraphNodePresentationKind,
 ) {
-  return ATTACK_G6_NODE_KIND_CONFIG[kind] ?? ATTACK_G6_NODE_KIND_CONFIG.unknown;
+  return ATTACK_GRAPH_NODE_KIND_CONFIG[kind] ?? ATTACK_GRAPH_NODE_KIND_CONFIG.unknown;
 }
 
-export function getAttackG6NodeSize(config: AttackG6NodeKindConfig) {
+export function getAttackGraphNodeSize(config: AttackGraphNodeKindConfig) {
   return {
-    ...ATTACK_G6_NODE_SIZE,
+    ...ATTACK_GRAPH_NODE_SIZE,
     ...config.size,
   };
 }
 
-export function getAttackG6NodeMergedStateConfig(
-  nodeConfig: AttackG6NodeKindConfig,
-  familyConfig: AttackG6NodeFamilyConfig,
-  state: AttackG6NodeInteractionState,
-  size = getAttackG6NodeSize(nodeConfig),
-): Required<AttackG6NodeStateConfig> {
+export function getAttackGraphNodeMergedStateConfig(
+  nodeConfig: AttackGraphNodeKindConfig,
+  familyConfig: AttackGraphNodeFamilyConfig,
+  state: AttackGraphNodeInteractionState,
+  size = getAttackGraphNodeSize(nodeConfig),
+): Required<AttackGraphNodeStateConfig> {
   return {
-    ...getAttackG6NodeDefaultStateConfig(familyConfig, state, size),
+    ...getAttackGraphNodeDefaultStateConfig(familyConfig, state, size),
     ...familyConfig.state?.[state],
     ...nodeConfig.state?.[state],
   };
 }
 
-export function getAttackG6NodeDemoItems() {
-  return ATTACK_G6_NODE_DEMO_KINDS.map((kind) => {
-    const nodeConfig = getAttackG6NodeKindConfig(kind);
-    const familyConfig = ATTACK_G6_NODE_FAMILY_CONFIG[nodeConfig.family];
+export function getAttackGraphNodeDemoItems() {
+  return ATTACK_GRAPH_NODE_DEMO_KINDS.map((kind) => {
+    const nodeConfig = getAttackGraphNodeKindConfig(kind);
+    const familyConfig = ATTACK_GRAPH_NODE_FAMILY_CONFIG[nodeConfig.family];
 
     return {
       kind,
       ...nodeConfig,
-      size: getAttackG6NodeSize(nodeConfig),
+      size: getAttackGraphNodeSize(nodeConfig),
       color: nodeConfig.accentColor ?? familyConfig.fill,
       glow: familyConfig.glow,
       labelFill: familyConfig.labelFill,
       labelSubFill: familyConfig.labelSubFill,
-      activeState: getAttackG6NodeMergedStateConfig(
+      activeState: getAttackGraphNodeMergedStateConfig(
         nodeConfig,
         familyConfig,
         "active",
       ),
-      selectedState: getAttackG6NodeMergedStateConfig(
+      selectedState: getAttackGraphNodeMergedStateConfig(
         nodeConfig,
         familyConfig,
         "selected",
@@ -568,11 +495,11 @@ export function getAttackG6NodeDemoItems() {
   });
 }
 
-function getAttackG6NodeDefaultStateConfig(
-  familyConfig: AttackG6NodeFamilyConfig,
-  state: AttackG6NodeInteractionState,
-  size: AttackG6NodeSize,
-): Required<AttackG6NodeStateConfig> {
+function getAttackGraphNodeDefaultStateConfig(
+  familyConfig: AttackGraphNodeFamilyConfig,
+  state: AttackGraphNodeInteractionState,
+  size: AttackGraphNodeSize,
+): Required<AttackGraphNodeStateConfig> {
   return {
     haloStroke: familyConfig.haloStroke,
     haloStrokeOpacity: state === "selected" ? 0.36 : 0.26,
@@ -585,89 +512,16 @@ function getAttackG6NodeDefaultStateConfig(
   };
 }
 
-function getAttackG6NodeBadges(
-  nodeData: AttackG6NodeData,
-  selected: boolean,
-) {
-  const badges: Record<string, unknown>[] = [];
-
-  if (nodeData.evidenceHit) {
-    badges.push({
-      text: "!",
-      placement: "right-top",
-      backgroundFill: "#ffffff",
-      stroke: "#fecdd3",
-      lineWidth: 1,
-      fill: "#e11d48",
-      fontSize: 12,
-      fontWeight: 800,
-      radius: 10,
-      padding: [2, 5],
-      offsetX: 3,
-      offsetY: -3,
-    });
-  }
-
-  if (selected) {
-    badges.push({
-      text: "OK",
-      placement: "right-bottom",
-      backgroundFill: "#2563eb",
-      stroke: "#ffffff",
-      lineWidth: 2,
-      fill: "#ffffff",
-      fontSize: 11,
-      fontWeight: 900,
-      radius: 11,
-      padding: [2, 5],
-      offsetX: 4,
-      offsetY: 4,
-      shadowColor: "rgba(37, 99, 235, 0.28)",
-      shadowBlur: 8,
-      shadowOffsetY: 2,
-    });
-  }
-
-  return badges;
-}
-
-function readNodeData(value: unknown): AttackG6NodeData {
-  const record = readRecord(value);
-  const entityType = readString(record.entityType);
-  const fallback = buildAttackG6NodeData(
-    entityType,
-    readString(record.label) || "Unknown",
-    {
-      evidenceHit: readBoolean(record.evidenceHit),
-      missingFromResponse: readBoolean(record.missingFromResponse),
-    },
-  );
-  const family = readString(record.family);
-  const kind = readString(record.kind);
-  const resolvedKind = isAttackGraphNodePresentationKind(kind)
-    ? kind
-    : fallback.kind;
-  const nodeConfig = getAttackG6NodeKindConfig(resolvedKind);
-
-  return {
-    ...fallback,
-    kind: resolvedKind,
-    entityLabel: readString(record.entityLabel) || fallback.entityLabel,
-    family: isAttackGraphNodeFamily(family) ? family : nodeConfig.family,
-    image: readString(record.image) || nodeConfig.image || fallback.image,
-  };
-}
-
-function buildAttackG6NodeData(
+function buildAttackGraphNodeVisualData(
   entityType: string,
   label: string,
   options: {
     evidenceHit?: boolean;
     missingFromResponse?: boolean;
   } = {},
-): AttackG6NodeData {
+): AttackGraphNodeVisualData {
   const presentation = getAttackGraphNodePresentation(entityType);
-  const nodeConfig = getAttackG6NodeKindConfig(presentation.kind);
+  const nodeConfig = getAttackGraphNodeKindConfig(presentation.kind);
   return {
     kind: presentation.kind,
     label,
@@ -680,47 +534,6 @@ function buildAttackG6NodeData(
   };
 }
 
-function isAttackGraphNodeFamily(value: string): value is AttackGraphNodeFamily {
-  return value in ATTACK_G6_NODE_FAMILY_CONFIG;
-}
-
-function isAttackGraphNodePresentationKind(
-  value: string,
-): value is AttackGraphNodePresentationKind {
-  return value in ATTACK_G6_NODE_KIND_CONFIG;
-}
-
-function getAttackG6NodeIconSvg(icon: AttackG6NodeIcon) {
-  switch (icon) {
-    case "case":
-      return '<path d="M20 22h18v14H20z"/><path d="M24 22v-4h10v4"/><path d="M24 29h10"/>';
-    case "evidence":
-      return '<path d="M29 16v17"/><path d="M22 24l7-8 7 8"/><path d="M21 38h16"/>';
-    case "process":
-      return '<rect x="18" y="19" width="22" height="20" rx="4"/><path d="M24 25h10"/><path d="M24 31h6"/><path d="M23 16v3M29 16v3M35 16v3M23 39v3M29 39v3M35 39v3"/>';
-    case "identity":
-      return '<circle cx="29" cy="23" r="5"/><path d="M19 39c1.8-5.4 5.2-8 10-8s8.2 2.6 10 8"/>';
-    case "host":
-      return '<rect x="19" y="18" width="20" height="16" rx="2"/><path d="M25 40h8"/><path d="M29 34v6"/>';
-    case "network":
-      return '<circle cx="20" cy="29" r="4"/><circle cx="38" cy="20" r="4"/><circle cx="38" cy="38" r="4"/><path d="M24 27l10-5M24 31l10 5"/>';
-    case "file":
-      return '<path d="M22 17h10l6 6v18H22z"/><path d="M32 17v7h6"/><path d="M26 31h8"/><path d="M26 36h5"/>';
-    case "registry":
-      return '<rect x="18" y="18" width="9" height="9" rx="2"/><rect x="31" y="18" width="9" height="9" rx="2"/><rect x="18" y="31" width="9" height="9" rx="2"/><rect x="31" y="31" width="9" height="9" rx="2"/>';
-    case "persistence":
-      return '<path d="M19 22h20"/><path d="M22 18h14l3 4-3 4H22l-3-4z"/><path d="M24 31h10"/><path d="M20 38h18"/>';
-    case "ipc":
-      return '<path d="M20 23h18v12H20z"/><path d="M17 29h3M38 29h3"/><path d="M24 19v4M34 19v4M24 35v4M34 35v4"/>';
-    case "security":
-      return '<path d="M29 17l11 5v7c0 6.5-4.2 10.4-11 13-6.8-2.6-11-6.5-11-13v-7z"/><path d="M29 24v7"/><path d="M29 36h.01"/>';
-    case "unknown":
-      return '<path d="M24 24a5 5 0 0 1 10 1c0 4-5 4-5 8"/><path d="M29 39h.01"/>';
-    default:
-      return '<circle cx="29" cy="29" r="9"/>';
-  }
-}
-
 function toRgba(hex: string, alpha: number) {
   const normalized = hex.replace("#", "");
   if (!/^[\da-f]{6}$/i.test(normalized)) {
@@ -731,20 +544,4 @@ function toRgba(hex: string, alpha: number) {
   const green = Number.parseInt(normalized.slice(2, 4), 16);
   const blue = Number.parseInt(normalized.slice(4, 6), 16);
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
-function readRecord(value: unknown): Record<string, unknown> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
-  }
-
-  return value as Record<string, unknown>;
-}
-
-function readString(value: unknown) {
-  return typeof value === "string" ? value : "";
-}
-
-function readBoolean(value: unknown) {
-  return typeof value === "boolean" ? value : false;
 }

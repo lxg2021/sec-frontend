@@ -11,7 +11,11 @@ import {
 } from "@/shared/ui/card";
 import { useTranslations } from "next-intl"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
-import { AttackGraphG6, fetchGraphCase } from "@/features/attack/dgraph"
+import {
+  AttackGraphFlowV2,
+  AttackGraphNodeDemoCard,
+  fetchGraphCase,
+} from "@/features/attack/dgraph"
 import type { GraphCaseResponseDto } from "@/features/attack/dgraph"
 
 
@@ -114,6 +118,8 @@ export default function App() {
           </div>
         </div>
 
+        <AttackGraphNodeDemoCard />
+
         {/* Graph 可视化 */}
         <Card className="bg-white border border-gray-200 shadow-sm">
           <CardHeader className="pb-4">
@@ -155,7 +161,7 @@ export default function App() {
                   description={graphError}
                 />
               ) : graphResponse && graphNodeCount > 0 ? (
-                <AttackGraphG6
+                <AttackGraphFlowV2
                   response={graphResponse}
                   className="h-full"
                 />

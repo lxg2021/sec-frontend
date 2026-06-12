@@ -5,12 +5,12 @@ import Image from "next/image";
 
 import { cn } from "@/shared/lib/utils";
 import {
-  getAttackG6NodeDemoItems,
-  type AttackG6NodeSize,
-} from "./attack-g6-node";
+  getAttackGraphNodeDemoItems,
+  type AttackGraphNodeSize,
+} from "./attack-graph-node-config";
 
-export function AttackG6NodeDemoCard() {
-  const items = getAttackG6NodeDemoItems();
+export function AttackGraphNodeDemoCard() {
+  const items = getAttackGraphNodeDemoItems();
   const [selectedKind, setSelectedKind] = useState<string | null>(null);
 
   return (
@@ -18,10 +18,10 @@ export function AttackG6NodeDemoCard() {
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
         <div>
           <div className="text-sm font-semibold text-slate-900">
-            G6 Node Demo
+            Attack Graph Node Demo
           </div>
           <div className="mt-1 text-xs text-slate-500">
-            {items.length} presentation kinds from attack-g6-node.ts
+            {items.length} presentation kinds from attack-graph-node-config.ts
           </div>
         </div>
         <div className="rounded-sm bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
@@ -52,7 +52,7 @@ function NodePreviewTile({
   selected,
   onSelect,
 }: {
-  item: ReturnType<typeof getAttackG6NodeDemoItems>[number];
+  item: ReturnType<typeof getAttackGraphNodeDemoItems>[number];
   selected: boolean;
   onSelect: () => void;
 }) {
@@ -146,7 +146,7 @@ function NodeMetaPill({
   );
 }
 
-function formatSize(size: AttackG6NodeSize) {
+function formatSize(size: AttackGraphNodeSize) {
   return `${size.width}x${size.height}/${size.icon}`;
 }
 
