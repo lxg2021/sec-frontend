@@ -52,8 +52,15 @@ export function processSemanticLayout(
       : layoutConnectedSemanticNodes(layoutResult, threshold, lanes, laneByKind);
   const semanticCrossings = countEdgeCrossings(semanticNodes, edges);
 
-  const bestNodes = semanticCrossings > originalCrossings ? nodes : semanticNodes;
-  const bestCrossings = Math.min(originalCrossings, semanticCrossings);
+  const strictLane = lanes.length >= 3;
+  const bestNodes = strictLane
+    ? semanticNodes
+    : semanticCrossings > originalCrossings
+      ? nodes
+      : semanticNodes;
+  const bestCrossings = strictLane
+    ? semanticCrossings
+    : Math.min(originalCrossings, semanticCrossings);
   const optimizedNodes = optimizeLayerOrder(bestNodes, edges, laneByKind);
   const optimizedCrossings = countEdgeCrossings(optimizedNodes, edges);
 
@@ -107,6 +114,11 @@ function layoutByTypeAlignment(
     centered: i === centerIndex,
     presentationKinds: [kind as AttackGraphNodePresentationKind],
   }));
+
+  const laneByKindMap = new Map(lanes.map((l) => [l.presentationKinds[0], l]));
+  for (const entry of entries) {
+    entry.lane = laneByKindMap.get(entry.node.presentationKind) ?? lanes[0];
+  }
 
   const laneHeights = computeLaneHeights(entries, layers, lanes);
   const centeredLane = lanes[centerIndex];
