@@ -1,4 +1,8 @@
-import type { AttackGraphNodePresentationKind } from "../model/attack-graph-node-types";
+import type {
+  AttackGraphEntityPresentationKind,
+  AttackGraphEntityType,
+  AttackGraphNodePresentationKind,
+} from "../model/attack-graph-node-types";
 import type { AttackGraphNodeFamily } from "../model/attack-graph-node-presentation";
 import { getAttackGraphNodePresentation } from "../model/attack-graph-node-presentation";
 
@@ -73,6 +77,206 @@ export interface AttackGraphNodeKindConfig {
   size?: Partial<AttackGraphNodeSize>;
   state?: Partial<Record<AttackGraphNodeInteractionState, AttackGraphNodeStateConfig>>;
 }
+
+export interface AttackGraphEntityNodeDisplayNameInput {
+  entityType: AttackGraphEntityType;
+  key: string;
+  displayName: string;
+  properties: Record<string, string>;
+}
+
+export interface AttackGraphNodeDisplayNameInput {
+  entityType: string | null | undefined;
+  key?: string | null;
+  displayName?: string | null;
+  properties?: Record<string, string> | null;
+}
+
+export type AttackGraphEntityNodeDisplayNameExtractor = (
+  input: AttackGraphEntityNodeDisplayNameInput,
+) => string;
+
+export interface AttackGraphEntityNodeConfig {
+  label: string;
+  presentationKind: AttackGraphEntityPresentationKind;
+  extractDisplayName: AttackGraphEntityNodeDisplayNameExtractor;
+}
+
+export const ATTACK_GRAPH_ENTITY_NODE_CONFIG: Record<
+  AttackGraphEntityType,
+  AttackGraphEntityNodeConfig
+> = {
+  Account: {
+    label: "Account",
+    presentationKind: "account",
+    extractDisplayName: extractAccountDisplayName,
+  },
+  AccountGroup: {
+    label: "Account Group",
+    presentationKind: "account",
+    extractDisplayName: extractAccountGroupDisplayName,
+  },
+  Bits: {
+    label: "BITS",
+    presentationKind: "bits",
+    extractDisplayName: extractBitsDisplayName,
+  },
+  CredentialTheft: {
+    label: "Credential Theft",
+    presentationKind: "credential-theft",
+    extractDisplayName: extractCredentialTheftDisplayName,
+  },
+  Crypto: {
+    label: "Crypto",
+    presentationKind: "crypto",
+    extractDisplayName: extractCryptoDisplayName,
+  },
+  Device: {
+    label: "Device",
+    presentationKind: "device",
+    extractDisplayName: extractDeviceDisplayName,
+  },
+  DnsName: {
+    label: "DNS Name",
+    presentationKind: "dns-name",
+    extractDisplayName: extractDnsNameDisplayName,
+  },
+  File: {
+    label: "File",
+    presentationKind: "file",
+    extractDisplayName: extractFileDisplayName,
+  },
+  FileMapping: {
+    label: "File Mapping",
+    presentationKind: "ipc-object",
+    extractDisplayName: extractFileMappingDisplayName,
+  },
+  FileStream: {
+    label: "File Stream",
+    presentationKind: "file-stream",
+    extractDisplayName: extractFileStreamDisplayName,
+  },
+  Host: {
+    label: "Host",
+    presentationKind: "host",
+    extractDisplayName: extractHostDisplayName,
+  },
+  HostRef: {
+    label: "Host Reference",
+    presentationKind: "host-ref",
+    extractDisplayName: extractHostRefDisplayName,
+  },
+  MailSlot: {
+    label: "MailSlot",
+    presentationKind: "ipc-object",
+    extractDisplayName: extractMailSlotDisplayName,
+  },
+  Mbr: {
+    label: "MBR",
+    presentationKind: "mbr",
+    extractDisplayName: extractMbrDisplayName,
+  },
+  MessageHook: {
+    label: "Message Hook",
+    presentationKind: "message-hook",
+    extractDisplayName: extractMessageHookDisplayName,
+  },
+  NamedEvent: {
+    label: "Named Event",
+    presentationKind: "ipc-object",
+    extractDisplayName: extractNamedEventDisplayName,
+  },
+  NamedPipe: {
+    label: "Named Pipe",
+    presentationKind: "ipc-object",
+    extractDisplayName: extractNamedPipeDisplayName,
+  },
+  NetAddress: {
+    label: "Network Address",
+    presentationKind: "net-address",
+    extractDisplayName: extractNetAddressDisplayName,
+  },
+  NetEndpoint: {
+    label: "Network Endpoint",
+    presentationKind: "net-endpoint",
+    extractDisplayName: extractNetEndpointDisplayName,
+  },
+  PowerShellExecution: {
+    label: "PowerShell Execution",
+    presentationKind: "powershell",
+    extractDisplayName: extractPowerShellExecutionDisplayName,
+  },
+  Process: {
+    label: "Process",
+    presentationKind: "process",
+    extractDisplayName: extractProcessDisplayName,
+  },
+  RegistryKey: {
+    label: "Registry Key",
+    presentationKind: "registry",
+    extractDisplayName: extractRegistryKeyDisplayName,
+  },
+  RegistryValue: {
+    label: "Registry Value",
+    presentationKind: "registry",
+    extractDisplayName: extractRegistryValueDisplayName,
+  },
+  ScheduledJob: {
+    label: "Scheduled Job",
+    presentationKind: "task",
+    extractDisplayName: extractScheduledJobDisplayName,
+  },
+  Service: {
+    label: "Service",
+    presentationKind: "service",
+    extractDisplayName: extractServiceDisplayName,
+  },
+  Task: {
+    label: "Task",
+    presentationKind: "task",
+    extractDisplayName: extractTaskDisplayName,
+  },
+  TokenImpersonation: {
+    label: "Token Impersonation",
+    presentationKind: "token-impersonation",
+    extractDisplayName: extractTokenImpersonationDisplayName,
+  },
+  URLResource: {
+    label: "URL Resource",
+    presentationKind: "url-resource",
+    extractDisplayName: extractUrlResourceDisplayName,
+  },
+  Volume: {
+    label: "Volume",
+    presentationKind: "volume",
+    extractDisplayName: extractVolumeDisplayName,
+  },
+  WmiClass: {
+    label: "WMI Class",
+    presentationKind: "wmi",
+    extractDisplayName: extractWmiClassDisplayName,
+  },
+  WmiConsumer: {
+    label: "WMI Consumer",
+    presentationKind: "wmi",
+    extractDisplayName: extractWmiConsumerDisplayName,
+  },
+  WmiExecute: {
+    label: "WMI Execute",
+    presentationKind: "wmi",
+    extractDisplayName: extractWmiExecuteDisplayName,
+  },
+  WmiFilter: {
+    label: "WMI Filter",
+    presentationKind: "wmi",
+    extractDisplayName: extractWmiFilterDisplayName,
+  },
+  WmiQuery: {
+    label: "WMI Query",
+    presentationKind: "wmi",
+    extractDisplayName: extractWmiQueryDisplayName,
+  },
+};
 
 export const ATTACK_GRAPH_NODE_FAMILY_CONFIG: Record<
   AttackGraphNodeFamily,
@@ -455,6 +659,36 @@ export function getAttackGraphNodeSize(config: AttackGraphNodeKindConfig) {
   };
 }
 
+export function getAttackGraphEntityNodeDisplayName({
+  entityType,
+  key,
+  displayName,
+  properties,
+}: AttackGraphNodeDisplayNameInput) {
+  const normalizedEntityType = stringValue(entityType);
+  const normalizedKey = stringValue(key);
+  const normalizedDisplayName = stringValue(displayName);
+  const normalizedProperties = properties ?? {};
+
+  if (normalizedEntityType in ATTACK_GRAPH_ENTITY_NODE_CONFIG) {
+    const typedEntityType = normalizedEntityType as AttackGraphEntityType;
+    return (
+      ATTACK_GRAPH_ENTITY_NODE_CONFIG[
+        typedEntityType
+      ].extractDisplayName({
+        entityType: typedEntityType,
+        key: normalizedKey,
+        displayName: normalizedDisplayName,
+        properties: normalizedProperties,
+      }) ||
+      normalizedDisplayName ||
+      normalizedKey
+    );
+  }
+
+  return normalizedDisplayName || normalizedKey;
+}
+
 export function getAttackGraphNodeMergedStateConfig(
   nodeConfig: AttackGraphNodeKindConfig,
   familyConfig: AttackGraphNodeFamilyConfig,
@@ -532,6 +766,377 @@ function buildAttackGraphNodeVisualData(
     evidenceHit: Boolean(options.evidenceHit),
     missingFromResponse: Boolean(options.missingFromResponse),
   };
+}
+
+function extractAccountDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  const user = firstValue(input, ["user"]);
+  const domain = firstValue(input, ["domain"]);
+  if (domain && user && !user.includes("\\")) {
+    return `${domain}\\${user}`;
+  }
+  return user || fallback(input);
+}
+
+function extractAccountGroupDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return firstValue(input, ["group_name"]) || fallback(input);
+}
+
+function extractBitsDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return firstValue(input, ["job_name", "job_id"]) || fallback(input);
+}
+
+function extractCredentialTheftDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return firstValue(input, ["cred_desc", "cred_type"]) || fallback(input);
+}
+
+function extractCryptoDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    firstValue(input, [
+      "crypt_flag_description",
+      "operation_kind",
+      "crypt_flag",
+    ]) || fallback(input)
+  );
+}
+
+function extractDeviceDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    firstValue(input, ["device_description", "device_guid", "hid"]) ||
+    fallback(input)
+  );
+}
+
+function extractDnsNameDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  const domain = firstValue(input, ["domain"]);
+  return domain ? hostLike(domain) : fallback(input);
+}
+
+function extractFileDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return basename(
+    firstValue(input, ["file_name", "org_file_name", "description"]) ||
+      fallback(input),
+  );
+}
+
+function extractFileMappingDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return objectLeaf(firstValue(input, ["file_mapping_name"]) || fallback(input));
+}
+
+function extractFileStreamDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  const streamName = firstValue(input, ["stream_name"]);
+  const fileName = basename(firstValue(input, ["base_path"]) || input.displayName);
+
+  if (fileName && streamName && !fileName.includes(`:${streamName}`)) {
+    return `${fileName}:${streamName}`;
+  }
+
+  return objectLeaf(firstValue(input, ["base_path"]) || fallback(input));
+}
+
+function extractHostDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  const host = firstValue(input, ["computer_name", "domain", "agent_id"]);
+  return host ? hostLike(host) : fallback(input);
+}
+
+function extractHostRefDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  const host = firstValue(input, ["server_name"]);
+  return host ? hostLike(host) : fallback(input);
+}
+
+function extractMailSlotDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return objectLeaf(firstValue(input, ["mail_slot_name"]) || fallback(input));
+}
+
+function extractMbrDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return firstValue(input, ["physical_name", "driver_type"]) || fallback(input);
+}
+
+function extractMessageHookDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return (
+    firstValue(input, [
+      "hook_type_description",
+      "message_hook_module",
+      "hook_type",
+      "module_fingerprint",
+    ]) || fallback(input)
+  );
+}
+
+function extractNamedEventDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return objectLeaf(firstValue(input, ["event_name"]) || fallback(input));
+}
+
+function extractNamedPipeDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return objectLeaf(firstValue(input, ["pipe_name"]) || fallback(input));
+}
+
+function extractNetAddressDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return firstValue(input, ["ip"]) || fallback(input);
+}
+
+function extractNetEndpointDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  const host = firstValue(input, ["ip"]);
+  const port = firstValue(input, ["port"]);
+  if (host && port && !host.endsWith(`:${port}`)) {
+    return `${formatEndpointHost(host)}:${port}`;
+  }
+  return host || fallback(input);
+}
+
+function extractPowerShellExecutionDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return (
+    basename(firstValue(input, ["file_name"])) ||
+    commandSummary(firstValue(input, ["process_command_line", "content"])) ||
+    firstValue(input, ["script_fingerprint"]) ||
+    fallback(input)
+  );
+}
+
+function extractProcessDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    firstValue(input, ["process_name"]) ||
+    basename(firstValue(input, ["process_image"])) ||
+    commandSummary(firstValue(input, ["process_command_line"])) ||
+    firstValue(input, ["process_id"]) ||
+    basename(fallback(input))
+  );
+}
+
+function extractRegistryKeyDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return registryLeaf(
+    firstValue(input, ["object_name", "description", "classification"]) ||
+      fallback(input),
+  );
+}
+
+function extractRegistryValueDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return (
+    registryLeaf(firstValue(input, ["object_name"])) ||
+    firstValue(input, ["object_value", "description", "classification"]) ||
+    fallback(input)
+  );
+}
+
+function extractScheduledJobDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return (
+    basename(firstValue(input, ["job_binary_path_name"])) ||
+    commandSummary(firstValue(input, ["command"])) ||
+    firstValue(input, ["job_id", "flag"]) ||
+    fallback(input)
+  );
+}
+
+function extractServiceDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    firstValue(input, ["display_name", "service_name"]) ||
+    basename(firstValue(input, ["service_binary_path_name"])) ||
+    fallback(input)
+  );
+}
+
+function extractTaskDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    firstValue(input, ["task_name", "task_path", "server_name"]) ||
+    fallback(input)
+  );
+}
+
+function extractTokenImpersonationDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return (
+    firstValue(input, [
+      "token_flag_description",
+      "token_flag",
+      "operator_token_context",
+      "target_token_context",
+    ]) ||
+    fallback(input)
+  );
+}
+
+function extractUrlResourceDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return urlLabel(firstValue(input, ["url"]) || fallback(input));
+}
+
+function extractVolumeDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    basename(firstValue(input, ["file_name"])) ||
+    firstValue(input, ["driver_type", "access_type"]) ||
+    fallback(input)
+  );
+}
+
+function extractWmiClassDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    firstValue(input, ["class_name", "namespace", "server_name"]) ||
+    fallback(input)
+  );
+}
+
+function extractWmiConsumerDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  return (
+    firstValue(input, [
+      "event_consumer_name",
+      "event_consumer_type_description",
+      "class_name",
+      "namespace",
+    ]) || fallback(input)
+  );
+}
+
+function extractWmiExecuteDisplayName(
+  input: AttackGraphEntityNodeDisplayNameInput,
+) {
+  const className = firstValue(input, ["class_name"]);
+  const methodName = firstValue(input, ["method_name"]);
+  if (className && methodName) {
+    return `${className}.${methodName}`;
+  }
+
+  return (
+    methodName ||
+    className ||
+    commandSummary(firstValue(input, ["method_parameters"])) ||
+    firstValue(input, ["namespace", "server_name"]) ||
+    fallback(input)
+  );
+}
+
+function extractWmiFilterDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    firstValue(input, ["event_filter_name"]) ||
+    commandSummary(firstValue(input, ["query"])) ||
+    firstValue(input, ["namespace", "server_name"]) ||
+    fallback(input)
+  );
+}
+
+function extractWmiQueryDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
+  return (
+    commandSummary(firstValue(input, ["query"])) ||
+    firstValue(input, ["query_fingerprint", "namespace", "server_name"]) ||
+    fallback(input)
+  );
+}
+
+function firstValue(
+  input: AttackGraphEntityNodeDisplayNameInput,
+  keys: string[],
+) {
+  for (const key of keys) {
+    const value = stringValue(input.properties[key]);
+    if (value) {
+      return value;
+    }
+  }
+  return "";
+}
+
+function fallback(input: AttackGraphEntityNodeDisplayNameInput) {
+  return input.displayName || input.key;
+}
+
+function basename(value: string) {
+  const normalized = stringValue(value).replace(/^["']|["']$/g, "");
+  if (!normalized) {
+    return "";
+  }
+
+  const pathWithoutTrailingSlash = normalized.replace(/[\\/]+$/g, "");
+  const parts = pathWithoutTrailingSlash.split(/[\\/]/);
+  return parts[parts.length - 1] || normalized;
+}
+
+function objectLeaf(value: string) {
+  const normalized = stringValue(value);
+  if (!normalized) {
+    return "";
+  }
+
+  const parts = normalized.replace(/[\\/]+$/g, "").split(/[\\/]/);
+  return parts[parts.length - 1] || normalized;
+}
+
+function registryLeaf(value: string) {
+  const normalized = stringValue(value);
+  if (!normalized) {
+    return "";
+  }
+
+  const parts = normalized.replace(/[\\]+$/g, "").split(/[\\]/);
+  return parts[parts.length - 1] || normalized;
+}
+
+function hostLike(value: string) {
+  return stringValue(value)
+    .replace(/^https?:\/\//i, "")
+    .replace(/[/:].*$/g, "");
+}
+
+function formatEndpointHost(value: string) {
+  const normalized = stringValue(value);
+  if (!normalized) {
+    return "";
+  }
+  return normalized.includes(":") && !normalized.startsWith("[")
+    ? `[${normalized}]`
+    : normalized;
+}
+
+function urlLabel(value: string) {
+  const normalized = stringValue(value);
+  if (!normalized) {
+    return "";
+  }
+
+  try {
+    const url = new URL(normalized);
+    const path = url.pathname && url.pathname !== "/" ? basename(url.pathname) : "";
+    return path ? `${url.hostname}/${path}` : url.hostname;
+  } catch {
+    return normalized.replace(/^https?:\/\//i, "");
+  }
+}
+
+function commandSummary(value: string) {
+  const normalized = stringValue(value);
+  if (!normalized) {
+    return "";
+  }
+  return normalized.length > 48 ? `${normalized.slice(0, 45)}...` : normalized;
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function toRgba(hex: string, alpha: number) {
