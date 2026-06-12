@@ -7,6 +7,7 @@ import type {
   AttackGraphNodeModel,
 } from "./attack-graph-data";
 import { ATTACK_GRAPH_NODE_KIND_CONFIG } from "./attack-graph-node-config";
+import { processSemanticLayout } from "./attack-graph-semantic-layout";
 
 const DEFAULT_NODE_WIDTH = 208;
 const DEFAULT_NODE_HEIGHT = 56;
@@ -110,12 +111,26 @@ export async function layoutAttackGraph(
     };
   });
 
-  return {
+  const layoutedWidth = Math.ceil(layoutedGraph.width ?? maxX - minX);
+  const layoutedHeight = Math.ceil(layoutedGraph.height ?? maxY - minY);
+
+  const semanticNodes = processSemanticLayout({
     ...graph,
     edges: graph.edges,
     nodes: layoutedNodes,
-    width: Math.ceil(layoutedGraph.width ?? maxX - minX),
-    height: Math.ceil(layoutedGraph.height ?? maxY - minY),
+  });
+
+  const maxYAfter = semanticNodes.reduce(
+    (max, n) => Math.max(max, (n.position?.y ?? 0) + DEFAULT_NODE_HEIGHT),
+    DEFAULT_GRAPH_PADDING,
+  );
+
+  return {
+    ...graph,
+    edges: graph.edges,
+    nodes: semanticNodes,
+    width: layoutedWidth,
+    height: Math.ceil(maxYAfter + DEFAULT_GRAPH_PADDING),
   };
 }
 

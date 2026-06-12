@@ -812,12 +812,18 @@ function buildAttackGraphNodeVisualData(
 }
 
 function extractAccountDisplayName(input: AttackGraphEntityNodeDisplayNameInput) {
-  const user = firstValue(input, ["user"]);
+  const user = firstValue(input, [
+    "user",
+    "user_name",
+    "username",
+    "account_name",
+    "name",
+  ]);
   const domain = firstValue(input, ["domain"]);
   if (domain && user && !user.includes("\\")) {
     return `${domain}\\${user}`;
   }
-  return user || fallback(input);
+  return user || compactSid(firstValue(input, ["sid"])) || accountKeyLeaf(input.key) || fallback(input);
 }
 
 function extractAccountGroupDisplayName(
@@ -1106,6 +1112,36 @@ function firstValue(
 
 function fallback(input: AttackGraphEntityNodeDisplayNameInput) {
   return input.displayName || input.key;
+}
+
+function accountKeyLeaf(value: string) {
+  const normalized = stringValue(value);
+  if (!normalized.startsWith("account:")) {
+    return "";
+  }
+
+  const sidMatch = normalized.match(/:sid:([^:]+)$/i);
+  if (sidMatch?.[1]) {
+    return compactSid(sidMatch[1]);
+  }
+
+  const principalMatch = normalized.match(/:principal:([^:]+):([^:]+)$/i);
+  if (principalMatch?.[1] && principalMatch[2]) {
+    return `${principalMatch[1]}\\${principalMatch[2]}`;
+  }
+
+  const parts = normalized.split(":").filter(Boolean);
+  return parts[parts.length - 1] || "";
+}
+
+function compactSid(value: string) {
+  const sid = stringValue(value);
+  if (!sid) {
+    return "";
+  }
+  const parts = sid.split("-");
+  const rid = parts[parts.length - 1];
+  return rid ? `SID:...-${rid}` : sid;
 }
 
 function basename(value: string) {
