@@ -118,7 +118,7 @@ export default function App() {
         </div>
 
         {/* Graph 可视化 */}
-        <Card className="bg-white border border-gray-200 shadow-sm">
+        <Card className="!bg-transparent border border-gray-200 shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
