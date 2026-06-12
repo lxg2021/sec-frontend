@@ -5,6 +5,7 @@ export * from "./api";
 export * from "./model/attack-graph-adapter";
 export * from "./model/attack-graph-data";
 export * from "./model/attack-graph-edge-config";
+export * from "./model/attack-graph-edge-routing";
 export * from "./model/attack-graph-edge-types";
 export * from "./model/attack-graph-layout";
 export * from "./model/attack-graph-node-config";

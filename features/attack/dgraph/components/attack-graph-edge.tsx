@@ -30,7 +30,7 @@ export interface AttackGraphEdgeData {
 }
 
 const FALLBACK_NODE_RADIUS = 33;
-const MARKER_END_GAP = 10;
+const MARKER_END_GAP = 7;
 
 export function AttackGraphEdge({
   data,
@@ -112,12 +112,12 @@ export function AttackGraphEdge({
           path={pathResult.path}
           style={{
             fill: "none",
-            opacity: data.interactionState === "selected" ? 0.18 : 0.12,
+            opacity: data.interactionState === "selected" ? 0.12 : 0.08,
             stroke,
             strokeLinecap: "round",
             strokeLinejoin: "round",
             strokeWidth:
-              state.width + (data.interactionState === "selected" ? 5 : 3),
+              state.width + (data.interactionState === "selected" ? 3 : 2),
           }}
         />
       ) : null}
@@ -135,15 +135,16 @@ export function AttackGraphEdge({
           strokeLinejoin: "round",
           strokeWidth: state.width,
           transition: "opacity 160ms ease, stroke-width 160ms ease",
+          vectorEffect: "non-scaling-stroke",
         }}
       />
       <EdgeLabelRenderer>
         <div
           className={cn(
-            "nodrag nopan pointer-events-none absolute max-w-[150px] truncate rounded-sm border px-1.5 py-0.5 text-[10px] font-medium leading-4 shadow-sm transition-opacity duration-200",
+            "nodrag nopan pointer-events-none absolute max-w-[160px] truncate rounded-md px-2 py-0.5 text-[10px] font-medium leading-4 transition-opacity duration-200",
             data.interactionState === "selected"
-              ? "border-blue-200 bg-blue-50 text-blue-800"
-              : "border-slate-200/80 bg-white/90 text-slate-800",
+              ? "text-blue-800"
+              : "text-slate-800",
             data.interactionState === "dimmed" ? "text-slate-500" : "",
           )}
           data-attack-edge-state={data.interactionState}
@@ -192,28 +193,33 @@ function getGraphEdgePath({
     x: target.centerX + targetVector.x * (target.radius + MARKER_END_GAP),
     y: target.centerY + targetVector.y * (target.radius + MARKER_END_GAP),
   };
-  const distance = getDistance(sourcePoint, targetPoint);
-  const curvature = Math.min(0.36, 0.18 + Math.abs(route.fanoutIndex) * 0.035);
-  const controlDistance = clamp(distance * curvature, 44, 180);
+  const controlDistance = getElegantControlDistance({
+    route,
+    source,
+    sourcePoint,
+    target,
+    targetPoint,
+  });
+  const controlLift = route.fanoutOffset * 0.18;
   const sourceControl = {
     x:
       sourcePoint.x +
       sourceVector.x * controlDistance +
-      normal.x * route.fanoutOffset * 0.45,
+      normal.x * controlLift,
     y:
       sourcePoint.y +
       sourceVector.y * controlDistance +
-      normal.y * route.fanoutOffset * 0.45,
+      normal.y * controlLift,
   };
   const targetControl = {
     x:
       targetPoint.x +
       targetVector.x * controlDistance +
-      normal.x * route.fanoutOffset * 0.45,
+      normal.x * controlLift,
     y:
       targetPoint.y +
       targetVector.y * controlDistance +
-      normal.y * route.fanoutOffset * 0.45,
+      normal.y * controlLift,
   };
   const path = [
     `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
@@ -292,7 +298,7 @@ function AttackGraphEdgeMarker({
   size: number;
   type: AttackGraphEdgeVisualData["marker"]["type"];
 }) {
-  const markerSize = Math.max(10, Math.min(18, size));
+  const markerSize = Math.max(9, Math.min(13, size));
   const middle = markerSize / 2;
 
   return (
@@ -316,7 +322,9 @@ function AttackGraphEdgeMarker({
         />
       ) : (
         <path
-          d={`M2,2 L${markerSize - 1},${middle} L2,${markerSize - 2} Z`}
+          d={`M2,2.5 L${markerSize - 1},${middle} L2,${
+            markerSize - 2.5
+          } Z`}
           fill={color}
           opacity={opacity}
         />
@@ -389,14 +397,36 @@ function normalizeVector(x: number, y: number) {
 }
 
 function getAnchorSkew(fanoutOffset: number, radius: number) {
-  return clamp(fanoutOffset / Math.max(radius * 2.2, 1), -0.48, 0.48);
+  return clamp(fanoutOffset / Math.max(radius * 2.8, 1), -0.34, 0.34);
 }
 
-function getDistance(
-  first: { x: number; y: number },
-  second: { x: number; y: number },
-) {
-  return Math.hypot(second.x - first.x, second.y - first.y);
+function getElegantControlDistance({
+  route,
+  source,
+  sourcePoint,
+  target,
+  targetPoint,
+}: {
+  route: Extract<AttackGraphEdgeRouteData, { kind: "relation" }>;
+  source: AttackGraphEdgeEndpointGeometry;
+  sourcePoint: { x: number; y: number };
+  target: AttackGraphEdgeEndpointGeometry;
+  targetPoint: { x: number; y: number };
+}) {
+  const centerDeltaX = Math.abs(target.centerX - source.centerX);
+  const centerDeltaY = Math.abs(target.centerY - source.centerY);
+  const endpointDistance = Math.hypot(
+    targetPoint.x - sourcePoint.x,
+    targetPoint.y - sourcePoint.y,
+  );
+  const horizontalPull = centerDeltaX * 0.42 + centerDeltaY * 0.08;
+  const fanoutPull = Math.min(24, Math.abs(route.fanoutIndex) * 5);
+
+  return clamp(
+    Math.max(endpointDistance * 0.24, horizontalPull) + fanoutPull,
+    64,
+    240,
+  );
 }
 
 function getCubicPoint(
@@ -428,11 +458,11 @@ function getCubicPoint(
 
 function getLabelOffset(fanoutIndex: number, fanoutCount: number) {
   if (fanoutCount <= 1) {
-    return -10;
+    return 0;
   }
 
   const direction = fanoutIndex >= 0 ? 1 : -1;
-  return direction * (14 + Math.min(20, Math.abs(fanoutIndex) * 4));
+  return direction * (6 + Math.min(10, Math.abs(fanoutIndex) * 2));
 }
 
 function getSelfLoopStartAngle(side: AttackGraphSelfLoopSide) {
