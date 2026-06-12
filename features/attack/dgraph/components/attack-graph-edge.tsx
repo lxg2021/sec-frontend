@@ -3,8 +3,6 @@
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  Position,
-  getBezierPath,
   type EdgeProps,
 } from "reactflow";
 
@@ -15,27 +13,32 @@ import type {
   AttackGraphEdgeInteractionState,
   AttackGraphEdgeVisualData,
 } from "../model/attack-graph-edge-config";
+import type {
+  AttackGraphEdgeEndpointGeometry,
+  AttackGraphEdgeGeometryData,
+  AttackGraphEdgeRouteData,
+  AttackGraphSelfLoopSide,
+} from "../model/attack-graph-edge-routing";
 
 export interface AttackGraphEdgeData {
   edge: AttackGraphEdgeModel;
+  geometry?: AttackGraphEdgeGeometryData;
   visual: AttackGraphEdgeVisualData;
   interactionState: AttackGraphEdgeInteractionState;
   sourceColor: string;
   targetColor: string;
 }
 
-const NODE_TILE_WIDTH = 176;
-const DEFAULT_NODE_HEIGHT = 112;
+const FALLBACK_NODE_RADIUS = 33;
+const MARKER_END_GAP = 10;
 
 export function AttackGraphEdge({
   data,
   id,
   source,
-  sourcePosition,
   sourceX,
   sourceY,
   target,
-  targetPosition,
   targetX,
   targetY,
 }: EdgeProps<AttackGraphEdgeData>) {
@@ -46,18 +49,22 @@ export function AttackGraphEdge({
   const visual = data.visual;
   const state = visual.state[data.interactionState];
   const isSelfLoop = source === target;
-  const pathResult = isSelfLoop
-    ? getSelfLoopPath(sourceX, sourceY)
-    : getGraphEdgePath({
-        sourcePosition,
-        sourceX,
-        sourceY,
-        targetPosition,
-        targetX,
-        targetY,
-      });
-  const gradientTargetX = isSelfLoop ? pathResult.labelX : targetX;
-  const gradientTargetY = isSelfLoop ? pathResult.labelY : targetY;
+  const sourceGeometry =
+    data.geometry?.source ??
+    getFallbackEndpointGeometry(sourceX, sourceY);
+  const targetGeometry =
+    data.geometry?.target ??
+    getFallbackEndpointGeometry(targetX, targetY);
+  const route =
+    data.geometry?.route ?? getFallbackEdgeRoute(isSelfLoop);
+  const pathResult =
+    route.kind === "self-loop"
+      ? getSelfLoopPath(sourceGeometry, route)
+      : getGraphEdgePath({
+          route,
+          source: sourceGeometry,
+          target: targetGeometry,
+        });
   const stroke =
     visual.colorMode === "gradient"
       ? `url(#${getEdgeGradientId(id, data.interactionState)})`
@@ -80,10 +87,10 @@ export function AttackGraphEdge({
           <linearGradient
             id={getEdgeGradientId(id, data.interactionState)}
             gradientUnits="userSpaceOnUse"
-            x1={sourceX}
-            x2={gradientTargetX}
-            y1={sourceY}
-            y2={gradientTargetY}
+            x1={pathResult.gradient.x1}
+            x2={pathResult.gradient.x2}
+            y1={pathResult.gradient.y1}
+            y2={pathResult.gradient.y2}
           >
             <stop offset="0%" stopColor={sourceColor} />
             <stop offset="100%" stopColor={targetColor} />
@@ -155,50 +162,119 @@ export function AttackGraphEdge({
 }
 
 function getGraphEdgePath({
-  sourcePosition,
-  sourceX,
-  sourceY,
-  targetPosition,
-  targetX,
-  targetY,
+  route,
+  source,
+  target,
 }: {
-  sourcePosition: Position;
-  sourceX: number;
-  sourceY: number;
-  targetPosition: Position;
-  targetX: number;
-  targetY: number;
+  route: Extract<AttackGraphEdgeRouteData, { kind: "relation" }>;
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
 }) {
-  const deltaY = Math.abs(targetY - sourceY);
-  const deltaX = Math.abs(targetX - sourceX);
-  const isCrossLane =
-    deltaY > DEFAULT_NODE_HEIGHT * 0.8 && deltaX > NODE_TILE_WIDTH * 0.6;
-  const [path, labelX, labelY] = getBezierPath({
-    curvature: isCrossLane ? 0.34 : 0.2,
-    sourcePosition,
-    sourceX,
-    sourceY,
-    targetPosition,
-    targetX,
-    targetY,
-  });
+  const vector = normalizeVector(
+    target.centerX - source.centerX,
+    target.centerY - source.centerY,
+  );
+  const normal = { x: -vector.y, y: vector.x };
+  const anchorSkew = getAnchorSkew(route.fanoutOffset, source.radius);
+  const sourceVector = normalizeVector(
+    vector.x + normal.x * anchorSkew,
+    vector.y + normal.y * anchorSkew,
+  );
+  const targetVector = normalizeVector(
+    -vector.x + normal.x * anchorSkew,
+    -vector.y + normal.y * anchorSkew,
+  );
+  const sourcePoint = {
+    x: source.centerX + sourceVector.x * source.radius,
+    y: source.centerY + sourceVector.y * source.radius,
+  };
+  const targetPoint = {
+    x: target.centerX + targetVector.x * (target.radius + MARKER_END_GAP),
+    y: target.centerY + targetVector.y * (target.radius + MARKER_END_GAP),
+  };
+  const distance = getDistance(sourcePoint, targetPoint);
+  const curvature = Math.min(0.36, 0.18 + Math.abs(route.fanoutIndex) * 0.035);
+  const controlDistance = clamp(distance * curvature, 44, 180);
+  const sourceControl = {
+    x:
+      sourcePoint.x +
+      sourceVector.x * controlDistance +
+      normal.x * route.fanoutOffset * 0.45,
+    y:
+      sourcePoint.y +
+      sourceVector.y * controlDistance +
+      normal.y * route.fanoutOffset * 0.45,
+  };
+  const targetControl = {
+    x:
+      targetPoint.x +
+      targetVector.x * controlDistance +
+      normal.x * route.fanoutOffset * 0.45,
+    y:
+      targetPoint.y +
+      targetVector.y * controlDistance +
+      normal.y * route.fanoutOffset * 0.45,
+  };
+  const path = [
+    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
+    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
+    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
+    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
+  ].join(" ");
+  const labelPoint = getCubicPoint(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+  const labelOffset = getLabelOffset(route.fanoutIndex, route.fanoutCount);
 
-  return { labelX, labelY, path };
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelX: labelPoint.x + normal.x * labelOffset,
+    labelY: labelPoint.y + normal.y * labelOffset,
+    path,
+  };
 }
 
-function getSelfLoopPath(sourceX: number, sourceY: number) {
-  const radiusX = 72;
-  const radiusY = 46;
+function getSelfLoopPath(
+  node: AttackGraphEdgeEndpointGeometry,
+  route: Extract<AttackGraphEdgeRouteData, { kind: "self-loop" }>,
+) {
+  const radius = node.radius;
+  const side = route.side;
+  const loopDepth = radius + 54 + route.index * 18;
+  const loopSpan = radius + 34 + route.index * 10;
+  const startAngle = getSelfLoopStartAngle(side);
+  const endAngle = getSelfLoopEndAngle(side);
+  const controlAngle = getSelfLoopControlAngle(side);
+  const startPoint = pointOnCircle(node, startAngle, radius);
+  const endPoint = pointOnCircle(node, endAngle, radius + MARKER_END_GAP);
+  const firstControl = pointFromCenter(node, controlAngle - 0.34, loopDepth);
+  const secondControl = pointFromCenter(node, controlAngle + 0.34, loopDepth);
+  const labelPoint = pointFromCenter(node, controlAngle, loopDepth + loopSpan * 0.18);
   const path = [
-    `M ${sourceX} ${sourceY}`,
-    `C ${sourceX + radiusX} ${sourceY - radiusY}`,
-    `${sourceX + radiusX} ${sourceY + radiusY}`,
-    `${sourceX} ${sourceY + radiusY * 1.15}`,
+    `M ${formatNumber(startPoint.x)} ${formatNumber(startPoint.y)}`,
+    `C ${formatNumber(firstControl.x)} ${formatNumber(firstControl.y)}`,
+    `${formatNumber(secondControl.x)} ${formatNumber(secondControl.y)}`,
+    `${formatNumber(endPoint.x)} ${formatNumber(endPoint.y)}`,
   ].join(" ");
 
   return {
-    labelX: sourceX + radiusX,
-    labelY: sourceY,
+    gradient: {
+      x1: startPoint.x,
+      x2: endPoint.x,
+      y1: startPoint.y,
+      y2: endPoint.y,
+    },
+    labelX: labelPoint.x,
+    labelY: labelPoint.y,
     path,
   };
 }
@@ -270,6 +346,167 @@ function toSafeSvgId(value: string) {
   }
   const readable = value.replace(/[^\w-]/g, "_").slice(0, 80);
   return `${readable}_${hash.toString(36)}`;
+}
+
+function getFallbackEndpointGeometry(
+  x: number,
+  y: number,
+): AttackGraphEdgeEndpointGeometry {
+  return {
+    centerX: isFiniteNumber(x) ? x : 0,
+    centerY: isFiniteNumber(y) ? y : 0,
+    radius: FALLBACK_NODE_RADIUS,
+  };
+}
+
+function getFallbackEdgeRoute(isSelfLoop: boolean): AttackGraphEdgeRouteData {
+  if (isSelfLoop) {
+    return {
+      count: 1,
+      index: 0,
+      kind: "self-loop",
+      side: "right",
+    };
+  }
+
+  return {
+    fanoutCount: 1,
+    fanoutIndex: 0,
+    fanoutOffset: 0,
+    kind: "relation",
+  };
+}
+
+function normalizeVector(x: number, y: number) {
+  const length = Math.hypot(x, y);
+  if (length < 0.001) {
+    return { x: 1, y: 0 };
+  }
+  return {
+    x: x / length,
+    y: y / length,
+  };
+}
+
+function getAnchorSkew(fanoutOffset: number, radius: number) {
+  return clamp(fanoutOffset / Math.max(radius * 2.2, 1), -0.48, 0.48);
+}
+
+function getDistance(
+  first: { x: number; y: number },
+  second: { x: number; y: number },
+) {
+  return Math.hypot(second.x - first.x, second.y - first.y);
+}
+
+function getCubicPoint(
+  start: { x: number; y: number },
+  firstControl: { x: number; y: number },
+  secondControl: { x: number; y: number },
+  end: { x: number; y: number },
+  t: number,
+) {
+  const inv = 1 - t;
+  const inv2 = inv * inv;
+  const inv3 = inv2 * inv;
+  const t2 = t * t;
+  const t3 = t2 * t;
+
+  return {
+    x:
+      inv3 * start.x +
+      3 * inv2 * t * firstControl.x +
+      3 * inv * t2 * secondControl.x +
+      t3 * end.x,
+    y:
+      inv3 * start.y +
+      3 * inv2 * t * firstControl.y +
+      3 * inv * t2 * secondControl.y +
+      t3 * end.y,
+  };
+}
+
+function getLabelOffset(fanoutIndex: number, fanoutCount: number) {
+  if (fanoutCount <= 1) {
+    return -10;
+  }
+
+  const direction = fanoutIndex >= 0 ? 1 : -1;
+  return direction * (14 + Math.min(20, Math.abs(fanoutIndex) * 4));
+}
+
+function getSelfLoopStartAngle(side: AttackGraphSelfLoopSide) {
+  if (side === "top") {
+    return degreesToRadians(220);
+  }
+  if (side === "bottom") {
+    return degreesToRadians(140);
+  }
+  if (side === "left") {
+    return degreesToRadians(310);
+  }
+  return degreesToRadians(230);
+}
+
+function getSelfLoopEndAngle(side: AttackGraphSelfLoopSide) {
+  if (side === "top") {
+    return degreesToRadians(320);
+  }
+  if (side === "bottom") {
+    return degreesToRadians(40);
+  }
+  if (side === "left") {
+    return degreesToRadians(50);
+  }
+  return degreesToRadians(130);
+}
+
+function getSelfLoopControlAngle(side: AttackGraphSelfLoopSide) {
+  if (side === "top") {
+    return degreesToRadians(270);
+  }
+  if (side === "bottom") {
+    return degreesToRadians(90);
+  }
+  if (side === "left") {
+    return degreesToRadians(180);
+  }
+  return 0;
+}
+
+function pointOnCircle(
+  circle: AttackGraphEdgeEndpointGeometry,
+  angle: number,
+  radius: number,
+) {
+  return pointFromCenter(circle, angle, radius);
+}
+
+function pointFromCenter(
+  circle: AttackGraphEdgeEndpointGeometry,
+  angle: number,
+  distance: number,
+) {
+  return {
+    x: circle.centerX + Math.cos(angle) * distance,
+    y: circle.centerY + Math.sin(angle) * distance,
+  };
+}
+
+function degreesToRadians(value: number) {
+  return (value / 180) * Math.PI;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function formatNumber(value: number) {
+  return Number.isFinite(value) ? Number(value.toFixed(2)) : 0;
+}
+
+function isFiniteNumber(value: number) {
+  return Number.isFinite(value);
 }
 
 export default AttackGraphEdge;

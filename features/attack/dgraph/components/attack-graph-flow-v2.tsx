@@ -29,6 +29,10 @@ import {
   type AttackGraphEdgeInteractionState,
   type AttackGraphEdgeVisualData,
 } from "../model/attack-graph-edge-config";
+import {
+  buildAttackGraphEdgeRoutes,
+  type AttackGraphNodeEdgeGeometry,
+} from "../model/attack-graph-edge-routing";
 import { layoutAttackGraph } from "../model/attack-graph-layout";
 import {
   ATTACK_GRAPH_NODE_FAMILY_CONFIG,
@@ -44,6 +48,7 @@ import {
 } from "./attack-graph-edge";
 import {
   ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
+  ATTACK_GRAPH_NODE_HALO_PADDING,
   ATTACK_GRAPH_NODE_TILE_WIDTH,
   AttackGraphNode,
   getAttackGraphNodeVisualHeight,
@@ -106,14 +111,25 @@ export function AttackGraphFlowV2({
     return new Map(nodes.map((node) => [node.id, node.data.color]));
   }, [nodes]);
 
+  const nodeGeometryById = useMemo(() => {
+    return buildNodeGeometryById(nodes);
+  }, [nodes]);
+
   const edges = useMemo(
     () =>
       toReactFlowEdges(layouted.edges, {
         hoveredEdgeId,
+        nodeGeometryById,
         nodeColorsById,
         selectedEdgeId,
       }),
-    [hoveredEdgeId, layouted.edges, nodeColorsById, selectedEdgeId],
+    [
+      hoveredEdgeId,
+      layouted.edges,
+      nodeColorsById,
+      nodeGeometryById,
+      selectedEdgeId,
+    ],
   );
 
   const handleEdgeClick = useCallback<
@@ -229,6 +245,7 @@ function toReactFlowEdges(
   edges: AttackGraphEdgeModel[],
   options: {
     hoveredEdgeId: string | null;
+    nodeGeometryById: Map<string, AttackGraphNodeEdgeGeometry>;
     nodeColorsById: Map<string, string>;
     selectedEdgeId: string | null;
   },
@@ -237,6 +254,10 @@ function toReactFlowEdges(
     options.selectedEdgeId && edges.some((edge) => edge.id === options.selectedEdgeId)
       ? options.selectedEdgeId
       : null;
+  const edgeRoutesById = buildAttackGraphEdgeRoutes(
+    edges,
+    options.nodeGeometryById,
+  );
 
   return edges.map((edge) => {
     const visual = toAttackGraphEdgeVisualData({
@@ -254,6 +275,8 @@ function toReactFlowEdges(
       selected,
     });
     const state = visual.state[interactionState];
+    const sourceGeometry = options.nodeGeometryById.get(edge.source);
+    const targetGeometry = options.nodeGeometryById.get(edge.target);
 
     return {
       id: edge.id,
@@ -266,6 +289,19 @@ function toReactFlowEdges(
         interactionState,
         sourceColor: options.nodeColorsById.get(edge.source) ?? state.color,
         targetColor: options.nodeColorsById.get(edge.target) ?? state.color,
+        geometry:
+          sourceGeometry && targetGeometry
+            ? {
+                route: edgeRoutesById.get(edge.id) ?? {
+                  fanoutCount: 1,
+                  fanoutIndex: 0,
+                  fanoutOffset: 0,
+                  kind: "relation",
+                },
+                source: sourceGeometry,
+                target: targetGeometry,
+              }
+            : undefined,
         visual,
       },
       interactionWidth: Math.max(18, state.width + 14),
@@ -357,6 +393,35 @@ function getEdgeZIndex(
     return visual.priority - 100;
   }
   return visual.priority;
+}
+
+const EDGE_ANCHOR_OUTSET = 4;
+
+function buildNodeGeometryById(
+  nodes: ReactFlowNode<AttackGraphNodeData>[],
+): Map<string, AttackGraphNodeEdgeGeometry> {
+  const geometryById = new Map<string, AttackGraphNodeEdgeGeometry>();
+
+  for (const node of nodes) {
+    const height = getAttackGraphNodeVisualHeight(node.data.size);
+    geometryById.set(node.id, {
+      id: node.id,
+      centerX: node.position.x + ATTACK_GRAPH_NODE_TILE_WIDTH / 2,
+      centerY:
+        node.position.y +
+        ATTACK_GRAPH_NODE_HALO_PADDING +
+        node.data.size.icon / 2,
+      radius: node.data.size.icon / 2 + EDGE_ANCHOR_OUTSET,
+      bounds: {
+        x: node.position.x,
+        y: node.position.y,
+        width: ATTACK_GRAPH_NODE_TILE_WIDTH,
+        height,
+      },
+    });
+  }
+
+  return geometryById;
 }
 
 function readString(value: unknown) {
