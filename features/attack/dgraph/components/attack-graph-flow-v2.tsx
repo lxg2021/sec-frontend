@@ -102,7 +102,7 @@ export function AttackGraphFlowV2({
       nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
       nodeHeight: ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
       portY: ATTACK_GRAPH_NODE_HALO_PADDING + 58 / 2,
-      nodeSep: 64,
+      nodeSep: 72,
       rankSep: 140,
       ...layoutOptions,
     })
