@@ -198,12 +198,12 @@ function getGraphEdgePath({
   const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
   const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
   const sourceShift = clamp(
-    deltaY * 0.1 + route.fanoutOffset * 0.28,
+    deltaY * 0.1 + route.fanoutOffset * 0.4,
     -source.radius * 0.56,
     source.radius * 0.56,
   );
   const targetShift = clamp(
-    -deltaY * 0.1 + route.fanoutOffset * 0.28,
+    -deltaY * 0.1 + route.fanoutOffset * 0.4,
     -target.radius * 0.56,
     target.radius * 0.56,
   );
@@ -221,11 +221,11 @@ function getGraphEdgePath({
   const controlDistance = clamp(endpointDistance * 0.38, 38, 280);
   const sourceControl = {
     x: sourcePoint.x + flowDirection * controlDistance,
-    y: sourcePoint.y + deltaY * 0.25 + route.fanoutOffset * 0.16,
+    y: sourcePoint.y + deltaY * 0.25 + route.fanoutOffset * 0.25,
   };
   const targetControl = {
     x: targetPoint.x - flowDirection * controlDistance,
-    y: targetPoint.y - deltaY * 0.25 + route.fanoutOffset * 0.16,
+    y: targetPoint.y - deltaY * 0.25 + route.fanoutOffset * 0.25,
   };
   const path = [
     `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
@@ -578,7 +578,7 @@ function getLabelOffset(fanoutIndex: number, fanoutCount: number) {
     return 12;
   }
 
-  return 12 + Math.min(10, Math.abs(fanoutIndex) * 2);
+  return 12 + Math.min(16, Math.abs(fanoutIndex) * 4);
 }
 
 function getSelfLoopStartAngle(side: AttackGraphSelfLoopSide) {

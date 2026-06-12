@@ -194,7 +194,7 @@ function getFanoutOffset(fanoutIndex: number, fanoutCount: number) {
     return 0;
   }
 
-  const step = fanoutCount <= 3 ? 18 : fanoutCount <= 6 ? 15 : 12;
+  const step = fanoutCount <= 3 ? 22 : fanoutCount <= 6 ? 19 : 16;
   return clamp(fanoutIndex * step, -54, 54);
 }
 
