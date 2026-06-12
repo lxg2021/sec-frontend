@@ -98,9 +98,7 @@ function NodePreviewTile({
             className="h-auto w-auto max-w-[68%]"
           />
           {selected ? (
-            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-[11px] font-black leading-none text-white shadow-[0_6px_14px_rgba(37,99,235,0.28)]">
-              OK
-            </span>
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow-[0_4px_10px_rgba(37,99,235,0.32)]" />
           ) : null}
         </div>
 
