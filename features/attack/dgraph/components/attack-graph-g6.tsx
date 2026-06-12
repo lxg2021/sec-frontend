@@ -125,24 +125,24 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
 
           return {
             stroke,
-            lineWidth: Number(edgeStyle.strokeWidth ?? 1.8),
-            opacity: Number(edgeStyle.opacity ?? 0.78),
+            lineWidth: Math.max(1.2, Number(edgeStyle.strokeWidth ?? 1.8) - 0.4),
+            opacity: Math.min(Number(edgeStyle.opacity ?? 0.78), 0.68),
             lineDash: parseLineDash(edgeStyle.strokeDasharray),
             endArrow: true,
-            endArrowSize: 9,
+            endArrowSize: 8,
             label: true,
             labelText: formatRelationLabel(relationType),
             labelPlacement: "center",
             labelAutoRotate: false,
-            labelFontSize: 11,
+            labelFontSize: 10,
             labelFontWeight: 600,
-            labelFill: "#334155",
+            labelFill: "#64748b",
             labelBackground: true,
-            labelBackgroundFill: "#ffffff",
-            labelBackgroundFillOpacity: 0.94,
-            labelBackgroundStroke: "#dbe4ef",
+            labelBackgroundFill: "rgba(255, 255, 255, 0.78)",
+            labelBackgroundFillOpacity: 0.78,
+            labelBackgroundStroke: "rgba(203, 213, 225, 0.58)",
             labelBackgroundLineWidth: 1,
-            labelPadding: [3, 7],
+            labelPadding: [2, 6],
             labelMaxWidth: 180,
             labelWordWrap: true,
           };
@@ -184,13 +184,6 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
         },
       ],
       plugins: [
-        {
-          type: "grid-line",
-          size: 24,
-          stroke: "#dbeafe",
-          lineWidth: 1,
-          opacity: 0.55,
-        },
         {
           type: "tooltip",
           trigger: "click",
@@ -250,7 +243,7 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
   return (
     <div
       ref={containerRef}
-      className={cn("h-full min-h-[420px] w-full bg-white", className)}
+      className={cn("h-full min-h-[420px] w-full bg-transparent", className)}
     />
   );
 }
