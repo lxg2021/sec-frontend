@@ -61,7 +61,6 @@ export interface AttackGraphFlowV2Props
   className?: string;
   layoutOptions?: AttackGraphLayoutOptions;
   showMiniMap?: boolean;
-  showControls?: boolean;
   showBackground?: boolean;
 }
 
@@ -78,7 +77,6 @@ export function AttackGraphFlowV2({
   className,
   layoutOptions,
   showMiniMap = false,
-  showControls = true,
   showBackground = true,
   fitView = false,
   minZoom = 0.2,
