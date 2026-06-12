@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
 
 import {
-  ATTACK_GRAPH_RELATION_TYPES,
   getAttackGraphEdgeKind,
   type AttackGraphEdgeKind,
   type AttackGraphRelationType,
@@ -392,12 +391,6 @@ export function toAttackGraphEdgeVisualData(
     animated: presentation.animated,
     state,
   };
-}
-
-export function getAttackGraphEdgeDemoItems() {
-  return ATTACK_GRAPH_RELATION_TYPES.map((relationType) =>
-    toAttackGraphEdgeVisualData({ relationType }),
-  );
 }
 
 function getAttackGraphEdgeDefaultStateConfig(

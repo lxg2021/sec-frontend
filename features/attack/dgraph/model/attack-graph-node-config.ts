@@ -670,10 +670,6 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
   },
 };
 
-export const ATTACK_GRAPH_NODE_DEMO_KINDS = Object.keys(
-  ATTACK_GRAPH_NODE_KIND_CONFIG,
-) as AttackGraphNodePresentationKind[];
-
 export function toAttackGraphNodeVisualData(
   entityType: string,
   label: string,
@@ -743,33 +739,6 @@ export function getAttackGraphNodeMergedStateConfig(
     ...familyConfig.state?.[state],
     ...nodeConfig.state?.[state],
   };
-}
-
-export function getAttackGraphNodeDemoItems() {
-  return ATTACK_GRAPH_NODE_DEMO_KINDS.map((kind) => {
-    const nodeConfig = getAttackGraphNodeKindConfig(kind);
-    const familyConfig = ATTACK_GRAPH_NODE_FAMILY_CONFIG[nodeConfig.family];
-
-    return {
-      kind,
-      ...nodeConfig,
-      size: getAttackGraphNodeSize(nodeConfig),
-      color: nodeConfig.accentColor ?? familyConfig.fill,
-      glow: familyConfig.glow,
-      labelFill: familyConfig.labelFill,
-      labelSubFill: familyConfig.labelSubFill,
-      activeState: getAttackGraphNodeMergedStateConfig(
-        nodeConfig,
-        familyConfig,
-        "active",
-      ),
-      selectedState: getAttackGraphNodeMergedStateConfig(
-        nodeConfig,
-        familyConfig,
-        "selected",
-      ),
-    };
-  });
 }
 
 function getAttackGraphNodeDefaultStateConfig(
