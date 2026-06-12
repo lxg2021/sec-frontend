@@ -16,6 +16,12 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import { cn } from "@/shared/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 
 import { buildAttackGraphModel } from "../model/attack-graph-adapter";
 import type {
@@ -51,6 +57,7 @@ type AttackGraphNodeVisualState = ReturnType<
 interface AttackGraphFlowV2NodeData {
   id: string;
   label: string;
+  labelTooltip: string;
   entityLabel: string;
   image: string;
   color: string;
@@ -99,31 +106,33 @@ export function AttackGraphFlowV2({
 
   return (
     <div className={cn("h-full min-h-[420px] w-full bg-transparent", className)}>
-      <ReactFlow
-        nodes={nodes}
-        edges={[]}
-        nodeTypes={nodeTypes}
-        fitView={fitView}
-        defaultViewport={{ x: 40, y: 40, zoom: 1 }}
-        minZoom={minZoom}
-        maxZoom={maxZoom}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        elementsSelectable
-        data-attack-graph-flow-v2="true"
-        {...reactFlowProps}
-      >
-        {showBackground ? <Background color="#e2e8f0" gap={24} /> : null}
-        {showMiniMap ? (
-          <MiniMap
-            nodeColor="#94a3b8"
-            nodeStrokeWidth={2}
-            pannable
-            zoomable
-          />
-        ) : null}
-        {showControls ? <Controls showInteractive={false} /> : null}
-      </ReactFlow>
+      <TooltipProvider delayDuration={180}>
+        <ReactFlow
+          nodes={nodes}
+          edges={[]}
+          nodeTypes={nodeTypes}
+          fitView={fitView}
+          defaultViewport={{ x: 40, y: 40, zoom: 1 }}
+          minZoom={minZoom}
+          maxZoom={maxZoom}
+          nodesDraggable={false}
+          nodesConnectable={false}
+          elementsSelectable
+          data-attack-graph-flow-v2="true"
+          {...reactFlowProps}
+        >
+          {showBackground ? <Background color="#e2e8f0" gap={24} /> : null}
+          {showMiniMap ? (
+            <MiniMap
+              nodeColor="#94a3b8"
+              nodeStrokeWidth={2}
+              pannable
+              zoomable
+            />
+          ) : null}
+          {showControls ? <Controls showInteractive={false} /> : null}
+        </ReactFlow>
+      </TooltipProvider>
     </div>
   );
 }
@@ -198,13 +207,24 @@ function AttackGraphFlowV2Node({
           ) : null}
         </div>
 
-        <div
-          className="w-full truncate text-sm font-semibold leading-5"
-          style={{ marginTop: NODE_LABEL_GAP }}
-          title={data.label}
-        >
-          {data.label}
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className="inline-block max-w-full truncate text-sm font-semibold leading-5"
+              style={{ marginTop: NODE_LABEL_GAP }}
+            >
+              {data.label}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            align="center"
+            sideOffset={8}
+            className="max-w-[420px] whitespace-pre-wrap break-all rounded-lg border-slate-200 bg-white px-3 py-2 font-mono text-xs leading-5 text-slate-700 shadow-lg"
+          >
+            {data.labelTooltip || data.label}
+          </TooltipContent>
+        </Tooltip>
       </button>
       <Handle
         type="source"
@@ -265,6 +285,7 @@ function toNodeVisualItem(
   return {
     id: node.id,
     label: readString(visualData.label) || displayLabel || node.displayName,
+    labelTooltip: node.displayName || displayLabel || node.key,
     entityLabel: readString(visualData.entityLabel) || nodeConfig.label,
     image: readString(visualData.image) || nodeConfig.image,
     color: nodeConfig.accentColor ?? familyConfig.fill,
