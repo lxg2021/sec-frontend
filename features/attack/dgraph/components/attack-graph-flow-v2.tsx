@@ -49,11 +49,9 @@ type AttackGraphNodeVisualState = ReturnType<
 
 interface AttackGraphFlowV2NodeData {
   id: string;
-  kind: string;
   label: string;
   entityLabel: string;
   image: string;
-  family: string;
   color: string;
   glow: string;
   size: AttackGraphNodeSize;
@@ -62,9 +60,11 @@ interface AttackGraphFlowV2NodeData {
   missingFromResponse: boolean;
 }
 
-const NODE_TILE_EXTRA_HEIGHT = 60;
-const NODE_TILE_WIDTH = 219;
-const DEFAULT_NODE_HEIGHT = 144;
+const NODE_HALO_PADDING = 12;
+const NODE_LABEL_GAP = 8;
+const NODE_LABEL_HEIGHT = 22;
+const NODE_TILE_WIDTH = 176;
+const DEFAULT_NODE_HEIGHT = 112;
 
 const nodeTypes: NodeTypes = {
   attackGraphNodeV2: AttackGraphFlowV2Node,
@@ -132,7 +132,8 @@ function AttackGraphFlowV2Node({
   selected,
 }: NodeProps<AttackGraphFlowV2NodeData>) {
   const ringState = selected ? data.selectedState : data.activeState;
-  const tileHeight = data.size.height + NODE_TILE_EXTRA_HEIGHT;
+  const tileHeight = getNodeVisualHeight(data.size);
+  const handleY = NODE_HALO_PADDING + data.size.icon / 2;
 
   return (
     <div
@@ -148,7 +149,7 @@ function AttackGraphFlowV2Node({
         className="!h-2 !w-2 !border-0 !bg-transparent"
         style={{
           left: 0,
-          top: data.size.icon / 2 + 12,
+          top: handleY,
           transform: "translate(-50%, -50%)",
         }}
         isConnectable={false}
@@ -157,65 +158,51 @@ function AttackGraphFlowV2Node({
         type="button"
         aria-pressed={selected}
         className={cn(
-          "group h-full w-full min-w-0 rounded-md border bg-white px-3 py-3 text-left transition-colors duration-200 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-          selected ? "border-blue-300 bg-blue-50/30" : "border-slate-200",
+          "group flex h-full w-full min-w-0 flex-col items-center justify-start border-0 bg-transparent px-0 text-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+          selected ? "text-slate-950" : "text-slate-900",
         )}
         style={{
           opacity: data.missingFromResponse ? 0.5 : 1,
-          boxShadow: selected
-            ? `0 14px 30px ${toRgba(data.glow, 0.18)}`
-            : `0 10px 24px ${toRgba(data.glow, 0.1)}`,
         }}
       >
-        <div className="flex items-start gap-3">
-          <div
-            className={cn(
-              "relative flex shrink-0 items-center justify-center rounded-full bg-white ring-1 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110",
-              selected ? "scale-110 ring-blue-200" : "ring-slate-200",
-            )}
-            style={{
-              width: data.size.icon,
-              height: data.size.icon,
-              boxShadow: `0 0 0 ${Math.min(5, Math.max(2, ringState.haloLineWidth / 4))}px ${toRgba(
-                data.color,
-                Math.min(selected ? 0.26 : 0.18, ringState.haloStrokeOpacity),
-              )}`,
-            }}
-          >
-            <Image
-              src={data.image}
-              alt={data.label}
-              width={Math.max(24, data.size.icon - 18)}
-              height={Math.max(24, data.size.icon - 18)}
-              className="h-auto w-auto max-w-[68%]"
-            />
-            {selected ? (
-              <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-[11px] font-black leading-none text-white shadow-[0_6px_14px_rgba(37,99,235,0.28)]">
-                OK
-              </span>
-            ) : null}
-          </div>
+        <div
+          className={cn(
+            "relative flex shrink-0 items-center justify-center rounded-full bg-white ring-1 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110",
+            selected ? "scale-110 ring-blue-200" : "ring-slate-200",
+          )}
+          style={{
+            width: data.size.icon,
+            height: data.size.icon,
+            marginTop: NODE_HALO_PADDING,
+            boxShadow: `0 0 0 ${Math.min(5, Math.max(2, ringState.haloLineWidth / 4))}px ${toRgba(
+              data.color,
+              Math.min(selected ? 0.26 : 0.18, ringState.haloStrokeOpacity),
+            )}, 0 ${selected ? 14 : 10}px ${selected ? 22 : 16}px ${toRgba(
+              data.glow,
+              selected ? 0.18 : 0.1,
+            )}`,
+          }}
+        >
+          <Image
+            src={data.image}
+            alt={data.entityLabel}
+            width={Math.max(24, data.size.icon - 18)}
+            height={Math.max(24, data.size.icon - 18)}
+            className="h-auto w-auto max-w-[68%]"
+          />
+          {selected ? (
+            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-[11px] font-black leading-none text-white shadow-[0_6px_14px_rgba(37,99,235,0.28)]">
+              OK
+            </span>
+          ) : null}
+        </div>
 
-          <div className="min-w-0 flex-1 pt-0.5">
-            <div className="min-h-5 truncate text-sm font-semibold leading-5 text-slate-900">
-              {data.label}
-            </div>
-            <div className="mt-0.5 truncate text-xs font-medium text-slate-500">
-              {data.kind}
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <NodeMetaPill className="text-slate-600">
-                {data.family}
-              </NodeMetaPill>
-              <NodeMetaPill className="text-slate-500">
-                {formatSize(data.size)}
-              </NodeMetaPill>
-              <NodeMetaPill className="text-slate-500">
-                A{data.activeState.haloLineWidth}/S
-                {data.selectedState.haloLineWidth}
-              </NodeMetaPill>
-            </div>
-          </div>
+        <div
+          className="w-full truncate text-sm font-semibold leading-5"
+          style={{ marginTop: NODE_LABEL_GAP }}
+          title={data.label}
+        >
+          {data.label}
         </div>
       </button>
       <Handle
@@ -224,7 +211,7 @@ function AttackGraphFlowV2Node({
         className="!h-2 !w-2 !border-0 !bg-transparent"
         style={{
           right: 0,
-          top: data.size.icon / 2 + 12,
+          top: handleY,
           transform: "translate(50%, -50%)",
         }}
         isConnectable={false}
@@ -233,31 +220,12 @@ function AttackGraphFlowV2Node({
   );
 }
 
-function NodeMetaPill({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <span
-      className={cn(
-        "rounded-sm bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium leading-4",
-        className,
-      )}
-    >
-      {children}
-    </span>
-  );
-}
-
 function toReactFlowNodes(
   nodes: AttackGraphNodeModel[],
 ): ReactFlowNode<AttackGraphFlowV2NodeData>[] {
   return nodes.map((node) => {
     const data = toNodeVisualItem(node);
-    const height = data.size.height + NODE_TILE_EXTRA_HEIGHT;
+    const height = getNodeVisualHeight(data.size);
 
     return {
       id: node.id,
@@ -289,11 +257,9 @@ function toNodeVisualItem(
 
   return {
     id: node.id,
-    kind: node.presentationKind,
     label: readString(visualData.label) || node.displayName,
     entityLabel: readString(visualData.entityLabel) || nodeConfig.label,
     image: readString(visualData.image) || nodeConfig.image,
-    family: nodeConfig.family,
     color: nodeConfig.accentColor ?? familyConfig.fill,
     glow: familyConfig.glow,
     size,
@@ -313,8 +279,13 @@ function toNodeVisualItem(
   };
 }
 
-function formatSize(size: AttackGraphNodeSize) {
-  return `${size.width}x${size.height}/${size.icon}`;
+function getNodeVisualHeight(size: AttackGraphNodeSize) {
+  return (
+    size.icon +
+    NODE_HALO_PADDING * 2 +
+    NODE_LABEL_GAP +
+    NODE_LABEL_HEIGHT
+  );
 }
 
 function readString(value: unknown) {
