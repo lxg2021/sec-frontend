@@ -70,6 +70,7 @@ export interface AttackG6NodeKindConfig {
   label: string;
   family: AttackGraphNodeFamily;
   image: string;
+  accentColor?: string;
   icon?: AttackG6NodeIcon;
   size?: Partial<AttackG6NodeSize>;
   state?: Partial<Record<AttackG6NodeInteractionState, AttackG6NodeStateConfig>>;
@@ -193,18 +194,21 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     label: "Account",
     family: "identity",
     image: "/icons/nodes/account-node.svg",
+    accentColor: "#039be5",
     icon: "identity",
   },
   bits: {
     label: "BITS",
     family: "persistence",
     image: "/icons/nodes/bits-job-node.svg",
+    accentColor: "#f57c00",
     icon: "persistence",
   },
   "credential-theft": {
     label: "Credential Theft",
     family: "security",
     image: "/icons/nodes/credentials-node.svg",
+    accentColor: "#3f51b5",
     icon: "security",
     state: {
       active: { size: 68 },
@@ -215,6 +219,7 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     label: "Crypto",
     family: "security",
     image: "/icons/nodes/endecrypt-node.svg",
+    accentColor: "#5e35b1",
     icon: "security",
     state: {
       selected: { haloLineWidth: 15, shadowBlur: 18, size: 74 },
@@ -224,48 +229,56 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     label: "Device",
     family: "host",
     image: "/icons/nodes/device-node.svg",
+    accentColor: "#455a64",
     icon: "host",
   },
   "dns-name": {
     label: "DNS",
     family: "network",
     image: "/icons/nodes/dns-node.svg",
+    accentColor: "#03a9f4",
     icon: "network",
   },
   file: {
     label: "File",
     family: "file",
     image: "/icons/nodes/file-node.svg",
+    accentColor: "#ff9800",
     icon: "file",
   },
   "file-stream": {
     label: "File Stream",
     family: "file",
     image: "/icons/nodes/file-stream-node.svg",
+    accentColor: "#ffb74d",
     icon: "file",
   },
   host: {
     label: "Host",
     family: "host",
     image: "/icons/nodes/agent-node.svg",
+    accentColor: "#388e3c",
     icon: "host",
   },
   "host-ref": {
     label: "Remote Host",
     family: "host",
     image: "/icons/nodes/host-ref-node.svg",
+    accentColor: "#388e3c",
     icon: "host",
   },
   "ipc-object": {
     label: "IPC Object",
     family: "ipc",
     image: "/icons/nodes/ipc-object-node.svg",
+    accentColor: "#607d8b",
     icon: "ipc",
   },
   mbr: {
     label: "MBR",
     family: "security",
     image: "/icons/nodes/mbr-node.svg",
+    accentColor: "#b71c1c",
     icon: "security",
     state: {
       active: { size: 68 },
@@ -276,78 +289,91 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     label: "Message Hook",
     family: "persistence",
     image: "/icons/nodes/message-node.svg",
+    accentColor: "#cddc39",
     icon: "persistence",
   },
   "net-address": {
     label: "Network Address",
     family: "network",
     image: "/icons/nodes/net-node.svg",
+    accentColor: "#2196f3",
     icon: "network",
   },
   "net-endpoint": {
     label: "Network Endpoint",
     family: "network",
     image: "/icons/nodes/net-endpoint-node.svg",
+    accentColor: "#00acc1",
     icon: "network",
   },
   powershell: {
     label: "PowerShell",
     family: "process",
     image: "/icons/nodes/powershell-node.svg",
+    accentColor: "#5391fe",
     icon: "process",
   },
   process: {
     label: "Process",
     family: "process",
     image: "/icons/nodes/process-node.svg",
+    accentColor: "#4caf50",
     icon: "process",
   },
   registry: {
     label: "Registry",
     family: "registry",
     image: "/icons/nodes/reg-key-node.svg",
+    accentColor: "#53b7b7",
     icon: "registry",
   },
   service: {
     label: "Service",
     family: "persistence",
     image: "/icons/nodes/service-node.svg",
+    accentColor: "#ff7043",
     icon: "persistence",
   },
   task: {
     label: "Task",
     family: "persistence",
     image: "/icons/nodes/task-node.svg",
+    accentColor: "#9c27b0",
     icon: "persistence",
   },
   "token-impersonation": {
     label: "Token Impersonation",
     family: "identity",
     image: "/icons/nodes/impersonation-token-node.svg",
+    accentColor: "#ad1457",
     icon: "identity",
   },
   "url-resource": {
     label: "URL Resource",
     family: "network",
     image: "/icons/nodes/url-node.svg",
+    accentColor: "#00bcd4",
     icon: "network",
   },
   volume: {
     label: "Volume",
     family: "file",
     image: "/icons/nodes/volume-node.svg",
+    accentColor: "#8bc34a",
     icon: "file",
   },
   wmi: {
     label: "WMI",
     family: "persistence",
     image: "/icons/nodes/wmi-node.svg",
+    accentColor: "#00897b",
     icon: "persistence",
   },
   case: {
     label: "Case",
     family: "case",
     image: "/icons/nodes/attack-node.svg",
+    accentColor: "#d32f2f",
     icon: "case",
     size: { icon: 62, height: 88 },
     state: {
@@ -359,6 +385,7 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     label: "Case Group",
     family: "case",
     image: "/icons/nodes/attack-node.svg",
+    accentColor: "#d32f2f",
     icon: "case",
     size: { icon: 62, height: 88 },
     state: {
@@ -370,12 +397,14 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     label: "Case Instance",
     family: "case",
     image: "/icons/nodes/event-node.svg",
+    accentColor: "#795548",
     icon: "case",
   },
   evidence: {
     label: "Evidence",
     family: "evidence",
     image: "/icons/nodes/attack-node.svg",
+    accentColor: "#d32f2f",
     icon: "evidence",
     size: { icon: 62, height: 88 },
     state: {
@@ -387,6 +416,7 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     label: "Unknown",
     family: "unknown",
     image: "/icons/nodes/event-node.svg",
+    accentColor: "#795548",
     icon: "unknown",
     state: {
       active: { haloStrokeOpacity: 0.2, haloLineWidth: 8, size: 60 },
@@ -511,7 +541,7 @@ export function getAttackG6NodeDemoItems() {
       kind,
       ...nodeConfig,
       size: getAttackG6NodeSize(nodeConfig),
-      color: familyConfig.fill,
+      color: nodeConfig.accentColor ?? familyConfig.fill,
       glow: familyConfig.glow,
       labelFill: familyConfig.labelFill,
       labelSubFill: familyConfig.labelSubFill,
