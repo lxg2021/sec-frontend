@@ -43,6 +43,19 @@ type AttackG6NodeIcon =
   | "security"
   | "unknown";
 
+type AttackG6NodeInteractionState = "active" | "selected";
+
+export interface AttackG6NodeStateConfig {
+  size?: number | [number, number];
+  haloStroke?: string;
+  haloStrokeOpacity?: number;
+  haloLineWidth?: number;
+  haloRadius?: number;
+  shadowColor?: string;
+  shadowBlur?: number;
+  shadowOffsetY?: number;
+}
+
 interface AttackG6NodeFamilyConfig {
   fill: string;
   glow: string;
@@ -50,6 +63,7 @@ interface AttackG6NodeFamilyConfig {
   icon: AttackG6NodeIcon;
   labelFill: string;
   labelSubFill: string;
+  state?: Partial<Record<AttackG6NodeInteractionState, AttackG6NodeStateConfig>>;
 }
 
 export interface AttackG6NodeKindConfig {
@@ -58,6 +72,7 @@ export interface AttackG6NodeKindConfig {
   image: string;
   icon?: AttackG6NodeIcon;
   size?: Partial<AttackG6NodeSize>;
+  state?: Partial<Record<AttackG6NodeInteractionState, AttackG6NodeStateConfig>>;
 }
 
 export const ATTACK_G6_NODE_FAMILY_CONFIG: Record<
@@ -79,6 +94,10 @@ export const ATTACK_G6_NODE_FAMILY_CONFIG: Record<
     icon: "evidence",
     labelFill: "#0f172a",
     labelSubFill: "#64748b",
+    state: {
+      active: { haloStrokeOpacity: 0.32, haloLineWidth: 12, size: 68 },
+      selected: { haloStrokeOpacity: 0.46, haloLineWidth: 15, size: 74 },
+    },
   },
   process: {
     fill: "#13a7c5",
@@ -151,6 +170,10 @@ export const ATTACK_G6_NODE_FAMILY_CONFIG: Record<
     icon: "security",
     labelFill: "#0f172a",
     labelSubFill: "#64748b",
+    state: {
+      active: { haloStrokeOpacity: 0.31, haloLineWidth: 11, size: 66 },
+      selected: { haloStrokeOpacity: 0.44, haloLineWidth: 14, size: 72 },
+    },
   },
   unknown: {
     fill: "#737373",
@@ -183,12 +206,19 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     family: "security",
     image: "/icons/nodes/credentials-node.svg",
     icon: "security",
+    state: {
+      active: { size: 68 },
+      selected: { haloLineWidth: 16, shadowBlur: 18, size: 76 },
+    },
   },
   crypto: {
     label: "Crypto",
     family: "security",
     image: "/icons/nodes/endecrypt-node.svg",
     icon: "security",
+    state: {
+      selected: { haloLineWidth: 15, shadowBlur: 18, size: 74 },
+    },
   },
   device: {
     label: "Device",
@@ -237,6 +267,10 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     family: "security",
     image: "/icons/nodes/mbr-node.svg",
     icon: "security",
+    state: {
+      active: { size: 68 },
+      selected: { haloLineWidth: 16, shadowBlur: 20, size: 76 },
+    },
   },
   "message-hook": {
     label: "Message Hook",
@@ -316,6 +350,10 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     image: "/icons/nodes/attack-node.svg",
     icon: "case",
     size: { icon: 62, height: 88 },
+    state: {
+      active: { size: 68 },
+      selected: { haloStrokeOpacity: 0.42, haloLineWidth: 15, size: 78 },
+    },
   },
   "case-group": {
     label: "Case Group",
@@ -323,6 +361,10 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     image: "/icons/nodes/attack-node.svg",
     icon: "case",
     size: { icon: 62, height: 88 },
+    state: {
+      active: { size: 68 },
+      selected: { haloStrokeOpacity: 0.42, haloLineWidth: 15, size: 78 },
+    },
   },
   "case-instance": {
     label: "Case Instance",
@@ -336,12 +378,20 @@ export const ATTACK_G6_NODE_KIND_CONFIG: Record<
     image: "/icons/nodes/attack-node.svg",
     icon: "evidence",
     size: { icon: 62, height: 88 },
+    state: {
+      active: { haloLineWidth: 13, size: 70 },
+      selected: { haloLineWidth: 17, shadowBlur: 20, size: 80 },
+    },
   },
   unknown: {
     label: "Unknown",
     family: "unknown",
     image: "/icons/nodes/event-node.svg",
     icon: "unknown",
+    state: {
+      active: { haloStrokeOpacity: 0.2, haloLineWidth: 8, size: 60 },
+      selected: { haloStrokeOpacity: 0.28, haloLineWidth: 10, size: 64 },
+    },
   },
 };
 
@@ -362,19 +412,24 @@ export function toAttackG6NodeData(
 
 export function getAttackG6NodeStateStyle(
   datum: NodeData,
-  state: "active" | "selected",
+  state: AttackG6NodeInteractionState,
 ): Record<string, unknown> {
   const nodeData = readNodeData(datum.data);
   const nodeConfig = getAttackG6NodeKindConfig(nodeData.kind);
-  const config = ATTACK_G6_NODE_FAMILY_CONFIG[nodeConfig.family];
+  const familyConfig = ATTACK_G6_NODE_FAMILY_CONFIG[nodeConfig.family];
   const size = getAttackG6NodeSize(nodeConfig);
+  const stateConfig = getAttackG6NodeMergedStateConfig(
+    nodeConfig,
+    familyConfig,
+    state,
+    size,
+  );
 
   return {
     halo: true,
-    haloStroke: config.haloStroke,
-    haloStrokeOpacity: state === "selected" ? 0.36 : 0.26,
-    haloLineWidth: state === "selected" ? 12 : 10,
-    haloRadius: size.icon,
+    ...stateConfig,
+    badge: true,
+    badges: getAttackG6NodeBadges(nodeData, state === "selected"),
   };
 }
 
@@ -413,24 +468,7 @@ export function getAttackG6NodeStyle(datum: NodeData): Record<string, unknown> {
     labelMaxWidth: size.labelMaxWidth,
     labelWordWrap: true,
     badge: nodeData.evidenceHit,
-    badges: nodeData.evidenceHit
-      ? [
-          {
-            text: "!",
-            placement: "right-top",
-            backgroundFill: "#ffffff",
-            stroke: "#fecdd3",
-            lineWidth: 1,
-            fill: "#e11d48",
-            fontSize: 12,
-            fontWeight: 800,
-            radius: 10,
-            padding: [2, 5],
-            offsetX: 3,
-            offsetY: -3,
-          },
-        ]
-      : [],
+    badges: getAttackG6NodeBadges(nodeData, false),
   };
 }
 
@@ -451,6 +489,19 @@ export function getAttackG6NodeSize(config: AttackG6NodeKindConfig) {
   };
 }
 
+export function getAttackG6NodeMergedStateConfig(
+  nodeConfig: AttackG6NodeKindConfig,
+  familyConfig: AttackG6NodeFamilyConfig,
+  state: AttackG6NodeInteractionState,
+  size = getAttackG6NodeSize(nodeConfig),
+): Required<AttackG6NodeStateConfig> {
+  return {
+    ...getAttackG6NodeDefaultStateConfig(familyConfig, state, size),
+    ...familyConfig.state?.[state],
+    ...nodeConfig.state?.[state],
+  };
+}
+
 export function getAttackG6NodeDemoItems() {
   return ATTACK_G6_NODE_DEMO_KINDS.map((kind) => {
     const nodeConfig = getAttackG6NodeKindConfig(kind);
@@ -464,8 +515,81 @@ export function getAttackG6NodeDemoItems() {
       glow: familyConfig.glow,
       labelFill: familyConfig.labelFill,
       labelSubFill: familyConfig.labelSubFill,
+      activeState: getAttackG6NodeMergedStateConfig(
+        nodeConfig,
+        familyConfig,
+        "active",
+      ),
+      selectedState: getAttackG6NodeMergedStateConfig(
+        nodeConfig,
+        familyConfig,
+        "selected",
+      ),
     };
   });
+}
+
+function getAttackG6NodeDefaultStateConfig(
+  familyConfig: AttackG6NodeFamilyConfig,
+  state: AttackG6NodeInteractionState,
+  size: AttackG6NodeSize,
+): Required<AttackG6NodeStateConfig> {
+  return {
+    haloStroke: familyConfig.haloStroke,
+    haloStrokeOpacity: state === "selected" ? 0.36 : 0.26,
+    haloLineWidth: state === "selected" ? 12 : 10,
+    haloRadius: size.icon,
+    size: state === "selected" ? size.icon + 10 : size.icon + 6,
+    shadowColor: toRgba(familyConfig.glow, state === "selected" ? 0.28 : 0.18),
+    shadowBlur: state === "selected" ? 16 : 12,
+    shadowOffsetY: state === "selected" ? 6 : 4,
+  };
+}
+
+function getAttackG6NodeBadges(
+  nodeData: AttackG6NodeData,
+  selected: boolean,
+) {
+  const badges: Record<string, unknown>[] = [];
+
+  if (nodeData.evidenceHit) {
+    badges.push({
+      text: "!",
+      placement: "right-top",
+      backgroundFill: "#ffffff",
+      stroke: "#fecdd3",
+      lineWidth: 1,
+      fill: "#e11d48",
+      fontSize: 12,
+      fontWeight: 800,
+      radius: 10,
+      padding: [2, 5],
+      offsetX: 3,
+      offsetY: -3,
+    });
+  }
+
+  if (selected) {
+    badges.push({
+      text: "✓",
+      placement: "right-bottom",
+      backgroundFill: "#2563eb",
+      stroke: "#ffffff",
+      lineWidth: 2,
+      fill: "#ffffff",
+      fontSize: 11,
+      fontWeight: 900,
+      radius: 11,
+      padding: [2, 5],
+      offsetX: 4,
+      offsetY: 4,
+      shadowColor: "rgba(37, 99, 235, 0.28)",
+      shadowBlur: 8,
+      shadowOffsetY: 2,
+    });
+  }
+
+  return badges;
 }
 
 function readNodeData(value: unknown): AttackG6NodeData {

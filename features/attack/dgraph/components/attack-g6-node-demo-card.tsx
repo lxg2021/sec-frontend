@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 
 import { cn } from "@/shared/lib/utils";
@@ -10,6 +11,7 @@ import {
 
 export function AttackG6NodeDemoCard() {
   const items = getAttackG6NodeDemoItems();
+  const [selectedKind, setSelectedKind] = useState<string | null>(null);
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -23,13 +25,22 @@ export function AttackG6NodeDemoCard() {
           </div>
         </div>
         <div className="rounded-sm bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
-          image / family / size
+          image / family / size / state
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {items.map((item) => (
-          <NodePreviewTile key={item.kind} item={item} />
+          <NodePreviewTile
+            key={item.kind}
+            item={item}
+            selected={selectedKind === item.kind}
+            onSelect={() =>
+              setSelectedKind((current) =>
+                current === item.kind ? null : item.kind,
+              )
+            }
+          />
         ))}
       </div>
     </div>
@@ -38,21 +49,45 @@ export function AttackG6NodeDemoCard() {
 
 function NodePreviewTile({
   item,
+  selected,
+  onSelect,
 }: {
   item: ReturnType<typeof getAttackG6NodeDemoItems>[number];
+  selected: boolean;
+  onSelect: () => void;
 }) {
+  const ringState = selected ? item.selectedState : item.activeState;
+
   return (
-    <div
-      className="group min-w-0 rounded-md border border-slate-200 bg-white px-3 py-3 transition-colors hover:border-slate-300 hover:bg-slate-50"
-      style={{ boxShadow: `0 10px 24px ${toRgba(item.glow, 0.1)}` }}
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onSelect}
+      className={cn(
+        "group min-w-0 rounded-md border bg-white px-3 py-3 text-left transition-colors duration-200 hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+        selected ? "border-blue-300 bg-blue-50/30" : "border-slate-200",
+      )}
+      style={{
+        boxShadow: selected
+          ? `0 14px 30px ${toRgba(item.glow, 0.18)}`
+          : `0 10px 24px ${toRgba(item.glow, 0.1)}`,
+      }}
     >
       <div className="flex items-start gap-3">
         <div
-          className="flex shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-slate-200"
+          className={cn(
+            "relative flex shrink-0 items-center justify-center rounded-full bg-white ring-1 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110",
+            selected
+              ? "scale-110 ring-blue-200"
+              : "ring-slate-200",
+          )}
           style={{
             width: item.size.icon,
             height: item.size.icon,
-            boxShadow: `0 0 0 4px ${toRgba(item.color, 0.08)}`,
+            boxShadow: `0 0 0 ${Math.min(5, Math.max(2, ringState.haloLineWidth / 4))}px ${toRgba(
+              item.color,
+              Math.min(selected ? 0.26 : 0.18, ringState.haloStrokeOpacity),
+            )}`,
           }}
         >
           <Image
@@ -62,6 +97,11 @@ function NodePreviewTile({
             height={Math.max(24, item.size.icon - 18)}
             className="h-auto w-auto max-w-[68%]"
           />
+          {selected ? (
+            <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-[11px] font-black leading-none text-white shadow-[0_6px_14px_rgba(37,99,235,0.28)]">
+              ✓
+            </span>
+          ) : null}
         </div>
 
         <div className="min-w-0 flex-1">
@@ -76,10 +116,14 @@ function NodePreviewTile({
             <NodeMetaPill className="text-slate-500">
               {formatSize(item.size)}
             </NodeMetaPill>
+            <NodeMetaPill className="text-slate-500">
+              A{item.activeState.haloLineWidth}/S
+              {item.selectedState.haloLineWidth}
+            </NodeMetaPill>
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }
 
