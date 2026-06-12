@@ -1,7 +1,8 @@
 import type { AttackGraphModel, AttackGraphPoint } from "./attack-graph-data";
 import type { AttackGraphEdgeModel, AttackGraphNodeModel } from "./attack-graph-data";
+import type { AttackGraphNodePresentationKind } from "./attack-graph-node-types";
 import {
-  ATTACK_GRAPH_LAYOUT_LANES,
+  buildDynamicLanes,
   getAttackGraphLayoutLane,
   type AttackGraphLayoutLaneConfig,
 } from "./attack-graph-layout-lanes";
@@ -18,6 +19,7 @@ const SAME_LANE_Y_THRESHOLD = 50;
 const COMPONENT_GAP = 72;
 
 const SEMANTIC_ALIGN_THRESHOLD = 12;
+const TINY_GRAPH_KIND_COUNT = 2;
 const ORDER_OPTIMIZE_MAX_NODES = 12;
 const ORDER_OPTIMIZE_MAX_LAYER_SIZE = 5;
 const ORDER_OPTIMIZE_MAX_COMBINATIONS = 20000;
@@ -35,41 +37,112 @@ export function processSemanticLayout(
   const { nodes, edges } = layoutResult;
   if (nodes.length === 0) return nodes;
 
+  const { lanes, laneByKind } = buildDynamicLanes(nodes, edges);
+
+  if (lanes.length <= 1 || isTinyGraph(nodes)) {
+    return layoutByTypeAlignment(nodes, edges);
+  }
+
   const originalCrossings = countEdgeCrossings(nodes, edges);
   const components = collectConnectedComponents(nodes, edges);
   const semanticNodes =
     components.length > 1
-      ? layoutDisconnectedComponents(layoutResult, components, threshold)
-      : layoutConnectedSemanticNodes(layoutResult, threshold);
+      ? layoutDisconnectedComponents(layoutResult, components, threshold, lanes, laneByKind)
+      : layoutConnectedSemanticNodes(layoutResult, threshold, lanes, laneByKind);
   const semanticCrossings = countEdgeCrossings(semanticNodes, edges);
 
   const bestNodes = semanticCrossings > originalCrossings ? nodes : semanticNodes;
   const bestCrossings = Math.min(originalCrossings, semanticCrossings);
-  const optimizedNodes = optimizeLayerOrder(bestNodes, edges);
+  const optimizedNodes = optimizeLayerOrder(bestNodes, edges, laneByKind);
   const optimizedCrossings = countEdgeCrossings(optimizedNodes, edges);
 
   return optimizedCrossings < bestCrossings ? optimizedNodes : bestNodes;
 }
 
+function isTinyGraph(nodes: AttackGraphNodeModel[]): boolean {
+  const kinds = new Set(nodes.map((n) => n.presentationKind));
+  return kinds.size <= TINY_GRAPH_KIND_COUNT;
+}
+
+function layoutByTypeAlignment(
+  nodes: AttackGraphNodeModel[],
+  edges: AttackGraphEdgeModel[],
+): AttackGraphNodeModel[] {
+  if (nodes.length === 0) return nodes;
+
+  const byKind = new Map<string, AttackGraphNodeModel[]>();
+  for (const node of nodes) {
+    const key = node.presentationKind;
+    if (!byKind.has(key)) byKind.set(key, []);
+    byKind.get(key)!.push(node);
+  }
+
+  const types = [...byKind.entries()];
+  const processLikeTypes = types.filter(([kind]) =>
+    ["process", "powershell", "service", "task"].includes(kind),
+  );
+  const otherTypes = types.filter(
+    ([kind]) => !["process", "powershell", "service", "task"].includes(kind),
+  );
+
+  const ordered = [...processLikeTypes, ...otherTypes];
+  const centerIndex = processLikeTypes.length > 0 ? 0 : Math.floor(ordered.length / 2);
+
+  const entries: LayoutEntry[] = [];
+  for (const node of nodes) {
+    entries.push({
+      node,
+      lane: { id: "", label: "", order: 0, presentationKinds: [] },
+      layerIndex: 0,
+    });
+  }
+
+  const layers = detectLayers(entries);
+
+  const lanes: AttackGraphLayoutLaneConfig[] = ordered.map(([kind, kindNodes], i) => ({
+    id: `type-${kind}`,
+    label: kind,
+    order: i,
+    centered: i === centerIndex,
+    presentationKinds: [kind as AttackGraphNodePresentationKind],
+  }));
+
+  const laneHeights = computeLaneHeights(entries, layers, lanes);
+  const centeredLane = lanes[centerIndex];
+  const laneYMap = computeLaneYPositions(lanes, laneHeights, centeredLane);
+
+  const mainChain = findMainChainByLane(entries, edges, lanes[centerIndex]);
+  if (mainChain.length > 1) {
+    const chainY = laneYMap.get(centeredLane.id)! + laneHeights.get(centeredLane.id)! / 2;
+    alignChainNodes(entries, mainChain, chainY);
+  }
+
+  alignClusteredNodes(entries, layers, SAME_LANE_Y_THRESHOLD);
+  reprocessLaneHeights(entries, layers, lanes, laneHeights, laneYMap, centeredLane);
+
+  return placeNodes(entries, layers, lanes, laneHeights, laneYMap);
+}
+
 function layoutConnectedSemanticNodes(
   layoutResult: AttackGraphModel & { nodes: AttackGraphNodeModel[]; edges: AttackGraphEdgeModel[] },
   threshold: number,
+  lanes: AttackGraphLayoutLaneConfig[],
+  laneByKind: Map<string, AttackGraphLayoutLaneConfig>,
 ): AttackGraphNodeModel[] {
   const { nodes, edges } = layoutResult;
   const entries: LayoutEntry[] = nodes.map((n) => ({
     node: n,
-    lane: getAttackGraphLayoutLane(n.presentationKind),
+    lane: getAttackGraphLayoutLane(n.presentationKind, laneByKind) ?? lanes[lanes.length - 1],
     layerIndex: 0,
   }));
 
   const layers = detectLayers(entries);
-  const centeredLane = findCenteredLane();
+  const centeredLane = findCenteredLane(lanes);
 
-  const visibleLanes = collectVisibleLanes(entries);
-  const aboveLanes = visibleLanes
+  const aboveLanes = lanes
     .filter((l) => l.order < centeredLane.order)
     .sort((a, b) => a.order - b.order);
-  const belowLanes = visibleLanes
+  const belowLanes = lanes
     .filter((l) => l.order > centeredLane.order)
     .sort((a, b) => a.order - b.order);
 
@@ -78,7 +151,7 @@ function layoutConnectedSemanticNodes(
   const laneYMap = computeLaneYPositions(orderedLanes, laneHeights, centeredLane);
 
   if (nodes.length <= threshold) {
-    const mainChain = findMainChain(entries, edges, centeredLane);
+    const mainChain = findMainChainByLane(entries, edges, centeredLane);
     if (mainChain.length > 1) {
       const chainY = laneYMap.get(centeredLane.id)! + laneHeights.get(centeredLane.id)! / 2;
       alignChainNodes(entries, mainChain, chainY);
@@ -94,6 +167,8 @@ function layoutDisconnectedComponents(
   layoutResult: AttackGraphModel & { nodes: AttackGraphNodeModel[]; edges: AttackGraphEdgeModel[] },
   components: string[][],
   threshold: number,
+  lanes: AttackGraphLayoutLaneConfig[],
+  laneByKind: Map<string, AttackGraphLayoutLaneConfig>,
 ): AttackGraphNodeModel[] {
   const nodeById = new Map(layoutResult.nodes.map((node) => [node.id, node]));
   const orderedComponents = components
@@ -106,11 +181,7 @@ function layoutDisconnectedComponents(
         (edge) => idSet.has(edge.source) && idSet.has(edge.target),
       );
       const bounds = getNodeBounds(componentNodes);
-      return {
-        bounds,
-        edges: componentEdges,
-        nodes: componentNodes,
-      };
+      return { bounds, edges: componentEdges, nodes: componentNodes };
     })
     .sort(
       (a, b) =>
@@ -123,13 +194,21 @@ function layoutDisconnectedComponents(
   let nextY = 0;
 
   for (const component of orderedComponents) {
+    const { lanes: subLanes, laneByKind: subLaneByKind } = buildDynamicLanes(
+      component.nodes,
+      component.edges,
+    );
+    const effectiveLanes = subLanes.length > 0 ? subLanes : lanes;
+    const effectiveLaneByKind =
+      subLanes.length > 0
+        ? subLaneByKind
+        : laneByKind;
+
     const placed = layoutConnectedSemanticNodes(
-      {
-        ...layoutResult,
-        edges: component.edges,
-        nodes: component.nodes,
-      },
+      { ...layoutResult, edges: component.edges, nodes: component.nodes },
       threshold,
+      effectiveLanes,
+      effectiveLaneByKind,
     );
     const bounds = getNodeBounds(placed);
     const offsetY = nextY - bounds.minY;
@@ -197,14 +276,7 @@ function collectConnectedComponents(
 
 function getNodeBounds(nodes: AttackGraphNodeModel[]) {
   if (nodes.length === 0) {
-    return {
-      height: 0,
-      maxX: 0,
-      maxY: 0,
-      minX: 0,
-      minY: 0,
-      width: 0,
-    };
+    return { height: 0, maxX: 0, maxY: 0, minX: 0, minY: 0, width: 0 };
   }
 
   let minX = Number.POSITIVE_INFINITY;
@@ -221,14 +293,7 @@ function getNodeBounds(nodes: AttackGraphNodeModel[]) {
     maxY = Math.max(maxY, y + ATTACK_GRAPH_DEFAULT_NODE_HEIGHT);
   }
 
-  return {
-    height: maxY - minY,
-    maxX,
-    maxY,
-    minX,
-    minY,
-    width: maxX - minX,
-  };
+  return { height: maxY - minY, maxX, maxY, minX, minY, width: maxX - minX };
 }
 
 function countEdgeCrossings(
@@ -242,11 +307,7 @@ function countEdgeCrossings(
       const source = nodeById.get(edge.source);
       const target = nodeById.get(edge.target);
       if (!source || !target) return null;
-      return {
-        edge,
-        source: getNodeCenter(source),
-        target: getNodeCenter(target),
-      };
+      return { edge, source: getNodeCenter(source), target: getNodeCenter(target) };
     })
     .filter((segment): segment is NonNullable<typeof segment> => Boolean(segment));
 
@@ -268,23 +329,23 @@ function countEdgeCrossings(
 function optimizeLayerOrder(
   nodes: AttackGraphNodeModel[],
   edges: AttackGraphEdgeModel[],
+  laneByKind: Map<string, AttackGraphLayoutLaneConfig>,
 ): AttackGraphNodeModel[] {
-  if (nodes.length > ORDER_OPTIMIZE_MAX_NODES) {
-    return nodes;
-  }
+  if (nodes.length > ORDER_OPTIMIZE_MAX_NODES) return nodes;
 
   const entries: LayoutEntry[] = nodes.map((node) => ({
-    lane: getAttackGraphLayoutLane(node.presentationKind),
+    lane: getAttackGraphLayoutLane(node.presentationKind, laneByKind) ?? {
+      id: "fallback",
+      label: "fallback",
+      order: 0,
+      presentationKinds: [],
+    },
     layerIndex: 0,
     node,
   }));
   const layers = detectLayers(entries);
-  if (layers.length <= 1) {
-    return nodes;
-  }
-  if (layers.some((layer) => layer.length > ORDER_OPTIMIZE_MAX_LAYER_SIZE)) {
-    return nodes;
-  }
+  if (layers.length <= 1) return nodes;
+  if (layers.some((layer) => layer.length > ORDER_OPTIMIZE_MAX_LAYER_SIZE)) return nodes;
 
   const layerOptions = layers.map((layer) => {
     const ordered = [...layer].sort(
@@ -292,22 +353,14 @@ function optimizeLayerOrder(
     );
     return generatePermutations(ordered);
   });
-  const combinationCount = layerOptions.reduce(
-    (total, options) => total * options.length,
-    1,
-  );
-  if (combinationCount > ORDER_OPTIMIZE_MAX_COMBINATIONS) {
-    return nodes;
-  }
+  const combinationCount = layerOptions.reduce((total, options) => total * options.length, 1);
+  if (combinationCount > ORDER_OPTIMIZE_MAX_COMBINATIONS) return nodes;
 
   const originalOrderByLayer = new Map(
     layers.flatMap((layer, layerIndex) =>
       [...layer]
         .sort((a, b) => (a.node.position?.y ?? 0) - (b.node.position?.y ?? 0))
-        .map((entry, orderIndex) => [
-          entry.node.id,
-          { layerIndex, orderIndex },
-        ] as const),
+        .map((entry, orderIndex) => [entry.node.id, { layerIndex, orderIndex }] as const),
     ),
   );
 
@@ -319,15 +372,10 @@ function optimizeLayerOrder(
     if (layerIndex >= layerOptions.length) {
       const candidate = applyLayerOrder(layers, selectedLayers, nodes);
       const crossings = countEdgeCrossings(candidate, edges);
-      if (crossings > bestCrossings) {
-        return;
-      }
+      if (crossings > bestCrossings) return;
 
       const movement = getLayerOrderMovement(selectedLayers, originalOrderByLayer);
-      if (
-        crossings < bestCrossings ||
-        (crossings === bestCrossings && movement < bestMovement)
-      ) {
+      if (crossings < bestCrossings || (crossings === bestCrossings && movement < bestMovement)) {
         bestNodes = candidate;
         bestCrossings = crossings;
         bestMovement = movement;
@@ -343,7 +391,6 @@ function optimizeLayerOrder(
   }
 
   visit(0, []);
-
   return bestNodes;
 }
 
@@ -392,9 +439,7 @@ function getLayerOrderMovement(
 }
 
 function generatePermutations<T>(items: T[]): T[][] {
-  if (items.length <= 1) {
-    return [items];
-  }
+  if (items.length <= 1) return [items];
 
   const result: T[][] = [];
   const used = new Array(items.length).fill(false);
@@ -427,10 +472,7 @@ function getNodeCenter(node: AttackGraphNodeModel): AttackGraphPoint {
   };
 }
 
-function edgesShareEndpoint(
-  a: AttackGraphEdgeModel,
-  b: AttackGraphEdgeModel,
-) {
+function edgesShareEndpoint(a: AttackGraphEdgeModel, b: AttackGraphEdgeModel) {
   return (
     a.source === b.source ||
     a.source === b.target ||
@@ -446,22 +488,14 @@ function segmentsIntersect(
   d: AttackGraphPoint,
 ) {
   if (!boxesOverlap(a, b, c, d)) return false;
-
   const o1 = orientation(a, b, c);
   const o2 = orientation(a, b, d);
   const o3 = orientation(c, d, a);
   const o4 = orientation(c, d, b);
-  const epsilon = 0.000001;
-
-  return o1 * o2 < -epsilon && o3 * o4 < -epsilon;
+  return o1 * o2 < -1e-6 && o3 * o4 < -1e-6;
 }
 
-function boxesOverlap(
-  a: AttackGraphPoint,
-  b: AttackGraphPoint,
-  c: AttackGraphPoint,
-  d: AttackGraphPoint,
-) {
+function boxesOverlap(a: AttackGraphPoint, b: AttackGraphPoint, c: AttackGraphPoint, d: AttackGraphPoint) {
   return (
     Math.max(Math.min(a.x, b.x), Math.min(c.x, d.x)) <=
       Math.min(Math.max(a.x, b.x), Math.max(c.x, d.x)) &&
@@ -470,11 +504,7 @@ function boxesOverlap(
   );
 }
 
-function orientation(
-  a: AttackGraphPoint,
-  b: AttackGraphPoint,
-  c: AttackGraphPoint,
-) {
+function orientation(a: AttackGraphPoint, b: AttackGraphPoint, c: AttackGraphPoint) {
   return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
 }
 
@@ -509,16 +539,8 @@ function detectLayers(entries: LayoutEntry[]): LayoutEntry[][] {
   return layers;
 }
 
-function findCenteredLane(): AttackGraphLayoutLaneConfig {
-  return ATTACK_GRAPH_LAYOUT_LANES.find((l) => l.centered) ?? ATTACK_GRAPH_LAYOUT_LANES[2];
-}
-
-function collectVisibleLanes(entries: LayoutEntry[]): AttackGraphLayoutLaneConfig[] {
-  const seen = new Set<string>();
-  for (const e of entries) {
-    seen.add(e.lane.id);
-  }
-  return ATTACK_GRAPH_LAYOUT_LANES.filter((l) => seen.has(l.id));
+function findCenteredLane(lanes: AttackGraphLayoutLaneConfig[]): AttackGraphLayoutLaneConfig {
+  return lanes.find((l) => l.centered) ?? lanes[0];
 }
 
 function computeLaneHeights(
@@ -584,31 +606,31 @@ function computeLaneYPositions(
   return result;
 }
 
-function findMainChain(
+function findMainChainByLane(
   entries: LayoutEntry[],
   edges: AttackGraphEdgeModel[],
   centeredLane: AttackGraphLayoutLaneConfig,
 ): string[] {
-  const processIds = new Set(
+  const laneIds = new Set(
     entries.filter((e) => e.lane.id === centeredLane.id).map((e) => e.node.id),
   );
-  if (processIds.size === 0) return [];
+  if (laneIds.size === 0) return [];
 
   const successors = new Map<string, string[]>();
   const predecessors = new Map<string, string[]>();
-  for (const id of processIds) {
+  for (const id of laneIds) {
     successors.set(id, []);
     predecessors.set(id, []);
   }
 
   for (const edge of edges) {
-    if (processIds.has(edge.source) && processIds.has(edge.target)) {
+    if (laneIds.has(edge.source) && laneIds.has(edge.target)) {
       successors.get(edge.source)!.push(edge.target);
       predecessors.get(edge.target)!.push(edge.source);
     }
   }
 
-  const sorted = [...processIds].sort((a, b) => {
+  const sorted = [...laneIds].sort((a, b) => {
     const ax = entries.find((e) => e.node.id === a)?.node.position?.x ?? 0;
     const bx = entries.find((e) => e.node.id === b)?.node.position?.x ?? 0;
     return ax - bx;
@@ -647,11 +669,7 @@ function findMainChain(
   return chain;
 }
 
-function alignChainNodes(
-  entries: LayoutEntry[],
-  chainIds: string[],
-  targetY: number,
-) {
+function alignChainNodes(entries: LayoutEntry[], chainIds: string[], targetY: number) {
   const chainSet = new Set(chainIds);
   for (const entry of entries) {
     if (chainSet.has(entry.node.id)) {
@@ -678,7 +696,7 @@ function alignClusteredNodes(
       if (!byLane.has(key)) byLane.set(key, []);
       byLane.get(key)!.push(e);
     }
-    for (const [laneId, laneEntries] of byLane) {
+    for (const [, laneEntries] of byLane) {
       const sorted = [...laneEntries].sort(
         (a, b) => (a.node.position?.y ?? 0) - (b.node.position?.y ?? 0),
       );
