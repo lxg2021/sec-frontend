@@ -6,6 +6,7 @@ import {
   getAttackGraphLayoutLane,
   type AttackGraphLayoutLaneConfig,
 } from "./attack-graph-layout-lanes";
+import { computePenetrationPenalty } from "./attack-graph-edge-obstacle";
 import {
   ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
   ATTACK_GRAPH_NODE_TILE_WIDTH,
@@ -323,7 +324,9 @@ function countEdgeCrossings(
     }
   }
 
-  return crossings;
+  const penetrationPenalty = computePenetrationPenalty(nodes, edges);
+
+  return crossings + penetrationPenalty;
 }
 
 function optimizeLayerOrder(

@@ -33,12 +33,21 @@ export type AttackGraphEdgeRouteData =
       index: number;
       kind: "self-loop";
       side: AttackGraphSelfLoopSide;
+    }
+  | {
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "skip";
+      obstacleId: string;
+      detourSide: "above" | "below";
     };
 
 export interface AttackGraphEdgeGeometryData {
   source: AttackGraphEdgeEndpointGeometry;
   target: AttackGraphEdgeEndpointGeometry;
   route: AttackGraphEdgeRouteData;
+  obstacle?: AttackGraphEdgeEndpointGeometry;
 }
 
 type AttackGraphEndpointSide = AttackGraphSelfLoopSide;
@@ -122,6 +131,8 @@ export function buildAttackGraphEdgeRoutes(
       });
     }
   }
+
+  applySkipRouting(routesByEdgeId, edges, nodeGeometryById);
 
   return routesByEdgeId;
 }
@@ -501,4 +512,90 @@ function direction(
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
+}
+
+function applySkipRouting(
+  routesByEdgeId: Map<string, AttackGraphEdgeRouteData>,
+  edges: AttackGraphEdgeModel[],
+  nodeGeometryById: Map<string, AttackGraphNodeEdgeGeometry>,
+) {
+  for (const edge of edges) {
+    if (edge.source === edge.target) continue;
+
+    const route = routesByEdgeId.get(edge.id);
+    if (!route || route.kind !== "relation") continue;
+
+    const source = nodeGeometryById.get(edge.source);
+    const target = nodeGeometryById.get(edge.target);
+    if (!source || !target) continue;
+
+    const obstacle = findObstacleBetween(source, target, nodeGeometryById, edge.source, edge.target);
+    if (!obstacle) continue;
+
+    const detourSide = determineDetourSide(source, target, obstacle);
+
+    routesByEdgeId.set(edge.id, {
+      fanoutCount: route.fanoutCount,
+      fanoutIndex: route.fanoutIndex,
+      fanoutOffset: route.fanoutOffset,
+      kind: "skip",
+      obstacleId: obstacle.id,
+      detourSide,
+    });
+  }
+}
+
+function findObstacleBetween(
+  source: AttackGraphNodeEdgeGeometry,
+  target: AttackGraphNodeEdgeGeometry,
+  nodeGeometryById: Map<string, AttackGraphNodeEdgeGeometry>,
+  sourceId: string,
+  targetId: string,
+): AttackGraphNodeEdgeGeometry | null {
+  const cx1 = source.centerX;
+  const cy1 = source.centerY;
+  const cx2 = target.centerX;
+  const cy2 = target.centerY;
+
+  for (const node of nodeGeometryById.values()) {
+    if (node.id === sourceId || node.id === targetId) continue;
+
+    const dist = pointToSegmentDist(
+      cx1, cy1,
+      cx2, cy2,
+      node.centerX, node.centerY,
+    );
+
+    if (dist < node.radius + 18) {
+      return node;
+    }
+  }
+
+  return null;
+}
+
+function determineDetourSide(
+  source: AttackGraphNodeEdgeGeometry,
+  target: AttackGraphNodeEdgeGeometry,
+  obstacle: AttackGraphNodeEdgeGeometry,
+): "above" | "below" {
+  const midY = (source.centerY + target.centerY) / 2;
+  return obstacle.centerY < midY ? "above" : "below";
+}
+
+function pointToSegmentDist(
+  ax: number, ay: number,
+  bx: number, by: number,
+  cx: number, cy: number,
+): number {
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lenSq = dx * dx + dy * dy;
+
+  let t = ((cx - ax) * dx + (cy - ay) * dy) / lenSq;
+  t = clamp(t, 0, 1);
+
+  const closestX = ax + t * dx;
+  const closestY = ay + t * dy;
+  return Math.hypot(closestX - cx, closestY - cy);
 }
