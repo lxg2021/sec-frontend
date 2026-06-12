@@ -21,6 +21,7 @@ import { buildAttackGraphModel } from "../model/attack-graph-adapter";
 import type {
   AttackGraphEdgeModel,
   AttackGraphLayoutResult,
+  AttackGraphLayoutSession,
   AttackGraphLayoutOptions,
   AttackGraphNodeModel,
   GraphCaseResponseDto,
@@ -93,15 +94,23 @@ export function AttackGraphFlowV2({
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
+  const layoutSessionRef = useRef<AttackGraphLayoutSession | null>(null);
+  const previousCaseIdRef = useRef<string>("");
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
   const hasFittedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     const graph = buildAttackGraphModel(response);
+    const caseChanged = previousCaseIdRef.current !== graph.caseId;
+    const previousSession = caseChanged ? null : layoutSessionRef.current;
 
-    setLayouted(null);
-    hasFittedRef.current = false;
+    if (caseChanged) {
+      setLayouted(null);
+      hasFittedRef.current = false;
+      layoutSessionRef.current = null;
+      previousCaseIdRef.current = graph.caseId;
+    }
     layoutAttackGraph(graph, {
       direction: "LR",
       nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
@@ -109,10 +118,12 @@ export function AttackGraphFlowV2({
       portY: ATTACK_GRAPH_NODE_HALO_PADDING + 58 / 2,
       nodeSep: 48,
       rankSep: 110,
+      session: previousSession,
       ...layoutOptions,
     })
       .then((nextLayouted) => {
         if (!cancelled) {
+          layoutSessionRef.current = nextLayouted.layoutSession;
           setLayouted(nextLayouted);
         }
       })
@@ -122,6 +133,8 @@ export function AttackGraphFlowV2({
           setLayouted({
             ...graph,
             height: 0,
+            layoutMode: "tiny",
+            layoutSession: createEmptyLayoutSession(graph.caseId),
             width: 0,
           });
         }
@@ -140,7 +153,12 @@ export function AttackGraphFlowV2({
   useEffect(() => {
     if (nodes.length > 0 && rfInstanceRef.current && !hasFittedRef.current) {
       const timer = setTimeout(() => {
-        rfInstanceRef.current?.setViewport({ x: 0, y: 20, zoom: 1 });
+        rfInstanceRef.current?.fitView({
+          duration: 220,
+          maxZoom: 1,
+          minZoom: 0.5,
+          padding: 0.18,
+        });
         hasFittedRef.current = true;
       }, 80);
       return () => clearTimeout(timer);
@@ -237,12 +255,12 @@ export function AttackGraphFlowV2({
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          fitView={false}
-          minZoom={1}
-          maxZoom={1}
-          zoomOnScroll={false}
-          zoomOnPinch={false}
-          panOnScroll={false}
+          fitView={fitView}
+          minZoom={minZoom}
+          maxZoom={maxZoom}
+          zoomOnScroll
+          zoomOnPinch
+          panOnScroll
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable
@@ -487,6 +505,19 @@ function buildNodeGeometryById(
 
 function readString(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function createEmptyLayoutSession(caseId: string): AttackGraphLayoutSession {
+  return {
+    activeLaneIds: [],
+    caseId,
+    hasEnteredLaneMode: false,
+    laneBoundsById: new Map(),
+    mode: "tiny",
+    newNodeIds: new Set(),
+    nodeLaneIdById: new Map(),
+    nodePositionsById: new Map(),
+  };
 }
 
 export default AttackGraphFlowV2;

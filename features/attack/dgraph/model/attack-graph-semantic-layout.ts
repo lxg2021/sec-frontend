@@ -1,4 +1,10 @@
-import type { AttackGraphModel, AttackGraphPoint } from "./attack-graph-data";
+import type {
+  AttackGraphLayoutLaneBounds,
+  AttackGraphLayoutMode,
+  AttackGraphLayoutSession,
+  AttackGraphModel,
+  AttackGraphPoint,
+} from "./attack-graph-data";
 import type {
   AttackGraphEdgeModel,
   AttackGraphNodeModel,
@@ -16,15 +22,15 @@ import {
 
 const LAYER_X_TOLERANCE = 80;
 const MIN_LAYER_GAP = ATTACK_GRAPH_NODE_TILE_WIDTH + 120;
+const TINY_NODE_GAP = ATTACK_GRAPH_NODE_TILE_WIDTH + 120;
 const LANE_PADDING = 20;
 const LANE_GAP = 28;
 const NODE_VERTICAL_GAP = 24;
 
-const COMPACT_GRAPH_NODE_LIMIT = 3;
+const TINY_GRAPH_NODE_LIMIT = 2;
+const COMPACT_GRAPH_NODE_LIMIT = 6;
 const COMPACT_GRAPH_LANE_LIMIT = 2;
 const SEMANTIC_ALIGN_THRESHOLD = 12;
-
-type SlotLayoutMode = "compact" | "laned";
 
 interface SlotLane {
   id: string;
@@ -39,6 +45,18 @@ interface LayoutEntry {
   layerIndex: number;
 }
 
+interface SemanticLayoutOptions {
+  session?: AttackGraphLayoutSession | null;
+}
+
+export interface AttackGraphSemanticLayoutResult {
+  activeLaneIds: string[];
+  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
+  mode: AttackGraphLayoutMode;
+  nodeLaneIdById: Map<string, string>;
+  nodes: AttackGraphNodeModel[];
+}
+
 const COMPACT_LANE: SlotLane = {
   id: "compact",
   label: "Compact",
@@ -51,15 +69,25 @@ export function processSemanticLayout(
     nodes: AttackGraphNodeModel[];
     edges: AttackGraphEdgeModel[];
   },
+  options: SemanticLayoutOptions = {},
   _threshold = SEMANTIC_ALIGN_THRESHOLD,
-): AttackGraphNodeModel[] {
+): AttackGraphSemanticLayoutResult {
   const { nodes } = layoutResult;
-  if (nodes.length === 0) return nodes;
+  if (nodes.length === 0) {
+    return {
+      activeLaneIds: [],
+      laneBoundsById: new Map(),
+      mode: "tiny",
+      nodeLaneIdById: new Map(),
+      nodes,
+    };
+  }
 
   const { lanes, laneByKind } = buildActiveLayoutLanes(nodes);
-  const mode = chooseSlotLayoutMode(nodes, lanes);
+  const mode = chooseSlotLayoutMode(nodes, lanes, options.session);
+  const activeLaneIds = orderActiveLanes(lanes).map((lane) => lane.id);
   const orderedLanes =
-    mode === "compact" ? [COMPACT_LANE] : orderActiveLanes(lanes);
+    mode === "lane" ? orderActiveLanes(lanes) : [COMPACT_LANE];
   const entries = buildLayoutEntries({
     laneByKind,
     mode,
@@ -67,31 +95,59 @@ export function processSemanticLayout(
   });
   const layers = detectLayers(entries);
 
-  if (layers.length === 0) return nodes;
+  if (layers.length === 0) {
+    return {
+      activeLaneIds,
+      laneBoundsById: new Map(),
+      mode,
+      nodeLaneIdById: buildNodeLaneIdById(entries),
+      nodes,
+    };
+  }
 
-  return normalizeNodePositions(
-    placeNodesBySlots({
-      entries,
-      layers,
-      orderedLanes,
-    }),
-  );
+  const placed =
+    mode === "tiny"
+      ? placeTinyNodes(entries)
+      : placeNodesBySlots({
+          entries,
+          layers,
+          mode,
+          orderedLanes,
+          session: options.session,
+        });
+  const normalizedNodes = normalizeNodePositions(placed.nodes);
+  const normalizationOffset = getNormalizationOffset(placed.nodes);
+
+  return {
+    activeLaneIds,
+    laneBoundsById: normalizeLaneBounds(
+      placed.laneBoundsById,
+      normalizationOffset,
+    ),
+    mode,
+    nodeLaneIdById: buildNodeLaneIdById(entries),
+    nodes: normalizedNodes,
+  };
 }
 
 function chooseSlotLayoutMode(
   nodes: AttackGraphNodeModel[],
   lanes: AttackGraphLayoutLaneConfig[],
-): SlotLayoutMode {
-  if (lanes.length <= 1) {
+  session?: AttackGraphLayoutSession | null,
+): AttackGraphLayoutMode {
+  if (session?.hasEnteredLaneMode) {
+    return "lane";
+  }
+
+  if (nodes.length <= TINY_GRAPH_NODE_LIMIT) {
+    return "tiny";
+  }
+
+  if (nodes.length <= COMPACT_GRAPH_NODE_LIMIT && lanes.length <= COMPACT_GRAPH_LANE_LIMIT) {
     return "compact";
   }
-  if (
-    nodes.length <= COMPACT_GRAPH_NODE_LIMIT &&
-    lanes.length <= COMPACT_GRAPH_LANE_LIMIT
-  ) {
-    return "compact";
-  }
-  return "laned";
+
+  return "lane";
 }
 
 function orderActiveLanes(
@@ -106,13 +162,13 @@ function buildLayoutEntries({
   nodes,
 }: {
   laneByKind: Map<string, AttackGraphLayoutLaneConfig>;
-  mode: SlotLayoutMode;
+  mode: AttackGraphLayoutMode;
   nodes: AttackGraphNodeModel[];
 }): LayoutEntry[] {
   return nodes.map((node) => ({
     layerIndex: 0,
     lane:
-      mode === "compact"
+      mode !== "lane"
         ? COMPACT_LANE
         : getAttackGraphLayoutLane(node.presentationKind, laneByKind) ??
           ATTACK_GRAPH_FALLBACK_LAYOUT_LANE,
@@ -157,25 +213,75 @@ function detectLayers(entries: LayoutEntry[]): LayoutEntry[][] {
   return layers;
 }
 
+function placeTinyNodes(entries: LayoutEntry[]): {
+  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
+  nodes: AttackGraphNodeModel[];
+} {
+  const sorted = [...entries].sort(
+    (left, right) =>
+      getNodeX(left.node) - getNodeX(right.node) ||
+      getNodeY(left.node) - getNodeY(right.node) ||
+      left.node.id.localeCompare(right.node.id),
+  );
+  const nodes = sorted.map((entry, index) => ({
+    ...entry.node,
+    position: {
+      x: index * TINY_NODE_GAP,
+      y: 0,
+    } as AttackGraphPoint,
+  }));
+
+  return {
+    laneBoundsById: new Map([
+      [
+        COMPACT_LANE.id,
+        {
+          height: ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
+          y: 0,
+        },
+      ],
+    ]),
+    nodes,
+  };
+}
+
 function placeNodesBySlots({
   entries,
   layers,
+  mode,
   orderedLanes,
+  session,
 }: {
   entries: LayoutEntry[];
   layers: LayoutEntry[][];
+  mode: AttackGraphLayoutMode;
   orderedLanes: SlotLane[];
-}): AttackGraphNodeModel[] {
-  const layerX = computeLayerXPositions(layers);
+  session?: AttackGraphLayoutSession | null;
+}): {
+  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
+  nodes: AttackGraphNodeModel[];
+} {
+  const layerX = computeLayerXPositions(layers, mode, session);
   const laneHeights = computeLaneHeights(entries, layers, orderedLanes);
-  const laneY = computeLaneYPositions(orderedLanes, laneHeights);
+  const laneY = computeLaneYPositions(orderedLanes, laneHeights, mode, session);
   const placedById = new Map<string, AttackGraphNodeModel>();
+  const laneBoundsById = new Map<string, AttackGraphLayoutLaneBounds>();
+
+  for (const lane of orderedLanes) {
+    const height = laneHeights.get(lane.id) ?? 0;
+    const y = laneY.get(lane.id);
+    if (height > 0 && y !== undefined) {
+      laneBoundsById.set(lane.id, { height, y });
+    }
+  }
 
   for (const layer of layers) {
     for (const lane of orderedLanes) {
       const cell = layer
         .filter((entry) => entry.lane.id === lane.id)
-        .sort(compareEntriesWithinSlot);
+        .sort((left, right) =>
+          compareEntriesWithinSlot(left, right, mode, session),
+        );
 
       if (cell.length === 0) continue;
 
@@ -202,22 +308,34 @@ function placeNodesBySlots({
     }
   }
 
-  return entries.map((entry) => placedById.get(entry.node.id) ?? entry.node);
+  return {
+    laneBoundsById,
+    nodes: entries.map((entry) => placedById.get(entry.node.id) ?? entry.node),
+  };
 }
 
-function computeLayerXPositions(layers: LayoutEntry[][]): Map<number, number> {
+function computeLayerXPositions(
+  layers: LayoutEntry[][],
+  mode: AttackGraphLayoutMode,
+  session?: AttackGraphLayoutSession | null,
+): Map<number, number> {
   const positions = new Map<number, number>();
   const minOriginalX = Math.min(
     ...layers.flatMap((layer) => layer.map((entry) => getNodeX(entry.node))),
   );
   let previousX = 0;
+  const shouldReuseX = session?.mode === mode;
 
   for (let layerIndex = 0; layerIndex < layers.length; layerIndex += 1) {
     const layer = layers[layerIndex];
+    const reusedX = shouldReuseX ? getAveragePreviousX(layer, session) : null;
     const averageX =
       layer.reduce((total, entry) => total + getNodeX(entry.node), 0) /
-      layer.length;
-    const desiredX = Math.max(0, averageX - minOriginalX);
+        layer.length;
+    const desiredX =
+      reusedX === null
+        ? Math.max(0, averageX - minOriginalX)
+        : Math.max(0, reusedX);
     const x =
       layerIndex === 0
         ? 0
@@ -228,6 +346,23 @@ function computeLayerXPositions(layers: LayoutEntry[][]): Map<number, number> {
   }
 
   return positions;
+}
+
+function getAveragePreviousX(
+  layer: LayoutEntry[],
+  session?: AttackGraphLayoutSession | null,
+) {
+  if (!session) return null;
+
+  const previousXs = layer
+    .map((entry) => session.nodePositionsById.get(entry.node.id)?.x)
+    .filter((x): x is number => typeof x === "number");
+
+  if (previousXs.length === 0) {
+    return null;
+  }
+
+  return previousXs.reduce((total, x) => total + x, 0) / previousXs.length;
 }
 
 function computeLaneHeights(
@@ -258,16 +393,25 @@ function computeLaneHeights(
 function computeLaneYPositions(
   orderedLanes: SlotLane[],
   laneHeights: Map<string, number>,
+  mode: AttackGraphLayoutMode,
+  session?: AttackGraphLayoutSession | null,
 ): Map<string, number> {
   const positions = new Map<string, number>();
   let nextY = 0;
+  const shouldReuseLaneY = mode === "lane" && session?.mode === "lane";
 
   for (const lane of orderedLanes) {
     const height = laneHeights.get(lane.id) ?? 0;
     if (height <= 0) continue;
 
-    positions.set(lane.id, nextY);
-    nextY += height + LANE_GAP;
+    const previousY = shouldReuseLaneY
+      ? session?.laneBoundsById.get(lane.id)?.y
+      : undefined;
+    const y =
+      typeof previousY === "number" ? Math.max(previousY, nextY) : nextY;
+
+    positions.set(lane.id, y);
+    nextY = y + height + LANE_GAP;
   }
 
   return positions;
@@ -297,13 +441,57 @@ function getMinimumLaneHeight(slotCount: number) {
   );
 }
 
-function compareEntriesWithinSlot(left: LayoutEntry, right: LayoutEntry) {
+function compareEntriesWithinSlot(
+  left: LayoutEntry,
+  right: LayoutEntry,
+  mode: AttackGraphLayoutMode,
+  session?: AttackGraphLayoutSession | null,
+) {
+  const previousLeft = session?.mode === mode
+    ? session.nodePositionsById.get(left.node.id)
+    : undefined;
+  const previousRight = session?.mode === mode
+    ? session.nodePositionsById.get(right.node.id)
+    : undefined;
+
   return (
-    getNodeY(left.node) - getNodeY(right.node) ||
-    getNodeX(left.node) - getNodeX(right.node) ||
+    (previousLeft?.y ?? getNodeY(left.node)) -
+      (previousRight?.y ?? getNodeY(right.node)) ||
+    (previousLeft?.x ?? getNodeX(left.node)) -
+      (previousRight?.x ?? getNodeX(right.node)) ||
     left.node.displayName.localeCompare(right.node.displayName) ||
     left.node.id.localeCompare(right.node.id)
   );
+}
+
+function buildNodeLaneIdById(entries: LayoutEntry[]) {
+  return new Map(entries.map((entry) => [entry.node.id, entry.lane.id]));
+}
+
+function normalizeLaneBounds(
+  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>,
+  offset: AttackGraphPoint,
+) {
+  return new Map(
+    [...laneBoundsById.entries()].map(([laneId, bounds]) => [
+      laneId,
+      {
+        height: bounds.height,
+        y: bounds.y - offset.y,
+      },
+    ]),
+  );
+}
+
+function getNormalizationOffset(nodes: AttackGraphNodeModel[]): AttackGraphPoint {
+  if (nodes.length === 0) {
+    return { x: 0, y: 0 };
+  }
+
+  return {
+    x: Math.min(...nodes.map((node) => getNodeX(node))),
+    y: Math.min(...nodes.map((node) => getNodeY(node))),
+  };
 }
 
 function normalizeNodePositions(
@@ -311,8 +499,7 @@ function normalizeNodePositions(
 ): AttackGraphNodeModel[] {
   if (nodes.length === 0) return nodes;
 
-  const minX = Math.min(...nodes.map((node) => getNodeX(node)));
-  const minY = Math.min(...nodes.map((node) => getNodeY(node)));
+  const { x: minX, y: minY } = getNormalizationOffset(nodes);
 
   if (minX === 0 && minY === 0) {
     return nodes;

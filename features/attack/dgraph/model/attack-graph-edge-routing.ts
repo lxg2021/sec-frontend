@@ -76,7 +76,7 @@ export function buildAttackGraphEdgeRoutes(
   );
   const relationSegments = buildRelationSegments(edges, nodeGeometryById);
 
-  for (const edgeGroup of groupEdgesBySourceTarget(edges)) {
+  for (const edgeGroup of groupRelationEdgesByNodePair(edges)) {
     const routedEdges = edgeGroup
       .filter((edge) => edge.source !== edge.target)
       .sort((left, right) =>
@@ -85,13 +85,11 @@ export function buildAttackGraphEdgeRoutes(
 
     const count = routedEdges.length;
     routedEdges.forEach((edge, index) => {
-      const magnitude = Math.floor(index / 2) + 1;
-      const direction = index % 2 === 0 ? 1 : -1;
-      const fanoutIndex = direction * magnitude;
+      const fanoutIndex = getSymmetricFanoutIndex(index, count);
       routesByEdgeId.set(edge.id, {
         fanoutCount: count,
         fanoutIndex,
-        fanoutOffset: clamp(fanoutIndex * getFanoutStep(count), -54, 54),
+        fanoutOffset: getFanoutOffset(fanoutIndex, count),
         kind: "relation",
       });
     });
@@ -143,19 +141,16 @@ function createSelfLoopSideCounts() {
   return {} as Partial<Record<AttackGraphSelfLoopSide, number>>;
 }
 
-function groupEdgesBySourceTarget(edges: AttackGraphEdgeModel[]) {
+function groupRelationEdgesByNodePair(edges: AttackGraphEdgeModel[]) {
   const groups = new Map<string, AttackGraphEdgeModel[]>();
   for (const edge of edges) {
-    const key = `${edge.source}->${edge.target}`;
-    groups.set(key, [...(groups.get(key) ?? []), edge]);
-  }
-  return [...groups.values()];
-}
+    if (edge.source === edge.target) {
+      continue;
+    }
 
-function groupEdgesBySource(edges: AttackGraphEdgeModel[]) {
-  const groups = new Map<string, AttackGraphEdgeModel[]>();
-  for (const edge of edges) {
-    groups.set(edge.source, [...(groups.get(edge.source) ?? []), edge]);
+    const [first, second] = [edge.source, edge.target].sort();
+    const key = `${first}<->${second}`;
+    groups.set(key, [...(groups.get(key) ?? []), edge]);
   }
   return [...groups.values()];
 }
@@ -198,6 +193,20 @@ function compareEdgesForFanout(
   }
 
   return left.id.localeCompare(right.id);
+}
+
+function getSymmetricFanoutIndex(index: number, fanoutCount: number) {
+  if (fanoutCount <= 1) {
+    return 0;
+  }
+
+  if (fanoutCount % 2 === 1 && index === 0) {
+    return 0;
+  }
+
+  const adjustedIndex = fanoutCount % 2 === 1 ? index - 1 : index;
+  const magnitude = Math.floor(adjustedIndex / 2) + 1;
+  return adjustedIndex % 2 === 0 ? magnitude : -magnitude;
 }
 
 function getFanoutStep(fanoutCount: number) {

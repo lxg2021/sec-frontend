@@ -1,10 +1,12 @@
 import ELK, { type ElkNode } from "elkjs/lib/elk.bundled";
 
 import type {
+  AttackGraphLayoutSession,
   AttackGraphLayoutOptions,
   AttackGraphLayoutResult,
   AttackGraphModel,
   AttackGraphNodeModel,
+  AttackGraphPoint,
 } from "./attack-graph-data";
 import { ATTACK_GRAPH_NODE_KIND_CONFIG } from "./attack-graph-node-config";
 import { processSemanticLayout } from "./attack-graph-semantic-layout";
@@ -32,6 +34,8 @@ export async function layoutAttackGraph(
   const portY = options.portY ?? nodeHeight / 2;
   const nodeSep = options.nodeSep ?? DEFAULT_NODE_SEP;
   const rankSep = options.rankSep ?? DEFAULT_RANK_SEP;
+  const previousSession =
+    options.session?.caseId === graph.caseId ? options.session : null;
   const sortedNodes = [...graph.nodes].sort(compareNodesForLayout);
   const nodeIds = new Set(sortedNodes.map((node) => node.id));
   const elkGraph: ElkNode = {
@@ -111,26 +115,115 @@ export async function layoutAttackGraph(
     };
   });
 
-  const layoutedWidth = Math.ceil(layoutedGraph.width ?? maxX - minX);
-  const layoutedHeight = Math.ceil(layoutedGraph.height ?? maxY - minY);
-
-  const semanticNodes = processSemanticLayout({
-    ...graph,
-    edges: graph.edges,
-    nodes: layoutedNodes,
-  });
-
-  const maxYAfter = semanticNodes.reduce(
-    (max, n) => Math.max(max, (n.position?.y ?? 0) + DEFAULT_NODE_HEIGHT),
-    DEFAULT_GRAPH_PADDING,
+  const semanticLayout = processSemanticLayout(
+    {
+      ...graph,
+      edges: graph.edges,
+      nodes: layoutedNodes,
+    },
+    {
+      session: previousSession,
+    },
   );
+  const newNodeIds = getNewNodeIds(graph.nodes, previousSession);
+  const semanticNodes = semanticLayout.nodes.map((node) => ({
+    ...node,
+    isNew: newNodeIds.has(node.id),
+  }));
+  const bounds = computeGraphBounds(semanticNodes, nodeWidth, nodeHeight);
+  const layoutSession = buildLayoutSession({
+    activeLaneIds: semanticLayout.activeLaneIds,
+    caseId: graph.caseId,
+    hasEnteredLaneMode:
+      semanticLayout.mode === "lane" ||
+      Boolean(previousSession?.hasEnteredLaneMode),
+    laneBoundsById: semanticLayout.laneBoundsById,
+    mode: semanticLayout.mode,
+    newNodeIds,
+    nodeLaneIdById: semanticLayout.nodeLaneIdById,
+    nodes: semanticNodes,
+  });
 
   return {
     ...graph,
     edges: graph.edges,
     nodes: semanticNodes,
-    width: layoutedWidth,
-    height: Math.ceil(maxYAfter + DEFAULT_GRAPH_PADDING),
+    width: Math.ceil(bounds.width + DEFAULT_GRAPH_PADDING * 2),
+    height: Math.ceil(bounds.height + DEFAULT_GRAPH_PADDING * 2),
+    layoutMode: semanticLayout.mode,
+    layoutSession,
+  };
+}
+
+function getNewNodeIds(
+  nodes: AttackGraphNodeModel[],
+  previousSession: AttackGraphLayoutSession | null,
+) {
+  if (!previousSession) {
+    return new Set<string>();
+  }
+
+  return new Set(
+    nodes
+      .filter((node) => !previousSession.nodePositionsById.has(node.id))
+      .map((node) => node.id),
+  );
+}
+
+function buildLayoutSession({
+  activeLaneIds,
+  caseId,
+  hasEnteredLaneMode,
+  laneBoundsById,
+  mode,
+  newNodeIds,
+  nodeLaneIdById,
+  nodes,
+}: {
+  activeLaneIds: string[];
+  caseId: string;
+  hasEnteredLaneMode: boolean;
+  laneBoundsById: AttackGraphLayoutSession["laneBoundsById"];
+  mode: AttackGraphLayoutSession["mode"];
+  newNodeIds: Set<string>;
+  nodeLaneIdById: AttackGraphLayoutSession["nodeLaneIdById"];
+  nodes: AttackGraphNodeModel[];
+}): AttackGraphLayoutSession {
+  return {
+    activeLaneIds,
+    caseId,
+    hasEnteredLaneMode,
+    laneBoundsById,
+    mode,
+    newNodeIds,
+    nodeLaneIdById,
+    nodePositionsById: new Map(
+      nodes.map((node) => [node.id, node.position ?? { x: 0, y: 0 }]),
+    ),
+  };
+}
+
+function computeGraphBounds(
+  nodes: AttackGraphNodeModel[],
+  nodeWidth: number,
+  nodeHeight: number,
+) {
+  if (nodes.length === 0) {
+    return {
+      height: 0,
+      width: 0,
+    };
+  }
+
+  const points = nodes.map((node) => node.position ?? ({ x: 0, y: 0 } as AttackGraphPoint));
+  const minX = Math.min(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxX = Math.max(...points.map((point) => point.x + nodeWidth));
+  const maxY = Math.max(...points.map((point) => point.y + nodeHeight));
+
+  return {
+    height: maxY - minY,
+    width: maxX - minX,
   };
 }
 

@@ -42,6 +42,7 @@ export interface AttackGraphNodeModel {
   properties: Record<string, string>;
   evidenceHit?: boolean;
   evidenceRefs?: AttackGraphEvidenceRef[];
+  isNew?: boolean;
   missingFromResponse?: boolean;
   position?: AttackGraphPoint;
 }
@@ -93,6 +94,24 @@ export interface AttackGraphPoint {
   y: number;
 }
 
+export type AttackGraphLayoutMode = "tiny" | "compact" | "lane";
+
+export interface AttackGraphLayoutLaneBounds {
+  height: number;
+  y: number;
+}
+
+export interface AttackGraphLayoutSession {
+  activeLaneIds: string[];
+  caseId: string;
+  hasEnteredLaneMode: boolean;
+  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
+  mode: AttackGraphLayoutMode;
+  newNodeIds: Set<string>;
+  nodeLaneIdById: Map<string, string>;
+  nodePositionsById: Map<string, AttackGraphPoint>;
+}
+
 export interface AttackGraphLayoutOptions {
   direction?: "LR" | "TB";
   nodeWidth?: number;
@@ -100,9 +119,12 @@ export interface AttackGraphLayoutOptions {
   portY?: number;
   nodeSep?: number;
   rankSep?: number;
+  session?: AttackGraphLayoutSession | null;
 }
 
 export interface AttackGraphLayoutResult extends AttackGraphModel {
   width: number;
   height: number;
+  layoutMode: AttackGraphLayoutMode;
+  layoutSession: AttackGraphLayoutSession;
 }
