@@ -171,55 +171,42 @@ function getGraphEdgePath({
   source: AttackGraphEdgeEndpointGeometry;
   target: AttackGraphEdgeEndpointGeometry;
 }) {
-  const vector = normalizeVector(
-    target.centerX - source.centerX,
-    target.centerY - source.centerY,
+  const deltaX = target.centerX - source.centerX;
+  const deltaY = target.centerY - source.centerY;
+  const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
+  const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
+  const sourceShift = clamp(
+    deltaY * 0.1 + route.fanoutOffset * 0.32,
+    -source.radius * 0.56,
+    source.radius * 0.56,
   );
-  const normal = { x: -vector.y, y: vector.x };
-  const anchorSkew = getAnchorSkew(route.fanoutOffset, source.radius);
-  const sourceVector = normalizeVector(
-    vector.x + normal.x * anchorSkew,
-    vector.y + normal.y * anchorSkew,
+  const targetShift = clamp(
+    -deltaY * 0.1 + route.fanoutOffset * 0.24,
+    -target.radius * 0.56,
+    target.radius * 0.56,
   );
-  const targetVector = normalizeVector(
-    -vector.x + normal.x * anchorSkew,
-    -vector.y + normal.y * anchorSkew,
-  );
-  const sourcePoint = {
-    x: source.centerX + sourceVector.x * source.radius,
-    y: source.centerY + sourceVector.y * source.radius,
-  };
-  const targetPoint = {
-    x: target.centerX + targetVector.x * (target.radius + MARKER_END_GAP),
-    y: target.centerY + targetVector.y * (target.radius + MARKER_END_GAP),
-  };
-  const controlDistance = getElegantControlDistance({
-    route,
-    source,
-    sourcePoint,
+  const sourcePoint = getSideAnchorPoint(source, flowDirection, sourceShift);
+  const targetPoint = getSideAnchorPoint(
     target,
+    targetDirection,
+    targetShift,
+    MARKER_END_GAP,
+  );
+  const controlDistance = getBezierControlDistance({
+    deltaX,
+    deltaY,
+    route,
+    sourcePoint,
     targetPoint,
   });
-  const controlLift = route.fanoutOffset * 0.18;
+  const controlLift = route.fanoutOffset * 0.12;
   const sourceControl = {
-    x:
-      sourcePoint.x +
-      sourceVector.x * controlDistance +
-      normal.x * controlLift,
-    y:
-      sourcePoint.y +
-      sourceVector.y * controlDistance +
-      normal.y * controlLift,
+    x: sourcePoint.x + flowDirection * controlDistance,
+    y: sourcePoint.y + controlLift,
   };
   const targetControl = {
-    x:
-      targetPoint.x +
-      targetVector.x * controlDistance +
-      normal.x * controlLift,
-    y:
-      targetPoint.y +
-      targetVector.y * controlDistance +
-      normal.y * controlLift,
+    x: targetPoint.x - flowDirection * controlDistance,
+    y: targetPoint.y + controlLift,
   };
   const path = [
     `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
@@ -234,6 +221,7 @@ function getGraphEdgePath({
     targetPoint,
     0.5,
   );
+  const normal = getReadableLabelNormal(sourcePoint, targetPoint);
   const labelOffset = getLabelOffset(route.fanoutIndex, route.fanoutCount);
 
   return {
@@ -396,37 +384,60 @@ function normalizeVector(x: number, y: number) {
   };
 }
 
-function getAnchorSkew(fanoutOffset: number, radius: number) {
-  return clamp(fanoutOffset / Math.max(radius * 2.8, 1), -0.34, 0.34);
+function getSideAnchorPoint(
+  circle: AttackGraphEdgeEndpointGeometry,
+  side: 1 | -1,
+  yShift: number,
+  radiusOutset = 0,
+) {
+  const radius = circle.radius + radiusOutset;
+  const safeShift = clamp(yShift, -radius * 0.72, radius * 0.72);
+  const xOffset = Math.sqrt(Math.max(radius * radius - safeShift * safeShift, 0));
+
+  return {
+    x: circle.centerX + side * xOffset,
+    y: circle.centerY + safeShift,
+  };
 }
 
-function getElegantControlDistance({
+function getBezierControlDistance({
+  deltaX,
+  deltaY,
   route,
-  source,
   sourcePoint,
-  target,
   targetPoint,
 }: {
+  deltaX: number;
+  deltaY: number;
   route: Extract<AttackGraphEdgeRouteData, { kind: "relation" }>;
-  source: AttackGraphEdgeEndpointGeometry;
   sourcePoint: { x: number; y: number };
-  target: AttackGraphEdgeEndpointGeometry;
   targetPoint: { x: number; y: number };
 }) {
-  const centerDeltaX = Math.abs(target.centerX - source.centerX);
-  const centerDeltaY = Math.abs(target.centerY - source.centerY);
   const endpointDistance = Math.hypot(
     targetPoint.x - sourcePoint.x,
     targetPoint.y - sourcePoint.y,
   );
-  const horizontalPull = centerDeltaX * 0.42 + centerDeltaY * 0.08;
-  const fanoutPull = Math.min(24, Math.abs(route.fanoutIndex) * 5);
+  const horizontalPull = Math.abs(deltaX) * 0.44 + Math.abs(deltaY) * 0.06;
+  const fanoutPull = Math.min(18, Math.abs(route.fanoutIndex) * 4);
 
   return clamp(
-    Math.max(endpointDistance * 0.24, horizontalPull) + fanoutPull,
-    64,
-    240,
+    Math.max(endpointDistance * 0.22, horizontalPull) + fanoutPull,
+    76,
+    260,
   );
+}
+
+function getReadableLabelNormal(
+  sourcePoint: { x: number; y: number },
+  targetPoint: { x: number; y: number },
+) {
+  const vector = normalizeVector(
+    targetPoint.x - sourcePoint.x,
+    targetPoint.y - sourcePoint.y,
+  );
+  const normal = { x: -vector.y, y: vector.x };
+
+  return normal.y > 0 ? { x: -normal.x, y: -normal.y } : normal;
 }
 
 function getCubicPoint(
@@ -458,11 +469,10 @@ function getCubicPoint(
 
 function getLabelOffset(fanoutIndex: number, fanoutCount: number) {
   if (fanoutCount <= 1) {
-    return 0;
+    return 12;
   }
 
-  const direction = fanoutIndex >= 0 ? 1 : -1;
-  return direction * (6 + Math.min(10, Math.abs(fanoutIndex) * 2));
+  return 12 + Math.min(10, Math.abs(fanoutIndex) * 2);
 }
 
 function getSelfLoopStartAngle(side: AttackGraphSelfLoopSide) {

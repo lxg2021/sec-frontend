@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -20,6 +20,7 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { buildAttackGraphModel } from "../model/attack-graph-adapter";
 import type {
   AttackGraphEdgeModel,
+  AttackGraphLayoutResult,
   AttackGraphLayoutOptions,
   AttackGraphNodeModel,
   GraphCaseResponseDto,
@@ -92,20 +93,47 @@ export function AttackGraphFlowV2({
 }: AttackGraphFlowV2Props) {
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
 
-  const layouted = useMemo(() => {
+  useEffect(() => {
+    let cancelled = false;
     const graph = buildAttackGraphModel(response);
-    return layoutAttackGraph(graph, {
+
+    setLayouted(null);
+    layoutAttackGraph(graph, {
       direction: "LR",
       nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
       nodeHeight: ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
+      portY: ATTACK_GRAPH_NODE_HALO_PADDING + 58 / 2,
       nodeSep: 64,
       rankSep: 140,
       ...layoutOptions,
-    });
+    })
+      .then((nextLayouted) => {
+        if (!cancelled) {
+          setLayouted(nextLayouted);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to layout attack graph with ELK", error);
+        if (!cancelled) {
+          setLayouted({
+            ...graph,
+            height: 0,
+            width: 0,
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [layoutOptions, response]);
 
-  const nodes = useMemo(() => toReactFlowNodes(layouted.nodes), [layouted.nodes]);
+  const layoutedNodes = layouted?.nodes ?? [];
+  const layoutedEdges = layouted?.edges ?? [];
+
+  const nodes = useMemo(() => toReactFlowNodes(layoutedNodes), [layoutedNodes]);
 
   const nodeColorsById = useMemo(() => {
     return new Map(nodes.map((node) => [node.id, node.data.color]));
@@ -117,7 +145,7 @@ export function AttackGraphFlowV2({
 
   const edges = useMemo(
     () =>
-      toReactFlowEdges(layouted.edges, {
+      toReactFlowEdges(layoutedEdges, {
         hoveredEdgeId,
         nodeGeometryById,
         nodeColorsById,
@@ -125,7 +153,7 @@ export function AttackGraphFlowV2({
       }),
     [
       hoveredEdgeId,
-      layouted.edges,
+      layoutedEdges,
       nodeColorsById,
       nodeGeometryById,
       selectedEdgeId,
@@ -292,12 +320,7 @@ function toReactFlowEdges(
         geometry:
           sourceGeometry && targetGeometry
             ? {
-                route: edgeRoutesById.get(edge.id) ?? {
-                  fanoutCount: 1,
-                  fanoutIndex: 0,
-                  fanoutOffset: 0,
-                  kind: "relation",
-                },
+                route: getEdgeRoute(edge, edgeRoutesById),
                 source: sourceGeometry,
                 target: targetGeometry,
               }
@@ -396,6 +419,20 @@ function getEdgeZIndex(
 }
 
 const EDGE_ANCHOR_OUTSET = 4;
+
+function getEdgeRoute(
+  edge: AttackGraphEdgeModel,
+  edgeRoutesById: ReturnType<typeof buildAttackGraphEdgeRoutes>,
+) {
+  return (
+    edgeRoutesById.get(edge.id) ?? {
+      fanoutCount: 1,
+      fanoutIndex: 0,
+      fanoutOffset: 0,
+      kind: "relation" as const,
+    }
+  );
+}
 
 function buildNodeGeometryById(
   nodes: ReactFlowNode<AttackGraphNodeData>[],

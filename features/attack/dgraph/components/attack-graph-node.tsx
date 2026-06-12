@@ -36,7 +36,7 @@ export interface AttackGraphNodeData {
 export const ATTACK_GRAPH_NODE_HALO_PADDING = 12;
 export const ATTACK_GRAPH_NODE_LABEL_GAP = 8;
 export const ATTACK_GRAPH_NODE_LABEL_HEIGHT = 22;
-export const ATTACK_GRAPH_NODE_TILE_WIDTH = 176;
+export const ATTACK_GRAPH_NODE_TILE_WIDTH = 112;
 export const ATTACK_GRAPH_DEFAULT_NODE_HEIGHT = 112;
 
 export function AttackGraphNode({

@@ -13,10 +13,10 @@ export interface AttackGraphNodeSize {
 }
 
 export const ATTACK_GRAPH_NODE_SIZE: AttackGraphNodeSize = {
-  width: 176,
+  width: 112,
   height: 84,
   icon: 58,
-  labelMaxWidth: 176,
+  labelMaxWidth: 112,
 } as const;
 
 export interface AttackGraphNodeVisualData {
