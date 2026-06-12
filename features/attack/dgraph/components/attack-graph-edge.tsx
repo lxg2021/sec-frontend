@@ -221,11 +221,11 @@ function getGraphEdgePath({
   const controlDistance = clamp(endpointDistance * 0.38, 38, 280);
   const sourceControl = {
     x: sourcePoint.x + flowDirection * controlDistance,
-    y: sourcePoint.y + deltaY * 0.25 + route.fanoutOffset * 0.25,
+    y: sourcePoint.y + deltaY * 0.25 + route.fanoutOffset * 0.6,
   };
   const targetControl = {
     x: targetPoint.x - flowDirection * controlDistance,
-    y: targetPoint.y - deltaY * 0.25 + route.fanoutOffset * 0.25,
+    y: targetPoint.y - deltaY * 0.25 + route.fanoutOffset * 0.6,
   };
   const path = [
     `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
