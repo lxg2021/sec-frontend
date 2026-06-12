@@ -14,15 +14,18 @@ import type {
 } from "../model/attack-graph-data";
 import { getAttackGraphEdgeStyle } from "../model/attack-graph-edge-presentation";
 import { getAttackGraphNodePresentation } from "../model/attack-graph-node-presentation";
+import {
+  ATTACK_G6_NODE_SIZE,
+  getAttackG6NodeStateStyle,
+  getAttackG6NodeStyle,
+  toAttackG6NodeData,
+} from "./attack-g6-node";
 
 export interface AttackGraphG6Props {
   response: GraphCaseResponseDto;
   className?: string;
 }
 
-const NODE_WIDTH = 168;
-const NODE_HEIGHT = 76;
-const ICON_SIZE = 36;
 const INITIAL_VIEW_SCALE = 0.9;
 
 export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
@@ -57,63 +60,14 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
         nodesep: 72,
         edgeLabelSpace: true,
         controlPoints: true,
-        nodeSize: [NODE_WIDTH, NODE_HEIGHT],
+        nodeSize: [ATTACK_G6_NODE_SIZE.width, ATTACK_G6_NODE_SIZE.height],
       },
       node: {
         type: "image",
-        style: (datum) => {
-          const nodeData = readRecord(datum.data);
-          const entityType = readString(nodeData.entityType);
-          const presentation = getAttackGraphNodePresentation(entityType);
-          const label = readString(nodeData.label) || String(datum.id);
-
-          return {
-            size: [ICON_SIZE + 14, ICON_SIZE + 14],
-            src: readString(nodeData.image),
-            opacity: Boolean(nodeData.missingFromResponse) ? 0.5 : 1,
-            label: true,
-            labelText: label,
-            labelPlacement: "bottom",
-            labelOffsetY: 8,
-            labelFontSize: 12,
-            labelFontWeight: 650,
-            labelFill: "#0f172a",
-            labelMaxWidth: NODE_WIDTH,
-            labelWordWrap: true,
-            badge: Boolean(nodeData.evidenceHit),
-            badges: Boolean(nodeData.evidenceHit)
-              ? [
-                  {
-                    text: "!",
-                    placement: "right-top",
-                    backgroundFill: "#ffffff",
-                    stroke: "#fecdd3",
-                    lineWidth: 1,
-                    fill: "#e11d48",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    radius: 10,
-                    padding: [2, 5],
-                    offsetX: 3,
-                    offsetY: -3,
-                  },
-                ]
-              : [],
-          };
-        },
+        style: getAttackG6NodeStyle,
         state: {
-          active: {
-            halo: true,
-            haloStroke: "#38bdf8",
-            haloStrokeOpacity: 0.28,
-            haloLineWidth: 8,
-          },
-          selected: {
-            halo: true,
-            haloStroke: "#2563eb",
-            haloStrokeOpacity: 0.34,
-            haloLineWidth: 10,
-          },
+          active: (datum) => getAttackG6NodeStateStyle(datum, "active"),
+          selected: (datum) => getAttackG6NodeStateStyle(datum, "selected"),
         },
       },
       edge: {
@@ -260,17 +214,12 @@ function toG6GraphData(
 
   return {
     nodes: sortedNodes.map((node) => {
-      const presentation = getAttackGraphNodePresentation(node.entityType);
       return {
         id: node.id,
-        data: {
-          label: node.displayName,
-          entityType: node.entityType,
-          entityLabel: presentation.label,
-          image: presentation.image,
+        data: toAttackG6NodeData(node.entityType, node.displayName, {
           evidenceHit: Boolean(node.evidenceHit),
           missingFromResponse: Boolean(node.missingFromResponse),
-        },
+        }),
       };
     }),
     edges: sortedEdges.map((edge) => ({
