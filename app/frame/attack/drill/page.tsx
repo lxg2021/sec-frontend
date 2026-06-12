@@ -12,6 +12,7 @@ import {
 import { useTranslations } from "next-intl"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
 import {
+  AttackGraphEdgeDemoCard,
   AttackGraphFlowV2,
   AttackGraphNodeDemoCard,
   fetchGraphCase,
@@ -119,6 +120,7 @@ export default function App() {
         </div>
 
         <AttackGraphNodeDemoCard />
+        <AttackGraphEdgeDemoCard />
 
         {/* Graph 可视化 */}
         <Card className="bg-white border border-gray-200 shadow-sm">

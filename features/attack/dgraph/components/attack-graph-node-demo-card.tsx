@@ -7,7 +7,7 @@ import { cn } from "@/shared/lib/utils";
 import {
   getAttackGraphNodeDemoItems,
   type AttackGraphNodeSize,
-} from "./attack-graph-node-config";
+} from "../model/attack-graph-node-config";
 
 export function AttackGraphNodeDemoCard() {
   const items = getAttackGraphNodeDemoItems();

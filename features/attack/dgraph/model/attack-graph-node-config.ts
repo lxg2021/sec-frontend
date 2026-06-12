@@ -2,9 +2,8 @@ import type {
   AttackGraphEntityPresentationKind,
   AttackGraphEntityType,
   AttackGraphNodePresentationKind,
-} from "../model/attack-graph-node-types";
-import type { AttackGraphNodeFamily } from "../model/attack-graph-node-presentation";
-import { getAttackGraphNodePresentation } from "../model/attack-graph-node-presentation";
+} from "./attack-graph-node-types";
+import { getAttackGraphNodePresentationKind } from "./attack-graph-node-types";
 
 export interface AttackGraphNodeSize {
   width: number;
@@ -45,6 +44,20 @@ type AttackGraphNodeIcon =
   | "security"
   | "unknown";
 
+export type AttackGraphNodeFamily =
+  | "case"
+  | "evidence"
+  | "process"
+  | "identity"
+  | "host"
+  | "network"
+  | "file"
+  | "registry"
+  | "persistence"
+  | "ipc"
+  | "security"
+  | "unknown";
+
 type AttackGraphNodeInteractionState = "active" | "selected";
 
 export interface AttackGraphNodeStateConfig {
@@ -72,6 +85,7 @@ export interface AttackGraphNodeKindConfig {
   label: string;
   family: AttackGraphNodeFamily;
   image: string;
+  priority: number;
   accentColor?: string;
   icon?: AttackGraphNodeIcon;
   size?: Partial<AttackGraphNodeSize>;
@@ -396,6 +410,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Account",
     family: "identity",
     image: "/icons/nodes/account-node.svg",
+    priority: 58,
     accentColor: "#039be5",
     icon: "identity",
   },
@@ -403,6 +418,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "BITS",
     family: "persistence",
     image: "/icons/nodes/bits-job-node.svg",
+    priority: 54,
     accentColor: "#f57c00",
     icon: "persistence",
   },
@@ -410,6 +426,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Credential Theft",
     family: "security",
     image: "/icons/nodes/credentials-node.svg",
+    priority: 92,
     accentColor: "#3f51b5",
     icon: "security",
     state: {
@@ -421,6 +438,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Crypto",
     family: "security",
     image: "/icons/nodes/endecrypt-node.svg",
+    priority: 78,
     accentColor: "#5e35b1",
     icon: "security",
     state: {
@@ -431,6 +449,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Device",
     family: "host",
     image: "/icons/nodes/device-node.svg",
+    priority: 52,
     accentColor: "#455a64",
     icon: "host",
   },
@@ -438,6 +457,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "DNS",
     family: "network",
     image: "/icons/nodes/dns-node.svg",
+    priority: 45,
     accentColor: "#03a9f4",
     icon: "network",
   },
@@ -445,6 +465,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "File",
     family: "file",
     image: "/icons/nodes/file-node.svg",
+    priority: 50,
     accentColor: "#ff9800",
     icon: "file",
   },
@@ -452,6 +473,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "File Stream",
     family: "file",
     image: "/icons/nodes/file-stream-node.svg",
+    priority: 56,
     accentColor: "#ffb74d",
     icon: "file",
   },
@@ -459,6 +481,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Host",
     family: "host",
     image: "/icons/nodes/agent-node.svg",
+    priority: 62,
     accentColor: "#388e3c",
     icon: "host",
   },
@@ -466,6 +489,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Remote Host",
     family: "host",
     image: "/icons/nodes/host-ref-node.svg",
+    priority: 60,
     accentColor: "#388e3c",
     icon: "host",
   },
@@ -473,6 +497,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "IPC Object",
     family: "ipc",
     image: "/icons/nodes/ipc-object-node.svg",
+    priority: 44,
     accentColor: "#607d8b",
     icon: "ipc",
   },
@@ -480,6 +505,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "MBR",
     family: "security",
     image: "/icons/nodes/mbr-node.svg",
+    priority: 86,
     accentColor: "#b71c1c",
     icon: "security",
     state: {
@@ -491,6 +517,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Message Hook",
     family: "persistence",
     image: "/icons/nodes/message-node.svg",
+    priority: 74,
     accentColor: "#cddc39",
     icon: "persistence",
   },
@@ -498,6 +525,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Network Address",
     family: "network",
     image: "/icons/nodes/net-node.svg",
+    priority: 46,
     accentColor: "#2196f3",
     icon: "network",
   },
@@ -505,6 +533,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Network Endpoint",
     family: "network",
     image: "/icons/nodes/net-endpoint-node.svg",
+    priority: 48,
     accentColor: "#00acc1",
     icon: "network",
   },
@@ -512,6 +541,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "PowerShell",
     family: "process",
     image: "/icons/nodes/powershell-node.svg",
+    priority: 82,
     accentColor: "#5391fe",
     icon: "process",
   },
@@ -519,6 +549,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Process",
     family: "process",
     image: "/icons/nodes/process-node.svg",
+    priority: 90,
     accentColor: "#4caf50",
     icon: "process",
   },
@@ -526,6 +557,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Registry",
     family: "registry",
     image: "/icons/nodes/reg-key-node.svg",
+    priority: 55,
     accentColor: "#53b7b7",
     icon: "registry",
   },
@@ -533,6 +565,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Service",
     family: "persistence",
     image: "/icons/nodes/service-node.svg",
+    priority: 66,
     accentColor: "#ff7043",
     icon: "persistence",
   },
@@ -540,6 +573,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Task",
     family: "persistence",
     image: "/icons/nodes/task-node.svg",
+    priority: 64,
     accentColor: "#9c27b0",
     icon: "persistence",
   },
@@ -547,6 +581,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Token Impersonation",
     family: "identity",
     image: "/icons/nodes/impersonation-token-node.svg",
+    priority: 80,
     accentColor: "#ad1457",
     icon: "identity",
   },
@@ -554,6 +589,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "URL Resource",
     family: "network",
     image: "/icons/nodes/url-node.svg",
+    priority: 47,
     accentColor: "#00bcd4",
     icon: "network",
   },
@@ -561,6 +597,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Volume",
     family: "file",
     image: "/icons/nodes/volume-node.svg",
+    priority: 40,
     accentColor: "#8bc34a",
     icon: "file",
   },
@@ -568,6 +605,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "WMI",
     family: "persistence",
     image: "/icons/nodes/wmi-node.svg",
+    priority: 76,
     accentColor: "#00897b",
     icon: "persistence",
   },
@@ -575,6 +613,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Case",
     family: "case",
     image: "/icons/nodes/attack-node.svg",
+    priority: 100,
     accentColor: "#d32f2f",
     icon: "case",
     size: { icon: 62, height: 88 },
@@ -587,6 +626,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Case Group",
     family: "case",
     image: "/icons/nodes/attack-node.svg",
+    priority: 98,
     accentColor: "#d32f2f",
     icon: "case",
     size: { icon: 62, height: 88 },
@@ -599,6 +639,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Case Instance",
     family: "case",
     image: "/icons/nodes/event-node.svg",
+    priority: 96,
     accentColor: "#795548",
     icon: "case",
   },
@@ -606,6 +647,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Evidence",
     family: "evidence",
     image: "/icons/nodes/attack-node.svg",
+    priority: 94,
     accentColor: "#d32f2f",
     icon: "evidence",
     size: { icon: 62, height: 88 },
@@ -618,6 +660,7 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     label: "Unknown",
     family: "unknown",
     image: "/icons/nodes/event-node.svg",
+    priority: 1,
     accentColor: "#795548",
     icon: "unknown",
     state: {
@@ -754,10 +797,10 @@ function buildAttackGraphNodeVisualData(
     missingFromResponse?: boolean;
   } = {},
 ): AttackGraphNodeVisualData {
-  const presentation = getAttackGraphNodePresentation(entityType);
-  const nodeConfig = getAttackGraphNodeKindConfig(presentation.kind);
+  const kind = getAttackGraphNodePresentationKind(entityType);
+  const nodeConfig = getAttackGraphNodeKindConfig(kind);
   return {
-    kind: presentation.kind,
+    kind,
     label,
     entityType,
     entityLabel: nodeConfig.label,

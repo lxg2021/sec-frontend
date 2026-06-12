@@ -6,7 +6,7 @@ import type {
   AttackGraphModel,
   AttackGraphNodeModel,
 } from "./attack-graph-data";
-import { ATTACK_GRAPH_NODE_PRESENTATIONS } from "./attack-graph-node-presentation";
+import { ATTACK_GRAPH_NODE_KIND_CONFIG } from "./attack-graph-node-config";
 
 const DEFAULT_NODE_WIDTH = 208;
 const DEFAULT_NODE_HEIGHT = 56;
@@ -80,12 +80,11 @@ function compareNodesForLayout(
   right: AttackGraphNodeModel,
 ): number {
   const leftPriority =
-    ATTACK_GRAPH_NODE_PRESENTATIONS[left.presentationKind]?.priority ?? 0;
+    ATTACK_GRAPH_NODE_KIND_CONFIG[left.presentationKind]?.priority ?? 0;
   const rightPriority =
-    ATTACK_GRAPH_NODE_PRESENTATIONS[right.presentationKind]?.priority ?? 0;
+    ATTACK_GRAPH_NODE_KIND_CONFIG[right.presentationKind]?.priority ?? 0;
   if (leftPriority !== rightPriority) {
     return rightPriority - leftPriority;
   }
   return left.key.localeCompare(right.key);
 }
-

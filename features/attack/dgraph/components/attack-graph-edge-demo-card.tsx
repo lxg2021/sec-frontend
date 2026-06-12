@@ -8,7 +8,7 @@ import {
   getAttackGraphEdgeDemoItems,
   type AttackGraphEdgeInteractionState,
   type AttackGraphEdgeVisualData,
-} from "../model/attack-graph-edge-presentation";
+} from "../model/attack-graph-edge-config";
 
 const DEMO_SOURCE_COLOR = "#13a7c5";
 const DEMO_TARGET_COLOR = "#f59e0b";

@@ -1,133 +1,165 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import Image from "next/image";
+import { Handle, Position, type NodeProps } from "reactflow";
 
 import { cn } from "@/shared/lib/utils";
-
 import {
-  getAttackGraphNodePresentation,
-} from "../model/attack-graph-node-presentation";
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
+
+import type {
+  AttackGraphNodeSize,
+  getAttackGraphNodeMergedStateConfig,
+} from "../model/attack-graph-node-config";
+
+export type AttackGraphNodeVisualState = ReturnType<
+  typeof getAttackGraphNodeMergedStateConfig
+>;
 
 export interface AttackGraphNodeData {
-  key?: string;
-  entity_type?: string;
-  entityType?: string;
-  display_name?: string;
-  displayName?: string;
-  properties?: Record<string, string | number | boolean | null | undefined>;
-  evidenceHit?: boolean;
-  evidenceRefs?: unknown[];
+  id: string;
+  label: string;
+  labelTooltip: string;
+  entityLabel: string;
+  image: string;
+  color: string;
+  glow: string;
+  size: AttackGraphNodeSize;
+  activeState: AttackGraphNodeVisualState;
+  selectedState: AttackGraphNodeVisualState;
+  missingFromResponse: boolean;
 }
 
-export interface AttackGraphNodeProps {
-  data: AttackGraphNodeData;
-  className?: string;
-  compact?: boolean;
-  muted?: boolean;
-  selected?: boolean;
-  showEntityType?: boolean;
-  style?: CSSProperties;
-}
-
-function pickNodeTitle(data: AttackGraphNodeData): string {
-  const properties = data.properties ?? {};
-  return (
-    data.display_name ||
-    data.displayName ||
-    stringProperty(properties.display_name) ||
-    stringProperty(properties.name) ||
-    stringProperty(properties.process_name) ||
-    stringProperty(properties.computer_name) ||
-    stringProperty(properties.service_name) ||
-    stringProperty(properties.task_name) ||
-    stringProperty(properties.url) ||
-    stringProperty(properties.path) ||
-    data.key ||
-    "Unnamed node"
-  );
-}
-
-function stringProperty(value: unknown): string {
-  return typeof value === "string" && value.trim() ? value.trim() : "";
-}
+export const ATTACK_GRAPH_NODE_HALO_PADDING = 12;
+export const ATTACK_GRAPH_NODE_LABEL_GAP = 8;
+export const ATTACK_GRAPH_NODE_LABEL_HEIGHT = 22;
+export const ATTACK_GRAPH_NODE_TILE_WIDTH = 176;
+export const ATTACK_GRAPH_DEFAULT_NODE_HEIGHT = 112;
 
 export function AttackGraphNode({
   data,
-  className,
-  compact = false,
-  muted = false,
-  selected = false,
-  showEntityType = true,
-  style,
-}: AttackGraphNodeProps) {
-  const entityType = data.entity_type || data.entityType || "";
-  const presentation = getAttackGraphNodePresentation(entityType);
-  const title = pickNodeTitle(data);
-  const evidenceCount = data.evidenceRefs?.length ?? 0;
-  const evidenceTitle = evidenceCount
-    ? `${evidenceCount} evidence hit${evidenceCount > 1 ? "s" : ""}`
-    : "Evidence hit";
+  selected,
+}: NodeProps<AttackGraphNodeData>) {
+  const ringState = selected ? data.selectedState : data.activeState;
+  const tileHeight = getAttackGraphNodeVisualHeight(data.size);
+  const handleY = ATTACK_GRAPH_NODE_HALO_PADDING + data.size.icon / 2;
 
   return (
     <div
-      className={cn(
-        "group relative flex w-[148px] flex-col items-center text-center transition-[opacity,transform] duration-150",
-        "hover:-translate-y-0.5",
-        muted && "opacity-45",
-        className,
-      )}
-      style={style}
-      title={`${presentation.label}: ${title}`}
+      className="relative"
+      style={{
+        width: ATTACK_GRAPH_NODE_TILE_WIDTH,
+        height: tileHeight,
+      }}
     >
-      <div
+      <Handle
+        type="target"
+        position={Position.Left}
+        className="!h-2 !w-2 !border-0 !bg-transparent"
+        style={{
+          left: 0,
+          top: handleY,
+          transform: "translate(-50%, -50%)",
+        }}
+        isConnectable={false}
+      />
+      <button
+        type="button"
+        aria-pressed={selected}
         className={cn(
-          "relative flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-[0_8px_18px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/80",
-          "transition-[box-shadow,transform,ring-color] duration-150 group-hover:scale-110 group-hover:shadow-[0_10px_22px_rgba(15,23,42,0.18)]",
-          selected && "ring-2 ring-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.14)]",
+          "group flex h-full w-full min-w-0 flex-col items-center justify-start border-0 bg-transparent px-0 text-center transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+          selected ? "text-slate-950" : "text-slate-900",
         )}
+        style={{
+          opacity: data.missingFromResponse ? 0.5 : 1,
+        }}
       >
-        <img
-          src={presentation.image}
-          alt=""
-          aria-hidden="true"
-          className="h-9 w-9 object-contain"
-          draggable={false}
-        />
-        {selected ? (
-          <span className="absolute -right-1 -bottom-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
-        ) : null}
-        {data.evidenceHit ? (
-          <span
-            className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border border-white bg-white text-[10px] font-bold leading-none text-rose-600 shadow-[0_2px_6px_rgba(15,23,42,0.18)] ring-1 ring-rose-200/80"
-            title={evidenceTitle}
-            aria-label={evidenceTitle}
-          >
-            <span className="-mt-px">!</span>
-          </span>
-        ) : null}
-      </div>
-
-      <div className="mt-1.5 w-full min-w-0">
-        <div className="truncate text-[11px] font-medium leading-4 text-slate-800 tracking-normal">
-          {title}
+        <div
+          className={cn(
+            "relative flex shrink-0 items-center justify-center rounded-full bg-white ring-1 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110",
+            selected ? "scale-110 ring-blue-200" : "ring-slate-200",
+          )}
+          style={{
+            width: data.size.icon,
+            height: data.size.icon,
+            marginTop: ATTACK_GRAPH_NODE_HALO_PADDING,
+            boxShadow: `0 0 0 ${Math.min(5, Math.max(2, ringState.haloLineWidth / 4))}px ${toRgba(
+              data.color,
+              Math.min(selected ? 0.26 : 0.18, ringState.haloStrokeOpacity),
+            )}, 0 ${selected ? 14 : 10}px ${selected ? 22 : 16}px ${toRgba(
+              data.glow,
+              selected ? 0.18 : 0.1,
+            )}`,
+          }}
+        >
+          <Image
+            src={data.image}
+            alt={data.entityLabel}
+            width={Math.max(24, data.size.icon - 18)}
+            height={Math.max(24, data.size.icon - 18)}
+            className="h-auto w-auto max-w-[68%]"
+          />
+          {selected ? (
+            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow-[0_4px_10px_rgba(37,99,235,0.32)]" />
+          ) : null}
         </div>
-        {showEntityType && !compact ? (
-          <div className="mt-0.5 flex min-w-0 justify-center">
+
+        <Tooltip>
+          <TooltipTrigger asChild>
             <span
-              className={cn(
-                "inline-flex max-w-[128px] items-center rounded-sm bg-white/85 px-1.5 py-0.5 text-[9px] font-medium leading-none text-slate-500 ring-1",
-                presentation.badgeClassName,
-              )}
+              className="inline-block max-w-full truncate text-sm font-semibold leading-5"
+              style={{ marginTop: ATTACK_GRAPH_NODE_LABEL_GAP }}
             >
-              <span className="truncate">
-                {entityType || presentation.label}
-              </span>
+              {data.label}
             </span>
-          </div>
-        ) : null}
-      </div>
+          </TooltipTrigger>
+          <TooltipContent
+            side="bottom"
+            align="center"
+            sideOffset={8}
+            className="max-w-[420px] whitespace-pre-wrap break-all rounded-lg border-slate-200 bg-white px-3 py-2 font-mono text-xs leading-5 text-slate-700 shadow-lg"
+          >
+            {data.labelTooltip || data.label}
+          </TooltipContent>
+        </Tooltip>
+      </button>
+      <Handle
+        type="source"
+        position={Position.Right}
+        className="!h-2 !w-2 !border-0 !bg-transparent"
+        style={{
+          right: 0,
+          top: handleY,
+          transform: "translate(50%, -50%)",
+        }}
+        isConnectable={false}
+      />
     </div>
   );
+}
+
+export function getAttackGraphNodeVisualHeight(size: AttackGraphNodeSize) {
+  return (
+    size.icon +
+    ATTACK_GRAPH_NODE_HALO_PADDING * 2 +
+    ATTACK_GRAPH_NODE_LABEL_GAP +
+    ATTACK_GRAPH_NODE_LABEL_HEIGHT
+  );
+}
+
+function toRgba(hex: string, alpha: number) {
+  const normalized = hex.replace("#", "");
+  if (!/^[\da-f]{6}$/i.test(normalized)) {
+    return `rgba(15, 23, 42, ${alpha})`;
+  }
+
+  const red = Number.parseInt(normalized.slice(0, 2), 16);
+  const green = Number.parseInt(normalized.slice(2, 4), 16);
+  const blue = Number.parseInt(normalized.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
 export default AttackGraphNode;
