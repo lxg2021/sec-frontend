@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ReactFlow, {
   Background,
-  Controls,
   MiniMap,
   Position,
   type Edge as ReactFlowEdge,
@@ -218,13 +217,17 @@ export function AttackGraphFlowV2({
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
-          fitView={fitView}
+          fitView={false}
           defaultViewport={{ x: 40, y: 40, zoom: 1 }}
-          minZoom={minZoom}
-          maxZoom={maxZoom}
+          minZoom={1}
+          maxZoom={1}
+          zoomOnScroll={false}
+          zoomOnPinch={false}
+          panOnScroll={false}
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable
+          style={{ background: "transparent" }}
           onEdgeClick={handleEdgeClick}
           onEdgeMouseEnter={handleEdgeMouseEnter}
           onEdgeMouseLeave={handleEdgeMouseLeave}
@@ -242,7 +245,6 @@ export function AttackGraphFlowV2({
               zoomable
             />
           ) : null}
-          {showControls ? <Controls showInteractive={false} /> : null}
         </ReactFlow>
       </TooltipProvider>
     </div>
