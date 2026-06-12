@@ -367,7 +367,7 @@ function getSelfLoopPath(
     `${formatNumber(endPoint.x)} ${formatNumber(endPoint.y)}`,
   ].join(" ");
   let labelAngle = (controlAngle + Math.PI / 2) * (180 / Math.PI);
-  while (labelAngle > 90) labelAngle -= 180;
+  while (labelAngle >= 90) labelAngle -= 180;
   while (labelAngle < -90) labelAngle += 180;
 
   return {
