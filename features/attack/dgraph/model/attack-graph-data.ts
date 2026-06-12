@@ -94,6 +94,8 @@ export interface AttackGraphPoint {
   y: number;
 }
 
+export type AttackGraphLayoutStrategy = "lane" | "stable";
+
 export type AttackGraphLayoutMode = "tiny" | "compact" | "lane";
 
 export interface AttackGraphLayoutLaneBounds {
@@ -110,6 +112,7 @@ export interface AttackGraphLayoutSession {
   newNodeIds: Set<string>;
   nodeLaneIdById: Map<string, string>;
   nodePositionsById: Map<string, AttackGraphPoint>;
+  strategy: AttackGraphLayoutStrategy;
 }
 
 export interface AttackGraphLayoutOptions {
@@ -120,6 +123,7 @@ export interface AttackGraphLayoutOptions {
   nodeSep?: number;
   rankSep?: number;
   session?: AttackGraphLayoutSession | null;
+  strategy?: AttackGraphLayoutStrategy;
 }
 
 export interface AttackGraphLayoutResult extends AttackGraphModel {
@@ -127,4 +131,5 @@ export interface AttackGraphLayoutResult extends AttackGraphModel {
   height: number;
   layoutMode: AttackGraphLayoutMode;
   layoutSession: AttackGraphLayoutSession;
+  layoutStrategy: AttackGraphLayoutStrategy;
 }

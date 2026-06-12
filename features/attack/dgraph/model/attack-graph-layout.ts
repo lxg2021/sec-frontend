@@ -10,6 +10,7 @@ import type {
 } from "./attack-graph-data";
 import { ATTACK_GRAPH_NODE_KIND_CONFIG } from "./attack-graph-node-config";
 import { processSemanticLayout } from "./attack-graph-semantic-layout";
+import { processStableLayout } from "./attack-graph-stable-layout";
 
 const DEFAULT_NODE_WIDTH = 208;
 const DEFAULT_NODE_HEIGHT = 56;
@@ -34,8 +35,12 @@ export async function layoutAttackGraph(
   const portY = options.portY ?? nodeHeight / 2;
   const nodeSep = options.nodeSep ?? DEFAULT_NODE_SEP;
   const rankSep = options.rankSep ?? DEFAULT_RANK_SEP;
+  const strategy = options.strategy ?? "lane";
   const previousSession =
-    options.session?.caseId === graph.caseId ? options.session : null;
+    options.session?.caseId === graph.caseId &&
+    options.session.strategy === strategy
+      ? options.session
+      : null;
   const sortedNodes = [...graph.nodes].sort(compareNodesForLayout);
   const nodeIds = new Set(sortedNodes.map((node) => node.id));
   const elkGraph: ElkNode = {
@@ -115,43 +120,62 @@ export async function layoutAttackGraph(
     };
   });
 
-  const semanticLayout = processSemanticLayout(
-    {
-      ...graph,
-      edges: graph.edges,
-      nodes: layoutedNodes,
-    },
-    {
-      session: previousSession,
-    },
-  );
+  const nextLayout =
+    strategy === "stable"
+      ? {
+          mode: "compact" as const,
+          ...processStableLayout(
+            {
+              ...graph,
+              edges: graph.edges,
+              nodes: layoutedNodes,
+            },
+            {
+              nodeHeight,
+              nodeWidth,
+              session: previousSession,
+            },
+          ),
+        }
+      : processSemanticLayout(
+          {
+            ...graph,
+            edges: graph.edges,
+            nodes: layoutedNodes,
+          },
+          {
+            session: previousSession,
+          },
+        );
   const newNodeIds = getNewNodeIds(graph.nodes, previousSession);
-  const semanticNodes = semanticLayout.nodes.map((node) => ({
+  const layoutedResultNodes = nextLayout.nodes.map((node) => ({
     ...node,
     isNew: newNodeIds.has(node.id),
   }));
-  const bounds = computeGraphBounds(semanticNodes, nodeWidth, nodeHeight);
+  const bounds = computeGraphBounds(layoutedResultNodes, nodeWidth, nodeHeight);
   const layoutSession = buildLayoutSession({
-    activeLaneIds: semanticLayout.activeLaneIds,
+    activeLaneIds: nextLayout.activeLaneIds,
     caseId: graph.caseId,
     hasEnteredLaneMode:
-      semanticLayout.mode === "lane" ||
+      nextLayout.mode === "lane" ||
       Boolean(previousSession?.hasEnteredLaneMode),
-    laneBoundsById: semanticLayout.laneBoundsById,
-    mode: semanticLayout.mode,
+    laneBoundsById: nextLayout.laneBoundsById,
+    mode: nextLayout.mode,
     newNodeIds,
-    nodeLaneIdById: semanticLayout.nodeLaneIdById,
-    nodes: semanticNodes,
+    nodeLaneIdById: nextLayout.nodeLaneIdById,
+    nodes: layoutedResultNodes,
+    strategy,
   });
 
   return {
     ...graph,
     edges: graph.edges,
-    nodes: semanticNodes,
+    nodes: layoutedResultNodes,
     width: Math.ceil(bounds.width + DEFAULT_GRAPH_PADDING * 2),
     height: Math.ceil(bounds.height + DEFAULT_GRAPH_PADDING * 2),
-    layoutMode: semanticLayout.mode,
+    layoutMode: nextLayout.mode,
     layoutSession,
+    layoutStrategy: strategy,
   };
 }
 
@@ -179,6 +203,7 @@ function buildLayoutSession({
   newNodeIds,
   nodeLaneIdById,
   nodes,
+  strategy,
 }: {
   activeLaneIds: string[];
   caseId: string;
@@ -188,6 +213,7 @@ function buildLayoutSession({
   newNodeIds: Set<string>;
   nodeLaneIdById: AttackGraphLayoutSession["nodeLaneIdById"];
   nodes: AttackGraphNodeModel[];
+  strategy: AttackGraphLayoutSession["strategy"];
 }): AttackGraphLayoutSession {
   return {
     activeLaneIds,
@@ -200,6 +226,7 @@ function buildLayoutSession({
     nodePositionsById: new Map(
       nodes.map((node) => [node.id, node.position ?? { x: 0, y: 0 }]),
     ),
+    strategy,
   };
 }
 

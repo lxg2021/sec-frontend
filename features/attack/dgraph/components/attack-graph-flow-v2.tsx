@@ -23,6 +23,7 @@ import type {
   AttackGraphLayoutResult,
   AttackGraphLayoutSession,
   AttackGraphLayoutOptions,
+  AttackGraphLayoutStrategy,
   AttackGraphNodeModel,
   GraphCaseResponseDto,
 } from "../model/attack-graph-data";
@@ -63,6 +64,7 @@ export interface AttackGraphFlowV2Props
   response: GraphCaseResponseDto;
   className?: string;
   layoutOptions?: AttackGraphLayoutOptions;
+  layoutStrategy?: AttackGraphLayoutStrategy;
   showMiniMap?: boolean;
   showBackground?: boolean;
 }
@@ -79,6 +81,7 @@ export function AttackGraphFlowV2({
   response,
   className,
   layoutOptions,
+  layoutStrategy = "lane",
   showMiniMap = false,
   showBackground = true,
   fitView = false,
@@ -94,7 +97,9 @@ export function AttackGraphFlowV2({
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
-  const layoutSessionRef = useRef<AttackGraphLayoutSession | null>(null);
+  const layoutSessionsByStrategyRef = useRef<
+    Partial<Record<AttackGraphLayoutStrategy, AttackGraphLayoutSession>>
+  >({});
   const previousCaseIdRef = useRef<string>("");
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
   const hasFittedRef = useRef(false);
@@ -103,12 +108,14 @@ export function AttackGraphFlowV2({
     let cancelled = false;
     const graph = buildAttackGraphModel(response);
     const caseChanged = previousCaseIdRef.current !== graph.caseId;
-    const previousSession = caseChanged ? null : layoutSessionRef.current;
+    const previousSession = caseChanged
+      ? null
+      : layoutSessionsByStrategyRef.current[layoutStrategy] ?? null;
 
+    hasFittedRef.current = false;
     if (caseChanged) {
       setLayouted(null);
-      hasFittedRef.current = false;
-      layoutSessionRef.current = null;
+      layoutSessionsByStrategyRef.current = {};
       previousCaseIdRef.current = graph.caseId;
     }
     layoutAttackGraph(graph, {
@@ -119,11 +126,13 @@ export function AttackGraphFlowV2({
       nodeSep: 48,
       rankSep: 110,
       session: previousSession,
+      strategy: layoutStrategy,
       ...layoutOptions,
     })
       .then((nextLayouted) => {
         if (!cancelled) {
-          layoutSessionRef.current = nextLayouted.layoutSession;
+          layoutSessionsByStrategyRef.current[nextLayouted.layoutStrategy] =
+            nextLayouted.layoutSession;
           setLayouted(nextLayouted);
         }
       })
@@ -134,7 +143,8 @@ export function AttackGraphFlowV2({
             ...graph,
             height: 0,
             layoutMode: "tiny",
-            layoutSession: createEmptyLayoutSession(graph.caseId),
+            layoutSession: createEmptyLayoutSession(graph.caseId, layoutStrategy),
+            layoutStrategy,
             width: 0,
           });
         }
@@ -143,7 +153,7 @@ export function AttackGraphFlowV2({
     return () => {
       cancelled = true;
     };
-  }, [layoutOptions, response]);
+  }, [layoutOptions, layoutStrategy, response]);
 
   const layoutedNodes = layouted?.nodes ?? [];
   const layoutedEdges = layouted?.edges ?? [];
@@ -509,7 +519,10 @@ function readString(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
-function createEmptyLayoutSession(caseId: string): AttackGraphLayoutSession {
+function createEmptyLayoutSession(
+  caseId: string,
+  strategy: AttackGraphLayoutStrategy,
+): AttackGraphLayoutSession {
   return {
     activeLaneIds: [],
     caseId,
@@ -519,6 +532,7 @@ function createEmptyLayoutSession(caseId: string): AttackGraphLayoutSession {
     newNodeIds: new Set(),
     nodeLaneIdById: new Map(),
     nodePositionsById: new Map(),
+    strategy,
   };
 }
 
