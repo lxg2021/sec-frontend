@@ -458,6 +458,7 @@ export function getAttackG6NodeStateStyle(
   return {
     halo: true,
     ...stateConfig,
+    haloStroke: nodeConfig.accentColor ?? stateConfig.haloStroke,
     badge: true,
     badges: getAttackG6NodeBadges(nodeData, state === "selected"),
   };
@@ -468,26 +469,34 @@ export function getAttackG6NodeStyle(datum: NodeData): Record<string, unknown> {
   const nodeConfig = getAttackG6NodeKindConfig(nodeData.kind);
   const familyConfig = ATTACK_G6_NODE_FAMILY_CONFIG[nodeConfig.family];
   const size = getAttackG6NodeSize(nodeConfig);
-  const image = nodeData.image || nodeConfig.image;
+  const activeState = getAttackG6NodeMergedStateConfig(
+    nodeConfig,
+    familyConfig,
+    "active",
+    size,
+  );
+  const ringWidth = Math.min(
+    4,
+    Math.max(2, activeState.haloLineWidth / 4),
+  );
+  const ringOpacity = Math.min(0.18, activeState.haloStrokeOpacity);
+  const accentColor = nodeConfig.accentColor ?? familyConfig.fill;
+  const iconSize = Math.max(24, Math.round(size.icon * 0.68));
 
   return {
     size: [size.icon, size.icon],
-    src:
-      image ||
-      createAttackG6NodeImage(
-        nodeData,
-        familyConfig,
-        nodeConfig.icon ?? familyConfig.icon,
-      ),
     opacity: nodeData.missingFromResponse ? 0.5 : 1,
-    radius: 999,
-    fill: "transparent",
-    stroke: "transparent",
-    lineWidth: 0,
-    shadowColor: toRgba(familyConfig.glow, 0.2),
+    fill: "#ffffff",
+    stroke: accentColor,
+    strokeOpacity: ringOpacity,
+    lineWidth: ringWidth,
+    shadowColor: toRgba(familyConfig.glow, 0.1),
     shadowBlur: 14,
     shadowOffsetY: 5,
-    icon: false,
+    icon: true,
+    iconSrc: nodeData.image || nodeConfig.image,
+    iconWidth: iconSize,
+    iconHeight: iconSize,
     label: true,
     labelText: nodeData.label || String(datum.id),
     labelPlacement: "bottom",
@@ -601,7 +610,7 @@ function getAttackG6NodeBadges(
 
   if (selected) {
     badges.push({
-      text: "✓",
+      text: "OK",
       placement: "right-bottom",
       backgroundFill: "#2563eb",
       stroke: "#ffffff",
@@ -679,34 +688,6 @@ function isAttackGraphNodePresentationKind(
   value: string,
 ): value is AttackGraphNodePresentationKind {
   return value in ATTACK_G6_NODE_KIND_CONFIG;
-}
-
-function createAttackG6NodeImage(
-  nodeData: AttackG6NodeData,
-  config: AttackG6NodeFamilyConfig,
-  icon: AttackG6NodeIcon,
-) {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="58" height="58" viewBox="0 0 58 58">
-      <defs>
-        <filter id="shadow" x="-30%" y="-25%" width="160%" height="170%">
-          <feDropShadow dx="0" dy="4" stdDeviation="3.5" flood-color="${config.glow}" flood-opacity="0.22"/>
-        </filter>
-      </defs>
-      <circle cx="29" cy="29" r="24" fill="${config.fill}" filter="url(#shadow)"/>
-      <circle cx="29" cy="29" r="23" fill="none" stroke="#ffffff" stroke-opacity="0.58" stroke-width="1.5"/>
-      <g fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-        ${getAttackG6NodeIconSvg(icon)}
-      </g>
-      ${
-        nodeData.missingFromResponse
-          ? '<circle cx="44" cy="14" r="4" fill="#ffffff" fill-opacity="0.78"/>'
-          : ""
-      }
-    </svg>
-  `;
-
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
 function getAttackG6NodeIconSvg(icon: AttackG6NodeIcon) {

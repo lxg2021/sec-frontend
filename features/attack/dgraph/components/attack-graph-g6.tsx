@@ -63,7 +63,7 @@ export function AttackGraphG6({ response, className }: AttackGraphG6Props) {
         nodeSize: [ATTACK_G6_NODE_SIZE.width, ATTACK_G6_NODE_SIZE.height],
       },
       node: {
-        type: "image",
+        type: "circle",
         style: getAttackG6NodeStyle,
         state: {
           active: (datum) => getAttackG6NodeStateStyle(datum, "active"),
