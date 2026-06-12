@@ -153,6 +153,11 @@ function segmentHitsCircle(
   const dy = b.y - a.y;
   const lenSq = dx * dx + dy * dy;
 
+  if (lenSq < 1e-12) {
+    const ds = (a.x - cx) * (a.x - cx) + (a.y - cy) * (a.y - cy);
+    return ds < radius * radius;
+  }
+
   let t = ((cx - a.x) * dx + (cy - a.y) * dy) / lenSq;
   t = Math.max(0, Math.min(1, t));
 

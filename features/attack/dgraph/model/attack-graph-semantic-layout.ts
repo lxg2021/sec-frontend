@@ -41,7 +41,7 @@ export function processSemanticLayout(
   const { lanes, laneByKind } = buildDynamicLanes(nodes, edges);
 
   if (lanes.length <= 1 || isTinyGraph(nodes)) {
-    return layoutByTypeAlignment(nodes, edges);
+    return layoutByTypeAlignment(nodes);
   }
 
   const originalCrossings = countEdgeCrossings(nodes, edges);
@@ -69,12 +69,11 @@ export function processSemanticLayout(
 
 function isTinyGraph(nodes: AttackGraphNodeModel[]): boolean {
   const kinds = new Set(nodes.map((n) => n.presentationKind));
-  return kinds.size <= TINY_GRAPH_KIND_COUNT;
+  return nodes.length <= 3 && kinds.size <= TINY_GRAPH_KIND_COUNT;
 }
 
 function layoutByTypeAlignment(
   nodes: AttackGraphNodeModel[],
-  edges: AttackGraphEdgeModel[],
 ): AttackGraphNodeModel[] {
   if (nodes.length === 0) return nodes;
 
@@ -85,55 +84,33 @@ function layoutByTypeAlignment(
     byKind.get(key)!.push(node);
   }
 
+  const processKinds = new Set(["process", "powershell", "service", "task"]);
   const types = [...byKind.entries()];
-  const processLikeTypes = types.filter(([kind]) =>
-    ["process", "powershell", "service", "task"].includes(kind),
-  );
-  const otherTypes = types.filter(
-    ([kind]) => !["process", "powershell", "service", "task"].includes(kind),
-  );
+  const processTypes = types.filter(([k]) => processKinds.has(k));
+  const otherTypes = types.filter(([k]) => !processKinds.has(k));
+  const ordered = [...processTypes, ...otherTypes];
 
-  const ordered = [...processLikeTypes, ...otherTypes];
-  const centerIndex = processLikeTypes.length > 0 ? 0 : Math.floor(ordered.length / 2);
+  const nodeH = ATTACK_GRAPH_DEFAULT_NODE_HEIGHT;
+  const gap = NODE_VERTICAL_GAP;
+  const result: AttackGraphNodeModel[] = [];
+  let y = 0;
 
-  const entries: LayoutEntry[] = [];
-  for (const node of nodes) {
-    entries.push({
-      node,
-      lane: { id: "", label: "", order: 0, presentationKinds: [] },
-      layerIndex: 0,
-    });
+  for (const [, kindNodes] of ordered) {
+    for (const node of kindNodes) {
+      result.push({
+        ...node,
+        position: {
+          x: node.position?.x ?? 0,
+          y,
+        } as AttackGraphPoint,
+      });
+    }
+    if (kindNodes.length > 0) {
+      y += nodeH + gap;
+    }
   }
 
-  const layers = detectLayers(entries);
-
-  const lanes: AttackGraphLayoutLaneConfig[] = ordered.map(([kind, kindNodes], i) => ({
-    id: `type-${kind}`,
-    label: kind,
-    order: i,
-    centered: i === centerIndex,
-    presentationKinds: [kind as AttackGraphNodePresentationKind],
-  }));
-
-  const laneByKindMap = new Map(lanes.map((l) => [l.presentationKinds[0], l]));
-  for (const entry of entries) {
-    entry.lane = laneByKindMap.get(entry.node.presentationKind) ?? lanes[0];
-  }
-
-  const laneHeights = computeLaneHeights(entries, layers, lanes);
-  const centeredLane = lanes[centerIndex];
-  const laneYMap = computeLaneYPositions(lanes, laneHeights, centeredLane);
-
-  const mainChain = findMainChainByLane(entries, edges, lanes[centerIndex]);
-  if (mainChain.length > 1) {
-    const chainY = laneYMap.get(centeredLane.id)! + laneHeights.get(centeredLane.id)! / 2;
-    alignChainNodes(entries, mainChain, chainY);
-  }
-
-  alignClusteredNodes(entries, layers, SAME_LANE_Y_THRESHOLD);
-  reprocessLaneHeights(entries, layers, lanes, laneHeights, laneYMap, centeredLane);
-
-  return placeNodes(entries, layers, lanes, laneHeights, laneYMap);
+  return result;
 }
 
 function layoutConnectedSemanticNodes(
@@ -151,6 +128,7 @@ function layoutConnectedSemanticNodes(
 
   const layers = detectLayers(entries);
   const centeredLane = findCenteredLane(lanes);
+  if (!centeredLane) return layoutResult.nodes;
 
   const aboveLanes = lanes
     .filter((l) => l.order < centeredLane.order)
@@ -554,7 +532,8 @@ function detectLayers(entries: LayoutEntry[]): LayoutEntry[][] {
   return layers;
 }
 
-function findCenteredLane(lanes: AttackGraphLayoutLaneConfig[]): AttackGraphLayoutLaneConfig {
+function findCenteredLane(lanes: AttackGraphLayoutLaneConfig[]): AttackGraphLayoutLaneConfig | undefined {
+  if (lanes.length === 0) return undefined;
   return lanes.find((l) => l.centered) ?? lanes[0];
 }
 
@@ -639,6 +618,7 @@ function findMainChainByLane(
   }
 
   for (const edge of edges) {
+    if (edge.source === edge.target) continue;
     if (laneIds.has(edge.source) && laneIds.has(edge.target)) {
       successors.get(edge.source)!.push(edge.target);
       predecessors.get(edge.target)!.push(edge.source);

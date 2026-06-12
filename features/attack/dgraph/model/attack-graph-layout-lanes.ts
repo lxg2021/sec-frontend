@@ -181,6 +181,7 @@ function buildLanesFromClusters(
   nodes: AttackGraphNodeModel[],
   edges: AttackGraphEdgeModel[],
 ): AttackGraphLayoutLaneConfig[] {
+  if (clusters.length === 0) return [];
   const nodeKind = new Map<string, AttackGraphNodePresentationKind>();
   for (const node of nodes) {
     nodeKind.set(node.id, node.presentationKind);
@@ -276,6 +277,7 @@ function findCenteredIndex(
 }
 
 function clusterLabel(kinds: AttackGraphNodePresentationKind[]): string {
+  if (kinds.length === 0) return "Empty";
   if (kinds.length === 1) return labelForKind(kinds[0]);
   const primary = kinds.find((k) => PROCESS_LANE_KINDS.includes(k));
   if (primary) {
