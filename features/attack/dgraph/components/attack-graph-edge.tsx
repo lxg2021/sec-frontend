@@ -107,19 +107,34 @@ export function AttackGraphEdge({
         ) : null}
       </defs>
       {emphasized ? (
-        <BaseEdge
-          id={`${id}-halo`}
-          path={pathResult.path}
-          style={{
-            fill: "none",
-            opacity: data.interactionState === "selected" ? 0.12 : 0.08,
-            stroke,
-            strokeLinecap: "round",
-            strokeLinejoin: "round",
-            strokeWidth:
-              state.width + (data.interactionState === "selected" ? 3 : 2),
-          }}
-        />
+        <>
+          <BaseEdge
+            id={`${id}-glow`}
+            path={pathResult.path}
+            style={{
+              fill: "none",
+              opacity: data.interactionState === "selected" ? 0.06 : 0.03,
+              stroke,
+              strokeLinecap: "round",
+              strokeLinejoin: "round",
+              strokeWidth:
+                state.width + (data.interactionState === "selected" ? 8 : 5),
+            }}
+          />
+          <BaseEdge
+            id={`${id}-halo`}
+            path={pathResult.path}
+            style={{
+              fill: "none",
+              opacity: data.interactionState === "selected" ? 0.14 : 0.08,
+              stroke,
+              strokeLinecap: "round",
+              strokeLinejoin: "round",
+              strokeWidth:
+                state.width + (data.interactionState === "selected" ? 3 : 2),
+            }}
+          />
+        </>
       ) : null}
       <BaseEdge
         id={id}
@@ -192,21 +207,18 @@ function getGraphEdgePath({
     targetShift,
     MARKER_END_GAP,
   );
-  const controlDistance = getBezierControlDistance({
-    deltaX,
-    deltaY,
-    route,
-    sourcePoint,
-    targetPoint,
-  });
-  const controlLift = route.fanoutOffset * 0.12;
+  const endpointDistance = Math.hypot(
+    targetPoint.x - sourcePoint.x,
+    targetPoint.y - sourcePoint.y,
+  );
+  const controlDistance = clamp(endpointDistance * 0.38, 38, 280);
   const sourceControl = {
     x: sourcePoint.x + flowDirection * controlDistance,
-    y: sourcePoint.y + controlLift,
+    y: sourcePoint.y + deltaY * 0.25 + route.fanoutOffset * 0.16,
   };
   const targetControl = {
     x: targetPoint.x - flowDirection * controlDistance,
-    y: targetPoint.y + controlLift,
+    y: targetPoint.y - deltaY * 0.25 + route.fanoutOffset * 0.16,
   };
   const path = [
     `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
@@ -398,33 +410,6 @@ function getSideAnchorPoint(
     x: circle.centerX + side * xOffset,
     y: circle.centerY + safeShift,
   };
-}
-
-function getBezierControlDistance({
-  deltaX,
-  deltaY,
-  route,
-  sourcePoint,
-  targetPoint,
-}: {
-  deltaX: number;
-  deltaY: number;
-  route: Extract<AttackGraphEdgeRouteData, { kind: "relation" }>;
-  sourcePoint: { x: number; y: number };
-  targetPoint: { x: number; y: number };
-}) {
-  const endpointDistance = Math.hypot(
-    targetPoint.x - sourcePoint.x,
-    targetPoint.y - sourcePoint.y,
-  );
-  const horizontalPull = Math.abs(deltaX) * 0.44 + Math.abs(deltaY) * 0.06;
-  const fanoutPull = Math.min(18, Math.abs(route.fanoutIndex) * 4);
-
-  return clamp(
-    Math.max(endpointDistance * 0.22, horizontalPull) + fanoutPull,
-    76,
-    260,
-  );
 }
 
 function getReadableLabelNormal(

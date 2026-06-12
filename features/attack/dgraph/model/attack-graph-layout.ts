@@ -75,9 +75,8 @@ export async function layoutAttackGraph(
     layoutOptions: {
       "elk.algorithm": "layered",
       "elk.direction": direction === "LR" ? "RIGHT" : "DOWN",
-      "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
       "elk.layered.crossingMinimization.semiInteractive": "true",
-      "elk.layered.nodePlacement.strategy": "NETWORK_SIMPLEX",
+      "elk.layered.nodePlacement.strategy": "BRANDES_KOEPF",
       "elk.layered.spacing.edgeNodeBetweenLayers": String(Math.max(24, rankSep / 3)),
       "elk.padding": `[top=${DEFAULT_GRAPH_PADDING},left=${DEFAULT_GRAPH_PADDING},bottom=${DEFAULT_GRAPH_PADDING},right=${DEFAULT_GRAPH_PADDING}]`,
       "elk.spacing.edgeEdge": "18",
