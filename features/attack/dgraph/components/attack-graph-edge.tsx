@@ -173,7 +173,7 @@ export function AttackGraphEdge({
           data-attack-edge-type={visual.relationType}
           style={{
             opacity: data.interactionState === "dimmed" ? 0.48 : 1,
-            transform: `translate(-50%, -50%) translate(${pathResult.labelX}px, ${pathResult.labelY}px) rotate(${pathResult.labelAngle ?? 0}deg)`,
+            transform: `translate(-50%, -50%) translate(${pathResult.labelX}px, ${pathResult.labelY}px) rotate(${Number.isFinite(pathResult.labelAngle) ? pathResult.labelAngle : 0}deg)`,
           }}
           title={visual.tooltip}
         >

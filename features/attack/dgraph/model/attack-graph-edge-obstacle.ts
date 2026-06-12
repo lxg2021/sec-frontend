@@ -208,7 +208,7 @@ function segmentsCross(
   const o2 = cross(a, b, d);
   const o3 = cross(c, d, a);
   const o4 = cross(c, d, b);
-  return o1 * o2 < -1e-6 && o3 * o4 < -1e-6;
+  return o1 * o2 < 0 && o3 * o4 < 0;
 }
 
 function cross(

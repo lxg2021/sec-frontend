@@ -32,6 +32,7 @@ import {
 } from "../model/attack-graph-edge-config";
 import {
   buildAttackGraphEdgeRoutes,
+  type AttackGraphEdgeRouteData,
   type AttackGraphNodeEdgeGeometry,
 } from "../model/attack-graph-edge-routing";
 import { layoutAttackGraph } from "../model/attack-graph-layout";
@@ -154,15 +155,22 @@ export function AttackGraphFlowV2({
     return buildNodeGeometryById(nodes);
   }, [nodes]);
 
+  const edgeRoutesById = useMemo(
+    () => buildAttackGraphEdgeRoutes(layoutedEdges, nodeGeometryById),
+    [layoutedEdges, nodeGeometryById],
+  );
+
   const edges = useMemo(
     () =>
       toReactFlowEdges(layoutedEdges, {
+        edgeRoutesById,
         hoveredEdgeId,
         nodeGeometryById,
         nodeColorsById,
         selectedEdgeId,
       }),
     [
+      edgeRoutesById,
       hoveredEdgeId,
       layoutedEdges,
       nodeColorsById,
@@ -286,6 +294,7 @@ function toReactFlowNodes(
 function toReactFlowEdges(
   edges: AttackGraphEdgeModel[],
   options: {
+    edgeRoutesById: Map<string, AttackGraphEdgeRouteData>;
     hoveredEdgeId: string | null;
     nodeGeometryById: Map<string, AttackGraphNodeEdgeGeometry>;
     nodeColorsById: Map<string, string>;
@@ -296,10 +305,6 @@ function toReactFlowEdges(
     options.selectedEdgeId && edges.some((edge) => edge.id === options.selectedEdgeId)
       ? options.selectedEdgeId
       : null;
-  const edgeRoutesById = buildAttackGraphEdgeRoutes(
-    edges,
-    options.nodeGeometryById,
-  );
 
   return edges.map((edge) => {
     const visual = toAttackGraphEdgeVisualData({
@@ -319,6 +324,7 @@ function toReactFlowEdges(
     const state = visual.state[interactionState];
     const sourceGeometry = options.nodeGeometryById.get(edge.source);
     const targetGeometry = options.nodeGeometryById.get(edge.target);
+    const route = getEdgeRoute(edge, options.edgeRoutesById);
 
     return {
       id: edge.id,
@@ -334,14 +340,12 @@ function toReactFlowEdges(
         geometry:
           sourceGeometry && targetGeometry
             ? {
-                route: getEdgeRoute(edge, edgeRoutesById),
+                route,
                 source: sourceGeometry,
                 target: targetGeometry,
                 obstacle:
-                  getEdgeRoute(edge, edgeRoutesById).kind === "skip"
-                    ? options.nodeGeometryById.get(
-                        (getEdgeRoute(edge, edgeRoutesById) as { obstacleId: string }).obstacleId,
-                      )
+                  route.kind === "skip"
+                    ? options.nodeGeometryById.get(route.obstacleId)
                     : undefined,
               }
             : undefined,

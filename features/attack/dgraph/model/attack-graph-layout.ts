@@ -91,10 +91,10 @@ export async function layoutAttackGraph(
   const layoutedNodeById = new Map(
     (layoutedGraph.children ?? []).map((node) => [node.id, node]),
   );
-  let minX = 0;
-  let minY = 0;
-  let maxX = 0;
-  let maxY = 0;
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
   const layoutedNodes = graph.nodes.map((node) => {
     const elkNode = layoutedNodeById.get(node.id);
     const x = elkNode?.x ?? 0;

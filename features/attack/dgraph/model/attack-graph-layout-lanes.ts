@@ -38,7 +38,7 @@ export function buildDynamicLanes(
 
   const matrix = buildCooccurrenceMatrix(kinds, nodes, edges);
   const clusters = hierarchicalCluster(kinds, matrix);
-  const lanes = buildLanesFromClusters(clusters, kinds, nodes, edges);
+  const lanes = buildLanesFromClusters(clusters, nodes, edges);
 
   const laneByKind = new Map<AttackGraphNodePresentationKind, AttackGraphLayoutLaneConfig>();
   for (const lane of lanes) {
@@ -178,7 +178,6 @@ function clusterPairStrength(
 
 function buildLanesFromClusters(
   clusters: AttackGraphNodePresentationKind[][],
-  kinds: AttackGraphNodePresentationKind[],
   nodes: AttackGraphNodeModel[],
   edges: AttackGraphEdgeModel[],
 ): AttackGraphLayoutLaneConfig[] {

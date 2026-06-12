@@ -557,6 +557,9 @@ function findObstacleBetween(
   const cx2 = target.centerX;
   const cy2 = target.centerY;
 
+  let bestObstacle: AttackGraphNodeEdgeGeometry | null = null;
+  let bestDist = Number.POSITIVE_INFINITY;
+
   for (const node of nodeGeometryById.values()) {
     if (node.id === sourceId || node.id === targetId) continue;
 
@@ -566,12 +569,13 @@ function findObstacleBetween(
       node.centerX, node.centerY,
     );
 
-    if (dist < node.radius + 18) {
-      return node;
+    if (dist < node.radius + 18 && dist < bestDist) {
+      bestDist = dist;
+      bestObstacle = node;
     }
   }
 
-  return null;
+  return bestObstacle;
 }
 
 function determineDetourSide(
@@ -591,6 +595,10 @@ function pointToSegmentDist(
   const dx = bx - ax;
   const dy = by - ay;
   const lenSq = dx * dx + dy * dy;
+
+  if (lenSq < 0.001) {
+    return Math.hypot(cx - ax, cy - ay);
+  }
 
   let t = ((cx - ax) * dx + (cy - ay) * dy) / lenSq;
   t = clamp(t, 0, 1);
