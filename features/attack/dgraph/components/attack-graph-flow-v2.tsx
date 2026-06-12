@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   Background,
   MiniMap,
@@ -9,6 +9,7 @@ import ReactFlow, {
   type EdgeTypes,
   type Node as ReactFlowNode,
   type NodeTypes,
+  type ReactFlowInstance,
   type ReactFlowProps,
 } from "reactflow";
 import "reactflow/dist/style.css";
@@ -91,12 +92,15 @@ export function AttackGraphFlowV2({
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
+  const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
+  const hasFittedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     const graph = buildAttackGraphModel(response);
 
     setLayouted(null);
+    hasFittedRef.current = false;
     layoutAttackGraph(graph, {
       direction: "LR",
       nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
@@ -131,6 +135,16 @@ export function AttackGraphFlowV2({
   const layoutedEdges = layouted?.edges ?? [];
 
   const nodes = useMemo(() => toReactFlowNodes(layoutedNodes), [layoutedNodes]);
+
+  useEffect(() => {
+    if (nodes.length > 0 && rfInstanceRef.current && !hasFittedRef.current) {
+      const timer = setTimeout(() => {
+        rfInstanceRef.current?.setViewport({ x: 0, y: 20, zoom: 1 });
+        hasFittedRef.current = true;
+      }, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [nodes]);
 
   const nodeColorsById = useMemo(() => {
     return new Map(nodes.map((node) => [node.id, node.data.color]));
@@ -216,7 +230,6 @@ export function AttackGraphFlowV2({
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           fitView={false}
-          defaultViewport={{ x: 40, y: 40, zoom: 1 }}
           minZoom={1}
           maxZoom={1}
           zoomOnScroll={false}
@@ -225,6 +238,7 @@ export function AttackGraphFlowV2({
           nodesDraggable={false}
           nodesConnectable={false}
           elementsSelectable
+          onInit={(instance) => { rfInstanceRef.current = instance }}
           style={{ background: "transparent" }}
           onEdgeClick={handleEdgeClick}
           onEdgeMouseEnter={handleEdgeMouseEnter}
