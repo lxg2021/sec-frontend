@@ -101,7 +101,7 @@ export function AttackGraphEdge({
             color={targetColor}
             id={markerId}
             opacity={state.opacity}
-            size={visual.marker.size}
+            strokeWidth={state.width}
             type={visual.marker.type}
           />
         ) : null}
@@ -191,12 +191,12 @@ function getGraphEdgePath({
   const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
   const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
   const sourceShift = clamp(
-    deltaY * 0.1 + route.fanoutOffset * 0.32,
+    deltaY * 0.1 + route.fanoutOffset * 0.28,
     -source.radius * 0.56,
     source.radius * 0.56,
   );
   const targetShift = clamp(
-    -deltaY * 0.1 + route.fanoutOffset * 0.24,
+    -deltaY * 0.1 + route.fanoutOffset * 0.28,
     -target.radius * 0.56,
     target.radius * 0.56,
   );
@@ -262,9 +262,9 @@ function getSelfLoopPath(
   const controlAngle = getSelfLoopControlAngle(side);
   const startPoint = pointOnCircle(node, startAngle, radius);
   const endPoint = pointOnCircle(node, endAngle, radius + MARKER_END_GAP);
-  const firstControl = pointFromCenter(node, controlAngle - 0.34, loopDepth);
-  const secondControl = pointFromCenter(node, controlAngle + 0.34, loopDepth);
-  const labelPoint = pointFromCenter(node, controlAngle, loopDepth + loopSpan * 0.18);
+  const firstControl = pointFromCenter(node, controlAngle - 0.36, loopDepth);
+  const secondControl = pointFromCenter(node, controlAngle + 0.36, loopDepth);
+  const labelPoint = pointFromCenter(node, controlAngle, loopDepth + loopSpan * 0.22);
   const path = [
     `M ${formatNumber(startPoint.x)} ${formatNumber(startPoint.y)}`,
     `C ${formatNumber(firstControl.x)} ${formatNumber(firstControl.y)}`,
@@ -289,16 +289,16 @@ function AttackGraphEdgeMarker({
   color,
   id,
   opacity,
-  size,
+  strokeWidth,
   type,
 }: {
   color: string;
   id: string;
   opacity: number;
-  size: number;
+  strokeWidth: number;
   type: AttackGraphEdgeVisualData["marker"]["type"];
 }) {
-  const markerSize = Math.max(9, Math.min(13, size));
+  const markerSize = clamp(8 + strokeWidth * 1.5, 9, 15);
   const middle = markerSize / 2;
 
   return (
@@ -308,7 +308,7 @@ function AttackGraphEdgeMarker({
       markerUnits="userSpaceOnUse"
       markerWidth={markerSize}
       orient="auto"
-      refX={type === "diamond" ? middle : markerSize - 1}
+      refX={type === "diamond" ? middle : markerSize - 0.8}
       refY={middle}
       viewBox={`0 0 ${markerSize} ${markerSize}`}
     >
@@ -319,14 +319,18 @@ function AttackGraphEdgeMarker({
           } L1,${middle} Z`}
           fill={color}
           opacity={opacity}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       ) : (
         <path
-          d={`M2,2.5 L${markerSize - 1},${middle} L2,${
-            markerSize - 2.5
-          } Z`}
+          d={`M1.5,${middle - markerSize * 0.26} L${
+            markerSize - 0.8
+          },${middle} L1.5,${middle + markerSize * 0.26} Z`}
           fill={color}
           opacity={opacity}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       )}
     </marker>
@@ -462,28 +466,28 @@ function getLabelOffset(fanoutIndex: number, fanoutCount: number) {
 
 function getSelfLoopStartAngle(side: AttackGraphSelfLoopSide) {
   if (side === "top") {
-    return degreesToRadians(220);
+    return degreesToRadians(240);
   }
   if (side === "bottom") {
-    return degreesToRadians(140);
+    return degreesToRadians(60);
   }
   if (side === "left") {
-    return degreesToRadians(310);
+    return degreesToRadians(150);
   }
-  return degreesToRadians(230);
+  return degreesToRadians(330);
 }
 
 function getSelfLoopEndAngle(side: AttackGraphSelfLoopSide) {
   if (side === "top") {
-    return degreesToRadians(320);
+    return degreesToRadians(300);
   }
   if (side === "bottom") {
-    return degreesToRadians(40);
+    return degreesToRadians(120);
   }
   if (side === "left") {
-    return degreesToRadians(50);
+    return degreesToRadians(210);
   }
-  return degreesToRadians(130);
+  return degreesToRadians(30);
 }
 
 function getSelfLoopControlAngle(side: AttackGraphSelfLoopSide) {
