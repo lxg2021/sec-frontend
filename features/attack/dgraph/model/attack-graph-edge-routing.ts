@@ -243,6 +243,8 @@ function getEndpointSide(
   return deltaY >= 0 ? "bottom" : "top";
 }
 
+const RELATION_CORRIDOR_WIDTH = 28;
+
 function buildRelationSegments(
   edges: AttackGraphEdgeModel[],
   nodeGeometryById: Map<string, AttackGraphNodeEdgeGeometry>,
@@ -264,9 +266,29 @@ function buildRelationSegments(
         x2: targetGeometry.centerX,
         y1: sourceGeometry.centerY,
         y2: targetGeometry.centerY,
+        thickness: RELATION_CORRIDOR_WIDTH,
       },
     ];
   });
+}
+
+function getAdjacentSideConflict(
+  endpointSideUsage: Map<AttackGraphEndpointSide, number>,
+  side: AttackGraphSelfLoopSide,
+) {
+  const adjacentSides = getAdjacentSides(side);
+  let conflict = 0;
+  for (const adj of adjacentSides) {
+    conflict += endpointSideUsage.get(adj) ?? 0;
+  }
+  return conflict;
+}
+
+function getAdjacentSides(side: AttackGraphSelfLoopSide): AttackGraphEndpointSide[] {
+  if (side === "top" || side === "bottom") {
+    return ["left", "right"];
+  }
+  return ["top", "bottom"];
 }
 
 function chooseSelfLoopSide({
@@ -286,9 +308,10 @@ function chooseSelfLoopSide({
   let bestScore = Number.POSITIVE_INFINITY;
 
   for (const side of SELF_LOOP_SIDES) {
-    const loopBounds = getSelfLoopBounds(nodeGeometry, side);
+    const nextIndex = sideCounts[side] ?? 0;
+    const loopBounds = getSelfLoopBounds(nodeGeometry, side, nextIndex);
     const endpointUsage = endpointSideUsage.get(side) ?? 0;
-    const loopCount = sideCounts[side] ?? 0;
+    const loopCount = nextIndex;
     const obstacleCount = countSelfLoopObstacles({
       loopBounds,
       nodeGeometry,
@@ -297,11 +320,16 @@ function chooseSelfLoopSide({
     const crossingCount = relationSegments.filter((segment) =>
       segmentIntersectsRect(segment, loopBounds),
     ).length;
+    const adjacentConflict = getAdjacentSideConflict(
+      endpointSideUsage,
+      side,
+    );
     const score =
-      endpointUsage * 120 +
+      endpointUsage * 140 +
       loopCount * 72 +
       obstacleCount * 56 +
-      crossingCount * 28 +
+      crossingCount * 48 +
+      adjacentConflict * 36 +
       SELF_LOOP_SIDE_PREFERENCE[side];
 
     if (score < bestScore) {
@@ -316,9 +344,12 @@ function chooseSelfLoopSide({
 function getSelfLoopBounds(
   nodeGeometry: AttackGraphNodeEdgeGeometry,
   side: AttackGraphSelfLoopSide,
+  index = 0,
 ): AttackGraphRect {
-  const span = nodeGeometry.radius + 50;
-  const depth = nodeGeometry.radius + 76;
+  const depthOffset = 54 + index * 18;
+  const spanOffset = 34 + index * 10;
+  const depth = nodeGeometry.radius + depthOffset + 10;
+  const span = nodeGeometry.radius + spanOffset + 8;
   const centerX = nodeGeometry.centerX;
   const centerY = nodeGeometry.centerY;
 
@@ -398,10 +429,11 @@ function rectsIntersect(left: AttackGraphRect, right: AttackGraphRect) {
 }
 
 function segmentIntersectsRect(
-  segment: { x1: number; y1: number; x2: number; y2: number },
+  segment: { x1: number; y1: number; x2: number; y2: number; thickness?: number },
   rect: AttackGraphRect,
 ) {
-  const expandedRect = expandRect(rect, 6);
+  const halfThickness = (segment.thickness ?? 0) / 2;
+  const expandedRect = expandRect(rect, 6 + halfThickness);
   if (
     pointInRect(segment.x1, segment.y1, expandedRect) ||
     pointInRect(segment.x2, segment.y2, expandedRect)

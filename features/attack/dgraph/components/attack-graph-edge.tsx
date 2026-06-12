@@ -166,7 +166,7 @@ export function AttackGraphEdge({
           data-attack-edge-type={visual.relationType}
           style={{
             opacity: data.interactionState === "dimmed" ? 0.48 : 1,
-            transform: `translate(-50%, -50%) translate(${pathResult.labelX}px, ${pathResult.labelY}px)`,
+            transform: `translate(-50%, -50%) translate(${pathResult.labelX}px, ${pathResult.labelY}px) rotate(${pathResult.labelAngle ?? 0}deg)`,
           }}
           title={visual.tooltip}
         >
@@ -235,6 +235,13 @@ function getGraphEdgePath({
   );
   const normal = getReadableLabelNormal(sourcePoint, targetPoint);
   const labelOffset = getLabelOffset(route.fanoutIndex, route.fanoutCount);
+  const labelAngle = getCubicTangentAngle(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
 
   return {
     gradient: {
@@ -243,6 +250,7 @@ function getGraphEdgePath({
       y1: sourcePoint.y,
       y2: targetPoint.y,
     },
+    labelAngle,
     labelX: labelPoint.x + normal.x * labelOffset,
     labelY: labelPoint.y + normal.y * labelOffset,
     path,
@@ -271,6 +279,9 @@ function getSelfLoopPath(
     `${formatNumber(secondControl.x)} ${formatNumber(secondControl.y)}`,
     `${formatNumber(endPoint.x)} ${formatNumber(endPoint.y)}`,
   ].join(" ");
+  let labelAngle = (controlAngle + Math.PI / 2) * (180 / Math.PI);
+  while (labelAngle > 90) labelAngle -= 180;
+  while (labelAngle < -90) labelAngle += 180;
 
   return {
     gradient: {
@@ -279,6 +290,7 @@ function getSelfLoopPath(
       y1: startPoint.y,
       y2: endPoint.y,
     },
+    labelAngle,
     labelX: labelPoint.x,
     labelY: labelPoint.y,
     path,
@@ -454,6 +466,24 @@ function getCubicPoint(
       3 * inv * t2 * secondControl.y +
       t3 * end.y,
   };
+}
+
+function getCubicTangentAngle(
+  start: { x: number; y: number },
+  firstControl: { x: number; y: number },
+  secondControl: { x: number; y: number },
+  end: { x: number; y: number },
+  t: number,
+) {
+  const inv = 1 - t;
+  const inv2 = inv * inv;
+  const t2 = t * t;
+  const tx = 3 * inv2 * (firstControl.x - start.x) + 6 * inv * t * (secondControl.x - firstControl.x) + 3 * t2 * (end.x - secondControl.x);
+  const ty = 3 * inv2 * (firstControl.y - start.y) + 6 * inv * t * (secondControl.y - firstControl.y) + 3 * t2 * (end.y - secondControl.y);
+  let deg = Math.atan2(ty, tx) * (180 / Math.PI);
+  while (deg > 90) deg -= 180;
+  while (deg < -90) deg += 180;
+  return deg;
 }
 
 function getLabelOffset(fanoutIndex: number, fanoutCount: number) {
