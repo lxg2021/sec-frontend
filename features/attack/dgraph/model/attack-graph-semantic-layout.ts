@@ -2,7 +2,8 @@ import type { AttackGraphModel, AttackGraphPoint } from "./attack-graph-data";
 import type { AttackGraphEdgeModel, AttackGraphNodeModel } from "./attack-graph-data";
 import type { AttackGraphNodePresentationKind } from "./attack-graph-node-types";
 import {
-  buildDynamicLanes,
+  ATTACK_GRAPH_FALLBACK_LAYOUT_LANE,
+  buildActiveLayoutLanes,
   getAttackGraphLayoutLane,
   type AttackGraphLayoutLaneConfig,
 } from "./attack-graph-layout-lanes";
@@ -42,7 +43,7 @@ export function processSemanticLayout(
     return layoutTwoNodeRow(nodes);
   }
 
-  const { lanes, laneByKind } = buildDynamicLanes(nodes, edges);
+  const { lanes, laneByKind } = buildActiveLayoutLanes(nodes);
 
   if (lanes.length <= 1 || isTinyGraph(nodes)) {
     return layoutByTypeAlignment(nodes);
@@ -205,10 +206,8 @@ function layoutDisconnectedComponents(
   let nextY = 0;
 
   for (const component of orderedComponents) {
-    const { lanes: subLanes, laneByKind: subLaneByKind } = buildDynamicLanes(
-      component.nodes,
-      component.edges,
-    );
+    const { lanes: subLanes, laneByKind: subLaneByKind } =
+      buildActiveLayoutLanes(component.nodes);
     const effectiveLanes = subLanes.length > 0 ? subLanes : lanes;
     const effectiveLaneByKind =
       subLanes.length > 0
@@ -347,12 +346,9 @@ function optimizeLayerOrder(
   if (nodes.length > ORDER_OPTIMIZE_MAX_NODES) return nodes;
 
   const entries: LayoutEntry[] = nodes.map((node) => ({
-    lane: getAttackGraphLayoutLane(node.presentationKind, laneByKind) ?? {
-      id: "fallback",
-      label: "fallback",
-      order: 0,
-      presentationKinds: [],
-    },
+    lane:
+      getAttackGraphLayoutLane(node.presentationKind, laneByKind) ??
+      ATTACK_GRAPH_FALLBACK_LAYOUT_LANE,
     layerIndex: 0,
     node,
   }));
