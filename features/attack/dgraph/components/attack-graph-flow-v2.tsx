@@ -532,6 +532,7 @@ function createEmptyLayoutSession(
     newNodeIds: new Set(),
     nodeLaneIdById: new Map(),
     nodePositionsById: new Map(),
+    stableCenterNodeId: undefined,
     strategy,
   };
 }

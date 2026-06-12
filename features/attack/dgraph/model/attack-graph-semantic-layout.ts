@@ -55,6 +55,7 @@ export interface AttackGraphSemanticLayoutResult {
   mode: AttackGraphLayoutMode;
   nodeLaneIdById: Map<string, string>;
   nodes: AttackGraphNodeModel[];
+  stableCenterNodeId?: string;
 }
 
 const COMPACT_LANE: SlotLane = {

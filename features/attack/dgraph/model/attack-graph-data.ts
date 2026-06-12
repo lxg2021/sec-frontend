@@ -112,6 +112,7 @@ export interface AttackGraphLayoutSession {
   newNodeIds: Set<string>;
   nodeLaneIdById: Map<string, string>;
   nodePositionsById: Map<string, AttackGraphPoint>;
+  stableCenterNodeId?: string;
   strategy: AttackGraphLayoutStrategy;
 }
 

@@ -15,7 +15,11 @@ import {
   AttackGraphFlowV2,
   fetchGraphCase,
 } from "@/features/attack/dgraph"
-import type { GraphCaseResponseDto } from "@/features/attack/dgraph"
+import type {
+  AttackGraphLayoutStrategy,
+  GraphCaseResponseDto,
+} from "@/features/attack/dgraph"
+import { cn } from "@/shared/lib/utils";
 
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
@@ -28,6 +32,8 @@ export default function App() {
   const [graphResponse, setGraphResponse] = useState<GraphCaseResponseDto | null>(null);
   const [graphLoading, setGraphLoading] = useState(false);
   const [graphError, setGraphError] = useState("");
+  const [graphLayoutStrategy, setGraphLayoutStrategy] =
+    useState<AttackGraphLayoutStrategy>("lane");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -121,7 +127,7 @@ export default function App() {
         <Card className="!bg-transparent border border-gray-200 shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+              <div className="flex min-w-0 items-center space-x-2">
                 <div className="p-2 flex items-center justify-center rounded-lg bg-blue-500">
                   <Shield className="h-5 w-5 text-white" />
                 </div>
@@ -134,6 +140,10 @@ export default function App() {
                   </span>
                 ) : null}
               </div>
+              <GraphLayoutStrategyToggle
+                value={graphLayoutStrategy}
+                onChange={setGraphLayoutStrategy}
+              />
             </div>
           </CardHeader>
 
@@ -161,6 +171,7 @@ export default function App() {
                 <AttackGraphFlowV2
                   response={graphResponse}
                   className="h-full"
+                  layoutStrategy={graphLayoutStrategy}
                 />
               ) : (
                 <GraphStateMessage
@@ -174,6 +185,44 @@ export default function App() {
       </div>
     </div >
   )
+}
+
+function GraphLayoutStrategyToggle({
+  onChange,
+  value,
+}: {
+  onChange: (value: AttackGraphLayoutStrategy) => void;
+  value: AttackGraphLayoutStrategy;
+}) {
+  const items: Array<{ label: string; value: AttackGraphLayoutStrategy }> = [
+    { label: "Stable", value: "stable" },
+    { label: "Lane", value: "lane" },
+  ];
+
+  return (
+    <div
+      aria-label="Graph layout"
+      className="inline-flex shrink-0 rounded-md border border-slate-200 bg-white p-0.5 shadow-sm"
+      role="group"
+    >
+      {items.map((item) => (
+        <button
+          key={item.value}
+          type="button"
+          aria-pressed={value === item.value}
+          className={cn(
+            "h-8 min-w-16 rounded px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+            value === item.value
+              ? "bg-blue-600 text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+          )}
+          onClick={() => onChange(item.value)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function GraphStateMessage({

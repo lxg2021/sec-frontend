@@ -1,12 +1,10 @@
 import type {
+  AttackGraphEdgeModel,
   AttackGraphLayoutLaneBounds,
   AttackGraphLayoutSession,
   AttackGraphModel,
-  AttackGraphPoint,
-} from "./attack-graph-data";
-import type {
-  AttackGraphEdgeModel,
   AttackGraphNodeModel,
+  AttackGraphPoint,
 } from "./attack-graph-data";
 import type { AttackGraphNodePresentationKind } from "./attack-graph-node-types";
 
@@ -21,39 +19,17 @@ export interface AttackGraphStableLayoutResult {
   laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
   nodeLaneIdById: Map<string, string>;
   nodes: AttackGraphNodeModel[];
+  stableCenterNodeId?: string;
 }
-
-type StableResourceZone =
-  | "account"
-  | "files"
-  | "infrastructure"
-  | "ipc"
-  | "registry"
-  | "unknown";
 
 interface StableNodeScore {
   degree: number;
+  distinctNeighborCount: number;
   evidenceBoost: number;
+  processBoost: number;
   processRelationDegree: number;
   relationPriority: number;
   score: number;
-}
-
-interface StableProcessAnchor {
-  node: AttackGraphNodeModel;
-  score: StableNodeScore;
-}
-
-interface StableResourceAssignment {
-  anchorId: string;
-  node: AttackGraphNodeModel;
-  zone: StableResourceZone;
-}
-
-interface StableSlotVector {
-  column: number;
-  row: number;
-  zone: StableResourceZone;
 }
 
 const STABLE_LANE_ID = "stable";
@@ -63,49 +39,7 @@ const PROCESS_KINDS = new Set<AttackGraphNodePresentationKind>([
   "service",
   "task",
 ]);
-const RESOURCE_ZONE_BY_KIND: Partial<
-  Record<AttackGraphNodePresentationKind, StableResourceZone>
-> = {
-  account: "account",
-  "bits": "ipc",
-  "case": "unknown",
-  "case-group": "unknown",
-  "case-instance": "unknown",
-  "credential-theft": "account",
-  crypto: "account",
-  device: "infrastructure",
-  "dns-name": "infrastructure",
-  evidence: "unknown",
-  file: "files",
-  "file-stream": "files",
-  host: "infrastructure",
-  "host-ref": "infrastructure",
-  "ipc-object": "ipc",
-  mbr: "account",
-  "message-hook": "ipc",
-  "net-address": "infrastructure",
-  "net-endpoint": "infrastructure",
-  registry: "registry",
-  "token-impersonation": "account",
-  "url-resource": "infrastructure",
-  volume: "files",
-  wmi: "ipc",
-  unknown: "unknown",
-};
-const ZONE_ORDER: StableResourceZone[] = [
-  "infrastructure",
-  "account",
-  "ipc",
-  "files",
-  "registry",
-  "unknown",
-];
-const PROCESS_LAYER_TOLERANCE = 80;
-const PROCESS_X_GAP = 260;
-const PROCESS_Y_GAP = 136;
-const RESOURCE_X_GAP = 156;
-const RESOURCE_Y_GAP = 132;
-const RESOURCE_ANCHOR_GAP = 148;
+const CENTER_SWITCH_SCORE_RATIO = 1.35;
 
 export function processStableLayout(
   layoutResult: AttackGraphModel & {
@@ -121,30 +55,18 @@ export function processStableLayout(
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const scoreByNodeId = computeStableNodeScores(layoutResult.edges, nodeById);
-  const processAnchors = buildProcessAnchors(nodes, scoreByNodeId);
-
-  if (processAnchors.length === 0) {
-    return layoutWithoutProcessAnchors(nodes, options);
-  }
-
-  const processPositions = placeProcessAnchors(processAnchors, options);
-  const resourceAssignments = assignResourcesToAnchors({
-    edges: layoutResult.edges,
+  const centerNodeId = chooseStableCenterNodeId({
     nodes,
-    processAnchors,
+    previousCenterNodeId: options.session?.stableCenterNodeId,
     scoreByNodeId,
   });
-  const resourcePositions = placeResources(resourceAssignments, processPositions);
-  const placedNodes = normalizePlacedNodes(
-    nodes.map((node) => ({
-      ...node,
-      position:
-        processPositions.get(node.id) ??
-        resourcePositions.get(node.id) ??
-        fallbackPoint(node),
-    })),
-  );
-  const bounds = computeStableBounds(placedNodes, options);
+  const elkNodes = normalizeNodePositions(nodes);
+  const centeredNodes = keepCenterPositionStable({
+    centerNodeId,
+    nodes: elkNodes,
+    session: options.session,
+  });
+  const bounds = computeStableBounds(centeredNodes, options);
 
   return {
     activeLaneIds: [STABLE_LANE_ID],
@@ -157,8 +79,11 @@ export function processStableLayout(
         },
       ],
     ]),
-    nodeLaneIdById: new Map(placedNodes.map((node) => [node.id, STABLE_LANE_ID])),
-    nodes: placedNodes,
+    nodeLaneIdById: new Map(
+      centeredNodes.map((node) => [node.id, STABLE_LANE_ID]),
+    ),
+    nodes: centeredNodes,
+    stableCenterNodeId: centerNodeId,
   };
 }
 
@@ -176,15 +101,11 @@ function computeStableNodeScores(
   nodeById: Map<string, AttackGraphNodeModel>,
 ) {
   const scoreByNodeId = new Map<string, StableNodeScore>();
+  const neighborIdsByNodeId = new Map<string, Set<string>>();
 
   for (const node of nodeById.values()) {
-    scoreByNodeId.set(node.id, {
-      degree: 0,
-      evidenceBoost: node.evidenceHit ? 3 : 0,
-      processRelationDegree: 0,
-      relationPriority: 0,
-      score: 0,
-    });
+    scoreByNodeId.set(node.id, createEmptyScore(node));
+    neighborIdsByNodeId.set(node.id, new Set());
   }
 
   for (const edge of edges) {
@@ -194,15 +115,20 @@ function computeStableNodeScores(
       continue;
     }
 
+    neighborIdsByNodeId.get(source.id)?.add(target.id);
+    neighborIdsByNodeId.get(target.id)?.add(source.id);
     applyEdgeScore(scoreByNodeId, source.id, edge, source, target);
     applyEdgeScore(scoreByNodeId, target.id, edge, target, source);
   }
 
   for (const [nodeId, score] of scoreByNodeId) {
+    score.distinctNeighborCount = neighborIdsByNodeId.get(nodeId)?.size ?? 0;
     score.score =
-      score.processRelationDegree * 2 +
+      score.processRelationDegree * 2.5 +
+      score.distinctNeighborCount * 1.8 +
       score.degree +
       score.evidenceBoost +
+      score.processBoost +
       score.relationPriority;
     scoreByNodeId.set(nodeId, score);
   }
@@ -253,321 +179,99 @@ function getStableRelationPriority(edge: AttackGraphEdgeModel) {
   return 1;
 }
 
-function buildProcessAnchors(
-  nodes: AttackGraphNodeModel[],
-  scoreByNodeId: Map<string, StableNodeScore>,
-): StableProcessAnchor[] {
-  return nodes
-    .filter(isProcessNode)
-    .map((node) => ({
-      node,
-      score: scoreByNodeId.get(node.id) ?? createEmptyScore(node),
-    }))
-    .sort(compareProcessAnchors);
-}
-
-function compareProcessAnchors(
-  left: StableProcessAnchor,
-  right: StableProcessAnchor,
-) {
-  return (
-    getNodeX(left.node) - getNodeX(right.node) ||
-    right.score.score - left.score.score ||
-    getNodeY(left.node) - getNodeY(right.node) ||
-    left.node.displayName.localeCompare(right.node.displayName) ||
-    left.node.id.localeCompare(right.node.id)
-  );
-}
-
-function placeProcessAnchors(
-  processAnchors: StableProcessAnchor[],
-  options: AttackGraphStableLayoutOptions,
-) {
-  const layerGroups = groupProcessAnchorsByLayer(processAnchors);
-  const positions = new Map<string, AttackGraphPoint>();
-
-  layerGroups.forEach((layer, layerIndex) => {
-    const sortedLayer = [...layer].sort(
-      (left, right) =>
-        right.score.score - left.score.score ||
-        getNodeY(left.node) - getNodeY(right.node) ||
-        left.node.id.localeCompare(right.node.id),
-    );
-    const centerOffset = (sortedLayer.length - 1) / 2;
-
-    sortedLayer.forEach((anchor, index) => {
-      positions.set(anchor.node.id, {
-        x: layerIndex * PROCESS_X_GAP,
-        y: (index - centerOffset) * PROCESS_Y_GAP,
-      });
-    });
-  });
-
-  return preservePreviousStablePositions(positions, options);
-}
-
-function groupProcessAnchorsByLayer(processAnchors: StableProcessAnchor[]) {
-  const sorted = [...processAnchors].sort(
-    (left, right) =>
-      getNodeX(left.node) - getNodeX(right.node) ||
-      getNodeY(left.node) - getNodeY(right.node) ||
-      left.node.id.localeCompare(right.node.id),
-  );
-  const layers: StableProcessAnchor[][] = [];
-
-  for (const anchor of sorted) {
-    const lastLayer = layers[layers.length - 1];
-    const firstInLastLayer = lastLayer?.[0];
-    if (
-      !lastLayer ||
-      !firstInLastLayer ||
-      Math.abs(getNodeX(anchor.node) - getNodeX(firstInLastLayer.node)) >
-        PROCESS_LAYER_TOLERANCE
-    ) {
-      layers.push([anchor]);
-    } else {
-      lastLayer.push(anchor);
-    }
-  }
-
-  return layers;
-}
-
-function preservePreviousStablePositions(
-  positions: Map<string, AttackGraphPoint>,
-  options: AttackGraphStableLayoutOptions,
-) {
-  if (options.session?.strategy !== "stable") {
-    return positions;
-  }
-
-  const nextPositions = new Map(positions);
-  for (const [nodeId, position] of positions) {
-    const previous = options.session.nodePositionsById.get(nodeId);
-    if (previous) {
-      nextPositions.set(nodeId, previous);
-    } else {
-      nextPositions.set(nodeId, position);
-    }
-  }
-  return nextPositions;
-}
-
-function assignResourcesToAnchors({
-  edges,
+function chooseStableCenterNodeId({
   nodes,
-  processAnchors,
+  previousCenterNodeId,
   scoreByNodeId,
 }: {
-  edges: AttackGraphEdgeModel[];
   nodes: AttackGraphNodeModel[];
-  processAnchors: StableProcessAnchor[];
+  previousCenterNodeId?: string;
   scoreByNodeId: Map<string, StableNodeScore>;
-}): StableResourceAssignment[] {
-  const processIds = new Set(processAnchors.map((anchor) => anchor.node.id));
-  const processScoreById = new Map(
-    processAnchors.map((anchor) => [anchor.node.id, anchor.score]),
+}) {
+  const sortedCandidates = [...nodes].sort((left, right) =>
+    compareStableCenterCandidates(left, right, scoreByNodeId),
   );
-  const processTouchesByResourceId = collectProcessTouchesByResourceId({
-    edges,
-    processIds,
-  });
-  const fallbackAnchor = processAnchors[0];
-
-  return nodes
-    .filter((node) => !processIds.has(node.id))
-    .map((node) => {
-      const anchorId =
-        chooseResourceAnchor({
-          fallbackAnchorId: fallbackAnchor.node.id,
-          processScoreById,
-          touches: processTouchesByResourceId.get(node.id) ?? new Map(),
-        }) ?? fallbackAnchor.node.id;
-
-      return {
-        anchorId,
-        node,
-        zone: getStableResourceZone(node),
-      };
-    })
-    .sort((left, right) => {
-      const leftScore = scoreByNodeId.get(left.node.id)?.score ?? 0;
-      const rightScore = scoreByNodeId.get(right.node.id)?.score ?? 0;
-      return (
-        left.anchorId.localeCompare(right.anchorId) ||
-        ZONE_ORDER.indexOf(left.zone) - ZONE_ORDER.indexOf(right.zone) ||
-        rightScore - leftScore ||
-        left.node.displayName.localeCompare(right.node.displayName) ||
-        left.node.id.localeCompare(right.node.id)
-      );
-    });
-}
-
-function collectProcessTouchesByResourceId({
-  edges,
-  processIds,
-}: {
-  edges: AttackGraphEdgeModel[];
-  processIds: Set<string>;
-}) {
-  const touchesByResourceId = new Map<string, Map<string, number>>();
-
-  for (const edge of edges) {
-    const sourceIsProcess = processIds.has(edge.source);
-    const targetIsProcess = processIds.has(edge.target);
-    if (sourceIsProcess === targetIsProcess) {
-      continue;
-    }
-
-    const processId = sourceIsProcess ? edge.source : edge.target;
-    const resourceId = sourceIsProcess ? edge.target : edge.source;
-    const touches = touchesByResourceId.get(resourceId) ?? new Map();
-    touches.set(
-      processId,
-      (touches.get(processId) ?? 0) + getStableRelationPriority(edge),
-    );
-    touchesByResourceId.set(resourceId, touches);
+  const bestCandidate = sortedCandidates[0];
+  if (!bestCandidate) {
+    return undefined;
   }
 
-  return touchesByResourceId;
-}
-
-function chooseResourceAnchor({
-  fallbackAnchorId,
-  processScoreById,
-  touches,
-}: {
-  fallbackAnchorId: string;
-  processScoreById: Map<string, StableNodeScore>;
-  touches: Map<string, number>;
-}) {
-  let bestAnchorId = "";
-  let bestTouchScore = Number.NEGATIVE_INFINITY;
-  let bestProcessScore = Number.NEGATIVE_INFINITY;
-
-  for (const [processId, touchScore] of touches) {
-    const processScore = processScoreById.get(processId)?.score ?? 0;
-    if (
-      touchScore > bestTouchScore ||
-      (touchScore === bestTouchScore && processScore > bestProcessScore) ||
-      (touchScore === bestTouchScore &&
-        processScore === bestProcessScore &&
-        processId.localeCompare(bestAnchorId) < 0)
-    ) {
-      bestAnchorId = processId;
-      bestTouchScore = touchScore;
-      bestProcessScore = processScore;
-    }
+  const previousCenter = previousCenterNodeId
+    ? nodes.find((node) => node.id === previousCenterNodeId)
+    : undefined;
+  if (!previousCenter) {
+    return bestCandidate.id;
   }
 
-  return bestAnchorId || fallbackAnchorId;
+  const bestScore = scoreByNodeId.get(bestCandidate.id)?.score ?? 0;
+  const previousScore = scoreByNodeId.get(previousCenter.id)?.score ?? 0;
+
+  if (
+    bestCandidate.id !== previousCenter.id &&
+    bestScore >= previousScore * CENTER_SWITCH_SCORE_RATIO
+  ) {
+    return bestCandidate.id;
+  }
+
+  return previousCenter.id;
 }
 
-function placeResources(
-  resourceAssignments: StableResourceAssignment[],
-  processPositions: Map<string, AttackGraphPoint>,
+function compareStableCenterCandidates(
+  left: AttackGraphNodeModel,
+  right: AttackGraphNodeModel,
+  scoreByNodeId: Map<string, StableNodeScore>,
 ) {
-  const positions = new Map<string, AttackGraphPoint>();
-  const assignmentsByAnchorAndZone = new Map<string, StableResourceAssignment[]>();
+  const leftScore = scoreByNodeId.get(left.id) ?? createEmptyScore(left);
+  const rightScore = scoreByNodeId.get(right.id) ?? createEmptyScore(right);
 
-  for (const assignment of resourceAssignments) {
-    const key = `${assignment.anchorId}::${assignment.zone}`;
-    assignmentsByAnchorAndZone.set(key, [
-      ...(assignmentsByAnchorAndZone.get(key) ?? []),
-      assignment,
-    ]);
-  }
-
-  for (const [key, assignments] of assignmentsByAnchorAndZone) {
-    const [anchorId, zone] = key.split("::") as [string, StableResourceZone];
-    const anchorPosition = processPositions.get(anchorId) ?? { x: 0, y: 0 };
-    const sortedAssignments = [...assignments].sort(
-      (left, right) =>
-        left.node.displayName.localeCompare(right.node.displayName) ||
-        left.node.id.localeCompare(right.node.id),
-    );
-
-    sortedAssignments.forEach((assignment, index) => {
-      const slot = getStableSlotVector(zone, index);
-      positions.set(assignment.node.id, {
-        x:
-          anchorPosition.x +
-          slot.column * RESOURCE_X_GAP +
-          Math.sign(slot.column) * RESOURCE_ANCHOR_GAP,
-        y: anchorPosition.y + slot.row * RESOURCE_Y_GAP,
-      });
-    });
-  }
-
-  return positions;
+  return (
+    rightScore.score - leftScore.score ||
+    Number(isProcessNode(right)) - Number(isProcessNode(left)) ||
+    rightScore.distinctNeighborCount - leftScore.distinctNeighborCount ||
+    rightScore.degree - leftScore.degree ||
+    left.displayName.localeCompare(right.displayName) ||
+    left.id.localeCompare(right.id)
+  );
 }
 
-function getStableSlotVector(
-  zone: StableResourceZone,
-  index: number,
-): StableSlotVector {
-  const lane = Math.floor(index / 2);
-  const side = index % 2 === 0 ? 1 : -1;
-  const depth = lane + 1;
+function keepCenterPositionStable({
+  centerNodeId,
+  nodes,
+  session,
+}: {
+  centerNodeId?: string;
+  nodes: AttackGraphNodeModel[];
+  session?: AttackGraphLayoutSession | null;
+}) {
+  if (!centerNodeId || session?.strategy !== "stable") {
+    return nodes;
+  }
 
-  if (zone === "infrastructure") {
-    return { column: side, row: -depth, zone };
+  const centerNode = nodes.find((node) => node.id === centerNodeId);
+  const previousCenterPosition = session.nodePositionsById.get(centerNodeId);
+  if (!centerNode?.position || !previousCenterPosition) {
+    return nodes;
   }
-  if (zone === "account") {
-    return { column: -depth, row: -1 - lane, zone };
-  }
-  if (zone === "ipc") {
-    return { column: depth, row: -1 - lane, zone };
-  }
-  if (zone === "registry") {
-    return { column: depth, row: 1 + lane, zone };
-  }
-  if (zone === "files") {
-    return { column: side, row: depth, zone };
-  }
-  return { column: side, row: 2 + lane, zone };
-}
 
-function layoutWithoutProcessAnchors(
-  nodes: AttackGraphNodeModel[],
-  options: AttackGraphStableLayoutOptions,
-): AttackGraphStableLayoutResult {
-  const sorted = [...nodes].sort(
-    (left, right) =>
-      getNodeX(left) - getNodeX(right) ||
-      getNodeY(left) - getNodeY(right) ||
-      left.displayName.localeCompare(right.displayName) ||
-      left.id.localeCompare(right.id),
-  );
-  const centerOffset = (sorted.length - 1) / 2;
-  const placedNodes = normalizePlacedNodes(
-    sorted.map((node, index) => ({
-      ...node,
-      position: {
-        x: Math.floor(index / 4) * PROCESS_X_GAP,
-        y: (index - centerOffset) * RESOURCE_Y_GAP,
-      },
-    })),
-  );
-  const bounds = computeStableBounds(placedNodes, options);
-
-  return {
-    activeLaneIds: [STABLE_LANE_ID],
-    laneBoundsById: new Map([
-      [
-        STABLE_LANE_ID,
-        {
-          height: bounds.height,
-          y: 0,
-        },
-      ],
-    ]),
-    nodeLaneIdById: new Map(placedNodes.map((node) => [node.id, STABLE_LANE_ID])),
-    nodes: placedNodes,
+  const offset = {
+    x: previousCenterPosition.x - centerNode.position.x,
+    y: previousCenterPosition.y - centerNode.position.y,
   };
+
+  if (Math.abs(offset.x) < 1 && Math.abs(offset.y) < 1) {
+    return nodes;
+  }
+
+  return nodes.map((node) => ({
+    ...node,
+    position: {
+      x: (node.position?.x ?? 0) + offset.x,
+      y: (node.position?.y ?? 0) + offset.y,
+    },
+  }));
 }
 
-function normalizePlacedNodes(nodes: AttackGraphNodeModel[]) {
+function normalizeNodePositions(nodes: AttackGraphNodeModel[]) {
   if (nodes.length === 0) {
     return nodes;
   }
@@ -610,32 +314,15 @@ function computeStableBounds(
 function createEmptyScore(node: AttackGraphNodeModel): StableNodeScore {
   return {
     degree: 0,
+    distinctNeighborCount: 0,
     evidenceBoost: node.evidenceHit ? 3 : 0,
+    processBoost: isProcessNode(node) ? 4 : 0,
     processRelationDegree: 0,
     relationPriority: 0,
     score: node.evidenceHit ? 3 : 0,
   };
 }
 
-function getStableResourceZone(node: AttackGraphNodeModel): StableResourceZone {
-  return RESOURCE_ZONE_BY_KIND[node.presentationKind] ?? "unknown";
-}
-
 function isProcessNode(node: AttackGraphNodeModel) {
   return PROCESS_KINDS.has(node.presentationKind);
-}
-
-function fallbackPoint(node: AttackGraphNodeModel): AttackGraphPoint {
-  return {
-    x: getNodeX(node),
-    y: getNodeY(node),
-  };
-}
-
-function getNodeX(node: AttackGraphNodeModel) {
-  return node.position?.x ?? 0;
-}
-
-function getNodeY(node: AttackGraphNodeModel) {
-  return node.position?.y ?? 0;
 }

@@ -164,6 +164,7 @@ export async function layoutAttackGraph(
     newNodeIds,
     nodeLaneIdById: nextLayout.nodeLaneIdById,
     nodes: layoutedResultNodes,
+    stableCenterNodeId: nextLayout.stableCenterNodeId,
     strategy,
   });
 
@@ -203,6 +204,7 @@ function buildLayoutSession({
   newNodeIds,
   nodeLaneIdById,
   nodes,
+  stableCenterNodeId,
   strategy,
 }: {
   activeLaneIds: string[];
@@ -213,6 +215,7 @@ function buildLayoutSession({
   newNodeIds: Set<string>;
   nodeLaneIdById: AttackGraphLayoutSession["nodeLaneIdById"];
   nodes: AttackGraphNodeModel[];
+  stableCenterNodeId?: AttackGraphLayoutSession["stableCenterNodeId"];
   strategy: AttackGraphLayoutSession["strategy"];
 }): AttackGraphLayoutSession {
   return {
@@ -226,6 +229,7 @@ function buildLayoutSession({
     nodePositionsById: new Map(
       nodes.map((node) => [node.id, node.position ?? { x: 0, y: 0 }]),
     ),
+    stableCenterNodeId,
     strategy,
   };
 }
