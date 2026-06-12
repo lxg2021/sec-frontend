@@ -38,6 +38,10 @@ export function processSemanticLayout(
   const { nodes, edges } = layoutResult;
   if (nodes.length === 0) return nodes;
 
+  if (nodes.length === 2) {
+    return layoutTwoNodeRow(nodes);
+  }
+
   const { lanes, laneByKind } = buildDynamicLanes(nodes, edges);
 
   if (lanes.length <= 1 || isTinyGraph(nodes)) {
@@ -70,6 +74,22 @@ export function processSemanticLayout(
 function isTinyGraph(nodes: AttackGraphNodeModel[]): boolean {
   const kinds = new Set(nodes.map((n) => n.presentationKind));
   return nodes.length <= 3 && kinds.size <= TINY_GRAPH_KIND_COUNT;
+}
+
+function layoutTwoNodeRow(
+  nodes: AttackGraphNodeModel[],
+): AttackGraphNodeModel[] {
+  const y =
+    nodes.reduce((total, node) => total + (node.position?.y ?? 0), 0) /
+    nodes.length;
+
+  return nodes.map((node) => ({
+    ...node,
+    position: {
+      x: node.position?.x ?? 0,
+      y,
+    } as AttackGraphPoint,
+  }));
 }
 
 function layoutByTypeAlignment(
