@@ -49,6 +49,12 @@ import {
   type AttackGraphNodeEdgeGeometry,
 } from "../model/attack-graph-edge-routing";
 import { layoutAttackGraph } from "../model/attack-graph-layout";
+import { createCommonAttackGraphNodeMenuProvider } from "../model/attack-graph-menu-config";
+import { resolveAttackGraphNodeMenu } from "../model/attack-graph-menu-resolver";
+import type {
+  AttackGraphMenuAction,
+  AttackGraphMenuProvider,
+} from "../model/attack-graph-menu-types";
 import {
   ATTACK_GRAPH_NODE_FAMILY_CONFIG,
   getAttackGraphEntityNodeDisplayName,
@@ -69,13 +75,19 @@ import {
   getAttackGraphNodeVisualHeight,
   type AttackGraphNodeData,
 } from "./attack-graph-node";
+import {
+  AttackGraphContextMenu,
+  type AttackGraphContextMenuState,
+} from "./attack-graph-context-menu";
 
 export interface AttackGraphFlowProps
   extends Omit<ReactFlowProps, "nodes" | "edges" | "nodeTypes" | "edgeTypes"> {
   response: GraphCaseResponseDto;
   className?: string;
   layoutOptions?: AttackGraphLayoutOptions;
+  menuProviders?: AttackGraphMenuProvider[];
   onDiagnosticsChange?: (diagnostics: AttackGraphFlowDiagnostics) => void;
+  onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   positionResetKey?: number | string;
   showMiniMap?: boolean;
   showBackground?: boolean;
@@ -174,7 +186,9 @@ export function AttackGraphFlow({
   response,
   className,
   layoutOptions,
+  menuProviders,
   onDiagnosticsChange,
+  onMenuAction,
   positionResetKey,
   showMiniMap = false,
   showBackground = true,
@@ -185,6 +199,7 @@ export function AttackGraphFlow({
   onEdgeMouseEnter,
   onEdgeMouseLeave,
   onNodeClick,
+  onNodeContextMenu,
   onNodeDragStop,
   onNodesChange,
   onPaneClick,
@@ -192,6 +207,8 @@ export function AttackGraphFlow({
 }: AttackGraphFlowProps) {
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] =
+    useState<AttackGraphContextMenuState | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
   const [flowNodes, setFlowNodes] = useState<
     ReactFlowNode<AttackGraphNodeData>[]
@@ -297,6 +314,17 @@ export function AttackGraphFlow({
     currentLayoutStrategy !== null
       ? manualNodePositionsByStrategy[currentLayoutStrategy]
       : EMPTY_MANUAL_NODE_POSITIONS;
+  const layoutedNodesById = useMemo(
+    () => new Map(layoutedNodes.map((node) => [node.id, node])),
+    [layoutedNodes],
+  );
+  const nodeMenuProviders = useMemo(
+    () => [
+      createCommonAttackGraphNodeMenuProvider({ onMenuAction }),
+      ...(menuProviders ?? []),
+    ],
+    [menuProviders, onMenuAction],
+  );
 
   const layoutedFlowNodes = useMemo(
     () => toReactFlowNodes(layoutedNodes, currentManualNodePositions),
@@ -493,6 +521,7 @@ export function AttackGraphFlow({
     NonNullable<ReactFlowProps["onNodeClick"]>
   >(
     (event, node) => {
+      setContextMenu(null);
       setSelectedEdgeId(null);
       onNodeClick?.(event, node);
     },
@@ -503,6 +532,7 @@ export function AttackGraphFlow({
     NonNullable<ReactFlowProps["onPaneClick"]>
   >(
     (event) => {
+      setContextMenu(null);
       setSelectedEdgeId(null);
       onPaneClick?.(event);
     },
@@ -541,6 +571,43 @@ export function AttackGraphFlow({
     [currentLayoutStrategy, onNodeDragStop],
   );
 
+  const handleNodeContextMenu = useCallback<
+    NonNullable<ReactFlowProps["onNodeContextMenu"]>
+  >(
+    (event, node) => {
+      event.preventDefault();
+      onNodeContextMenu?.(event, node);
+
+      const graphNode = layoutedNodesById.get(node.id);
+      if (!layouted || !graphNode) {
+        setContextMenu(null);
+        return;
+      }
+
+      const context = {
+        graph: layouted,
+        node: graphNode,
+      };
+      void resolveAttackGraphNodeMenu({
+        context,
+        providers: nodeMenuProviders,
+      }).then((groups) => {
+        if (groups.length === 0) {
+          setContextMenu(null);
+          return;
+        }
+
+        setContextMenu({
+          context,
+          groups,
+          x: event.clientX,
+          y: event.clientY,
+        });
+      });
+    },
+    [layouted, layoutedNodesById, nodeMenuProviders, onNodeContextMenu],
+  );
+
   return (
     <div className={cn("relative h-full min-h-[420px] w-full bg-transparent", className)}>
       <TooltipProvider delayDuration={180}>
@@ -568,6 +635,7 @@ export function AttackGraphFlow({
           onEdgeMouseEnter={handleEdgeMouseEnter}
           onEdgeMouseLeave={handleEdgeMouseLeave}
           onNodeClick={handleNodeClick}
+          onNodeContextMenu={handleNodeContextMenu}
           onPaneClick={handlePaneClick}
           data-attack-graph-flow="true"
           data-attack-graph-edge-diagnostics={edgeDiagnosticsText}
@@ -586,6 +654,10 @@ export function AttackGraphFlow({
             />
           ) : null}
         </ReactFlow>
+        <AttackGraphContextMenu
+          menu={contextMenu}
+          onClose={() => setContextMenu(null)}
+        />
       </TooltipProvider>
     </div>
   );
