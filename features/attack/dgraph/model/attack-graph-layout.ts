@@ -36,10 +36,6 @@ const DEFAULT_PORT_SIZE = 1;
 const ELK_ICON_NODE_SIZE = 58;
 const LARGE_GRAPH_EDGE_LIMIT = 28;
 const LARGE_GRAPH_NODE_LIMIT = 20;
-const LARGE_GRAPH_RANK_MAX_ROW_COUNT = 4;
-const LARGE_GRAPH_RANK_ROW_GAP = 30;
-const LARGE_GRAPH_RANK_SUBCOLUMN_GAP = 52;
-const LARGE_GRAPH_RANK_TOLERANCE = 86;
 const STRESS_ENDPOINT_ANGLE_BUCKET_SIZE = Math.PI / 8;
 
 const elk = new ELK({
@@ -48,7 +44,7 @@ const elk = new ELK({
   },
 });
 
-type AttackGraphElkAlgorithm = "force" | "layered" | "stress";
+type AttackGraphElkAlgorithm = "layered" | "stress";
 
 export async function layoutAttackGraph(
   graph: AttackGraphModel,
@@ -419,17 +415,6 @@ function buildElkGraph({
             "elk.stress.desiredEdgeLength": String(Math.max(140, nodeSep * 2.4)),
             "elk.stress.iterationLimit": "700",
           }
-        : algorithm === "force"
-        ? {
-            "elk.algorithm": "force",
-            "elk.force.iterations": "500",
-            "elk.force.repulsion": String(Math.max(18, nodeSep * 0.58)),
-            "elk.force.repulsivePower": "2",
-            "elk.force.temperature": "0.06",
-            "elk.padding": `[top=${DEFAULT_GRAPH_PADDING},left=${DEFAULT_GRAPH_PADDING},bottom=${DEFAULT_GRAPH_PADDING},right=${DEFAULT_GRAPH_PADDING}]`,
-            "elk.separateConnectedComponents": "true",
-            "elk.spacing.nodeNode": String(Math.max(54, nodeSep * 1.1)),
-          }
         : {
             "elk.algorithm": "layered",
             "elk.direction": direction === "LR" ? "RIGHT" : "DOWN",
@@ -453,81 +438,6 @@ function buildElkGraph({
 
 function isLayeredAlgorithm(algorithm: AttackGraphElkAlgorithm) {
   return algorithm === "layered";
-}
-
-function buildOverviewEdgeRoutesById(
-  graph: AttackGraphModel,
-  nodes: AttackGraphNodeModel[],
-  options: {
-    nodeHeight: number;
-    nodeWidth: number;
-  },
-): Map<string, AttackGraphEdgeRouteData> {
-  const routesById = new Map<string, AttackGraphEdgeRouteData>();
-  const nodePositionById = new Map(
-    nodes.map((node) => [node.id, node.position ?? { x: 0, y: 0 }]),
-  );
-  const nodeCenterById = new Map(
-    nodes.map((node) => [
-      node.id,
-      {
-        x: (node.position?.x ?? 0) + options.nodeWidth / 2,
-        y: (node.position?.y ?? 0) + 12 + ELK_ICON_NODE_SIZE / 2,
-      },
-    ]),
-  );
-  const relationGroups = groupRelationEdgesByNodePair(graph);
-
-  for (const group of relationGroups) {
-    const sortedEdges = group.edges.sort((left, right) => {
-      const leftSource = nodePositionById.get(left.source);
-      const rightSource = nodePositionById.get(right.source);
-      const leftTarget = nodePositionById.get(left.target);
-      const rightTarget = nodePositionById.get(right.target);
-      return (
-        (leftSource?.y ?? 0) - (rightSource?.y ?? 0) ||
-        (leftTarget?.y ?? 0) - (rightTarget?.y ?? 0) ||
-        left.id.localeCompare(right.id)
-      );
-    });
-    const count = sortedEdges.length;
-    sortedEdges.forEach((edge, index) => {
-      const fanoutIndex = getSymmetricFanoutIndex(index, count);
-      const sourceCenter = nodeCenterById.get(edge.source);
-      const targetCenter = nodeCenterById.get(edge.target);
-      routesById.set(edge.id, {
-        fanoutCount: count,
-        fanoutIndex,
-        fanoutOffset:
-          getOverviewFanoutOffset(fanoutIndex, count) +
-          getOverviewObstacleBias({
-            edge,
-            nodeCenterById,
-            nodeHeight: options.nodeHeight,
-            nodeWidth: options.nodeWidth,
-            nodes,
-            sourceCenter,
-            targetCenter,
-          }),
-        kind: "overview",
-      });
-    });
-  }
-
-  for (const edge of graph.edges) {
-    if (edge.source !== edge.target || routesById.has(edge.id)) {
-      continue;
-    }
-
-    routesById.set(edge.id, {
-      count: 1,
-      index: 0,
-      kind: "self-loop",
-      side: "right",
-    });
-  }
-
-  return routesById;
 }
 
 function buildStressEdgeRoutesById(
@@ -829,90 +739,6 @@ function compareStressEdgesForFanout(
   );
 }
 
-function getOverviewObstacleBias({
-  edge,
-  nodeCenterById,
-  nodeHeight,
-  nodeWidth,
-  nodes,
-  sourceCenter,
-  targetCenter,
-}: {
-  edge: AttackGraphEdgeModel;
-  nodeCenterById: Map<string, AttackGraphPoint>;
-  nodeHeight: number;
-  nodeWidth: number;
-  nodes: AttackGraphNodeModel[];
-  sourceCenter?: AttackGraphPoint;
-  targetCenter?: AttackGraphPoint;
-}) {
-  if (!sourceCenter || !targetCenter) {
-    return 0;
-  }
-
-  const blockers = nodes.filter((node) => {
-    if (node.id === edge.source || node.id === edge.target) {
-      return false;
-    }
-
-    const center = nodeCenterById.get(node.id);
-    if (!center) {
-      return false;
-    }
-
-    const distance = pointToSegmentDistance(sourceCenter, targetCenter, center);
-    const betweenX =
-      center.x >= Math.min(sourceCenter.x, targetCenter.x) - nodeWidth * 0.3 &&
-      center.x <= Math.max(sourceCenter.x, targetCenter.x) + nodeWidth * 0.3;
-    const betweenY =
-      center.y >= Math.min(sourceCenter.y, targetCenter.y) - nodeHeight * 0.3 &&
-      center.y <= Math.max(sourceCenter.y, targetCenter.y) + nodeHeight * 0.3;
-
-    return distance < ELK_ICON_NODE_SIZE * 0.72 && betweenX && betweenY;
-  });
-
-  if (blockers.length === 0) {
-    return 0;
-  }
-
-  const midY = (sourceCenter.y + targetCenter.y) / 2;
-  const blockerAverageY =
-    blockers.reduce((total, node) => {
-      const center = nodeCenterById.get(node.id);
-      return total + (center?.y ?? midY);
-    }, 0) / blockers.length;
-  const direction = blockerAverageY >= midY ? -1 : 1;
-
-  return direction * Math.min(72, 34 + blockers.length * 12);
-}
-
-function pointToSegmentDistance(
-  start: AttackGraphPoint,
-  end: AttackGraphPoint,
-  point: AttackGraphPoint,
-) {
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
-  const lengthSquared = dx * dx + dy * dy;
-  if (lengthSquared < 0.001) {
-    return Math.hypot(point.x - start.x, point.y - start.y);
-  }
-
-  const t = Math.max(
-    0,
-    Math.min(
-      1,
-      ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared,
-    ),
-  );
-  const closest = {
-    x: start.x + t * dx,
-    y: start.y + t * dy,
-  };
-
-  return Math.hypot(point.x - closest.x, point.y - closest.y);
-}
-
 function buildAttackGraphLayoutResult({
   edgeRoutesById,
   graph,
@@ -1117,43 +943,6 @@ function getLayoutCenterY(
   return (Math.min(...centers) + Math.max(...centers)) / 2;
 }
 
-function getPolylineMidpoint(points: AttackGraphPoint[]): AttackGraphPoint {
-  const firstPoint = points[0] ?? { x: 0, y: 0 };
-  if (points.length <= 1) {
-    return firstPoint;
-  }
-
-  const segmentLengths: number[] = [];
-  let totalLength = 0;
-  for (let index = 1; index < points.length; index += 1) {
-    const length = Math.hypot(
-      points[index].x - points[index - 1].x,
-      points[index].y - points[index - 1].y,
-    );
-    segmentLengths.push(length);
-    totalLength += length;
-  }
-
-  const halfLength = totalLength / 2;
-  let traversedLength = 0;
-  for (let index = 1; index < points.length; index += 1) {
-    const segmentLength = segmentLengths[index - 1];
-    if (traversedLength + segmentLength >= halfLength) {
-      const ratio =
-        segmentLength < 0.001
-          ? 0
-          : (halfLength - traversedLength) / segmentLength;
-      return {
-        x: points[index - 1].x + (points[index].x - points[index - 1].x) * ratio,
-        y: points[index - 1].y + (points[index].y - points[index - 1].y) * ratio,
-      };
-    }
-    traversedLength += segmentLength;
-  }
-
-  return points[points.length - 1] ?? firstPoint;
-}
-
 function groupRelationEdgesByNodePair(graph: AttackGraphModel) {
   const groups = new Map<string, AttackGraphEdgeModel[]>();
   for (const edge of graph.edges) {
@@ -1181,15 +970,6 @@ function getSymmetricFanoutIndex(index: number, fanoutCount: number) {
   const adjustedIndex = fanoutCount % 2 === 1 ? index - 1 : index;
   const magnitude = Math.floor(adjustedIndex / 2) + 1;
   return adjustedIndex % 2 === 0 ? magnitude : -magnitude;
-}
-
-function getOverviewFanoutOffset(fanoutIndex: number, fanoutCount: number) {
-  if (fanoutCount <= 1) {
-    return 0;
-  }
-
-  const step = fanoutCount <= 3 ? 18 : fanoutCount <= 6 ? 14 : 10;
-  return Math.max(-44, Math.min(44, fanoutIndex * step));
 }
 
 function getStressFanoutOffset(fanoutIndex: number, fanoutCount: number) {

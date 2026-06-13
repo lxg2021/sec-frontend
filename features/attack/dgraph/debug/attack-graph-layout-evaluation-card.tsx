@@ -30,15 +30,15 @@ import {
   getAttackGraphNodeSize,
 } from "../model/attack-graph-node-config";
 import {
-  AttackGraphFlowV2,
+  AttackGraphFlow,
   type AttackGraphFlowDiagnostics,
-} from "./attack-graph-flow-v2";
+} from "../components/attack-graph-flow";
 import {
   ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
   ATTACK_GRAPH_NODE_HALO_PADDING,
   ATTACK_GRAPH_NODE_TILE_WIDTH,
   getAttackGraphNodeVisualHeight,
-} from "./attack-graph-node";
+} from "../components/attack-graph-node";
 
 type EvaluationStatus = "pass" | "review" | "fail" | "pending";
 type EvaluationStrategyOption = "auto" | AttackGraphLayoutStrategy;
@@ -409,7 +409,7 @@ export function AttackGraphLayoutEvaluationCard() {
               />
             </div>
             <div className="h-[544px] bg-white">
-              <AttackGraphFlowV2
+              <AttackGraphFlow
                 key={`${selectedScenario.id}-${strategyOption}`}
                 response={selectedScenario.response}
                 className="h-full"

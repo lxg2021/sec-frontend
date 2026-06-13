@@ -98,10 +98,6 @@ function sampleEdgePath({
     return sampleSelfLoopPath(source, route);
   }
 
-  if (route.kind === "elk") {
-    return normalizePolylinePoints(route.points);
-  }
-
   if (route.kind === "skip") {
     return sampleSkipPath({ obstacle, route, source, target });
   }
@@ -117,10 +113,6 @@ function sampleEdgePath({
     route.kind === "tree"
   ) {
     return sampleSimpleTopologyPath({ route, source, target });
-  }
-
-  if (route.kind === "overview") {
-    return sampleOverviewPath({ route, source, target });
   }
 
   if (route.kind === "stress") {
@@ -221,57 +213,6 @@ function sampleSimpleTopologyPath({
   const targetControl = {
     x: targetPoint.x - flowDirection * horizontalLead,
     y: targetPoint.y - bendLift,
-  };
-
-  return sampleCubic(sourcePoint, sourceControl, targetControl, targetPoint);
-}
-
-function sampleOverviewPath({
-  route,
-  source,
-  target,
-}: {
-  route: Extract<AttackGraphEdgeRouteData, { kind: "overview" }>;
-  source: AttackGraphNodeEdgeGeometry;
-  target: AttackGraphNodeEdgeGeometry;
-}) {
-  const deltaX = target.centerX - source.centerX;
-  const deltaY = target.centerY - source.centerY;
-  const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
-  const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
-  const fanoutShift = clamp(
-    route.fanoutOffset,
-    -source.radius * 0.7,
-    source.radius * 0.7,
-  );
-  const sourceShift = clamp(
-    deltaY * 0.08 + fanoutShift * 0.45,
-    -source.radius * 0.64,
-    source.radius * 0.64,
-  );
-  const targetShift = clamp(
-    -deltaY * 0.08 + fanoutShift * 0.45,
-    -target.radius * 0.64,
-    target.radius * 0.64,
-  );
-  const sourcePoint = getSideAnchorPoint(source, flowDirection, sourceShift);
-  const targetPoint = getSideAnchorPoint(
-    target,
-    targetDirection,
-    targetShift,
-    MARKER_END_GAP,
-  );
-  const endpointDistance = distance(sourcePoint, targetPoint);
-  const controlDistance = clamp(endpointDistance * 0.34, 56, 260);
-  const verticalBias = clamp(deltaY * 0.12, -46, 46);
-  const fanoutBias = route.fanoutOffset * 0.8;
-  const sourceControl = {
-    x: sourcePoint.x + flowDirection * controlDistance,
-    y: sourcePoint.y + verticalBias + fanoutBias,
-  };
-  const targetControl = {
-    x: targetPoint.x - flowDirection * controlDistance,
-    y: targetPoint.y - verticalBias + fanoutBias,
   };
 
   return sampleCubic(sourcePoint, sourceControl, targetControl, targetPoint);
@@ -534,8 +475,6 @@ function getBlockedNodeIds(
     }
 
     const blockBounds =
-      sampledEdge.route.kind === "elk" ||
-      sampledEdge.route.kind === "overview" ||
       sampledEdge.route.kind === "stress"
         ? getElkNodeBlockBounds(node)
         : node.bounds;
@@ -546,24 +485,6 @@ function getBlockedNodeIds(
   }
 
   return blockedNodeIds;
-}
-
-function normalizePolylinePoints(points: AttackGraphPoint[]) {
-  const normalized: AttackGraphPoint[] = [];
-
-  for (const point of points) {
-    const previous = normalized[normalized.length - 1];
-    if (
-      previous &&
-      Math.abs(previous.x - point.x) < 0.5 &&
-      Math.abs(previous.y - point.y) < 0.5
-    ) {
-      continue;
-    }
-    normalized.push(point);
-  }
-
-  return normalized;
 }
 
 function getElkNodeBlockBounds(

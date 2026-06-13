@@ -60,7 +60,7 @@ import {
   type AttackGraphNodeData,
 } from "./attack-graph-node";
 
-export interface AttackGraphFlowV2Props
+export interface AttackGraphFlowProps
   extends Omit<ReactFlowProps, "nodes" | "edges" | "nodeTypes" | "edgeTypes"> {
   response: GraphCaseResponseDto;
   className?: string;
@@ -85,14 +85,14 @@ export interface AttackGraphFlowDiagnostics {
 }
 
 const nodeTypes: NodeTypes = {
-  attackGraphNodeV2: AttackGraphNode,
+  attackGraphNode: AttackGraphNode,
 };
 
 const edgeTypes: EdgeTypes = {
-  attackGraphEdgeV2: AttackGraphEdge,
+  attackGraphEdge: AttackGraphEdge,
 };
 
-export function AttackGraphFlowV2({
+export function AttackGraphFlow({
   response,
   className,
   layoutOptions,
@@ -108,7 +108,7 @@ export function AttackGraphFlowV2({
   onNodeClick,
   onPaneClick,
   ...reactFlowProps
-}: AttackGraphFlowV2Props) {
+}: AttackGraphFlowProps) {
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
@@ -378,7 +378,7 @@ export function AttackGraphFlowV2({
           onEdgeMouseLeave={handleEdgeMouseLeave}
           onNodeClick={handleNodeClick}
           onPaneClick={handlePaneClick}
-          data-attack-graph-flow-v2="true"
+          data-attack-graph-flow="true"
           data-attack-graph-edge-diagnostics={edgeDiagnosticsText}
           data-attack-graph-layout-strategy={layouted?.layoutStrategy ?? "pending"}
           data-attack-graph-topology-diagnostics={topologyDiagnosticsText}
@@ -409,7 +409,7 @@ function toReactFlowNodes(
 
     return {
       id: node.id,
-      type: "attackGraphNodeV2",
+      type: "attackGraphNode",
       position: node.position ?? { x: 0, y: 0 },
       data,
       width: ATTACK_GRAPH_NODE_TILE_WIDTH,
@@ -459,7 +459,7 @@ function toReactFlowEdges(
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      type: "attackGraphEdgeV2",
+      type: "attackGraphEdge",
       ariaLabel: visual.tooltip,
       data: {
         edge,
@@ -666,4 +666,4 @@ function formatEdgeDiagnostics(
   ].join(";");
 }
 
-export default AttackGraphFlowV2;
+export default AttackGraphFlow;

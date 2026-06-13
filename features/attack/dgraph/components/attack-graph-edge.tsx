@@ -86,20 +86,12 @@ export function AttackGraphEdge({
             source: sourceGeometry,
             target: targetGeometry,
           })
-      : route.kind === "overview"
-        ? getOverviewEdgePath({
-            route,
-            source: sourceGeometry,
-            target: targetGeometry,
-          })
       : route.kind === "stress"
         ? getStressEdgePath({
             route,
             source: sourceGeometry,
             target: targetGeometry,
           })
-      : route.kind === "elk"
-        ? getElkEdgePath(route)
       : route.kind === "skip"
         ? getSkipEdgePath({
             route,
@@ -133,7 +125,7 @@ export function AttackGraphEdge({
     data.interactionState === "hover" ||
     data.interactionState === "selected";
   const showLabel =
-    (route.kind !== "overview" && route.kind !== "stress") || emphasized;
+    route.kind !== "stress" || emphasized;
 
   return (
     <>
@@ -314,90 +306,6 @@ function getGraphEdgePath({
   };
 }
 
-function getOverviewEdgePath({
-  route,
-  source,
-  target,
-}: {
-  route: Extract<AttackGraphEdgeRouteData, { kind: "overview" }>;
-  source: AttackGraphEdgeEndpointGeometry;
-  target: AttackGraphEdgeEndpointGeometry;
-}) {
-  const deltaX = target.centerX - source.centerX;
-  const deltaY = target.centerY - source.centerY;
-  const distance = Math.hypot(deltaX, deltaY);
-  const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
-  const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
-  const fanoutShift = clamp(
-    route.fanoutOffset,
-    -source.radius * 0.7,
-    source.radius * 0.7,
-  );
-  const sourceShift = clamp(
-    deltaY * 0.08 + fanoutShift * 0.45,
-    -source.radius * 0.64,
-    source.radius * 0.64,
-  );
-  const targetShift = clamp(
-    -deltaY * 0.08 + fanoutShift * 0.45,
-    -target.radius * 0.64,
-    target.radius * 0.64,
-  );
-  const sourcePoint = getSideAnchorPoint(source, flowDirection, sourceShift);
-  const targetPoint = getSideAnchorPoint(
-    target,
-    targetDirection,
-    targetShift,
-    MARKER_END_GAP,
-  );
-  const controlDistance = clamp(distance * 0.34, 56, 260);
-  const verticalBias = clamp(deltaY * 0.12, -46, 46);
-  const fanoutBias = route.fanoutOffset * 0.8;
-  const sourceControl = {
-    x: sourcePoint.x + flowDirection * controlDistance,
-    y: sourcePoint.y + verticalBias + fanoutBias,
-  };
-  const targetControl = {
-    x: targetPoint.x - flowDirection * controlDistance,
-    y: targetPoint.y - verticalBias + fanoutBias,
-  };
-  const path = [
-    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
-    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
-    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
-    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
-  ].join(" ");
-  const labelPoint = getCubicPoint(
-    sourcePoint,
-    sourceControl,
-    targetControl,
-    targetPoint,
-    0.5,
-  );
-  const normal = getReadableLabelNormal(sourcePoint, targetPoint);
-  const labelOffset = getLabelOffset(route.fanoutIndex, route.fanoutCount);
-  const labelAngle = getCubicTangentAngle(
-    sourcePoint,
-    sourceControl,
-    targetControl,
-    targetPoint,
-    0.5,
-  );
-
-  return {
-    gradient: {
-      x1: sourcePoint.x,
-      x2: targetPoint.x,
-      y1: sourcePoint.y,
-      y2: targetPoint.y,
-    },
-    labelAngle,
-    labelX: labelPoint.x + normal.x * labelOffset,
-    labelY: labelPoint.y + normal.y * labelOffset,
-    path,
-  };
-}
-
 function getStressEdgePath({
   route,
   source,
@@ -537,30 +445,6 @@ function getParallelPairStressEdgePath({
     labelX: labelPoint.x + labelNormal.x * labelOffset,
     labelY: labelPoint.y + labelNormal.y * labelOffset,
     path,
-  };
-}
-
-function getElkEdgePath(
-  route: Extract<AttackGraphEdgeRouteData, { kind: "elk" }>,
-) {
-  const points = normalizePolylinePoints(route.points);
-  const fallbackPoint = points[0] ?? { x: 0, y: 0 };
-  const sourcePoint = points[0] ?? fallbackPoint;
-  const targetPoint = points[points.length - 1] ?? fallbackPoint;
-  const labelPoint = route.labelPoint ?? getPolylineMidpoint(points);
-  const labelAngle = getPolylineMidpointAngle(points);
-
-  return {
-    gradient: {
-      x1: sourcePoint.x,
-      x2: targetPoint.x,
-      y1: sourcePoint.y,
-      y2: targetPoint.y,
-    },
-    labelAngle,
-    labelX: labelPoint.x,
-    labelY: labelPoint.y,
-    path: pointsToSvgPath(points),
   };
 }
 
@@ -779,121 +663,6 @@ function getSkipEdgePath({
   };
 }
 
-function normalizePolylinePoints(points: Array<{ x: number; y: number }>) {
-  const normalized: Array<{ x: number; y: number }> = [];
-
-  for (const point of points) {
-    if (!isFiniteNumber(point.x) || !isFiniteNumber(point.y)) {
-      continue;
-    }
-
-    const previous = normalized[normalized.length - 1];
-    if (
-      previous &&
-      Math.abs(previous.x - point.x) < 0.5 &&
-      Math.abs(previous.y - point.y) < 0.5
-    ) {
-      continue;
-    }
-
-    normalized.push(point);
-  }
-
-  return normalized.length > 0 ? normalized : [{ x: 0, y: 0 }];
-}
-
-function pointsToSvgPath(points: Array<{ x: number; y: number }>) {
-  const [first, ...rest] = points;
-  if (!first) {
-    return "M 0 0";
-  }
-
-  return [
-    `M ${formatNumber(first.x)} ${formatNumber(first.y)}`,
-    ...rest.map(
-      (point) => `L ${formatNumber(point.x)} ${formatNumber(point.y)}`,
-    ),
-  ].join(" ");
-}
-
-function getPolylineMidpoint(points: Array<{ x: number; y: number }>) {
-  const firstPoint = points[0] ?? { x: 0, y: 0 };
-  if (points.length <= 1) {
-    return firstPoint;
-  }
-
-  const segmentLengths: number[] = [];
-  let totalLength = 0;
-  for (let index = 1; index < points.length; index += 1) {
-    const length = Math.hypot(
-      points[index].x - points[index - 1].x,
-      points[index].y - points[index - 1].y,
-    );
-    segmentLengths.push(length);
-    totalLength += length;
-  }
-
-  const halfLength = totalLength / 2;
-  let traversedLength = 0;
-  for (let index = 1; index < points.length; index += 1) {
-    const segmentLength = segmentLengths[index - 1];
-    if (traversedLength + segmentLength >= halfLength) {
-      const ratio =
-        segmentLength < 0.001
-          ? 0
-          : (halfLength - traversedLength) / segmentLength;
-      return {
-        x: points[index - 1].x + (points[index].x - points[index - 1].x) * ratio,
-        y: points[index - 1].y + (points[index].y - points[index - 1].y) * ratio,
-      };
-    }
-    traversedLength += segmentLength;
-  }
-
-  return points[points.length - 1] ?? firstPoint;
-}
-
-function getPolylineMidpointAngle(points: Array<{ x: number; y: number }>) {
-  if (points.length <= 1) {
-    return 0;
-  }
-
-  const midpoint = getPolylineMidpoint(points);
-  let closestSegment: {
-    distance: number;
-    start: { x: number; y: number };
-    end: { x: number; y: number };
-  } | null = null;
-
-  for (let index = 1; index < points.length; index += 1) {
-    const start = points[index - 1];
-    const end = points[index];
-    const distance = Math.abs(
-      (end.y - start.y) * midpoint.x -
-        (end.x - start.x) * midpoint.y +
-        end.x * start.y -
-        end.y * start.x,
-    ) / Math.max(1, Math.hypot(end.y - start.y, end.x - start.x));
-    if (!closestSegment || distance < closestSegment.distance) {
-      closestSegment = { distance, end, start };
-    }
-  }
-
-  if (!closestSegment) {
-    return 0;
-  }
-
-  let deg =
-    Math.atan2(
-      closestSegment.end.y - closestSegment.start.y,
-      closestSegment.end.x - closestSegment.start.x,
-    ) *
-    (180 / Math.PI);
-  while (deg > 90) deg -= 180;
-  while (deg < -90) deg += 180;
-  return deg;
-}
-
 function getObstacleBounds(
   obstacle: AttackGraphNodeEdgeGeometry | undefined,
 ): AttackGraphRect {
@@ -1093,14 +862,14 @@ function getEdgeGradientId(
   edgeId: string,
   state: AttackGraphEdgeInteractionState,
 ) {
-  return `attack-graph-flow-v2-gradient-${toSafeSvgId(edgeId)}-${state}`;
+  return `attack-graph-flow-gradient-${toSafeSvgId(edgeId)}-${state}`;
 }
 
 function getEdgeMarkerId(
   edgeId: string,
   state: AttackGraphEdgeInteractionState,
 ) {
-  return `attack-graph-flow-v2-marker-${toSafeSvgId(edgeId)}-${state}`;
+  return `attack-graph-flow-marker-${toSafeSvgId(edgeId)}-${state}`;
 }
 
 function toSafeSvgId(value: string) {

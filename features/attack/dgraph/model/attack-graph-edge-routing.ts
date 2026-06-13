@@ -59,22 +59,11 @@ export type AttackGraphEdgeRouteData =
       fanoutCount: number;
       fanoutIndex: number;
       fanoutOffset: number;
-      kind: "overview";
-    }
-  | {
-      fanoutCount: number;
-      fanoutIndex: number;
-      fanoutOffset: number;
       kind: "stress";
       parallelPair?: boolean;
       parallelOffset?: number;
       sourceFanoutOffset?: number;
       targetFanoutOffset?: number;
-    }
-  | {
-      kind: "elk";
-      labelPoint?: AttackGraphPoint;
-      points: AttackGraphPoint[];
     }
   | {
       detourSide: "above" | "below";
