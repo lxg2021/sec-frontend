@@ -1,6 +1,7 @@
 export * from "./components/attack-graph-node";
 export * from "./components/attack-graph-edge";
 export * from "./components/attack-graph-flow";
+export * from "./components/attack-graph-layout-strategy-toggle";
 export * from "./api";
 export * from "./model/attack-graph-adapter";
 export * from "./model/attack-graph-data";

@@ -353,7 +353,7 @@ export function AttackGraphFlow({
   );
 
   return (
-    <div className={cn("h-full min-h-[420px] w-full bg-transparent", className)}>
+    <div className={cn("relative h-full min-h-[420px] w-full bg-transparent", className)}>
       <TooltipProvider delayDuration={180}>
         <ReactFlow
           nodes={nodes}
