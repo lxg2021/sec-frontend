@@ -80,19 +80,21 @@ export function AttackGraphNode({
         <div
           className={cn(
             "relative flex shrink-0 items-center justify-center rounded-full bg-white ring-1 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110",
-            selected ? "scale-110 ring-blue-200" : "ring-slate-200",
+            selected ? "scale-125 ring-slate-300" : "ring-slate-200",
           )}
           style={{
             width: data.size.icon,
             height: data.size.icon,
             marginTop: ATTACK_GRAPH_NODE_HALO_PADDING,
-            boxShadow: `0 0 0 ${Math.min(5, Math.max(2, ringState.haloLineWidth / 4))}px ${toRgba(
-              data.color,
-              Math.min(selected ? 0.26 : 0.18, ringState.haloStrokeOpacity),
-            )}, 0 ${selected ? 14 : 10}px ${selected ? 22 : 16}px ${toRgba(
-              data.glow,
-              selected ? 0.18 : 0.1,
-            )}`,
+            boxShadow: selected
+              ? `0 0 0 ${Math.min(8, Math.max(4, ringState.haloLineWidth / 3))}px ${toRgba(
+                  data.color,
+                  Math.min(0.3, ringState.haloStrokeOpacity),
+                )}, 0 18px 30px ${toRgba("#0f172a", 0.24)}, 0 3px 8px ${toRgba("#0f172a", 0.14)}, inset 0 1px 0 ${toRgba("#ffffff", 0.9)}`
+              : `0 0 0 ${Math.min(5, Math.max(2, ringState.haloLineWidth / 4))}px ${toRgba(
+                  data.color,
+                  Math.min(0.18, ringState.haloStrokeOpacity),
+                )}, 0 10px 16px ${toRgba(data.glow, 0.1)}`,
           }}
         >
           <Image
@@ -104,9 +106,6 @@ export function AttackGraphNode({
           />
           {data.evidenceHit ? (
             <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-amber-500 shadow-[0_4px_10px_rgba(245,158,11,0.34)]" />
-          ) : null}
-          {selected ? (
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow-[0_4px_10px_rgba(37,99,235,0.32)]" />
           ) : null}
         </div>
 
