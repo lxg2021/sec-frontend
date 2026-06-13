@@ -103,7 +103,7 @@ export function AttackGraphNode({
             className="h-auto w-auto max-w-[68%]"
           />
           {data.evidenceHit ? (
-            <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-red-500 shadow-[0_4px_10px_rgba(239,68,68,0.34)]" />
+            <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-amber-500 shadow-[0_4px_10px_rgba(245,158,11,0.34)]" />
           ) : null}
           {selected ? (
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow-[0_4px_10px_rgba(37,99,235,0.32)]" />
