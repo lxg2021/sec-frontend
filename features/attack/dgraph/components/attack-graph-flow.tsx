@@ -210,6 +210,7 @@ export function AttackGraphFlow({
 }: AttackGraphFlowProps) {
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [contextMenu, setContextMenu] =
     useState<AttackGraphContextMenuState | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
@@ -333,13 +334,27 @@ export function AttackGraphFlow({
   );
 
   const layoutedFlowNodes = useMemo(
-    () => toReactFlowNodes(layoutedNodes, currentManualNodePositions),
-    [layoutedNodes, currentManualNodePositions],
+    () =>
+      toReactFlowNodes(
+        layoutedNodes,
+        currentManualNodePositions,
+        selectedNodeId,
+      ),
+    [layoutedNodes, currentManualNodePositions, selectedNodeId],
   );
 
   useEffect(() => {
     setFlowNodes(layoutedFlowNodes);
   }, [layoutedFlowNodes]);
+
+  useEffect(() => {
+    if (
+      selectedNodeId &&
+      !layoutedNodes.some((node) => node.id === selectedNodeId)
+    ) {
+      setSelectedNodeId(null);
+    }
+  }, [layoutedNodes, selectedNodeId]);
 
   useEffect(() => {
     setManualNodePositionsByStrategy((currentByStrategy) => {
@@ -498,6 +513,7 @@ export function AttackGraphFlow({
   >(
     (event, edge) => {
       setSelectedEdgeId((current) => (current === edge.id ? null : edge.id));
+      setSelectedNodeId(null);
       onEdgeClick?.(event, edge);
     },
     [onEdgeClick],
@@ -529,6 +545,7 @@ export function AttackGraphFlow({
     (event, node) => {
       setContextMenu(null);
       setSelectedEdgeId(null);
+      setSelectedNodeId(node.id);
       onNodeClick?.(event, node);
     },
     [onNodeClick],
@@ -540,6 +557,7 @@ export function AttackGraphFlow({
     (event) => {
       setContextMenu(null);
       setSelectedEdgeId(null);
+      setSelectedNodeId(null);
       onPaneClick?.(event);
     },
     [onPaneClick],
@@ -547,10 +565,20 @@ export function AttackGraphFlow({
 
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
-      setFlowNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
+      const selectedNodeChange = getSelectedNodeChange(changes);
+      if (selectedNodeChange !== undefined) {
+        setSelectedNodeId(selectedNodeChange);
+      }
+
+      setFlowNodes((currentNodes) =>
+        applySelectedNodeId(
+          applyNodeChanges(changes, currentNodes),
+          selectedNodeChange === undefined ? selectedNodeId : selectedNodeChange,
+        ),
+      );
       onNodesChange?.(changes);
     },
-    [onNodesChange],
+    [onNodesChange, selectedNodeId],
   );
 
   const handleNodeDragStop = useCallback<
@@ -583,6 +611,8 @@ export function AttackGraphFlow({
     (event, node) => {
       event.preventDefault();
       onNodeContextMenu?.(event, node);
+      setSelectedEdgeId(null);
+      setSelectedNodeId(node.id);
 
       const graphNode = layoutedNodesById.get(node.id);
       if (!layouted || !graphNode) {
@@ -673,6 +703,7 @@ function toReactFlowNodes(
   nodes: AttackGraphNodeModel[],
   manualNodePositionsById: Map<string, AttackGraphNodePosition> =
     EMPTY_MANUAL_NODE_POSITIONS,
+  selectedNodeId: string | null = null,
 ): ReactFlowNode<AttackGraphNodeData>[] {
   return nodes.map((node) => {
     const data = toNodeVisualItem(node);
@@ -684,11 +715,39 @@ function toReactFlowNodes(
       type: "attackGraphNode",
       position: manualPosition ?? node.position ?? { x: 0, y: 0 },
       data,
+      selected: node.id === selectedNodeId,
       width: ATTACK_GRAPH_NODE_TILE_WIDTH,
       height,
       sourcePosition: Position.Right,
       targetPosition: Position.Left,
     };
+  });
+}
+
+function getSelectedNodeChange(changes: NodeChange[]) {
+  let selectedNodeId: string | null | undefined;
+
+  for (const change of changes) {
+    if (change.type !== "select") {
+      continue;
+    }
+    if (change.selected) {
+      selectedNodeId = change.id;
+    } else if (selectedNodeId === undefined) {
+      selectedNodeId = null;
+    }
+  }
+
+  return selectedNodeId;
+}
+
+function applySelectedNodeId(
+  nodes: ReactFlowNode<AttackGraphNodeData>[],
+  selectedNodeId: string | null,
+) {
+  return nodes.map((node) => {
+    const selected = node.id === selectedNodeId;
+    return node.selected === selected ? node : { ...node, selected };
   });
 }
 
