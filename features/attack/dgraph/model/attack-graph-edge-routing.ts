@@ -1,4 +1,7 @@
-import type { AttackGraphEdgeModel } from "./attack-graph-data";
+import type {
+  AttackGraphEdgeModel,
+  AttackGraphPoint,
+} from "./attack-graph-data";
 
 export interface AttackGraphRect {
   x: number;
@@ -29,6 +32,58 @@ export type AttackGraphEdgeRouteData =
       kind: "relation";
     }
   | {
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "linear-chain";
+    }
+  | {
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "single-source-fanout";
+    }
+  | {
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "multi-source-fanin";
+    }
+  | {
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "tree";
+    }
+  | {
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "overview";
+    }
+  | {
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "stress";
+      parallelPair?: boolean;
+      parallelOffset?: number;
+      sourceFanoutOffset?: number;
+      targetFanoutOffset?: number;
+    }
+  | {
+      kind: "elk";
+      labelPoint?: AttackGraphPoint;
+      points: AttackGraphPoint[];
+    }
+  | {
+      detourSide: "above" | "below";
+      fanoutCount: number;
+      fanoutIndex: number;
+      fanoutOffset: number;
+      kind: "detour";
+    }
+  | {
       count: number;
       index: number;
       kind: "self-loop";
@@ -47,7 +102,7 @@ export interface AttackGraphEdgeGeometryData {
   source: AttackGraphEdgeEndpointGeometry;
   target: AttackGraphEdgeEndpointGeometry;
   route: AttackGraphEdgeRouteData;
-  obstacle?: AttackGraphEdgeEndpointGeometry;
+  obstacle?: AttackGraphNodeEdgeGeometry;
 }
 
 type AttackGraphEndpointSide = AttackGraphSelfLoopSide;
@@ -75,6 +130,7 @@ export function buildAttackGraphEdgeRoutes(
     nodeGeometryById,
   );
   const relationSegments = buildRelationSegments(edges, nodeGeometryById);
+  const topologyRouteKind = getSimpleTopologyRouteKind(edges);
 
   for (const edgeGroup of groupRelationEdgesByNodePair(edges)) {
     const routedEdges = edgeGroup
@@ -90,7 +146,7 @@ export function buildAttackGraphEdgeRoutes(
         fanoutCount: count,
         fanoutIndex,
         fanoutOffset: getFanoutOffset(fanoutIndex, count),
-        kind: "relation",
+        kind: topologyRouteKind ?? "relation",
       });
     });
   }
@@ -135,6 +191,111 @@ export function buildAttackGraphEdgeRoutes(
   applySkipRouting(routesByEdgeId, edges, nodeGeometryById);
 
   return routesByEdgeId;
+}
+
+function getSimpleTopologyRouteKind(
+  edges: AttackGraphEdgeModel[],
+):
+  | "linear-chain"
+  | "single-source-fanout"
+  | "multi-source-fanin"
+  | "tree"
+  | null {
+  const relationEdges = edges.filter((edge) => edge.source !== edge.target);
+  if (relationEdges.length <= 1) {
+    return null;
+  }
+  if (relationEdges.length !== edges.length) {
+    return null;
+  }
+
+  const sourceIds = new Set(relationEdges.map((edge) => edge.source));
+  const targetIds = new Set(relationEdges.map((edge) => edge.target));
+  const nodeIds = new Set(
+    relationEdges.flatMap((edge) => [edge.source, edge.target]),
+  );
+
+  if (
+    relationEdges.length === nodeIds.size - 1 &&
+    isLinearChainRoute(relationEdges)
+  ) {
+    return "linear-chain";
+  }
+
+  if (sourceIds.size === 1 && targetIds.size > 1) {
+    return "single-source-fanout";
+  }
+  if (targetIds.size === 1 && sourceIds.size > 1) {
+    return "multi-source-fanin";
+  }
+  if (
+    relationEdges.length === nodeIds.size - 1 &&
+    isDirectedTreeRoute(relationEdges)
+  ) {
+    return "tree";
+  }
+
+  return null;
+}
+
+function isLinearChainRoute(edges: AttackGraphEdgeModel[]) {
+  const outgoingByNodeId = new Map<string, string>();
+  const incomingByNodeId = new Map<string, string>();
+
+  for (const edge of edges) {
+    if (outgoingByNodeId.has(edge.source) || incomingByNodeId.has(edge.target)) {
+      return false;
+    }
+    outgoingByNodeId.set(edge.source, edge.target);
+    incomingByNodeId.set(edge.target, edge.source);
+  }
+
+  const nodeIds = new Set(edges.flatMap((edge) => [edge.source, edge.target]));
+  const starts = [...nodeIds].filter((nodeId) => !incomingByNodeId.has(nodeId));
+  const ends = [...nodeIds].filter((nodeId) => !outgoingByNodeId.has(nodeId));
+
+  return starts.length === 1 && ends.length === 1;
+}
+
+function isDirectedTreeRoute(edges: AttackGraphEdgeModel[]) {
+  const outgoingByNodeId = new Map<string, string[]>();
+  const parentByNodeId = new Map<string, string>();
+  const nodeIds = new Set(edges.flatMap((edge) => [edge.source, edge.target]));
+
+  for (const edge of edges) {
+    if (parentByNodeId.has(edge.target)) {
+      return false;
+    }
+    parentByNodeId.set(edge.target, edge.source);
+    outgoingByNodeId.set(edge.source, [
+      ...(outgoingByNodeId.get(edge.source) ?? []),
+      edge.target,
+    ]);
+  }
+
+  const roots = [...nodeIds].filter((nodeId) => !parentByNodeId.has(nodeId));
+  if (roots.length !== 1) {
+    return false;
+  }
+
+  const visited = new Set<string>();
+  const stack = [roots[0]];
+
+  while (stack.length > 0) {
+    const nodeId = stack.pop();
+    if (!nodeId) {
+      continue;
+    }
+    if (visited.has(nodeId)) {
+      return false;
+    }
+    visited.add(nodeId);
+    for (const childId of outgoingByNodeId.get(nodeId) ?? []) {
+      stack.push(childId);
+    }
+  }
+
+  return visited.size === nodeIds.size;
 }
 
 function createSelfLoopSideCounts() {
@@ -282,6 +443,7 @@ function getEndpointSide(
 }
 
 const RELATION_CORRIDOR_WIDTH = 28;
+const CROSS_LAYER_DISTANCE = 390;
 
 function buildRelationSegments(
   edges: AttackGraphEdgeModel[],
@@ -557,19 +719,35 @@ function applySkipRouting(
     if (!source || !target) continue;
 
     const obstacle = findObstacleBetween(source, target, nodeGeometryById, edge.source, edge.target);
-    if (!obstacle) continue;
+    if (obstacle) {
+      routesByEdgeId.set(edge.id, {
+        fanoutCount: route.fanoutCount,
+        fanoutIndex: route.fanoutIndex,
+        fanoutOffset: route.fanoutOffset,
+        kind: "skip",
+        obstacleId: obstacle.id,
+        detourSide: determineDetourSide(source, target, obstacle),
+      });
+      continue;
+    }
 
-    const detourSide = determineDetourSide(source, target, obstacle);
-
-    routesByEdgeId.set(edge.id, {
-      fanoutCount: route.fanoutCount,
-      fanoutIndex: route.fanoutIndex,
-      fanoutOffset: route.fanoutOffset,
-      kind: "skip",
-      obstacleId: obstacle.id,
-      detourSide,
-    });
+    if (isCrossLayerEdge(source, target)) {
+      routesByEdgeId.set(edge.id, {
+        fanoutCount: route.fanoutCount,
+        fanoutIndex: route.fanoutIndex,
+        fanoutOffset: route.fanoutOffset,
+        kind: "detour",
+        detourSide: determineCrossLayerDetourSide(source, target),
+      });
+    }
   }
+}
+
+function isCrossLayerEdge(
+  source: AttackGraphNodeEdgeGeometry,
+  target: AttackGraphNodeEdgeGeometry,
+) {
+  return Math.abs(target.centerX - source.centerX) >= CROSS_LAYER_DISTANCE;
 }
 
 function findObstacleBetween(
@@ -612,6 +790,13 @@ function determineDetourSide(
 ): "above" | "below" {
   const midY = (source.centerY + target.centerY) / 2;
   return obstacle.centerY < midY ? "above" : "below";
+}
+
+function determineCrossLayerDetourSide(
+  source: AttackGraphNodeEdgeGeometry,
+  target: AttackGraphNodeEdgeGeometry,
+): "above" | "below" {
+  return target.centerY >= source.centerY ? "below" : "above";
 }
 
 function pointToSegmentDist(

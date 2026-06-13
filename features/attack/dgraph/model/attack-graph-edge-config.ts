@@ -16,6 +16,13 @@ export type AttackGraphEdgeMarkerType = "arrow" | "diamond" | "none";
 
 export type AttackGraphEdgeColorMode = "solid" | "gradient";
 
+export type AttackGraphEdgeLayoutRole =
+  | "primary"
+  | "action"
+  | "attachment"
+  | "reference"
+  | "backlink";
+
 export interface AttackGraphEdgeMarkerConfig {
   type: AttackGraphEdgeMarkerType;
   size: number;
@@ -306,10 +313,52 @@ export const ATTACK_GRAPH_RELATION_LABELS: Record<
   WMI_FILTER_BIND_CONSUMER: "binds",
 };
 
+export const ATTACK_GRAPH_RELATION_LAYOUT_ROLES: Partial<
+  Record<AttackGraphRelationType, AttackGraphEdgeLayoutRole>
+> = {
+  ADDRESS_HAS_ENDPOINT: "attachment",
+  ACCOUNT_GROUP_HAS_MEMBER: "attachment",
+  ASSOCIATED_WITH_FILE: "attachment",
+  BITS_LOCAL_FILE: "attachment",
+  BITS_REMOTE_URL: "attachment",
+  DEVICE_BELONG_TO_HOST: "attachment",
+  DNS_NAME_RESOLVE_ADDRESS: "attachment",
+  FILE_HAS_STREAM: "attachment",
+  MESSAGE_HOOK_MODULE_MATCH_FILE: "attachment",
+  POWERSHELL_SCRIPT_MATCH_FILE: "attachment",
+  SERVICE_IMAGE_MATCH_FILE: "attachment",
+  TASK_IMAGE_MATCH_FILE: "attachment",
+  URL_DOWNLOAD_TO_FILE: "attachment",
+  WMI_FILTER_BIND_CONSUMER: "attachment",
+};
+
 export function getAttackGraphEdgePresentation(
   relationType: string | null | undefined,
 ): AttackGraphEdgePresentation {
   return ATTACK_GRAPH_EDGE_PRESENTATIONS[getAttackGraphEdgeKind(relationType)];
+}
+
+export function getAttackGraphEdgeLayoutRole(
+  relationType: string | null | undefined,
+): AttackGraphEdgeLayoutRole {
+  const normalized = String(relationType ?? "").trim();
+  if (normalized in ATTACK_GRAPH_RELATION_LAYOUT_ROLES) {
+    return ATTACK_GRAPH_RELATION_LAYOUT_ROLES[
+      normalized as AttackGraphRelationType
+    ] ?? "action";
+  }
+
+  const kind = getAttackGraphEdgeKind(normalized);
+  if (kind === "process-execution" || kind === "security-impact") {
+    return "primary";
+  }
+  if (kind === "case-structure" || kind === "evidence-link") {
+    return "reference";
+  }
+  if (kind === "association" || kind === "unknown") {
+    return "reference";
+  }
+  return "action";
 }
 
 export function getAttackGraphRelationLabel(

@@ -64,7 +64,6 @@ export function AttackGraphNode({
           top: handleY,
           transform: "translate(-50%, -50%)",
         }}
-        isConnectable={false}
       />
       <button
         type="button"
@@ -135,7 +134,6 @@ export function AttackGraphNode({
           top: handleY,
           transform: "translate(50%, -50%)",
         }}
-        isConnectable={false}
       />
     </div>
   );

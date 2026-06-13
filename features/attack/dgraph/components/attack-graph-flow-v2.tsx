@@ -32,6 +32,7 @@ import {
   type AttackGraphEdgeInteractionState,
   type AttackGraphEdgeVisualData,
 } from "../model/attack-graph-edge-config";
+import { buildAttackGraphEdgeDiagnostics } from "../model/attack-graph-edge-diagnostics";
 import {
   buildAttackGraphEdgeRoutes,
   type AttackGraphEdgeRouteData,
@@ -64,10 +65,25 @@ export interface AttackGraphFlowV2Props
   response: GraphCaseResponseDto;
   className?: string;
   layoutOptions?: AttackGraphLayoutOptions;
-  layoutStrategy?: AttackGraphLayoutStrategy;
+  onDiagnosticsChange?: (diagnostics: AttackGraphFlowDiagnostics) => void;
   showMiniMap?: boolean;
   showBackground?: boolean;
 }
+
+export interface AttackGraphFlowDiagnostics {
+  edgeDiagnostics: NonNullable<AttackGraphLayoutResult["edgeDiagnostics"]>;
+  edgeDiagnosticsText: string;
+  graphHeight: number;
+  graphWidth: number;
+  layoutMode: AttackGraphLayoutResult["layoutMode"];
+  nodeCount: number;
+  edgeCount: number;
+  topologyDiagnostics?: AttackGraphLayoutResult["topologyDiagnostics"];
+  topologyDiagnosticsText: string;
+  topologyKind?: string;
+}
+
+const ATTACK_GRAPH_LAYOUT_STRATEGY: AttackGraphLayoutStrategy = "stable";
 
 const nodeTypes: NodeTypes = {
   attackGraphNodeV2: AttackGraphNode,
@@ -81,7 +97,7 @@ export function AttackGraphFlowV2({
   response,
   className,
   layoutOptions,
-  layoutStrategy = "lane",
+  onDiagnosticsChange,
   showMiniMap = false,
   showBackground = true,
   fitView = false,
@@ -110,7 +126,7 @@ export function AttackGraphFlowV2({
     const caseChanged = previousCaseIdRef.current !== graph.caseId;
     const previousSession = caseChanged
       ? null
-      : layoutSessionsByStrategyRef.current[layoutStrategy] ?? null;
+      : layoutSessionsByStrategyRef.current[ATTACK_GRAPH_LAYOUT_STRATEGY] ?? null;
 
     hasFittedRef.current = false;
     if (caseChanged) {
@@ -126,8 +142,8 @@ export function AttackGraphFlowV2({
       nodeSep: 48,
       rankSep: 110,
       session: previousSession,
-      strategy: layoutStrategy,
       ...layoutOptions,
+      strategy: ATTACK_GRAPH_LAYOUT_STRATEGY,
     })
       .then((nextLayouted) => {
         if (!cancelled) {
@@ -143,8 +159,33 @@ export function AttackGraphFlowV2({
             ...graph,
             height: 0,
             layoutMode: "tiny",
-            layoutSession: createEmptyLayoutSession(graph.caseId, layoutStrategy),
-            layoutStrategy,
+            layoutSession: createEmptyLayoutSession(
+              graph.caseId,
+              ATTACK_GRAPH_LAYOUT_STRATEGY,
+            ),
+            layoutStrategy: ATTACK_GRAPH_LAYOUT_STRATEGY,
+            topologyDiagnostics: {
+              backEdgeCount: 0,
+              cyclic: false,
+              duplicatePairCount: 0,
+              edgeCount: graph.edges.length,
+              maxInDegree: 0,
+              maxOutDegree: 0,
+              multiEdgePairCount: 0,
+              nodeCount: graph.nodes.length,
+              relationEdgeCount: graph.edges.filter(
+                (edge) => edge.source !== edge.target,
+              ).length,
+              rootCount: 0,
+              selfLoopCount: graph.edges.filter(
+                (edge) => edge.source === edge.target,
+              ).length,
+              sinkCount: 0,
+              treeEdgeDelta: 0,
+              zeroInDegreeCount: 0,
+              zeroOutDegreeCount: 0,
+            },
+            topologyKind: "error",
             width: 0,
           });
         }
@@ -153,7 +194,7 @@ export function AttackGraphFlowV2({
     return () => {
       cancelled = true;
     };
-  }, [layoutOptions, layoutStrategy, response]);
+  }, [layoutOptions, response]);
 
   const layoutedNodes = layouted?.nodes ?? [];
   const layoutedEdges = layouted?.edges ?? [];
@@ -184,9 +225,58 @@ export function AttackGraphFlowV2({
   }, [nodes]);
 
   const edgeRoutesById = useMemo(
-    () => buildAttackGraphEdgeRoutes(layoutedEdges, nodeGeometryById),
-    [layoutedEdges, nodeGeometryById],
+    () =>
+      layouted?.edgeRoutesById ??
+      buildAttackGraphEdgeRoutes(layoutedEdges, nodeGeometryById),
+    [layouted?.edgeRoutesById, layoutedEdges, nodeGeometryById],
   );
+  const edgeDiagnostics = useMemo(
+    () =>
+      buildAttackGraphEdgeDiagnostics(
+        layoutedEdges,
+        edgeRoutesById,
+        nodeGeometryById,
+      ),
+    [edgeRoutesById, layoutedEdges, nodeGeometryById],
+  );
+  const edgeDiagnosticsText = useMemo(
+    () => formatEdgeDiagnostics(edgeDiagnostics),
+    [edgeDiagnostics],
+  );
+  const topologyDiagnosticsText = useMemo(
+    () =>
+      layouted?.topologyDiagnostics
+        ? formatTopologyDiagnostics(layouted.topologyDiagnostics)
+        : "pending",
+    [layouted?.topologyDiagnostics],
+  );
+
+  useEffect(() => {
+    if (!layouted) {
+      return;
+    }
+
+    onDiagnosticsChange?.({
+      edgeCount: layoutedEdges.length,
+      edgeDiagnostics,
+      edgeDiagnosticsText,
+      graphHeight: layouted.height,
+      graphWidth: layouted.width,
+      layoutMode: layouted.layoutMode,
+      nodeCount: layoutedNodes.length,
+      topologyDiagnostics: layouted.topologyDiagnostics,
+      topologyDiagnosticsText,
+      topologyKind: layouted.topologyKind,
+    });
+  }, [
+    edgeDiagnostics,
+    edgeDiagnosticsText,
+    layouted,
+    layoutedEdges.length,
+    layoutedNodes.length,
+    onDiagnosticsChange,
+    topologyDiagnosticsText,
+  ]);
 
   const edges = useMemo(
     () =>
@@ -284,6 +374,9 @@ export function AttackGraphFlowV2({
           onNodeClick={handleNodeClick}
           onPaneClick={handlePaneClick}
           data-attack-graph-flow-v2="true"
+          data-attack-graph-edge-diagnostics={edgeDiagnosticsText}
+          data-attack-graph-topology-diagnostics={topologyDiagnosticsText}
+          data-attack-graph-topology={layouted?.topologyKind ?? "pending"}
           {...reactFlowProps}
         >
           {showBackground ? <Background color="#e2e8f0" gap={24} /> : null}
@@ -535,6 +628,40 @@ function createEmptyLayoutSession(
     stableCenterNodeId: undefined,
     strategy,
   };
+}
+
+function formatTopologyDiagnostics(
+  diagnostics: NonNullable<AttackGraphLayoutResult["topologyDiagnostics"]>,
+) {
+  return [
+    `nodes=${diagnostics.nodeCount}`,
+    `edges=${diagnostics.edgeCount}`,
+    `relation=${diagnostics.relationEdgeCount}`,
+    `selfLoop=${diagnostics.selfLoopCount}`,
+    `roots=${diagnostics.rootCount}`,
+    `sinks=${diagnostics.sinkCount}`,
+    `maxIn=${diagnostics.maxInDegree}`,
+    `maxOut=${diagnostics.maxOutDegree}`,
+    `multiPair=${diagnostics.multiEdgePairCount}`,
+    `treeDelta=${diagnostics.treeEdgeDelta}`,
+    `cyclic=${diagnostics.cyclic ? 1 : 0}`,
+  ].join(";");
+}
+
+function formatEdgeDiagnostics(
+  diagnostics: NonNullable<AttackGraphLayoutResult["edgeDiagnostics"]>,
+) {
+  return [
+    `edges=${diagnostics.edgeCount}`,
+    `relation=${diagnostics.relationEdgeCount}`,
+    `selfLoop=${diagnostics.selfLoopEdgeCount}`,
+    `skip=${diagnostics.skipEdgeCount}`,
+    `detour=${diagnostics.detourEdgeCount}`,
+    `blocked=${diagnostics.blockedEdgeCount}`,
+    `maxBlocked=${diagnostics.maxBlockedNodeCount}`,
+    `crossing=${diagnostics.crossingPairCount}`,
+    `suspect=${diagnostics.suspiciousEdgeIds.length}`,
+  ].join(";");
 }
 
 export default AttackGraphFlowV2;

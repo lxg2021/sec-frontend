@@ -17,6 +17,8 @@ import type {
   AttackGraphEdgeEndpointGeometry,
   AttackGraphEdgeGeometryData,
   AttackGraphEdgeRouteData,
+  AttackGraphNodeEdgeGeometry,
+  AttackGraphRect,
   AttackGraphSelfLoopSide,
 } from "../model/attack-graph-edge-routing";
 
@@ -60,12 +62,56 @@ export function AttackGraphEdge({
   const pathResult =
     route.kind === "self-loop"
       ? getSelfLoopPath(sourceGeometry, route)
+      : route.kind === "linear-chain"
+        ? getSimpleTopologyEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+          })
+      : route.kind === "single-source-fanout"
+        ? getSimpleTopologyEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+          })
+      : route.kind === "multi-source-fanin"
+        ? getSimpleTopologyEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+          })
+      : route.kind === "tree"
+        ? getSimpleTopologyEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+          })
+      : route.kind === "overview"
+        ? getOverviewEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+          })
+      : route.kind === "stress"
+        ? getStressEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
+          })
+      : route.kind === "elk"
+        ? getElkEdgePath(route)
       : route.kind === "skip"
         ? getSkipEdgePath({
             route,
             source: sourceGeometry,
             target: targetGeometry,
             obstacle: data.geometry?.obstacle,
+          })
+      : route.kind === "detour"
+        ? getDetourEdgePath({
+            route,
+            source: sourceGeometry,
+            target: targetGeometry,
           })
         : getGraphEdgePath({
             route,
@@ -86,6 +132,8 @@ export function AttackGraphEdge({
   const emphasized =
     data.interactionState === "hover" ||
     data.interactionState === "selected";
+  const showLabel =
+    (route.kind !== "overview" && route.kind !== "stress") || emphasized;
 
   return (
     <>
@@ -160,26 +208,28 @@ export function AttackGraphEdge({
           vectorEffect: "non-scaling-stroke",
         }}
       />
-      <EdgeLabelRenderer>
-        <div
-          className={cn(
-            "nodrag nopan pointer-events-none absolute max-w-[160px] truncate rounded-md px-2 py-0.5 text-[10px] font-medium leading-4 transition-opacity duration-200",
-            data.interactionState === "selected"
-              ? "text-blue-800"
-              : "text-slate-800",
-            data.interactionState === "dimmed" ? "text-slate-500" : "",
-          )}
-          data-attack-edge-state={data.interactionState}
-          data-attack-edge-type={visual.relationType}
-          style={{
-            opacity: data.interactionState === "dimmed" ? 0.48 : 1,
-            transform: `translate(-50%, -50%) translate(${pathResult.labelX}px, ${pathResult.labelY}px) rotate(${Number.isFinite(pathResult.labelAngle) ? pathResult.labelAngle : 0}deg)`,
-          }}
-          title={visual.tooltip}
-        >
-          {visual.label}
-        </div>
-      </EdgeLabelRenderer>
+      {showLabel ? (
+        <EdgeLabelRenderer>
+          <div
+            className={cn(
+              "nodrag nopan pointer-events-none absolute max-w-[160px] truncate rounded-md px-2 py-0.5 text-[10px] font-medium leading-4 transition-opacity duration-200",
+              data.interactionState === "selected"
+                ? "text-blue-800"
+                : "text-slate-800",
+              data.interactionState === "dimmed" ? "text-slate-500" : "",
+            )}
+            data-attack-edge-state={data.interactionState}
+            data-attack-edge-type={visual.relationType}
+            style={{
+              opacity: data.interactionState === "dimmed" ? 0.48 : 1,
+              transform: `translate(-50%, -50%) translate(${pathResult.labelX}px, ${pathResult.labelY}px) rotate(${Number.isFinite(pathResult.labelAngle) ? pathResult.labelAngle : 0}deg)`,
+            }}
+            title={visual.tooltip}
+          >
+            {visual.label}
+          </div>
+        </EdgeLabelRenderer>
+      ) : null}
     </>
   );
 }
@@ -264,6 +314,383 @@ function getGraphEdgePath({
   };
 }
 
+function getOverviewEdgePath({
+  route,
+  source,
+  target,
+}: {
+  route: Extract<AttackGraphEdgeRouteData, { kind: "overview" }>;
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
+}) {
+  const deltaX = target.centerX - source.centerX;
+  const deltaY = target.centerY - source.centerY;
+  const distance = Math.hypot(deltaX, deltaY);
+  const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
+  const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
+  const fanoutShift = clamp(
+    route.fanoutOffset,
+    -source.radius * 0.7,
+    source.radius * 0.7,
+  );
+  const sourceShift = clamp(
+    deltaY * 0.08 + fanoutShift * 0.45,
+    -source.radius * 0.64,
+    source.radius * 0.64,
+  );
+  const targetShift = clamp(
+    -deltaY * 0.08 + fanoutShift * 0.45,
+    -target.radius * 0.64,
+    target.radius * 0.64,
+  );
+  const sourcePoint = getSideAnchorPoint(source, flowDirection, sourceShift);
+  const targetPoint = getSideAnchorPoint(
+    target,
+    targetDirection,
+    targetShift,
+    MARKER_END_GAP,
+  );
+  const controlDistance = clamp(distance * 0.34, 56, 260);
+  const verticalBias = clamp(deltaY * 0.12, -46, 46);
+  const fanoutBias = route.fanoutOffset * 0.8;
+  const sourceControl = {
+    x: sourcePoint.x + flowDirection * controlDistance,
+    y: sourcePoint.y + verticalBias + fanoutBias,
+  };
+  const targetControl = {
+    x: targetPoint.x - flowDirection * controlDistance,
+    y: targetPoint.y - verticalBias + fanoutBias,
+  };
+  const path = [
+    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
+    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
+    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
+    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
+  ].join(" ");
+  const labelPoint = getCubicPoint(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+  const normal = getReadableLabelNormal(sourcePoint, targetPoint);
+  const labelOffset = getLabelOffset(route.fanoutIndex, route.fanoutCount);
+  const labelAngle = getCubicTangentAngle(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelAngle,
+    labelX: labelPoint.x + normal.x * labelOffset,
+    labelY: labelPoint.y + normal.y * labelOffset,
+    path,
+  };
+}
+
+function getStressEdgePath({
+  route,
+  source,
+  target,
+}: {
+  route: Extract<AttackGraphEdgeRouteData, { kind: "stress" }>;
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
+}) {
+  if (route.parallelPair) {
+    return getParallelPairStressEdgePath({
+      route,
+      source,
+      target,
+    });
+  }
+
+  const vector = normalizeVector(
+    target.centerX - source.centerX,
+    target.centerY - source.centerY,
+  );
+  const normal = { x: -vector.y, y: vector.x };
+  const endpointDistance = Math.hypot(
+    target.centerX - source.centerX,
+    target.centerY - source.centerY,
+  );
+  const sourcePoint = getRadialAnchorPoint(
+    source,
+    vector,
+    route.fanoutOffset * 0.22 + (route.sourceFanoutOffset ?? 0),
+  );
+  const targetPoint = getRadialAnchorPoint(
+    target,
+    { x: -vector.x, y: -vector.y },
+    route.fanoutOffset * 0.22 + (route.targetFanoutOffset ?? 0),
+    MARKER_END_GAP,
+  );
+  const bend = getStressBendAmount(endpointDistance, route);
+  const controlDistance = clamp(endpointDistance * 0.18, 32, 118);
+  const sourceControl = {
+    x: sourcePoint.x + vector.x * controlDistance + normal.x * bend * 0.42,
+    y: sourcePoint.y + vector.y * controlDistance + normal.y * bend * 0.42,
+  };
+  const targetControl = {
+    x: targetPoint.x - vector.x * controlDistance + normal.x * bend * 0.42,
+    y: targetPoint.y - vector.y * controlDistance + normal.y * bend * 0.42,
+  };
+  const path = [
+    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
+    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
+    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
+    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
+  ].join(" ");
+  const labelPoint = getCubicPoint(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+  const labelOffset = route.fanoutCount > 1 ? Math.min(18, Math.abs(route.fanoutIndex) * 4) : 0;
+
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelAngle: 0,
+    labelX: labelPoint.x + normal.x * labelOffset,
+    labelY: labelPoint.y + normal.y * labelOffset,
+    path,
+  };
+}
+
+function getParallelPairStressEdgePath({
+  route,
+  source,
+  target,
+}: {
+  route: Extract<AttackGraphEdgeRouteData, { kind: "stress" }>;
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
+}) {
+  const vector = normalizeVector(
+    target.centerX - source.centerX,
+    target.centerY - source.centerY,
+  );
+  const normal = { x: -vector.y, y: vector.x };
+  const labelNormal = getStressEdgeNormal(vector, route.fanoutIndex);
+  const endpointDistance = Math.hypot(
+    target.centerX - source.centerX,
+    target.centerY - source.centerY,
+  );
+  const parallelOffset = getParallelPairOffset(route);
+  const sourcePoint = getRadialAnchorPoint(source, vector, parallelOffset);
+  const targetPoint = getRadialAnchorPoint(
+    target,
+    { x: -vector.x, y: -vector.y },
+    -parallelOffset,
+    MARKER_END_GAP,
+  );
+  const bend = getParallelPairBendAmount(endpointDistance, route);
+  const controlDistance = clamp(endpointDistance * 0.18, 28, 92);
+  const sourceControl = {
+    x: sourcePoint.x + vector.x * controlDistance + normal.x * bend,
+    y: sourcePoint.y + vector.y * controlDistance + normal.y * bend,
+  };
+  const targetControl = {
+    x: targetPoint.x - vector.x * controlDistance + normal.x * bend,
+    y: targetPoint.y - vector.y * controlDistance + normal.y * bend,
+  };
+  const path = [
+    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
+    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
+    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
+    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
+  ].join(" ");
+  const labelPoint = getCubicPoint(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+  const labelOffset = getLabelOffset(route.fanoutIndex, route.fanoutCount);
+
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelAngle: 0,
+    labelX: labelPoint.x + labelNormal.x * labelOffset,
+    labelY: labelPoint.y + labelNormal.y * labelOffset,
+    path,
+  };
+}
+
+function getElkEdgePath(
+  route: Extract<AttackGraphEdgeRouteData, { kind: "elk" }>,
+) {
+  const points = normalizePolylinePoints(route.points);
+  const fallbackPoint = points[0] ?? { x: 0, y: 0 };
+  const sourcePoint = points[0] ?? fallbackPoint;
+  const targetPoint = points[points.length - 1] ?? fallbackPoint;
+  const labelPoint = route.labelPoint ?? getPolylineMidpoint(points);
+  const labelAngle = getPolylineMidpointAngle(points);
+
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelAngle,
+    labelX: labelPoint.x,
+    labelY: labelPoint.y,
+    path: pointsToSvgPath(points),
+  };
+}
+
+function getSimpleTopologyEdgePath({
+  route,
+  source,
+  target,
+}: {
+  route: Extract<
+    AttackGraphEdgeRouteData,
+    {
+      kind:
+        | "linear-chain"
+        | "single-source-fanout"
+        | "multi-source-fanin"
+        | "tree";
+    }
+  >;
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
+}) {
+  const deltaX = target.centerX - source.centerX;
+  const deltaY = target.centerY - source.centerY;
+  const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
+  const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
+  const sourceShift = getSimpleTopologyEndpointShift({
+    route,
+    side: "source",
+    source,
+    target,
+  });
+  const targetShift = getSimpleTopologyEndpointShift({
+    route,
+    side: "target",
+    source,
+    target,
+  });
+  const sourcePoint = getSideAnchorPoint(source, flowDirection, sourceShift);
+  const targetPoint = getSideAnchorPoint(
+    target,
+    targetDirection,
+    targetShift,
+    MARKER_END_GAP,
+  );
+  const endpointDistance = Math.hypot(
+    targetPoint.x - sourcePoint.x,
+    targetPoint.y - sourcePoint.y,
+  );
+  const horizontalLead = clamp(endpointDistance * 0.18, 30, 74);
+  const bendLift = clamp(deltaY * 0.08, -18, 18);
+  const sourceControl = {
+    x: sourcePoint.x + flowDirection * horizontalLead,
+    y: sourcePoint.y + bendLift,
+  };
+  const targetControl = {
+    x: targetPoint.x - flowDirection * horizontalLead,
+    y: targetPoint.y - bendLift,
+  };
+  const path = [
+    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
+    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
+    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
+    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
+  ].join(" ");
+  const labelPoint = getCubicPoint(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+  const normal = getReadableLabelNormal(sourcePoint, targetPoint);
+  const labelOffset = getLabelOffset(route.fanoutIndex, route.fanoutCount);
+  const labelAngle = getCubicTangentAngle(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelAngle,
+    labelX: labelPoint.x + normal.x * labelOffset,
+    labelY: labelPoint.y + normal.y * labelOffset,
+    path,
+  };
+}
+
+function getSimpleTopologyEndpointShift({
+  route,
+  side,
+  source,
+  target,
+}: {
+  route: Extract<
+    AttackGraphEdgeRouteData,
+    {
+      kind:
+        | "linear-chain"
+        | "single-source-fanout"
+        | "multi-source-fanin"
+        | "tree";
+    }
+  >;
+  side: "source" | "target";
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
+}) {
+  const deltaY = target.centerY - source.centerY;
+  if (route.kind === "single-source-fanout") {
+    return side === "source"
+      ? clamp(deltaY * 0.08, -source.radius * 0.5, source.radius * 0.5)
+      : 0;
+  }
+  if (route.kind === "linear-chain" || route.kind === "tree") {
+    return 0;
+  }
+
+  return side === "target"
+    ? clamp(-deltaY * 0.08, -target.radius * 0.5, target.radius * 0.5)
+    : 0;
+}
+
 function getSkipEdgePath({
   route,
   source,
@@ -273,7 +700,7 @@ function getSkipEdgePath({
   route: Extract<AttackGraphEdgeRouteData, { kind: "skip" }>;
   source: AttackGraphEdgeEndpointGeometry;
   target: AttackGraphEdgeEndpointGeometry;
-  obstacle?: AttackGraphEdgeEndpointGeometry;
+  obstacle?: AttackGraphNodeEdgeGeometry;
 }) {
   const deltaX = target.centerX - source.centerX;
   const deltaY = target.centerY - source.centerY;
@@ -288,23 +715,31 @@ function getSkipEdgePath({
     MARKER_END_GAP,
   );
 
-  const obstacleClearance = obstacle ? obstacle.radius + 32 : 72;
+  const obstacleBounds = getObstacleBounds(obstacle);
   const detourSign = route.detourSide === "above" ? -1 : 1;
-  const detourLift = detourSign * (obstacleClearance / 0.75);
+  const detourY =
+    route.detourSide === "above"
+      ? obstacleBounds.y - 34
+      : obstacleBounds.y + obstacleBounds.height + 34;
 
   const endpointDistance = Math.hypot(
     targetPoint.x - sourcePoint.x,
     targetPoint.y - sourcePoint.y,
   );
   const controlDistance = clamp(endpointDistance * 0.38, 38, 280);
+  const controlY = getCubicControlYForMidpoint(
+    sourcePoint.y,
+    targetPoint.y,
+    detourY + detourSign * Math.abs(route.fanoutOffset) * 0.35,
+  );
 
   const sourceControl = {
     x: sourcePoint.x + flowDirection * controlDistance,
-    y: sourcePoint.y + deltaY * 0.25 + detourLift,
+    y: controlY + deltaY * 0.08,
   };
   const targetControl = {
     x: targetPoint.x - flowDirection * controlDistance,
-    y: targetPoint.y - deltaY * 0.25 + detourLift,
+    y: controlY - deltaY * 0.08,
   };
 
   const path = [
@@ -340,6 +775,224 @@ function getSkipEdgePath({
     labelAngle,
     labelX: labelPoint.x + normal.x * 16,
     labelY: labelPoint.y + normal.y * 16,
+    path,
+  };
+}
+
+function normalizePolylinePoints(points: Array<{ x: number; y: number }>) {
+  const normalized: Array<{ x: number; y: number }> = [];
+
+  for (const point of points) {
+    if (!isFiniteNumber(point.x) || !isFiniteNumber(point.y)) {
+      continue;
+    }
+
+    const previous = normalized[normalized.length - 1];
+    if (
+      previous &&
+      Math.abs(previous.x - point.x) < 0.5 &&
+      Math.abs(previous.y - point.y) < 0.5
+    ) {
+      continue;
+    }
+
+    normalized.push(point);
+  }
+
+  return normalized.length > 0 ? normalized : [{ x: 0, y: 0 }];
+}
+
+function pointsToSvgPath(points: Array<{ x: number; y: number }>) {
+  const [first, ...rest] = points;
+  if (!first) {
+    return "M 0 0";
+  }
+
+  return [
+    `M ${formatNumber(first.x)} ${formatNumber(first.y)}`,
+    ...rest.map(
+      (point) => `L ${formatNumber(point.x)} ${formatNumber(point.y)}`,
+    ),
+  ].join(" ");
+}
+
+function getPolylineMidpoint(points: Array<{ x: number; y: number }>) {
+  const firstPoint = points[0] ?? { x: 0, y: 0 };
+  if (points.length <= 1) {
+    return firstPoint;
+  }
+
+  const segmentLengths: number[] = [];
+  let totalLength = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    const length = Math.hypot(
+      points[index].x - points[index - 1].x,
+      points[index].y - points[index - 1].y,
+    );
+    segmentLengths.push(length);
+    totalLength += length;
+  }
+
+  const halfLength = totalLength / 2;
+  let traversedLength = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    const segmentLength = segmentLengths[index - 1];
+    if (traversedLength + segmentLength >= halfLength) {
+      const ratio =
+        segmentLength < 0.001
+          ? 0
+          : (halfLength - traversedLength) / segmentLength;
+      return {
+        x: points[index - 1].x + (points[index].x - points[index - 1].x) * ratio,
+        y: points[index - 1].y + (points[index].y - points[index - 1].y) * ratio,
+      };
+    }
+    traversedLength += segmentLength;
+  }
+
+  return points[points.length - 1] ?? firstPoint;
+}
+
+function getPolylineMidpointAngle(points: Array<{ x: number; y: number }>) {
+  if (points.length <= 1) {
+    return 0;
+  }
+
+  const midpoint = getPolylineMidpoint(points);
+  let closestSegment: {
+    distance: number;
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+  } | null = null;
+
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    const distance = Math.abs(
+      (end.y - start.y) * midpoint.x -
+        (end.x - start.x) * midpoint.y +
+        end.x * start.y -
+        end.y * start.x,
+    ) / Math.max(1, Math.hypot(end.y - start.y, end.x - start.x));
+    if (!closestSegment || distance < closestSegment.distance) {
+      closestSegment = { distance, end, start };
+    }
+  }
+
+  if (!closestSegment) {
+    return 0;
+  }
+
+  let deg =
+    Math.atan2(
+      closestSegment.end.y - closestSegment.start.y,
+      closestSegment.end.x - closestSegment.start.x,
+    ) *
+    (180 / Math.PI);
+  while (deg > 90) deg -= 180;
+  while (deg < -90) deg += 180;
+  return deg;
+}
+
+function getObstacleBounds(
+  obstacle: AttackGraphNodeEdgeGeometry | undefined,
+): AttackGraphRect {
+  if (obstacle?.bounds) {
+    return obstacle.bounds;
+  }
+
+  const radius = obstacle?.radius ?? FALLBACK_NODE_RADIUS;
+  const centerX = obstacle?.centerX ?? 0;
+  const centerY = obstacle?.centerY ?? 0;
+  return {
+    x: centerX - radius,
+    y: centerY - radius,
+    width: radius * 2,
+    height: radius * 2,
+  };
+}
+
+function getCubicControlYForMidpoint(
+  sourceY: number,
+  targetY: number,
+  midpointY: number,
+) {
+  return (midpointY - 0.125 * (sourceY + targetY)) / 0.75;
+}
+
+function getDetourEdgePath({
+  route,
+  source,
+  target,
+}: {
+  route: Extract<AttackGraphEdgeRouteData, { kind: "detour" }>;
+  source: AttackGraphEdgeEndpointGeometry;
+  target: AttackGraphEdgeEndpointGeometry;
+}) {
+  const deltaX = target.centerX - source.centerX;
+  const deltaY = target.centerY - source.centerY;
+  const flowDirection: 1 | -1 = deltaX >= 0 ? 1 : -1;
+  const targetDirection: 1 | -1 = flowDirection === 1 ? -1 : 1;
+  const sourcePoint = getSideAnchorPoint(
+    source,
+    flowDirection,
+    clamp(route.fanoutOffset * 0.34, -source.radius * 0.45, source.radius * 0.45),
+  );
+  const targetPoint = getSideAnchorPoint(
+    target,
+    targetDirection,
+    clamp(route.fanoutOffset * 0.34, -target.radius * 0.45, target.radius * 0.45),
+    MARKER_END_GAP,
+  );
+  const endpointDistance = Math.hypot(
+    targetPoint.x - sourcePoint.x,
+    targetPoint.y - sourcePoint.y,
+  );
+  const detourSign = route.detourSide === "above" ? -1 : 1;
+  const detourLift =
+    detourSign *
+    clamp(Math.abs(deltaY) * 0.42 + endpointDistance * 0.16, 76, 180);
+  const controlDistance = clamp(endpointDistance * 0.35, 72, 320);
+  const sourceControl = {
+    x: sourcePoint.x + flowDirection * controlDistance,
+    y: sourcePoint.y + detourLift + route.fanoutOffset * 0.5,
+  };
+  const targetControl = {
+    x: targetPoint.x - flowDirection * controlDistance,
+    y: targetPoint.y + detourLift + route.fanoutOffset * 0.5,
+  };
+  const path = [
+    `M ${formatNumber(sourcePoint.x)} ${formatNumber(sourcePoint.y)}`,
+    `C ${formatNumber(sourceControl.x)} ${formatNumber(sourceControl.y)}`,
+    `${formatNumber(targetControl.x)} ${formatNumber(targetControl.y)}`,
+    `${formatNumber(targetPoint.x)} ${formatNumber(targetPoint.y)}`,
+  ].join(" ");
+  const labelPoint = getCubicPoint(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+  const normal = getReadableLabelNormal(sourcePoint, targetPoint);
+  const labelAngle = getCubicTangentAngle(
+    sourcePoint,
+    sourceControl,
+    targetControl,
+    targetPoint,
+    0.5,
+  );
+
+  return {
+    gradient: {
+      x1: sourcePoint.x,
+      x2: targetPoint.x,
+      y1: sourcePoint.y,
+      y2: targetPoint.y,
+    },
+    labelAngle,
+    labelX: labelPoint.x + normal.x * 18,
+    labelY: labelPoint.y + normal.y * 18,
     path,
   };
 }
@@ -513,6 +1166,79 @@ function getSideAnchorPoint(
     x: circle.centerX + side * xOffset,
     y: circle.centerY + safeShift,
   };
+}
+
+function getRadialAnchorPoint(
+  circle: AttackGraphEdgeEndpointGeometry,
+  direction: { x: number; y: number },
+  normalOffset = 0,
+  radiusOutset = 0,
+) {
+  const normal = { x: -direction.y, y: direction.x };
+  const radius = circle.radius + radiusOutset;
+  const safeOffset = clamp(normalOffset, -radius * 0.58, radius * 0.58);
+  const radialDistance = Math.sqrt(
+    Math.max(radius * radius - safeOffset * safeOffset, 0),
+  );
+
+  return {
+    x: circle.centerX + direction.x * radialDistance + normal.x * safeOffset,
+    y: circle.centerY + direction.y * radialDistance + normal.y * safeOffset,
+  };
+}
+
+function getStressEdgeNormal(
+  vector: { x: number; y: number },
+  fanoutIndex: number,
+) {
+  const normal = { x: -vector.y, y: vector.x };
+  if (fanoutIndex < 0) {
+    return { x: -normal.x, y: -normal.y };
+  }
+
+  return normal;
+}
+
+function getStressBendAmount(
+  distance: number,
+  route: Extract<AttackGraphEdgeRouteData, { kind: "stress" }>,
+) {
+  if (route.fanoutCount <= 1) {
+    return clamp(distance * 0.028, 6, 18);
+  }
+
+  const baseBend = clamp(distance * 0.032, 8, 20);
+  return (
+    route.fanoutOffset * 0.72 +
+    Math.sign(route.fanoutIndex || 1) * baseBend
+  );
+}
+
+function getParallelPairOffset(
+  route: Extract<AttackGraphEdgeRouteData, { kind: "stress" }>,
+) {
+  if (typeof route.parallelOffset === "number") {
+    return route.parallelOffset;
+  }
+  if (route.fanoutCount <= 1) {
+    return 0;
+  }
+
+  const step = route.fanoutCount <= 3 ? 22 : route.fanoutCount <= 6 ? 17 : 13;
+  return clamp(route.fanoutIndex * step, -44, 44);
+}
+
+function getParallelPairBendAmount(
+  distance: number,
+  route: Extract<AttackGraphEdgeRouteData, { kind: "stress" }>,
+) {
+  const offset = getParallelPairOffset(route);
+  if (route.fanoutIndex === 0) {
+    return 0;
+  }
+
+  const maxBend = Math.max(18, Math.min(42, distance * 0.24));
+  return clamp(offset * 0.72, -maxBend, maxBend);
 }
 
 function getReadableLabelNormal(

@@ -1,4 +1,5 @@
 import type { AttackGraphEdgeKind } from "./attack-graph-edge-types";
+import type { AttackGraphEdgeRouteData } from "./attack-graph-edge-routing";
 import type { AttackGraphNodePresentationKind } from "./attack-graph-node-types";
 
 export interface GraphCaseNodeDto {
@@ -133,4 +134,38 @@ export interface AttackGraphLayoutResult extends AttackGraphModel {
   layoutMode: AttackGraphLayoutMode;
   layoutSession: AttackGraphLayoutSession;
   layoutStrategy: AttackGraphLayoutStrategy;
+  edgeDiagnostics?: AttackGraphEdgeDiagnostics;
+  edgeRoutesById?: Map<string, AttackGraphEdgeRouteData>;
+  topologyDiagnostics?: AttackGraphTopologyDiagnostics;
+  topologyKind?: string;
+}
+
+export interface AttackGraphEdgeDiagnostics {
+  blockedEdgeCount: number;
+  crossingPairCount: number;
+  detourEdgeCount: number;
+  edgeCount: number;
+  maxBlockedNodeCount: number;
+  relationEdgeCount: number;
+  selfLoopEdgeCount: number;
+  skipEdgeCount: number;
+  suspiciousEdgeIds: string[];
+}
+
+export interface AttackGraphTopologyDiagnostics {
+  backEdgeCount: number;
+  cyclic: boolean;
+  duplicatePairCount: number;
+  edgeCount: number;
+  maxInDegree: number;
+  maxOutDegree: number;
+  multiEdgePairCount: number;
+  nodeCount: number;
+  relationEdgeCount: number;
+  rootCount: number;
+  selfLoopCount: number;
+  sinkCount: number;
+  treeEdgeDelta: number;
+  zeroInDegreeCount: number;
+  zeroOutDegreeCount: number;
 }
