@@ -30,6 +30,7 @@ export interface AttackGraphNodeData {
   size: AttackGraphNodeSize;
   activeState: AttackGraphNodeVisualState;
   selectedState: AttackGraphNodeVisualState;
+  evidenceHit: boolean;
   missingFromResponse: boolean;
 }
 
@@ -101,6 +102,9 @@ export function AttackGraphNode({
             height={Math.max(24, data.size.icon - 18)}
             className="h-auto w-auto max-w-[68%]"
           />
+          {data.evidenceHit ? (
+            <span className="absolute right-0 top-0 h-3 w-3 rounded-full border-2 border-white bg-red-500 shadow-[0_4px_10px_rgba(239,68,68,0.34)]" />
+          ) : null}
           {selected ? (
             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow-[0_4px_10px_rgba(37,99,235,0.32)]" />
           ) : null}

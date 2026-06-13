@@ -861,6 +861,7 @@ function toNodeVisualItem(node: AttackGraphNodeModel): AttackGraphNodeData {
       "selected",
       size,
     ),
+    evidenceHit: Boolean(node.evidenceHit),
     missingFromResponse: Boolean(node.missingFromResponse),
   };
 }
