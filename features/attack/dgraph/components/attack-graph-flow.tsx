@@ -611,8 +611,6 @@ export function AttackGraphFlow({
     (event, node) => {
       event.preventDefault();
       onNodeContextMenu?.(event, node);
-      setSelectedEdgeId(null);
-      setSelectedNodeId(node.id);
 
       const graphNode = layoutedNodesById.get(node.id);
       if (!layouted || !graphNode) {
