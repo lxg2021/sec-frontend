@@ -627,7 +627,7 @@ function createEmptyLayoutSession(
     mode: "tiny",
     newNodeIds: new Set(),
     nodePositionsById: new Map(),
-    stableCenterNodeId: undefined,
+    anchorNodeId: undefined,
     strategy,
   };
 }

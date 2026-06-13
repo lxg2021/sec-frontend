@@ -931,7 +931,7 @@ function buildAttackGraphLayoutResult({
   nextLayout: {
     mode: AttackGraphLayoutSession["mode"];
     nodes: AttackGraphNodeModel[];
-    stableCenterNodeId?: AttackGraphLayoutSession["stableCenterNodeId"];
+    anchorNodeId?: AttackGraphLayoutSession["anchorNodeId"];
   };
   nodeHeight: number;
   nodeWidth: number;
@@ -950,7 +950,7 @@ function buildAttackGraphLayoutResult({
     mode: nextLayout.mode,
     newNodeIds,
     nodes: layoutedResultNodes,
-    stableCenterNodeId: nextLayout.stableCenterNodeId,
+    anchorNodeId: nextLayout.anchorNodeId,
     strategy,
   });
 
@@ -1243,14 +1243,14 @@ function buildLayoutSession({
   mode,
   newNodeIds,
   nodes,
-  stableCenterNodeId,
+  anchorNodeId,
   strategy,
 }: {
   caseId: string;
   mode: AttackGraphLayoutSession["mode"];
   newNodeIds: Set<string>;
   nodes: AttackGraphNodeModel[];
-  stableCenterNodeId?: AttackGraphLayoutSession["stableCenterNodeId"];
+  anchorNodeId?: AttackGraphLayoutSession["anchorNodeId"];
   strategy: AttackGraphLayoutSession["strategy"];
 }): AttackGraphLayoutSession {
   return {
@@ -1260,7 +1260,7 @@ function buildLayoutSession({
     nodePositionsById: new Map(
       nodes.map((node) => [node.id, node.position ?? { x: 0, y: 0 }]),
     ),
-    stableCenterNodeId,
+    anchorNodeId,
     strategy,
   };
 }

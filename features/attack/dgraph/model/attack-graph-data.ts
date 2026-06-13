@@ -104,7 +104,7 @@ export interface AttackGraphLayoutSession {
   mode: AttackGraphLayoutMode;
   newNodeIds: Set<string>;
   nodePositionsById: Map<string, AttackGraphPoint>;
-  stableCenterNodeId?: string;
+  anchorNodeId?: string;
   strategy: AttackGraphLayoutStrategy;
 }
 

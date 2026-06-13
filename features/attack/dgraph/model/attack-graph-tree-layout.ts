@@ -16,7 +16,7 @@ export interface AttackGraphTreeLayoutOptions {
 
 export interface AttackGraphTreeLayoutResult {
   nodes: AttackGraphNodeModel[];
-  stableCenterNodeId?: string;
+  anchorNodeId?: string;
 }
 
 const GRAPH_PADDING = 40;
@@ -84,7 +84,7 @@ export function processTreeLayout(
 
   return {
     nodes,
-    stableCenterNodeId: topology.rootId,
+    anchorNodeId: topology.rootId,
   };
 }
 

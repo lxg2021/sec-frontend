@@ -25,7 +25,7 @@ export interface AttackGraphComplexLayoutOptions {
 
 export interface AttackGraphComplexLayoutResult {
   nodes: AttackGraphNodeModel[];
-  stableCenterNodeId?: string;
+  anchorNodeId?: string;
 }
 
 interface NodeScore {
@@ -117,7 +117,7 @@ export function processComplexLayeredLayout(
 
   return {
     nodes,
-    stableCenterNodeId: chooseComplexCenterNodeId(graph.nodes, scoreByNodeId),
+    anchorNodeId: chooseComplexCenterNodeId(graph.nodes, scoreByNodeId),
   };
 }
 

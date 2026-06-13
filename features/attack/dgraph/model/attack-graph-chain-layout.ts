@@ -12,7 +12,7 @@ export interface AttackGraphChainLayoutOptions {
 
 export interface AttackGraphChainLayoutResult {
   nodes: AttackGraphNodeModel[];
-  stableCenterNodeId?: string;
+  anchorNodeId?: string;
 }
 
 const GRAPH_PADDING = 40;
@@ -48,7 +48,7 @@ export function processLinearChainLayout(
 
   return {
     nodes,
-    stableCenterNodeId: orderedNodes[0]?.id,
+    anchorNodeId: orderedNodes[0]?.id,
   };
 }
 

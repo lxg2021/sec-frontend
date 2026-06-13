@@ -13,7 +13,7 @@ export interface AttackGraphFanoutLayoutOptions {
 
 export interface AttackGraphFanoutLayoutResult {
   nodes: AttackGraphNodeModel[];
-  stableCenterNodeId?: string;
+  anchorNodeId?: string;
 }
 
 const GRAPH_PADDING = 40;
@@ -89,7 +89,7 @@ export function processSingleSourceFanoutLayout(
 
   return {
     nodes,
-    stableCenterNodeId: sourceNode.id,
+    anchorNodeId: sourceNode.id,
   };
 }
 
@@ -154,7 +154,7 @@ export function processMultiSourceFaninLayout(
 
   return {
     nodes,
-    stableCenterNodeId: targetNode.id,
+    anchorNodeId: targetNode.id,
   };
 }
 
