@@ -1,0 +1,149 @@
+"use client";
+
+import { RotateCcw, Shield } from "lucide-react";
+
+import {
+  AttackGraphFlow,
+  AttackGraphFlowHeader,
+} from "./attack-graph-flow";
+import {
+  AttackGraphLayoutStrategyToggle,
+  type AttackGraphLayoutStrategyOption,
+} from "./attack-graph-layout-strategy-toggle";
+import type {
+  AttackGraphLayoutOptions,
+  GraphCaseResponseDto,
+} from "../model/attack-graph-data";
+import type { AttackGraphMenuAction } from "../model/attack-graph-menu-types";
+import { Button } from "@/shared/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+} from "@/shared/ui/card";
+
+export interface AttackGraphCaseCardProps {
+  caseId: string;
+  edgeCount?: number;
+  error?: string;
+  layoutOptions?: AttackGraphLayoutOptions;
+  layoutStrategy: AttackGraphLayoutStrategyOption;
+  loading?: boolean;
+  nodeCount?: number;
+  onLayoutStrategyChange: (strategy: AttackGraphLayoutStrategyOption) => void;
+  onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
+  onResetPositions: () => void;
+  positionResetKey: number | string;
+  response: GraphCaseResponseDto | null;
+  subtitle?: string;
+  title: string;
+}
+
+export function AttackGraphCaseCard({
+  caseId,
+  edgeCount = 0,
+  error = "",
+  layoutOptions,
+  layoutStrategy,
+  loading = false,
+  nodeCount = 0,
+  onLayoutStrategyChange,
+  onMenuAction,
+  onResetPositions,
+  positionResetKey,
+  response,
+  subtitle,
+  title,
+}: AttackGraphCaseCardProps) {
+  const hasCaseId = Boolean(caseId.trim());
+  const hasGraph = Boolean(response && nodeCount > 0);
+
+  return (
+    <Card className="!bg-transparent border border-gray-200 shadow-sm">
+      <CardHeader className="px-6 py-5">
+        <AttackGraphFlowHeader
+          title={title}
+          subtitle={subtitle}
+          nodeCount={response ? nodeCount : undefined}
+          edgeCount={response ? edgeCount : undefined}
+          action={
+            hasGraph ? (
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-10 bg-white px-3 text-xs font-medium text-slate-600"
+                  onClick={onResetPositions}
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reset Positions
+                </Button>
+                <AttackGraphLayoutStrategyToggle
+                  value={layoutStrategy}
+                  onChange={onLayoutStrategyChange}
+                />
+              </div>
+            ) : null
+          }
+        />
+      </CardHeader>
+
+      <div className="border-t border-gray-100" />
+
+      <CardContent className="p-0">
+        <div className="w-full h-[760px]">
+          {!hasCaseId ? (
+            <GraphStateMessage
+              title="No CaseID"
+              description="Select a case in Attack Details and click Trace Attack to load the GraphCase view."
+            />
+          ) : loading ? (
+            <GraphStateMessage
+              title="Loading GraphCase"
+              description={`Fetching graph data for case ${caseId}.`}
+            />
+          ) : error ? (
+            <GraphStateMessage
+              title="GraphCase Load Failed"
+              description={error}
+            />
+          ) : hasGraph && response ? (
+            <AttackGraphFlow
+              response={response}
+              className="h-full"
+              layoutOptions={layoutOptions}
+              onMenuAction={onMenuAction}
+              positionResetKey={positionResetKey}
+            />
+          ) : (
+            <GraphStateMessage
+              title="No Graph Data"
+              description={`GraphCase returned no nodes for case ${caseId}.`}
+            />
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function GraphStateMessage({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex h-full min-h-[420px] items-center justify-center px-6 text-center">
+      <div className="max-w-md">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100">
+          <Shield className="h-5 w-5 text-slate-500" />
+        </div>
+        <div className="text-sm font-semibold text-slate-800">{title}</div>
+        <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
+      </div>
+    </div>
+  );
+}

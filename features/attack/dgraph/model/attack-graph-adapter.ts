@@ -4,6 +4,7 @@ import {
   RELATION_TYPE_TO_EDGE_KIND,
 } from "./attack-graph-edge-types";
 import { getAttackGraphNodePresentationKind } from "./attack-graph-node-types";
+import { buildAttackGraphEdgeSemanticKey } from "./attack-graph-edge-identity";
 import type {
   AttackGraphEdgeModel,
   AttackGraphEvidenceRef,
@@ -185,14 +186,10 @@ function normalizeEdge(rawEdge: GraphCaseEdgeDto): AttackGraphEdgeModel | null {
   const graphOrigin = stringValue(rawEdge.graph_origin);
 
   return {
-    id: buildEdgeId({
-      scopeType,
-      scopeId,
+    id: buildAttackGraphEdgeSemanticKey({
       relationType,
       source,
       target,
-      edgeKey,
-      graphOrigin,
     }),
     scopeType,
     scopeId,
@@ -221,26 +218,6 @@ function buildMissingEndpointNode(
   };
   applyEvidenceRefs(node, evidenceRefsByTarget.get(key));
   return node;
-}
-
-function buildEdgeId(input: {
-  scopeType: string;
-  scopeId: string;
-  relationType: string;
-  source: string;
-  target: string;
-  edgeKey: string;
-  graphOrigin: string;
-}) {
-  return [
-    input.scopeType,
-    input.scopeId,
-    input.relationType,
-    input.source,
-    input.target,
-    input.edgeKey,
-    input.graphOrigin,
-  ].join("|");
 }
 
 function normalizeProperties(
