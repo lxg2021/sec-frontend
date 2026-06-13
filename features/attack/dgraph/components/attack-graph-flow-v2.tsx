@@ -76,14 +76,13 @@ export interface AttackGraphFlowDiagnostics {
   graphHeight: number;
   graphWidth: number;
   layoutMode: AttackGraphLayoutResult["layoutMode"];
+  layoutStrategy: AttackGraphLayoutResult["layoutStrategy"];
   nodeCount: number;
   edgeCount: number;
   topologyDiagnostics?: AttackGraphLayoutResult["topologyDiagnostics"];
   topologyDiagnosticsText: string;
   topologyKind?: string;
 }
-
-const ATTACK_GRAPH_LAYOUT_STRATEGY: AttackGraphLayoutStrategy = "stable";
 
 const nodeTypes: NodeTypes = {
   attackGraphNodeV2: AttackGraphNode,
@@ -116,6 +115,7 @@ export function AttackGraphFlowV2({
   const layoutSessionsByStrategyRef = useRef<
     Partial<Record<AttackGraphLayoutStrategy, AttackGraphLayoutSession>>
   >({});
+  const lastLayoutStrategyRef = useRef<AttackGraphLayoutStrategy | null>(null);
   const previousCaseIdRef = useRef<string>("");
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
   const hasFittedRef = useRef(false);
@@ -124,14 +124,19 @@ export function AttackGraphFlowV2({
     let cancelled = false;
     const graph = buildAttackGraphModel(response);
     const caseChanged = previousCaseIdRef.current !== graph.caseId;
+    const requestedStrategy = layoutOptions?.strategy;
+    const previousStrategy = requestedStrategy ?? lastLayoutStrategyRef.current;
     const previousSession = caseChanged
       ? null
-      : layoutSessionsByStrategyRef.current[ATTACK_GRAPH_LAYOUT_STRATEGY] ?? null;
+      : previousStrategy
+        ? layoutSessionsByStrategyRef.current[previousStrategy] ?? null
+        : null;
 
     hasFittedRef.current = false;
     if (caseChanged) {
       setLayouted(null);
       layoutSessionsByStrategyRef.current = {};
+      lastLayoutStrategyRef.current = null;
       previousCaseIdRef.current = graph.caseId;
     }
     layoutAttackGraph(graph, {
@@ -142,12 +147,12 @@ export function AttackGraphFlowV2({
       rankSep: 110,
       session: previousSession,
       ...layoutOptions,
-      strategy: ATTACK_GRAPH_LAYOUT_STRATEGY,
     })
       .then((nextLayouted) => {
         if (!cancelled) {
           layoutSessionsByStrategyRef.current[nextLayouted.layoutStrategy] =
             nextLayouted.layoutSession;
+          lastLayoutStrategyRef.current = nextLayouted.layoutStrategy;
           setLayouted(nextLayouted);
         }
       })
@@ -160,9 +165,9 @@ export function AttackGraphFlowV2({
             layoutMode: "tiny",
             layoutSession: createEmptyLayoutSession(
               graph.caseId,
-              ATTACK_GRAPH_LAYOUT_STRATEGY,
+              requestedStrategy ?? "layered",
             ),
-            layoutStrategy: ATTACK_GRAPH_LAYOUT_STRATEGY,
+            layoutStrategy: requestedStrategy ?? "layered",
             topologyDiagnostics: {
               backEdgeCount: 0,
               cyclic: false,
@@ -262,6 +267,7 @@ export function AttackGraphFlowV2({
       graphHeight: layouted.height,
       graphWidth: layouted.width,
       layoutMode: layouted.layoutMode,
+      layoutStrategy: layouted.layoutStrategy,
       nodeCount: layoutedNodes.length,
       topologyDiagnostics: layouted.topologyDiagnostics,
       topologyDiagnosticsText,
@@ -374,6 +380,7 @@ export function AttackGraphFlowV2({
           onPaneClick={handlePaneClick}
           data-attack-graph-flow-v2="true"
           data-attack-graph-edge-diagnostics={edgeDiagnosticsText}
+          data-attack-graph-layout-strategy={layouted?.layoutStrategy ?? "pending"}
           data-attack-graph-topology-diagnostics={topologyDiagnosticsText}
           data-attack-graph-topology={layouted?.topologyKind ?? "pending"}
           {...reactFlowProps}

@@ -66,7 +66,7 @@ const EVALUATION_SCENARIOS: EvaluationScenario[] = [
   {
     id: "linear-process-chain",
     title: "Linear process chain",
-    description: "Three process nodes should read as one stable left-to-right chain.",
+    description: "Three process nodes should read as one consistent left-to-right chain.",
     response: buildGraphCase({
       caseId: "linear-process-chain",
       nodes: [
@@ -276,6 +276,7 @@ export function AttackGraphLayoutEvaluationCard() {
         const previous = current[scenarioId];
         if (
           previous?.edgeDiagnosticsText === diagnostics.edgeDiagnosticsText &&
+          previous?.layoutStrategy === diagnostics.layoutStrategy &&
           previous?.topologyDiagnosticsText === diagnostics.topologyDiagnosticsText &&
           previous?.topologyKind === diagnostics.topologyKind
         ) {
@@ -363,6 +364,12 @@ export function AttackGraphLayoutEvaluationCard() {
                             value={diagnostics.topologyKind ?? "unknown"}
                           />
                         ) : null}
+                        {diagnostics ? (
+                          <MetricBadge
+                            label="strategy"
+                            value={diagnostics.layoutStrategy}
+                          />
+                        ) : null}
                       </div>
                     </button>
                   );
@@ -418,6 +425,7 @@ function ScenarioDiagnostics({
   return (
     <div className="grid grid-cols-2 gap-2 text-xs">
       <MetricBox label="topology" value={diagnostics.topologyKind ?? "unknown"} />
+      <MetricBox label="strategy" value={diagnostics.layoutStrategy} />
       <MetricBox
         label="blocked/crossing"
         value={`${diagnostics.edgeDiagnostics.blockedEdgeCount}/${diagnostics.edgeDiagnostics.crossingPairCount}`}
@@ -541,7 +549,6 @@ async function evaluateScenario(
     nodeSep: 48,
     nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
     rankSep: 110,
-    strategy: "stable",
   });
   const nodeGeometryById = buildEvaluationNodeGeometryById(layouted.nodes);
   const edgeRoutesById = buildAttackGraphEdgeRoutes(
@@ -562,6 +569,7 @@ async function evaluateScenario(
     graphHeight: layouted.height,
     graphWidth: layouted.width,
     layoutMode: layouted.layoutMode,
+    layoutStrategy: layouted.layoutStrategy,
     nodeCount: layouted.nodes.length,
     topologyDiagnostics: layouted.topologyDiagnostics,
     topologyDiagnosticsText: layouted.topologyDiagnostics

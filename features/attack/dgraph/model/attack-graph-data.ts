@@ -95,7 +95,7 @@ export interface AttackGraphPoint {
   y: number;
 }
 
-export type AttackGraphLayoutStrategy = "stable";
+export type AttackGraphLayoutStrategy = "layered" | "stress";
 
 export type AttackGraphLayoutMode = "tiny" | "compact";
 

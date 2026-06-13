@@ -59,18 +59,17 @@ export async function layoutAttackGraph(
   const nodeHeight = options.nodeHeight ?? DEFAULT_NODE_HEIGHT;
   const nodeSep = options.nodeSep ?? DEFAULT_NODE_SEP;
   const rankSep = options.rankSep ?? DEFAULT_RANK_SEP;
-  const strategy = options.strategy ?? "stable";
+  const topology = classifyAttackGraphTopology(graph);
+  const strategy =
+    options.strategy ?? chooseAttackGraphLayoutStrategy(graph, topology);
   const previousSession =
     options.session?.caseId === graph.caseId &&
     options.session.strategy === strategy
       ? options.session
       : null;
-  const topology = classifyAttackGraphTopology(graph);
-  if (
-    strategy === "stable" &&
-    shouldUseElkCompleteLayout(graph)
-  ) {
-    return layoutGraphWithElkCompleteRouting({
+
+  if (strategy === "stress") {
+    return layoutStressAttackGraph({
       direction,
       graph,
       newNodeIds: getNewNodeIds(graph.nodes, previousSession),
@@ -84,7 +83,67 @@ export async function layoutAttackGraph(
       topologyKind: topology.kind,
     });
   }
-  if (strategy === "stable" && topology.kind === "linear-chain") {
+
+  return layoutLayeredAttackGraph({
+    graph,
+    newNodeIds: getNewNodeIds(graph.nodes, previousSession),
+    nodeHeight,
+    nodeWidth,
+    previousSession,
+    rankSep,
+    strategy,
+    topology,
+  });
+}
+
+function chooseAttackGraphLayoutStrategy(
+  graph: AttackGraphModel,
+  topology: ReturnType<typeof classifyAttackGraphTopology>,
+): AttackGraphLayoutSession["strategy"] {
+  if (shouldUseStressLayout(graph, topology)) {
+    return "stress";
+  }
+
+  return "layered";
+}
+
+function shouldUseStressLayout(
+  graph: AttackGraphModel,
+  topology: ReturnType<typeof classifyAttackGraphTopology>,
+) {
+  if (
+    graph.nodes.length >= LARGE_GRAPH_NODE_LIMIT ||
+    graph.edges.length >= LARGE_GRAPH_EDGE_LIMIT
+  ) {
+    return true;
+  }
+
+  const relationEdgeCount = topology.diagnostics.relationEdgeCount;
+  const density =
+    graph.nodes.length > 0 ? relationEdgeCount / graph.nodes.length : 0;
+  return graph.nodes.length >= 12 && density >= 1.65;
+}
+
+function layoutLayeredAttackGraph({
+  graph,
+  newNodeIds,
+  nodeHeight,
+  nodeWidth,
+  previousSession,
+  rankSep,
+  strategy,
+  topology,
+}: {
+  graph: AttackGraphModel;
+  newNodeIds: Set<string>;
+  nodeHeight: number;
+  nodeWidth: number;
+  previousSession: AttackGraphLayoutSession | null;
+  rankSep: number;
+  strategy: AttackGraphLayoutSession["strategy"];
+  topology: ReturnType<typeof classifyAttackGraphTopology>;
+}): AttackGraphLayoutResult {
+  if (topology.kind === "linear-chain") {
     const nextLayout = {
       mode: "compact" as const,
       ...processLinearChainLayout(graph, topology, {
@@ -95,7 +154,7 @@ export async function layoutAttackGraph(
     };
     return buildAttackGraphLayoutResult({
       graph,
-      newNodeIds: getNewNodeIds(graph.nodes, previousSession),
+      newNodeIds,
       nextLayout,
       nodeHeight,
       nodeWidth,
@@ -105,7 +164,7 @@ export async function layoutAttackGraph(
       topologyKind: topology.kind,
     });
   }
-  if (strategy === "stable" && topology.kind === "single-source-fanout") {
+  if (topology.kind === "single-source-fanout") {
     const nextLayout = {
       mode: "compact" as const,
       ...processSingleSourceFanoutLayout(graph, topology, {
@@ -117,7 +176,7 @@ export async function layoutAttackGraph(
     };
     return buildAttackGraphLayoutResult({
       graph,
-      newNodeIds: getNewNodeIds(graph.nodes, previousSession),
+      newNodeIds,
       nextLayout,
       nodeHeight,
       nodeWidth,
@@ -127,7 +186,7 @@ export async function layoutAttackGraph(
       topologyKind: topology.kind,
     });
   }
-  if (strategy === "stable" && topology.kind === "multi-source-fanin") {
+  if (topology.kind === "multi-source-fanin") {
     const nextLayout = {
       mode: "compact" as const,
       ...processMultiSourceFaninLayout(graph, topology, {
@@ -139,7 +198,7 @@ export async function layoutAttackGraph(
     };
     return buildAttackGraphLayoutResult({
       graph,
-      newNodeIds: getNewNodeIds(graph.nodes, previousSession),
+      newNodeIds,
       nextLayout,
       nodeHeight,
       nodeWidth,
@@ -149,7 +208,7 @@ export async function layoutAttackGraph(
       topologyKind: topology.kind,
     });
   }
-  if (strategy === "stable" && topology.kind === "tree") {
+  if (topology.kind === "tree") {
     const nextLayout = {
       mode: "compact" as const,
       ...processTreeLayout(graph, topology, {
@@ -161,7 +220,7 @@ export async function layoutAttackGraph(
     };
     return buildAttackGraphLayoutResult({
       graph,
-      newNodeIds: getNewNodeIds(graph.nodes, previousSession),
+      newNodeIds,
       nextLayout,
       nodeHeight,
       nodeWidth,
@@ -183,7 +242,7 @@ export async function layoutAttackGraph(
   };
   return buildAttackGraphLayoutResult({
     graph,
-    newNodeIds: getNewNodeIds(graph.nodes, previousSession),
+    newNodeIds,
     nextLayout,
     nodeHeight,
     nodeWidth,
@@ -194,7 +253,7 @@ export async function layoutAttackGraph(
   });
 }
 
-async function layoutGraphWithElkCompleteRouting({
+async function layoutStressAttackGraph({
   direction,
   graph,
   newNodeIds,
@@ -271,13 +330,6 @@ async function layoutGraphWithElkCompleteRouting({
     topologyDiagnostics,
     topologyKind,
   });
-}
-
-function shouldUseElkCompleteLayout(graph: AttackGraphModel) {
-  return (
-    graph.nodes.length >= LARGE_GRAPH_NODE_LIMIT ||
-    graph.edges.length >= LARGE_GRAPH_EDGE_LIMIT
-  );
 }
 
 function buildElkGraph({
