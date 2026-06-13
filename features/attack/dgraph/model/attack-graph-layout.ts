@@ -57,7 +57,6 @@ export async function layoutAttackGraph(
   const direction = options.direction ?? "LR";
   const nodeWidth = options.nodeWidth ?? DEFAULT_NODE_WIDTH;
   const nodeHeight = options.nodeHeight ?? DEFAULT_NODE_HEIGHT;
-  const portY = options.portY ?? nodeHeight / 2;
   const nodeSep = options.nodeSep ?? DEFAULT_NODE_SEP;
   const rankSep = options.rankSep ?? DEFAULT_RANK_SEP;
   const strategy = options.strategy ?? "stable";
@@ -172,32 +171,15 @@ export async function layoutAttackGraph(
       topologyKind: topology.kind,
     });
   }
-  if (strategy === "stable") {
-    const nextLayout = {
-      mode: "compact" as const,
-      ...processComplexLayeredLayout(graph, {
-        nodeHeight,
-        nodeWidth,
-        rankGap: Math.max(150, rankSep + 42),
-        rowGap: Math.max(62, nodeHeight * 0.56),
-        session: previousSession,
-      }),
-    };
-    return buildAttackGraphLayoutResult({
-      graph,
-      newNodeIds: getNewNodeIds(graph.nodes, previousSession),
-      nextLayout,
-      nodeHeight,
-      nodeWidth,
-      previousSession,
-      strategy,
-      topologyDiagnostics: topology.diagnostics,
-      topologyKind: topology.kind,
-    });
-  }
   const nextLayout = {
     mode: "compact" as const,
-    nodes: graph.nodes,
+    ...processComplexLayeredLayout(graph, {
+      nodeHeight,
+      nodeWidth,
+      rankGap: Math.max(150, rankSep + 42),
+      rowGap: Math.max(62, nodeHeight * 0.56),
+      session: previousSession,
+    }),
   };
   return buildAttackGraphLayoutResult({
     graph,

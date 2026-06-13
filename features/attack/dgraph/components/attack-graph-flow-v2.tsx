@@ -138,7 +138,6 @@ export function AttackGraphFlowV2({
       direction: "LR",
       nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
       nodeHeight: ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
-      portY: ATTACK_GRAPH_NODE_HALO_PADDING + 58 / 2,
       nodeSep: 48,
       rankSep: 110,
       session: previousSession,

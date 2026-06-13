@@ -112,7 +112,6 @@ export interface AttackGraphLayoutOptions {
   direction?: "LR" | "TB";
   nodeWidth?: number;
   nodeHeight?: number;
-  portY?: number;
   nodeSep?: number;
   rankSep?: number;
   session?: AttackGraphLayoutSession | null;

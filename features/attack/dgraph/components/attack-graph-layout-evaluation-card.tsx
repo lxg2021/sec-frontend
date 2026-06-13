@@ -540,7 +540,6 @@ async function evaluateScenario(
     nodeHeight: ATTACK_GRAPH_DEFAULT_NODE_HEIGHT,
     nodeSep: 48,
     nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
-    portY: ATTACK_GRAPH_NODE_HALO_PADDING + 58 / 2,
     rankSep: 110,
     strategy: "stable",
   });
