@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { Shield } from "lucide-react";
 import ReactFlow, {
   Background,
   MiniMap,
@@ -82,6 +90,52 @@ export interface AttackGraphFlowDiagnostics {
   topologyDiagnostics?: AttackGraphLayoutResult["topologyDiagnostics"];
   topologyDiagnosticsText: string;
   topologyKind?: string;
+}
+
+export function AttackGraphFlowHeader({
+  title,
+  subtitle,
+  nodeCount,
+  edgeCount,
+  action,
+  className,
+}: {
+  title: string;
+  subtitle?: string;
+  nodeCount?: number;
+  edgeCount?: number;
+  action?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn("flex flex-wrap items-center justify-between gap-3", className)}
+    >
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50">
+          <Shield className="h-5 w-5 text-blue-400" />
+        </div>
+        <div className="min-w-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h2 className="truncate text-2xl font-semibold leading-7 text-slate-950">
+              {title}
+            </h2>
+            {typeof nodeCount === "number" && typeof edgeCount === "number" ? (
+              <span className="rounded-sm bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
+                {nodeCount} nodes / {edgeCount} edges
+              </span>
+            ) : null}
+          </div>
+          {subtitle ? (
+            <p className="mt-1 truncate text-sm leading-5 text-slate-500">
+              {subtitle}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </div>
+  );
 }
 
 const nodeTypes: NodeTypes = {
