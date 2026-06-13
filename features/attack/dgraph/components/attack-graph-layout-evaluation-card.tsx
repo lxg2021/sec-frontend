@@ -13,7 +13,11 @@ import {
 } from "@/shared/ui/card";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 
-import type { GraphCaseResponseDto } from "../model/attack-graph-data";
+import type {
+  AttackGraphLayoutOptions,
+  AttackGraphLayoutStrategy,
+  GraphCaseResponseDto,
+} from "../model/attack-graph-data";
 import { buildAttackGraphModel } from "../model/attack-graph-adapter";
 import { buildAttackGraphEdgeDiagnostics } from "../model/attack-graph-edge-diagnostics";
 import {
@@ -37,6 +41,7 @@ import {
 } from "./attack-graph-node";
 
 type EvaluationStatus = "pass" | "review" | "fail" | "pending";
+type EvaluationStrategyOption = "auto" | AttackGraphLayoutStrategy;
 
 interface EvaluationScenario {
   description: string;
@@ -46,6 +51,11 @@ interface EvaluationScenario {
 }
 
 const DEFAULT_CASE_ID_PREFIX = "layout-eval";
+const EVALUATION_STRATEGY_OPTIONS: EvaluationStrategyOption[] = [
+  "auto",
+  "layered",
+  "stress",
+];
 
 const EVALUATION_SCENARIOS: EvaluationScenario[] = [
   {
@@ -225,6 +235,8 @@ export function AttackGraphLayoutEvaluationCard() {
   const [selectedScenarioId, setSelectedScenarioId] = useState(
     EVALUATION_SCENARIOS[0]?.id ?? "",
   );
+  const [strategyOption, setStrategyOption] =
+    useState<EvaluationStrategyOption>("auto");
   const [diagnosticsByScenarioId, setDiagnosticsByScenarioId] = useState<
     Record<string, AttackGraphFlowDiagnostics>
   >({});
@@ -235,12 +247,13 @@ export function AttackGraphLayoutEvaluationCard() {
 
   useEffect(() => {
     let cancelled = false;
+    setDiagnosticsByScenarioId({});
 
     async function evaluateScenarios() {
       const results = await Promise.all(
         EVALUATION_SCENARIOS.map(async (scenario) => [
           scenario.id,
-          await evaluateScenario(scenario),
+          await evaluateScenario(scenario, strategyOption),
         ] as const),
       );
       if (!cancelled) {
@@ -255,7 +268,7 @@ export function AttackGraphLayoutEvaluationCard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [strategyOption]);
 
   const summary = useMemo(() => {
     const statuses = EVALUATION_SCENARIOS.map((scenario) =>
@@ -309,6 +322,10 @@ export function AttackGraphLayoutEvaluationCard() {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
+            <StrategyToggle
+              value={strategyOption}
+              onChange={setStrategyOption}
+            />
             <SummaryPill label="Pass" value={summary.pass} tone="pass" />
             <SummaryPill label="Review" value={summary.review} tone="review" />
             <SummaryPill label="Fail" value={summary.fail} tone="fail" />
@@ -393,9 +410,10 @@ export function AttackGraphLayoutEvaluationCard() {
             </div>
             <div className="h-[544px] bg-white">
               <AttackGraphFlowV2
-                key={selectedScenario.id}
+                key={`${selectedScenario.id}-${strategyOption}`}
                 response={selectedScenario.response}
                 className="h-full"
+                layoutOptions={getEvaluationLayoutOptions(strategyOption)}
                 showBackground
                 onDiagnosticsChange={(diagnostics) =>
                   handleDiagnosticsChange(selectedScenario.id, diagnostics)
@@ -438,6 +456,38 @@ function ScenarioDiagnostics({
         label="size"
         value={`${Math.round(diagnostics.graphWidth)}x${Math.round(diagnostics.graphHeight)}`}
       />
+    </div>
+  );
+}
+
+function StrategyToggle({
+  onChange,
+  value,
+}: {
+  onChange: (value: EvaluationStrategyOption) => void;
+  value: EvaluationStrategyOption;
+}) {
+  return (
+    <div className="inline-flex rounded-md border border-slate-200 bg-white p-0.5">
+      {EVALUATION_STRATEGY_OPTIONS.map((option) => {
+        const selected = option === value;
+
+        return (
+          <button
+            key={option}
+            type="button"
+            className={cn(
+              "min-w-16 rounded px-2.5 py-1 text-xs font-medium capitalize transition-colors",
+              selected
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-slate-500 hover:bg-slate-100 hover:text-slate-900",
+            )}
+            onClick={() => onChange(option)}
+          >
+            {option}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -541,6 +591,7 @@ function getToneClassName(status: EvaluationStatus) {
 
 async function evaluateScenario(
   scenario: EvaluationScenario,
+  strategyOption: EvaluationStrategyOption,
 ): Promise<AttackGraphFlowDiagnostics> {
   const graph = buildAttackGraphModel(scenario.response);
   const layouted = await layoutAttackGraph(graph, {
@@ -549,6 +600,7 @@ async function evaluateScenario(
     nodeSep: 48,
     nodeWidth: ATTACK_GRAPH_NODE_TILE_WIDTH,
     rankSep: 110,
+    ...getEvaluationLayoutOptions(strategyOption),
   });
   const nodeGeometryById = buildEvaluationNodeGeometryById(layouted.nodes);
   const edgeRoutesById = buildAttackGraphEdgeRoutes(
@@ -577,6 +629,12 @@ async function evaluateScenario(
       : "pending",
     topologyKind: layouted.topologyKind,
   };
+}
+
+function getEvaluationLayoutOptions(
+  strategyOption: EvaluationStrategyOption,
+): Pick<AttackGraphLayoutOptions, "strategy"> {
+  return strategyOption === "auto" ? {} : { strategy: strategyOption };
 }
 
 function buildEvaluationNodeGeometryById(
