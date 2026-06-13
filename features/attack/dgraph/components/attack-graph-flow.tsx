@@ -10,12 +10,14 @@ import {
 } from "react";
 import { Shield } from "lucide-react";
 import ReactFlow, {
+  applyNodeChanges,
   Background,
   MiniMap,
   Position,
   type Edge as ReactFlowEdge,
   type EdgeTypes,
   type Node as ReactFlowNode,
+  type NodeChange,
   type NodeTypes,
   type ReactFlowInstance,
   type ReactFlowProps,
@@ -146,6 +148,9 @@ const edgeTypes: EdgeTypes = {
   attackGraphEdge: AttackGraphEdge,
 };
 
+const EMPTY_ATTACK_GRAPH_NODES: AttackGraphNodeModel[] = [];
+const EMPTY_ATTACK_GRAPH_EDGES: AttackGraphEdgeModel[] = [];
+
 export function AttackGraphFlow({
   response,
   className,
@@ -160,12 +165,16 @@ export function AttackGraphFlow({
   onEdgeMouseEnter,
   onEdgeMouseLeave,
   onNodeClick,
+  onNodesChange,
   onPaneClick,
   ...reactFlowProps
 }: AttackGraphFlowProps) {
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
+  const [flowNodes, setFlowNodes] = useState<
+    ReactFlowNode<AttackGraphNodeData>[]
+  >([]);
   const layoutSessionsByStrategyRef = useRef<
     Partial<Record<AttackGraphLayoutStrategy, AttackGraphLayoutSession>>
   >({});
@@ -254,13 +263,20 @@ export function AttackGraphFlow({
     };
   }, [layoutOptions, response]);
 
-  const layoutedNodes = layouted?.nodes ?? [];
-  const layoutedEdges = layouted?.edges ?? [];
+  const layoutedNodes = layouted?.nodes ?? EMPTY_ATTACK_GRAPH_NODES;
+  const layoutedEdges = layouted?.edges ?? EMPTY_ATTACK_GRAPH_EDGES;
 
-  const nodes = useMemo(() => toReactFlowNodes(layoutedNodes), [layoutedNodes]);
+  const layoutedFlowNodes = useMemo(
+    () => toReactFlowNodes(layoutedNodes),
+    [layoutedNodes],
+  );
 
   useEffect(() => {
-    if (nodes.length > 0 && rfInstanceRef.current && !hasFittedRef.current) {
+    setFlowNodes(layoutedFlowNodes);
+  }, [layoutedFlowNodes]);
+
+  useEffect(() => {
+    if (flowNodes.length > 0 && rfInstanceRef.current && !hasFittedRef.current) {
       const timer = setTimeout(() => {
         rfInstanceRef.current?.fitView({
           duration: 220,
@@ -272,15 +288,15 @@ export function AttackGraphFlow({
       }, 80);
       return () => clearTimeout(timer);
     }
-  }, [nodes]);
+  }, [flowNodes]);
 
   const nodeColorsById = useMemo(() => {
-    return new Map(nodes.map((node) => [node.id, node.data.color]));
-  }, [nodes]);
+    return new Map(flowNodes.map((node) => [node.id, node.data.color]));
+  }, [flowNodes]);
 
   const nodeGeometryById = useMemo(() => {
-    return buildNodeGeometryById(nodes);
-  }, [nodes]);
+    return buildNodeGeometryById(flowNodes);
+  }, [flowNodes]);
 
   const edgeRoutesById = useMemo(
     () =>
@@ -406,11 +422,19 @@ export function AttackGraphFlow({
     [onPaneClick],
   );
 
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      setFlowNodes((currentNodes) => applyNodeChanges(changes, currentNodes));
+      onNodesChange?.(changes);
+    },
+    [onNodesChange],
+  );
+
   return (
     <div className={cn("relative h-full min-h-[420px] w-full bg-transparent", className)}>
       <TooltipProvider delayDuration={180}>
         <ReactFlow
-          nodes={nodes}
+          nodes={flowNodes}
           edges={edges}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
@@ -422,10 +446,11 @@ export function AttackGraphFlow({
           preventScrolling={false}
           zoomOnPinch={false}
           zoomOnScroll={false}
-          nodesDraggable={false}
+          nodesDraggable
           nodesConnectable={false}
           elementsSelectable
           onInit={(instance) => { rfInstanceRef.current = instance }}
+          onNodesChange={handleNodesChange}
           style={{ background: "transparent" }}
           onEdgeClick={handleEdgeClick}
           onEdgeMouseEnter={handleEdgeMouseEnter}
