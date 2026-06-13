@@ -76,6 +76,7 @@ export interface AttackGraphFlowProps
   className?: string;
   layoutOptions?: AttackGraphLayoutOptions;
   onDiagnosticsChange?: (diagnostics: AttackGraphFlowDiagnostics) => void;
+  positionResetKey?: number | string;
   showMiniMap?: boolean;
   showBackground?: boolean;
 }
@@ -148,14 +149,33 @@ const edgeTypes: EdgeTypes = {
   attackGraphEdge: AttackGraphEdge,
 };
 
+type AttackGraphNodePosition = { x: number; y: number };
+type ManualNodePositionsByStrategy = Record<
+  AttackGraphLayoutStrategy,
+  Map<string, AttackGraphNodePosition>
+>;
+
+const ATTACK_GRAPH_MANUAL_POSITION_STRATEGIES: AttackGraphLayoutStrategy[] = [
+  "layered",
+  "stress",
+];
 const EMPTY_ATTACK_GRAPH_NODES: AttackGraphNodeModel[] = [];
 const EMPTY_ATTACK_GRAPH_EDGES: AttackGraphEdgeModel[] = [];
+const EMPTY_MANUAL_NODE_POSITIONS = new Map<string, AttackGraphNodePosition>();
+
+function createManualNodePositionsByStrategy(): ManualNodePositionsByStrategy {
+  return {
+    layered: new Map(),
+    stress: new Map(),
+  };
+}
 
 export function AttackGraphFlow({
   response,
   className,
   layoutOptions,
   onDiagnosticsChange,
+  positionResetKey,
   showMiniMap = false,
   showBackground = true,
   fitView = false,
@@ -165,6 +185,7 @@ export function AttackGraphFlow({
   onEdgeMouseEnter,
   onEdgeMouseLeave,
   onNodeClick,
+  onNodeDragStop,
   onNodesChange,
   onPaneClick,
   ...reactFlowProps
@@ -175,6 +196,10 @@ export function AttackGraphFlow({
   const [flowNodes, setFlowNodes] = useState<
     ReactFlowNode<AttackGraphNodeData>[]
   >([]);
+  const [manualNodePositionsByStrategy, setManualNodePositionsByStrategy] =
+    useState<ManualNodePositionsByStrategy>(
+      createManualNodePositionsByStrategy,
+    );
   const layoutSessionsByStrategyRef = useRef<
     Partial<Record<AttackGraphLayoutStrategy, AttackGraphLayoutSession>>
   >({});
@@ -182,6 +207,7 @@ export function AttackGraphFlow({
   const previousCaseIdRef = useRef<string>("");
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
   const hasFittedRef = useRef(false);
+  const lastPositionResetKeyRef = useRef(positionResetKey);
 
   useEffect(() => {
     let cancelled = false;
@@ -198,6 +224,7 @@ export function AttackGraphFlow({
     hasFittedRef.current = false;
     if (caseChanged) {
       setLayouted(null);
+      setManualNodePositionsByStrategy(createManualNodePositionsByStrategy());
       layoutSessionsByStrategyRef.current = {};
       lastLayoutStrategyRef.current = null;
       previousCaseIdRef.current = graph.caseId;
@@ -265,15 +292,75 @@ export function AttackGraphFlow({
 
   const layoutedNodes = layouted?.nodes ?? EMPTY_ATTACK_GRAPH_NODES;
   const layoutedEdges = layouted?.edges ?? EMPTY_ATTACK_GRAPH_EDGES;
+  const currentLayoutStrategy = layouted?.layoutStrategy ?? null;
+  const currentManualNodePositions =
+    currentLayoutStrategy !== null
+      ? manualNodePositionsByStrategy[currentLayoutStrategy]
+      : EMPTY_MANUAL_NODE_POSITIONS;
 
   const layoutedFlowNodes = useMemo(
-    () => toReactFlowNodes(layoutedNodes),
-    [layoutedNodes],
+    () => toReactFlowNodes(layoutedNodes, currentManualNodePositions),
+    [layoutedNodes, currentManualNodePositions],
   );
 
   useEffect(() => {
     setFlowNodes(layoutedFlowNodes);
   }, [layoutedFlowNodes]);
+
+  useEffect(() => {
+    setManualNodePositionsByStrategy((currentByStrategy) => {
+      const nodeIds = new Set(layoutedNodes.map((node) => node.id));
+      let strategyChanged = false;
+      const nextByStrategy: Partial<ManualNodePositionsByStrategy> = {};
+
+      for (const strategy of ATTACK_GRAPH_MANUAL_POSITION_STRATEGIES) {
+        const currentPositions = currentByStrategy[strategy];
+        if (currentPositions.size === 0) {
+          nextByStrategy[strategy] = currentPositions;
+          continue;
+        }
+
+        let changed = false;
+        const nextPositions = new Map<string, AttackGraphNodePosition>();
+        for (const [nodeId, position] of currentPositions) {
+          if (nodeIds.has(nodeId)) {
+            nextPositions.set(nodeId, position);
+          } else {
+            changed = true;
+          }
+        }
+
+        strategyChanged ||= changed;
+        nextByStrategy[strategy] = changed ? nextPositions : currentPositions;
+      }
+
+      return strategyChanged
+        ? (nextByStrategy as ManualNodePositionsByStrategy)
+        : currentByStrategy;
+    });
+  }, [layoutedNodes]);
+
+  useEffect(() => {
+    if (
+      !currentLayoutStrategy ||
+      lastPositionResetKeyRef.current === positionResetKey
+    ) {
+      return;
+    }
+
+    lastPositionResetKeyRef.current = positionResetKey;
+    setManualNodePositionsByStrategy((currentByStrategy) => {
+      const currentPositions = currentByStrategy[currentLayoutStrategy];
+      if (currentPositions.size === 0) {
+        return currentByStrategy;
+      }
+
+      return {
+        ...currentByStrategy,
+        [currentLayoutStrategy]: new Map(),
+      };
+    });
+  }, [currentLayoutStrategy, positionResetKey]);
 
   useEffect(() => {
     if (flowNodes.length > 0 && rfInstanceRef.current && !hasFittedRef.current) {
@@ -430,6 +517,30 @@ export function AttackGraphFlow({
     [onNodesChange],
   );
 
+  const handleNodeDragStop = useCallback<
+    NonNullable<ReactFlowProps["onNodeDragStop"]>
+  >(
+    (event, node, nodes) => {
+      if (!currentLayoutStrategy) {
+        onNodeDragStop?.(event, node, nodes);
+        return;
+      }
+
+      setManualNodePositionsByStrategy((currentByStrategy) => {
+        const nextPositions = new Map(
+          currentByStrategy[currentLayoutStrategy],
+        );
+        nextPositions.set(node.id, { ...node.position });
+        return {
+          ...currentByStrategy,
+          [currentLayoutStrategy]: nextPositions,
+        };
+      });
+      onNodeDragStop?.(event, node, nodes);
+    },
+    [currentLayoutStrategy, onNodeDragStop],
+  );
+
   return (
     <div className={cn("relative h-full min-h-[420px] w-full bg-transparent", className)}>
       <TooltipProvider delayDuration={180}>
@@ -451,6 +562,7 @@ export function AttackGraphFlow({
           elementsSelectable
           onInit={(instance) => { rfInstanceRef.current = instance }}
           onNodesChange={handleNodesChange}
+          onNodeDragStop={handleNodeDragStop}
           style={{ background: "transparent" }}
           onEdgeClick={handleEdgeClick}
           onEdgeMouseEnter={handleEdgeMouseEnter}
@@ -481,15 +593,18 @@ export function AttackGraphFlow({
 
 function toReactFlowNodes(
   nodes: AttackGraphNodeModel[],
+  manualNodePositionsById: Map<string, AttackGraphNodePosition> =
+    EMPTY_MANUAL_NODE_POSITIONS,
 ): ReactFlowNode<AttackGraphNodeData>[] {
   return nodes.map((node) => {
     const data = toNodeVisualItem(node);
     const height = getAttackGraphNodeVisualHeight(data.size);
+    const manualPosition = manualNodePositionsById.get(node.id);
 
     return {
       id: node.id,
       type: "attackGraphNode",
-      position: node.position ?? { x: 0, y: 0 },
+      position: manualPosition ?? node.position ?? { x: 0, y: 0 },
       data,
       width: ATTACK_GRAPH_NODE_TILE_WIDTH,
       height,
