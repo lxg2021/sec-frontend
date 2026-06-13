@@ -9,7 +9,5 @@ export * from "./model/attack-graph-edge-config";
 export * from "./model/attack-graph-edge-routing";
 export * from "./model/attack-graph-edge-types";
 export * from "./model/attack-graph-layout";
-export * from "./model/attack-graph-layout-lanes";
 export * from "./model/attack-graph-node-config";
 export * from "./model/attack-graph-node-types";
-export * from "./model/attack-graph-stable-layout";

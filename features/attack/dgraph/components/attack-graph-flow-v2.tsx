@@ -617,13 +617,9 @@ function createEmptyLayoutSession(
   strategy: AttackGraphLayoutStrategy,
 ): AttackGraphLayoutSession {
   return {
-    activeLaneIds: [],
     caseId,
-    hasEnteredLaneMode: false,
-    laneBoundsById: new Map(),
     mode: "tiny",
     newNodeIds: new Set(),
-    nodeLaneIdById: new Map(),
     nodePositionsById: new Map(),
     stableCenterNodeId: undefined,
     strategy,

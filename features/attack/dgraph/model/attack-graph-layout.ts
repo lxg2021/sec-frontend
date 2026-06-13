@@ -19,7 +19,6 @@ import {
   processSingleSourceFanoutLayout,
 } from "./attack-graph-fanout-layout";
 import { ATTACK_GRAPH_NODE_KIND_CONFIG } from "./attack-graph-node-config";
-import { processSemanticLayout } from "./attack-graph-semantic-layout";
 import { classifyAttackGraphTopology } from "./attack-graph-topology";
 import { processTreeLayout } from "./attack-graph-tree-layout";
 import {
@@ -196,41 +195,10 @@ export async function layoutAttackGraph(
       topologyKind: topology.kind,
     });
   }
-  const elkGraph = buildElkGraph({
-    algorithm: "layered",
-    direction,
-    edgeRouting: false,
-    graph,
-    nodeHeight,
-    nodeSep,
-    nodeWidth,
-    portY,
-    rankSep,
-  });
-  const layoutedGraph = await elk.layout(elkGraph);
-  const layoutedNodeById = new Map(
-    (layoutedGraph.children ?? []).map((node) => [node.id, node]),
-  );
-  const layoutedNodes = graph.nodes.map((node) => {
-    const elkNode = layoutedNodeById.get(node.id);
-    const x = elkNode?.x ?? 0;
-    const y = elkNode?.y ?? 0;
-    return {
-      ...node,
-      position: { x, y },
-    };
-  });
-
-  const nextLayout = processSemanticLayout(
-    {
-      ...graph,
-      edges: graph.edges,
-      nodes: layoutedNodes,
-    },
-    {
-      session: previousSession,
-    },
-  );
+  const nextLayout = {
+    mode: "compact" as const,
+    nodes: graph.nodes,
+  };
   return buildAttackGraphLayoutResult({
     graph,
     newNodeIds: getNewNodeIds(graph.nodes, previousSession),
@@ -311,10 +279,7 @@ async function layoutGraphWithElkCompleteRouting({
     graph,
     newNodeIds,
     nextLayout: {
-      activeLaneIds: [],
-      laneBoundsById: new Map(),
       mode: "compact",
-      nodeLaneIdById: new Map(),
       nodes: normalizedNodes,
     },
     nodeHeight,
@@ -930,10 +895,7 @@ function buildAttackGraphLayoutResult({
   graph: AttackGraphModel;
   newNodeIds: Set<string>;
   nextLayout: {
-    activeLaneIds: string[];
-    laneBoundsById: AttackGraphLayoutSession["laneBoundsById"];
     mode: AttackGraphLayoutSession["mode"];
-    nodeLaneIdById: AttackGraphLayoutSession["nodeLaneIdById"];
     nodes: AttackGraphNodeModel[];
     stableCenterNodeId?: AttackGraphLayoutSession["stableCenterNodeId"];
   };
@@ -950,15 +912,9 @@ function buildAttackGraphLayoutResult({
   }));
   const bounds = computeGraphBounds(layoutedResultNodes, nodeWidth, nodeHeight);
   const layoutSession = buildLayoutSession({
-    activeLaneIds: nextLayout.activeLaneIds,
     caseId: graph.caseId,
-    hasEnteredLaneMode:
-      nextLayout.mode === "lane" ||
-      Boolean(previousSession?.hasEnteredLaneMode),
-    laneBoundsById: nextLayout.laneBoundsById,
     mode: nextLayout.mode,
     newNodeIds,
-    nodeLaneIdById: nextLayout.nodeLaneIdById,
     nodes: layoutedResultNodes,
     stableCenterNodeId: nextLayout.stableCenterNodeId,
     strategy,
@@ -1249,36 +1205,24 @@ function getNewNodeIds(
 }
 
 function buildLayoutSession({
-  activeLaneIds,
   caseId,
-  hasEnteredLaneMode,
-  laneBoundsById,
   mode,
   newNodeIds,
-  nodeLaneIdById,
   nodes,
   stableCenterNodeId,
   strategy,
 }: {
-  activeLaneIds: string[];
   caseId: string;
-  hasEnteredLaneMode: boolean;
-  laneBoundsById: AttackGraphLayoutSession["laneBoundsById"];
   mode: AttackGraphLayoutSession["mode"];
   newNodeIds: Set<string>;
-  nodeLaneIdById: AttackGraphLayoutSession["nodeLaneIdById"];
   nodes: AttackGraphNodeModel[];
   stableCenterNodeId?: AttackGraphLayoutSession["stableCenterNodeId"];
   strategy: AttackGraphLayoutSession["strategy"];
 }): AttackGraphLayoutSession {
   return {
-    activeLaneIds,
     caseId,
-    hasEnteredLaneMode,
-    laneBoundsById,
     mode,
     newNodeIds,
-    nodeLaneIdById,
     nodePositionsById: new Map(
       nodes.map((node) => [node.id, node.position ?? { x: 0, y: 0 }]),
     ),

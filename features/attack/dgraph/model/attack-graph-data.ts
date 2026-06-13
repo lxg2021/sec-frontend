@@ -95,23 +95,14 @@ export interface AttackGraphPoint {
   y: number;
 }
 
-export type AttackGraphLayoutStrategy = "lane" | "stable";
+export type AttackGraphLayoutStrategy = "stable";
 
-export type AttackGraphLayoutMode = "tiny" | "compact" | "lane";
-
-export interface AttackGraphLayoutLaneBounds {
-  height: number;
-  y: number;
-}
+export type AttackGraphLayoutMode = "tiny" | "compact";
 
 export interface AttackGraphLayoutSession {
-  activeLaneIds: string[];
   caseId: string;
-  hasEnteredLaneMode: boolean;
-  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
   mode: AttackGraphLayoutMode;
   newNodeIds: Set<string>;
-  nodeLaneIdById: Map<string, string>;
   nodePositionsById: Map<string, AttackGraphPoint>;
   stableCenterNodeId?: string;
   strategy: AttackGraphLayoutStrategy;

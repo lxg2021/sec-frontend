@@ -1,5 +1,4 @@
 import type {
-  AttackGraphLayoutLaneBounds,
   AttackGraphModel,
   AttackGraphNodeModel,
   AttackGraphPoint,
@@ -12,14 +11,10 @@ export interface AttackGraphChainLayoutOptions {
 }
 
 export interface AttackGraphChainLayoutResult {
-  activeLaneIds: string[];
-  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
-  nodeLaneIdById: Map<string, string>;
   nodes: AttackGraphNodeModel[];
   stableCenterNodeId?: string;
 }
 
-const CHAIN_LANE_ID = "linear-chain";
 const GRAPH_PADDING = 40;
 
 export function processLinearChainLayout(
@@ -52,17 +47,6 @@ export function processLinearChainLayout(
   }));
 
   return {
-    activeLaneIds: [CHAIN_LANE_ID],
-    laneBoundsById: new Map([
-      [
-        CHAIN_LANE_ID,
-        {
-          height: options.nodeHeight,
-          y: 0,
-        },
-      ],
-    ]),
-    nodeLaneIdById: new Map(nodes.map((node) => [node.id, CHAIN_LANE_ID])),
     nodes,
     stableCenterNodeId: orderedNodes[0]?.id,
   };
@@ -72,9 +56,6 @@ function createFallbackChainLayout(
   nodes: AttackGraphNodeModel[],
 ): AttackGraphChainLayoutResult {
   return {
-    activeLaneIds: [CHAIN_LANE_ID],
-    laneBoundsById: new Map([[CHAIN_LANE_ID, { height: 0, y: 0 }]]),
-    nodeLaneIdById: new Map(nodes.map((node) => [node.id, CHAIN_LANE_ID])),
     nodes,
   };
 }

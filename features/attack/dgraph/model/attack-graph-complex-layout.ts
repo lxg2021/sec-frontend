@@ -1,6 +1,5 @@
 import type {
   AttackGraphEdgeModel,
-  AttackGraphLayoutLaneBounds,
   AttackGraphLayoutSession,
   AttackGraphModel,
   AttackGraphNodeModel,
@@ -25,9 +24,6 @@ export interface AttackGraphComplexLayoutOptions {
 }
 
 export interface AttackGraphComplexLayoutResult {
-  activeLaneIds: string[];
-  laneBoundsById: Map<string, AttackGraphLayoutLaneBounds>;
-  nodeLaneIdById: Map<string, string>;
   nodes: AttackGraphNodeModel[];
   stableCenterNodeId?: string;
 }
@@ -45,7 +41,6 @@ interface PositionedAttachmentNode {
   position: AttackGraphPoint;
 }
 
-const COMPLEX_LANE_ID = "complex";
 const GRAPH_PADDING = 40;
 const MAX_RELAXATION_PASSES = 5;
 const ATTACHMENT_NODE_GAP = 20;
@@ -119,20 +114,8 @@ export function processComplexLayeredLayout(
     ...node,
     position: positionedById.get(node.id) ?? { x: GRAPH_PADDING, y: GRAPH_PADDING },
   }));
-  const bounds = computeComplexBounds(nodes, options);
 
   return {
-    activeLaneIds: [COMPLEX_LANE_ID],
-    laneBoundsById: new Map([
-      [
-        COMPLEX_LANE_ID,
-        {
-          height: bounds.height,
-          y: 0,
-        },
-      ],
-    ]),
-    nodeLaneIdById: new Map(nodes.map((node) => [node.id, COMPLEX_LANE_ID])),
     nodes,
     stableCenterNodeId: chooseComplexCenterNodeId(graph.nodes, scoreByNodeId),
   };
@@ -140,9 +123,6 @@ export function processComplexLayeredLayout(
 
 function createEmptyComplexLayout(): AttackGraphComplexLayoutResult {
   return {
-    activeLaneIds: [],
-    laneBoundsById: new Map(),
-    nodeLaneIdById: new Map(),
     nodes: [],
   };
 }
@@ -957,27 +937,4 @@ function compareNodesWithinLayer(
     (leftPrevious?.y ?? 0) - (rightPrevious?.y ?? 0) ||
     compareNodesByScore(left, right, scoreByNodeId)
   );
-}
-
-function computeComplexBounds(
-  nodes: AttackGraphNodeModel[],
-  options: AttackGraphComplexLayoutOptions,
-) {
-  if (nodes.length === 0) {
-    return { height: 0, width: 0 };
-  }
-
-  const minX = Math.min(...nodes.map((node) => node.position?.x ?? 0));
-  const minY = Math.min(...nodes.map((node) => node.position?.y ?? 0));
-  const maxX = Math.max(
-    ...nodes.map((node) => (node.position?.x ?? 0) + options.nodeWidth),
-  );
-  const maxY = Math.max(
-    ...nodes.map((node) => (node.position?.y ?? 0) + options.nodeHeight),
-  );
-
-  return {
-    height: maxY - minY,
-    width: maxX - minX,
-  };
 }
