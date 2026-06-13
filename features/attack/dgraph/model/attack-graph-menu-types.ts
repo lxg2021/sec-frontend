@@ -15,6 +15,13 @@ export type AttackGraphMenuActionKind =
   | "node-drilldown"
   | string;
 
+export type AttackGraphNodeDrillState = "idle" | "loading" | "empty" | "done";
+
+export type AttackGraphNodeDrillStateByKey = ReadonlyMap<
+  string,
+  AttackGraphNodeDrillState
+>;
+
 export interface AttackGraphMenuAction {
   kind: AttackGraphMenuActionKind;
   node: AttackGraphNodeModel;
@@ -42,4 +49,3 @@ export interface AttackGraphMenuGroup {
 export type AttackGraphMenuProvider = (
   context: AttackGraphMenuContext,
 ) => AttackGraphMenuGroup[] | Promise<AttackGraphMenuGroup[]>;
-

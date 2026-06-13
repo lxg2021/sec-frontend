@@ -1,4 +1,5 @@
 import { getGraphCaseEdgeSemanticKey } from "./attack-graph-edge-identity";
+import { buildAttackGraphModel } from "./attack-graph-adapter";
 import type {
   GraphCaseEdgeDto,
   GraphCaseNodeDto,
@@ -37,6 +38,7 @@ export function mergeGraphCaseDrillResult(
 ) {
   const currentNodes = current.nodes ?? [];
   const currentEdges = current.edges ?? [];
+  const currentVisibleGraph = buildAttackGraphModel(current);
   const nextNodes = [...currentNodes];
   const nextEdges = [...currentEdges];
   const nodeKeys = new Set(
@@ -66,19 +68,26 @@ export function mergeGraphCaseDrillResult(
     addedEdgeCount += 1;
   }
 
+  const response = {
+    ...current,
+    nodes: nextNodes,
+    edges: nextEdges,
+    diagnostics: {
+      ...current.diagnostics,
+      node_count: nextNodes.length,
+      edge_count: nextEdges.length,
+    },
+  } satisfies GraphCaseResponseDto;
+  const nextVisibleGraph = buildAttackGraphModel(response);
+
   return {
     addedEdgeCount,
     addedNodeCount,
-    response: {
-      ...current,
-      nodes: nextNodes,
-      edges: nextEdges,
-      diagnostics: {
-        ...current.diagnostics,
-        node_count: nextNodes.length,
-        edge_count: nextEdges.length,
-      },
-    } satisfies GraphCaseResponseDto,
+    response,
+    visibleAddedEdgeCount:
+      nextVisibleGraph.edges.length - currentVisibleGraph.edges.length,
+    visibleAddedNodeCount:
+      nextVisibleGraph.nodes.length - currentVisibleGraph.nodes.length,
   };
 }
 

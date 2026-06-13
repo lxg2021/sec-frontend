@@ -14,7 +14,10 @@ import type {
   AttackGraphLayoutOptions,
   GraphCaseResponseDto,
 } from "../model/attack-graph-data";
-import type { AttackGraphMenuAction } from "../model/attack-graph-menu-types";
+import type {
+  AttackGraphMenuAction,
+  AttackGraphNodeDrillStateByKey,
+} from "../model/attack-graph-menu-types";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -29,6 +32,7 @@ export interface AttackGraphCaseCardProps {
   layoutOptions?: AttackGraphLayoutOptions;
   layoutStrategy: AttackGraphLayoutStrategyOption;
   loading?: boolean;
+  nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
   nodeCount?: number;
   onLayoutStrategyChange: (strategy: AttackGraphLayoutStrategyOption) => void;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
@@ -46,6 +50,7 @@ export function AttackGraphCaseCard({
   layoutOptions,
   layoutStrategy,
   loading = false,
+  nodeDrillStateByKey,
   nodeCount = 0,
   onLayoutStrategyChange,
   onMenuAction,
@@ -113,6 +118,7 @@ export function AttackGraphCaseCard({
               response={response}
               className="h-full"
               layoutOptions={layoutOptions}
+              nodeDrillStateByKey={nodeDrillStateByKey}
               onMenuAction={onMenuAction}
               positionResetKey={positionResetKey}
             />

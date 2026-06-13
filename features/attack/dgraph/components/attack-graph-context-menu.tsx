@@ -82,11 +82,14 @@ export function AttackGraphContextMenu({
               key={item.id}
               type="button"
               className={cn(
-                "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 focus:bg-slate-100 focus:text-slate-950 focus:outline-none",
-                item.danger ? "text-red-600 hover:text-red-700" : "",
+                "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-950 focus:bg-slate-100 focus:text-slate-950 focus:outline-none disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent disabled:hover:text-slate-400",
+                item.danger && !item.disabled ? "text-red-600 hover:text-red-700" : "",
               )}
               disabled={item.disabled}
               onClick={() => {
+                if (item.disabled) {
+                  return;
+                }
                 void item.action(menu.context);
                 onClose();
               }}
@@ -97,7 +100,14 @@ export function AttackGraphContextMenu({
                   {item.icon}
                 </span>
               ) : null}
-              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate">{item.label}</span>
+                {item.description ? (
+                  <span className="mt-0.5 block truncate text-[11px] font-normal text-slate-400">
+                    {item.description}
+                  </span>
+                ) : null}
+              </span>
               {item.checked ? (
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
               ) : null}
@@ -108,4 +118,3 @@ export function AttackGraphContextMenu({
     </div>
   );
 }
-

@@ -53,6 +53,7 @@ import { createCommonAttackGraphNodeMenuProvider } from "../model/attack-graph-m
 import { resolveAttackGraphNodeMenu } from "../model/attack-graph-menu-resolver";
 import type {
   AttackGraphMenuAction,
+  AttackGraphNodeDrillStateByKey,
   AttackGraphMenuProvider,
 } from "../model/attack-graph-menu-types";
 import {
@@ -86,6 +87,7 @@ export interface AttackGraphFlowProps
   className?: string;
   layoutOptions?: AttackGraphLayoutOptions;
   menuProviders?: AttackGraphMenuProvider[];
+  nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
   onDiagnosticsChange?: (diagnostics: AttackGraphFlowDiagnostics) => void;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   positionResetKey?: number | string;
@@ -187,6 +189,7 @@ export function AttackGraphFlow({
   className,
   layoutOptions,
   menuProviders,
+  nodeDrillStateByKey,
   onDiagnosticsChange,
   onMenuAction,
   positionResetKey,
@@ -320,10 +323,13 @@ export function AttackGraphFlow({
   );
   const nodeMenuProviders = useMemo(
     () => [
-      createCommonAttackGraphNodeMenuProvider({ onMenuAction }),
+      createCommonAttackGraphNodeMenuProvider({
+        drillStateByNodeKey: nodeDrillStateByKey,
+        onMenuAction,
+      }),
       ...(menuProviders ?? []),
     ],
-    [menuProviders, onMenuAction],
+    [menuProviders, nodeDrillStateByKey, onMenuAction],
   );
 
   const layoutedFlowNodes = useMemo(
