@@ -1,8 +1,9 @@
 ﻿// page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw, Shield } from "lucide-react"
+import { toast } from "sonner"
 import {
   Card,
   CardHeader,
@@ -15,16 +16,22 @@ import {
   AttackGraphFlow,
   AttackGraphFlowHeader,
   AttackGraphLayoutStrategyToggle,
+  fetchGraphDrill,
   fetchGraphCase,
+  getGraphCaseEdgeSemanticKey,
 } from "@/features/attack/dgraph"
 import type {
   AttackGraphLayoutOptions,
+  AttackGraphMenuAction,
   AttackGraphLayoutStrategyOption,
+  GraphCaseEdgeDto,
+  GraphCaseNodeDto,
   GraphCaseResponseDto,
 } from "@/features/attack/dgraph"
 
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
+const GRAPH_DRILL_TIME_PADDING_MINUTES = 30
 
 export default function App() {
   const t = useTranslations("pages.attack.drill")
@@ -37,6 +44,7 @@ export default function App() {
   const [graphLayoutStrategy, setGraphLayoutStrategy] =
     useState<AttackGraphLayoutStrategyOption>("auto");
   const [graphPositionResetKey, setGraphPositionResetKey] = useState(0);
+  const graphResponseRef = useRef<GraphCaseResponseDto | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -68,9 +76,86 @@ export default function App() {
     [graphLayoutStrategy],
   )
 
+  const handleGraphMenuAction = useCallback(
+    async (action: AttackGraphMenuAction) => {
+      if (action.kind !== "node-drilldown") {
+        return
+      }
+
+      const currentGraph = graphResponseRef.current ?? graphResponse
+      if (!currentGraph) {
+        toast.error("Graph data is not loaded.")
+        return
+      }
+
+      const caseId = (currentGraph.case_id || timelineCaseId).trim()
+      if (!caseId) {
+        toast.error("Cannot drill down without a CaseID.")
+        return
+      }
+
+      const drillRange = buildGraphDrillTimeRange(
+        currentGraph.start_time,
+        currentGraph.end_time,
+      )
+      if (!drillRange) {
+        toast.error("Cannot drill down because the case time range is missing.")
+        return
+      }
+
+      const toastId = toast.loading("Loading drilldown data...")
+      try {
+        const drillResponse = await fetchGraphDrill({
+          scopeType: "case",
+          scopeId: caseId,
+          nodeKey: action.node.key,
+          nodeType: action.node.entityType,
+          startTime: drillRange.startTime,
+          endTime: drillRange.endTime,
+          timezone: DRILL_TIMEZONE,
+          tenantId: currentGraph.tenant_id,
+          forceRefresh: false,
+        })
+
+        const incomingNodes = drillResponse?.nodes ?? []
+        const incomingEdges = drillResponse?.edges ?? []
+        const mergeResult = mergeGraphCaseDrillResult(
+          graphResponseRef.current ?? currentGraph,
+          {
+            nodes: incomingNodes,
+            edges: incomingEdges,
+          },
+        )
+
+        if (
+          mergeResult.addedNodeCount === 0 &&
+          mergeResult.addedEdgeCount === 0
+        ) {
+          toast.info("暂无可扩展钻探的数据", { id: toastId })
+          return
+        }
+
+        graphResponseRef.current = mergeResult.response
+        setGraphResponse(mergeResult.response)
+        toast.success("Drilldown data added to graph.", {
+          id: toastId,
+          description: `${mergeResult.addedNodeCount} nodes / ${mergeResult.addedEdgeCount} edges`,
+        })
+      } catch (error) {
+        toast.error("Failed to load drilldown data.", {
+          id: toastId,
+          description:
+            error instanceof Error ? error.message : "Unknown request error.",
+        })
+      }
+    },
+    [graphResponse, timelineCaseId],
+  )
+
   useEffect(() => {
     const caseId = timelineCaseId.trim()
     if (!caseId) {
+      graphResponseRef.current = null
       setGraphResponse(null)
       setGraphError("")
       setGraphLoading(false)
@@ -87,10 +172,12 @@ export default function App() {
     })
       .then((response) => {
         if (cancelled) return
+        graphResponseRef.current = response
         setGraphResponse(response)
       })
       .catch((error) => {
         if (cancelled) return
+        graphResponseRef.current = null
         setGraphResponse(null)
         setGraphError(
           error instanceof Error
@@ -175,6 +262,7 @@ export default function App() {
                   response={graphResponse}
                   className="h-full"
                   layoutOptions={graphLayoutOptions}
+                  onMenuAction={handleGraphMenuAction}
                   positionResetKey={graphPositionResetKey}
                 />
               ) : (
@@ -190,6 +278,121 @@ export default function App() {
       </div>
     </div >
   )
+}
+
+function buildGraphDrillTimeRange(
+  startTime: string | undefined,
+  endTime: string | undefined,
+) {
+  const startDate = parseGraphTime(startTime)
+  const endDate = parseGraphTime(endTime)
+  if (!startDate || !endDate) {
+    return null
+  }
+
+  return {
+    startTime: formatGraphTime(
+      new Date(startDate.getTime() - GRAPH_DRILL_TIME_PADDING_MINUTES * 60_000),
+    ),
+    endTime: formatGraphTime(
+      new Date(endDate.getTime() + GRAPH_DRILL_TIME_PADDING_MINUTES * 60_000),
+    ),
+  }
+}
+
+function parseGraphTime(value: string | undefined) {
+  const text = value?.trim()
+  if (!text) {
+    return null
+  }
+
+  const match = text.match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2}))?$/,
+  )
+  if (!match) {
+    const fallback = new Date(text)
+    return Number.isNaN(fallback.getTime()) ? null : fallback
+  }
+
+  const [, year, month, day, hour = "00", minute = "00", second = "00"] = match
+  return new Date(
+    Date.UTC(
+      Number(year),
+      Number(month) - 1,
+      Number(day),
+      Number(hour),
+      Number(minute),
+      Number(second),
+    ),
+  )
+}
+
+function formatGraphTime(value: Date) {
+  const pad = (input: number) => String(input).padStart(2, "0")
+
+  return [
+    value.getUTCFullYear(),
+    pad(value.getUTCMonth() + 1),
+    pad(value.getUTCDate()),
+  ].join("-") + " " + [
+    pad(value.getUTCHours()),
+    pad(value.getUTCMinutes()),
+    pad(value.getUTCSeconds()),
+  ].join(":")
+}
+
+function mergeGraphCaseDrillResult(
+  current: GraphCaseResponseDto,
+  incoming: {
+    nodes: GraphCaseNodeDto[]
+    edges: GraphCaseEdgeDto[]
+  },
+) {
+  const currentNodes = current.nodes ?? []
+  const currentEdges = current.edges ?? []
+  const nextNodes = [...currentNodes]
+  const nextEdges = [...currentEdges]
+  const nodeKeys = new Set(
+    currentNodes.map((node) => node.key?.trim()).filter(Boolean),
+  )
+  const edgeKeys = new Set(currentEdges.map(getGraphCaseEdgeSemanticKey))
+  let addedNodeCount = 0
+  let addedEdgeCount = 0
+
+  for (const node of incoming.nodes) {
+    const key = node.key?.trim()
+    if (!key || nodeKeys.has(key)) {
+      continue
+    }
+    nodeKeys.add(key)
+    nextNodes.push(node)
+    addedNodeCount += 1
+  }
+
+  for (const edge of incoming.edges) {
+    const key = getGraphCaseEdgeSemanticKey(edge)
+    if (!key || edgeKeys.has(key)) {
+      continue
+    }
+    edgeKeys.add(key)
+    nextEdges.push(edge)
+    addedEdgeCount += 1
+  }
+
+  return {
+    addedEdgeCount,
+    addedNodeCount,
+    response: {
+      ...current,
+      nodes: nextNodes,
+      edges: nextEdges,
+      diagnostics: {
+        ...current.diagnostics,
+        node_count: nextNodes.length,
+        edge_count: nextEdges.length,
+      },
+    } satisfies GraphCaseResponseDto,
+  }
 }
 
 function GraphStateMessage({
