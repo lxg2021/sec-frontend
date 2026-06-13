@@ -2,21 +2,26 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Shield } from "lucide-react"
+import { RotateCcw, Shield } from "lucide-react"
 import {
   Card,
   CardHeader,
   CardContent,
-  CardTitle,
 } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button"
 import { useTranslations } from "next-intl"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
 import {
-  AttackGraphLayoutEvaluationCard,
-  AttackGraphFlowV2,
+  AttackGraphFlow,
+  AttackGraphFlowHeader,
+  AttackGraphLayoutStrategyToggle,
   fetchGraphCase,
 } from "@/features/attack/dgraph"
-import type { GraphCaseResponseDto } from "@/features/attack/dgraph"
+import type {
+  AttackGraphLayoutOptions,
+  AttackGraphLayoutStrategyOption,
+  GraphCaseResponseDto,
+} from "@/features/attack/dgraph"
 
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
@@ -29,6 +34,9 @@ export default function App() {
   const [graphResponse, setGraphResponse] = useState<GraphCaseResponseDto | null>(null);
   const [graphLoading, setGraphLoading] = useState(false);
   const [graphError, setGraphError] = useState("");
+  const [graphLayoutStrategy, setGraphLayoutStrategy] =
+    useState<AttackGraphLayoutStrategyOption>("auto");
+  const [graphPositionResetKey, setGraphPositionResetKey] = useState(0);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -51,6 +59,13 @@ export default function App() {
   const graphEdgeCount = useMemo(
     () => graphResponse?.edges?.length ?? 0,
     [graphResponse],
+  )
+  const graphLayoutOptions = useMemo<AttackGraphLayoutOptions | undefined>(
+    () =>
+      graphLayoutStrategy === "auto"
+        ? undefined
+        : { strategy: graphLayoutStrategy },
+    [graphLayoutStrategy],
   )
 
   useEffect(() => {
@@ -104,38 +119,35 @@ export default function App() {
           noCaseHint="Select a case in Attack Details and click Trace Attack to open this timeline."
         />
 
-        {/* 页面标题 */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              {/* 这里可以换成 Graph 图标 */}
-              <Shield className="h-6 w-6 text-blue-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-              <p className="text-sm text-gray-500 mt-1">{t("subtitle")}</p>
-            </div>
-          </div>
-        </div>
-
         {/* Graph 可视化 */}
         <Card className="!bg-transparent border border-gray-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex min-w-0 items-center space-x-2">
-                <div className="p-2 flex items-center justify-center rounded-lg bg-blue-500">
-                  <Shield className="h-5 w-5 text-white" />
-                </div>
-                <CardTitle className="text-lg md:text-xl font-semibold">
-                  {t("graph")}
-                </CardTitle>
-                {graphResponse ? (
-                  <span className="rounded-sm bg-slate-100 px-2 py-1 text-xs font-medium text-slate-500">
-                    {graphNodeCount} nodes / {graphEdgeCount} edges
-                  </span>
-                ) : null}
-              </div>
-            </div>
+          <CardHeader className="px-6 py-5">
+            <AttackGraphFlowHeader
+              title={t("graph")}
+              subtitle={t("subtitle")}
+              nodeCount={graphResponse ? graphNodeCount : undefined}
+              edgeCount={graphResponse ? graphEdgeCount : undefined}
+              action={
+                graphResponse && graphNodeCount > 0 ? (
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-10 bg-white px-3 text-xs font-medium text-slate-600"
+                      onClick={() => setGraphPositionResetKey((key) => key + 1)}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Reset Positions
+                    </Button>
+                    <AttackGraphLayoutStrategyToggle
+                      value={graphLayoutStrategy}
+                      onChange={setGraphLayoutStrategy}
+                    />
+                  </div>
+                ) : null
+              }
+            />
           </CardHeader>
 
           {/* 分割线 */}
@@ -159,9 +171,11 @@ export default function App() {
                   description={graphError}
                 />
               ) : graphResponse && graphNodeCount > 0 ? (
-                <AttackGraphFlowV2
+                <AttackGraphFlow
                   response={graphResponse}
                   className="h-full"
+                  layoutOptions={graphLayoutOptions}
+                  positionResetKey={graphPositionResetKey}
                 />
               ) : (
                 <GraphStateMessage
@@ -173,7 +187,6 @@ export default function App() {
           </CardContent>
         </Card>
 
-        <AttackGraphLayoutEvaluationCard />
       </div>
     </div >
   )
