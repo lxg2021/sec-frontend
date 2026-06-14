@@ -1,0 +1,148 @@
+import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
+import {
+  formatWmiScopeKind,
+  renderWmiFilterTypeBadge,
+  renderWmiScopeBadge,
+} from "../rules/wmi-detail-rules";
+
+export const WMI_FILTER_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
+  header: {
+    icon: "Filter",
+    iconTone: "blue",
+    title: {
+      key: "event_filter_name",
+      fallback: "WmiFilter",
+    },
+    badges: [
+      {
+        key: "event_filter_name",
+        customRender: renderWmiFilterTypeBadge,
+      },
+      {
+        key: "scope_kind",
+        customRender: renderWmiScopeBadge,
+      },
+    ],
+    fields: [
+      {
+        key: "namespace",
+        label: "Namespace",
+        icon: "Database",
+        iconTone: "slate",
+        mono: true,
+      },
+      {
+        key: "occurred_at",
+        label: "Occurred",
+        icon: "Clock",
+        iconTone: "green",
+        mono: true,
+      },
+    ],
+  },
+  sections: [
+    {
+      title: "Filter Information",
+      icon: "Filter",
+      tone: "blue",
+      columns: 2,
+      fields: [
+        {
+          key: "event_filter_name",
+          label: "Filter Name",
+          icon: "Tag",
+          iconTone: "slate",
+          bold: true,
+        },
+        {
+          key: "event_filter_class",
+          label: "Filter Class",
+          icon: "FileText",
+          iconTone: "slate",
+          mono: true,
+        },
+        {
+          key: "namespace",
+          label: "Namespace",
+          icon: "Database",
+          iconTone: "slate",
+          valueTone: "slate",
+          display: "code",
+          mono: true,
+          copyable: true,
+          truncate: true,
+          maxLength: 120,
+          expandable: true,
+          showInPopover: true,
+        },
+        {
+          key: "server_name",
+          label: "Server",
+          icon: "Server",
+          iconTone: "blue",
+          mono: true,
+        },
+        {
+          key: "user",
+          label: "User",
+          icon: "User",
+          iconTone: "slate",
+          mono: true,
+        },
+        {
+          key: "scope_kind",
+          label: "Scope Type",
+          icon: "Network",
+          iconTone: "orange",
+          formatValue: formatWmiScopeKind,
+          mono: true,
+        },
+        {
+          key: "event_filter_access",
+          label: "Access",
+          icon: "Shield",
+          iconTone: "slate",
+          mono: true,
+        },
+        {
+          key: "unique_id",
+          label: "ID",
+          icon: "Fingerprint",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+        },
+      ],
+    },
+    {
+      title: "Query Information",
+      icon: "Terminal",
+      tone: "blue",
+      columns: 1,
+      fields: [
+        {
+          key: "query_language",
+          label: "Language",
+          icon: "Languages",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+        },
+        {
+          key: "query",
+          label: "Query",
+          icon: "Terminal",
+          iconTone: "cyan",
+          valueTone: "cyan",
+          display: "code",
+          mono: true,
+          copyable: true,
+          truncate: true,
+          maxLength: 180,
+          expandable: true,
+          showInPopover: true,
+        },
+      ],
+    },
+  ],
+};

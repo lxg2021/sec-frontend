@@ -5,12 +5,14 @@ import { AttackGraphTaskDetailDebugCard } from "@/features/attack/dgraph/debug/a
 import { AttackGraphVolumeDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-volume-detail-debug-card";
 import { AttackGraphWmiClassDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-wmi-class-detail-debug-card";
 import { AttackGraphWmiExecuteDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-wmi-execute-detail-debug-card";
+import { AttackGraphWmiFilterDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-wmi-filter-detail-debug-card";
 
 export default function AttackGraphDrillDebugPage() {
   return (
     <div className="min-h-screen space-y-6 bg-slate-50 p-6">
       <AttackGraphWmiClassDetailDebugCard />
       <AttackGraphWmiExecuteDetailDebugCard />
+      <AttackGraphWmiFilterDetailDebugCard />
       <AttackGraphVolumeDetailDebugCard />
       <AttackGraphTaskDetailDebugCard />
       <AttackGraphLayoutEvaluationCard />

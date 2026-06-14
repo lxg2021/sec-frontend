@@ -15,6 +15,7 @@ import {
   VOLUME_DETAIL_CONFIG,
   WMI_CLASS_DETAIL_CONFIG,
   WMI_EXECUTE_DETAIL_CONFIG,
+  WMI_FILTER_DETAIL_CONFIG,
 } from "./configs";
 
 const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
@@ -31,6 +32,7 @@ const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
   Volume: VOLUME_DETAIL_CONFIG,
   WmiClass: WMI_CLASS_DETAIL_CONFIG,
   WmiExecute: WMI_EXECUTE_DETAIL_CONFIG,
+  WmiFilter: WMI_FILTER_DETAIL_CONFIG,
 };
 
 export function getAttackGraphNodeDetailConfig(

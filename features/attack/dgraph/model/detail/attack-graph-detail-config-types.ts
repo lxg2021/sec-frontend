@@ -96,6 +96,7 @@ export type AttackGraphDetailIconName =
   | "Disc"
   | "Eye"
   | "EyeOff"
+  | "Filter"
   | "FileText"
   | "Fingerprint"
   | "FolderOpen"

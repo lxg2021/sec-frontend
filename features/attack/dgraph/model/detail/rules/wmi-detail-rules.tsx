@@ -92,6 +92,10 @@ export function renderWmiExecuteTypeBadge() {
   return renderWmiTypeBadge("wmi execute");
 }
 
+export function renderWmiFilterTypeBadge() {
+  return renderWmiTypeBadge("wmi filter");
+}
+
 function renderWmiTypeBadge(label: string) {
   return (
     <Badge
