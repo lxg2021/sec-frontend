@@ -71,7 +71,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
         },
         {
           key: "process_md5",
-          label: "Process MD5",
+          label: "MD5",
           icon: "Fingerprint",
           iconTone: "slate",
           valueTone: "slate",
@@ -80,7 +80,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
         },
         {
           key: "process_guid",
-          label: "Process GUID",
+          label: "GUID",
           icon: "Fingerprint",
           iconTone: "slate",
           valueTone: "slate",
@@ -89,7 +89,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
         },
         {
           key: "unique_id",
-          label: "Unique ID",
+          label: "ID",
           icon: "Fingerprint",
           iconTone: "slate",
           valueTone: "slate",
@@ -99,9 +99,10 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       ],
     },
     {
-      title: "Security",
+      title: "Security Information",
       icon: "Shield",
-      tone: "red",
+      tone: "slate",
+      resolveTone: resolveSecurityInformationTone,
       fields: [
         {
           key: "signature",
@@ -159,7 +160,7 @@ function isSigned(value: string) {
 }
 
 function formatSignature(value: string) {
-  return isSigned(value) ? "Signed" : "Unsigned";
+  return isSigned(value) ? "signed" : "unsigned";
 }
 
 function resolveSignatureTone(value: string): AttackGraphPresentationTone | undefined {
@@ -180,15 +181,30 @@ function resolveProcessOriginalNameMismatchTone(
   return hasProcessOriginalNameMismatch(data) ? "orange" : undefined;
 }
 
+function resolveSecurityInformationTone(
+  data: AttackGraphDetailData,
+): AttackGraphPresentationTone {
+  if (isRtloDetected(data.rtlo) || isShowWindowHidden(data.show_window_flag)) {
+    return "red";
+  }
+  if (
+    !isSigned(data.signature) ||
+    PROCESS_DRIVER_TYPE_ALERT_VALUES.has((data.driver_type ?? "").trim())
+  ) {
+    return "orange";
+  }
+  return "slate";
+}
+
 function formatRtlo(value: string) {
   const normalized = value.trim().toLowerCase();
   if (normalized === "1" || normalized === "true") {
-    return "RTLO Detected";
+    return "rtlo detected";
   }
   if (normalized === "0" || normalized === "false") {
-    return "Normal";
+    return "normal";
   }
-  return value;
+  return value.toLowerCase();
 }
 
 function resolveRtloTone(value: string): AttackGraphPresentationTone | undefined {
@@ -198,7 +214,7 @@ function resolveRtloTone(value: string): AttackGraphPresentationTone | undefined
 function formatShowWindowFlag(value: string) {
   const normalized = value.trim();
   const label = SHOW_WINDOW_FLAG_LABELS[normalized];
-  return label ?? normalized;
+  return (label ?? normalized).toLowerCase();
 }
 
 function resolveShowWindowIcon(value: string): AttackGraphDetailIconName {
@@ -212,7 +228,7 @@ function resolveShowWindowTone(value: string): AttackGraphPresentationTone | und
 function formatProcessDriverType(value: string) {
   const normalized = value.trim();
   const label = PROCESS_DRIVER_TYPE_LABELS[normalized];
-  return label ?? normalized;
+  return (label ?? normalized).toLowerCase();
 }
 
 function resolveProcessDriverTypeIcon(value: string): AttackGraphDetailIconName {

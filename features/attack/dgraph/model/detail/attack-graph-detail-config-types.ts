@@ -71,6 +71,9 @@ export interface AttackGraphDetailSectionConfig {
   title: string;
   icon?: AttackGraphDetailIconName;
   tone?: AttackGraphPresentationTone;
+  resolveTone?: (
+    data: AttackGraphDetailData,
+  ) => AttackGraphPresentationTone | undefined;
   columns?: 1 | 2;
   fields: AttackGraphDetailFieldConfig[];
 }

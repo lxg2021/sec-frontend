@@ -113,7 +113,7 @@ function isSigned(value: string) {
 }
 
 function formatSignature(value: string) {
-  return isSigned(value) ? "Signed" : "Unsigned";
+  return isSigned(value) ? "signed" : "unsigned";
 }
 
 function resolveSignatureTone(value: string): AttackGraphPresentationTone | undefined {
@@ -130,7 +130,7 @@ function resolveSignatureRelatedTone(
 function formatFileDriverType(value: string) {
   const normalized = value.trim();
   const label = FILE_DRIVER_TYPE_LABELS[normalized];
-  return label ?? normalized;
+  return (label ?? normalized).toLowerCase();
 }
 
 function resolveFileDriverTypeIcon(value: string): AttackGraphDetailIconName {

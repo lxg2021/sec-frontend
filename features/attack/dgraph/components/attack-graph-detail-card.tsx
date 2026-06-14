@@ -271,7 +271,8 @@ export function AttackGraphDetailCard({
             {content.config.sections.length > 0 ? (
               content.config.sections.map((section, sectionIndex) => {
                 const SectionIcon = getIcon(section.icon);
-                const tone = section.tone ?? "slate";
+                const tone =
+                  section.resolveTone?.(content.data) ?? section.tone ?? "slate";
                 return (
                   <div key={`${section.title}-${sectionIndex}`}>
                     {sectionIndex > 0 ? <Separator className="mb-5" /> : null}
