@@ -118,4 +118,5 @@ export type AttackGraphDetailIconName =
   | "Tag"
   | "Terminal"
   | "Usb"
-  | "User";
+  | "User"
+  | "Users";

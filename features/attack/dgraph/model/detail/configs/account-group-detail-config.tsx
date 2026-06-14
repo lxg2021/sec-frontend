@@ -7,7 +7,7 @@ import {
 
 export const ACCOUNT_GROUP_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
-    icon: "User",
+    icon: "Users",
     iconTone: "blue",
     title: {
       key: "group_name",
@@ -63,6 +63,16 @@ export const ACCOUNT_GROUP_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           iconTone: "slate",
           valueTone: "slate",
           formatValue: formatAccountGroupScope,
+        },
+        {
+          key: "agent_id",
+          label: "Agent ID",
+          icon: "Monitor",
+          iconTone: "blue",
+          valueTone: "slate",
+          mono: true,
+          copyable: true,
+          hideWhenEmpty: true,
         },
         {
           key: "sid",

@@ -29,6 +29,7 @@ import {
   Terminal,
   Usb,
   User,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -72,6 +73,7 @@ export const ATTACK_GRAPH_DETAIL_ICONS: Record<
   Terminal,
   Usb,
   User,
+  Users,
 };
 
 export const ATTACK_GRAPH_DETAIL_BADGE_TONE_CLASS_NAMES: Record<

@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "lucide-react";
+import { Users } from "lucide-react";
 
 import {
   Card,
@@ -38,7 +38,7 @@ export function AttackGraphAccountGroupDetailDebugCard() {
       <CardHeader className="border-b border-slate-100 px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-blue-700 text-white">
-            <User className="h-4 w-4" />
+            <Users className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <CardTitle className="text-base font-semibold text-slate-900">
