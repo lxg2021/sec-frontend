@@ -98,7 +98,6 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           iconTone: "slate",
           valueTone: "slate",
           mono: true,
-          copyable: true,
         },
         {
           key: "unique_id",
@@ -107,7 +106,6 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           iconTone: "slate",
           valueTone: "slate",
           mono: true,
-          copyable: true,
         },
       ],
     },

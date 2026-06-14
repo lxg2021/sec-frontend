@@ -98,6 +98,7 @@ export type AttackGraphDetailIconName =
   | "FileText"
   | "Fingerprint"
   | "FolderOpen"
+  | "FolderTree"
   | "GitBranch"
   | "HardDrive"
   | "Hash"
