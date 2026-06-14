@@ -1,6 +1,9 @@
 import { Badge } from "@/shared/ui/badge";
 
-import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
+import type {
+  AttackGraphDetailCardConfig,
+  AttackGraphDetailData,
+} from "../attack-graph-detail-config-types";
 import {
   formatSignature,
   isSignedSignature,
@@ -15,12 +18,16 @@ import {
 import {
   formatRtlo,
   formatShowWindowFlag,
-  resolveProcessOriginalNameMismatchTone,
   resolveRtloTone,
   resolveSecurityInformationTone,
   resolveShowWindowIcon,
   resolveShowWindowTone,
 } from "../rules/process-detail-rules";
+import {
+  hasOriginalFileNameMismatch,
+  renderOriginalFileNameMismatchBadge,
+  resolveOriginalFileNameMismatchTone,
+} from "../rules/original-file-name-detail-rules";
 
 export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
@@ -34,10 +41,17 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       {
         key: "signature",
         customRender: (value) => (
-          <Badge variant={isSignedSignature(value) ? "default" : "destructive"}>
+          <Badge
+            variant={isSignedSignature(value) ? "default" : "destructive"}
+            className="min-w-[72px] justify-center"
+          >
             {isSignedSignature(value) ? "Signed" : "Unsigned"}
           </Badge>
         ),
+      },
+      {
+        key: "original_file_name_mismatch",
+        customRender: (_value, data) => renderProcessOriginalNameMismatchBadge(data),
       },
     ],
     fields: [
@@ -166,3 +180,18 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     },
   ],
 };
+
+function renderProcessOriginalNameMismatchBadge(data: AttackGraphDetailData) {
+  return renderOriginalFileNameMismatchBadge(
+    hasOriginalFileNameMismatch(data.process_name, data.org_file_name),
+  );
+}
+
+function resolveProcessOriginalNameMismatchTone(
+  _value: string,
+  data: AttackGraphDetailData,
+) {
+  return resolveOriginalFileNameMismatchTone(
+    hasOriginalFileNameMismatch(data.process_name, data.org_file_name),
+  );
+}

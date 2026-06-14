@@ -98,7 +98,8 @@ function AttackGraphDetailHeaderBadges({
       {badges.map((badge) => {
         const value = readAttackGraphDetailValue(data, badge.key);
         if (badge.customRender) {
-          return <div key={badge.key}>{badge.customRender(value, data)}</div>;
+          const renderedBadge = badge.customRender(value, data);
+          return renderedBadge ? <div key={badge.key}>{renderedBadge}</div> : null;
         }
 
         const tone = badge.tone ?? "slate";

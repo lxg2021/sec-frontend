@@ -33,6 +33,7 @@ const FILE_DETAIL_DEBUG_NODE: AttackGraphNodeModel = {
     file_md5: "3c4b348ab52f5543e4ef225221c5af4f",
     file_name: "e:\\dnsquery.vmp.exe",
     occurred_at: "2024/05/04 14:35:48",
+    org_file_name: "dnsquery.exe",
     signature: "0",
     sign_vendor: "",
     unique_id: "d111def1-87b8-41a7-a3f4-06a751728ff9",
