@@ -1,6 +1,7 @@
 "use client";
 
 import { AttackGraphLayoutEvaluationCard } from "@/features/attack/dgraph/debug/attack-graph-layout-evaluation-card";
+import { AttackGraphDnsNameDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-dns-name-detail-debug-card";
 import { AttackGraphFileDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-file-detail-debug-card";
 import { AttackGraphFileMappingDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-file-mapping-detail-debug-card";
 import { AttackGraphFileStreamDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-file-stream-detail-debug-card";
@@ -27,6 +28,7 @@ export default function AttackGraphDrillDebugPage() {
     <div className="min-h-screen space-y-6 bg-slate-50 p-6">
       <AttackGraphPowerShellExecutionDetailDebugCard />
       <AttackGraphMessageHookDetailDebugCard />
+      <AttackGraphDnsNameDetailDebugCard />
       <AttackGraphFileDetailDebugCard />
       <AttackGraphFileMappingDetailDebugCard />
       <AttackGraphFileStreamDetailDebugCard />

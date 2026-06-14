@@ -4,6 +4,7 @@ import type {
   AttackGraphDetailCardConfig,
 } from "./attack-graph-detail-config-types";
 import {
+  DNS_NAME_DETAIL_CONFIG,
   FILE_DETAIL_CONFIG,
   FILE_MAPPING_DETAIL_CONFIG,
   FILE_STREAM_DETAIL_CONFIG,
@@ -35,6 +36,7 @@ import {
 const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
   Record<string, AttackGraphDetailCardConfig>
 > = {
+  DnsName: DNS_NAME_DETAIL_CONFIG,
   File: FILE_DETAIL_CONFIG,
   FileMapping: FILE_MAPPING_DETAIL_CONFIG,
   FileStream: FILE_STREAM_DETAIL_CONFIG,

@@ -1,3 +1,4 @@
+export { DNS_NAME_DETAIL_CONFIG } from "./dns-name-detail-config";
 export { FILE_DETAIL_CONFIG } from "./file-detail-config";
 export { FILE_MAPPING_DETAIL_CONFIG } from "./file-mapping-detail-config";
 export { FILE_STREAM_DETAIL_CONFIG } from "./file-stream-detail-config";
