@@ -6,7 +6,6 @@ import { Button } from "@/shared/ui/button";
 import { CardHeader, CardTitle } from "@/shared/ui/card";
 
 import type {
-  AttackGraphBadge,
   AttackGraphPresentationTone,
 } from "../../model/detail/attack-graph-detail-types";
 import type {
@@ -26,14 +25,12 @@ import { AttackGraphDetailTruncatedText } from "./attack-graph-detail-text";
 
 export function AttackGraphDetailHeader({
   data,
-  fallbackBadges,
   header,
   headerIconTone,
   onClose,
   title,
 }: {
   data: AttackGraphDetailData;
-  fallbackBadges: AttackGraphBadge[];
   header: AttackGraphDetailHeaderConfig;
   headerIconTone: AttackGraphPresentationTone;
   onClose?: () => void;
@@ -61,7 +58,6 @@ export function AttackGraphDetailHeader({
           <AttackGraphDetailHeaderBadges
             badges={header.badges ?? []}
             data={data}
-            fallbackBadges={fallbackBadges}
           />
           <Button
             type="button"
@@ -89,46 +85,22 @@ export function AttackGraphDetailHeader({
 function AttackGraphDetailHeaderBadges({
   badges,
   data,
-  fallbackBadges,
 }: {
   badges: AttackGraphDetailBadgeConfig[];
   data: AttackGraphDetailData;
-  fallbackBadges: AttackGraphBadge[];
 }) {
-  if (badges.length > 0) {
-    return (
-      <>
-        {badges.map((badge) => {
-          const value = readAttackGraphDetailValue(data, badge.key);
-          if (badge.customRender) {
-            return <div key={badge.key}>{badge.customRender(value, data)}</div>;
-          }
-
-          const tone = badge.tone ?? "slate";
-          return (
-            <Badge
-              key={badge.key}
-              variant="outline"
-              className={cn(
-                "max-w-[120px] rounded-md px-2 py-0.5 text-xs font-medium",
-                ATTACK_GRAPH_DETAIL_BADGE_TONE_CLASS_NAMES[tone],
-              )}
-              title={formatAttackGraphDetailValue(value)}
-            >
-              <span className="truncate">
-                {badge.label ? `${badge.label}: ` : ""}
-                {formatAttackGraphDetailValue(value)}
-              </span>
-            </Badge>
-          );
-        })}
-      </>
-    );
+  if (badges.length === 0) {
+    return null;
   }
 
   return (
     <>
-      {fallbackBadges.map((badge) => {
+      {badges.map((badge) => {
+        const value = readAttackGraphDetailValue(data, badge.key);
+        if (badge.customRender) {
+          return <div key={badge.key}>{badge.customRender(value, data)}</div>;
+        }
+
         const tone = badge.tone ?? "slate";
         return (
           <Badge
@@ -138,9 +110,12 @@ function AttackGraphDetailHeaderBadges({
               "max-w-[120px] rounded-md px-2 py-0.5 text-xs font-medium",
               ATTACK_GRAPH_DETAIL_BADGE_TONE_CLASS_NAMES[tone],
             )}
-            title={badge.title}
+            title={formatAttackGraphDetailValue(value)}
           >
-            <span className="truncate">{badge.label}</span>
+            <span className="truncate">
+              {badge.label ? `${badge.label}: ` : ""}
+              {formatAttackGraphDetailValue(value)}
+            </span>
           </Badge>
         );
       })}

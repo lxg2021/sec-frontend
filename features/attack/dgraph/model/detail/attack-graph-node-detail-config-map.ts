@@ -9,6 +9,7 @@ import {
   REGISTRY_KEY_DETAIL_CONFIG,
   REGISTRY_VALUE_DETAIL_CONFIG,
   SCHEDULED_JOB_DETAIL_CONFIG,
+  SERVICE_DETAIL_CONFIG,
 } from "./configs";
 
 const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
@@ -19,6 +20,7 @@ const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
   RegistryKey: REGISTRY_KEY_DETAIL_CONFIG,
   RegistryValue: REGISTRY_VALUE_DETAIL_CONFIG,
   ScheduledJob: SCHEDULED_JOB_DETAIL_CONFIG,
+  Service: SERVICE_DETAIL_CONFIG,
 };
 
 export function getAttackGraphNodeDetailConfig(
@@ -32,8 +34,9 @@ export function toAttackGraphNodeDetailData(
 ): AttackGraphDetailData {
   return {
     ...node.properties,
-    display_name: node.displayName,
+    display_name: node.properties.display_name || node.displayName,
     entity_type: node.entityType,
+    graph_display_name: node.displayName,
     key: node.key,
   };
 }

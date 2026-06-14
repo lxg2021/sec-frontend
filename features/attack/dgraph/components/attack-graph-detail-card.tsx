@@ -62,7 +62,6 @@ export function AttackGraphDetailCard({
       return {
         config,
         data,
-        summaryBadges: summary.badges,
         titleFallback: summary.title,
       };
     }
@@ -81,7 +80,6 @@ export function AttackGraphDetailCard({
           ? getAttackGraphSelectedNodeSummary(targetNode).title
           : item.edge.target,
       ),
-      summaryBadges: summary.badges,
       titleFallback: summary.label,
     };
   }, [item, nodesById]);
@@ -126,7 +124,6 @@ export function AttackGraphDetailCard({
       <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-0 bg-transparent shadow-none">
         <AttackGraphDetailHeader
           data={content.data}
-          fallbackBadges={content.summaryBadges}
           header={content.config.header}
           headerIconTone={headerIconTone}
           onClose={onClose}

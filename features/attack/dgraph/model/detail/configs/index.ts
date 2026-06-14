@@ -3,3 +3,4 @@ export { PROCESS_DETAIL_CONFIG } from "./process-detail-config";
 export { REGISTRY_KEY_DETAIL_CONFIG } from "./registry-key-detail-config";
 export { REGISTRY_VALUE_DETAIL_CONFIG } from "./registry-value-detail-config";
 export { SCHEDULED_JOB_DETAIL_CONFIG } from "./scheduled-job-detail-config";
+export { SERVICE_DETAIL_CONFIG } from "./service-detail-config";
