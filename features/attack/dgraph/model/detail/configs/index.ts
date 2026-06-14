@@ -5,3 +5,4 @@ export { REGISTRY_VALUE_DETAIL_CONFIG } from "./registry-value-detail-config";
 export { SCHEDULED_JOB_DETAIL_CONFIG } from "./scheduled-job-detail-config";
 export { SERVICE_DETAIL_CONFIG } from "./service-detail-config";
 export { TASK_DETAIL_CONFIG } from "./task-detail-config";
+export { TOKEN_IMPERSONATION_DETAIL_CONFIG } from "./token-impersonation-detail-config";
