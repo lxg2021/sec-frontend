@@ -1,11 +1,17 @@
 import { Badge } from "@/shared/ui/badge";
 
-import type {
-  AttackGraphDetailCardConfig,
-  AttackGraphDetailData,
-  AttackGraphDetailIconName,
-} from "../attack-graph-detail-config-types";
-import type { AttackGraphPresentationTone } from "../attack-graph-detail-types";
+import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
+import {
+  formatSignature,
+  isSignedSignature,
+  resolveSignatureRelatedTone,
+  resolveSignatureTone,
+} from "../rules/signature-detail-rules";
+import {
+  formatFileDriverType,
+  resolveFileDriverTypeIcon,
+  resolveFileDriverTypeTone,
+} from "../rules/file-detail-rules";
 
 export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
@@ -19,8 +25,8 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       {
         key: "signature",
         customRender: (value) => (
-          <Badge variant={isSigned(value) ? "default" : "destructive"}>
-            {isSigned(value) ? "Signed" : "Unsigned"}
+          <Badge variant={isSignedSignature(value) ? "default" : "destructive"}>
+            {isSignedSignature(value) ? "Signed" : "Unsigned"}
           </Badge>
         ),
       },
@@ -106,62 +112,3 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     },
   ],
 };
-
-function isSigned(value: string) {
-  const normalized = value.trim().toLowerCase();
-  return normalized === "1" || normalized === "signed" || normalized === "true";
-}
-
-function formatSignature(value: string) {
-  return isSigned(value) ? "signed" : "unsigned";
-}
-
-function resolveSignatureTone(value: string): AttackGraphPresentationTone | undefined {
-  return isSigned(value) ? undefined : "orange";
-}
-
-function resolveSignatureRelatedTone(
-  _value: string,
-  data: AttackGraphDetailData,
-): AttackGraphPresentationTone | undefined {
-  return isSigned(data.signature) ? undefined : "orange";
-}
-
-function formatFileDriverType(value: string) {
-  const normalized = value.trim();
-  const label = FILE_DRIVER_TYPE_LABELS[normalized];
-  return (label ?? normalized).toLowerCase();
-}
-
-function resolveFileDriverTypeIcon(value: string): AttackGraphDetailIconName {
-  const normalized = value.trim();
-  if (normalized === "4" || normalized === "64") {
-    return "Disc";
-  }
-  if (normalized === "8") {
-    return "Network";
-  }
-  if (normalized === "2" || normalized === "16" || normalized === "32") {
-    return "Usb";
-  }
-  return "HardDrive";
-}
-
-function resolveFileDriverTypeTone(
-  value: string,
-): AttackGraphPresentationTone | undefined {
-  return FILE_DRIVER_TYPE_ALERT_VALUES.has(value.trim()) ? "orange" : undefined;
-}
-
-const FILE_DRIVER_TYPE_LABELS: Record<string, string> = {
-  "0": "Unknown",
-  "1": "Local Disk",
-  "2": "Removable",
-  "4": "CD-ROM",
-  "8": "Network",
-  "16": "USB Hard Disk",
-  "32": "USB Removable",
-  "64": "USB CD-ROM",
-};
-
-const FILE_DRIVER_TYPE_ALERT_VALUES = new Set(["2", "4", "8", "16", "32", "64"]);
