@@ -29,7 +29,7 @@ export const HOST_REF_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   sections: [
     {
       title: "Host Reference",
-      icon: "Server",
+      icon: "Activity",
       tone: "blue",
       columns: 1,
       fields: [
