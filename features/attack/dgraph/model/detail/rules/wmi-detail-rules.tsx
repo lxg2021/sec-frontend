@@ -119,6 +119,10 @@ export function renderWmiFilterTypeBadge() {
   return renderWmiTypeBadge("wmi filter");
 }
 
+export function renderWmiQueryTypeBadge() {
+  return renderWmiTypeBadge("wmi query");
+}
+
 function renderWmiTypeBadge(label: string) {
   return (
     <Badge

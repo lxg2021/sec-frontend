@@ -1,0 +1,151 @@
+import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
+import {
+  formatWmiScopeKind,
+  renderWmiExplicitCredentialBadge,
+  renderWmiQueryTypeBadge,
+  renderWmiScopeKindValue,
+  renderWmiScopeBadge,
+} from "../rules/wmi-detail-rules";
+
+export const WMI_QUERY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
+  header: {
+    icon: "Terminal",
+    iconTone: "blue",
+    title: {
+      key: "query",
+      fallback: "WmiQuery",
+    },
+    badges: [
+      {
+        key: "query",
+        customRender: renderWmiQueryTypeBadge,
+      },
+      {
+        key: "scope_kind",
+        customRender: renderWmiScopeBadge,
+      },
+      {
+        key: "has_explicit_credential",
+        customRender: renderWmiExplicitCredentialBadge,
+      },
+    ],
+    fields: [
+      {
+        key: "namespace",
+        label: "Namespace",
+        icon: "Database",
+        iconTone: "slate",
+        mono: true,
+      },
+      {
+        key: "occurred_at",
+        label: "Occurred",
+        icon: "Clock",
+        iconTone: "green",
+        mono: true,
+      },
+    ],
+  },
+  sections: [
+    {
+      title: "Wmi Query",
+      icon: "Network",
+      tone: "blue",
+      columns: 2,
+      fields: [
+        {
+          key: "namespace",
+          label: "Namespace",
+          icon: "Database",
+          iconTone: "slate",
+          valueTone: "slate",
+          display: "code",
+          mono: true,
+          copyable: true,
+          truncate: true,
+          maxLength: 120,
+          expandable: true,
+          showInPopover: true,
+        },
+        {
+          key: "server_name",
+          label: "Server",
+          icon: "Server",
+          iconTone: "blue",
+          mono: true,
+        },
+        {
+          key: "user",
+          label: "User",
+          icon: "User",
+          iconTone: "slate",
+          mono: true,
+        },
+        {
+          key: "scope_kind",
+          label: "Scope Type",
+          icon: "Network",
+          iconTone: "orange",
+          formatValue: formatWmiScopeKind,
+          customRender: renderWmiScopeKindValue,
+          mono: true,
+        },
+        {
+          key: "agent_id",
+          label: "Agent ID",
+          icon: "Monitor",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+        },
+        {
+          key: "process_guid",
+          label: "Process GUID",
+          icon: "Fingerprint",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+          copyable: true,
+        },
+        {
+          key: "unique_id",
+          label: "ID",
+          icon: "Fingerprint",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+        },
+      ],
+    },
+    {
+      title: "Query Information",
+      icon: "Terminal",
+      tone: "blue",
+      columns: 1,
+      fields: [
+        {
+          key: "query_language",
+          label: "Language",
+          icon: "Languages",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+        },
+        {
+          key: "query",
+          label: "Query",
+          icon: "Terminal",
+          iconTone: "cyan",
+          valueTone: "cyan",
+          display: "code",
+          mono: true,
+          copyable: true,
+          truncate: true,
+          maxLength: 180,
+          expandable: true,
+          showInPopover: true,
+        },
+      ],
+    },
+  ],
+};

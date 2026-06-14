@@ -7,6 +7,7 @@ import { AttackGraphWmiClassDetailDebugCard } from "@/features/attack/dgraph/deb
 import { AttackGraphWmiConsumerDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-wmi-consumer-detail-debug-card";
 import { AttackGraphWmiExecuteDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-wmi-execute-detail-debug-card";
 import { AttackGraphWmiFilterDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-wmi-filter-detail-debug-card";
+import { AttackGraphWmiQueryDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-wmi-query-detail-debug-card";
 
 export default function AttackGraphDrillDebugPage() {
   return (
@@ -15,6 +16,7 @@ export default function AttackGraphDrillDebugPage() {
       <AttackGraphWmiConsumerDetailDebugCard />
       <AttackGraphWmiExecuteDetailDebugCard />
       <AttackGraphWmiFilterDetailDebugCard />
+      <AttackGraphWmiQueryDetailDebugCard />
       <AttackGraphVolumeDetailDebugCard />
       <AttackGraphTaskDetailDebugCard />
       <AttackGraphLayoutEvaluationCard />

@@ -11,3 +11,4 @@ export { WMI_CLASS_DETAIL_CONFIG } from "./wmi-class-detail-config";
 export { WMI_CONSUMER_DETAIL_CONFIG } from "./wmi-consumer-detail-config";
 export { WMI_EXECUTE_DETAIL_CONFIG } from "./wmi-execute-detail-config";
 export { WMI_FILTER_DETAIL_CONFIG } from "./wmi-filter-detail-config";
+export { WMI_QUERY_DETAIL_CONFIG } from "./wmi-query-detail-config";
