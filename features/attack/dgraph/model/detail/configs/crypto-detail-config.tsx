@@ -57,7 +57,7 @@ export const CRYPTO_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           icon: "Tag",
           iconTone: "slate",
           valueTone: "slate",
-          formatValue: formatCryptoOperation,
+          mono: true,
         },
         {
           key: "process_guid",
