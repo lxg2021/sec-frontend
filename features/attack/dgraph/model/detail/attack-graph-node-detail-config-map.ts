@@ -5,6 +5,7 @@ import type {
 } from "./attack-graph-detail-config-types";
 import {
   FILE_DETAIL_CONFIG,
+  NET_ADDRESS_DETAIL_CONFIG,
   NET_ENDPOINT_DETAIL_CONFIG,
   POWERSHELL_EXECUTION_DETAIL_CONFIG,
   PROCESS_DETAIL_CONFIG,
@@ -26,6 +27,7 @@ const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
   Record<string, AttackGraphDetailCardConfig>
 > = {
   File: FILE_DETAIL_CONFIG,
+  NetAddress: NET_ADDRESS_DETAIL_CONFIG,
   NetEndpoint: NET_ENDPOINT_DETAIL_CONFIG,
   PowerShellExecution: POWERSHELL_EXECUTION_DETAIL_CONFIG,
   Process: PROCESS_DETAIL_CONFIG,
