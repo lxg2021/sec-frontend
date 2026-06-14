@@ -100,6 +100,7 @@ export type AttackGraphDetailIconName =
   | "Filter"
   | "FileText"
   | "Fingerprint"
+  | "Folder"
   | "FolderOpen"
   | "FolderTree"
   | "GitBranch"

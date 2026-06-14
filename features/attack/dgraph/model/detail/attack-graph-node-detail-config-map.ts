@@ -5,6 +5,7 @@ import type {
 } from "./attack-graph-detail-config-types";
 import {
   FILE_DETAIL_CONFIG,
+  FILE_MAPPING_DETAIL_CONFIG,
   MAIL_SLOT_DETAIL_CONFIG,
   NAMED_EVENT_DETAIL_CONFIG,
   NAMED_PIPE_DETAIL_CONFIG,
@@ -30,6 +31,7 @@ const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
   Record<string, AttackGraphDetailCardConfig>
 > = {
   File: FILE_DETAIL_CONFIG,
+  FileMapping: FILE_MAPPING_DETAIL_CONFIG,
   MailSlot: MAIL_SLOT_DETAIL_CONFIG,
   NamedEvent: NAMED_EVENT_DETAIL_CONFIG,
   NamedPipe: NAMED_PIPE_DETAIL_CONFIG,
