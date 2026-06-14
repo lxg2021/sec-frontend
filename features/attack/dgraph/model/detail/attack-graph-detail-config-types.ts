@@ -55,6 +55,7 @@ export interface AttackGraphDetailFieldConfig {
   maxLength?: number;
   expandable?: boolean;
   copyable?: boolean;
+  hideWhenEmpty?: boolean;
   showInPopover?: boolean;
   formatValue?: (value: string, data: AttackGraphDetailData) => string;
   resolveIcon?: (

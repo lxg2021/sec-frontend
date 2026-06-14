@@ -12,6 +12,7 @@ import { AttackGraphDetailField } from "./attack-graph-detail-field";
 import {
   ATTACK_GRAPH_DETAIL_SECTION_TONE_CLASS_NAMES,
   getAttackGraphDetailIcon,
+  readAttackGraphDetailValue,
 } from "./attack-graph-detail-presentation";
 
 export function AttackGraphDetailSection({
@@ -37,6 +38,15 @@ export function AttackGraphDetailSection({
   const isCollapsed =
     section.defaultCollapsed && !expandedSections.has(sectionId);
   const ToggleIcon = isCollapsed ? ChevronRight : ChevronDown;
+  const visibleFields = section.fields.filter(
+    (field) =>
+      !field.hideWhenEmpty ||
+      readAttackGraphDetailValue(data, field.key).length > 0,
+  );
+
+  if (visibleFields.length === 0) {
+    return null;
+  }
 
   return (
     <div>
@@ -73,13 +83,14 @@ export function AttackGraphDetailSection({
               section.columns === 1 ? "" : "md:grid-cols-2",
             )}
           >
-            {section.fields.map((field, fieldIndex) => {
+            {visibleFields.map((field, fieldIndex) => {
               const fieldId = `${sectionIndex}-${fieldIndex}`;
               return (
                 <AttackGraphDetailField
                   key={`${field.key}-${fieldIndex}`}
                   className={
-                    field.display === "block" || field.display === "code"
+                    section.columns !== 1 &&
+                    (field.display === "block" || field.display === "code")
                       ? "md:col-span-2"
                       : undefined
                   }
