@@ -54,6 +54,25 @@ export function renderWmiScopeBadge(value: string) {
   );
 }
 
+export function renderWmiScopeKindValue(value: string) {
+  const label = formatWmiScopeKind(value);
+  if (!label) {
+    return null;
+  }
+
+  return (
+    <span
+      className={
+        label === "remote"
+          ? "font-medium text-rose-600"
+          : "font-medium text-slate-600"
+      }
+    >
+      {label}
+    </span>
+  );
+}
+
 export function renderWmiBase64AttributesBadge(
   _value: string,
   data: AttackGraphDetailData,

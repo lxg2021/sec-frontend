@@ -2,6 +2,7 @@ import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-
 import {
   formatWmiScopeKind,
   renderWmiFilterTypeBadge,
+  renderWmiScopeKindValue,
   renderWmiScopeBadge,
 } from "../rules/wmi-detail-rules";
 
@@ -95,6 +96,7 @@ export const WMI_FILTER_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           icon: "Network",
           iconTone: "orange",
           formatValue: formatWmiScopeKind,
+          customRender: renderWmiScopeKindValue,
           mono: true,
         },
         {

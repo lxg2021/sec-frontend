@@ -6,6 +6,7 @@ import {
   renderWmiExplicitCredentialBadge,
   renderWmiExecuteTypeBadge,
   renderWmiMethodParameters,
+  renderWmiScopeKindValue,
   renderWmiScopeBadge,
 } from "../rules/wmi-detail-rules";
 
@@ -105,6 +106,7 @@ export const WMI_EXECUTE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           icon: "Network",
           iconTone: "orange",
           formatValue: formatWmiScopeKind,
+          customRender: renderWmiScopeKindValue,
           mono: true,
         },
         {
