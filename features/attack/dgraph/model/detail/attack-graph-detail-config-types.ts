@@ -6,7 +6,9 @@ export interface AttackGraphDetailHeaderFieldConfig {
   key: string;
   label: string;
   icon?: AttackGraphDetailIconName;
+  iconTone?: AttackGraphPresentationTone;
   tone?: AttackGraphPresentationTone;
+  valueTone?: AttackGraphPresentationTone;
   mono?: boolean;
   copyable?: boolean;
 }
@@ -31,7 +33,9 @@ export interface AttackGraphDetailFieldConfig {
   key: string;
   label: string;
   icon?: AttackGraphDetailIconName;
+  iconTone?: AttackGraphPresentationTone;
   tone?: AttackGraphPresentationTone;
+  valueTone?: AttackGraphPresentationTone;
   display?: "inline" | "block" | "code";
   bold?: boolean;
   mono?: boolean;

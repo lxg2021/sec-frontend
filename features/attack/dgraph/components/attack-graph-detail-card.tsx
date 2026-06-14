@@ -236,10 +236,12 @@ export function AttackGraphDetailCard({
             </div>
           </div>
 
-          <HeaderFields
-            data={content.data}
-            fields={content.config.header.fields ?? []}
-          />
+          <div className="mt-4">
+            <HeaderFields
+              data={content.data}
+              fields={content.config.header.fields ?? []}
+            />
+          </div>
         </CardHeader>
 
         <ScrollArea className="min-h-0 flex-1">
@@ -373,17 +375,18 @@ function HeaderFields({
   }
 
   return (
-    <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm text-gray-600 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm text-gray-600 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       {fields.map((field) => {
         const Icon = getIcon(field.icon);
-        const tone = field.tone ?? "slate";
+        const iconTone = field.iconTone ?? field.tone ?? "slate";
+        const valueTone = field.valueTone ?? field.tone ?? "slate";
         const value = readDetailValue(data, field.key);
         return (
           <div key={field.key} className="flex min-w-0 items-start gap-2">
             <Icon
               className={cn(
                 "mt-0.5 h-4 w-4 shrink-0",
-                FIELD_TONE_CLASS_NAMES[tone],
+                FIELD_TONE_CLASS_NAMES[iconTone],
               )}
             />
             <span className="shrink-0 font-medium text-gray-700">
@@ -392,6 +395,7 @@ function HeaderFields({
             <span
               className={cn(
                 "min-w-0 break-all whitespace-pre-wrap",
+                FIELD_TONE_CLASS_NAMES[valueTone],
                 field.mono ? "font-mono text-xs" : "",
               )}
             >
@@ -439,9 +443,11 @@ function DetailField({
       : formattedValue;
   const Icon = getIcon(field.icon);
   const tone = field.tone ?? "slate";
+  const iconTone = field.iconTone ?? tone;
+  const valueTone = field.valueTone ?? tone;
   const display = field.display ?? "inline";
   const valueClassName = cn(
-    FIELD_TONE_CLASS_NAMES[tone],
+    FIELD_TONE_CLASS_NAMES[valueTone],
     field.bold ? "font-semibold" : "",
     field.mono ? "font-mono text-xs" : "",
   );
@@ -465,7 +471,7 @@ function DetailField({
           <Icon
             className={cn(
               "h-4 w-4 shrink-0",
-              FIELD_TONE_CLASS_NAMES[tone],
+              FIELD_TONE_CLASS_NAMES[iconTone],
             )}
           />
           <span className="min-w-0 font-medium text-gray-700">
@@ -477,9 +483,12 @@ function DetailField({
         </div>
         <div
           className={cn(
-            "min-w-0 break-all whitespace-pre-wrap text-slate-700",
+            "min-w-0 break-all whitespace-pre-wrap",
             display === "code"
-              ? "rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-5"
+              ? cn(
+                  valueClassName,
+                  "rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-5",
+                )
               : cn(valueClassName, "pl-6 leading-5"),
           )}
         >
@@ -492,11 +501,11 @@ function DetailField({
   return (
     <div className="flex min-h-[24px] items-start gap-2 text-sm">
       <Icon
-        className={cn(
-          "mt-0.5 h-4 w-4 shrink-0",
-          FIELD_TONE_CLASS_NAMES[tone],
-        )}
-      />
+          className={cn(
+            "mt-0.5 h-4 w-4 shrink-0",
+            FIELD_TONE_CLASS_NAMES[iconTone],
+          )}
+        />
       <span className="shrink-0 font-medium text-gray-700">{field.label}:</span>
       <div className="flex min-w-0 flex-1 items-start gap-2">
         <span className={cn(valueClassName, "break-all whitespace-pre-wrap")}>

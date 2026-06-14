@@ -19,10 +19,10 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       },
     ],
     fields: [
-      { key: "agent_id", label: "Agent ID", icon: "Monitor", mono: true },
-      { key: "user_name", label: "User", icon: "User" },
-      { key: "process_id", label: "PID", icon: "Hash", mono: true },
-      { key: "parent_process_id", label: "Parent PID", icon: "Hash", mono: true },
+      { key: "agent_id", label: "Agent ID", icon: "Monitor", iconTone: "blue", mono: true },
+      { key: "user_name", label: "User", icon: "User", iconTone: "purple" },
+      { key: "process_id", label: "PID", icon: "Hash", iconTone: "blue", mono: true },
+      { key: "parent_process_id", label: "Parent PID", icon: "Hash", iconTone: "blue", mono: true },
     ],
   },
   sections: [
@@ -45,6 +45,8 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           key: "process_command_line",
           label: "Command Line",
           icon: "Terminal",
+          iconTone: "cyan",
+          valueTone: "cyan",
           display: "code",
           mono: true,
           truncate: true,
@@ -53,7 +55,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           showInPopover: true,
           copyable: true,
         },
-        { key: "process_guid", label: "Process GUID", icon: "Fingerprint", mono: true, copyable: true },
+        { key: "process_guid", label: "Process GUID", icon: "Fingerprint", iconTone: "purple", mono: true, copyable: true },
       ],
     },
     {
@@ -62,7 +64,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       tone: "slate",
       columns: 1,
       fields: [
-        { key: "parent_process_id", label: "Parent PID", icon: "Hash", mono: true },
+        { key: "parent_process_id", label: "Parent PID", icon: "Hash", iconTone: "blue", mono: true },
         {
           key: "parent_process_image",
           label: "Parent Path",
@@ -75,6 +77,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           key: "parent_process_command_line",
           label: "Parent Command",
           icon: "Terminal",
+          iconTone: "cyan",
           display: "code",
           mono: true,
           truncate: true,
@@ -90,8 +93,8 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       icon: "Shield",
       tone: "red",
       fields: [
-        { key: "signature", label: "Signature", icon: "Lock" },
-        { key: "sign_vendor", label: "Sign Vendor", icon: "Shield" },
+        { key: "signature", label: "Signature", icon: "Lock", iconTone: "red" },
+        { key: "sign_vendor", label: "Sign Vendor", icon: "Shield", iconTone: "red" },
         { key: "md5", label: "MD5", icon: "Fingerprint", mono: true, copyable: true },
         { key: "sha1", label: "SHA1", icon: "Fingerprint", mono: true, copyable: true },
         { key: "sha256", label: "SHA256", icon: "Fingerprint", mono: true, copyable: true },
