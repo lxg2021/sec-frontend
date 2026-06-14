@@ -1,3 +1,4 @@
+export { ACCOUNT_DETAIL_CONFIG } from "./account-detail-config";
 export { ACCOUNT_GROUP_DETAIL_CONFIG } from "./account-group-detail-config";
 export { BITS_DETAIL_CONFIG } from "./bits-detail-config";
 export { CRYPTO_DETAIL_CONFIG } from "./crypto-detail-config";

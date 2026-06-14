@@ -1,6 +1,7 @@
 "use client";
 
 import { AttackGraphLayoutEvaluationCard } from "@/features/attack/dgraph/debug/attack-graph-layout-evaluation-card";
+import { AttackGraphAccountDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-account-detail-debug-card";
 import { AttackGraphAccountGroupDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-account-group-detail-debug-card";
 import { AttackGraphBitsDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-bits-detail-debug-card";
 import { AttackGraphCredentialTheftDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-credential-theft-detail-debug-card";
@@ -31,6 +32,7 @@ import { AttackGraphWmiQueryDetailDebugCard } from "@/features/attack/dgraph/deb
 export default function AttackGraphDrillDebugPage() {
   return (
     <div className="min-h-screen space-y-6 bg-slate-50 p-6">
+      <AttackGraphAccountDetailDebugCard />
       <AttackGraphAccountGroupDetailDebugCard />
       <AttackGraphBitsDetailDebugCard />
       <AttackGraphCredentialTheftDetailDebugCard />
