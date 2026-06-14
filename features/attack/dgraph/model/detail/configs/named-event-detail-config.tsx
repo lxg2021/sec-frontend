@@ -3,7 +3,7 @@ import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-
 export const NAMED_EVENT_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
     icon: "Activity",
-    iconTone: "slate",
+    iconTone: "blue",
     title: {
       key: "event_name",
       fallback: "Named Event",
@@ -18,7 +18,7 @@ export const NAMED_EVENT_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     {
       title: "Event Information",
       icon: "Activity",
-      tone: "slate",
+      tone: "blue",
       columns: 1,
       fields: [
         {

@@ -79,7 +79,7 @@ export const TASK_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     {
       title: "Task Image",
       icon: "Terminal",
-      tone: "cyan",
+      tone: "blue",
       columns: 1,
       fields: [
         {
@@ -131,7 +131,7 @@ export const TASK_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     {
       title: "Trigger Information",
       icon: "Activity",
-      tone: "slate",
+      tone: "blue",
       columns: 1,
       fields: [
         {

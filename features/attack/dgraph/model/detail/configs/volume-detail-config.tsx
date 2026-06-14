@@ -45,7 +45,7 @@ export const VOLUME_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     {
       title: "Volume Information",
       icon: "HardDrive",
-      tone: "cyan",
+      tone: "blue",
       columns: 1,
       fields: [
         {

@@ -36,7 +36,7 @@ export const POWERSHELL_EXECUTION_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     {
       title: "PowerShell Execution",
       icon: "Terminal",
-      tone: "cyan",
+      tone: "blue",
       columns: 2,
       fields: [
         {

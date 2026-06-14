@@ -109,6 +109,7 @@ export type AttackGraphDetailIconName =
   | "Key"
   | "Languages"
   | "Lock"
+  | "Mail"
   | "Monitor"
   | "Network"
   | "Server"

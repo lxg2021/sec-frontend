@@ -1,4 +1,5 @@
 export { FILE_DETAIL_CONFIG } from "./file-detail-config";
+export { MAIL_SLOT_DETAIL_CONFIG } from "./mail-slot-detail-config";
 export { NAMED_EVENT_DETAIL_CONFIG } from "./named-event-detail-config";
 export { NAMED_PIPE_DETAIL_CONFIG } from "./named-pipe-detail-config";
 export { NET_ADDRESS_DETAIL_CONFIG } from "./net-address-detail-config";

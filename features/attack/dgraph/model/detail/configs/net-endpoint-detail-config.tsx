@@ -29,7 +29,7 @@ export const NET_ENDPOINT_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     {
       title: "Endpoint Information",
       icon: "Network",
-      tone: "cyan",
+      tone: "blue",
       columns: 1,
       fields: [
         {

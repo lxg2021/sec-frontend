@@ -1,13 +1,13 @@
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 
-export const NAMED_PIPE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
+export const MAIL_SLOT_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
-    icon: "GitBranch",
+    icon: "Mail",
     iconTone: "blue",
     title: {
-      key: "pipe_name",
-      fallback: "Named Pipe",
-      formatValue: formatNamedPipeTitle,
+      key: "mail_slot_name",
+      fallback: "MailSlot",
+      formatValue: formatMailSlotTitle,
     },
     fields: [
       { key: "agent_id", label: "Agent ID", icon: "Monitor", iconTone: "blue", mono: true },
@@ -16,15 +16,15 @@ export const NAMED_PIPE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   },
   sections: [
     {
-      title: "Pipe Information",
-      icon: "GitBranch",
+      title: "MailSlot Information",
+      icon: "Activity",
       tone: "blue",
       columns: 1,
       fields: [
         {
-          key: "pipe_name",
-          label: "Pipe Name",
-          icon: "Terminal",
+          key: "mail_slot_name",
+          label: "MailSlot Name",
+          icon: "Mail",
           iconTone: "cyan",
           valueTone: "cyan",
           display: "code",
@@ -42,13 +42,14 @@ export const NAMED_PIPE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           iconTone: "slate",
           valueTone: "slate",
           mono: true,
+          hideWhenEmpty: true,
         },
       ],
     },
   ],
 };
 
-function formatNamedPipeTitle(value: string) {
+function formatMailSlotTitle(value: string) {
   const normalized = value.trim().replace(/[\\/]+$/g, "");
   if (!normalized) {
     return "";
