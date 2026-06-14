@@ -17,18 +17,18 @@ import type {
   AttackGraphLayoutOptions,
   AttackGraphLayoutStrategy,
   GraphCaseResponseDto,
-} from "../model/attack-graph-data";
-import { buildAttackGraphModel } from "../model/attack-graph-adapter";
-import { buildAttackGraphEdgeDiagnostics } from "../model/attack-graph-edge-diagnostics";
+} from "../model/core/attack-graph-data";
+import { buildAttackGraphModel } from "../model/core/attack-graph-adapter";
+import { buildAttackGraphEdgeDiagnostics } from "../model/edge/attack-graph-edge-diagnostics";
 import {
   buildAttackGraphEdgeRoutes,
   type AttackGraphNodeEdgeGeometry,
-} from "../model/attack-graph-edge-routing";
-import { layoutAttackGraph } from "../model/attack-graph-layout";
+} from "../model/edge/attack-graph-edge-routing";
+import { layoutAttackGraph } from "../model/layout/attack-graph-layout";
 import {
   getAttackGraphNodeKindConfig,
   getAttackGraphNodeSize,
-} from "../model/attack-graph-node-config";
+} from "../model/node/attack-graph-node-config";
 import {
   AttackGraphFlow,
   type AttackGraphFlowDiagnostics,
