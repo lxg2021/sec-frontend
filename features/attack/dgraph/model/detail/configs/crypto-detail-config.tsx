@@ -1,6 +1,5 @@
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 import {
-  formatCryptoFlag,
   formatCryptoOperation,
   renderCryptoTypeBadge,
 } from "../rules/crypto-detail-rules";
@@ -45,7 +44,7 @@ export const CRYPTO_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       columns: 1,
       fields: [
         {
-          key: "crypt_flag_description",
+          key: "operation_kind",
           label: "Operation",
           icon: "Lock",
           iconTone: "blue",
@@ -53,13 +52,12 @@ export const CRYPTO_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           formatValue: formatCryptoOperation,
         },
         {
-          key: "crypt_flag",
+          key: "crypt_flag_description",
           label: "Crypto Flag",
-          icon: "Hash",
+          icon: "Tag",
           iconTone: "slate",
           valueTone: "slate",
-          mono: true,
-          formatValue: formatCryptoFlag,
+          formatValue: formatCryptoOperation,
         },
         {
           key: "process_guid",
