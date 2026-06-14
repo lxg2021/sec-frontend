@@ -29,6 +29,7 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       title: "File Information",
       icon: "FileText",
       tone: "amber",
+      columns: 1,
       fields: [
         {
           key: "file_name",
@@ -56,6 +57,7 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       title: "Detection",
       icon: "Shield",
       tone: "red",
+      columns: 1,
       fields: [
         { key: "signature", label: "Signature", icon: "Lock" },
         { key: "sign_vendor", label: "Sign Vendor", icon: "Shield" },

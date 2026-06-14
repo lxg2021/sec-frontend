@@ -204,7 +204,7 @@ export function AttackGraphDetailCard({
   return (
     <aside
       className={cn(
-        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[420px] max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
+        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[560px] max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
         className,
       )}
       data-attack-graph-detail-card={item.kind}
@@ -261,7 +261,14 @@ export function AttackGraphDetailCard({
                         <SectionIcon className="h-5 w-5" />
                         {section.title}
                       </h4>
-                      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <div
+                        className={cn(
+                          "grid grid-cols-1 gap-3",
+                          section.columns === 1
+                            ? ""
+                            : "md:grid-cols-2",
+                        )}
+                      >
                         {section.fields.map((field, fieldIndex) => {
                           const fieldId = `${sectionIndex}-${fieldIndex}`;
                           return (
@@ -366,7 +373,7 @@ function HeaderFields({
   }
 
   return (
-    <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm text-gray-600 sm:grid-cols-2">
+    <div className="mt-3 grid grid-cols-1 gap-x-6 gap-y-2 text-sm text-gray-600 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
       {fields.map((field) => {
         const Icon = getIcon(field.icon);
         const tone = field.tone ?? "slate";

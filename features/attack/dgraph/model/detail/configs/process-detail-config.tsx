@@ -30,6 +30,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       title: "Process Information",
       icon: "Activity",
       tone: "blue",
+      columns: 1,
       fields: [
         { key: "process_name", label: "Process Name", icon: "FileText", bold: true },
         {
@@ -57,6 +58,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       title: "Parent Process",
       icon: "Activity",
       tone: "slate",
+      columns: 1,
       fields: [
         { key: "parent_process_id", label: "Parent PID", icon: "Hash", mono: true },
         {

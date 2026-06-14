@@ -28,6 +28,7 @@ export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       title: "Registry Key",
       icon: "Database",
       tone: "purple",
+      columns: 1,
       fields: [
         {
           key: "object_name",
@@ -48,6 +49,7 @@ export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       title: "Context",
       icon: "Info",
       tone: "slate",
+      columns: 1,
       fields: [
         { key: "process_name", label: "Process", icon: "Activity" },
         {
