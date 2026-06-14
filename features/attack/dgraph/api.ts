@@ -7,7 +7,7 @@ import type {
   GraphCaseEdgeDto,
   GraphCaseNodeDto,
   GraphCaseResponseDto,
-} from "./model/attack-graph-data";
+} from "./model/core/attack-graph-data";
 
 interface ApiResult<T> {
   data: T;
