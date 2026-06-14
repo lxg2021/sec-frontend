@@ -2,7 +2,7 @@ import type { AttackGraphDetailIconName } from "../attack-graph-detail-config-ty
 import type { AttackGraphPresentationTone } from "../attack-graph-detail-types";
 
 export function formatFileDriverType(value: string) {
-  const normalized = value.trim();
+  const normalized = toRuleValue(value);
   const label = FILE_DRIVER_TYPE_LABELS[normalized];
   return (label ?? normalized).toLowerCase();
 }
@@ -10,7 +10,7 @@ export function formatFileDriverType(value: string) {
 export function resolveFileDriverTypeIcon(
   value: string,
 ): AttackGraphDetailIconName {
-  const normalized = value.trim();
+  const normalized = toRuleValue(value);
   if (normalized === "4" || normalized === "64") {
     return "Disc";
   }
@@ -26,7 +26,13 @@ export function resolveFileDriverTypeIcon(
 export function resolveFileDriverTypeTone(
   value: string,
 ): AttackGraphPresentationTone | undefined {
-  return FILE_DRIVER_TYPE_ALERT_VALUES.has(value.trim()) ? "orange" : undefined;
+  return FILE_DRIVER_TYPE_ALERT_VALUES.has(toRuleValue(value))
+    ? "orange"
+    : undefined;
+}
+
+function toRuleValue(value: unknown) {
+  return String(value ?? "").trim();
 }
 
 const FILE_DRIVER_TYPE_LABELS: Record<string, string> = {

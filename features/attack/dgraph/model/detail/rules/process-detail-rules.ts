@@ -20,7 +20,7 @@ export function resolveSecurityInformationTone(
   }
   if (
     !isSignedSignature(data.signature) ||
-    PROCESS_DRIVER_TYPE_ALERT_VALUES.has((data.driver_type ?? "").trim())
+    PROCESS_DRIVER_TYPE_ALERT_VALUES.has(toRuleValue(data.driver_type))
   ) {
     return "orange";
   }
@@ -28,7 +28,7 @@ export function resolveSecurityInformationTone(
 }
 
 export function formatRtlo(value: string) {
-  const normalized = value.trim().toLowerCase();
+  const normalized = toRuleValue(value).toLowerCase();
   if (normalized === "1" || normalized === "true") {
     return "rtlo detected";
   }
@@ -45,7 +45,7 @@ export function resolveRtloTone(
 }
 
 export function formatShowWindowFlag(value: string) {
-  const normalized = value.trim();
+  const normalized = toRuleValue(value);
   const label = SHOW_WINDOW_FLAG_LABELS[normalized];
   return (label ?? normalized).toLowerCase();
 }
@@ -63,7 +63,7 @@ export function resolveShowWindowTone(
 }
 
 export function formatProcessDriverType(value: string) {
-  const normalized = value.trim();
+  const normalized = toRuleValue(value);
   const label = PROCESS_DRIVER_TYPE_LABELS[normalized];
   return (label ?? normalized).toLowerCase();
 }
@@ -71,7 +71,7 @@ export function formatProcessDriverType(value: string) {
 export function resolveProcessDriverTypeIcon(
   value: string,
 ): AttackGraphDetailIconName {
-  const normalized = value.trim();
+  const normalized = toRuleValue(value);
   if (normalized === "2") {
     return "Usb";
   }
@@ -87,16 +87,18 @@ export function resolveProcessDriverTypeIcon(
 export function resolveProcessDriverTypeTone(
   value: string,
 ): AttackGraphPresentationTone | undefined {
-  return PROCESS_DRIVER_TYPE_ALERT_VALUES.has(value.trim()) ? "orange" : undefined;
+  return PROCESS_DRIVER_TYPE_ALERT_VALUES.has(toRuleValue(value))
+    ? "orange"
+    : undefined;
 }
 
-function isRtloDetected(value: string) {
-  const normalized = value.trim().toLowerCase();
+function isRtloDetected(value: unknown) {
+  const normalized = toRuleValue(value).toLowerCase();
   return normalized === "1" || normalized === "true";
 }
 
-function isShowWindowHidden(value: string) {
-  return value.trim() === "0";
+function isShowWindowHidden(value: unknown) {
+  return toRuleValue(value) === "0";
 }
 
 function hasProcessOriginalNameMismatch(data: AttackGraphDetailData) {
@@ -110,7 +112,11 @@ function hasProcessOriginalNameMismatch(data: AttackGraphDetailData) {
 }
 
 function normalizeComparableFileName(value: string | undefined) {
-  return (value ?? "").trim().toLowerCase();
+  return toRuleValue(value).toLowerCase();
+}
+
+function toRuleValue(value: unknown) {
+  return String(value ?? "").trim();
 }
 
 const SHOW_WINDOW_FLAG_LABELS: Record<string, string> = {
