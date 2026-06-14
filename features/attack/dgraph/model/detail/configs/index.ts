@@ -7,3 +7,4 @@ export { SERVICE_DETAIL_CONFIG } from "./service-detail-config";
 export { TASK_DETAIL_CONFIG } from "./task-detail-config";
 export { TOKEN_IMPERSONATION_DETAIL_CONFIG } from "./token-impersonation-detail-config";
 export { VOLUME_DETAIL_CONFIG } from "./volume-detail-config";
+export { WMI_CLASS_DETAIL_CONFIG } from "./wmi-class-detail-config";

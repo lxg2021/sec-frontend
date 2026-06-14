@@ -75,6 +75,7 @@ export interface AttackGraphDetailSectionConfig {
   resolveTone?: (
     data: AttackGraphDetailData,
   ) => AttackGraphPresentationTone | undefined;
+  defaultCollapsed?: boolean;
   columns?: 1 | 2;
   fields: AttackGraphDetailFieldConfig[];
 }

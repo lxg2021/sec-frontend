@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { cn } from "@/shared/lib/utils";
 import { Card, CardContent } from "@/shared/ui/card";
@@ -49,6 +49,19 @@ export function AttackGraphDetailCard({
   const [expandedFields, setExpandedFields] = useState<Set<string>>(
     () => new Set(),
   );
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const itemIdentity = item
+    ? item.kind === "node"
+      ? `node:${item.node.id}`
+      : `edge:${item.edge.id}`
+    : "none";
+
+  useEffect(() => {
+    setExpandedFields(new Set());
+    setExpandedSections(new Set());
+  }, [itemIdentity]);
 
   const content = useMemo(() => {
     if (!item) {
@@ -112,6 +125,17 @@ export function AttackGraphDetailCard({
       return next;
     });
   };
+  const toggleSectionExpanded = (sectionId: string) => {
+    setExpandedSections((current) => {
+      const next = new Set(current);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      return next;
+    });
+  };
 
   return (
     <aside
@@ -138,7 +162,9 @@ export function AttackGraphDetailCard({
                   key={`${section.title}-${sectionIndex}`}
                   data={content.data}
                   expandedFields={expandedFields}
+                  expandedSections={expandedSections}
                   onToggleExpanded={toggleExpanded}
+                  onToggleSectionExpanded={toggleSectionExpanded}
                   section={section}
                   sectionIndex={sectionIndex}
                 />
