@@ -285,6 +285,11 @@ export function AttackGraphDetailCard({
                           return (
                             <DetailField
                               key={`${field.key}-${fieldIndex}`}
+                              className={
+                                field.display === "block" || field.display === "code"
+                                  ? "md:col-span-2"
+                                  : undefined
+                              }
                               data={content.data}
                               expanded={expandedFields.has(fieldId)}
                               field={field}
@@ -416,12 +421,14 @@ function HeaderFields({
 }
 
 function DetailField({
+  className,
   data,
   expanded,
   field,
   fieldId,
   onToggleExpanded,
 }: {
+  className?: string;
   data: AttackGraphDetailData;
   expanded: boolean;
   field: AttackGraphDetailFieldConfig;
@@ -466,7 +473,7 @@ function DetailField({
 
   if ((display === "block" || display === "code") && hasValue) {
     return (
-      <div className="min-w-0 text-sm">
+      <div className={cn("min-w-0 text-sm", className)}>
         <div className="mb-1.5 flex min-w-0 items-center gap-2">
           <Icon
             className={cn(
@@ -513,7 +520,7 @@ function DetailField({
   }
 
   return (
-    <div className="flex min-h-[24px] items-start gap-2 text-sm">
+    <div className={cn("flex min-h-[24px] items-start gap-2 text-sm", className)}>
       <Icon
           className={cn(
             "mt-0.5 h-4 w-4 shrink-0",
