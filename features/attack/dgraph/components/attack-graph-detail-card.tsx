@@ -9,13 +9,18 @@ import {
   Code,
   Copy,
   Database,
+  Disc,
+  Eye,
+  EyeOff,
   FileText,
   Fingerprint,
   FolderOpen,
   GitBranch,
+  HardDrive,
   Hash,
   Info,
   Key,
+  Languages,
   Lock,
   Monitor,
   Network,
@@ -23,6 +28,7 @@ import {
   Shield,
   Tag,
   Terminal,
+  Usb,
   User,
   X,
   type LucideIcon,
@@ -84,13 +90,18 @@ const ICONS: Record<AttackGraphDetailIconName, LucideIcon> = {
   Clock,
   Code,
   Database,
+  Disc,
+  Eye,
+  EyeOff,
   FileText,
   Fingerprint,
   FolderOpen,
   GitBranch,
+  HardDrive,
   Hash,
   Info,
   Key,
+  Languages,
   Lock,
   Monitor,
   Network,
@@ -98,6 +109,7 @@ const ICONS: Record<AttackGraphDetailIconName, LucideIcon> = {
   Shield,
   Tag,
   Terminal,
+  Usb,
   User,
 };
 
@@ -192,7 +204,8 @@ export function AttackGraphDetailCard({
   const title =
     readDetailValue(content.data, content.config.header.title.key) ||
     content.titleFallback ||
-    content.config.header.title.fallback;
+    content.config.header.title.fallback ||
+    "Details";
   const toggleExpanded = (fieldId: string) => {
     setExpandedFields((current) => {
       const next = new Set(current);
@@ -391,10 +404,17 @@ function HeaderFields({
   return (
     <div className="grid grid-cols-1 gap-x-10 gap-y-3 text-sm text-gray-600 sm:grid-cols-[minmax(0,1fr)_max-content]">
       {fields.map((field) => {
-        const Icon = getIcon(field.icon);
-        const iconTone = field.iconTone ?? field.tone ?? "slate";
-        const valueTone = field.valueTone ?? field.tone ?? "slate";
-        const value = readDetailValue(data, field.key);
+        const rawValue = readDetailValue(data, field.key);
+        const formattedValue = field.formatValue
+          ? field.formatValue(rawValue, data)
+          : formatDetailValue(rawValue);
+        const resolvedIcon = field.resolveIcon?.(rawValue, data);
+        const resolvedTone = field.resolveTone?.(rawValue, data);
+        const Icon = getIcon(resolvedIcon ?? field.icon);
+        const iconTone =
+          field.iconTone ?? resolvedTone ?? field.tone ?? "slate";
+        const valueTone =
+          field.valueTone ?? resolvedTone ?? field.tone ?? "slate";
         return (
           <div key={field.key} className="flex min-w-0 items-center gap-2">
             <Icon
@@ -407,7 +427,12 @@ function HeaderFields({
               {field.label}:
             </span>
             <TruncatedText
-              value={value}
+              value={formattedValue}
+              tooltipValue={
+                field.formatValue
+                  ? `${formattedValue}\nRaw: ${rawValue}`
+                  : rawValue
+              }
               className={cn(
                 FIELD_TONE_CLASS_NAMES[valueTone],
                 field.mono ? "font-mono text-xs" : "",
@@ -450,8 +475,10 @@ function DetailField({
     field.maxLength !== undefined &&
     stringValue.length > field.maxLength;
   const displayValue = formattedValue;
-  const Icon = getIcon(field.icon);
-  const tone = field.tone ?? "slate";
+  const resolvedIcon = field.resolveIcon?.(stringValue, data);
+  const resolvedTone = field.resolveTone?.(stringValue, data);
+  const Icon = getIcon(resolvedIcon ?? field.icon);
+  const tone = resolvedTone ?? field.tone ?? "slate";
   const iconTone = field.iconTone ?? tone;
   const valueTone = field.valueTone ?? tone;
   const display = field.display ?? "inline";

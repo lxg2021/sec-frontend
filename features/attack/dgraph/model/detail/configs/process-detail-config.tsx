@@ -1,6 +1,11 @@
 import { Badge } from "@/shared/ui/badge";
 
-import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
+import type {
+  AttackGraphDetailCardConfig,
+  AttackGraphDetailData,
+  AttackGraphDetailIconName,
+} from "../attack-graph-detail-config-types";
+import type { AttackGraphPresentationTone } from "../attack-graph-detail-types";
 
 export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
@@ -22,7 +27,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     ],
     fields: [
       { key: "agent_id", label: "Agent ID", icon: "Monitor", iconTone: "blue", mono: true },
-      { key: "occurred_at", label: "Occurred At", icon: "Clock", iconTone: "slate", mono: true },
+      { key: "occurred_at", label: "Occurred", icon: "Clock", iconTone: "green", mono: true },
       { key: "user_id", label: "User ID", icon: "User", iconTone: "purple", mono: true },
       { key: "session", label: "Session", icon: "Hash", iconTone: "blue", mono: true },
     ],
@@ -35,7 +40,13 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       columns: 2,
       fields: [
         { key: "process_id", label: "PID", icon: "Hash", iconTone: "blue", mono: true },
-        { key: "process_name", label: "Process Name", icon: "FileText", bold: true },
+        {
+          key: "process_name",
+          label: "Process Name",
+          icon: "FileText",
+          bold: true,
+          resolveTone: resolveProcessOriginalNameMismatchTone,
+        },
         {
           key: "process_image",
           label: "Process Path",
@@ -96,25 +107,47 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           key: "signature",
           label: "Signature",
           icon: "Lock",
-          iconTone: "red",
           formatValue: formatSignature,
+          resolveTone: resolveSignatureTone,
         },
-        { key: "sign_vendor", label: "Sign Vendor", icon: "Shield", iconTone: "red" },
+        {
+          key: "sign_vendor",
+          label: "Sign Vendor",
+          icon: "Shield",
+          resolveTone: resolveSignatureRelatedTone,
+        },
         {
           key: "rtlo",
           label: "RTLO",
-          icon: "BadgeInfo",
+          icon: "Languages",
           formatValue: formatRtlo,
+          resolveTone: resolveRtloTone,
         },
         {
           key: "show_window_flag",
           label: "Show Window",
-          icon: "BadgeInfo",
+          icon: "Eye",
           mono: true,
           formatValue: formatShowWindowFlag,
+          resolveIcon: resolveShowWindowIcon,
+          resolveTone: resolveShowWindowTone,
         },
-        { key: "org_file_name", label: "Original File Name", icon: "FileText", mono: true, copyable: true },
-        { key: "driver_type", label: "Driver Type", icon: "BadgeInfo", mono: true },
+        {
+          key: "org_file_name",
+          label: "Original File Name",
+          icon: "FileText",
+          mono: true,
+          copyable: true,
+          resolveTone: resolveProcessOriginalNameMismatchTone,
+        },
+        {
+          key: "driver_type",
+          label: "Driver Type",
+          icon: "HardDrive",
+          formatValue: formatProcessDriverType,
+          resolveIcon: resolveProcessDriverTypeIcon,
+          resolveTone: resolveProcessDriverTypeTone,
+        },
       ],
     },
   ],
@@ -129,6 +162,24 @@ function formatSignature(value: string) {
   return isSigned(value) ? "Signed" : "Unsigned";
 }
 
+function resolveSignatureTone(value: string): AttackGraphPresentationTone | undefined {
+  return isSigned(value) ? undefined : "orange";
+}
+
+function resolveSignatureRelatedTone(
+  _value: string,
+  data: AttackGraphDetailData,
+): AttackGraphPresentationTone | undefined {
+  return isSigned(data.signature) ? undefined : "orange";
+}
+
+function resolveProcessOriginalNameMismatchTone(
+  _value: string,
+  data: AttackGraphDetailData,
+): AttackGraphPresentationTone | undefined {
+  return hasProcessOriginalNameMismatch(data) ? "orange" : undefined;
+}
+
 function formatRtlo(value: string) {
   const normalized = value.trim().toLowerCase();
   if (normalized === "1" || normalized === "true") {
@@ -140,10 +191,71 @@ function formatRtlo(value: string) {
   return value;
 }
 
+function resolveRtloTone(value: string): AttackGraphPresentationTone | undefined {
+  return isRtloDetected(value) ? "red" : undefined;
+}
+
 function formatShowWindowFlag(value: string) {
   const normalized = value.trim();
   const label = SHOW_WINDOW_FLAG_LABELS[normalized];
   return label ?? normalized;
+}
+
+function resolveShowWindowIcon(value: string): AttackGraphDetailIconName {
+  return isShowWindowHidden(value) ? "EyeOff" : "Eye";
+}
+
+function resolveShowWindowTone(value: string): AttackGraphPresentationTone | undefined {
+  return isShowWindowHidden(value) ? "red" : undefined;
+}
+
+function formatProcessDriverType(value: string) {
+  const normalized = value.trim();
+  const label = PROCESS_DRIVER_TYPE_LABELS[normalized];
+  return label ?? normalized;
+}
+
+function resolveProcessDriverTypeIcon(value: string): AttackGraphDetailIconName {
+  const normalized = value.trim();
+  if (normalized === "2") {
+    return "Usb";
+  }
+  if (normalized === "4") {
+    return "Disc";
+  }
+  if (normalized === "8") {
+    return "Network";
+  }
+  return "HardDrive";
+}
+
+function resolveProcessDriverTypeTone(
+  value: string,
+): AttackGraphPresentationTone | undefined {
+  return PROCESS_DRIVER_TYPE_ALERT_VALUES.has(value.trim()) ? "orange" : undefined;
+}
+
+function isRtloDetected(value: string) {
+  const normalized = value.trim().toLowerCase();
+  return normalized === "1" || normalized === "true";
+}
+
+function isShowWindowHidden(value: string) {
+  return value.trim() === "0";
+}
+
+function hasProcessOriginalNameMismatch(data: AttackGraphDetailData) {
+  const processName = normalizeComparableFileName(data.process_name);
+  const originalFileName = normalizeComparableFileName(data.org_file_name);
+  return (
+    processName.length > 0 &&
+    originalFileName.length > 0 &&
+    processName !== originalFileName
+  );
+}
+
+function normalizeComparableFileName(value: string | undefined) {
+  return (value ?? "").trim().toLowerCase();
 }
 
 const SHOW_WINDOW_FLAG_LABELS: Record<string, string> = {
@@ -160,3 +272,14 @@ const SHOW_WINDOW_FLAG_LABELS: Record<string, string> = {
   "10": "Default",
   "11": "Force Minimize",
 };
+
+const PROCESS_DRIVER_TYPE_LABELS: Record<string, string> = {
+  "0": "Unknown",
+  "1": "Local Disk",
+  "2": "Removable",
+  "4": "CD-ROM",
+  "8": "Network",
+  "16": "RAM Disk",
+};
+
+const PROCESS_DRIVER_TYPE_ALERT_VALUES = new Set(["2", "4", "8"]);

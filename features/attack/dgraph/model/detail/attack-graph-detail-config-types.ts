@@ -11,6 +11,15 @@ export interface AttackGraphDetailHeaderFieldConfig {
   valueTone?: AttackGraphPresentationTone;
   mono?: boolean;
   copyable?: boolean;
+  formatValue?: (value: string, data: AttackGraphDetailData) => string;
+  resolveIcon?: (
+    value: string,
+    data: AttackGraphDetailData,
+  ) => AttackGraphDetailIconName | undefined;
+  resolveTone?: (
+    value: string,
+    data: AttackGraphDetailData,
+  ) => AttackGraphPresentationTone | undefined;
 }
 
 export interface AttackGraphDetailBadgeConfig {
@@ -47,6 +56,14 @@ export interface AttackGraphDetailFieldConfig {
   copyable?: boolean;
   showInPopover?: boolean;
   formatValue?: (value: string, data: AttackGraphDetailData) => string;
+  resolveIcon?: (
+    value: string,
+    data: AttackGraphDetailData,
+  ) => AttackGraphDetailIconName | undefined;
+  resolveTone?: (
+    value: string,
+    data: AttackGraphDetailData,
+  ) => AttackGraphPresentationTone | undefined;
   customRender?: (value: string, data: AttackGraphDetailData) => ReactNode;
 }
 
@@ -71,13 +88,18 @@ export type AttackGraphDetailIconName =
   | "Clock"
   | "Code"
   | "Database"
+  | "Disc"
+  | "Eye"
+  | "EyeOff"
   | "FileText"
   | "Fingerprint"
   | "FolderOpen"
   | "GitBranch"
+  | "HardDrive"
   | "Hash"
   | "Info"
   | "Key"
+  | "Languages"
   | "Lock"
   | "Monitor"
   | "Network"
@@ -85,4 +107,5 @@ export type AttackGraphDetailIconName =
   | "Shield"
   | "Tag"
   | "Terminal"
+  | "Usb"
   | "User";
