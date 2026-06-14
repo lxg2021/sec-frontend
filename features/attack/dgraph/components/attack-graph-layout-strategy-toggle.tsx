@@ -5,7 +5,7 @@ import { Layers3, Network, Sparkles, type LucideIcon } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/ui/toggle-group";
 
-import type { AttackGraphLayoutStrategy } from "../model/attack-graph-data";
+import type { AttackGraphLayoutStrategy } from "../model/core/attack-graph-data";
 
 export type AttackGraphLayoutStrategyOption = "auto" | AttackGraphLayoutStrategy;
 

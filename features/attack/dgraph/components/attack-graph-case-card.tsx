@@ -13,11 +13,11 @@ import {
 import type {
   AttackGraphLayoutOptions,
   GraphCaseResponseDto,
-} from "../model/attack-graph-data";
+} from "../model/core/attack-graph-data";
 import type {
   AttackGraphMenuAction,
   AttackGraphNodeDrillStateByKey,
-} from "../model/attack-graph-menu-types";
+} from "../model/menu/attack-graph-menu-types";
 import { Button } from "@/shared/ui/button";
 import {
   Card,

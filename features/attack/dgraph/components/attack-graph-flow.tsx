@@ -27,7 +27,7 @@ import "reactflow/dist/style.css";
 import { cn } from "@/shared/lib/utils";
 import { TooltipProvider } from "@/shared/ui/tooltip";
 
-import { buildAttackGraphModel } from "../model/attack-graph-adapter";
+import { buildAttackGraphModel } from "../model/core/attack-graph-adapter";
 import type {
   AttackGraphEdgeModel,
   AttackGraphLayoutResult,
@@ -36,26 +36,26 @@ import type {
   AttackGraphLayoutStrategy,
   AttackGraphNodeModel,
   GraphCaseResponseDto,
-} from "../model/attack-graph-data";
+} from "../model/core/attack-graph-data";
 import {
   toAttackGraphEdgeVisualData,
   type AttackGraphEdgeInteractionState,
   type AttackGraphEdgeVisualData,
-} from "../model/attack-graph-edge-config";
-import { buildAttackGraphEdgeDiagnostics } from "../model/attack-graph-edge-diagnostics";
+} from "../model/edge/attack-graph-edge-config";
+import { buildAttackGraphEdgeDiagnostics } from "../model/edge/attack-graph-edge-diagnostics";
 import {
   buildAttackGraphEdgeRoutes,
   type AttackGraphEdgeRouteData,
   type AttackGraphNodeEdgeGeometry,
-} from "../model/attack-graph-edge-routing";
-import { layoutAttackGraph } from "../model/attack-graph-layout";
-import { createCommonAttackGraphNodeMenuProvider } from "../model/attack-graph-menu-config";
-import { resolveAttackGraphNodeMenu } from "../model/attack-graph-menu-resolver";
+} from "../model/edge/attack-graph-edge-routing";
+import { layoutAttackGraph } from "../model/layout/attack-graph-layout";
+import { createCommonAttackGraphNodeMenuProvider } from "../model/menu/attack-graph-menu-config";
+import { resolveAttackGraphNodeMenu } from "../model/menu/attack-graph-menu-resolver";
 import type {
   AttackGraphMenuAction,
   AttackGraphNodeDrillStateByKey,
   AttackGraphMenuProvider,
-} from "../model/attack-graph-menu-types";
+} from "../model/menu/attack-graph-menu-types";
 import {
   ATTACK_GRAPH_NODE_FAMILY_CONFIG,
   getAttackGraphEntityNodeDisplayName,
@@ -63,7 +63,7 @@ import {
   getAttackGraphNodeMergedStateConfig,
   getAttackGraphNodeSize,
   toAttackGraphNodeVisualData,
-} from "../model/attack-graph-node-config";
+} from "../model/node/attack-graph-node-config";
 import {
   AttackGraphEdge,
   type AttackGraphEdgeData,
@@ -80,6 +80,10 @@ import {
   AttackGraphContextMenu,
   type AttackGraphContextMenuState,
 } from "./attack-graph-context-menu";
+import {
+  AttackGraphSelectionDetail,
+  type AttackGraphSelectionDetailItem,
+} from "./attack-graph-selection-detail";
 
 export interface AttackGraphFlowProps
   extends Omit<ReactFlowProps, "nodes" | "edges" | "nodeTypes" | "edgeTypes"> {
@@ -322,6 +326,10 @@ export function AttackGraphFlow({
     () => new Map(layoutedNodes.map((node) => [node.id, node])),
     [layoutedNodes],
   );
+  const layoutedEdgesById = useMemo(
+    () => new Map(layoutedEdges.map((edge) => [edge.id, edge])),
+    [layoutedEdges],
+  );
   const nodeMenuProviders = useMemo(
     () => [
       createCommonAttackGraphNodeMenuProvider({
@@ -355,6 +363,15 @@ export function AttackGraphFlow({
       setSelectedNodeId(null);
     }
   }, [layoutedNodes, selectedNodeId]);
+
+  useEffect(() => {
+    if (
+      selectedEdgeId &&
+      !layoutedEdges.some((edge) => edge.id === selectedEdgeId)
+    ) {
+      setSelectedEdgeId(null);
+    }
+  }, [layoutedEdges, selectedEdgeId]);
 
   useEffect(() => {
     setManualNodePositionsByStrategy((currentByStrategy) => {
@@ -507,6 +524,25 @@ export function AttackGraphFlow({
       selectedEdgeId,
     ],
   );
+
+  const selectionDetailItem = useMemo<AttackGraphSelectionDetailItem | null>(() => {
+    if (selectedNodeId) {
+      const node = layoutedNodesById.get(selectedNodeId);
+      return node ? { kind: "node", node } : null;
+    }
+
+    if (selectedEdgeId) {
+      const edge = layoutedEdgesById.get(selectedEdgeId);
+      return edge ? { kind: "edge", edge } : null;
+    }
+
+    return null;
+  }, [layoutedEdgesById, layoutedNodesById, selectedEdgeId, selectedNodeId]);
+
+  const handleSelectionDetailClose = useCallback(() => {
+    setSelectedEdgeId(null);
+    setSelectedNodeId(null);
+  }, []);
 
   const handleEdgeClick = useCallback<
     NonNullable<ReactFlowProps["onEdgeClick"]>
@@ -691,6 +727,11 @@ export function AttackGraphFlow({
         <AttackGraphContextMenu
           menu={contextMenu}
           onClose={() => setContextMenu(null)}
+        />
+        <AttackGraphSelectionDetail
+          item={selectionDetailItem}
+          nodesById={layoutedNodesById}
+          onClose={handleSelectionDetailClose}
         />
       </TooltipProvider>
     </div>

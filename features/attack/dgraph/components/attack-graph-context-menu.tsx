@@ -7,7 +7,7 @@ import { cn } from "@/shared/lib/utils";
 import type {
   AttackGraphMenuContext,
   AttackGraphMenuGroup,
-} from "../model/attack-graph-menu-types";
+} from "../model/menu/attack-graph-menu-types";
 
 export interface AttackGraphContextMenuState {
   context: AttackGraphMenuContext;

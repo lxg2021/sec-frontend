@@ -8,11 +8,11 @@ import {
 
 import { cn } from "@/shared/lib/utils";
 
-import type { AttackGraphEdgeModel } from "../model/attack-graph-data";
+import type { AttackGraphEdgeModel } from "../model/core/attack-graph-data";
 import type {
   AttackGraphEdgeInteractionState,
   AttackGraphEdgeVisualData,
-} from "../model/attack-graph-edge-config";
+} from "../model/edge/attack-graph-edge-config";
 import type {
   AttackGraphEdgeEndpointGeometry,
   AttackGraphEdgeGeometryData,
@@ -20,7 +20,7 @@ import type {
   AttackGraphNodeEdgeGeometry,
   AttackGraphRect,
   AttackGraphSelfLoopSide,
-} from "../model/attack-graph-edge-routing";
+} from "../model/edge/attack-graph-edge-routing";
 
 export interface AttackGraphEdgeData {
   edge: AttackGraphEdgeModel;

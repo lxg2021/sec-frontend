@@ -13,7 +13,7 @@ import {
 import type {
   AttackGraphNodeSize,
   getAttackGraphNodeMergedStateConfig,
-} from "../model/attack-graph-node-config";
+} from "../model/node/attack-graph-node-config";
 
 export type AttackGraphNodeVisualState = ReturnType<
   typeof getAttackGraphNodeMergedStateConfig
