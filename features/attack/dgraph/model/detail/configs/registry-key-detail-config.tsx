@@ -1,3 +1,5 @@
+import { Badge } from "@/shared/ui/badge";
+
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 
 export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
@@ -6,6 +8,16 @@ export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       key: "object_name",
       fallback: "Registry Key",
     },
+    badges: [
+      {
+        key: "classification",
+        customRender: (value) => (
+          <Badge variant="outline" className="border-black bg-black text-white">
+            {value || "N/A"}
+          </Badge>
+        ),
+      },
+    ],
     fields: [
       { key: "classification", label: "Class", icon: "Tag" },
       { key: "agent_id", label: "Agent ID", icon: "Monitor", mono: true },
@@ -26,6 +38,7 @@ export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           truncate: true,
           maxLength: 120,
           expandable: true,
+          showInPopover: true,
         },
         { key: "description", label: "Description", icon: "Info" },
         { key: "classification", label: "Classification", icon: "Tag" },

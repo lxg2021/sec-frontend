@@ -81,9 +81,9 @@ import {
   type AttackGraphContextMenuState,
 } from "./attack-graph-context-menu";
 import {
-  AttackGraphSelectionDetail,
-  type AttackGraphSelectionDetailItem,
-} from "./attack-graph-selection-detail";
+  AttackGraphDetailCard,
+  type AttackGraphDetailCardItem,
+} from "./attack-graph-detail-card";
 
 export interface AttackGraphFlowProps
   extends Omit<ReactFlowProps, "nodes" | "edges" | "nodeTypes" | "edgeTypes"> {
@@ -525,7 +525,7 @@ export function AttackGraphFlow({
     ],
   );
 
-  const selectionDetailItem = useMemo<AttackGraphSelectionDetailItem | null>(() => {
+  const detailCardItem = useMemo<AttackGraphDetailCardItem | null>(() => {
     if (selectedNodeId) {
       const node = layoutedNodesById.get(selectedNodeId);
       return node ? { kind: "node", node } : null;
@@ -728,8 +728,8 @@ export function AttackGraphFlow({
           menu={contextMenu}
           onClose={() => setContextMenu(null)}
         />
-        <AttackGraphSelectionDetail
-          item={selectionDetailItem}
+        <AttackGraphDetailCard
+          item={detailCardItem}
           nodesById={layoutedNodesById}
           onClose={handleSelectionDetailClose}
         />

@@ -38,6 +38,7 @@ export interface AttackGraphDetailFieldConfig {
   maxLength?: number;
   expandable?: boolean;
   copyable?: boolean;
+  showInPopover?: boolean;
   customRender?: (value: string, data: AttackGraphDetailData) => ReactNode;
 }
 

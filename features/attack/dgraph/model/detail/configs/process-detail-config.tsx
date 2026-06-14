@@ -1,3 +1,5 @@
+import { Badge } from "@/shared/ui/badge";
+
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 
 export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
@@ -6,6 +8,16 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       key: "process_name",
       fallback: "Process",
     },
+    badges: [
+      {
+        key: "signature",
+        customRender: (value) => (
+          <Badge variant={isSigned(value) ? "default" : "destructive"}>
+            {isSigned(value) ? "Signed" : "Unsigned"}
+          </Badge>
+        ),
+      },
+    ],
     fields: [
       { key: "agent_id", label: "Agent ID", icon: "Monitor", mono: true },
       { key: "user_name", label: "User", icon: "User" },
@@ -35,6 +47,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           truncate: true,
           maxLength: 120,
           expandable: true,
+          showInPopover: true,
           copyable: true,
         },
         { key: "process_guid", label: "Process GUID", icon: "Fingerprint", mono: true, copyable: true },
@@ -61,6 +74,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           truncate: true,
           maxLength: 120,
           expandable: true,
+          showInPopover: true,
           copyable: true,
         },
       ],
@@ -79,3 +93,8 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     },
   ],
 };
+
+function isSigned(value: string) {
+  const normalized = value.trim().toLowerCase();
+  return normalized === "1" || normalized === "signed" || normalized === "true";
+}

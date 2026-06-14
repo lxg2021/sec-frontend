@@ -1,3 +1,5 @@
+import { Badge } from "@/shared/ui/badge";
+
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 
 export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
@@ -6,6 +8,16 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       key: "file_name",
       fallback: "File",
     },
+    badges: [
+      {
+        key: "signature",
+        customRender: (value) => (
+          <Badge variant={isSigned(value) ? "default" : "destructive"}>
+            {isSigned(value) ? "Signed" : "Unsigned"}
+          </Badge>
+        ),
+      },
+    ],
     fields: [
       { key: "agent_id", label: "Agent ID", icon: "Monitor", mono: true },
       { key: "file_size", label: "Size", icon: "Hash", mono: true },
@@ -55,9 +67,15 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           truncate: true,
           maxLength: 120,
           expandable: true,
+          showInPopover: true,
           copyable: true,
         },
       ],
     },
   ],
 };
+
+function isSigned(value: string) {
+  const normalized = value.trim().toLowerCase();
+  return normalized === "1" || normalized === "signed" || normalized === "true";
+}
