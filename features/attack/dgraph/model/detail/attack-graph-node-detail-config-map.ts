@@ -7,6 +7,7 @@ import {
   FILE_DETAIL_CONFIG,
   PROCESS_DETAIL_CONFIG,
   REGISTRY_KEY_DETAIL_CONFIG,
+  REGISTRY_VALUE_DETAIL_CONFIG,
 } from "./configs";
 
 const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
@@ -15,6 +16,7 @@ const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
   File: FILE_DETAIL_CONFIG,
   Process: PROCESS_DETAIL_CONFIG,
   RegistryKey: REGISTRY_KEY_DETAIL_CONFIG,
+  RegistryValue: REGISTRY_VALUE_DETAIL_CONFIG,
 };
 
 export function getAttackGraphNodeDetailConfig(
