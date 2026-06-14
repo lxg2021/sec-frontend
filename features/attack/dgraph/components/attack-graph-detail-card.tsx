@@ -419,14 +419,17 @@ function DetailField({
 }) {
   const stringValue = readDetailValue(data, field.key);
   const formattedValue = formatDetailValue(stringValue);
+  const hasValue = stringValue.length > 0;
   const renderedValue = field.customRender
     ? field.customRender(stringValue, data)
     : null;
   const canExpand =
+    hasValue &&
     field.expandable &&
     field.maxLength !== undefined &&
     stringValue.length > field.maxLength;
   const canPopover =
+    hasValue &&
     field.showInPopover &&
     field.maxLength !== undefined &&
     stringValue.length > field.maxLength;
@@ -436,11 +439,55 @@ function DetailField({
       : formattedValue;
   const Icon = getIcon(field.icon);
   const tone = field.tone ?? "slate";
+  const display = field.display ?? "inline";
   const valueClassName = cn(
     FIELD_TONE_CLASS_NAMES[tone],
     field.bold ? "font-semibold" : "",
     field.mono ? "font-mono text-xs" : "",
   );
+  const fieldActions = (
+    <FieldActions
+      canExpand={canExpand}
+      canPopover={canPopover}
+      expanded={expanded}
+      field={field}
+      fieldId={fieldId}
+      onToggleExpanded={onToggleExpanded}
+      showCopy={hasValue && Boolean(field.copyable)}
+      stringValue={stringValue}
+    />
+  );
+
+  if ((display === "block" || display === "code") && hasValue) {
+    return (
+      <div className="min-w-0 text-sm">
+        <div className="mb-1.5 flex min-w-0 items-center gap-2">
+          <Icon
+            className={cn(
+              "h-4 w-4 shrink-0",
+              FIELD_TONE_CLASS_NAMES[tone],
+            )}
+          />
+          <span className="min-w-0 font-medium text-gray-700">
+            {field.label}
+          </span>
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+            {fieldActions}
+          </div>
+        </div>
+        <div
+          className={cn(
+            "min-w-0 break-all whitespace-pre-wrap text-slate-700",
+            display === "code"
+              ? "rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-5"
+              : cn(valueClassName, "pl-6 leading-5"),
+          )}
+        >
+          {renderedValue ?? displayValue}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-[24px] items-start gap-2 text-sm">
@@ -455,77 +502,104 @@ function DetailField({
         <span className={cn(valueClassName, "break-all whitespace-pre-wrap")}>
           {renderedValue ?? displayValue}
         </span>
-
-        {canExpand ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => onToggleExpanded(fieldId)}
-            className="h-6 px-2 text-xs"
-          >
-            {expanded ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
-            {expanded ? "收起" : "展开"}
-          </Button>
-        ) : null}
-
-        {field.copyable ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              void navigator.clipboard?.writeText(stringValue);
-            }}
-            className="h-6 px-2 text-xs"
-          >
-            <Copy className="h-3 w-3" />
-          </Button>
-        ) : null}
-
-        {canPopover ? (
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                <ChevronDown className="h-3 w-3" />
-                查看
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="max-h-80 w-96 overflow-auto">
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h5 className="text-sm font-medium">{field.label}</h5>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      void navigator.clipboard?.writeText(stringValue);
-                    }}
-                    className="h-6 px-2 text-xs"
-                  >
-                    <Copy className="h-3 w-3" />
-                    复制
-                  </Button>
-                </div>
-                <div
-                  className={cn(
-                    "break-all whitespace-pre-wrap text-xs",
-                    field.mono ? "font-mono" : "",
-                  )}
-                >
-                  {stringValue}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        ) : null}
+      </div>
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        {fieldActions}
       </div>
     </div>
+  );
+}
+
+function FieldActions({
+  canExpand,
+  canPopover,
+  expanded,
+  field,
+  fieldId,
+  onToggleExpanded,
+  showCopy,
+  stringValue,
+}: {
+  canExpand: boolean | undefined;
+  canPopover: boolean | undefined;
+  expanded: boolean;
+  field: AttackGraphDetailFieldConfig;
+  fieldId: string;
+  onToggleExpanded: (fieldId: string) => void;
+  showCopy: boolean;
+  stringValue: string;
+}) {
+  return (
+    <>
+      {canExpand ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onToggleExpanded(fieldId)}
+          className="h-6 px-2 text-xs"
+        >
+          {expanded ? (
+            <ChevronUp className="h-3 w-3" />
+          ) : (
+            <ChevronDown className="h-3 w-3" />
+          )}
+          {expanded ? "收起" : "展开"}
+        </Button>
+      ) : null}
+
+      {showCopy ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            void navigator.clipboard?.writeText(stringValue);
+          }}
+          className="h-6 px-2 text-xs"
+        >
+          <Copy className="h-3 w-3" />
+        </Button>
+      ) : null}
+
+      {canPopover ? (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+              <ChevronDown className="h-3 w-3" />
+              查看
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="max-h-80 w-96 overflow-auto">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h5 className="text-sm font-medium">{field.label}</h5>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    void navigator.clipboard?.writeText(stringValue);
+                  }}
+                  className="h-6 px-2 text-xs"
+                >
+                  <Copy className="h-3 w-3" />
+                  复制
+                </Button>
+              </div>
+              <div
+                className={cn(
+                  "break-all whitespace-pre-wrap text-xs",
+                  field.mono ? "font-mono" : "",
+                )}
+              >
+                {stringValue}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      ) : null}
+    </>
   );
 }
 

@@ -32,6 +32,7 @@ export interface AttackGraphDetailFieldConfig {
   label: string;
   icon?: AttackGraphDetailIconName;
   tone?: AttackGraphPresentationTone;
+  display?: "inline" | "block" | "code";
   bold?: boolean;
   mono?: boolean;
   truncate?: boolean;
