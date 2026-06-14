@@ -1,34 +1,35 @@
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 import {
-  formatWmiClassAttributes,
+  formatWmiExecuteTitle,
+  formatWmiMethodParameters,
   formatWmiScopeKind,
-  renderWmiBase64AttributesBadge,
-  renderWmiClassAttributes,
-  renderWmiClassTypeBadge,
+  renderWmiExplicitCredentialBadge,
+  renderWmiExecuteTypeBadge,
+  renderWmiMethodParameters,
   renderWmiScopeBadge,
-  resolveWmiClassAttributesTone,
 } from "../rules/wmi-detail-rules";
 
-export const WMI_CLASS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
+export const WMI_EXECUTE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
-    icon: "Database",
+    icon: "Code",
     iconTone: "blue",
     title: {
       key: "class_name",
-      fallback: "WmiClass",
+      fallback: "WmiExecute",
+      formatValue: formatWmiExecuteTitle,
     },
     badges: [
       {
         key: "class_name",
-        customRender: renderWmiClassTypeBadge,
+        customRender: renderWmiExecuteTypeBadge,
       },
       {
         key: "scope_kind",
         customRender: renderWmiScopeBadge,
       },
       {
-        key: "class_attributes",
-        customRender: renderWmiBase64AttributesBadge,
+        key: "has_explicit_credential",
+        customRender: renderWmiExplicitCredentialBadge,
       },
     ],
     fields: [
@@ -50,8 +51,8 @@ export const WMI_CLASS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   },
   sections: [
     {
-      title: "Class Information",
-      icon: "Database",
+      title: "WMI Execution Information",
+      icon: "Code",
       tone: "blue",
       columns: 2,
       fields: [
@@ -63,25 +64,12 @@ export const WMI_CLASS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           bold: true,
         },
         {
-          key: "super_class_name",
-          label: "Super Class",
-          icon: "GitBranch",
-          iconTone: "slate",
-          mono: true,
-        },
-        {
-          key: "class_path",
-          label: "Class Path",
-          icon: "FolderTree",
-          iconTone: "cyan",
-          valueTone: "cyan",
-          display: "code",
-          mono: true,
-          copyable: true,
-          truncate: true,
-          maxLength: 120,
-          expandable: true,
-          showInPopover: true,
+          key: "method_name",
+          label: "Method Name",
+          icon: "Tag",
+          iconTone: "orange",
+          valueTone: "orange",
+          bold: true,
         },
         {
           key: "namespace",
@@ -120,6 +108,15 @@ export const WMI_CLASS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           mono: true,
         },
         {
+          key: "process_guid",
+          label: "Process GUID",
+          icon: "Fingerprint",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+          copyable: true,
+        },
+        {
           key: "unique_id",
           label: "ID",
           icon: "Fingerprint",
@@ -130,17 +127,15 @@ export const WMI_CLASS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       ],
     },
     {
-      title: "Class Attributes",
-      icon: "Code",
+      title: "Method Parameters",
+      icon: "Terminal",
       tone: "blue",
-      resolveTone: resolveWmiClassAttributesTone,
-      defaultCollapsed: true,
       columns: 1,
       fields: [
         {
-          key: "class_attributes",
-          label: "Attributes",
-          icon: "Code",
+          key: "method_parameters",
+          label: "Parameters",
+          icon: "Terminal",
           iconTone: "cyan",
           valueTone: "cyan",
           display: "code",
@@ -150,8 +145,8 @@ export const WMI_CLASS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           maxLength: 160,
           expandable: true,
           showInPopover: true,
-          formatValue: formatWmiClassAttributes,
-          customRender: renderWmiClassAttributes,
+          formatValue: formatWmiMethodParameters,
+          customRender: renderWmiMethodParameters,
         },
       ],
     },

@@ -69,6 +69,68 @@ export function renderWmiBase64AttributesBadge(
   );
 }
 
+export function renderWmiExplicitCredentialBadge(value: string) {
+  if (!isTruthyWmiValue(value)) {
+    return null;
+  }
+
+  return (
+    <Badge
+      variant="secondary"
+      className="border-transparent bg-orange-50 text-orange-700 hover:bg-orange-50"
+    >
+      credential
+    </Badge>
+  );
+}
+
+export function renderWmiClassTypeBadge() {
+  return renderWmiTypeBadge("wmi class");
+}
+
+export function renderWmiExecuteTypeBadge() {
+  return renderWmiTypeBadge("wmi execute");
+}
+
+function renderWmiTypeBadge(label: string) {
+  return (
+    <Badge
+      variant="secondary"
+      className="border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100"
+    >
+      {label}
+    </Badge>
+  );
+}
+
+export function formatWmiExecuteTitle(
+  _value: string,
+  data: AttackGraphDetailData,
+) {
+  const className = data.class_name?.trim();
+  const methodName = data.method_name?.trim();
+  const executeName = [className, methodName].filter(Boolean).join(".");
+
+  return executeName || "WmiExecute";
+}
+
+export function formatWmiMethodParameters(value: string) {
+  const entries = parseWmiMethodParameters(value);
+  if (entries.length === 0) {
+    return formatRawWmiClassAttributes(value);
+  }
+
+  return entries.map((entry) => `${entry.name}: ${entry.value || "-"}`).join("\n");
+}
+
+export function renderWmiMethodParameters(value: string) {
+  return (
+    <pre className="m-0 whitespace-pre-wrap break-all font-mono">
+      {formatWmiMethodParameters(value)}
+    </pre>
+  );
+}
+
 export function formatWmiClassAttributes(value: string) {
   const items = parseWmiClassAttributes(value);
   if (items.length === 0) {
@@ -192,6 +254,10 @@ function parseWmiBoolean(value: unknown) {
   return normalized === "1" || normalized === "true" || normalized === "yes";
 }
 
+function isTruthyWmiValue(value: string) {
+  return parseWmiBoolean(value);
+}
+
 function formatRawWmiClassAttributes(value: string) {
   const normalized = value.trim();
   if (!normalized) {
@@ -202,5 +268,78 @@ function formatRawWmiClassAttributes(value: string) {
     return JSON.stringify(JSON.parse(normalized), null, 2);
   } catch {
     return normalized;
+  }
+}
+
+function parseWmiMethodParameters(value: string) {
+  const normalized = value.trim();
+  if (!normalized) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(normalized);
+    return normalizeWmiMethodParameterEntries(parsed);
+  } catch {
+    return [{ name: "Parameters", value: normalized }];
+  }
+}
+
+function normalizeWmiMethodParameterEntries(parsed: unknown) {
+  if (Array.isArray(parsed)) {
+    return parsed.flatMap((item, index) => {
+      if (!item || typeof item !== "object") {
+        return [{ name: `Parameter ${index + 1}`, value: stringifyWmiParameterValue(item) }];
+      }
+
+      const raw = item as Record<string, unknown>;
+      const parameterName = stringifyWmiParameterValue(
+        raw.ParameterName ?? raw.parameter_name ?? raw.name,
+      );
+      const parameterValue = stringifyWmiParameterValue(
+        raw.ParameterValue ?? raw.parameter_value ?? raw.value,
+      );
+
+      if (parameterName || parameterValue) {
+        return [
+          {
+            name: parameterName || `Parameter ${index + 1}`,
+            value: parameterValue,
+          },
+        ];
+      }
+
+      return Object.entries(raw).map(([key, value]) => ({
+        name: key,
+        value: stringifyWmiParameterValue(value),
+      }));
+    });
+  }
+
+  if (parsed && typeof parsed === "object") {
+    return Object.entries(parsed as Record<string, unknown>).map(([key, value]) => ({
+      name: key,
+      value: stringifyWmiParameterValue(value),
+    }));
+  }
+
+  return [{ name: "Parameters", value: stringifyWmiParameterValue(parsed) }];
+}
+
+function stringifyWmiParameterValue(value: unknown) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value.trim();
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
   }
 }
