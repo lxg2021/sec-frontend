@@ -8,5 +8,6 @@ export { TASK_DETAIL_CONFIG } from "./task-detail-config";
 export { TOKEN_IMPERSONATION_DETAIL_CONFIG } from "./token-impersonation-detail-config";
 export { VOLUME_DETAIL_CONFIG } from "./volume-detail-config";
 export { WMI_CLASS_DETAIL_CONFIG } from "./wmi-class-detail-config";
+export { WMI_CONSUMER_DETAIL_CONFIG } from "./wmi-consumer-detail-config";
 export { WMI_EXECUTE_DETAIL_CONFIG } from "./wmi-execute-detail-config";
 export { WMI_FILTER_DETAIL_CONFIG } from "./wmi-filter-detail-config";

@@ -107,6 +107,10 @@ export function renderWmiClassTypeBadge() {
   return renderWmiTypeBadge("wmi class");
 }
 
+export function renderWmiConsumerTypeBadge() {
+  return renderWmiTypeBadge("wmi consumer");
+}
+
 export function renderWmiExecuteTypeBadge() {
   return renderWmiTypeBadge("wmi execute");
 }
@@ -150,6 +154,33 @@ export function renderWmiMethodParameters(value: string) {
   return (
     <pre className="m-0 whitespace-pre-wrap break-all font-mono">
       {formatWmiMethodParameters(value)}
+    </pre>
+  );
+}
+
+export function formatWmiConsumerContext(value: string) {
+  const normalized = value.trim();
+  if (!normalized) {
+    return "";
+  }
+
+  try {
+    const parsed = JSON.parse(normalized);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return Object.entries(parsed as Record<string, unknown>)
+        .map(([key, item]) => `${key}: ${stringifyWmiParameterValue(item) || "-"}`)
+        .join("\n");
+    }
+    return JSON.stringify(parsed, null, 2);
+  } catch {
+    return normalized;
+  }
+}
+
+export function renderWmiConsumerContext(value: string) {
+  return (
+    <pre className="m-0 whitespace-pre-wrap break-all font-mono">
+      {formatWmiConsumerContext(value)}
     </pre>
   );
 }
