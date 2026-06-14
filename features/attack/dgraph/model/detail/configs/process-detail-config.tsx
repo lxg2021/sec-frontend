@@ -22,9 +22,9 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     ],
     fields: [
       { key: "agent_id", label: "Agent ID", icon: "Monitor", iconTone: "blue", mono: true },
-      { key: "user_name", label: "User", icon: "User", iconTone: "purple" },
-      { key: "process_id", label: "PID", icon: "Hash", iconTone: "blue", mono: true },
-      { key: "parent_process_id", label: "Parent PID", icon: "Hash", iconTone: "blue", mono: true },
+      { key: "occurred_at", label: "Occurred At", icon: "Clock", iconTone: "slate", mono: true },
+      { key: "user_id", label: "User ID", icon: "User", iconTone: "purple", mono: true },
+      { key: "session", label: "Session", icon: "Hash", iconTone: "blue", mono: true },
     ],
   },
   sections: [

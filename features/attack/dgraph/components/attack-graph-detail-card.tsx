@@ -36,6 +36,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import { ScrollArea } from "@/shared/ui/scroll-area";
 import { Separator } from "@/shared/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 
 import type {
   AttackGraphEdgeModel,
@@ -203,7 +208,7 @@ export function AttackGraphDetailCard({
   return (
     <aside
       className={cn(
-        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[560px] max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
+        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[720px] max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
         className,
       )}
       data-attack-graph-detail-card={item.kind}
@@ -218,7 +223,7 @@ export function AttackGraphDetailCard({
                   FIELD_TONE_CLASS_NAMES[headerIconTone],
                 )}
               />
-              <span className="truncate">{title}</span>
+              <TruncatedText value={title} className="text-slate-950" />
             </CardTitle>
 
             <div className="flex shrink-0 items-center gap-2">
@@ -379,14 +384,14 @@ function HeaderFields({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm text-gray-600 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-x-10 gap-y-3 text-sm text-gray-600 sm:grid-cols-[minmax(0,1fr)_max-content]">
       {fields.map((field) => {
         const Icon = getIcon(field.icon);
         const iconTone = field.iconTone ?? field.tone ?? "slate";
         const valueTone = field.valueTone ?? field.tone ?? "slate";
         const value = readDetailValue(data, field.key);
         return (
-          <div key={field.key} className="flex min-w-0 items-start gap-2">
+          <div key={field.key} className="flex min-w-0 items-center gap-2">
             <Icon
               className={cn(
                 "mt-0.5 h-4 w-4 shrink-0",
@@ -396,15 +401,13 @@ function HeaderFields({
             <span className="shrink-0 font-medium text-gray-700">
               {field.label}:
             </span>
-            <span
+            <TruncatedText
+              value={value}
               className={cn(
-                "min-w-0 break-all whitespace-pre-wrap",
                 FIELD_TONE_CLASS_NAMES[valueTone],
                 field.mono ? "font-mono text-xs" : "",
               )}
-            >
-              {formatDetailValue(value)}
-            </span>
+            />
           </div>
         );
       })}
@@ -431,20 +434,13 @@ function DetailField({
   const renderedValue = field.customRender
     ? field.customRender(stringValue, data)
     : null;
-  const canExpand =
-    hasValue &&
-    field.expandable &&
-    field.maxLength !== undefined &&
-    stringValue.length > field.maxLength;
+  const canExpand = false;
   const canPopover =
     hasValue &&
     field.showInPopover &&
     field.maxLength !== undefined &&
     stringValue.length > field.maxLength;
-  const displayValue =
-    !expanded && field.truncate && field.maxLength && stringValue.length > field.maxLength
-      ? `${stringValue.slice(0, field.maxLength)}...`
-      : formattedValue;
+  const displayValue = formattedValue;
   const Icon = getIcon(field.icon);
   const tone = field.tone ?? "slate";
   const iconTone = field.iconTone ?? tone;
@@ -485,19 +481,33 @@ function DetailField({
             {fieldActions}
           </div>
         </div>
-        <div
-          className={cn(
-            "min-w-0 break-all whitespace-pre-wrap",
-            display === "code"
-              ? cn(
-                  valueClassName,
-                  "rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-5",
-                )
-              : cn(valueClassName, "pl-6 leading-5"),
-          )}
-        >
-          {renderedValue ?? displayValue}
-        </div>
+        {renderedValue ? (
+          <div
+            className={cn(
+              "min-w-0 overflow-hidden",
+              display === "code"
+                ? cn(
+                    valueClassName,
+                    "rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-5",
+                  )
+                : cn(valueClassName, "pl-6 leading-5"),
+            )}
+            title={stringValue}
+          >
+            {renderedValue}
+          </div>
+        ) : (
+          <TruncatedText
+            value={displayValue}
+            tooltipValue={stringValue}
+            className={cn(
+              valueClassName,
+              display === "code"
+                ? "rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-5"
+                : "pl-6 leading-5",
+            )}
+          />
+        )}
       </div>
     );
   }
@@ -512,14 +522,51 @@ function DetailField({
         />
       <span className="shrink-0 font-medium text-gray-700">{field.label}:</span>
       <div className="flex min-w-0 flex-1 items-start gap-2">
-        <span className={cn(valueClassName, "break-all whitespace-pre-wrap")}>
-          {renderedValue ?? displayValue}
-        </span>
+        {renderedValue ? (
+          <span className={cn(valueClassName, "min-w-0 truncate")} title={stringValue}>
+            {renderedValue}
+          </span>
+        ) : (
+          <TruncatedText
+            value={displayValue}
+            tooltipValue={stringValue}
+            className={valueClassName}
+          />
+        )}
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1">
         {fieldActions}
       </div>
     </div>
+  );
+}
+
+function TruncatedText({
+  className,
+  tooltipValue,
+  value,
+}: {
+  className?: string;
+  tooltipValue?: string;
+  value: string;
+}) {
+  const formattedValue = formatDetailValue(value);
+  const fullValue = formatDetailValue(tooltipValue ?? value);
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span
+          className={cn("block min-w-0 max-w-full truncate", className)}
+          title={fullValue}
+        >
+          {formattedValue}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-[520px] whitespace-pre-wrap break-all text-xs leading-5">
+        {fullValue}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
