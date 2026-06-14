@@ -98,7 +98,6 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           valueTone: "slate",
           mono: true,
           copyable: true,
-          hideWhenEmpty: true,
         },
         {
           key: "unique_id",
@@ -117,7 +116,6 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           valueTone: "slate",
           mono: true,
           copyable: true,
-          hideWhenEmpty: true,
         },
         {
           key: "description",
