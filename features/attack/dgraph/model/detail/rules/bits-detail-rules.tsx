@@ -9,19 +9,34 @@ interface BitsJobFile {
   remoteName: string;
 }
 
+const BITS_JOB_TYPE_LABEL_BY_DESC: Record<string, string> = {
+  BG_JOB_TYPE_DOWNLOAD: "download",
+  BG_JOB_TYPE_UPLOAD: "upload",
+  BG_JOB_TYPE_UPLOAD_REPLY: "upload reply",
+  unknown: "unknown",
+};
+
+const BITS_JOB_STATUS_LABEL_BY_DESC: Record<string, string> = {
+  BIT_STATUS_SUSPEND: "suspend",
+  BIT_STATUS_RESUME: "resume",
+  BIT_STATUS_CANCEL: "cancel",
+  BIT_STATUS_COMPLETE: "complete",
+  unknown: "unknown",
+};
+
 export function formatBitsTitle(value: string, data: AttackGraphDetailData) {
   return value.trim() || data.job_id?.trim() || "BITS Job";
 }
 
 export function formatBitsJobType(value: string, data: AttackGraphDetailData) {
-  return normalizeBitsEnumLabel(value) || data.job_type?.trim() || "";
+  return formatBitsEnumLabel(value, BITS_JOB_TYPE_LABEL_BY_DESC) || data.job_type?.trim() || "";
 }
 
 export function formatBitsJobStatus(
   value: string,
   data: AttackGraphDetailData,
 ) {
-  return normalizeBitsEnumLabel(value) || data.job_status?.trim() || "";
+  return formatBitsEnumLabel(value, BITS_JOB_STATUS_LABEL_BY_DESC) || data.job_status?.trim() || "";
 }
 
 export function renderBitsBadge() {
@@ -149,15 +164,11 @@ function stringValue(value: unknown) {
   return String(value ?? "").trim();
 }
 
-function normalizeBitsEnumLabel(value: string) {
+function formatBitsEnumLabel(value: string, labels: Record<string, string>) {
   const normalized = value.trim();
   if (!normalized) {
     return "";
   }
 
-  return normalized
-    .replace(/^BG_JOB_TYPE_/i, "")
-    .replace(/^BIT_STATUS_/i, "")
-    .replace(/_/g, " ")
-    .toLowerCase();
+  return labels[normalized] ?? normalized;
 }
