@@ -8,10 +8,10 @@ import {
   resolveSignatureTone,
 } from "../rules/signature-detail-rules";
 import {
-  formatFileDriverType,
-  resolveFileDriverTypeIcon,
-  resolveFileDriverTypeTone,
-} from "../rules/file-detail-rules";
+  formatDriverType,
+  resolveDriverTypeIcon,
+  resolveDriverTypeTone,
+} from "../rules/driver-type-detail-rules";
 
 export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
@@ -38,9 +38,9 @@ export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
         key: "driver_type",
         label: "Driver",
         icon: "HardDrive",
-        formatValue: formatFileDriverType,
-        resolveIcon: resolveFileDriverTypeIcon,
-        resolveTone: resolveFileDriverTypeTone,
+        formatValue: formatDriverType,
+        resolveIcon: resolveDriverTypeIcon,
+        resolveTone: resolveDriverTypeTone,
       },
     ],
   },

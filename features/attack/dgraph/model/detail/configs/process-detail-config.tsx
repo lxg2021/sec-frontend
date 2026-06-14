@@ -8,11 +8,13 @@ import {
   resolveSignatureTone,
 } from "../rules/signature-detail-rules";
 import {
-  formatProcessDriverType,
+  formatDriverType,
+  resolveDriverTypeIcon,
+  resolveDriverTypeTone,
+} from "../rules/driver-type-detail-rules";
+import {
   formatRtlo,
   formatShowWindowFlag,
-  resolveProcessDriverTypeIcon,
-  resolveProcessDriverTypeTone,
   resolveProcessOriginalNameMismatchTone,
   resolveRtloTone,
   resolveSecurityInformationTone,
@@ -156,9 +158,9 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           key: "driver_type",
           label: "Driver Type",
           icon: "HardDrive",
-          formatValue: formatProcessDriverType,
-          resolveIcon: resolveProcessDriverTypeIcon,
-          resolveTone: resolveProcessDriverTypeTone,
+          formatValue: formatDriverType,
+          resolveIcon: resolveDriverTypeIcon,
+          resolveTone: resolveDriverTypeTone,
         },
       ],
     },

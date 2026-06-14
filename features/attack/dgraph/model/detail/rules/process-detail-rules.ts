@@ -3,6 +3,7 @@ import type {
   AttackGraphDetailIconName,
 } from "../attack-graph-detail-config-types";
 import type { AttackGraphPresentationTone } from "../attack-graph-detail-types";
+import { isDriverTypeSuspicious } from "./driver-type-detail-rules";
 import { isSignedSignature } from "./signature-detail-rules";
 
 export function resolveProcessOriginalNameMismatchTone(
@@ -20,7 +21,7 @@ export function resolveSecurityInformationTone(
   }
   if (
     !isSignedSignature(data.signature) ||
-    PROCESS_DRIVER_TYPE_ALERT_VALUES.has(toRuleValue(data.driver_type))
+    isDriverTypeSuspicious(data.driver_type)
   ) {
     return "orange";
   }
@@ -60,36 +61,6 @@ export function resolveShowWindowTone(
   value: string,
 ): AttackGraphPresentationTone | undefined {
   return isShowWindowHidden(value) ? "red" : undefined;
-}
-
-export function formatProcessDriverType(value: string) {
-  const normalized = toRuleValue(value);
-  const label = PROCESS_DRIVER_TYPE_LABELS[normalized];
-  return (label ?? normalized).toLowerCase();
-}
-
-export function resolveProcessDriverTypeIcon(
-  value: string,
-): AttackGraphDetailIconName {
-  const normalized = toRuleValue(value);
-  if (normalized === "2") {
-    return "Usb";
-  }
-  if (normalized === "4") {
-    return "Disc";
-  }
-  if (normalized === "8") {
-    return "Network";
-  }
-  return "HardDrive";
-}
-
-export function resolveProcessDriverTypeTone(
-  value: string,
-): AttackGraphPresentationTone | undefined {
-  return PROCESS_DRIVER_TYPE_ALERT_VALUES.has(toRuleValue(value))
-    ? "orange"
-    : undefined;
 }
 
 function isRtloDetected(value: unknown) {
@@ -133,14 +104,3 @@ const SHOW_WINDOW_FLAG_LABELS: Record<string, string> = {
   "10": "Default",
   "11": "Force Minimize",
 };
-
-const PROCESS_DRIVER_TYPE_LABELS: Record<string, string> = {
-  "0": "Unknown",
-  "1": "Local Disk",
-  "2": "Removable",
-  "4": "CD-ROM",
-  "8": "Network",
-  "16": "RAM Disk",
-};
-
-const PROCESS_DRIVER_TYPE_ALERT_VALUES = new Set(["2", "4", "8"]);

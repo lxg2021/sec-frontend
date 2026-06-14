@@ -6,3 +6,4 @@ export { SCHEDULED_JOB_DETAIL_CONFIG } from "./scheduled-job-detail-config";
 export { SERVICE_DETAIL_CONFIG } from "./service-detail-config";
 export { TASK_DETAIL_CONFIG } from "./task-detail-config";
 export { TOKEN_IMPERSONATION_DETAIL_CONFIG } from "./token-impersonation-detail-config";
+export { VOLUME_DETAIL_CONFIG } from "./volume-detail-config";
