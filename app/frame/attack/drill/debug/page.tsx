@@ -4,6 +4,7 @@ import { AttackGraphLayoutEvaluationCard } from "@/features/attack/dgraph/debug/
 import { AttackGraphMessageHookDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-message-hook-detail-debug-card";
 import { AttackGraphFileMappingDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-file-mapping-detail-debug-card";
 import { AttackGraphMailSlotDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-mail-slot-detail-debug-card";
+import { AttackGraphMbrDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-mbr-detail-debug-card";
 import { AttackGraphNamedEventDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-named-event-detail-debug-card";
 import { AttackGraphNamedPipeDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-named-pipe-detail-debug-card";
 import { AttackGraphNetAddressDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-net-address-detail-debug-card";
@@ -24,6 +25,7 @@ export default function AttackGraphDrillDebugPage() {
       <AttackGraphMessageHookDetailDebugCard />
       <AttackGraphFileMappingDetailDebugCard />
       <AttackGraphMailSlotDetailDebugCard />
+      <AttackGraphMbrDetailDebugCard />
       <AttackGraphNamedEventDetailDebugCard />
       <AttackGraphNamedPipeDetailDebugCard />
       <AttackGraphNetAddressDetailDebugCard />
