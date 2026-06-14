@@ -1,4 +1,5 @@
 export { FILE_DETAIL_CONFIG } from "./file-detail-config";
+export { NAMED_PIPE_DETAIL_CONFIG } from "./named-pipe-detail-config";
 export { NET_ADDRESS_DETAIL_CONFIG } from "./net-address-detail-config";
 export { NET_ENDPOINT_DETAIL_CONFIG } from "./net-endpoint-detail-config";
 export { POWERSHELL_EXECUTION_DETAIL_CONFIG } from "./powershell-execution-detail-config";
