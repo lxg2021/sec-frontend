@@ -39,7 +39,7 @@ export const FILE_STREAM_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       title: "File Stream Information",
       icon: "Activity",
       tone: "blue",
-      columns: 1,
+      columns: 2,
       fields: [
         {
           key: "stream_name",
@@ -91,6 +91,15 @@ export const FILE_STREAM_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           hideWhenEmpty: true,
         },
         {
+          key: "unique_id",
+          label: "ID",
+          icon: "Fingerprint",
+          iconTone: "slate",
+          valueTone: "slate",
+          mono: true,
+          hideWhenEmpty: true,
+        },
+        {
           key: "file_class_description",
           label: "File Class",
           icon: "Tag",
@@ -115,15 +124,6 @@ export const FILE_STREAM_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           formatValue: formatDriverType,
           resolveIcon: resolveDriverTypeIcon,
           resolveTone: resolveDriverTypeTone,
-          hideWhenEmpty: true,
-        },
-        {
-          key: "unique_id",
-          label: "ID",
-          icon: "Fingerprint",
-          iconTone: "slate",
-          valueTone: "slate",
-          mono: true,
           hideWhenEmpty: true,
         },
       ],
