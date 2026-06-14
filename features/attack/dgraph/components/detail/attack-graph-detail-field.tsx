@@ -81,7 +81,7 @@ export function AttackGraphDetailField({
           <span className="min-w-0 font-medium text-gray-700">
             {field.label}
           </span>
-          <div className="ml-auto flex shrink-0 items-center gap-1">
+          <div className="ml-auto flex w-16 shrink-0 items-center justify-end gap-1">
             {fieldActions}
           </div>
         </div>
@@ -149,7 +149,7 @@ export function AttackGraphDetailField({
           />
         )}
       </div>
-      <div className="ml-auto flex shrink-0 items-center gap-1">
+      <div className="ml-auto flex w-16 shrink-0 items-center justify-end gap-1">
         {fieldActions}
       </div>
     </div>
