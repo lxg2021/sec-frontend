@@ -1,4 +1,5 @@
 export { CRYPTO_DETAIL_CONFIG } from "./crypto-detail-config";
+export { CREDENTIAL_THEFT_DETAIL_CONFIG } from "./credential-theft-detail-config";
 export { DNS_NAME_DETAIL_CONFIG } from "./dns-name-detail-config";
 export { DEVICE_DETAIL_CONFIG } from "./device-detail-config";
 export { FILE_DETAIL_CONFIG } from "./file-detail-config";
