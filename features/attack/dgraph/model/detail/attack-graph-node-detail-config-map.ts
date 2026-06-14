@@ -4,6 +4,7 @@ import type {
   AttackGraphDetailCardConfig,
 } from "./attack-graph-detail-config-types";
 import {
+  BITS_DETAIL_CONFIG,
   CREDENTIAL_THEFT_DETAIL_CONFIG,
   CRYPTO_DETAIL_CONFIG,
   DEVICE_DETAIL_CONFIG,
@@ -39,6 +40,7 @@ import {
 const NODE_DETAIL_CONFIG_BY_ENTITY_TYPE: Partial<
   Record<string, AttackGraphDetailCardConfig>
 > = {
+  Bits: BITS_DETAIL_CONFIG,
   CredentialTheft: CREDENTIAL_THEFT_DETAIL_CONFIG,
   Crypto: CRYPTO_DETAIL_CONFIG,
   Device: DEVICE_DETAIL_CONFIG,

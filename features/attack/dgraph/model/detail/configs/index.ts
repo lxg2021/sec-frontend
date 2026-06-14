@@ -1,3 +1,4 @@
+export { BITS_DETAIL_CONFIG } from "./bits-detail-config";
 export { CRYPTO_DETAIL_CONFIG } from "./crypto-detail-config";
 export { CREDENTIAL_THEFT_DETAIL_CONFIG } from "./credential-theft-detail-config";
 export { DNS_NAME_DETAIL_CONFIG } from "./dns-name-detail-config";
