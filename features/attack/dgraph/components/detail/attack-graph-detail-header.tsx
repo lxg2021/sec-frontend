@@ -37,6 +37,7 @@ export function AttackGraphDetailHeader({
   title: string;
 }) {
   const HeaderIcon = getAttackGraphDetailIcon(header.icon);
+  const headerFields = header.fields ?? [];
 
   return (
     <CardHeader className="shrink-0 border-b border-slate-100 p-4 pb-4">
@@ -72,11 +73,10 @@ export function AttackGraphDetailHeader({
         </div>
       </div>
 
-      <div className="mt-4">
-        <AttackGraphDetailHeaderFields
-          data={data}
-          fields={header.fields ?? []}
-        />
+      <div className="mt-4 min-h-[22px]">
+        {headerFields.length > 0 ? (
+          <AttackGraphDetailHeaderFields data={data} fields={headerFields} />
+        ) : null}
       </div>
     </CardHeader>
   );
