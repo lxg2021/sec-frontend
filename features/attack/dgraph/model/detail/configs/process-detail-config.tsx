@@ -45,7 +45,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
             variant={isSignedSignature(value) ? "default" : "destructive"}
             className="min-w-[72px] justify-center"
           >
-            {isSignedSignature(value) ? "Signed" : "Unsigned"}
+            {isSignedSignature(value) ? "signed" : "unsigned"}
           </Badge>
         ),
       },

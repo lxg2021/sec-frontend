@@ -6,13 +6,6 @@ import type { AttackGraphPresentationTone } from "../attack-graph-detail-types";
 import { isDriverTypeSuspicious } from "./driver-type-detail-rules";
 import { isSignedSignature } from "./signature-detail-rules";
 
-export function resolveProcessOriginalNameMismatchTone(
-  _value: string,
-  data: AttackGraphDetailData,
-): AttackGraphPresentationTone | undefined {
-  return hasProcessOriginalNameMismatch(data) ? "orange" : undefined;
-}
-
 export function resolveSecurityInformationTone(
   data: AttackGraphDetailData,
 ): AttackGraphPresentationTone {
@@ -70,20 +63,6 @@ function isRtloDetected(value: unknown) {
 
 function isShowWindowHidden(value: unknown) {
   return toRuleValue(value) === "0";
-}
-
-function hasProcessOriginalNameMismatch(data: AttackGraphDetailData) {
-  const processName = normalizeComparableFileName(data.process_name);
-  const originalFileName = normalizeComparableFileName(data.org_file_name);
-  return (
-    processName.length > 0 &&
-    originalFileName.length > 0 &&
-    processName !== originalFileName
-  );
-}
-
-function normalizeComparableFileName(value: string | undefined) {
-  return toRuleValue(value).toLowerCase();
 }
 
 function toRuleValue(value: unknown) {
