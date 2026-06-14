@@ -49,6 +49,7 @@ function buildFallbackConfig(
 
   return {
     header: {
+      icon: "Info",
       title: {
         key: "display_name",
         fallback: node.entityType || "Node",

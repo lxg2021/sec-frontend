@@ -4,6 +4,8 @@ import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-
 
 export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
+    icon: "Database",
+    iconTone: "purple",
     title: {
       key: "object_name",
       fallback: "Registry Key",

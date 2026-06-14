@@ -4,6 +4,8 @@ import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-
 
 export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
+    icon: "Terminal",
+    iconTone: "cyan",
     title: {
       key: "process_name",
       fallback: "Process",
@@ -61,7 +63,7 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     {
       title: "Parent Process",
       icon: "Activity",
-      tone: "slate",
+      tone: "blue",
       columns: 1,
       fields: [
         { key: "parent_process_id", label: "Parent PID", icon: "Hash", iconTone: "blue", mono: true },

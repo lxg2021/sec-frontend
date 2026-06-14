@@ -154,7 +154,6 @@ export function AttackGraphDetailCard({
       return {
         config,
         data,
-        icon: Server,
         summaryBadges: summary.badges,
         titleFallback: summary.title,
       };
@@ -174,7 +173,6 @@ export function AttackGraphDetailCard({
           ? getAttackGraphSelectedNodeSummary(targetNode).title
           : item.edge.target,
       ),
-      icon: GitBranch,
       summaryBadges: summary.badges,
       titleFallback: summary.label,
     };
@@ -184,7 +182,8 @@ export function AttackGraphDetailCard({
     return null;
   }
 
-  const HeaderIcon = content.icon;
+  const HeaderIcon = getIcon(content.config.header.icon);
+  const headerIconTone = content.config.header.iconTone ?? "slate";
   const title =
     readDetailValue(content.data, content.config.header.title.key) ||
     content.titleFallback ||
@@ -213,7 +212,12 @@ export function AttackGraphDetailCard({
         <CardHeader className="shrink-0 border-b border-slate-100 p-4 pb-4">
           <div className="flex items-center justify-between gap-3">
             <CardTitle className="flex min-w-0 items-center gap-2 text-xl font-semibold leading-6 text-slate-950">
-              <HeaderIcon className="h-5 w-5 shrink-0 text-slate-500" />
+              <HeaderIcon
+                className={cn(
+                  "h-5 w-5 shrink-0",
+                  FIELD_TONE_CLASS_NAMES[headerIconTone],
+                )}
+              />
               <span className="truncate">{title}</span>
             </CardTitle>
 
@@ -615,6 +619,7 @@ function FieldActions({
 function buildEdgeDetailConfig(label: string): AttackGraphDetailCardConfig {
   return {
     header: {
+      icon: "GitBranch",
       title: {
         key: "relation_type",
         fallback: label,

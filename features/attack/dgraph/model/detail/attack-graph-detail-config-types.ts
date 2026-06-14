@@ -21,6 +21,8 @@ export interface AttackGraphDetailBadgeConfig {
 }
 
 export interface AttackGraphDetailHeaderConfig {
+  icon?: AttackGraphDetailIconName;
+  iconTone?: AttackGraphPresentationTone;
   title: {
     key: string;
     fallback?: string;

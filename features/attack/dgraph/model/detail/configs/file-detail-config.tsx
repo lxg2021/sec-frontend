@@ -4,6 +4,8 @@ import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-
 
 export const FILE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
+    icon: "FileText",
+    iconTone: "amber",
     title: {
       key: "file_name",
       fallback: "File",
