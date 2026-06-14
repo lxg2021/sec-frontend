@@ -436,7 +436,9 @@ function DetailField({
   onToggleExpanded: (fieldId: string) => void;
 }) {
   const stringValue = readDetailValue(data, field.key);
-  const formattedValue = formatDetailValue(stringValue);
+  const formattedValue = field.formatValue
+    ? field.formatValue(stringValue, data)
+    : formatDetailValue(stringValue);
   const hasValue = stringValue.length > 0;
   const renderedValue = field.customRender
     ? field.customRender(stringValue, data)
@@ -506,7 +508,9 @@ function DetailField({
         ) : (
           <TruncatedText
             value={displayValue}
-            tooltipValue={stringValue}
+            tooltipValue={
+              field.formatValue ? `${displayValue}\nRaw: ${stringValue}` : stringValue
+            }
             className={cn(
               valueClassName,
               display === "code"
@@ -536,7 +540,9 @@ function DetailField({
         ) : (
           <TruncatedText
             value={displayValue}
-            tooltipValue={stringValue}
+            tooltipValue={
+              field.formatValue ? `${displayValue}\nRaw: ${stringValue}` : stringValue
+            }
             className={valueClassName}
           />
         )}

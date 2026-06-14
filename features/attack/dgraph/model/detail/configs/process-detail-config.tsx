@@ -92,10 +92,27 @@ export const PROCESS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       icon: "Shield",
       tone: "red",
       fields: [
-        { key: "signature", label: "Signature", icon: "Lock", iconTone: "red" },
+        {
+          key: "signature",
+          label: "Signature",
+          icon: "Lock",
+          iconTone: "red",
+          formatValue: formatSignature,
+        },
         { key: "sign_vendor", label: "Sign Vendor", icon: "Shield", iconTone: "red" },
-        { key: "rtlo", label: "RTLO", icon: "BadgeInfo", mono: true },
-        { key: "show_window_flag", label: "Show Window Flag", icon: "BadgeInfo", mono: true },
+        {
+          key: "rtlo",
+          label: "RTLO",
+          icon: "BadgeInfo",
+          formatValue: formatRtlo,
+        },
+        {
+          key: "show_window_flag",
+          label: "Show Window",
+          icon: "BadgeInfo",
+          mono: true,
+          formatValue: formatShowWindowFlag,
+        },
         { key: "org_file_name", label: "Original File Name", icon: "FileText", mono: true, copyable: true },
         { key: "driver_type", label: "Driver Type", icon: "BadgeInfo", mono: true },
       ],
@@ -107,3 +124,39 @@ function isSigned(value: string) {
   const normalized = value.trim().toLowerCase();
   return normalized === "1" || normalized === "signed" || normalized === "true";
 }
+
+function formatSignature(value: string) {
+  return isSigned(value) ? "Signed" : "Unsigned";
+}
+
+function formatRtlo(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "1" || normalized === "true") {
+    return "RTLO Detected";
+  }
+  if (normalized === "0" || normalized === "false") {
+    return "Normal";
+  }
+  return value;
+}
+
+function formatShowWindowFlag(value: string) {
+  const normalized = value.trim();
+  const label = SHOW_WINDOW_FLAG_LABELS[normalized];
+  return label ?? normalized;
+}
+
+const SHOW_WINDOW_FLAG_LABELS: Record<string, string> = {
+  "0": "Hidden",
+  "1": "Normal",
+  "2": "Minimized",
+  "3": "Maximized",
+  "4": "Shown No Activate",
+  "5": "Show",
+  "6": "Minimize",
+  "7": "Minimized No Activate",
+  "8": "Show No Activate",
+  "9": "Restore",
+  "10": "Default",
+  "11": "Force Minimize",
+};
