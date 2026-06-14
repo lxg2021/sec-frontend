@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { ScrollArea } from "@/shared/ui/scroll-area";
 
 import type {
   AttackGraphLayoutOptions,
@@ -108,6 +107,56 @@ const EVALUATION_SCENARIOS: EvaluationScenario[] = [
         edge("PROCESS_CREATE_FILE", "rundll32", "payload"),
         edge("PROCESS_CONNECT_ENDPOINT", "rundll32", "endpoint-8080"),
         edge("PROCESS_SET_REGISTRY_VALUE", "rundll32", "run-key"),
+      ],
+    }),
+  },
+  {
+    id: "scheduled-job-create",
+    title: "ScheduledJob create",
+    description: "JobCreate projection shape: one process creates one ScheduledJob with backend ScheduledJob fields.",
+    response: buildGraphCase({
+      caseId: "scheduled-job-create",
+      nodes: [
+        processNode("proc-job-create", "at.exe", {
+          agent_id: "agent-1",
+          boot_time: "2026-04-21 19:20:00",
+          occurred_at: "2026-04-21 19:21:00",
+          process_command_line: "c:/windows/system32/at.exe 10:00 calc.exe",
+          process_guid: "proc-job-create-1",
+          process_id: "2048",
+          process_image: "c:/windows/system32/at.exe",
+          process_md5: "8b7e5a8d0a7a65d6b8d588e1f95bc841",
+          user_id: "s-1-5-18",
+          unique_id: "proc-job-create-unique-1",
+        }),
+        scheduledJobNode("scheduled-job-520", {
+          agent_id: "agent-1",
+          boot_time: "2026-04-21 19:20:00",
+          command: "calc.exe",
+          days_of_month: "1",
+          days_of_week: "2",
+          first_execute_time: "2026-04-22 10:00:00",
+          flag: "run_once",
+          job_binary_md5: "60b7c0fead45f2066e5b805a91f4f0fc",
+          job_binary_path_name: "c:/windows/system32/calc.exe",
+          job_id: "520",
+          occurred_at: "2026-04-21 19:21:00",
+          tenant_id: "tenant-1",
+          unique_id: "job-create-unique-1",
+        }),
+      ],
+      edges: [
+        edge(
+          "PROCESS_CREATE_SCHEDULED_JOB",
+          "proc-job-create",
+          "scheduled-job-520",
+          "process-create-scheduled-job-520",
+          {
+            job_binary_md5: "60b7c0fead45f2066e5b805a91f4f0fc",
+            job_binary_path_name: "c:/windows/system32/calc.exe",
+            occurred_at: "2026-04-21 19:21:00",
+          },
+        ),
       ],
     }),
   },
@@ -244,6 +293,10 @@ export function AttackGraphLayoutEvaluationCard() {
   const selectedScenario =
     EVALUATION_SCENARIOS.find((scenario) => scenario.id === selectedScenarioId) ??
     EVALUATION_SCENARIOS[0];
+  const evaluationLayoutOptions = useMemo(
+    () => getEvaluationLayoutOptions(strategyOption),
+    [strategyOption],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -283,27 +336,6 @@ export function AttackGraphLayoutEvaluationCard() {
     };
   }, [diagnosticsByScenarioId]);
 
-  const handleDiagnosticsChange = useCallback(
-    (scenarioId: string, diagnostics: AttackGraphFlowDiagnostics) => {
-      setDiagnosticsByScenarioId((current) => {
-        const previous = current[scenarioId];
-        if (
-          previous?.edgeDiagnosticsText === diagnostics.edgeDiagnosticsText &&
-          previous?.layoutStrategy === diagnostics.layoutStrategy &&
-          previous?.topologyDiagnosticsText === diagnostics.topologyDiagnosticsText &&
-          previous?.topologyKind === diagnostics.topologyKind
-        ) {
-          return current;
-        }
-        return {
-          ...current,
-          [scenarioId]: diagnostics,
-        };
-      });
-    },
-    [],
-  );
-
   return (
     <Card className="border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-100 px-5 py-4">
@@ -336,7 +368,7 @@ export function AttackGraphLayoutEvaluationCard() {
       <CardContent className="p-0">
         <div className="grid min-h-[620px] grid-cols-[320px_minmax(0,1fr)]">
           <aside className="border-r border-slate-100 bg-slate-50/70">
-            <ScrollArea className="h-[620px]">
+            <div className="h-[620px] overflow-y-auto">
               <div className="space-y-2 p-3">
                 {EVALUATION_SCENARIOS.map((scenario) => {
                   const diagnostics = diagnosticsByScenarioId[scenario.id];
@@ -392,7 +424,7 @@ export function AttackGraphLayoutEvaluationCard() {
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           </aside>
           <section className="min-w-0">
             <div className="flex min-h-[76px] items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
@@ -413,11 +445,8 @@ export function AttackGraphLayoutEvaluationCard() {
                 key={`${selectedScenario.id}-${strategyOption}`}
                 response={selectedScenario.response}
                 className="h-full"
-                layoutOptions={getEvaluationLayoutOptions(strategyOption)}
+                layoutOptions={evaluationLayoutOptions}
                 showBackground
-                onDiagnosticsChange={(diagnostics) =>
-                  handleDiagnosticsChange(selectedScenario.id, diagnostics)
-                }
               />
             </div>
           </section>
@@ -913,11 +942,25 @@ function buildMultiHostNetworkScenario() {
   });
 }
 
-function processNode(key: string, imageName: string) {
+function processNode(
+  key: string,
+  imageName: string,
+  properties: Record<string, string> = {},
+) {
   return node(key, "Process", imageName, {
     image_name: imageName,
     process_name: imageName,
+    ...properties,
   });
+}
+
+function scheduledJobNode(key: string, properties: Record<string, string>) {
+  return node(
+    key,
+    "ScheduledJob",
+    properties.job_binary_path_name || properties.command || properties.job_id || key,
+    properties,
+  );
 }
 
 function fileNode(key: string, filePath: string) {
@@ -1002,11 +1045,12 @@ function edge(
   source: string,
   target: string,
   edgeKey = relationType.toLowerCase(),
+  properties: Record<string, string> = {},
 ) {
   return {
     edge_key: edgeKey,
     graph_origin: "layout-evaluation",
-    properties: {},
+    properties,
     relation_type: relationType,
     scope_id: "layout-evaluation",
     scope_type: "case",
