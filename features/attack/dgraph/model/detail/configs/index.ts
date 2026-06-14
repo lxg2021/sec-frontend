@@ -1,5 +1,6 @@
 export { FILE_DETAIL_CONFIG } from "./file-detail-config";
 export { FILE_MAPPING_DETAIL_CONFIG } from "./file-mapping-detail-config";
+export { HOST_REF_DETAIL_CONFIG } from "./host-ref-detail-config";
 export { MAIL_SLOT_DETAIL_CONFIG } from "./mail-slot-detail-config";
 export { MBR_DETAIL_CONFIG } from "./mbr-detail-config";
 export { MESSAGE_HOOK_DETAIL_CONFIG } from "./message-hook-detail-config";
