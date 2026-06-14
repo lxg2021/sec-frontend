@@ -35,6 +35,7 @@ export interface AttackGraphDetailHeaderConfig {
   title: {
     key: string;
     fallback?: string;
+    formatValue?: (value: string, data: AttackGraphDetailData) => string;
   };
   badges?: AttackGraphDetailBadgeConfig[];
   fields?: AttackGraphDetailHeaderFieldConfig[];

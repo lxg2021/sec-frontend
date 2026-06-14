@@ -91,8 +91,15 @@ export function AttackGraphDetailCard({
   }
 
   const headerIconTone = content.config.header.iconTone ?? "slate";
+  const rawTitle = readAttackGraphDetailValue(
+    content.data,
+    content.config.header.title.key,
+  );
+  const formattedTitle = content.config.header.title.formatValue
+    ? content.config.header.title.formatValue(rawTitle, content.data)
+    : rawTitle;
   const title =
-    readAttackGraphDetailValue(content.data, content.config.header.title.key) ||
+    formattedTitle ||
     content.titleFallback ||
     content.config.header.title.fallback ||
     "Details";

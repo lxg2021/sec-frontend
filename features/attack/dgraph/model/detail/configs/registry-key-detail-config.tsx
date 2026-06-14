@@ -5,10 +5,11 @@ import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-
 export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
   header: {
     icon: "Database",
-    iconTone: "purple",
+    iconTone: "blue",
     title: {
       key: "object_name",
       fallback: "Registry Key",
+      formatValue: formatRegistryKeyName,
     },
     badges: [
       {
@@ -21,22 +22,29 @@ export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       },
     ],
     fields: [
-      { key: "classification", label: "Class", icon: "Tag", iconTone: "purple" },
       { key: "agent_id", label: "Agent ID", icon: "Monitor", iconTone: "blue", mono: true },
+      { key: "occurred_at", label: "Occurred", icon: "Clock", iconTone: "green", mono: true },
     ],
   },
   sections: [
     {
-      title: "Registry Key",
+      title: "RegKey Information",
       icon: "Database",
-      tone: "purple",
+      tone: "blue",
       columns: 1,
       fields: [
         {
           key: "object_name",
-          label: "Object Name",
+          label: "KeyName",
           icon: "Key",
-          iconTone: "purple",
+          iconTone: "blue",
+          formatValue: formatRegistryKeyName,
+        },
+        {
+          key: "object_name",
+          label: "KeyPath",
+          icon: "Key",
+          iconTone: "slate",
           display: "code",
           mono: true,
           copyable: true,
@@ -45,28 +53,17 @@ export const REGISTRY_KEY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
           expandable: true,
           showInPopover: true,
         },
-        { key: "description", label: "Description", icon: "Info", iconTone: "blue" },
         { key: "classification", label: "Classification", icon: "Tag", iconTone: "purple" },
-      ],
-    },
-    {
-      title: "Context",
-      icon: "Info",
-      tone: "slate",
-      columns: 1,
-      fields: [
-        { key: "process_name", label: "Process", icon: "Activity", iconTone: "cyan" },
-        {
-          key: "process_image",
-          label: "Process Path",
-          icon: "FolderOpen",
-          iconTone: "blue",
-          display: "block",
-          mono: true,
-          copyable: true,
-        },
-        { key: "user_name", label: "User", icon: "User", iconTone: "purple" },
+        { key: "description", label: "Description", icon: "Info", iconTone: "slate" },
       ],
     },
   ],
 };
+
+function formatRegistryKeyName(value: string) {
+  const normalized = value.trim().replace(/\\+$/g, "");
+  if (!normalized) return "";
+
+  const parts = normalized.split("\\").filter(Boolean);
+  return parts[parts.length - 1] ?? normalized;
+}
