@@ -54,14 +54,16 @@ export function AttackGraphEdgeDetailHeader({
         >
           {viewModel.relationLabel || "-"}
         </span>
-        <button
-          type="button"
-          aria-label="Close detail"
-          className="text-slate-400 transition-colors hover:text-slate-600"
-          onClick={onClose}
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {onClose ? (
+          <button
+            type="button"
+            aria-label="Close detail"
+            className="text-slate-400 transition-colors hover:text-slate-600"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
     </header>
   );

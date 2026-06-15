@@ -116,13 +116,6 @@ export function getAttackGraphEdgeDetailFields(
     copyable: true,
   });
   addEdgeDetailField(fields, added, {
-    key: "edge_key",
-    label: "Edge Key",
-    value: normalized.edgeKey,
-    mono: true,
-    copyable: true,
-  });
-  addEdgeDetailField(fields, added, {
     key: "graph_origin",
     label: "Graph Origin",
     value: normalized.graphOrigin,

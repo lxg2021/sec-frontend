@@ -8,6 +8,7 @@ import { AttackGraphCredentialTheftDetailDebugCard } from "@/features/attack/dgr
 import { AttackGraphCryptoDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-crypto-detail-debug-card";
 import { AttackGraphDeviceDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-device-detail-debug-card";
 import { AttackGraphDnsNameDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-dns-name-detail-debug-card";
+import { AttackGraphEdgeDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-edge-detail-debug-card";
 import { AttackGraphFileDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-file-detail-debug-card";
 import { AttackGraphFileMappingDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-file-mapping-detail-debug-card";
 import { AttackGraphFileStreamDetailDebugCard } from "@/features/attack/dgraph/debug/attack-graph-file-stream-detail-debug-card";
@@ -59,6 +60,7 @@ export default function AttackGraphDrillDebugPage() {
       <AttackGraphWmiQueryDetailDebugCard />
       <AttackGraphVolumeDetailDebugCard />
       <AttackGraphTaskDetailDebugCard />
+      <AttackGraphEdgeDetailDebugCard />
       <AttackGraphLayoutEvaluationCard />
     </div>
   );

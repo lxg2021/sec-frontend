@@ -153,7 +153,7 @@ export const ATTACK_GRAPH_EDGE_BUSINESS_FIELD_CONFIGS = {
   ]),
   BITS_REMOTE_URL: fields(["pair_index"]),
   BITS_LOCAL_FILE: fields(["pair_index"]),
-  URL_DOWNLOAD_TO_FILE: fields(["pair_index", "edge_key"]),
+  URL_DOWNLOAD_TO_FILE: fields(["pair_index"]),
   PROCESS_CREATE_FILE: SIMPLE_OCCURRED_AT_FIELDS,
   PROCESS_DELETE_FILE: SIMPLE_OCCURRED_AT_FIELDS,
   PROCESS_READ_FILE: SIMPLE_OCCURRED_AT_FIELDS,
@@ -309,6 +309,15 @@ export function getAttackGraphEdgeBusinessFieldConfigs(
   return [];
 }
 
+export function getAttackGraphEdgeDetailFieldConfigs(
+  relationType: string | null | undefined,
+) {
+  return [
+    ...COMMON_ATTACK_GRAPH_EDGE_DETAIL_FIELDS,
+    ...getAttackGraphEdgeBusinessFieldConfigs(relationType),
+  ];
+}
+
 export function getAttackGraphEdgeDetailRows(edge: AttackGraphEdgeModel) {
   const rows: Array<{
     boxed?: boolean;
@@ -317,14 +326,9 @@ export function getAttackGraphEdgeDetailRows(edge: AttackGraphEdgeModel) {
     value: string;
   }> = [];
   const added = new Set<string>();
-  const businessFields = getAttackGraphEdgeBusinessFieldConfigs(
+  for (const config of getAttackGraphEdgeDetailFieldConfigs(
     edge.relationType,
-  );
-
-  for (const config of COMMON_ATTACK_GRAPH_EDGE_DETAIL_FIELDS) {
-    addEdgeDetailRow(rows, added, edge, config);
-  }
-  for (const config of businessFields) {
+  )) {
     addEdgeDetailRow(rows, added, edge, config);
   }
 
@@ -371,9 +375,6 @@ function getEdgeDetailFieldValue(edge: AttackGraphEdgeModel, key: string) {
   }
   if (key === "scope_id") {
     return stringValue(edge.scopeId);
-  }
-  if (key === "edge_key") {
-    return stringValue(edge.edgeKey);
   }
   return stringValue(edge.properties[key]);
 }
