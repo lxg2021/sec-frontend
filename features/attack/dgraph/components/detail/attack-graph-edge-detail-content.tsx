@@ -165,12 +165,7 @@ function EdgeChainConnector({ relationLabel }: { relationLabel: string }) {
 function EdgeNodeCard({ node }: { node: AttackGraphEdgeDetailNodeViewModel }) {
   const Icon = getAttackGraphDetailIcon(node.icon);
   return (
-    <div
-      className={cn(
-        "flex h-[72px] min-w-0 items-center gap-3 rounded-lg border border-transparent bg-white p-3 ring-1",
-        getNodeRingClassName(node.tone),
-      )}
-    >
+    <div className="flex h-[72px] min-w-0 items-center gap-3 rounded-lg border border-slate-200 bg-white p-3">
       <span
         className={cn(
           "flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-1",
@@ -199,25 +194,6 @@ function EdgeNodeCard({ node }: { node: AttackGraphEdgeDetailNodeViewModel }) {
 
 function getEdgeRelationBadgeClassName() {
   return "bg-slate-50 text-slate-600";
-}
-
-function getNodeRingClassName(tone: AttackGraphPresentationTone) {
-  if (tone === "red") {
-    return "ring-rose-100";
-  }
-  if (tone === "amber" || tone === "orange") {
-    return "ring-orange-200";
-  }
-  if (tone === "purple") {
-    return "ring-purple-100";
-  }
-  if (tone === "cyan") {
-    return "ring-blue-100";
-  }
-  if (tone === "blue") {
-    return "ring-blue-100";
-  }
-  return "ring-slate-200";
 }
 
 function getNodeIconWrapClassName(tone: AttackGraphPresentationTone) {
