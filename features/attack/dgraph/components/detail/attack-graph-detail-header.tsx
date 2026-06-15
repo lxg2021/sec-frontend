@@ -161,7 +161,7 @@ function getAttackGraphNodeTypeBadgeLabel(entityType: string) {
   );
 }
 
-const ATTACK_GRAPH_NODE_TYPE_BADGE_HIDDEN = new Set(["Mbr"]);
+const ATTACK_GRAPH_NODE_TYPE_BADGE_HIDDEN = new Set(["CredentialTheft", "Mbr"]);
 
 const ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS: Record<string, string> = {
   Account: "account",

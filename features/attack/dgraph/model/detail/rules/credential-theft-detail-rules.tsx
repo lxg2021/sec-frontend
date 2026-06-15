@@ -51,7 +51,7 @@ export function renderCredentialTheftBadge() {
       variant="destructive"
       className="min-w-[72px] justify-center rounded-md border-transparent px-2 py-0.5 text-xs font-medium"
     >
-      theft
+      credential theft
     </Badge>
   );
 }
