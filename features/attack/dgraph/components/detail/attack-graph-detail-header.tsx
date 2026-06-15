@@ -177,7 +177,7 @@ const ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS: Record<string, string> = {
   MailSlot: "mail slot",
   Mbr: "mbr",
   MessageHook: "message hook",
-  NamedEvent: "named event",
+  NamedEvent: "event",
   NamedPipe: "pipe",
   NetAddress: "net address",
   NetEndpoint: "net endpoint",
