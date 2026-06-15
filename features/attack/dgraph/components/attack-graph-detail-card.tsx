@@ -121,7 +121,7 @@ export function AttackGraphDetailCard({
           onClose={onClose}
         />
 
-        <ScrollArea className="min-h-0 flex-1">
+        <ScrollArea className="min-h-0 flex-1 [&_[data-radix-scroll-area-viewport]>div]:!block [&_[data-radix-scroll-area-viewport]>div]:!max-w-full [&_[data-radix-scroll-area-viewport]>div]:!min-w-0 [&_[data-radix-scroll-area-viewport]>div]:!w-full">
           <AttackGraphEdgeDetailContent
             edge={item.edge}
             nodesById={nodesById}

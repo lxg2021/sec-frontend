@@ -48,7 +48,7 @@ export function AttackGraphEdgeDetailHeader({
         <span
           className={cn(
             "max-w-[140px] truncate rounded-md px-2.5 py-1 text-xs font-semibold",
-            getEdgeRelationBadgeClassName(viewModel.edgeTone),
+            getEdgeRelationBadgeClassName(),
           )}
           title={viewModel.relationLabel}
         >
@@ -74,7 +74,7 @@ export function AttackGraphEdgeDetailContent({
   const viewModel = buildAttackGraphEdgeDetailViewModel(edge, nodesById);
 
   return (
-    <div className="space-y-6 px-6 py-5">
+    <div className="min-w-0 max-w-full space-y-6 overflow-hidden px-6 py-5">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <span className="font-semibold text-slate-600">Relation Type:</span>
         <span className="font-mono text-[13px] text-slate-700">
@@ -82,76 +82,58 @@ export function AttackGraphEdgeDetailContent({
         </span>
       </div>
 
-      <section className="space-y-3">
+      <section className="min-w-0 max-w-full space-y-3 overflow-hidden">
         <h3 className="flex items-center gap-2 text-base font-semibold text-blue-800">
           <ArrowRight className="h-4 w-4 text-blue-600" />
           Attack Chain
         </h3>
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+        <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_128px_minmax(0,1fr)] items-center gap-3 overflow-hidden">
             <EdgeNodeCard node={viewModel.source} />
-
-            <div className="flex flex-1 flex-col items-center gap-1">
-              <span
-                className={cn(
-                  "max-w-full truncate rounded-full border px-3 py-1 text-xs font-bold",
-                  getEdgeRelationPillClassName(viewModel.edgeTone),
-                )}
-                title={viewModel.relationLabel}
-              >
-                {viewModel.relationLabel || "-"}
-              </span>
-              <div className="flex w-full items-center text-slate-300">
-                <span className="h-px flex-1 bg-slate-300" />
-                <ArrowRight className="h-4 w-4 shrink-0 text-slate-400" />
-              </div>
-              <span
-                className="max-w-full truncate text-xs text-slate-500"
-                title={viewModel.relationType}
-              >
-                {viewModel.relationType || "-"}
-              </span>
-            </div>
-
+            <EdgeChainConnector relationLabel={viewModel.relationLabel} />
             <EdgeNodeCard node={viewModel.target} />
           </div>
 
-          <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200 pt-3 font-mono text-[11px] text-slate-500">
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 border-t border-slate-200 pt-3 font-mono text-[11px] text-slate-500">
             <AttackGraphDetailTruncatedText
-              value={viewModel.source.fullName}
-              className="min-w-0 flex-1"
+              value={viewModel.source.name}
+              className="min-w-0"
             />
             <AttackGraphDetailTruncatedText
-              value={viewModel.target.fullName}
-              className="min-w-0 flex-1 text-right"
+              value={viewModel.target.name}
+              className="min-w-0 text-right"
             />
           </div>
         </div>
       </section>
 
-      <section className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white px-4 py-3">
         <p className="text-xs font-bold tracking-wide text-slate-500">
           CHAIN SENTENCE
         </p>
-        <p className="mt-1 min-w-0 text-[15px] text-slate-900">
+        <p className="mt-1 flex min-w-0 items-center gap-1 text-[15px] text-slate-900">
           <span className="font-bold">{viewModel.source.name || "-"}</span>
-          <span className="text-slate-500"> {viewModel.sentenceAction} </span>
-          <span className="font-bold">{viewModel.target.name || "-"}</span>
+          <span className="shrink-0 text-slate-500">
+            {viewModel.sentenceAction}
+          </span>
+          <span className="min-w-0 truncate font-bold">
+            {viewModel.target.name || "-"}
+          </span>
         </p>
       </section>
 
-      <section className="space-y-4">
+      <section className="min-w-0 max-w-full overflow-hidden space-y-4">
         <h3 className="flex items-center gap-2 text-base font-semibold text-blue-800">
           <Info className="h-4 w-4 text-blue-600" />
           Relation Information
         </h3>
 
-        <dl className="space-y-3 text-sm">
+        <dl className="min-w-0 max-w-full space-y-3 overflow-hidden text-sm">
           {viewModel.relationRows.map((row) => (
             <div
               key={row.key}
-              className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4"
+              className="min-w-0 max-w-full overflow-hidden flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-4"
             >
               <dt className="font-semibold text-slate-600 sm:w-36 sm:shrink-0">
                 {row.label}:
@@ -173,12 +155,32 @@ export function AttackGraphEdgeDetailContent({
   );
 }
 
+function EdgeChainConnector({ relationLabel }: { relationLabel: string }) {
+  return (
+    <div className="flex w-[128px] shrink-0 flex-col items-center gap-1">
+      <span
+        className={cn(
+          "max-w-[124px] truncate rounded-full border px-3 py-1 text-xs font-bold",
+          getEdgeRelationPillClassName(),
+        )}
+        title={relationLabel}
+      >
+        {relationLabel || "-"}
+      </span>
+      <div className="flex w-[112px] items-center text-slate-300">
+        <span className="h-px w-[96px] bg-slate-300" />
+        <ArrowRight className="h-4 w-4 shrink-0 text-slate-400" />
+      </div>
+    </div>
+  );
+}
+
 function EdgeNodeCard({ node }: { node: AttackGraphEdgeDetailNodeViewModel }) {
   const Icon = getAttackGraphDetailIcon(node.icon);
   return (
     <div
       className={cn(
-        "flex min-w-0 items-center gap-3 rounded-lg border border-transparent bg-white p-3 ring-1 sm:w-44",
+        "flex h-[72px] min-w-0 items-center gap-3 rounded-lg border border-transparent bg-white p-3 ring-1",
         getNodeRingClassName(node.tone),
       )}
     >
@@ -195,13 +197,12 @@ function EdgeNodeCard({ node }: { node: AttackGraphEdgeDetailNodeViewModel }) {
           )}
         />
       </span>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="truncate text-[11px] font-bold uppercase text-slate-500">
           {node.kind}
         </p>
         <AttackGraphDetailTruncatedText
           value={node.name}
-          tooltipValue={node.fullName}
           className="text-base font-bold text-slate-900"
         />
       </div>
@@ -209,41 +210,11 @@ function EdgeNodeCard({ node }: { node: AttackGraphEdgeDetailNodeViewModel }) {
   );
 }
 
-function getEdgeRelationPillClassName(tone: AttackGraphPresentationTone) {
-  if (tone === "red") {
-    return "border-rose-200 bg-rose-50 text-rose-700";
-  }
-  if (tone === "amber" || tone === "orange") {
-    return "border-amber-200 bg-amber-50 text-amber-700";
-  }
-  if (tone === "purple") {
-    return "border-purple-200 bg-purple-50 text-purple-700";
-  }
-  if (tone === "cyan") {
-    return "border-cyan-200 bg-cyan-50 text-cyan-700";
-  }
-  if (tone === "blue") {
-    return "border-blue-200 bg-blue-50 text-blue-600";
-  }
+function getEdgeRelationPillClassName() {
   return "border-slate-200 bg-slate-50 text-slate-600";
 }
 
-function getEdgeRelationBadgeClassName(tone: AttackGraphPresentationTone) {
-  if (tone === "red") {
-    return "bg-rose-50 text-rose-700";
-  }
-  if (tone === "amber" || tone === "orange") {
-    return "bg-amber-50 text-amber-700";
-  }
-  if (tone === "purple") {
-    return "bg-purple-50 text-purple-700";
-  }
-  if (tone === "cyan") {
-    return "bg-cyan-50 text-cyan-700";
-  }
-  if (tone === "blue") {
-    return "bg-blue-50 text-blue-600";
-  }
+function getEdgeRelationBadgeClassName() {
   return "bg-slate-50 text-slate-600";
 }
 
