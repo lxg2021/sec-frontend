@@ -178,7 +178,7 @@ const ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS: Record<string, string> = {
   Mbr: "mbr",
   MessageHook: "message hook",
   NamedEvent: "named event",
-  NamedPipe: "named pipe",
+  NamedPipe: "pipe",
   NetAddress: "net address",
   NetEndpoint: "net endpoint",
   PowerShellExecution: "powershell",
