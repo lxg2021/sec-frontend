@@ -11,6 +11,7 @@ import type { AttackGraphEdgeKind } from "../edge/attack-graph-edge-types";
 import { getAttackGraphNodeKindConfig } from "../node/attack-graph-node-config";
 import type { AttackGraphNodePresentationKind } from "../node/attack-graph-node-types";
 import type { AttackGraphDetailIconName } from "./attack-graph-detail-config-types";
+import { getAttackGraphEdgeDetailRows } from "./attack-graph-edge-detail-field-config";
 import { getAttackGraphNodeSummary } from "./attack-graph-node-detail-config";
 import type { AttackGraphPresentationTone } from "./attack-graph-detail-types";
 
@@ -69,7 +70,7 @@ export function buildAttackGraphEdgeDetailViewModel(
     edgeId: edge.id,
     edgeTone: getAttackGraphEdgePresentationTone(visual.kind),
     relationLabel,
-    relationRows: buildRelationRows(edge),
+    relationRows: getAttackGraphEdgeDetailRows(edge),
     relationType: edge.relationType,
     sentenceAction: relationLabel.trim() || "linked to",
     source,
@@ -139,54 +140,6 @@ function buildEdgeDetailNodeViewModel(
   };
 }
 
-function buildRelationRows(
-  edge: AttackGraphEdgeModel,
-): AttackGraphEdgeDetailRelationRow[] {
-  const rows: AttackGraphEdgeDetailRelationRow[] = [
-    {
-      key: "relation_type",
-      label: "Relation Type",
-      value: edge.relationType,
-    },
-    {
-      key: "source_key",
-      label: "Source Key",
-      value: edge.source,
-      boxed: true,
-    },
-    {
-      key: "target_key",
-      label: "Target Key",
-      value: edge.target,
-      boxed: true,
-    },
-    {
-      key: "graph_origin",
-      label: "Graph Origin",
-      value: edge.graphOrigin,
-    },
-    {
-      key: "scope_type",
-      label: "Scope Type",
-      value: edge.scopeType,
-    },
-    {
-      key: "scope_id",
-      label: "Scope ID",
-      value: edge.scopeId,
-      boxed: true,
-    },
-    {
-      key: "edge_key",
-      label: "Edge Key",
-      value: edge.edgeKey,
-      boxed: true,
-    },
-  ];
-
-  return rows.filter((row) => stringValue(row.value).length > 0);
-}
-
 function getNodeDetailIcon(
   kind: AttackGraphNodePresentationKind,
 ): AttackGraphDetailIconName {
@@ -232,8 +185,4 @@ function getNodeDetailTone(
     return "red";
   }
   return "slate";
-}
-
-function stringValue(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
 }
