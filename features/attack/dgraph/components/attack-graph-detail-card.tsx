@@ -140,7 +140,7 @@ export function AttackGraphDetailCard({
   return (
     <aside
       className={cn(
-        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[720px] max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
+        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[660px] max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
         className,
       )}
       data-attack-graph-detail-card={item.kind}
