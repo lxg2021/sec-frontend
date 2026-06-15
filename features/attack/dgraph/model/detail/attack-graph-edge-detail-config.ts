@@ -3,11 +3,11 @@ import {
   getAttackGraphRelationLabel,
 } from "../edge/attack-graph-edge-config";
 import type { AttackGraphEdgeKind } from "../edge/attack-graph-edge-types";
+import { getAttackGraphEdgePresentationTone } from "./attack-graph-edge-detail-view-model";
 import type {
   AttackGraphBadge,
   AttackGraphDetailField,
   AttackGraphEdgeSummary,
-  AttackGraphPresentationTone,
 } from "./attack-graph-detail-types";
 
 export interface AttackGraphEdgeDetailInput {
@@ -44,7 +44,10 @@ export function getAttackGraphEdgeSummary(
   const normalized = normalizeEdgeDetailInput(input);
   const presentation = getAttackGraphEdgePresentation(normalized.relationType);
   const label = getAttackGraphRelationLabel(normalized.relationType);
-  const description = buildEdgeSummaryDescription(normalized, presentation.label);
+  const description = buildEdgeSummaryDescription(
+    normalized,
+    presentation.label,
+  );
   return {
     label,
     description,
@@ -190,7 +193,7 @@ function buildEdgeBadges(
     {
       key: "edge-kind",
       label: kindLabel,
-      tone: getEdgePresentationTone(kind),
+      tone: getAttackGraphEdgePresentationTone(kind),
     },
   ];
 
@@ -213,27 +216,6 @@ function buildEdgeBadges(
   }
 
   return badges;
-}
-
-function getEdgePresentationTone(
-  kind: AttackGraphEdgeKind,
-): AttackGraphPresentationTone {
-  if (kind === "security-impact" || kind === "process-execution") {
-    return "red";
-  }
-  if (kind === "network-activity") {
-    return "cyan";
-  }
-  if (kind === "file-activity") {
-    return "amber";
-  }
-  if (kind === "registry-activity" || kind === "persistence") {
-    return "purple";
-  }
-  if (kind === "account-activity" || kind === "process-access") {
-    return "blue";
-  }
-  return "slate";
 }
 
 function addEdgeDetailField(

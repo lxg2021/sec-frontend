@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { cn } from "@/shared/lib/utils";
 import { Card, CardContent } from "@/shared/ui/card";
@@ -10,14 +10,11 @@ import type {
   AttackGraphEdgeModel,
   AttackGraphNodeModel,
 } from "../model/core/attack-graph-data";
-import {
-  buildAttackGraphEdgeDetailCardConfig,
-  toAttackGraphEdgeDetailData,
-} from "../model/detail/attack-graph-edge-detail-card-config";
-import {
-  getAttackGraphSelectedEdgeSummary,
-  getAttackGraphSelectedNodeSummary,
-} from "../model/detail/attack-graph-detail-resolver";
+import type {
+  AttackGraphDetailCardConfig,
+  AttackGraphDetailData,
+} from "../model/detail/attack-graph-detail-config-types";
+import { getAttackGraphSelectedNodeSummary } from "../model/detail/attack-graph-detail-resolver";
 import {
   getAttackGraphNodeDetailConfig,
   toAttackGraphNodeDetailData,
@@ -28,6 +25,10 @@ import {
 } from "./detail/attack-graph-detail-presentation";
 import { AttackGraphDetailHeader } from "./detail/attack-graph-detail-header";
 import { AttackGraphDetailSection } from "./detail/attack-graph-detail-section";
+import {
+  AttackGraphEdgeDetailContent,
+  AttackGraphEdgeDetailHeader,
+} from "./detail/attack-graph-edge-detail-content";
 
 export type AttackGraphDetailCardItem =
   | { kind: "node"; node: AttackGraphNodeModel }
@@ -38,6 +39,12 @@ export interface AttackGraphDetailCardProps {
   className?: string;
   nodesById?: Map<string, AttackGraphNodeModel>;
   onClose?: () => void;
+}
+
+interface AttackGraphNodeDetailContent {
+  config: AttackGraphDetailCardConfig;
+  data: AttackGraphDetailData;
+  titleFallback: string;
 }
 
 export function AttackGraphDetailCard({
@@ -63,57 +70,25 @@ export function AttackGraphDetailCard({
     setExpandedSections(new Set());
   }, [itemIdentity]);
 
-  const content = useMemo(() => {
-    if (!item) {
+  const nodeContent = useMemo<AttackGraphNodeDetailContent | null>(() => {
+    if (!item || item.kind !== "node") {
       return null;
     }
 
-    if (item.kind === "node") {
-      const config = getAttackGraphNodeDetailConfig(item.node);
-      const data = toAttackGraphNodeDetailData(item.node);
-      const summary = getAttackGraphSelectedNodeSummary(item.node);
-      return {
-        config,
-        data,
-        titleFallback: summary.title,
-      };
-    }
-
-    const summary = getAttackGraphSelectedEdgeSummary(item.edge, nodesById);
-    const sourceNode = nodesById?.get(item.edge.source);
-    const targetNode = nodesById?.get(item.edge.target);
+    const config = getAttackGraphNodeDetailConfig(item.node);
+    const data = toAttackGraphNodeDetailData(item.node);
+    const summary = getAttackGraphSelectedNodeSummary(item.node);
     return {
-      config: buildAttackGraphEdgeDetailCardConfig(summary.label),
-      data: toAttackGraphEdgeDetailData(
-        item.edge,
-        sourceNode
-          ? getAttackGraphSelectedNodeSummary(sourceNode).title
-          : item.edge.source,
-        targetNode
-          ? getAttackGraphSelectedNodeSummary(targetNode).title
-          : item.edge.target,
-      ),
-      titleFallback: summary.label,
+      config,
+      data,
+      titleFallback: summary.title,
     };
-  }, [item, nodesById]);
+  }, [item]);
 
-  if (!item || !content) {
+  if (!item) {
     return null;
   }
 
-  const headerIconTone = content.config.header.iconTone ?? "slate";
-  const rawTitle = readAttackGraphDetailValue(
-    content.data,
-    content.config.header.title.key,
-  );
-  const formattedTitle = content.config.header.title.formatValue
-    ? content.config.header.title.formatValue(rawTitle, content.data)
-    : rawTitle;
-  const title =
-    formattedTitle ||
-    content.titleFallback ||
-    content.config.header.title.fallback ||
-    "Details";
   const toggleExpanded = (fieldId: string) => {
     setExpandedFields((current) => {
       const next = new Set(current);
@@ -137,47 +112,142 @@ export function AttackGraphDetailCard({
     });
   };
 
-  return (
-    <aside
-      className={cn(
-        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[660px] max-w-[calc(100%-2rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
-        className,
-      )}
-      data-attack-graph-detail-card={item.kind}
-    >
-      <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-0 bg-transparent shadow-none">
-        <AttackGraphDetailHeader
-          data={content.data}
-          header={content.config.header}
-          headerIconTone={headerIconTone}
+  if (item.kind === "edge") {
+    return (
+      <AttackGraphDetailPanelShell className={className} kind="edge">
+        <AttackGraphEdgeDetailHeader
+          edge={item.edge}
+          nodesById={nodesById}
           onClose={onClose}
-          title={title}
         />
 
         <ScrollArea className="min-h-0 flex-1">
-          <CardContent className="space-y-6 p-4 pt-5">
-            {content.config.sections.length > 0 ? (
-              content.config.sections.map((section, sectionIndex) => (
-                <AttackGraphDetailSection
-                  key={`${section.title}-${sectionIndex}`}
-                  data={content.data}
-                  expandedFields={expandedFields}
-                  expandedSections={expandedSections}
-                  onToggleExpanded={toggleExpanded}
-                  onToggleSectionExpanded={toggleSectionExpanded}
-                  section={section}
-                  sectionIndex={sectionIndex}
-                />
-              ))
-            ) : (
-              <div className="rounded-md border border-dashed border-slate-200 px-3 py-6 text-center text-sm text-slate-500">
-                暂无详情字段
-              </div>
-            )}
-          </CardContent>
+          <AttackGraphEdgeDetailContent
+            edge={item.edge}
+            nodesById={nodesById}
+          />
         </ScrollArea>
+      </AttackGraphDetailPanelShell>
+    );
+  }
+
+  if (!nodeContent) {
+    return null;
+  }
+
+  return (
+    <AttackGraphDetailPanelShell className={className} kind="node">
+      <AttackGraphNodeDetailPanelHeader
+        content={nodeContent}
+        onClose={onClose}
+      />
+
+      <ScrollArea className="min-h-0 flex-1">
+        <AttackGraphNodeDetailPanelContent
+          content={nodeContent}
+          expandedFields={expandedFields}
+          expandedSections={expandedSections}
+          onToggleExpanded={toggleExpanded}
+          onToggleSectionExpanded={toggleSectionExpanded}
+        />
+      </ScrollArea>
+    </AttackGraphDetailPanelShell>
+  );
+}
+
+function AttackGraphDetailPanelShell({
+  children,
+  className,
+  kind,
+}: {
+  children: ReactNode;
+  className?: string;
+  kind: AttackGraphDetailCardItem["kind"];
+}) {
+  return (
+    <aside
+      className={cn(
+        "pointer-events-auto absolute bottom-4 right-4 top-4 z-20 flex w-[660px] max-w-[calc(100%-2rem)] flex-col overflow-hidden border border-slate-200",
+        kind === "edge"
+          ? "rounded-xl bg-white shadow-[0_18px_36px_-12px_rgba(15,23,42,0.18)]"
+          : "rounded-lg bg-white/95 shadow-[0_18px_46px_rgba(15,23,42,0.18)] backdrop-blur",
+        className,
+      )}
+      data-attack-graph-detail-card={kind}
+    >
+      <Card className="flex min-h-0 flex-1 flex-col overflow-hidden border-0 bg-transparent shadow-none">
+        {children}
       </Card>
     </aside>
+  );
+}
+
+function AttackGraphNodeDetailPanelHeader({
+  content,
+  onClose,
+}: {
+  content: AttackGraphNodeDetailContent;
+  onClose?: () => void;
+}) {
+  const headerIconTone = content.config.header.iconTone ?? "slate";
+  const rawTitle = readAttackGraphDetailValue(
+    content.data,
+    content.config.header.title.key,
+  );
+  const formattedTitle = content.config.header.title.formatValue
+    ? content.config.header.title.formatValue(rawTitle, content.data)
+    : rawTitle;
+  const title =
+    formattedTitle ||
+    content.titleFallback ||
+    content.config.header.title.fallback ||
+    "Details";
+
+  return (
+    <AttackGraphDetailHeader
+      data={content.data}
+      header={content.config.header}
+      headerIconTone={headerIconTone}
+      onClose={onClose}
+      title={title}
+    />
+  );
+}
+
+function AttackGraphNodeDetailPanelContent({
+  content,
+  expandedFields,
+  expandedSections,
+  onToggleExpanded,
+  onToggleSectionExpanded,
+}: {
+  content: AttackGraphNodeDetailContent;
+  expandedFields: Set<string>;
+  expandedSections: Set<string>;
+  onToggleExpanded: (fieldId: string) => void;
+  onToggleSectionExpanded: (sectionId: string) => void;
+}) {
+  return (
+    <CardContent className="space-y-6 p-4 pt-5">
+      {content.config.sections.length > 0 ? (
+        content.config.sections.map((section, sectionIndex) => (
+          <AttackGraphDetailSection
+            key={`${section.title}-${sectionIndex}`}
+            data={content.data}
+            expandedFields={expandedFields}
+            expandedSections={expandedSections}
+            onToggleExpanded={onToggleExpanded}
+            onToggleSectionExpanded={onToggleSectionExpanded}
+            section={section}
+            sectionIndex={sectionIndex}
+          />
+        ))
+      ) : (
+        <div className="rounded-md border border-dashed border-slate-200 px-3 py-6 text-center text-sm text-slate-500">
+          No detail fields
+        </div>
+      )}
+    </CardContent>
   );
 }
 
