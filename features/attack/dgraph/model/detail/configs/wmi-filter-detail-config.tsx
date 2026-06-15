@@ -1,7 +1,6 @@
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 import {
   formatWmiScopeKind,
-  renderWmiFilterTypeBadge,
   renderWmiScopeKindValue,
   renderWmiScopeBadge,
 } from "../rules/wmi-detail-rules";
@@ -15,10 +14,6 @@ export const WMI_FILTER_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "WmiFilter",
     },
     badges: [
-      {
-        key: "event_filter_name",
-        customRender: renderWmiFilterTypeBadge,
-      },
       {
         key: "scope_kind",
         customRender: renderWmiScopeBadge,

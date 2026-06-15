@@ -4,7 +4,6 @@ import {
   formatWmiMethodParameters,
   formatWmiScopeKind,
   renderWmiExplicitCredentialBadge,
-  renderWmiExecuteTypeBadge,
   renderWmiMethodParameters,
   renderWmiScopeKindValue,
   renderWmiScopeBadge,
@@ -20,10 +19,6 @@ export const WMI_EXECUTE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       formatValue: formatWmiExecuteTitle,
     },
     badges: [
-      {
-        key: "class_name",
-        customRender: renderWmiExecuteTypeBadge,
-      },
       {
         key: "scope_kind",
         customRender: renderWmiScopeBadge,

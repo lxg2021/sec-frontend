@@ -103,37 +103,6 @@ export function renderWmiExplicitCredentialBadge(value: string) {
   );
 }
 
-export function renderWmiClassTypeBadge() {
-  return renderWmiTypeBadge("wmi class");
-}
-
-export function renderWmiConsumerTypeBadge() {
-  return renderWmiTypeBadge("wmi consumer");
-}
-
-export function renderWmiExecuteTypeBadge() {
-  return renderWmiTypeBadge("wmi execute");
-}
-
-export function renderWmiFilterTypeBadge() {
-  return renderWmiTypeBadge("wmi filter");
-}
-
-export function renderWmiQueryTypeBadge() {
-  return renderWmiTypeBadge("wmi query");
-}
-
-function renderWmiTypeBadge(label: string) {
-  return (
-    <Badge
-      variant="secondary"
-      className="border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100"
-    >
-      {label}
-    </Badge>
-  );
-}
-
 export function formatWmiExecuteTitle(
   _value: string,
   data: AttackGraphDetailData,

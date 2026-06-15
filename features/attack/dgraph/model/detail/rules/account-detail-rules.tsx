@@ -1,5 +1,3 @@
-import { Badge } from "@/shared/ui/badge";
-
 import type { AttackGraphDetailData } from "../attack-graph-detail-config-types";
 
 export function formatAccountTitle(value: string, data: AttackGraphDetailData) {
@@ -24,15 +22,4 @@ export function formatAccountScope(value: string) {
     default:
       return normalized;
   }
-}
-
-export function renderAccountBadge() {
-  return (
-    <Badge
-      variant="secondary"
-      className="min-w-[72px] justify-center rounded-md border-transparent bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
-    >
-      account
-    </Badge>
-  );
 }

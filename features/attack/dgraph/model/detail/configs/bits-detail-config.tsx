@@ -4,7 +4,6 @@ import {
   formatBitsJobStatus,
   formatBitsJobType,
   formatBitsTitle,
-  renderBitsBadge,
   renderBitsJobFiles,
 } from "../rules/bits-detail-rules";
 
@@ -17,12 +16,6 @@ export const BITS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "BITS Job",
       formatValue: formatBitsTitle,
     },
-    badges: [
-      {
-        key: "entity_type",
-        customRender: renderBitsBadge,
-      },
-    ],
     fields: [
       {
         key: "agent_id",

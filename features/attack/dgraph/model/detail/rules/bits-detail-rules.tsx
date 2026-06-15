@@ -1,7 +1,5 @@
 import { FolderOpen, Network } from "lucide-react";
 
-import { Badge } from "@/shared/ui/badge";
-
 import type { AttackGraphDetailData } from "../attack-graph-detail-config-types";
 
 interface BitsJobFile {
@@ -38,18 +36,6 @@ export function formatBitsJobStatus(
 ) {
   return formatBitsEnumLabel(value, BITS_JOB_STATUS_LABEL_BY_DESC) || data.job_status?.trim() || "";
 }
-
-export function renderBitsBadge() {
-  return (
-    <Badge
-      variant="secondary"
-      className="border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100"
-    >
-      bits
-    </Badge>
-  );
-}
-
 export function formatBitsJobFiles(value: string) {
   return parseBitsJobFiles(value)
     .map((file) =>

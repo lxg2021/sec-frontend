@@ -1,7 +1,6 @@
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 import {
   formatCryptoOperation,
-  renderCryptoTypeBadge,
 } from "../rules/crypto-detail-rules";
 
 export const CRYPTO_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
@@ -13,12 +12,6 @@ export const CRYPTO_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "Crypto",
       formatValue: formatCryptoOperation,
     },
-    badges: [
-      {
-        key: "entity_type",
-        customRender: renderCryptoTypeBadge,
-      },
-    ],
     fields: [
       {
         key: "agent_id",

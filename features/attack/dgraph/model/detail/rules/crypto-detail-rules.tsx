@@ -1,5 +1,3 @@
-import { Badge } from "@/shared/ui/badge";
-
 import type { AttackGraphDetailData } from "../attack-graph-detail-config-types";
 
 export function formatCryptoOperation(value: string, data?: AttackGraphDetailData) {
@@ -24,18 +22,6 @@ export function formatCryptoFlag(value: string, data?: AttackGraphDetailData) {
   const operation = formatCryptoFlagDescription(normalized) || formatCryptoOperation("", data);
   return operation ? `${normalized} (${operation})` : normalized;
 }
-
-export function renderCryptoTypeBadge() {
-  return (
-    <Badge
-      variant="secondary"
-      className="border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100"
-    >
-      crypto
-    </Badge>
-  );
-}
-
 function formatCryptoFlagDescription(value: unknown) {
   const normalized = toRuleValue(value);
   if (!normalized) {

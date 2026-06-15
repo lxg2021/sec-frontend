@@ -1,8 +1,6 @@
 import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-types";
 import {
   formatWmiScopeKind,
-  renderWmiExplicitCredentialBadge,
-  renderWmiQueryTypeBadge,
   renderWmiScopeKindValue,
   renderWmiScopeBadge,
 } from "../rules/wmi-detail-rules";
@@ -17,16 +15,8 @@ export const WMI_QUERY_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
     },
     badges: [
       {
-        key: "query",
-        customRender: renderWmiQueryTypeBadge,
-      },
-      {
         key: "scope_kind",
         customRender: renderWmiScopeBadge,
-      },
-      {
-        key: "has_explicit_credential",
-        customRender: renderWmiExplicitCredentialBadge,
       },
     ],
     fields: [

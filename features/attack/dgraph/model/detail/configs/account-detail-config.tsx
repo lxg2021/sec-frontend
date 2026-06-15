@@ -2,7 +2,6 @@ import type { AttackGraphDetailCardConfig } from "../attack-graph-detail-config-
 import {
   formatAccountScope,
   formatAccountTitle,
-  renderAccountBadge,
 } from "../rules/account-detail-rules";
 
 export const ACCOUNT_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
@@ -14,12 +13,6 @@ export const ACCOUNT_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "Account",
       formatValue: formatAccountTitle,
     },
-    badges: [
-      {
-        key: "entity_type",
-        customRender: renderAccountBadge,
-      },
-    ],
     fields: [
       {
         key: "agent_id",

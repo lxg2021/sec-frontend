@@ -1,5 +1,3 @@
-import { Badge } from "@/shared/ui/badge";
-
 import type {
   AttackGraphDetailCardConfig,
   AttackGraphDetailData,
@@ -14,12 +12,6 @@ export const DNS_NAME_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "DnsName",
       formatValue: formatDnsNameTitle,
     },
-    badges: [
-      {
-        key: "domain",
-        customRender: renderDnsBadge,
-      },
-    ],
   },
   sections: [
     {
@@ -45,19 +37,4 @@ export const DNS_NAME_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
 
 function formatDnsNameTitle(value: string, data: AttackGraphDetailData) {
   return value.trim() || data.graph_display_name?.trim() || "";
-}
-
-function renderDnsBadge(value: string) {
-  if (!value.trim()) {
-    return null;
-  }
-
-  return (
-    <Badge
-      variant="secondary"
-      className="border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100"
-    >
-      dns
-    </Badge>
-  );
 }

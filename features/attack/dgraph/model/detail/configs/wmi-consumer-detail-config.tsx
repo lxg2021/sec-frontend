@@ -3,7 +3,6 @@ import {
   formatWmiConsumerContext,
   formatWmiScopeKind,
   renderWmiConsumerContext,
-  renderWmiConsumerTypeBadge,
   renderWmiScopeKindValue,
   renderWmiScopeBadge,
 } from "../rules/wmi-detail-rules";
@@ -17,10 +16,6 @@ export const WMI_CONSUMER_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "WmiConsumer",
     },
     badges: [
-      {
-        key: "event_consumer_name",
-        customRender: renderWmiConsumerTypeBadge,
-      },
       {
         key: "scope_kind",
         customRender: renderWmiScopeBadge,

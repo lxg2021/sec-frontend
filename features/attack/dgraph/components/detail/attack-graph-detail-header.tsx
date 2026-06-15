@@ -38,6 +38,9 @@ export function AttackGraphDetailHeader({
 }) {
   const HeaderIcon = getAttackGraphDetailIcon(header.icon);
   const headerFields = header.fields ?? [];
+  const nodeTypeBadgeLabel = getAttackGraphNodeTypeBadgeLabel(
+    readAttackGraphDetailValue(data, "entity_type"),
+  );
 
   return (
     <CardHeader className="shrink-0 border-b border-slate-100 p-4 pb-4">
@@ -56,6 +59,9 @@ export function AttackGraphDetailHeader({
         </CardTitle>
 
         <div className="flex shrink-0 items-center gap-2">
+          {nodeTypeBadgeLabel ? (
+            <AttackGraphNodeTypeBadge label={nodeTypeBadgeLabel} />
+          ) : null}
           <AttackGraphDetailHeaderBadges
             badges={header.badges ?? []}
             data={data}
@@ -79,6 +85,18 @@ export function AttackGraphDetailHeader({
         ) : null}
       </div>
     </CardHeader>
+  );
+}
+
+function AttackGraphNodeTypeBadge({ label }: { label: string }) {
+  return (
+    <Badge
+      variant="secondary"
+      className="max-w-[160px] justify-center rounded-md border-transparent bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-100"
+      title={label}
+    >
+      <span className="truncate">{label}</span>
+    </Badge>
   );
 }
 
@@ -123,6 +141,62 @@ function AttackGraphDetailHeaderBadges({
     </>
   );
 }
+
+function getAttackGraphNodeTypeBadgeLabel(entityType: string) {
+  if (!entityType) {
+    return "";
+  }
+
+  return (
+    ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS[entityType] ??
+    entityType
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/[_-]+/g, " ")
+      .trim()
+      .toLowerCase()
+  );
+}
+
+const ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS: Record<string, string> = {
+  Account: "account",
+  AccountGroup: "account group",
+  AttackCase: "case",
+  AttackCaseEvidence: "evidence",
+  AttackCaseGroup: "case group",
+  AttackCaseInstance: "case instance",
+  Bits: "bits",
+  CredentialTheft: "credential theft",
+  Crypto: "crypto",
+  Device: "device",
+  DnsName: "dns",
+  File: "file",
+  FileMapping: "file mapping",
+  FileStream: "file stream",
+  Host: "host",
+  HostRef: "host ref",
+  MailSlot: "mail slot",
+  Mbr: "mbr",
+  MessageHook: "message hook",
+  NamedEvent: "named event",
+  NamedPipe: "named pipe",
+  NetAddress: "net address",
+  NetEndpoint: "net endpoint",
+  PowerShellExecution: "powershell",
+  Process: "process",
+  RegistryKey: "registry key",
+  RegistryValue: "registry value",
+  ScheduledJob: "scheduled job",
+  Service: "service",
+  Task: "task",
+  TokenImpersonation: "token impersonation",
+  URLResource: "url resource",
+  Volume: "volume",
+  WmiClass: "wmi class",
+  WmiConsumer: "wmi consumer",
+  WmiExecute: "wmi execute",
+  WmiFilter: "wmi filter",
+  WmiQuery: "wmi query",
+};
 
 function AttackGraphDetailHeaderFields({
   data,

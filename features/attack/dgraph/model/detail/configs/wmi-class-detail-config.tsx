@@ -4,7 +4,6 @@ import {
   formatWmiScopeKind,
   renderWmiBase64AttributesBadge,
   renderWmiClassAttributes,
-  renderWmiClassTypeBadge,
   renderWmiScopeKindValue,
   renderWmiScopeBadge,
   resolveWmiClassAttributesTone,
@@ -19,10 +18,6 @@ export const WMI_CLASS_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "WmiClass",
     },
     badges: [
-      {
-        key: "class_name",
-        customRender: renderWmiClassTypeBadge,
-      },
       {
         key: "scope_kind",
         customRender: renderWmiScopeBadge,

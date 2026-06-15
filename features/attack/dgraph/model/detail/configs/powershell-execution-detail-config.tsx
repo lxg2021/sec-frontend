@@ -1,5 +1,3 @@
-import { Badge } from "@/shared/ui/badge";
-
 import type {
   AttackGraphDetailCardConfig,
   AttackGraphDetailData,
@@ -14,19 +12,6 @@ export const POWERSHELL_EXECUTION_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       fallback: "PowerShell Execution",
       formatValue: formatPowerShellExecutionTitle,
     },
-    badges: [
-      {
-        key: "content",
-        customRender: () => (
-          <Badge
-            variant="secondary"
-            className="border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100"
-          >
-            powershell
-          </Badge>
-        ),
-      },
-    ],
     fields: [
       { key: "agent_id", label: "Agent ID", icon: "Monitor", iconTone: "blue", mono: true },
       { key: "occurred_at", label: "Occurred", icon: "Clock", iconTone: "green", mono: true },
