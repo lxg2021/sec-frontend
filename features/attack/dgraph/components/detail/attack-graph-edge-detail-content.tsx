@@ -75,17 +75,10 @@ export function AttackGraphEdgeDetailContent({
 
   return (
     <div className="min-w-0 max-w-full space-y-6 overflow-hidden px-6 py-5">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-        <span className="font-semibold text-slate-600">Relation Type:</span>
-        <span className="font-mono text-[13px] text-slate-700">
-          {viewModel.relationType || "-"}
-        </span>
-      </div>
-
       <section className="min-w-0 max-w-full space-y-3 overflow-hidden">
         <h3 className="flex items-center gap-2 text-base font-semibold text-blue-800">
           <ArrowRight className="h-4 w-4 text-blue-600" />
-          Attack Chain
+          Relation Path
         </h3>
 
         <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-4">
