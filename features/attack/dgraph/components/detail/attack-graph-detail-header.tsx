@@ -180,7 +180,7 @@ const ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS: Record<string, string> = {
   FileStream: "file stream",
   Host: "host",
   HostRef: "host ref",
-  MailSlot: "mail slot",
+  MailSlot: "mailslot",
   Mbr: "mbr",
   MessageHook: "message hook",
   NamedEvent: "event",

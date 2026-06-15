@@ -7,7 +7,6 @@ import {
   formatDeviceState,
   formatDeviceType,
   renderDeviceStateBadge,
-  renderDeviceTypeBadge,
   resolveDeviceStateTone,
 } from "../rules/device-detail-rules";
 
@@ -21,10 +20,6 @@ export const DEVICE_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
       formatValue: formatDeviceTitle,
     },
     badges: [
-      {
-        key: "entity_type",
-        customRender: renderDeviceTypeBadge,
-      },
       {
         key: "device_flag_description",
         customRender: renderDeviceStateBadge,
