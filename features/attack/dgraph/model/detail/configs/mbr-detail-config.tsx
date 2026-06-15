@@ -25,7 +25,7 @@ export const MBR_DETAIL_CONFIG: AttackGraphDetailCardConfig = {
               variant="destructive"
               className="rounded-md px-2 py-0.5 text-xs font-medium"
             >
-              MBR
+              mbr
             </Badge>
           ) : null,
       },

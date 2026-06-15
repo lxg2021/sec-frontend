@@ -147,6 +147,10 @@ function getAttackGraphNodeTypeBadgeLabel(entityType: string) {
     return "";
   }
 
+  if (ATTACK_GRAPH_NODE_TYPE_BADGE_HIDDEN.has(entityType)) {
+    return "";
+  }
+
   return (
     ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS[entityType] ??
     entityType
@@ -156,6 +160,8 @@ function getAttackGraphNodeTypeBadgeLabel(entityType: string) {
       .toLowerCase()
   );
 }
+
+const ATTACK_GRAPH_NODE_TYPE_BADGE_HIDDEN = new Set(["Mbr"]);
 
 const ATTACK_GRAPH_NODE_TYPE_BADGE_LABELS: Record<string, string> = {
   Account: "account",
