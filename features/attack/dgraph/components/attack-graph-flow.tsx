@@ -10,7 +10,6 @@ import {
 } from "react";
 import { Shield } from "lucide-react";
 import ReactFlow, {
-  applyNodeChanges,
   Background,
   MiniMap,
   Position,
@@ -218,9 +217,6 @@ export function AttackGraphFlow({
   const [contextMenu, setContextMenu] =
     useState<AttackGraphContextMenuState | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
-  const [flowNodes, setFlowNodes] = useState<
-    ReactFlowNode<AttackGraphNodeData>[]
-  >([]);
   const [manualNodePositionsByStrategy, setManualNodePositionsByStrategy] =
     useState<ManualNodePositionsByStrategy>(
       createManualNodePositionsByStrategy,
@@ -247,8 +243,8 @@ export function AttackGraphFlow({
         : null;
 
     hasFittedRef.current = false;
+    setLayouted(null);
     if (caseChanged) {
-      setLayouted(null);
       setManualNodePositionsByStrategy(createManualNodePositionsByStrategy());
       layoutSessionsByStrategyRef.current = {};
       lastLayoutStrategyRef.current = null;
@@ -341,7 +337,7 @@ export function AttackGraphFlow({
     [menuProviders, nodeDrillStateByKey, onMenuAction],
   );
 
-  const layoutedFlowNodes = useMemo(
+  const flowNodes = useMemo(
     () =>
       toReactFlowNodes(
         layoutedNodes,
@@ -350,10 +346,6 @@ export function AttackGraphFlow({
       ),
     [layoutedNodes, currentManualNodePositions, selectedNodeId],
   );
-
-  useEffect(() => {
-    setFlowNodes(layoutedFlowNodes);
-  }, [layoutedFlowNodes]);
 
   useEffect(() => {
     if (
@@ -429,7 +421,12 @@ export function AttackGraphFlow({
   }, [currentLayoutStrategy, positionResetKey]);
 
   useEffect(() => {
-    if (flowNodes.length > 0 && rfInstanceRef.current && !hasFittedRef.current) {
+    if (
+      fitView &&
+      flowNodes.length > 0 &&
+      rfInstanceRef.current &&
+      !hasFittedRef.current
+    ) {
       const timer = setTimeout(() => {
         rfInstanceRef.current?.fitView({
           duration: 220,
@@ -441,7 +438,7 @@ export function AttackGraphFlow({
       }, 80);
       return () => clearTimeout(timer);
     }
-  }, [flowNodes]);
+  }, [fitView, flowNodes]);
 
   const nodeColorsById = useMemo(() => {
     return new Map(flowNodes.map((node) => [node.id, node.data.color]));
@@ -606,15 +603,25 @@ export function AttackGraphFlow({
         setSelectedNodeId(selectedNodeChange);
       }
 
-      setFlowNodes((currentNodes) =>
-        applySelectedNodeId(
-          applyNodeChanges(changes, currentNodes),
-          selectedNodeChange === undefined ? selectedNodeId : selectedNodeChange,
-        ),
-      );
+      const positionChanges = getNodePositionChanges(changes);
+      if (currentLayoutStrategy && positionChanges.size > 0) {
+        setManualNodePositionsByStrategy((currentByStrategy) => {
+          const nextPositions = new Map(
+            currentByStrategy[currentLayoutStrategy],
+          );
+          for (const [nodeId, position] of positionChanges) {
+            nextPositions.set(nodeId, position);
+          }
+          return {
+            ...currentByStrategy,
+            [currentLayoutStrategy]: nextPositions,
+          };
+        });
+      }
+
       onNodesChange?.(changes);
     },
-    [onNodesChange, selectedNodeId],
+    [currentLayoutStrategy, onNodesChange],
   );
 
   const handleNodeDragStop = useCallback<
@@ -681,58 +688,64 @@ export function AttackGraphFlow({
   return (
     <div className={cn("relative h-full min-h-[420px] w-full bg-transparent", className)}>
       <TooltipProvider delayDuration={180}>
-        <ReactFlow
-          nodes={flowNodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView={fitView}
-          minZoom={minZoom}
-          maxZoom={maxZoom}
-          panOnDrag
-          panOnScroll={false}
-          preventScrolling={false}
-          zoomOnPinch={false}
-          zoomOnScroll={false}
-          nodesDraggable
-          nodesConnectable={false}
-          elementsSelectable
-          onInit={(instance) => { rfInstanceRef.current = instance }}
-          onNodesChange={handleNodesChange}
-          onNodeDragStop={handleNodeDragStop}
-          style={{ background: "transparent" }}
-          onEdgeClick={handleEdgeClick}
-          onEdgeMouseEnter={handleEdgeMouseEnter}
-          onEdgeMouseLeave={handleEdgeMouseLeave}
-          onNodeClick={handleNodeClick}
-          onNodeContextMenu={handleNodeContextMenu}
-          onPaneClick={handlePaneClick}
-          data-attack-graph-flow="true"
-          data-attack-graph-edge-diagnostics={edgeDiagnosticsText}
-          data-attack-graph-layout-strategy={layouted?.layoutStrategy ?? "pending"}
-          data-attack-graph-topology-diagnostics={topologyDiagnosticsText}
-          data-attack-graph-topology={layouted?.topologyKind ?? "pending"}
-          {...reactFlowProps}
-        >
-          {showBackground ? <Background color="#e2e8f0" gap={24} /> : null}
-          {showMiniMap ? (
-            <MiniMap
-              nodeColor="#94a3b8"
-              nodeStrokeWidth={2}
-              pannable
-              zoomable
+        {layouted ? (
+          <>
+            <ReactFlow
+              nodes={flowNodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              fitView={fitView}
+              minZoom={minZoom}
+              maxZoom={maxZoom}
+              panOnDrag
+              panOnScroll={false}
+              preventScrolling={false}
+              zoomOnPinch={false}
+              zoomOnScroll={false}
+              nodesDraggable
+              nodesConnectable={false}
+              elementsSelectable
+              onInit={(instance) => { rfInstanceRef.current = instance }}
+              onNodesChange={handleNodesChange}
+              onNodeDragStop={handleNodeDragStop}
+              style={{ background: "transparent" }}
+              onEdgeClick={handleEdgeClick}
+              onEdgeMouseEnter={handleEdgeMouseEnter}
+              onEdgeMouseLeave={handleEdgeMouseLeave}
+              onNodeClick={handleNodeClick}
+              onNodeContextMenu={handleNodeContextMenu}
+              onPaneClick={handlePaneClick}
+              data-attack-graph-flow="true"
+              data-attack-graph-edge-diagnostics={edgeDiagnosticsText}
+              data-attack-graph-layout-strategy={layouted.layoutStrategy}
+              data-attack-graph-topology-diagnostics={topologyDiagnosticsText}
+              data-attack-graph-topology={layouted.topologyKind ?? "pending"}
+              {...reactFlowProps}
+            >
+              {showBackground ? <Background color="#e2e8f0" gap={24} /> : null}
+              {showMiniMap ? (
+                <MiniMap
+                  nodeColor="#94a3b8"
+                  nodeStrokeWidth={2}
+                  pannable
+                  zoomable
+                />
+              ) : null}
+            </ReactFlow>
+            <AttackGraphContextMenu
+              menu={contextMenu}
+              onClose={() => setContextMenu(null)}
             />
-          ) : null}
-        </ReactFlow>
-        <AttackGraphContextMenu
-          menu={contextMenu}
-          onClose={() => setContextMenu(null)}
-        />
-        <AttackGraphDetailCard
-          item={detailCardItem}
-          nodesById={layoutedNodesById}
-          onClose={handleSelectionDetailClose}
-        />
+            <AttackGraphDetailCard
+              item={detailCardItem}
+              nodesById={layoutedNodesById}
+              onClose={handleSelectionDetailClose}
+            />
+          </>
+        ) : (
+          <AttackGraphLayoutLoadingState showBackground={showBackground} />
+        )}
       </TooltipProvider>
     </div>
   );
@@ -780,14 +793,36 @@ function getSelectedNodeChange(changes: NodeChange[]) {
   return selectedNodeId;
 }
 
-function applySelectedNodeId(
-  nodes: ReactFlowNode<AttackGraphNodeData>[],
-  selectedNodeId: string | null,
-) {
-  return nodes.map((node) => {
-    const selected = node.id === selectedNodeId;
-    return node.selected === selected ? node : { ...node, selected };
-  });
+function getNodePositionChanges(changes: NodeChange[]) {
+  const positionChanges = new Map<string, AttackGraphNodePosition>();
+
+  for (const change of changes) {
+    if (change.type === "position" && change.position) {
+      positionChanges.set(change.id, { ...change.position });
+    }
+  }
+
+  return positionChanges;
+}
+
+function AttackGraphLayoutLoadingState({
+  showBackground,
+}: {
+  showBackground: boolean;
+}) {
+  return (
+    <div
+      className="relative flex h-full min-h-[420px] w-full items-center justify-center overflow-hidden bg-transparent"
+      data-attack-graph-flow="layouting"
+    >
+      {showBackground ? (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(148,163,184,0.35)_1px,transparent_0)] bg-[length:24px_24px]" />
+      ) : null}
+      <div className="relative rounded-md border border-slate-200 bg-white/80 px-3 py-2 text-xs font-medium text-slate-500 shadow-sm">
+        Layouting graph...
+      </div>
+    </div>
+  );
 }
 
 function toReactFlowEdges(
