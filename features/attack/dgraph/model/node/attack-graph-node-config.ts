@@ -129,7 +129,7 @@ export const ATTACK_GRAPH_ENTITY_NODE_CONFIG: Record<
   },
   AccountGroup: {
     label: "Account Group",
-    presentationKind: "account",
+    presentationKind: "account-group",
     extractDisplayName: extractAccountGroupDisplayName,
   },
   Bits: {
@@ -414,6 +414,14 @@ export const ATTACK_GRAPH_NODE_KIND_CONFIG: Record<
     image: "/icons/nodes/account-node.svg",
     priority: 58,
     accentColor: "#039be5",
+    icon: "identity",
+  },
+  "account-group": {
+    label: "Account Group",
+    family: "identity",
+    image: "/icons/nodes/account-group-node.svg",
+    priority: 58,
+    accentColor: "#0288d1",
     icon: "identity",
   },
   bits: {

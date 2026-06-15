@@ -1,4 +1,4 @@
-export const DGRAPH_ENTITY_NODE_PRESENTATION_KIND_COUNT = 24;
+export const DGRAPH_ENTITY_NODE_PRESENTATION_KIND_COUNT = 25;
 
 export type AttackGraphEntityType =
   | "Account"
@@ -48,6 +48,7 @@ export type AttackGraphBackendEntityType =
 
 export type AttackGraphEntityPresentationKind =
   | "account"
+  | "account-group"
   | "bits"
   | "credential-theft"
   | "crypto"
@@ -85,7 +86,7 @@ export const ENTITY_TYPE_TO_PRESENTATION_KIND: Record<
   AttackGraphEntityPresentationKind
 > = {
   Account: "account",
-  AccountGroup: "account",
+  AccountGroup: "account-group",
   Bits: "bits",
   CredentialTheft: "credential-theft",
   Crypto: "crypto",

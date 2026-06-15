@@ -364,6 +364,7 @@ function getNodeLayoutAnchorWeight(node: AttackGraphNodeModel) {
     case "net-endpoint":
       return 72;
     case "account":
+    case "account-group":
     case "credential-theft":
     case "token-impersonation":
       return 64;
