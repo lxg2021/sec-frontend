@@ -159,10 +159,7 @@ function EdgeChainConnector({ relationLabel }: { relationLabel: string }) {
   return (
     <div className="flex w-[128px] shrink-0 flex-col items-center gap-1">
       <span
-        className={cn(
-          "max-w-[124px] truncate rounded-full border px-3 py-1 text-xs font-bold",
-          getEdgeRelationPillClassName(),
-        )}
+        className="max-w-[124px] truncate text-xs font-semibold text-slate-600"
         title={relationLabel}
       >
         {relationLabel || "-"}
@@ -208,10 +205,6 @@ function EdgeNodeCard({ node }: { node: AttackGraphEdgeDetailNodeViewModel }) {
       </div>
     </div>
   );
-}
-
-function getEdgeRelationPillClassName() {
-  return "border-slate-200 bg-slate-50 text-slate-600";
 }
 
 function getEdgeRelationBadgeClassName() {
