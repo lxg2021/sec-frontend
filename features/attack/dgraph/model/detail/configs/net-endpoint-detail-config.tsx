@@ -92,7 +92,7 @@ function renderProtocolBadge(value: string) {
   return (
     <Badge
       variant="secondary"
-      className="border-transparent bg-cyan-50 text-cyan-700 hover:bg-cyan-50"
+      className="border-transparent bg-slate-100 text-slate-600 hover:bg-slate-100"
     >
       {label}
     </Badge>
