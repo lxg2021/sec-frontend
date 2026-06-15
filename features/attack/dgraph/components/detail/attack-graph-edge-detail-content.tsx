@@ -102,9 +102,6 @@ export function AttackGraphEdgeDetailContent({
       </section>
 
       <section className="min-w-0 max-w-full overflow-hidden rounded-lg border border-slate-200 bg-white px-4 py-3">
-        <p className="text-xs font-bold tracking-wide text-slate-500">
-          CHAIN SENTENCE
-        </p>
         <p className="mt-1 flex min-w-0 items-center gap-1 text-[15px] text-slate-900">
           <span className="font-bold">{viewModel.source.name || "-"}</span>
           <span className="shrink-0 text-slate-500">
