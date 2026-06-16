@@ -137,7 +137,7 @@
     "response": "处置响应",
     "orchestration": "处置编排",
     "dacpolicy": "DAC控制",
-    "aiops": "AI运营分析",
+    "aiops": "AI Ops",
     "aithreat": "威胁分析",
     "aioperations": "运营管理",
     "evidence": "远程取证",
@@ -2947,7 +2947,159 @@
     "aiops": {
       "threatAnalysis": {
         "title": "威胁分析",
-        "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判"
+        "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判",
+        "metrics": {
+          "risk": "风险等级",
+          "confidence": "置信度",
+          "evidence": "证据引用",
+          "rules": "条规则",
+          "iocs": "IOC 数量",
+          "assets": "资产",
+          "actions": "处置建议",
+          "hypotheses": "假设"
+        },
+        "report": {
+          "title": "威胁分析",
+          "description": "案例 {caseId} 的 AI 生成报告",
+          "tabs": {
+            "story": "故事线",
+            "findings": "发现",
+            "iocs": "IOC",
+            "assets": "资产",
+            "actions": "建议",
+            "hypotheses": "假设",
+            "limitations": "限制",
+            "validation": "校验"
+          },
+          "fields": {
+            "taskId": "任务 ID",
+            "status": "状态",
+            "contextHash": "上下文哈希",
+            "latency": "耗时",
+            "confidence": "置信度",
+            "step": "步骤",
+            "valid": "有效",
+            "evidenceRefs": "证据引用",
+            "observables": "可观测项",
+            "provider": "提供方",
+            "model": "模型",
+            "created": "创建时间",
+            "updated": "更新时间",
+            "started": "开始时间",
+            "finished": "结束时间",
+            "error": "错误"
+          },
+          "severity": {
+            "critical": "严重",
+            "high": "高",
+            "medium": "中",
+            "low": "低",
+            "info": "信息",
+            "unknown": "未知"
+          },
+          "header": {
+            "brand": "AI Attack · 调查报告",
+            "complete": "分析完成",
+            "riskLabel": "风险等级",
+            "event": "级安全事件",
+            "overallConfidence": "总体置信度",
+            "attackStages": "攻击阶段",
+            "threatIndicators": "威胁指标",
+            "validated": "校验通过",
+            "references": "条证据",
+            "copy": "复制"
+          },
+          "nav": {
+            "title": "目录",
+            "attackStory": "攻击链路",
+            "keyFindings": "关键发现",
+            "iocs": "威胁指标",
+            "assets": "受影响资产",
+            "actions": "处置建议",
+            "hypotheses": "分析假设",
+            "limitations": "分析局限"
+          },
+          "summary": {
+            "title": "执行摘要"
+          },
+          "evidenceRefs": "条关联证据",
+          "iocHeaders": {
+            "type": "类型",
+            "value": "指标值",
+            "source": "来源"
+          },
+          "iocType": {
+            "ip": "IP 地址",
+            "url": "URL",
+            "hash": "哈希",
+            "md5": "MD5",
+            "sha1": "SHA1",
+            "sha256": "SHA256",
+            "file": "文件",
+            "process": "进程",
+            "domain": "域名"
+          },
+          "status": {
+            "succeeded": "成功",
+            "pending": "待处理",
+            "running": "运行中",
+            "failed": "失败",
+            "invalid": "无效",
+            "unknown": "未知"
+          },
+          "story": {
+            "title": "攻击链路",
+            "description": "按时间顺序还原攻击者在受影响主机上的行为序列。"
+          },
+          "findings": {
+            "title": "关键发现",
+            "description": "由检测引擎输出与 AI 分析综合提炼出的核心结论。"
+          },
+          "iocs": {
+            "title": "威胁指标 (IOCs)",
+            "description": "可用于检测、阻断和威胁狩猎的指标。"
+          },
+          "assets": {
+            "title": "受影响资产",
+            "description": "本次事件中已确认或疑似受影响的主机与资产。",
+            "compromised": "受影响"
+          },
+          "actions": {
+            "title": "处置建议",
+            "description": "按优先级排序的响应与缓解措施。",
+            "priority": "优先级"
+          },
+          "hypotheses": {
+            "title": "假设",
+            "description": "由于证据尚不足而需要进一步验证的推断结论。"
+          },
+          "limitations": {
+            "title": "限制",
+            "description": "本次自动分析已知的数据与范围限制。"
+          },
+          "validation": {
+            "title": "校验",
+            "description": "服务端结构与引用校验",
+            "errors": "错误",
+            "warnings": "警告",
+            "error": "错误",
+            "warning": "警告"
+          },
+          "metadata": {
+            "title": "任务元数据",
+            "description": "GetAttackAIReportTask 返回的字段"
+          },
+          "empty": {
+            "none": "无",
+            "noReport": "暂无报告数据。",
+            "noStory": "暂无故事线",
+            "noFindings": "暂无发现",
+            "noAssets": "暂无资产",
+            "noActions": "暂无建议",
+            "noHypotheses": "暂无假设",
+            "noLimitations": "暂无限制"
+          }
+        }
       },
       "operations": {
         "title": "运营管理",

@@ -137,7 +137,7 @@
     "response": "Response",
     "orchestration": "Orchestration",
     "dacpolicy": "DAC Control",
-    "aiops": "AI Operations Analytics",
+    "aiops": "AI Ops",
     "aithreat": "Threat Analysis",
     "aioperations": "Operations Management",
     "evidence": "Remote Evidence",
@@ -2945,7 +2945,159 @@
     "aiops": {
       "threatAnalysis": {
         "title": "Threat Analysis",
-        "subtitle": "AI-assisted threat detection, correlation, and prioritization"
+        "subtitle": "AI-assisted threat detection, correlation, and prioritization",
+        "metrics": {
+          "risk": "Risk level",
+          "confidence": "Confidence",
+          "evidence": "Evidence refs",
+          "rules": "rules",
+          "iocs": "IOCs",
+          "assets": "assets",
+          "actions": "Actions",
+          "hypotheses": "hypotheses"
+        },
+        "report": {
+          "title": "Threat Analysis",
+          "description": "AI-generated report for case {caseId}",
+          "tabs": {
+            "story": "Story",
+            "findings": "Findings",
+            "iocs": "IOCs",
+            "assets": "Assets",
+            "actions": "Actions",
+            "hypotheses": "Hypotheses",
+            "limitations": "Limits",
+            "validation": "Validation"
+          },
+          "fields": {
+            "taskId": "Task ID",
+            "status": "Status",
+            "contextHash": "Context hash",
+            "latency": "Latency",
+            "confidence": "Confidence",
+            "step": "Step",
+            "valid": "Valid",
+            "evidenceRefs": "Evidence refs",
+            "observables": "Observables",
+            "provider": "Provider",
+            "model": "Model",
+            "created": "Created",
+            "updated": "Updated",
+            "started": "Started",
+            "finished": "Finished",
+            "error": "Error"
+          },
+          "severity": {
+            "critical": "Critical",
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low",
+            "info": "Info",
+            "unknown": "Unknown"
+          },
+          "header": {
+            "brand": "AI Attack · Investigation Report",
+            "complete": "Analysis complete",
+            "riskLabel": "Risk level",
+            "event": "security event",
+            "overallConfidence": "Overall confidence",
+            "attackStages": "Attack stages",
+            "threatIndicators": "Threat indicators",
+            "validated": "Validated",
+            "references": "evidence refs",
+            "copy": "Copy"
+          },
+          "nav": {
+            "title": "Contents",
+            "attackStory": "Attack chain",
+            "keyFindings": "Key findings",
+            "iocs": "Threat indicators",
+            "assets": "Affected assets",
+            "actions": "Response actions",
+            "hypotheses": "Hypotheses",
+            "limitations": "Limitations"
+          },
+          "summary": {
+            "title": "Executive summary"
+          },
+          "evidenceRefs": "linked evidence",
+          "iocHeaders": {
+            "type": "Type",
+            "value": "Indicator value",
+            "source": "Source"
+          },
+          "iocType": {
+            "ip": "IP address",
+            "url": "URL",
+            "hash": "Hash",
+            "md5": "MD5",
+            "sha1": "SHA1",
+            "sha256": "SHA256",
+            "file": "File",
+            "process": "Process",
+            "domain": "Domain"
+          },
+          "status": {
+            "succeeded": "Succeeded",
+            "pending": "Pending",
+            "running": "Running",
+            "failed": "Failed",
+            "invalid": "Invalid",
+            "unknown": "Unknown"
+          },
+          "story": {
+            "title": "Attack chain",
+            "description": "Reconstructs the attacker behavior sequence on the affected host in chronological order."
+          },
+          "findings": {
+            "title": "Key findings",
+            "description": "Core conclusions synthesized from detection engine output and AI analysis."
+          },
+          "iocs": {
+            "title": "Threat indicators (IOCs)",
+            "description": "Indicators that can be used for detection, blocking, and threat hunting."
+          },
+          "assets": {
+            "title": "Affected assets",
+            "description": "Hosts and assets confirmed or suspected to be affected in this incident.",
+            "compromised": "Affected"
+          },
+          "actions": {
+            "title": "Response actions",
+            "description": "Response and mitigation steps sorted by priority.",
+            "priority": "Priority"
+          },
+          "hypotheses": {
+            "title": "Hypotheses",
+            "description": "Inferential conclusions that need further validation because evidence is not yet sufficient."
+          },
+          "limitations": {
+            "title": "Limitations",
+            "description": "Known data and scope limitations of this automated analysis."
+          },
+          "validation": {
+            "title": "Validation",
+            "description": "Server-side schema and reference checks",
+            "errors": "Errors",
+            "warnings": "Warnings",
+            "error": "Error",
+            "warning": "Warning"
+          },
+          "metadata": {
+            "title": "Task metadata",
+            "description": "Fields returned by GetAttackAIReportTask"
+          },
+          "empty": {
+            "none": "None",
+            "noReport": "No report data.",
+            "noStory": "No story",
+            "noFindings": "No findings",
+            "noAssets": "No assets",
+            "noActions": "No actions",
+            "noHypotheses": "No hypotheses",
+            "noLimitations": "No limitations"
+          }
+        }
       },
       "operations": {
         "title": "Operations Management",
