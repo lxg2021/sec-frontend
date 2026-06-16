@@ -2948,6 +2948,10 @@
       "threatAnalysis": {
         "title": "威胁分析",
         "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判",
+          "header": {
+            "badge": "FIXED",
+            "category": "ATT&CK"
+          },
         "metrics": {
           "risk": "风险等级",
           "confidence": "置信度",

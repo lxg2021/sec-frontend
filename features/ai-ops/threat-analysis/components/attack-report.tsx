@@ -5,6 +5,7 @@ import {
   AlertCircle,
   BadgeCheck,
   Check,
+  ChartNoAxesCombined,
   Clock,
   Copy,
   Cpu,
@@ -19,7 +20,6 @@ import {
   ListChecks,
   Search,
   Server,
-  ShieldAlert,
   TerminalSquare,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -283,53 +283,33 @@ function ReportHeader({ task }: { task: ResolvedReportTask }) {
 
   return (
     <header className="relative overflow-hidden border-b border-border">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card/40 px-4 py-2 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2">
-          <Cpu className="h-4 w-4 text-primary" aria-hidden />
-          <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{t("header.brand")}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
-          </span>
-          <span className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            {task.status === "succeeded" ? t("header.complete") : task.status}
-          </span>
-        </div>
-      </div>
-
       <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className={cn("flex h-11 w-11 items-center justify-center rounded-lg border", s.badge)}>
-                <ShieldAlert className="h-6 w-6" aria-hidden />
-              </div>
-              <div>
-                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{t("header.riskLabel")}</p>
-                <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
-                  <span className={s.text}>{t(`severity.${report.risk_level || "info"}`)}</span> {t("header.event")}
-                </h1>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
+              <ChartNoAxesCombined className="h-5 w-5" aria-hidden />
+            </div>
+            <div className="min-w-0 space-y-1.5">
+              <h1 className="truncate text-lg font-semibold text-slate-950">{t("title")}</h1>
+              <div className="flex flex-wrap items-center gap-2.5 text-sm">
+                <span className="text-slate-500">
+                  {t("header.riskLabel")}
+                  <span className={cn("px-1 font-semibold", s.text)}>{t(`severity.${report.risk_level || "info"}`)}</span>
+                  <span className="px-1 text-slate-200">/</span>
+                  {t("header.overallConfidence")}
+                  <span className="px-1 font-mono font-semibold tabular-nums text-slate-950">{confidencePct(report.confidence ?? 0)}%</span>
+                  <span className="px-1 text-slate-200">/</span>
+                  {t("header.attackStages")}
+                  <span className="px-1 font-mono font-semibold tabular-nums text-slate-950">{report.attack_story.length}</span>
+                  <span className="px-1 text-slate-200">/</span>
+                  {t("header.threatIndicators")}
+                  <span className="px-1 font-mono font-semibold tabular-nums text-slate-950">{report.iocs.length}</span>
+                </span>
               </div>
             </div>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{t("header.overallConfidence")}</span>
-                <span className="font-mono text-sm font-semibold tabular-nums">{confidencePct(report.confidence ?? 0)}%</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{t("header.attackStages")}</span>
-                <span className="font-mono text-sm font-semibold tabular-nums">{report.attack_story.length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">{t("header.threatIndicators")}</span>
-                <span className="font-mono text-sm font-semibold tabular-nums">{report.iocs.length}</span>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 pt-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 lg:ml-auto">
               <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs text-muted-foreground">
                 <Cpu className="h-3.5 w-3.5 text-primary" aria-hidden />
                 {providerName} · {modelName}
@@ -350,7 +330,6 @@ function ReportHeader({ task }: { task: ResolvedReportTask }) {
                 <span className="max-w-[12rem] truncate">{caseId}</span>
                 <CopyButton value={caseId} className="h-5 w-5 border-0" label={t("header.copy")} />
               </span>
-            </div>
           </div>
         </div>
       </div>

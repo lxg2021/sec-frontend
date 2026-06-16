@@ -2946,6 +2946,10 @@
       "threatAnalysis": {
         "title": "Threat Analysis",
         "subtitle": "AI-assisted threat detection, correlation, and prioritization",
+        "header": {
+          "badge": "FIXED",
+          "category": "ATT&CK"
+        },
         "metrics": {
           "risk": "Risk level",
           "confidence": "Confidence",
@@ -2997,10 +3001,10 @@
           },
           "header": {
             "brand": "AI Attack · Investigation Report",
-            "complete": "Analysis complete",
-            "riskLabel": "Risk level",
-            "event": "security event",
-            "overallConfidence": "Overall confidence",
+              "complete": "Analysis complete",
+              "riskLabel": "Risk level",
+              "event": " security event",
+              "overallConfidence": "Overall confidence",
             "attackStages": "Attack stages",
             "threatIndicators": "Threat indicators",
             "validated": "Validated",
