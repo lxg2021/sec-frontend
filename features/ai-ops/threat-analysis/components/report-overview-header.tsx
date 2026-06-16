@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { BadgeCheck, ChartNoAxesCombined, Check, Clock, Copy, Cpu, Hash } from "lucide-react"
+import { ChartNoAxesCombined, Check, Clock, Copy, Cpu, FileCheck2, Hash } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { cn } from "@/shared/lib/utils"
@@ -101,10 +101,10 @@ export function ReportOverviewHeader({ task }: { task: ResolvedReportTask }) {
             {(latencyMs / 1000).toFixed(1)}s
           </span>
           {validation?.valid ? (
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-chart-4/30 bg-chart-4/10 px-2 py-1 font-mono text-chart-4">
-              <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-              {t("header.validated")} · {validation.checked_refs?.evidence_refs ?? 0} {t("header.references")}
-            </span>
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/60 px-2 py-1 font-mono">
+                <FileCheck2 className="h-3.5 w-3.5" aria-hidden />
+                {t("header.validated")} · {validation.checked_refs?.evidence_refs ?? 0} {t("header.references")}
+              </span>
           ) : null}
           <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card/60 py-1 pl-2 pr-1 font-mono">
             <Hash className="h-3.5 w-3.5" aria-hidden />
