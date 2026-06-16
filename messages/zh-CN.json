@@ -2946,7 +2946,7 @@
     },
     "aiops": {
       "threatAnalysis": {
-        "title": "威胁分析",
+        "title": "AI威胁分析",
         "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判",
           "header": {
             "badge": "FIXED",
@@ -2963,7 +2963,7 @@
           "hypotheses": "假设"
         },
         "report": {
-          "title": "威胁分析",
+          "title": "AI威胁分析",
           "description": "案例 {caseId} 的 AI 生成报告",
           "tabs": {
             "story": "故事线",

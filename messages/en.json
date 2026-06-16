@@ -2944,7 +2944,7 @@
     },
     "aiops": {
       "threatAnalysis": {
-        "title": "Threat Analysis",
+        "title": "AI Threat Analysis",
         "subtitle": "AI-assisted threat detection, correlation, and prioritization",
         "header": {
           "badge": "FIXED",
@@ -2961,7 +2961,7 @@
           "hypotheses": "hypotheses"
         },
         "report": {
-          "title": "Threat Analysis",
+          "title": "AI Threat Analysis",
           "description": "AI-generated report for case {caseId}",
           "tabs": {
             "story": "Story",
