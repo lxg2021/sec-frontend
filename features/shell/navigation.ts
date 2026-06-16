@@ -3,6 +3,9 @@ import {
   AlertTriangle,
   BarChart,
   Boxes,
+  Bot,
+  BrainCircuit,
+  ChartNoAxesCombined,
   Computer,
   FilePenLine,
   FileText,
@@ -82,6 +85,15 @@ export const menuItems = [
     submenu: [
       { id: "orchestration", icon: Sword, labelKey: "orchestration", path: "/frame/response/orchestration" },
       { id: "dacpolicy", icon: Activity, labelKey: "dacpolicy", path: "/frame/response/dac" },
+    ],
+  },
+  {
+    id: "aiops",
+    icon: BrainCircuit,
+    labelKey: "aiops",
+    submenu: [
+      { id: "aithreat", icon: ChartNoAxesCombined, labelKey: "aithreat", path: "/frame/ai-ops/threat-analysis" },
+      { id: "aioperations", icon: Bot, labelKey: "aioperations", path: "/frame/ai-ops/operations" },
     ],
   },
   { id: "evidence", icon: Terminal, labelKey: "evidence", path: "/frame/evidence" },

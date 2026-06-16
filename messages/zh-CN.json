@@ -137,6 +137,9 @@
     "response": "处置响应",
     "orchestration": "处置编排",
     "dacpolicy": "DAC控制",
+    "aiops": "AI运营分析",
+    "aithreat": "威胁分析",
+    "aioperations": "运营管理",
     "evidence": "远程取证",
     "reports": "审计中心",
     "control": "控制中心",
@@ -2940,6 +2943,16 @@
     "reports": {
       "title": "审计中心",
       "subtitle": "审计中心"
+    },
+    "aiops": {
+      "threatAnalysis": {
+        "title": "威胁分析",
+        "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判"
+      },
+      "operations": {
+        "title": "运营管理",
+        "subtitle": "基于 AI 的工作流、任务编排与运营洞察"
+      }
     },
     "response": {
       "dac": {

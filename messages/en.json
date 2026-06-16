@@ -137,6 +137,9 @@
     "response": "Response",
     "orchestration": "Orchestration",
     "dacpolicy": "DAC Control",
+    "aiops": "AI Operations Analytics",
+    "aithreat": "Threat Analysis",
+    "aioperations": "Operations Management",
     "evidence": "Remote Evidence",
     "reports": "Audit Center",
     "control": "Control Center",
@@ -2938,6 +2941,16 @@
     "reports": {
       "title": "Audit Center",
       "subtitle": "Audit Center"
+    },
+    "aiops": {
+      "threatAnalysis": {
+        "title": "Threat Analysis",
+        "subtitle": "AI-assisted threat detection, correlation, and prioritization"
+      },
+      "operations": {
+        "title": "Operations Management",
+        "subtitle": "AI-assisted workflows, task orchestration, and service insights"
+      }
     },
     "response": {
       "dac": {
