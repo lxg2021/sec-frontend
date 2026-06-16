@@ -3,12 +3,8 @@
 import { useEffect, useState } from "react"
 import {
   AlertCircle,
-  BadgeCheck,
   Check,
-  ChartNoAxesCombined,
-  Clock,
   Copy,
-  Cpu,
   Crosshair,
   FileText,
   FileWarning,
@@ -24,6 +20,7 @@ import {
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { cn } from "@/shared/lib/utils"
+import { ReportOverviewHeader } from "@/features/ai-ops/threat-analysis/components/report-overview-header"
 import type {
   AttackAIReport,
   AttackAIReportTask,
@@ -268,72 +265,6 @@ function ReportNav() {
         </ul>
       </div>
     </nav>
-  )
-}
-
-function ReportHeader({ task }: { task: ResolvedReportTask }) {
-  const t = useTranslations("pages.aiops.threatAnalysis.report")
-  const { report, validation } = task
-  const severity = report.risk_level || "info"
-  const s = severityStyles[(severity === "critical" || severity === "high" || severity === "medium" || severity === "low" ? severity : "info")]
-  const latencyMs = task.latency_ms ?? 0
-  const providerName = task.provider_name || "-"
-  const modelName = task.model_name || "-"
-  const caseId = report.case_id || task.case_id || "-"
-
-  return (
-    <header className="relative overflow-hidden border-b border-border">
-      <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-          <div className="flex min-w-0 flex-1 items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
-              <ChartNoAxesCombined className="h-5 w-5" aria-hidden />
-            </div>
-            <div className="min-w-0 space-y-1.5">
-              <h1 className="truncate text-lg font-semibold text-slate-950">{t("title")}</h1>
-              <div className="flex flex-wrap items-center gap-2.5 text-sm">
-                <span className="text-slate-500">
-                  {t("header.riskLabel")}
-                  <span className={cn("px-1 font-semibold", s.text)}>{t(`severity.${report.risk_level || "info"}`)}</span>
-                  <span className="px-1 text-slate-200">/</span>
-                  {t("header.overallConfidence")}
-                  <span className="px-1 font-mono font-semibold tabular-nums text-slate-950">{confidencePct(report.confidence ?? 0)}%</span>
-                  <span className="px-1 text-slate-200">/</span>
-                  {t("header.attackStages")}
-                  <span className="px-1 font-mono font-semibold tabular-nums text-slate-950">{report.attack_story.length}</span>
-                  <span className="px-1 text-slate-200">/</span>
-                  {t("header.threatIndicators")}
-                  <span className="px-1 font-mono font-semibold tabular-nums text-slate-950">{report.iocs.length}</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 lg:ml-auto">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs text-muted-foreground">
-                <Cpu className="h-3.5 w-3.5 text-primary" aria-hidden />
-                {providerName} · {modelName}
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 font-mono text-xs text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" aria-hidden />
-                {(latencyMs / 1000).toFixed(1)}s
-              </span>
-              {validation?.valid ? (
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-chart-4/40 bg-chart-4/15 px-2 py-1 font-mono text-xs text-chart-4">
-                  <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-                  {t("header.validated")} · {validation.checked_refs?.evidence_refs ?? 0} {t("header.references")}
-                </span>
-              ) : null}
-              <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card py-1 pl-2 pr-1 font-mono text-xs text-muted-foreground">
-                <Hash className="h-3.5 w-3.5" aria-hidden />
-                <span className="text-foreground/80">Case</span>
-                <span className="max-w-[12rem] truncate">{caseId}</span>
-                <CopyButton value={caseId} className="h-5 w-5 border-0" label={t("header.copy")} />
-              </span>
-          </div>
-        </div>
-      </div>
-    </header>
   )
 }
 
@@ -619,7 +550,7 @@ export function AttackReport({ task }: { task: ReportTask }) {
 
   return (
     <article className="mx-auto w-full max-w-[120rem]">
-      <ReportHeader task={{ ...task, report, validation }} />
+      <ReportOverviewHeader task={{ ...task, report, validation }} />
       <div className="grid gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 lg:px-8 xl:grid-cols-[14rem_minmax(0,1fr)]">
         <ReportNav />
         <ReportBody report={report} />
