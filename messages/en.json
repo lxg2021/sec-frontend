@@ -2965,7 +2965,16 @@
         "subtitle": "AI-assisted threat detection, correlation, and prioritization",
         "search": {
           "caseIdPlaceholder": "Enter CaseID",
-          "submit": "Search"
+          "submit": "Search",
+          "analyzing": "Analyzing",
+          "caseIdRequired": "Enter CaseID",
+          "started": "Analysis task started",
+          "succeeded": "Analysis complete",
+          "failed": "Analysis task failed",
+          "invalid": "Analysis result did not pass validation",
+          "timeout": "Analysis task timed out. Try again later.",
+          "missingTaskId": "The analysis task was created but no TaskID was returned.",
+          "unknownStatus": "Unknown task status: {status}"
         },
         "header": {
           "badge": "FIXED",

@@ -2967,7 +2967,16 @@
         "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判",
         "search": {
           "caseIdPlaceholder": "请输入 CaseID",
-          "submit": "查询"
+          "submit": "查询",
+          "analyzing": "分析中",
+          "caseIdRequired": "请输入 CaseID",
+          "started": "分析任务已开始",
+          "succeeded": "分析完成",
+          "failed": "分析任务执行失败",
+          "invalid": "分析结果未通过校验",
+          "timeout": "分析任务等待超时，请稍后重试",
+          "missingTaskId": "分析任务创建成功，但未返回 TaskID",
+          "unknownStatus": "未知任务状态：{status}"
         },
           "header": {
             "badge": "FIXED",
