@@ -2966,6 +2966,7 @@
         "subtitle": "AI-assisted threat detection, correlation, and prioritization",
         "search": {
           "caseIdPlaceholder": "Enter CaseID",
+          "backToAttackDetail": "Back",
           "submit": "Search",
           "analyzing": "Analyzing",
           "emptyTitle": "No CaseID",

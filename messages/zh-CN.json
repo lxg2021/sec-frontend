@@ -2968,6 +2968,7 @@
         "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判",
         "search": {
           "caseIdPlaceholder": "请输入 CaseID",
+          "backToAttackDetail": "返回详情",
           "submit": "查询",
           "analyzing": "分析中",
           "emptyTitle": "No CaseID",

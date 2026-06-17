@@ -8,8 +8,9 @@ import {
   useState,
   type FormEvent,
 } from "react"
-import { Loader2, Search, Shield } from "lucide-react"
+import { ArrowLeft, Loader2, Search, Shield } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import AttackReport from "@/features/ai-ops/threat-analysis/components/attack-report"
@@ -74,6 +75,7 @@ function NoCaseState() {
 
 function CaseIdSearchToolbar() {
   const t = useTranslations("pages.aiops.threatAnalysis.search")
+  const router = useRouter()
   const appLocale = useLocale()
   const reportLocale = useMemo(() => reportLocaleFromAppLocale(appLocale), [appLocale])
   const waitForLocalizedReport = shouldWaitForLocalizedReport(reportLocale)
@@ -265,6 +267,17 @@ function CaseIdSearchToolbar() {
     }
   }
 
+  function handleBackToAttackDetail() {
+    const normalizedCaseId = caseId.trim()
+    const params = new URLSearchParams()
+
+    if (normalizedCaseId) {
+      params.set("caseId", normalizedCaseId)
+    }
+
+    router.push(`/frame/attack/detail${params.size > 0 ? `?${params.toString()}` : ""}`)
+  }
+
   return (
     <>
       <section className="w-full rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.07)]">
@@ -272,6 +285,17 @@ function CaseIdSearchToolbar() {
           className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center"
           onSubmit={handleSubmit}
         >
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleBackToAttackDetail}
+            className="h-11 shrink-0 rounded-full border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-950 focus-visible:ring-slate-300"
+            title={t("backToAttackDetail")}
+            aria-label={t("backToAttackDetail")}
+          >
+            <ArrowLeft className="size-4" />
+            <span className="whitespace-nowrap">{t("backToAttackDetail")}</span>
+          </Button>
           <div className="flex h-11 min-w-0 w-full flex-1 items-center rounded-full border border-slate-200 bg-slate-50/80 pl-3 pr-1 shadow-inner shadow-slate-100/70">
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
             <Input
