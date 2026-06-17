@@ -1,4 +1,4 @@
-import { Crosshair, FileWarning, Globe, Hash, Link2, TerminalSquare } from "lucide-react"
+import { Crosshair, Database, FileWarning, Globe, Hash, Link2, TerminalSquare } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type { Ioc, IocType } from "@/features/ai-ops/threat-analysis/report-types"
@@ -15,6 +15,15 @@ const iocIcon: Record<IocType, typeof Globe> = {
   file: FileWarning,
   process: TerminalSquare,
   domain: Globe,
+  registry: Database,
+}
+
+function formatUnknownIocType(type: string) {
+  return type
+    .split(/[_-]/g)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ") || "Unknown"
 }
 
 export function IocTable({ iocs }: { iocs: Ioc[] }) {
@@ -39,11 +48,13 @@ export function IocTable({ iocs }: { iocs: Ioc[] }) {
         <ul className="divide-y divide-border">
           {iocs.map((ioc, index) => {
             const Icon = iocIcon[ioc.type] || Globe
+            const iocTypeKey = `iocType.${ioc.type}`
+            const iocTypeLabel = t.has(iocTypeKey) ? t(iocTypeKey) : formatUnknownIocType(ioc.type)
             return (
               <li key={`${ioc.type}-${index}`} className="grid grid-cols-1 gap-2 px-4 py-3 transition-colors hover:bg-accent/40 md:grid-cols-[7rem_minmax(0,1fr)_14rem] md:items-center md:gap-4 xl:grid-cols-[7rem_minmax(0,1fr)_18rem]">
                 <div className="flex items-center gap-2">
                   <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
-                  <span className="text-xs font-medium text-foreground">{t(`iocType.${ioc.type}`)}</span>
+                  <span className="text-xs font-medium text-foreground">{iocTypeLabel}</span>
                 </div>
                 <div className="flex items-center gap-2 overflow-hidden">
                   <code className="truncate rounded bg-muted/60 px-2 py-1 font-mono text-xs text-foreground/90">{ioc.value}</code>

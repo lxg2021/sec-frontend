@@ -3082,7 +3082,8 @@
             "sha256": "SHA256",
             "file": "文件",
             "process": "进程",
-            "domain": "域名"
+            "domain": "域名",
+            "registry": "注册表"
           },
           "status": {
             "succeeded": "成功",

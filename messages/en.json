@@ -3080,7 +3080,8 @@
             "sha256": "SHA256",
             "file": "File",
             "process": "Process",
-            "domain": "Domain"
+            "domain": "Domain",
+            "registry": "Registry"
           },
           "status": {
             "succeeded": "Succeeded",

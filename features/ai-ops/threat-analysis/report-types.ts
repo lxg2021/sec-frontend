@@ -1,6 +1,16 @@
 export type Severity = "critical" | "high" | "medium" | "low" | "info"
 
-export type IocType = "ip" | "url" | "hash" | "md5" | "sha1" | "sha256" | "file" | "process" | "domain"
+export type IocType =
+  | "ip"
+  | "url"
+  | "hash"
+  | "md5"
+  | "sha1"
+  | "sha256"
+  | "file"
+  | "process"
+  | "domain"
+  | "registry"
 
 export interface AttackStoryStep {
   step: number
