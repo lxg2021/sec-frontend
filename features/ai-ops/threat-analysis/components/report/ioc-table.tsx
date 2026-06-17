@@ -31,7 +31,7 @@ export function IocTable({ iocs }: { iocs: Ioc[] }) {
       {!iocs.length ? <SectionEmptyState>{t("empty.noIocs")}</SectionEmptyState> : null}
       {iocs.length ? (
       <div className="overflow-hidden rounded-lg border border-border bg-card">
-        <div className="hidden grid-cols-[7rem_1fr_8rem] gap-4 border-b border-border bg-muted/40 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground md:grid">
+        <div className="hidden grid-cols-[7rem_minmax(0,1fr)_14rem] gap-4 border-b border-border bg-muted/40 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground md:grid xl:grid-cols-[7rem_minmax(0,1fr)_18rem]">
           <span>{t("iocHeaders.type")}</span>
           <span>{t("iocHeaders.value")}</span>
           <span>{t("iocHeaders.source")}</span>
@@ -40,7 +40,7 @@ export function IocTable({ iocs }: { iocs: Ioc[] }) {
           {iocs.map((ioc, index) => {
             const Icon = iocIcon[ioc.type] || Globe
             return (
-              <li key={`${ioc.type}-${index}`} className="grid grid-cols-1 gap-2 px-4 py-3 transition-colors hover:bg-accent/40 md:grid-cols-[7rem_1fr_8rem] md:items-center md:gap-4">
+              <li key={`${ioc.type}-${index}`} className="grid grid-cols-1 gap-2 px-4 py-3 transition-colors hover:bg-accent/40 md:grid-cols-[7rem_minmax(0,1fr)_14rem] md:items-center md:gap-4 xl:grid-cols-[7rem_minmax(0,1fr)_18rem]">
                 <div className="flex items-center gap-2">
                   <Icon className="h-3.5 w-3.5 text-primary" aria-hidden />
                   <span className="text-xs font-medium text-foreground">{t(`iocType.${ioc.type}`)}</span>
