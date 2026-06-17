@@ -221,6 +221,9 @@ interface BackendTaskStatusData {
 interface BackendAttackTimelinePageInfo {
   next_page_token?: string
   has_more?: boolean
+  previous_page_token?: string
+  has_previous?: boolean
+  current_page?: number | string
 }
 
 interface BackendAttackCaseTimelineSummary {
@@ -847,11 +850,20 @@ function adaptDashboardData(overview: AttackOverview, rulesWithHosts: RuleWithHo
   }
 }
 
-export async function fetchAttackOverview(bucketType: BucketType = DEFAULT_BUCKET_TYPE): Promise<AttackOverview> {
-  const result = (await http.post("/sensor/analysis/stats/attack-overview", {
+export async function fetchAttackOverview(
+  bucketType: BucketType = DEFAULT_BUCKET_TYPE,
+  snapshotId = "",
+): Promise<AttackOverview> {
+  const payload: Record<string, unknown> = {
     request_id: createRequestId(),
     bucket_type: bucketType,
-  })) as ApiResult<BackendAttackStatsOverviewData | null>
+  }
+
+  if (snapshotId) {
+    payload.snapshot_id = snapshotId
+  }
+
+  const result = (await http.post("/sensor/analysis/stats/attack-overview", payload)) as ApiResult<BackendAttackStatsOverviewData | null>
 
   return buildOverview(result.data?.overview)
 }
@@ -1065,12 +1077,16 @@ export async function fetchAttackTimelineCases({
   timezone = "Asia/Shanghai",
   pageSize = 20,
   pageToken = "",
+  anchorCaseId = "",
+  pageDirection = "next",
 }: {
   startTime?: string
   endTime?: string
   timezone?: string
   pageSize?: number
   pageToken?: string
+  anchorCaseId?: string
+  pageDirection?: "next" | "previous"
 } = {}): Promise<AttackTimelineCasesResult> {
   const payload: Record<string, unknown> = {
     request_id: createRequestId(),
@@ -1080,6 +1096,12 @@ export async function fetchAttackTimelineCases({
 
   if (pageToken) {
     payload.page_token = pageToken
+  }
+  if (pageToken && pageDirection === "previous") {
+    payload.page_direction = pageDirection
+  }
+  if (anchorCaseId) {
+    payload.anchor_case_id = anchorCaseId
   }
   if (startTime && endTime) {
     payload.start_time = normalizeTaskTime(startTime)
@@ -1095,6 +1117,9 @@ export async function fetchAttackTimelineCases({
     page: {
       next_page_token: stringValue(page?.next_page_token),
       has_more: Boolean(page?.has_more),
+      previous_page_token: stringValue(page?.previous_page_token),
+      has_previous: Boolean(page?.has_previous),
+      current_page: Math.max(1, numberValue(page?.current_page)),
     },
   }
 }

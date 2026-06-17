@@ -231,6 +231,9 @@ export interface AttackCaseTimelineResult {
 export interface AttackTimelinePageInfo {
   next_page_token: string
   has_more: boolean
+  previous_page_token: string
+  has_previous: boolean
+  current_page: number
 }
 
 export interface AttackTimelineCasesResult {

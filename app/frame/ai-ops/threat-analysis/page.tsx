@@ -80,6 +80,7 @@ function CaseIdSearchToolbar() {
   const reportLocale = useMemo(() => reportLocaleFromAppLocale(appLocale), [appLocale])
   const waitForLocalizedReport = shouldWaitForLocalizedReport(reportLocale)
   const [caseId, setCaseId] = useState("")
+  const [snapshotId, setSnapshotId] = useState("")
   const [loading, setLoading] = useState(false)
   const [analysisPhase, setAnalysisPhase] = useState<AnalysisPhase>("creating")
   const [reportTask, setReportTask] = useState<AttackAIReportTask | null>(null)
@@ -200,12 +201,15 @@ function CaseIdSearchToolbar() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const queryCaseId = params.get("caseId")?.trim() || params.get("case_id")?.trim() || ""
+    const querySnapshotId = params.get("snapshotId")?.trim() || params.get("snapshot_id")?.trim() || ""
 
     if (!queryCaseId) {
+      setSnapshotId(querySnapshotId)
       return
     }
 
     setCaseId(queryCaseId)
+    setSnapshotId(querySnapshotId)
   }, [])
 
   useEffect(() => {
@@ -273,6 +277,9 @@ function CaseIdSearchToolbar() {
 
     if (normalizedCaseId) {
       params.set("caseId", normalizedCaseId)
+    }
+    if (snapshotId.trim()) {
+      params.set("snapshotId", snapshotId.trim())
     }
 
     router.push(`/frame/attack/detail${params.size > 0 ? `?${params.toString()}` : ""}`)

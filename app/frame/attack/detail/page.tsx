@@ -63,6 +63,41 @@ function buildCaseQueryRange(nextOverview: AttackOverview) {
     : { timezone: DETAIL_TIMEZONE }
 }
 
+function isAttackTimelineAnchorFallbackError(error: unknown) {
+  if (!error || typeof error !== "object") return false
+
+  const value = error as {
+    status?: unknown
+    code?: unknown
+    message?: unknown
+  }
+  const status = Number(value.status)
+  const code = Number(value.code)
+  const message = String(value.message ?? "").toLowerCase()
+
+  if (status !== 400 && code !== 400) return false
+  if (!message.includes("anchor_case_id")) return false
+
+  return message.includes("not found") || message.includes("requested range")
+}
+
+function readTargetCaseIdFromLocation() {
+  if (typeof window === "undefined") return ""
+  const params = new URLSearchParams(window.location.search)
+  return (
+    params.get("caseId")?.trim() ||
+    params.get("case_id")?.trim() ||
+    params.get("targetCaseId")?.trim() ||
+    ""
+  )
+}
+
+function readSnapshotIdFromLocation() {
+  if (typeof window === "undefined") return ""
+  const params = new URLSearchParams(window.location.search)
+  return params.get("snapshotId")?.trim() || params.get("snapshot_id")?.trim() || ""
+}
+
 const EMPTY_DATA: AttckData = {
   starttime: "",
   endtime: "",
@@ -90,27 +125,29 @@ export default function AttackDetailPage() {
   const [checking, setChecking] = useState(false)
   const [caseItems, setCaseItems] = useState<AttackCaseTimelineSummary[]>([])
   const [caseNextPageToken, setCaseNextPageToken] = useState("")
+  const [casePreviousPageToken, setCasePreviousPageToken] = useState("")
   const [caseHasMore, setCaseHasMore] = useState(false)
+  const [caseHasPrevious, setCaseHasPrevious] = useState(false)
+  const [caseCurrentPage, setCaseCurrentPage] = useState(1)
   const [caseLoadingMore, setCaseLoadingMore] = useState(false)
+  const [caseLoadingPrevious, setCaseLoadingPrevious] = useState(false)
   const [casePageSize, setCasePageSize] = useState(DEFAULT_CASE_PAGE_SIZE)
   const [targetCaseId, setTargetCaseId] = useState("")
+  const [anchorCaseId, setAnchorCaseId] = useState("")
+  const [sourceSnapshotId, setSourceSnapshotId] = useState("")
   const loadingCasePageRequestRef = useRef<{
     token: string
+    direction: "next" | "previous"
     promise: Promise<boolean>
   } | null>(null)
 
   useEffect(() => {
-    void loadDetail()
-  }, [])
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    setTargetCaseId(
-      params.get("caseId")?.trim() ||
-      params.get("case_id")?.trim() ||
-      params.get("targetCaseId")?.trim() ||
-      "",
-    )
+    const initialTargetCaseId = readTargetCaseIdFromLocation()
+    const initialSnapshotId = readSnapshotIdFromLocation()
+    setTargetCaseId(initialTargetCaseId)
+    setAnchorCaseId(initialTargetCaseId)
+    setSourceSnapshotId(initialSnapshotId)
+    void loadDetail(undefined, casePageSize, initialTargetCaseId, initialSnapshotId)
   }, [])
 
   useEffect(() => {
@@ -132,24 +169,49 @@ export default function AttackDetailPage() {
     }
   }
 
-  async function loadDetail(selectedOverview?: AttackOverview, nextCasePageSize = casePageSize) {
+  async function loadDetail(
+    selectedOverview?: AttackOverview,
+    nextCasePageSize = casePageSize,
+    nextAnchorCaseId = anchorCaseId,
+    nextSourceSnapshotId = sourceSnapshotId,
+  ) {
     try {
-      const nextOverview = selectedOverview ?? await fetchAttackOverview()
+      const nextOverview = selectedOverview ?? await fetchAttackOverview("fixed", nextSourceSnapshotId.trim())
+      const normalizedAnchorCaseId = nextAnchorCaseId.trim()
       const [nextStages, nextCases] = await Promise.all([
         nextOverview.bucket.snapshot_id
           ? fetchAttackStageInstanceDistribution(nextOverview.bucket.snapshot_id).then(buildAttackStageCardsFromInstanceDistribution)
           : Promise.resolve(EMPTY_DATA.stages),
-        fetchAttackTimelineCases({
-          ...buildCaseQueryRange(nextOverview),
-          pageSize: nextCasePageSize,
-        }),
+        (async () => {
+          try {
+            return await fetchAttackTimelineCases({
+              ...buildCaseQueryRange(nextOverview),
+              pageSize: nextCasePageSize,
+              anchorCaseId: normalizedAnchorCaseId,
+            })
+          } catch (error) {
+            if (!normalizedAnchorCaseId || !isAttackTimelineAnchorFallbackError(error)) {
+              throw error
+            }
+
+            setAnchorCaseId("")
+            return await fetchAttackTimelineCases({
+              ...buildCaseQueryRange(nextOverview),
+              pageSize: nextCasePageSize,
+            })
+          }
+        })(),
       ])
 
       setOverview(nextOverview)
+      setSourceSnapshotId(nextOverview.bucket.snapshot_id || nextSourceSnapshotId.trim())
       setData(buildDetailData(nextOverview, nextStages))
       setCaseItems(dedupeAttackCaseItems(nextCases.items))
       setCaseNextPageToken(nextCases.page.next_page_token)
+      setCasePreviousPageToken(nextCases.page.previous_page_token)
       setCaseHasMore(nextCases.page.has_more)
+      setCaseHasPrevious(nextCases.page.has_previous)
+      setCaseCurrentPage(nextCases.page.current_page || 1)
     } catch (error) {
       console.error("load attack detail failed", error)
       setOverview({
@@ -173,14 +235,20 @@ export default function AttackDetailPage() {
       setData(EMPTY_DATA)
       setCaseItems([])
       setCaseNextPageToken("")
+      setCasePreviousPageToken("")
       setCaseHasMore(false)
+      setCaseHasPrevious(false)
+      setCaseCurrentPage(1)
     }
   }
 
   async function handleSnapshotChange(snapshot: AttackOverview) {
     setChecking(true)
     try {
-      await loadDetail(snapshot, casePageSize)
+      setTargetCaseId("")
+      setAnchorCaseId("")
+      setSourceSnapshotId(snapshot.bucket.snapshot_id || "")
+      await loadDetail(snapshot, casePageSize, "")
     } catch (error) {
       console.error("load selected attack snapshot failed", error)
       toast({
@@ -204,10 +272,13 @@ export default function AttackDetailPage() {
 
   async function handleLoadMoreCases() {
     if (!overview || !caseNextPageToken) return false
-    if (loadingCasePageRequestRef.current?.token === caseNextPageToken) {
+    if (
+      loadingCasePageRequestRef.current?.direction === "next" &&
+      loadingCasePageRequestRef.current.token === caseNextPageToken
+    ) {
       return loadingCasePageRequestRef.current.promise
     }
-    if (caseLoadingMore) return false
+    if (caseLoadingMore || caseLoadingPrevious) return false
 
     const loadingPageToken = caseNextPageToken
     setCaseLoadingMore(true)
@@ -222,6 +293,7 @@ export default function AttackDetailPage() {
         setCaseItems((current) => mergeAttackCaseItems(current, nextCases.items))
         setCaseNextPageToken(nextCases.page.next_page_token)
         setCaseHasMore(nextCases.page.has_more)
+        setCaseCurrentPage((current) => Math.min(current, nextCases.page.current_page || current))
         return true
       } catch (error) {
         console.error("load more attack cases failed", error)
@@ -232,7 +304,10 @@ export default function AttackDetailPage() {
         })
         return false
       } finally {
-        if (loadingCasePageRequestRef.current?.token === loadingPageToken) {
+        if (
+          loadingCasePageRequestRef.current?.direction === "next" &&
+          loadingCasePageRequestRef.current.token === loadingPageToken
+        ) {
           loadingCasePageRequestRef.current = null
         }
         setCaseLoadingMore(false)
@@ -241,6 +316,60 @@ export default function AttackDetailPage() {
 
     loadingCasePageRequestRef.current = {
       token: loadingPageToken,
+      direction: "next",
+      promise: request,
+    }
+    return request
+  }
+
+  async function handleLoadPreviousCases() {
+    if (!overview || !casePreviousPageToken) return false
+    if (
+      loadingCasePageRequestRef.current?.direction === "previous" &&
+      loadingCasePageRequestRef.current.token === casePreviousPageToken
+    ) {
+      return loadingCasePageRequestRef.current.promise
+    }
+    if (caseLoadingMore || caseLoadingPrevious) return false
+
+    const loadingPageToken = casePreviousPageToken
+    setCaseLoadingPrevious(true)
+
+    const request = (async () => {
+      try {
+        const previousCases = await fetchAttackTimelineCases({
+          ...buildCaseQueryRange(overview),
+          pageSize: casePageSize,
+          pageToken: loadingPageToken,
+          pageDirection: "previous",
+        })
+        setCaseItems((current) => mergeAttackCaseItems(previousCases.items, current))
+        setCasePreviousPageToken(previousCases.page.previous_page_token)
+        setCaseHasPrevious(previousCases.page.has_previous)
+        setCaseCurrentPage(previousCases.page.current_page || 1)
+        return true
+      } catch (error) {
+        console.error("load previous attack cases failed", error)
+        toast({
+          title: t("cases.loadFailed"),
+          description: error instanceof Error ? error.message : undefined,
+          variant: "destructive",
+        })
+        return false
+      } finally {
+        if (
+          loadingCasePageRequestRef.current?.direction === "previous" &&
+          loadingCasePageRequestRef.current.token === loadingPageToken
+        ) {
+          loadingCasePageRequestRef.current = null
+        }
+        setCaseLoadingPrevious(false)
+      }
+    })()
+
+    loadingCasePageRequestRef.current = {
+      token: loadingPageToken,
+      direction: "previous",
       promise: request,
     }
     return request
@@ -248,17 +377,21 @@ export default function AttackDetailPage() {
 
   async function handleCasePageSizeChange(nextPageSize: number) {
     setCasePageSize(nextPageSize)
-    if (!overview || caseLoadingMore) return
+    if (!overview || caseLoadingMore || caseLoadingPrevious) return
 
     setCaseLoadingMore(true)
     try {
       const nextCases = await fetchAttackTimelineCases({
         ...buildCaseQueryRange(overview),
         pageSize: nextPageSize,
+        anchorCaseId: anchorCaseId.trim(),
       })
       setCaseItems(dedupeAttackCaseItems(nextCases.items))
       setCaseNextPageToken(nextCases.page.next_page_token)
+      setCasePreviousPageToken(nextCases.page.previous_page_token)
       setCaseHasMore(nextCases.page.has_more)
+      setCaseHasPrevious(nextCases.page.has_previous)
+      setCaseCurrentPage(nextCases.page.current_page || 1)
     } catch (error) {
       console.error("reload attack cases failed", error)
       toast({
@@ -307,9 +440,13 @@ export default function AttackDetailPage() {
           snapshotId={overview.bucket.snapshot_id}
           targetCaseId={targetCaseId}
           hasMore={caseHasMore}
+          hasPrevious={caseHasPrevious}
+          currentPage={caseCurrentPage}
           loadingMore={caseLoadingMore}
+          loadingPrevious={caseLoadingPrevious}
           pageSize={casePageSize}
           onLoadMore={handleLoadMoreCases}
+          onLoadPrevious={handleLoadPreviousCases}
           onPageSizeChange={handleCasePageSizeChange}
         />
       </div>

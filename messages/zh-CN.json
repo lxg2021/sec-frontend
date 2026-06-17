@@ -821,6 +821,7 @@
           "pagination": {
             "total": "共 {total} 个攻击场景，当前显示 {start}-{end}",
             "moreAvailable": "还有更多",
+            "previousAvailable": "前面还有",
             "page": "第 {page} / {totalPages} 页",
             "pageSize": "每页",
             "previous": "上一页",

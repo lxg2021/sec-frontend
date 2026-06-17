@@ -76,8 +76,10 @@ export function buildTraceHref(caseId: string, snapshotId?: string) {
   }`
 }
 
-export function buildAIAnalysisHref(caseId: string) {
-  return `/frame/ai-ops/threat-analysis?caseId=${encodeURIComponent(caseId)}`
+export function buildAIAnalysisHref(caseId: string, snapshotId?: string) {
+  return `/frame/ai-ops/threat-analysis?caseId=${encodeURIComponent(caseId)}${
+    snapshotId?.trim() ? `&snapshotId=${encodeURIComponent(snapshotId.trim())}` : ""
+  }`
 }
 
 export function shortenId(value: string, head = 8, tail = 4) {

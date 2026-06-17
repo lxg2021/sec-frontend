@@ -46,9 +46,13 @@ interface AttackCaseListProps {
   snapshotId?: string
   targetCaseId?: string
   hasMore?: boolean
+  hasPrevious?: boolean
+  currentPage?: number
   loadingMore?: boolean
+  loadingPrevious?: boolean
   pageSize?: number
   onLoadMore?: () => boolean | Promise<boolean>
+  onLoadPrevious?: () => boolean | Promise<boolean>
   onPageSizeChange?: (pageSize: number) => void | Promise<void>
 }
 
@@ -62,9 +66,13 @@ export function AttackCaseList({
   snapshotId = "",
   targetCaseId = "",
   hasMore = false,
+  hasPrevious = false,
+  currentPage = 1,
   loadingMore = false,
+  loadingPrevious = false,
   pageSize: controlledPageSize,
   onLoadMore,
+  onLoadPrevious,
   onPageSizeChange,
 }: AttackCaseListProps) {
   const t = useTranslations("pages.attack.dashboard.cases")
@@ -75,22 +83,30 @@ export function AttackCaseList({
   const [selectedCaseId, setSelectedCaseId] = useState("")
   const [caseIdQuery, setCaseIdQuery] = useState("")
   const [pendingScrollCaseId, setPendingScrollCaseId] = useState("")
-  const [autoLoadingCaseId, setAutoLoadingCaseId] = useState("")
-  const [autoLocateFailedCaseId, setAutoLocateFailedCaseId] = useState("")
   const [autoLocatedCaseId, setAutoLocatedCaseId] = useState("")
   const pageSize = controlledPageSize ?? localPageSize
   const loadedTotal = caseItems.length
   const totalPages = Math.max(1, Math.ceil(loadedTotal / pageSize))
   const normalizedPage = Math.min(page, Math.max(1, totalPages))
+  const windowStartPage = Math.max(1, Math.floor(currentPage || 1))
+  const displayPage = windowStartPage + normalizedPage - 1
   const pageStartIndex = (normalizedPage - 1) * pageSize
   const pageEndIndex = Math.min(pageStartIndex + pageSize, loadedTotal)
   const visibleItems = caseItems.slice(pageStartIndex, pageEndIndex)
-  const visibleStart = loadedTotal > 0 ? pageStartIndex + 1 : 0
-  const visibleEnd = loadedTotal > 0 ? pageEndIndex : 0
+  const visibleStart = loadedTotal > 0 ? (displayPage - 1) * pageSize + 1 : 0
+  const visibleEnd = loadedTotal > 0 ? visibleStart + visibleItems.length - 1 : 0
+  const loadedWindowEnd = loadedTotal > 0 ? (windowStartPage - 1) * pageSize + loadedTotal : 0
+  const totalLabel = hasMore ? `${loadedWindowEnd}+` : loadedWindowEnd
+  const loadedLastPage = Math.max(displayPage, windowStartPage + totalPages - 1)
+  const totalPageLabel = hasMore ? `${loadedLastPage}+` : loadedLastPage
 
   useEffect(() => {
     setCaseItems(dedupeAttackCaseItems(items))
   }, [items])
+
+  useEffect(() => {
+    setPage(1)
+  }, [windowStartPage, pageSize])
 
   useEffect(() => {
     if (!selectedCaseId) return
@@ -100,7 +116,6 @@ export function AttackCaseList({
   }, [caseItems, selectedCaseId])
 
   useEffect(() => {
-    setAutoLocateFailedCaseId("")
     setAutoLocatedCaseId("")
   }, [targetCaseId])
 
@@ -142,37 +157,9 @@ export function AttackCaseList({
     }
 
     setCaseIdQuery(normalizedTarget)
-    if (
-      !hasMore ||
-      !onLoadMore ||
-      loadingMore ||
-      autoLoadingCaseId === normalizedTarget ||
-      autoLocateFailedCaseId === normalizedTarget
-    ) {
-      return
-    }
-
-    setAutoLoadingCaseId(normalizedTarget)
-    void Promise.resolve(onLoadMore())
-      .then((loaded) => {
-        if (loaded === false) {
-          setAutoLocateFailedCaseId(normalizedTarget)
-        }
-      })
-      .catch(() => {
-        setAutoLocateFailedCaseId(normalizedTarget)
-      })
-      .finally(() => {
-        setAutoLoadingCaseId("")
-      })
   }, [
-    autoLoadingCaseId,
     autoLocatedCaseId,
-    autoLocateFailedCaseId,
     caseItems,
-    hasMore,
-    loadingMore,
-    onLoadMore,
     pageSize,
     selectedCaseId,
     targetCaseId,
@@ -204,7 +191,7 @@ export function AttackCaseList({
 
   function handleAIAnalysis(caseId: string) {
     handleSelectCase(caseId)
-    router.push(buildAIAnalysisHref(caseId))
+    router.push(buildAIAnalysisHref(caseId, snapshotId))
   }
 
   function handleLocateCase() {
@@ -246,15 +233,24 @@ export function AttackCaseList({
       return
     }
 
-    if (!hasMore || loadingMore || !onLoadMore) return
+    if (!hasMore || loadingMore || loadingPrevious || !onLoadMore) return
     const loaded = await onLoadMore()
     if (loaded !== false) {
       setPage((current) => current + 1)
     }
   }
 
-  function handlePreviousPage() {
-    setPage((current) => Math.max(current - 1, 1))
+  async function handlePreviousPage() {
+    if (normalizedPage > 1) {
+      setPage((current) => Math.max(current - 1, 1))
+      return
+    }
+
+    if (!hasPrevious || loadingPrevious || loadingMore || !onLoadPrevious) return
+    const loaded = await onLoadPrevious()
+    if (loaded !== false) {
+      setPage(1)
+    }
   }
 
   if (caseItems.length === 0) {
@@ -316,19 +312,22 @@ export function AttackCaseList({
         <CardFooter className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
           <div>
             {t("pagination.total", {
-              total: loadedTotal,
+              total: totalLabel,
               start: visibleStart,
               end: visibleEnd,
             })}
             {hasMore ? (
               <span className="ml-1 text-slate-400">{t("pagination.moreAvailable")}</span>
             ) : null}
+            {hasPrevious ? (
+              <span className="ml-1 text-slate-400">{t("pagination.previousAvailable")}</span>
+            ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-slate-500">
               {t("pagination.page", {
-                page: normalizedPage,
-                totalPages: hasMore ? `${totalPages}+` : totalPages,
+                page: displayPage,
+                totalPages: totalPageLabel,
               })}
             </span>
             <span className="ml-2 text-slate-500">{t("pagination.pageSize")}</span>
@@ -349,17 +348,17 @@ export function AttackCaseList({
               variant="outline"
               size="sm"
               onClick={handlePreviousPage}
-              disabled={loadingMore || normalizedPage <= 1}
+              disabled={loadingMore || loadingPrevious || (!hasPrevious && normalizedPage <= 1)}
             >
               <ChevronLeft className="mr-1 h-4 w-4" />
-              {t("pagination.previous")}
+              {loadingPrevious ? t("loadingMore") : t("pagination.previous")}
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={handleNextPage}
-              disabled={loadingMore || (!hasMore && normalizedPage >= totalPages)}
+              disabled={loadingMore || loadingPrevious || (!hasMore && normalizedPage >= totalPages)}
             >
               {loadingMore ? t("loadingMore") : t("pagination.next")}
               <ChevronRight className="ml-1 h-4 w-4" />
