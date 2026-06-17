@@ -31,7 +31,7 @@ export function ReportOverviewHeader({ task }: { task: ResolvedReportTask }) {
     <header className="relative overflow-hidden border-b border-border">
       <div className="flex flex-col gap-4 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
             <ChartNoAxesCombined className="h-5 w-5" aria-hidden />
           </div>
           <div className="min-w-0 space-y-1.5">
