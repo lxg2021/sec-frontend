@@ -293,7 +293,6 @@ export default function AttackDetailPage() {
         setCaseItems((current) => mergeAttackCaseItems(current, nextCases.items))
         setCaseNextPageToken(nextCases.page.next_page_token)
         setCaseHasMore(nextCases.page.has_more)
-        setCaseCurrentPage((current) => Math.min(current, nextCases.page.current_page || current))
         return true
       } catch (error) {
         console.error("load more attack cases failed", error)
@@ -346,7 +345,7 @@ export default function AttackDetailPage() {
         setCaseItems((current) => mergeAttackCaseItems(previousCases.items, current))
         setCasePreviousPageToken(previousCases.page.previous_page_token)
         setCaseHasPrevious(previousCases.page.has_previous)
-        setCaseCurrentPage(previousCases.page.current_page || 1)
+        setCaseCurrentPage((current) => Math.max(1, current - 1))
         return true
       } catch (error) {
         console.error("load previous attack cases failed", error)
