@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
 import {
   AttackGraphCaseCard,
@@ -82,6 +83,7 @@ function CaseIdSearchToolbar({
 
 export default function App() {
   const t = useTranslations("pages.attack.drill")
+  const router = useRouter()
 
   const [timelineCaseId, setTimelineCaseId] = useState("");
   const [caseIdInput, setCaseIdInput] = useState("");
@@ -169,6 +171,17 @@ export default function App() {
     },
     [applyCaseId, caseIdInput],
   )
+
+  const handleBackToAttackDetail = useCallback(() => {
+    const normalizedCaseId = timelineCaseId.trim()
+    const params = new URLSearchParams()
+
+    if (normalizedCaseId) {
+      params.set("caseId", normalizedCaseId)
+    }
+
+    router.push(`/frame/attack/detail${params.size > 0 ? `?${params.toString()}` : ""}`)
+  }, [router, timelineCaseId])
 
   const handleGraphMenuAction = useCallback(
     async (action: AttackGraphMenuAction) => {
@@ -379,6 +392,7 @@ export default function App() {
         />
 
         <AttackGraphCaseCard
+          backLabel={t("backToAttackDetail")}
           caseId={timelineCaseId}
           edgeCount={graphVisibleStats.edgeCount}
           error={graphError}
@@ -387,6 +401,7 @@ export default function App() {
           loading={graphLoading}
           nodeDrillStateByKey={graphNodeDrillStateByKey}
           nodeCount={graphVisibleStats.nodeCount}
+          onBack={handleBackToAttackDetail}
           onLayoutStrategyChange={setGraphLayoutStrategy}
           onMenuAction={handleGraphMenuAction}
           onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}

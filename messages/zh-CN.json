@@ -1037,6 +1037,7 @@
         "searchDescription": "输入 CaseID 加载时间线与图谱",
         "caseIdPlaceholder": "请输入 CaseID",
         "caseIdRequired": "请输入 CaseID",
+        "backToAttackDetail": "返回详情",
         "search": "查询",
         "refresh": "刷新",
         "status": "状态",

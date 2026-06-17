@@ -1035,6 +1035,7 @@
         "searchDescription": "Trace graph by CaseID",
         "caseIdPlaceholder": "Enter CaseID",
         "caseIdRequired": "Please enter a CaseID.",
+        "backToAttackDetail": "Back",
         "search": "Search",
         "refresh": "Refresh",
         "status": "Status",

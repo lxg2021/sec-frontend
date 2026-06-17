@@ -1,6 +1,6 @@
 "use client";
 
-import { RotateCcw, Shield } from "lucide-react";
+import { ArrowLeft, RotateCcw, Shield } from "lucide-react";
 
 import {
   AttackGraphFlow,
@@ -26,6 +26,7 @@ import {
 } from "@/shared/ui/card";
 
 export interface AttackGraphCaseCardProps {
+  backLabel?: string;
   caseId: string;
   edgeCount?: number;
   error?: string;
@@ -34,6 +35,7 @@ export interface AttackGraphCaseCardProps {
   loading?: boolean;
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
   nodeCount?: number;
+  onBack?: () => void;
   onLayoutStrategyChange: (strategy: AttackGraphLayoutStrategyOption) => void;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   onResetPositions: () => void;
@@ -44,6 +46,7 @@ export interface AttackGraphCaseCardProps {
 }
 
 export function AttackGraphCaseCard({
+  backLabel = "Back",
   caseId,
   edgeCount = 0,
   error = "",
@@ -52,6 +55,7 @@ export function AttackGraphCaseCard({
   loading = false,
   nodeDrillStateByKey,
   nodeCount = 0,
+  onBack,
   onLayoutStrategyChange,
   onMenuAction,
   onResetPositions,
@@ -72,22 +76,50 @@ export function AttackGraphCaseCard({
           nodeCount={response ? nodeCount : undefined}
           edgeCount={response ? edgeCount : undefined}
           action={
-            hasGraph ? (
+            onBack || hasGraph ? (
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-10 bg-white px-3 text-xs font-medium text-slate-600"
-                  onClick={onResetPositions}
-                >
-                  <RotateCcw className="h-3.5 w-3.5" />
-                  Reset Positions
-                </Button>
-                <AttackGraphLayoutStrategyToggle
-                  value={layoutStrategy}
-                  onChange={onLayoutStrategyChange}
-                />
+                {onBack ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onBack}
+                      className="h-10 bg-white px-3 text-xs font-medium text-slate-950 hover:bg-blue-50 hover:text-slate-950"
+                      title={backLabel}
+                      aria-label={backLabel}
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      <span className="whitespace-nowrap">{backLabel}</span>
+                    </Button>
+                    {hasGraph ? (
+                      <span className="px-0.5 text-xl font-light leading-none text-slate-300" aria-hidden="true">
+                        |
+                      </span>
+                    ) : null}
+                  </>
+                ) : null}
+                {hasGraph ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-10 bg-white px-3 text-xs font-medium text-slate-600"
+                      onClick={onResetPositions}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Reset
+                    </Button>
+                    <span className="px-0.5 text-xl font-light leading-none text-slate-300" aria-hidden="true">
+                      |
+                    </span>
+                    <AttackGraphLayoutStrategyToggle
+                      value={layoutStrategy}
+                      onChange={onLayoutStrategyChange}
+                    />
+                  </>
+                ) : null}
               </div>
             ) : null
           }
