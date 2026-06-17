@@ -85,7 +85,7 @@ export function AttackGraphCaseCard({
                       variant="outline"
                       size="sm"
                       onClick={onBack}
-                      className="h-10 bg-white px-3 text-xs font-medium text-slate-950 hover:bg-blue-50 hover:text-slate-950"
+                      className="h-10 bg-white px-3 text-xs font-medium text-slate-600"
                       title={backLabel}
                       aria-label={backLabel}
                     >
