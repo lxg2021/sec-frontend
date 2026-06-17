@@ -84,6 +84,28 @@ function AnalysisProgressState({
     { key: "localizing", label: t("phaseLocalizing") },
   ]
   const activeIndex = Math.max(0, steps.findIndex((step) => step.key === phase))
+  const progressTargetByPhase: Record<AnalysisPhase, number> = {
+    creating: 22,
+    analyzing: 74,
+    localizing: 94,
+  }
+  const progressTarget = progressTargetByPhase[phase]
+  const [progressValue, setProgressValue] = useState(8)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setProgressValue((current) => {
+        if (current >= progressTarget) {
+          return current
+        }
+
+        const step = current < 36 ? 1.15 : current < 72 ? 0.72 : 0.34
+        return Math.min(progressTarget, current + step)
+      })
+    }, 420)
+
+    return () => window.clearInterval(timer)
+  }, [progressTarget])
 
   return (
     <section className="flex min-h-0 flex-1 items-center justify-center px-6 text-center">
@@ -92,12 +114,12 @@ function AnalysisProgressState({
           <span className="absolute inset-0 animate-[ai-core-breathe_2.8s_ease-in-out_infinite] rounded-full bg-blue-500/15 blur-2xl" />
           <span className="absolute inset-1 rounded-full bg-white shadow-[0_20px_58px_rgba(37,99,235,0.18)] ring-1 ring-blue-100" />
           <span className="absolute inset-2 animate-[ai-core-spin_2.6s_linear_infinite] rounded-full border-[3px] border-transparent border-r-cyan-400 border-t-blue-600" />
-          <span className="absolute inset-[13px] animate-[ai-core-reverse_7s_linear_infinite] rounded-full border border-dashed border-indigo-300/80" />
+          <span className="absolute inset-[13px] animate-[ai-core-reverse_7s_linear_infinite] rounded-full border border-dashed border-blue-300/80" />
           <span className="absolute inset-[22px] rounded-full bg-[radial-gradient(circle_at_35%_25%,#ffffff,rgba(239,246,255,0.96)_48%,rgba(219,234,254,0.82))] shadow-inner shadow-blue-100" />
-          <span className="absolute inset-[24px] animate-[ai-core-glow_2.4s_ease-in-out_infinite] rounded-full bg-[conic-gradient(from_135deg,rgba(37,99,235,0.2),rgba(14,165,233,0.14),rgba(99,102,241,0.2),rgba(37,99,235,0.2))]" />
+          <span className="absolute inset-[24px] animate-[ai-core-glow_2.4s_ease-in-out_infinite] rounded-full bg-[conic-gradient(from_135deg,rgba(37,99,235,0.2),rgba(14,165,233,0.14),rgba(96,165,250,0.18),rgba(37,99,235,0.2))]" />
           <span className="absolute left-1/2 top-[7px] h-3.5 w-1 -translate-x-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-blue-500 shadow-[0_0_14px_rgba(37,99,235,0.46)]" />
           <span className="absolute right-[7px] top-1/2 h-1 w-3.5 -translate-y-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(14,165,233,0.42)] [animation-delay:0.45s]" />
-          <span className="absolute bottom-[7px] left-1/2 h-3.5 w-1 -translate-x-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-indigo-500 shadow-[0_0_14px_rgba(99,102,241,0.42)] [animation-delay:0.9s]" />
+          <span className="absolute bottom-[7px] left-1/2 h-3.5 w-1 -translate-x-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-blue-500 shadow-[0_0_14px_rgba(37,99,235,0.42)] [animation-delay:0.9s]" />
           <span className="absolute left-[7px] top-1/2 h-1 w-3.5 -translate-y-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-sky-400 shadow-[0_0_14px_rgba(56,189,248,0.38)] [animation-delay:1.35s]" />
           <div className="absolute inset-[31px] flex items-center justify-center rounded-full bg-white/95 text-blue-600 ring-1 ring-blue-100 shadow-[inset_0_1px_12px_rgba(37,99,235,0.14)]">
             <BrainCircuit className="h-7 w-7 stroke-[1.8]" />
@@ -109,10 +131,20 @@ function AnalysisProgressState({
         </p>
 
         <div className="mx-auto mt-7 w-full max-w-2xl">
-          <div className="relative h-3.5 overflow-hidden rounded-full bg-slate-200 shadow-inner shadow-slate-300/60 ring-1 ring-slate-200" aria-hidden="true">
-            <span className="absolute inset-0 animate-[ai-energy-flow_2.6s_linear_infinite] bg-[linear-gradient(90deg,#2563eb_0%,#38bdf8_30%,#4f46e5_62%,#2563eb_100%)] bg-[length:220%_100%] shadow-[0_0_24px_rgba(37,99,235,0.28)]" />
-            <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.36),transparent_55%)]" />
-            <span className="absolute inset-0 animate-[ai-stage-scan_1.65s_ease-in-out_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent)]" />
+          <div
+            className="relative h-3.5 overflow-hidden rounded-full bg-slate-200 shadow-inner shadow-slate-300/60 ring-1 ring-slate-200"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(progressValue)}
+          >
+            <span
+              className="absolute left-0 top-0 h-full overflow-hidden rounded-full bg-[linear-gradient(90deg,#1d4ed8_0%,#2563eb_58%,#38bdf8_100%)] shadow-[0_0_20px_rgba(37,99,235,0.26)] transition-[width] duration-700 ease-out"
+              style={{ width: `${progressValue}%` }}
+            >
+              <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.38),transparent_58%)]" />
+              <span className="absolute inset-0 animate-[ai-stage-scan_1.65s_ease-in-out_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.78),transparent)]" />
+            </span>
           </div>
           <div className="mt-3.5 grid grid-cols-3 gap-3 text-center">
             {steps.map((step, index) => {
