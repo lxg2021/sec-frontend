@@ -449,14 +449,15 @@ function StorySummaryStrip({
   eventCount: number
 }) {
   const t = useTranslations("pages.attack.dashboard.caseStory")
+  const summaryText = storySummary || t("summaryFallback")
 
   return (
-    <div className="mb-5 flex min-w-0 items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
-      <span className="h-7 w-1 shrink-0 rounded-full bg-blue-600" />
-      <div className="min-w-0 flex-1">
-        <TruncatedText value={storySummary || t("summaryFallback")} />
-      </div>
-      <span className="shrink-0 text-xs font-semibold text-slate-400">
+    <div className="mb-5 flex min-w-0 items-start gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
+      <span className="min-h-7 w-1 self-stretch rounded-full bg-blue-600" />
+      <p className="min-w-0 flex-1 whitespace-normal break-words">
+        {summaryText}
+      </p>
+      <span className="shrink-0 pt-1 text-xs font-semibold text-slate-400">
         {t("summaryEvents", { count: eventCount })}
       </span>
     </div>
