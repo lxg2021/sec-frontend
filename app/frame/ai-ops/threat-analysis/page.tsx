@@ -289,7 +289,7 @@ function CaseIdSearchToolbar() {
             <button
               type="button"
               onClick={handleBackToAttackDetail}
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-blue-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
               title={t("backToAttackDetail")}
               aria-label={t("backToAttackDetail")}
             >
