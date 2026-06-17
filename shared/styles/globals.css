@@ -238,18 +238,6 @@ body {
   }
 }
 
-@keyframes ai-node-pulse {
-  0%,
-  100% {
-    opacity: 0.58;
-    filter: saturate(0.85);
-  }
-  50% {
-    opacity: 1;
-    filter: saturate(1.2);
-  }
-}
-
 @keyframes ai-stage-scan {
   0% {
     transform: translateX(-110%);

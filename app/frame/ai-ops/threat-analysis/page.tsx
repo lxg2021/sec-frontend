@@ -111,18 +111,14 @@ function AnalysisProgressState({
     <section className="flex min-h-0 flex-1 items-center justify-center px-6 text-center">
       <div className="w-full max-w-2xl" role="status" aria-live="polite">
         <div className="relative mx-auto mb-6 h-[104px] w-[104px] text-blue-600">
-          <span className="absolute inset-0 animate-[ai-core-breathe_2.8s_ease-in-out_infinite] rounded-full bg-blue-500/15 blur-2xl" />
-          <span className="absolute inset-1 rounded-full bg-white shadow-[0_20px_58px_rgba(37,99,235,0.18)] ring-1 ring-blue-100" />
-          <span className="absolute inset-2 animate-[ai-core-spin_2.6s_linear_infinite] rounded-full border-[3px] border-transparent border-r-cyan-400 border-t-blue-600" />
-          <span className="absolute inset-[13px] animate-[ai-core-reverse_7s_linear_infinite] rounded-full border border-dashed border-blue-300/80" />
-          <span className="absolute inset-[22px] rounded-full bg-[radial-gradient(circle_at_35%_25%,#ffffff,rgba(239,246,255,0.96)_48%,rgba(219,234,254,0.82))] shadow-inner shadow-blue-100" />
-          <span className="absolute inset-[24px] animate-[ai-core-glow_2.4s_ease-in-out_infinite] rounded-full bg-[conic-gradient(from_135deg,rgba(37,99,235,0.2),rgba(14,165,233,0.14),rgba(96,165,250,0.18),rgba(37,99,235,0.2))]" />
-          <span className="absolute left-1/2 top-[7px] h-3.5 w-1 -translate-x-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-blue-500 shadow-[0_0_14px_rgba(37,99,235,0.46)]" />
-          <span className="absolute right-[7px] top-1/2 h-1 w-3.5 -translate-y-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(14,165,233,0.42)] [animation-delay:0.45s]" />
-          <span className="absolute bottom-[7px] left-1/2 h-3.5 w-1 -translate-x-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-blue-500 shadow-[0_0_14px_rgba(37,99,235,0.42)] [animation-delay:0.9s]" />
-          <span className="absolute left-[7px] top-1/2 h-1 w-3.5 -translate-y-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-sky-400 shadow-[0_0_14px_rgba(56,189,248,0.38)] [animation-delay:1.35s]" />
-          <div className="absolute inset-[31px] flex items-center justify-center rounded-full bg-white/95 text-blue-600 ring-1 ring-blue-100 shadow-[inset_0_1px_12px_rgba(37,99,235,0.14)]">
-            <BrainCircuit className="h-7 w-7 stroke-[1.8]" />
+          <span className="absolute inset-0 animate-[ai-core-breathe_2.8s_ease-in-out_infinite] rounded-full bg-blue-500/12 blur-2xl" />
+          <span className="absolute inset-1 rounded-full bg-[linear-gradient(145deg,#ffffff,#eef5ff)] shadow-[0_18px_50px_rgba(15,23,42,0.10),0_0_34px_rgba(37,99,235,0.12)] ring-1 ring-slate-200/70" />
+          <span className="absolute inset-2 animate-[ai-core-spin_3s_linear_infinite] rounded-full border-[3px] border-transparent border-r-blue-500 border-t-blue-300" />
+          <span className="absolute inset-[13px] animate-[ai-core-reverse_7s_linear_infinite] rounded-full border border-dashed border-slate-300/80" />
+          <span className="absolute inset-[22px] rounded-full bg-[radial-gradient(circle_at_35%_25%,#ffffff,rgba(248,250,252,0.96)_48%,rgba(226,232,240,0.78))] shadow-inner shadow-slate-200" />
+          <span className="absolute inset-[24px] animate-[ai-core-glow_2.4s_ease-in-out_infinite] rounded-full bg-[conic-gradient(from_135deg,rgba(37,99,235,0.18),rgba(148,163,184,0.14),rgba(14,165,233,0.12),rgba(37,99,235,0.18))]" />
+          <div className="absolute inset-[31px] flex items-center justify-center rounded-full bg-white/95 text-blue-600 ring-1 ring-slate-200 shadow-[inset_0_1px_12px_rgba(15,23,42,0.08)]">
+            <BrainCircuit className="h-7 w-7 stroke-[1.75]" />
           </div>
         </div>
         <div className="text-base font-semibold text-slate-950">{t("progressTitle")}</div>
