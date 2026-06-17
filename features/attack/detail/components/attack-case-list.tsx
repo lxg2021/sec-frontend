@@ -97,7 +97,8 @@ export function AttackCaseList({
   const visibleEnd = loadedTotal > 0 ? visibleStart + visibleItems.length - 1 : 0
   const loadedWindowEnd = loadedTotal > 0 ? (windowStartPage - 1) * pageSize + loadedTotal : 0
   const totalLabel = hasMore ? `${loadedWindowEnd}+` : loadedWindowEnd
-  const totalPageLabel = hasMore ? `${displayPage}+` : displayPage
+  const loadedLastPage = Math.max(displayPage, windowStartPage + totalPages - 1)
+  const totalPageLabel = hasMore ? `${displayPage}+` : loadedLastPage
 
   useEffect(() => {
     setCaseItems(dedupeAttackCaseItems(items))
