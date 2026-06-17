@@ -222,7 +222,7 @@ function CaseIdSearchToolbar() {
 
   return (
     <>
-      <section className="mx-auto w-full max-w-[120rem] rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.07)]">
+      <section className="w-full rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.07)]">
         <form
           className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center"
           onSubmit={handleSubmit}
@@ -258,7 +258,7 @@ function CaseIdSearchToolbar() {
 export default function ThreatAnalysisPage() {
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="space-y-6 px-6 pb-6 pt-2">
+      <div className="p-6 space-y-6">
         <CaseIdSearchToolbar />
       </div>
     </main>

@@ -30,8 +30,8 @@ export function AttackReport({ task }: { task: ReportTask }) {
 
   if (!report) {
     return (
-      <article className="mx-auto w-full max-w-[120rem]">
-        <div className="px-4 py-8 sm:px-6 lg:px-8">
+      <article className="w-full">
+        <div className="py-8">
           <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
             {t("empty.noReport")}
           </div>
@@ -41,9 +41,9 @@ export function AttackReport({ task }: { task: ReportTask }) {
   }
 
   return (
-    <article className="mx-auto w-full max-w-[120rem]">
+    <article className="w-full">
       <ReportOverviewHeader task={{ ...task, report, validation: canonicalValidation }} />
-      <div className="grid gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 lg:px-8 xl:grid-cols-[14rem_minmax(0,1fr)]">
+      <div className="grid gap-8 py-8 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[14rem_minmax(0,1fr)] 2xl:grid-cols-[15rem_minmax(0,1fr)]">
         <ReportNav />
         <ReportBody report={report} />
       </div>
