@@ -88,10 +88,11 @@ function AnalysisProgressState({
   return (
     <section className="flex min-h-0 flex-1 items-center justify-center px-6 text-center">
       <div className="w-full max-w-xl" role="status" aria-live="polite">
-        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
-          <div className="relative flex h-10 w-10 items-center justify-center">
-            <span className="absolute inset-0 animate-ping rounded-full border border-blue-200" />
-            <Loader2 className="relative h-6 w-6 animate-spin" />
+        <div className="relative mx-auto mb-5 flex h-14 w-14 items-center justify-center text-blue-600">
+          <span className="absolute inset-0 rounded-full border border-blue-100" />
+          <span className="absolute inset-1 rounded-full border-2 border-transparent border-r-blue-300 border-t-blue-600 animate-spin" />
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 ring-1 ring-blue-100">
+            <Shield className="h-[18px] w-[18px]" />
           </div>
         </div>
         <div className="text-sm font-semibold text-slate-900">{t("progressTitle")}</div>
@@ -99,37 +100,50 @@ function AnalysisProgressState({
           {t("progressDescription", { caseId: caseId || "-" })}
         </p>
 
-        <div className="mx-auto mt-5 max-w-md overflow-hidden rounded-full bg-slate-200">
-          <div className="h-1.5 w-full animate-pulse rounded-full bg-blue-600/75" />
-        </div>
+        <div className="mx-auto mt-6 w-full max-w-lg">
+          <div className="grid grid-cols-3 gap-2" aria-hidden="true">
+            {steps.map((step, index) => {
+              const isActive = index === activeIndex
+              const isDone = index < activeIndex
 
-        <div className="mt-5 grid gap-2 text-left sm:grid-cols-3">
-          {steps.map((step, index) => {
-            const isActive = index === activeIndex
-            const isDone = index < activeIndex
-
-            return (
-              <div
-                key={step.key}
-                className={[
-                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
-                  isActive
-                    ? "border-blue-200 bg-blue-50 text-blue-700"
-                    : isDone
-                      ? "border-slate-200 bg-white text-slate-700"
-                      : "border-slate-200 bg-white/70 text-slate-400",
-                ].join(" ")}
-              >
-                <span
+              return (
+                <div
+                  key={step.key}
                   className={[
-                    "h-1.5 w-1.5 shrink-0 rounded-full",
-                    isActive ? "bg-blue-600" : isDone ? "bg-slate-500" : "bg-slate-300",
+                    "relative h-2.5 overflow-hidden rounded-full transition-colors duration-300",
+                    isActive || isDone ? "bg-blue-600" : "bg-slate-200",
+                    isActive ? "shadow-[0_0_0_1px_rgba(37,99,235,0.16),0_0_18px_rgba(37,99,235,0.24)]" : "",
                   ].join(" ")}
-                />
-                <span className="min-w-0 truncate">{step.label}</span>
-              </div>
-            )
-          })}
+                >
+                  {isActive ? (
+                    <span className="absolute inset-0 animate-[ai-stage-scan_1.5s_ease-in-out_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.72),transparent)]" />
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            {steps.map((step, index) => {
+              const isActive = index === activeIndex
+              const isDone = index < activeIndex
+
+              return (
+                <div
+                  key={step.key}
+                  className={[
+                    "min-w-0 text-xs font-medium transition-colors duration-300",
+                    isActive
+                      ? "text-blue-700"
+                      : isDone
+                        ? "text-slate-700"
+                        : "text-slate-400",
+                  ].join(" ")}
+                >
+                  <span className="block truncate">{step.label}</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
     </section>

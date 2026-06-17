@@ -202,6 +202,23 @@ body {
   will-change: background-color, border-color, color, box-shadow;
 }
 
+@keyframes ai-stage-scan {
+  0% {
+    transform: translateX(-110%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+}
+
 .progress-line {
   will-change: transform;
   transform: translateZ(0);
