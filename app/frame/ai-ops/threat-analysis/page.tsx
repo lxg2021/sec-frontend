@@ -8,7 +8,7 @@ import {
   useState,
   type FormEvent,
 } from "react"
-import { Loader2, Search } from "lucide-react"
+import { Loader2, Search, Shield } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -24,6 +24,8 @@ import { Input } from "@/shared/ui/input"
 const REPORT_TIMEZONE = "Asia/Shanghai"
 const POLL_INTERVAL_MS = 2000
 const MAX_POLL_ATTEMPTS = 90
+
+type AnalysisPhase = "creating" | "analyzing" | "localizing"
 
 function normalizeTaskStatus(status?: string) {
   return status?.trim().toLowerCase() || "unknown"
@@ -52,6 +54,88 @@ function getErrorMessage(error: unknown) {
   return ""
 }
 
+function NoCaseState() {
+  const t = useTranslations("pages.aiops.threatAnalysis.search")
+
+  return (
+    <section className="flex min-h-0 flex-1 items-center justify-center px-6 text-center">
+      <div className="max-w-md">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100">
+          <Shield className="h-5 w-5 text-slate-500" />
+        </div>
+        <div className="text-sm font-semibold text-slate-900">{t("emptyTitle")}</div>
+        <p className="mt-1 text-sm leading-6 text-slate-500">{t("emptyDescription")}</p>
+      </div>
+    </section>
+  )
+}
+
+function AnalysisProgressState({
+  caseId,
+  phase,
+}: {
+  caseId: string
+  phase: AnalysisPhase
+}) {
+  const t = useTranslations("pages.aiops.threatAnalysis.search")
+  const steps: Array<{ key: AnalysisPhase; label: string }> = [
+    { key: "creating", label: t("phaseCreating") },
+    { key: "analyzing", label: t("phaseAnalyzing") },
+    { key: "localizing", label: t("phaseLocalizing") },
+  ]
+  const activeIndex = Math.max(0, steps.findIndex((step) => step.key === phase))
+
+  return (
+    <section className="flex min-h-0 flex-1 items-center justify-center px-6 text-center">
+      <div className="w-full max-w-xl" role="status" aria-live="polite">
+        <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+          <div className="relative flex h-10 w-10 items-center justify-center">
+            <span className="absolute inset-0 animate-ping rounded-full border border-blue-200" />
+            <Loader2 className="relative h-6 w-6 animate-spin" />
+          </div>
+        </div>
+        <div className="text-sm font-semibold text-slate-900">{t("progressTitle")}</div>
+        <p className="mt-1 text-sm leading-6 text-slate-500">
+          {t("progressDescription", { caseId: caseId || "-" })}
+        </p>
+
+        <div className="mx-auto mt-5 max-w-md overflow-hidden rounded-full bg-slate-200">
+          <div className="h-1.5 w-full animate-pulse rounded-full bg-blue-600/75" />
+        </div>
+
+        <div className="mt-5 grid gap-2 text-left sm:grid-cols-3">
+          {steps.map((step, index) => {
+            const isActive = index === activeIndex
+            const isDone = index < activeIndex
+
+            return (
+              <div
+                key={step.key}
+                className={[
+                  "flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
+                  isActive
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : isDone
+                      ? "border-slate-200 bg-white text-slate-700"
+                      : "border-slate-200 bg-white/70 text-slate-400",
+                ].join(" ")}
+              >
+                <span
+                  className={[
+                    "h-1.5 w-1.5 shrink-0 rounded-full",
+                    isActive ? "bg-blue-600" : isDone ? "bg-slate-500" : "bg-slate-300",
+                  ].join(" ")}
+                />
+                <span className="min-w-0 truncate">{step.label}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function CaseIdSearchToolbar() {
   const t = useTranslations("pages.aiops.threatAnalysis.search")
   const appLocale = useLocale()
@@ -59,6 +143,7 @@ function CaseIdSearchToolbar() {
   const waitForLocalizedReport = shouldWaitForLocalizedReport(reportLocale)
   const [caseId, setCaseId] = useState("")
   const [loading, setLoading] = useState(false)
+  const [analysisPhase, setAnalysisPhase] = useState<AnalysisPhase>("creating")
   const [reportTask, setReportTask] = useState<AttackAIReportTask | null>(null)
   const runIdRef = useRef(0)
   const pollTimerRef = useRef<number | null>(null)
@@ -79,6 +164,7 @@ function CaseIdSearchToolbar() {
       const localizedStatus = normalizeTaskStatus(task.localized_status)
 
       if (waitForLocalizedReport && !hasLocalizedReport(task) && isActiveTaskStatus(localizedStatus)) {
+        setAnalysisPhase("localizing")
         setReportTask(task)
         return false
       }
@@ -167,6 +253,13 @@ function CaseIdSearchToolbar() {
   }, [clearPollTimer, completeTask, reportLocale, t])
 
   useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    document.querySelector("main.overflow-auto")?.scrollTo({ top: 0, left: 0, behavior: "auto" })
+  }, [])
+
+  useEffect(() => {
     return () => {
       runIdRef.current += 1
       clearPollTimer()
@@ -186,6 +279,7 @@ function CaseIdSearchToolbar() {
     runIdRef.current = runId
     clearPollTimer()
     setLoading(true)
+    setAnalysisPhase("creating")
     setReportTask(null)
 
     try {
@@ -198,6 +292,8 @@ function CaseIdSearchToolbar() {
       if (runIdRef.current !== runId) {
         return
       }
+
+      setAnalysisPhase("analyzing")
 
       if (completeTask(task)) {
         return
@@ -252,15 +348,21 @@ function CaseIdSearchToolbar() {
           </div>
         </form>
       </section>
-      {reportTask ? <AttackReport task={reportTask} /> : null}
+      {loading ? (
+        <AnalysisProgressState caseId={caseId.trim()} phase={analysisPhase} />
+      ) : reportTask ? (
+        <AttackReport task={reportTask} />
+      ) : (
+        <NoCaseState />
+      )}
     </>
   )
 }
 
 export default function ThreatAnalysisPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
+    <main className="flex min-h-[calc(100vh-3rem)] bg-gray-50">
+      <div className="flex min-h-0 flex-1 flex-col gap-6 p-6">
         <CaseIdSearchToolbar />
       </div>
     </main>
