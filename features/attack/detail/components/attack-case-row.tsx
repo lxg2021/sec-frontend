@@ -68,7 +68,6 @@ import {
   formatCaseTitle,
   formatFullTime,
   getSeverity,
-  isNestedInteractiveTarget,
   matchAutoSummary,
 } from "../utils/attack-case-format"
 
@@ -167,15 +166,9 @@ export function AttackCaseRow({
   return (
     <article data-attack-case-id={item.case_id}>
       <div
-        role={clickable ? "button" : undefined}
         tabIndex={clickable ? 0 : undefined}
         aria-selected={selected || undefined}
         onClick={() => onSelect?.(item.case_id)}
-        onDoubleClick={(event) => {
-          if (!clickable || isNestedInteractiveTarget(event.target, event.currentTarget)) return
-          event.preventDefault()
-          onViewDetail?.(item.case_id)
-        }}
         onKeyDown={(event) => {
           if (!clickable) return
           if (event.key === "Enter" || event.key === " ") {
