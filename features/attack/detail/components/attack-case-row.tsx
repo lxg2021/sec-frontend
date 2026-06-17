@@ -16,6 +16,7 @@ import {
   CircleDot,
   Copy,
   Crosshair,
+  BrainCircuit,
   ExternalLink,
   FileText,
   FileSearch,
@@ -85,6 +86,7 @@ export function AttackCaseRow({
   selected,
   onSelect,
   onViewDetail,
+  onAIAnalysis,
   onCaseUpdated,
 }: {
   item: AttackCaseTimelineSummary
@@ -92,6 +94,7 @@ export function AttackCaseRow({
   selected?: boolean
   onSelect?: (caseId: string) => void
   onViewDetail?: (caseId: string) => void
+  onAIAnalysis?: (caseId: string) => void
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
@@ -228,10 +231,16 @@ export function AttackCaseRow({
               startTime={item.start_time}
               endTime={item.end_time}
             />
-            <CaseTraceAction
-              disabled={!onViewDetail}
-              onClick={() => onViewDetail?.(item.case_id)}
-            />
+            <div className="flex shrink-0 items-center justify-end gap-1.5">
+              <CaseAIAnalysisAction
+                disabled={!onAIAnalysis}
+                onClick={() => onAIAnalysis?.(item.case_id)}
+              />
+              <CaseTraceAction
+                disabled={!onViewDetail}
+                onClick={() => onViewDetail?.(item.case_id)}
+              />
+            </div>
           </div>
 
           <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 py-1.5 pl-2 pr-3 lg:grid-cols-[max-content_max-content_minmax(0,1fr)] lg:items-center">
@@ -851,6 +860,35 @@ function TimeRange({
         </div>
       </div>
     </div>
+  )
+}
+
+function CaseAIAnalysisAction({
+  disabled,
+  onClick,
+}: {
+  disabled: boolean
+  onClick: () => void
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      disabled={disabled}
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onClick()
+      }}
+      className="h-10 shrink-0 gap-2 rounded-full px-3 text-blue-600 hover:bg-blue-50 hover:text-blue-700 focus-visible:ring-blue-300 disabled:text-slate-300"
+      title={t("aiAnalysisAction")}
+    >
+      <BrainCircuit className="size-4" />
+      <span className="whitespace-nowrap">{t("aiAnalysisAction")}</span>
+    </Button>
   )
 }
 

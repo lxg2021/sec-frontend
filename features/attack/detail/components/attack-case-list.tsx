@@ -34,7 +34,7 @@ import { Input } from "@/shared/ui/input"
 import { TooltipProvider } from "@/shared/ui/tooltip"
 import { toast } from "@/shared/hooks/use-toast"
 import { AttackCaseRow } from "./attack-case-row"
-import { buildTraceHref } from "../utils/attack-case-format"
+import { buildAIAnalysisHref, buildTraceHref } from "../utils/attack-case-format"
 import { dedupeAttackCaseItems } from "../utils/attack-case-list-data"
 
 export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
@@ -202,6 +202,11 @@ export function AttackCaseList({
     router.push(buildTraceHref(caseId, snapshotId))
   }
 
+  function handleAIAnalysis(caseId: string) {
+    handleSelectCase(caseId)
+    router.push(buildAIAnalysisHref(caseId))
+  }
+
   function handleLocateCase() {
     const normalizedQuery = caseIdQuery.trim()
     if (!normalizedQuery) return
@@ -302,6 +307,7 @@ export function AttackCaseList({
                 selected={item.case_id === selectedCaseId}
                 onSelect={handleSelectCase}
                 onViewDetail={handleViewDetail}
+                onAIAnalysis={handleAIAnalysis}
                 onCaseUpdated={handleCaseUpdated}
               />
             ))}

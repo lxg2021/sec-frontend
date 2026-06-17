@@ -76,6 +76,10 @@ export function buildTraceHref(caseId: string, snapshotId?: string) {
   }`
 }
 
+export function buildAIAnalysisHref(caseId: string) {
+  return `/frame/ai-ops/threat-analysis?caseId=${encodeURIComponent(caseId)}`
+}
+
 export function shortenId(value: string, head = 8, tail = 4) {
   if (!value) return "-"
   if (value.length <= head + tail + 3) return value

@@ -756,6 +756,7 @@
           "empty": "No attack cases",
           "viewDetail": "View Details",
           "traceAction": "Trace Attack",
+          "aiAnalysisAction": "AI Analysis",
           "loadMore": "Load More",
           "loadingMore": "Loading...",
           "loadFailed": "Failed to load attack details",

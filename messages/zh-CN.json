@@ -758,6 +758,7 @@
           "empty": "暂无攻击场景",
           "viewDetail": "查看详情",
           "traceAction": "攻击溯源",
+          "aiAnalysisAction": "AI 分析",
           "loadMore": "加载更多",
           "loadingMore": "加载中...",
           "loadFailed": "攻击明细加载失败",
