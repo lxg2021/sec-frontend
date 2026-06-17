@@ -1,7 +1,18 @@
 ﻿// page.tsx
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
+import {
+  Loader2,
+  Search,
+} from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
@@ -20,14 +31,74 @@ import type {
   AttackGraphLayoutStrategyOption,
   GraphCaseResponseDto,
 } from "@/features/attack/dgraph"
+import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
+
+function CaseIdSearchToolbar({
+  loading,
+  onSearch,
+  onValueChange,
+  value,
+}: {
+  loading: boolean
+  onSearch: (event: FormEvent<HTMLFormElement>) => void
+  onValueChange: (value: string) => void
+  value: string
+}) {
+  const t = useTranslations("pages.attack.drill")
+
+  return (
+    <section className="w-full rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.07)]">
+      <form
+        className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center"
+        onSubmit={onSearch}
+      >
+        <div className="flex h-11 min-w-0 w-full flex-1 items-center rounded-full border border-slate-200 bg-slate-50/80 pl-3 pr-1 shadow-inner shadow-slate-100/70">
+          <Search className="h-4 w-4 shrink-0 text-slate-400" />
+          <Input
+            value={value}
+            onChange={(event) => onValueChange(event.target.value)}
+            placeholder={t("caseIdPlaceholder")}
+            aria-label="CaseID"
+            spellCheck={false}
+            className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 font-mono text-sm font-semibold text-slate-900 shadow-none placeholder:font-sans placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <Button
+            type="submit"
+            className="h-9 shrink-0 rounded-full bg-blue-600 px-3.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            disabled={loading}
+          >
+            <Search className="size-4" />
+            {t("search")}
+          </Button>
+        </div>
+
+        {loading ? (
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center"
+            role="status"
+            aria-label={t("statusLoading")}
+          >
+            <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <span className="absolute h-6 w-6 animate-ping rounded-full bg-blue-200/80" />
+              <Loader2 className="relative size-5 animate-spin" />
+            </span>
+          </div>
+        ) : null}
+      </form>
+    </section>
+  )
+}
 
 export default function App() {
   const t = useTranslations("pages.attack.drill")
 
   const [timelineCaseId, setTimelineCaseId] = useState("");
+  const [caseIdInput, setCaseIdInput] = useState("");
   const [timelineSnapshotId, setTimelineSnapshotId] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
   const [graphResponse, setGraphResponse] = useState<GraphCaseResponseDto | null>(null);
   const [graphLoading, setGraphLoading] = useState(false);
   const [graphError, setGraphError] = useState("");
@@ -41,11 +112,12 @@ export default function App() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    setTimelineCaseId(
+    const initialCaseId =
       params.get("caseId")?.trim() ||
       params.get("case_id")?.trim() ||
-      "",
-    )
+      ""
+    setTimelineCaseId(initialCaseId)
+    setCaseIdInput(initialCaseId)
     setTimelineSnapshotId(
       params.get("snapshotId")?.trim() ||
       params.get("snapshot_id")?.trim() ||
@@ -70,6 +142,44 @@ export default function App() {
         ? undefined
         : { strategy: graphLayoutStrategy },
     [graphLayoutStrategy],
+  )
+
+  const applyCaseId = useCallback(
+    (nextCaseId: string) => {
+      const normalizedCaseId = nextCaseId.trim()
+      const params = new URLSearchParams(window.location.search)
+
+      if (normalizedCaseId) {
+        params.set("caseId", normalizedCaseId)
+      } else {
+        params.delete("caseId")
+        params.delete("case_id")
+      }
+
+      if (timelineSnapshotId.trim()) {
+        params.set("snapshotId", timelineSnapshotId.trim())
+      }
+
+      const query = params.toString()
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${query ? `?${query}` : ""}`,
+      )
+      setTimelineCaseId(normalizedCaseId)
+      setCaseIdInput(normalizedCaseId)
+      setGraphPositionResetKey((key) => key + 1)
+      setRefreshKey((key) => key + 1)
+    },
+    [timelineSnapshotId],
+  )
+
+  const handleCaseSearch = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      applyCaseId(caseIdInput)
+    },
+    [applyCaseId, caseIdInput],
   )
 
   const handleGraphMenuAction = useCallback(
@@ -212,16 +322,44 @@ export default function App() {
         if (cancelled) return
         graphResponseRef.current = response
         setGraphResponse(response)
+
+        if (!response) {
+          toast.warning(t("statusEmpty"), {
+            description: t("statusEmptyDescription"),
+          })
+          return
+        }
+
+        const graph = buildAttackGraphModel(response)
+
+        if (graph.nodes.length > 0) {
+          toast.success(t("statusLoaded"), {
+            description: t("statusLoadedDescription", {
+              nodeCount: graph.nodes.length,
+              edgeCount: graph.edges.length,
+            }),
+          })
+          return
+        }
+
+        toast.warning(t("statusEmpty"), {
+          description: t("statusEmptyDescription"),
+        })
       })
       .catch((error) => {
         if (cancelled) return
         graphResponseRef.current = null
         setGraphResponse(null)
-        setGraphError(
+        const message =
           error instanceof Error
             ? error.message
-            : "Failed to load GraphCase data.",
+            : "Failed to load GraphCase data."
+        setGraphError(
+          message,
         )
+        toast.error(t("statusError"), {
+          description: message,
+        })
       })
       .finally(() => {
         if (cancelled) return
@@ -231,12 +369,20 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [timelineCaseId])
+  }, [refreshKey, timelineCaseId])
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6 space-y-6">
+        <CaseIdSearchToolbar
+          loading={graphLoading}
+          onSearch={handleCaseSearch}
+          onValueChange={setCaseIdInput}
+          value={caseIdInput}
+        />
+
         <AttackCaseStoryTimelineRender
+          key={`${timelineCaseId}:${timelineSnapshotId}:${refreshKey}`}
           caseId={timelineCaseId}
           snapshotId={timelineSnapshotId}
           timezone={DRILL_TIMEZONE}

@@ -1031,7 +1031,24 @@
         "timeline": "攻击时间线",
         "timelineDescription": "APT Timeline",
         "graph": "溯源图谱",
-        "sheetTitle": "节点详情面板"
+        "sheetTitle": "节点详情面板",
+        "searchTitle": "溯源检索",
+        "searchDescription": "输入 CaseID 加载时间线与图谱",
+        "caseIdPlaceholder": "请输入 CaseID",
+        "caseIdRequired": "请输入 CaseID",
+        "search": "查询",
+        "refresh": "刷新",
+        "status": "状态",
+        "statusReady": "待查询",
+        "statusReadyDescription": "请输入 CaseID",
+        "statusLoading": "加载中",
+        "statusLoadingDescription": "正在获取数据",
+        "statusLoaded": "已加载",
+        "statusLoadedDescription": "{nodeCount} 个节点 / {edgeCount} 条边",
+        "statusEmpty": "暂无图谱",
+        "statusEmptyDescription": "时间线可能仍可加载",
+        "statusError": "加载失败",
+        "statusErrorDescription": "请求失败"
       },
       "positioning": {
         "title": "数据定位",
@@ -2978,6 +2995,7 @@
           "fields": {
             "taskId": "任务 ID",
             "status": "状态",
+            "host": "主机",
             "contextHash": "上下文哈希",
             "latency": "耗时",
             "confidence": "置信度",
@@ -3053,33 +3071,33 @@
           },
           "story": {
             "title": "攻击链路",
-            "description": "按时间顺序还原攻击者在受影响主机上的行为序列。"
+            "description": "按时间顺序还原攻击者在受影响主机上的行为序列"
           },
           "findings": {
             "title": "关键发现",
-            "description": "由检测引擎输出与 AI 分析综合提炼出的核心结论。"
+            "description": "由检测引擎输出与 AI 分析综合提炼出的核心结论"
           },
           "iocs": {
             "title": "威胁指标 (IOCs)",
-            "description": "可用于检测、阻断和威胁狩猎的指标。"
+            "description": "可用于检测、阻断和威胁狩猎的指标"
           },
           "assets": {
             "title": "受影响资产",
-            "description": "本次事件中已确认或疑似受影响的主机与资产。",
+            "description": "本次事件中已确认或疑似受影响的主机与资产",
             "compromised": "受影响"
           },
           "actions": {
             "title": "处置建议",
-            "description": "按优先级排序的响应与缓解措施。",
+            "description": "按优先级排序的响应与缓解措施",
             "priority": "优先级"
           },
           "hypotheses": {
             "title": "假设",
-            "description": "由于证据尚不足而需要进一步验证的推断结论。"
+            "description": "由于证据尚不足而需要进一步验证的推断结论"
           },
           "limitations": {
             "title": "限制",
-            "description": "本次自动分析已知的数据与范围限制。"
+            "description": "本次自动分析已知的数据与范围限制"
           },
           "validation": {
             "title": "校验",
@@ -3098,6 +3116,7 @@
             "noReport": "暂无报告数据。",
             "noStory": "暂无故事线",
             "noFindings": "暂无发现",
+            "noIocs": "暂无 IOC",
             "noAssets": "暂无资产",
             "noActions": "暂无建议",
             "noHypotheses": "暂无假设",
