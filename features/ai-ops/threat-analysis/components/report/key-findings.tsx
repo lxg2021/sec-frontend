@@ -9,6 +9,7 @@ import { EvidenceRefs, SeverityBadge } from "@/features/ai-ops/threat-analysis/c
 
 export function KeyFindings({ findings }: { findings: KeyFinding[] }) {
   const t = useTranslations("pages.aiops.threatAnalysis.report")
+  const isSingleFinding = findings.length === 1
 
   return (
     <Section
@@ -20,25 +21,25 @@ export function KeyFindings({ findings }: { findings: KeyFinding[] }) {
     >
       {!findings.length ? <SectionEmptyState>{t("empty.noFindings")}</SectionEmptyState> : null}
       {findings.length ? (
-      <div className="grid gap-3 sm:grid-cols-2">
-        {findings.map((finding, index) => {
-          const severity = normalizeSeverity(finding.severity)
+        <div className={isSingleFinding ? "grid gap-3" : "grid gap-3 sm:grid-cols-2"}>
+          {findings.map((finding, index) => {
+            const severity = normalizeSeverity(finding.severity)
 
-          return (
-            <div key={`${finding.title}-${index}`} className="flex flex-col rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40">
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <h3 className="text-sm font-semibold leading-snug text-foreground">{finding.title}</h3>
-                <SeverityBadge severity={severity} />
+            return (
+              <div key={`${finding.title}-${index}`} className="flex flex-col rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40">
+                <div className="mb-2 flex items-start justify-between gap-2">
+                  <h3 className="text-sm font-semibold leading-snug text-foreground">{finding.title}</h3>
+                  <SeverityBadge severity={severity} />
+                </div>
+                <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{finding.reason}</p>
+                <div className="mt-3 space-y-2 border-t border-border pt-3">
+                  <ConfidenceMeter value={finding.confidence} />
+                  <EvidenceRefs refs={finding.evidence_refs} />
+                </div>
               </div>
-              <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{finding.reason}</p>
-              <div className="mt-3 space-y-2 border-t border-border pt-3">
-                <ConfidenceMeter value={finding.confidence} />
-                <EvidenceRefs refs={finding.evidence_refs} />
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
       ) : null}
     </Section>
   )

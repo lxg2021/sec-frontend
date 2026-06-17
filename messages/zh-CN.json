@@ -2976,12 +2976,14 @@
           "invalid": "分析结果未通过校验",
           "timeout": "分析任务等待超时，请稍后重试",
           "missingTaskId": "分析任务创建成功，但未返回 TaskID",
-          "unknownStatus": "未知任务状态：{status}"
+          "unknownStatus": "未知任务状态：{status}",
+          "translationInvalid": "中文翻译未通过校验，已显示英文报告。",
+          "translationFailed": "中文翻译执行失败，已显示英文报告。"
         },
-          "header": {
-            "badge": "FIXED",
-            "category": "ATT&CK"
-          },
+        "header": {
+          "badge": "FIXED",
+          "category": "ATT&CK"
+        },
         "metrics": {
           "risk": "风险等级",
           "confidence": "置信度",
@@ -3024,14 +3026,14 @@
             "finished": "结束时间",
             "error": "错误"
           },
-            "severity": {
-              "critical": "严重",
-              "high": "高危",
-              "medium": "中危",
-              "low": "低危",
-              "info": "信息",
-              "unknown": "未知"
-            },
+          "severity": {
+            "critical": "严重",
+            "high": "高危",
+            "medium": "中危",
+            "low": "低危",
+            "info": "信息",
+            "unknown": "未知"
+          },
           "header": {
             "brand": "AI Attack · 调查报告",
             "complete": "分析完成",

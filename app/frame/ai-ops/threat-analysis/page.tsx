@@ -3,12 +3,13 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type FormEvent,
 } from "react"
 import { Loader2, Search } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import AttackReport from "@/features/ai-ops/threat-analysis/components/attack-report"
@@ -32,6 +33,14 @@ function isActiveTaskStatus(status: string) {
   return status === "pending" || status === "running"
 }
 
+function reportLocaleFromAppLocale(locale: string) {
+  return locale.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US"
+}
+
+function shouldWaitForLocalizedReport(reportLocale: string) {
+  return reportLocale !== "en-US"
+}
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
     return error.message
@@ -41,6 +50,9 @@ function getErrorMessage(error: unknown) {
 
 function CaseIdSearchToolbar() {
   const t = useTranslations("pages.aiops.threatAnalysis.search")
+  const appLocale = useLocale()
+  const reportLocale = useMemo(() => reportLocaleFromAppLocale(appLocale), [appLocale])
+  const waitForLocalizedReport = shouldWaitForLocalizedReport(reportLocale)
   const [caseId, setCaseId] = useState("")
   const [loading, setLoading] = useState(false)
   const [reportTask, setReportTask] = useState<AttackAIReportTask | null>(null)
@@ -60,10 +72,28 @@ function CaseIdSearchToolbar() {
     const status = normalizeTaskStatus(task.status)
 
     if (status === "succeeded") {
+      const localizedStatus = normalizeTaskStatus(task.localized_status)
+
+      if (
+        waitForLocalizedReport &&
+        !task.localized_report &&
+        !task.localized_report_json &&
+        (localizedStatus === "unknown" || isActiveTaskStatus(localizedStatus))
+      ) {
+        setReportTask(task)
+        return false
+      }
+
       clearPollTimer()
       setReportTask(task)
       setLoading(false)
-      toast.success(t("succeeded"))
+      if (waitForLocalizedReport && localizedStatus === "invalid") {
+        toast.warning(task.localized_error_message || t("translationInvalid"))
+      } else if (waitForLocalizedReport && localizedStatus === "failed") {
+        toast.warning(task.localized_error_message || t("translationFailed"))
+      } else {
+        toast.success(t("succeeded"))
+      }
       return true
     }
 
@@ -89,7 +119,7 @@ function CaseIdSearchToolbar() {
     }
 
     return false
-  }, [clearPollTimer, t])
+  }, [clearPollTimer, t, waitForLocalizedReport])
 
   const startPolling = useCallback((taskId: string, runId: number) => {
     let attempts = 0
@@ -102,7 +132,7 @@ function CaseIdSearchToolbar() {
       attempts += 1
 
       try {
-        const task = await getAttackAIReportTask({ taskId })
+        const task = await getAttackAIReportTask({ taskId, locale: reportLocale })
 
         if (runIdRef.current !== runId) {
           return
@@ -133,7 +163,7 @@ function CaseIdSearchToolbar() {
 
     clearPollTimer()
     pollTimerRef.current = window.setTimeout(poll, POLL_INTERVAL_MS)
-  }, [clearPollTimer, completeTask, t])
+  }, [clearPollTimer, completeTask, reportLocale, t])
 
   useEffect(() => {
     return () => {

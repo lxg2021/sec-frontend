@@ -2974,7 +2974,9 @@
           "invalid": "Analysis result did not pass validation",
           "timeout": "Analysis task timed out. Try again later.",
           "missingTaskId": "The analysis task was created but no TaskID was returned.",
-          "unknownStatus": "Unknown task status: {status}"
+          "unknownStatus": "Unknown task status: {status}",
+          "translationInvalid": "Chinese translation did not pass validation. Showing the English report.",
+          "translationFailed": "Chinese translation failed. Showing the English report."
         },
         "header": {
           "badge": "FIXED",
@@ -3032,10 +3034,10 @@
           },
           "header": {
             "brand": "AI Attack · Investigation Report",
-              "complete": "Analysis complete",
-              "riskLabel": "Risk level",
-              "event": " security event",
-              "overallConfidence": "Overall confidence",
+            "complete": "Analysis complete",
+            "riskLabel": "Risk level",
+            "event": " security event",
+            "overallConfidence": "Overall confidence",
             "attackStages": "Attack stages",
             "threatIndicators": "Threat indicators",
             "validated": "Validated",

@@ -19,6 +19,7 @@ export type CreateAttackAIReportTaskParams = {
 export type GetAttackAIReportTaskParams = {
   taskId: string
   tenantId?: string
+  locale?: string
 }
 
 const DEFAULT_TENANT_ID = "public"
@@ -43,11 +44,13 @@ export async function createAttackAIReportTask({
 export async function getAttackAIReportTask({
   taskId,
   tenantId = DEFAULT_TENANT_ID,
+  locale,
 }: GetAttackAIReportTaskParams): Promise<AttackAIReportTask> {
   const response = await http.post("sensor/analysis/ai/report/task/get", {
     request_id: createRequestId(),
     task_id: taskId,
     tenant_id: tenantId,
+    locale,
   }) as ApiResult<AttackAIReportTask>
 
   return response.data

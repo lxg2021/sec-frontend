@@ -104,6 +104,17 @@ export interface AttackAIReportTask {
   updated_at?: string
   started_at?: string
   finished_at?: string
+  canonical_locale?: string
+  localized_locale?: string
+  localized_status?: string
+  localized_report_json?: string
+  localized_validation_json?: string
+  localized_error_message?: string
+  localized_provider_name?: string
+  localized_model_name?: string
+  localized_latency_ms?: number
   report?: AttackAIReport | null
   validation?: ReportValidation | null
+  localized_report?: AttackAIReport | null
+  localized_validation?: ReportValidation | null
 }

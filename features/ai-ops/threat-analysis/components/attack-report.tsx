@@ -1,6 +1,6 @@
 "use client"
 
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { ReportOverviewHeader } from "@/features/ai-ops/threat-analysis/components/report-overview-header"
 import { ReportBody } from "@/features/ai-ops/threat-analysis/components/report/report-body"
@@ -14,11 +14,19 @@ import { normalizeAttackReport, parseMaybeJson } from "@/features/ai-ops/threat-
 
 type ReportTask = AttackAIReportTask
 
+function shouldUseLocalizedReport(locale: string) {
+  return locale.toLowerCase().startsWith("zh")
+}
+
 export function AttackReport({ task }: { task: ReportTask }) {
   const t = useTranslations("pages.aiops.threatAnalysis.report")
-  const parsedReport = task.report ?? parseMaybeJson<AttackAIReport>(task.report_json)
+  const locale = useLocale()
+  const useLocalizedReport = shouldUseLocalizedReport(locale)
+  const parsedLocalizedReport = task.localized_report ?? parseMaybeJson<AttackAIReport>(task.localized_report_json)
+  const parsedCanonicalReport = task.report ?? parseMaybeJson<AttackAIReport>(task.report_json)
+  const parsedReport = useLocalizedReport ? parsedLocalizedReport ?? parsedCanonicalReport : parsedCanonicalReport
   const report = parsedReport ? normalizeAttackReport(parsedReport) : null
-  const validation = task.validation ?? parseMaybeJson<ReportValidation>(task.validation_json) ?? null
+  const canonicalValidation = task.validation ?? parseMaybeJson<ReportValidation>(task.validation_json) ?? null
 
   if (!report) {
     return (
@@ -34,7 +42,7 @@ export function AttackReport({ task }: { task: ReportTask }) {
 
   return (
     <article className="mx-auto w-full max-w-[120rem]">
-      <ReportOverviewHeader task={{ ...task, report, validation }} />
+      <ReportOverviewHeader task={{ ...task, report, validation: canonicalValidation }} />
       <div className="grid gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-12 lg:px-8 xl:grid-cols-[14rem_minmax(0,1fr)]">
         <ReportNav />
         <ReportBody report={report} />
