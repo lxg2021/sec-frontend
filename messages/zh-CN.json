@@ -2965,6 +2965,10 @@
       "threatAnalysis": {
         "title": "AI威胁分析",
         "subtitle": "基于 AI 的威胁检测、关联分析与优先级研判",
+        "search": {
+          "caseIdPlaceholder": "请输入 CaseID",
+          "submit": "查询"
+        },
           "header": {
             "badge": "FIXED",
             "category": "ATT&CK"
