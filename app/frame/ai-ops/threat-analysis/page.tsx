@@ -285,18 +285,18 @@ function CaseIdSearchToolbar() {
           className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center"
           onSubmit={handleSubmit}
         >
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleBackToAttackDetail}
-            className="h-11 shrink-0 rounded-full border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:text-slate-950 focus-visible:ring-slate-300"
-            title={t("backToAttackDetail")}
-            aria-label={t("backToAttackDetail")}
-          >
-            <ArrowLeft className="size-4" />
-            <span className="whitespace-nowrap">{t("backToAttackDetail")}</span>
-          </Button>
-          <div className="flex h-11 min-w-0 w-full flex-1 items-center rounded-full border border-slate-200 bg-slate-50/80 pl-3 pr-1 shadow-inner shadow-slate-100/70">
+          <div className="flex h-11 min-w-0 w-full flex-1 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50/80 pl-1 pr-1 shadow-inner shadow-slate-100/70">
+            <button
+              type="button"
+              onClick={handleBackToAttackDetail}
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
+              title={t("backToAttackDetail")}
+              aria-label={t("backToAttackDetail")}
+            >
+              <ArrowLeft className="size-4" />
+              <span className="whitespace-nowrap">{t("backToAttackDetail")}</span>
+            </button>
+            <span className="mx-2 h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
             <Search className="h-4 w-4 shrink-0 text-slate-400" />
             <Input
               value={caseId}
