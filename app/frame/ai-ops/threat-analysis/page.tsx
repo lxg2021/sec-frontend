@@ -8,7 +8,7 @@ import {
   useState,
   type FormEvent,
 } from "react"
-import { Loader2, Search, Shield } from "lucide-react"
+import { BrainCircuit, Loader2, Search, Shield } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -87,42 +87,34 @@ function AnalysisProgressState({
 
   return (
     <section className="flex min-h-0 flex-1 items-center justify-center px-6 text-center">
-      <div className="w-full max-w-xl" role="status" aria-live="polite">
-        <div className="relative mx-auto mb-5 flex h-14 w-14 items-center justify-center text-blue-600">
-          <span className="absolute inset-0 rounded-full border border-blue-100" />
-          <span className="absolute inset-1 rounded-full border-2 border-transparent border-r-blue-300 border-t-blue-600 animate-spin" />
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 ring-1 ring-blue-100">
-            <Shield className="h-[18px] w-[18px]" />
+      <div className="w-full max-w-2xl" role="status" aria-live="polite">
+        <div className="relative mx-auto mb-6 h-[104px] w-[104px] text-blue-600">
+          <span className="absolute inset-0 animate-[ai-core-breathe_2.8s_ease-in-out_infinite] rounded-full bg-blue-500/15 blur-2xl" />
+          <span className="absolute inset-1 rounded-full bg-white shadow-[0_20px_58px_rgba(37,99,235,0.18)] ring-1 ring-blue-100" />
+          <span className="absolute inset-2 animate-[ai-core-spin_2.6s_linear_infinite] rounded-full border-[3px] border-transparent border-r-cyan-400 border-t-blue-600" />
+          <span className="absolute inset-[13px] animate-[ai-core-reverse_7s_linear_infinite] rounded-full border border-dashed border-indigo-300/80" />
+          <span className="absolute inset-[22px] rounded-full bg-[radial-gradient(circle_at_35%_25%,#ffffff,rgba(239,246,255,0.96)_48%,rgba(219,234,254,0.82))] shadow-inner shadow-blue-100" />
+          <span className="absolute inset-[24px] animate-[ai-core-glow_2.4s_ease-in-out_infinite] rounded-full bg-[conic-gradient(from_135deg,rgba(37,99,235,0.2),rgba(14,165,233,0.14),rgba(99,102,241,0.2),rgba(37,99,235,0.2))]" />
+          <span className="absolute left-1/2 top-[7px] h-3.5 w-1 -translate-x-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-blue-500 shadow-[0_0_14px_rgba(37,99,235,0.46)]" />
+          <span className="absolute right-[7px] top-1/2 h-1 w-3.5 -translate-y-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-cyan-400 shadow-[0_0_14px_rgba(14,165,233,0.42)] [animation-delay:0.45s]" />
+          <span className="absolute bottom-[7px] left-1/2 h-3.5 w-1 -translate-x-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-indigo-500 shadow-[0_0_14px_rgba(99,102,241,0.42)] [animation-delay:0.9s]" />
+          <span className="absolute left-[7px] top-1/2 h-1 w-3.5 -translate-y-1/2 animate-[ai-node-pulse_1.8s_ease-in-out_infinite] rounded-full bg-sky-400 shadow-[0_0_14px_rgba(56,189,248,0.38)] [animation-delay:1.35s]" />
+          <div className="absolute inset-[31px] flex items-center justify-center rounded-full bg-white/95 text-blue-600 ring-1 ring-blue-100 shadow-[inset_0_1px_12px_rgba(37,99,235,0.14)]">
+            <BrainCircuit className="h-7 w-7 stroke-[1.8]" />
           </div>
         </div>
-        <div className="text-sm font-semibold text-slate-900">{t("progressTitle")}</div>
-        <p className="mt-1 text-sm leading-6 text-slate-500">
+        <div className="text-base font-semibold text-slate-950">{t("progressTitle")}</div>
+        <p className="mx-auto mt-1 max-w-xl break-all text-sm leading-6 text-slate-500">
           {t("progressDescription", { caseId: caseId || "-" })}
         </p>
 
-        <div className="mx-auto mt-6 w-full max-w-lg">
-          <div className="grid grid-cols-3 gap-2" aria-hidden="true">
-            {steps.map((step, index) => {
-              const isActive = index === activeIndex
-              const isDone = index < activeIndex
-
-              return (
-                <div
-                  key={step.key}
-                  className={[
-                    "relative h-2.5 overflow-hidden rounded-full transition-colors duration-300",
-                    isActive || isDone ? "bg-blue-600" : "bg-slate-200",
-                    isActive ? "shadow-[0_0_0_1px_rgba(37,99,235,0.16),0_0_18px_rgba(37,99,235,0.24)]" : "",
-                  ].join(" ")}
-                >
-                  {isActive ? (
-                    <span className="absolute inset-0 animate-[ai-stage-scan_1.5s_ease-in-out_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.72),transparent)]" />
-                  ) : null}
-                </div>
-              )
-            })}
+        <div className="mx-auto mt-7 w-full max-w-2xl">
+          <div className="relative h-3.5 overflow-hidden rounded-full bg-slate-200 shadow-inner shadow-slate-300/60 ring-1 ring-slate-200" aria-hidden="true">
+            <span className="absolute inset-0 animate-[ai-energy-flow_2.6s_linear_infinite] bg-[linear-gradient(90deg,#2563eb_0%,#38bdf8_30%,#4f46e5_62%,#2563eb_100%)] bg-[length:220%_100%] shadow-[0_0_24px_rgba(37,99,235,0.28)]" />
+            <span className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.36),transparent_55%)]" />
+            <span className="absolute inset-0 animate-[ai-stage-scan_1.65s_ease-in-out_infinite] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.8),transparent)]" />
           </div>
-          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+          <div className="mt-3.5 grid grid-cols-3 gap-3 text-center">
             {steps.map((step, index) => {
               const isActive = index === activeIndex
               const isDone = index < activeIndex
@@ -131,7 +123,7 @@ function AnalysisProgressState({
                 <div
                   key={step.key}
                   className={[
-                    "min-w-0 text-xs font-medium transition-colors duration-300",
+                    "min-w-0 text-[13px] font-medium transition-colors duration-300",
                     isActive
                       ? "text-blue-700"
                       : isDone
