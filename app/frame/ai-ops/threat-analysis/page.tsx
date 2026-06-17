@@ -10,7 +10,6 @@ import {
 } from "react"
 import { Loader2, Search, Shield } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
-import { useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
 import AttackReport from "@/features/ai-ops/threat-analysis/components/attack-report"
@@ -75,7 +74,6 @@ function NoCaseState() {
 
 function CaseIdSearchToolbar() {
   const t = useTranslations("pages.aiops.threatAnalysis.search")
-  const searchParams = useSearchParams()
   const appLocale = useLocale()
   const reportLocale = useMemo(() => reportLocaleFromAppLocale(appLocale), [appLocale])
   const waitForLocalizedReport = shouldWaitForLocalizedReport(reportLocale)
@@ -198,17 +196,15 @@ function CaseIdSearchToolbar() {
   }, [])
 
   useEffect(() => {
-    const queryCaseId =
-      searchParams.get("caseId")?.trim() ||
-      searchParams.get("case_id")?.trim() ||
-      ""
+    const params = new URLSearchParams(window.location.search)
+    const queryCaseId = params.get("caseId")?.trim() || params.get("case_id")?.trim() || ""
 
     if (!queryCaseId) {
       return
     }
 
     setCaseId(queryCaseId)
-  }, [searchParams])
+  }, [])
 
   useEffect(() => {
     return () => {
