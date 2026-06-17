@@ -67,26 +67,14 @@ function CaseIdSearchToolbar({
           />
           <Button
             type="submit"
-            className="h-9 shrink-0 rounded-full bg-blue-600 px-3.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+            className="h-9 shrink-0 rounded-full bg-blue-600 px-3.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:opacity-85"
             disabled={loading}
+            aria-busy={loading}
           >
-            <Search className="size-4" />
+            {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
             {t("search")}
           </Button>
         </div>
-
-        {loading ? (
-          <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center"
-            role="status"
-            aria-label={t("statusLoading")}
-          >
-            <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-              <span className="absolute h-6 w-6 animate-ping rounded-full bg-blue-200/80" />
-              <Loader2 className="relative size-5 animate-spin" />
-            </span>
-          </div>
-        ) : null}
       </form>
     </section>
   )
