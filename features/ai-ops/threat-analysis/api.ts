@@ -14,6 +14,7 @@ export type CreateAttackAIReportTaskParams = {
   tenantId?: string
   timezone?: string
   providerMode?: string
+  locale?: string
 }
 
 export type GetAttackAIReportTaskParams = {
@@ -29,6 +30,7 @@ export async function createAttackAIReportTask({
   tenantId = DEFAULT_TENANT_ID,
   timezone = "Asia/Shanghai",
   providerMode,
+  locale,
 }: CreateAttackAIReportTaskParams): Promise<AttackAIReportTask> {
   const response = await http.post("sensor/analysis/ai/report/task/create", {
     request_id: createRequestId(),
@@ -36,6 +38,7 @@ export async function createAttackAIReportTask({
     timezone,
     tenant_id: tenantId,
     provider_mode: providerMode,
+    locale,
   }) as ApiResult<AttackAIReportTask>
 
   return response.data

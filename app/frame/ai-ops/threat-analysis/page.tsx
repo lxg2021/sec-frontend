@@ -33,6 +33,10 @@ function isActiveTaskStatus(status: string) {
   return status === "pending" || status === "running"
 }
 
+function hasLocalizedReport(task: AttackAIReportTask) {
+  return Boolean(task.localized_report || task.localized_report_json)
+}
+
 function reportLocaleFromAppLocale(locale: string) {
   return locale.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US"
 }
@@ -74,12 +78,7 @@ function CaseIdSearchToolbar() {
     if (status === "succeeded") {
       const localizedStatus = normalizeTaskStatus(task.localized_status)
 
-      if (
-        waitForLocalizedReport &&
-        !task.localized_report &&
-        !task.localized_report_json &&
-        (localizedStatus === "unknown" || isActiveTaskStatus(localizedStatus))
-      ) {
+      if (waitForLocalizedReport && !hasLocalizedReport(task) && isActiveTaskStatus(localizedStatus)) {
         setReportTask(task)
         return false
       }
@@ -87,10 +86,12 @@ function CaseIdSearchToolbar() {
       clearPollTimer()
       setReportTask(task)
       setLoading(false)
-      if (waitForLocalizedReport && localizedStatus === "invalid") {
+      if (waitForLocalizedReport && !hasLocalizedReport(task) && localizedStatus === "invalid") {
         toast.warning(task.localized_error_message || t("translationInvalid"))
-      } else if (waitForLocalizedReport && localizedStatus === "failed") {
+      } else if (waitForLocalizedReport && !hasLocalizedReport(task) && localizedStatus === "failed") {
         toast.warning(task.localized_error_message || t("translationFailed"))
+      } else if (waitForLocalizedReport && !hasLocalizedReport(task)) {
+        toast.warning(t("translationPending"))
       } else {
         toast.success(t("succeeded"))
       }
@@ -191,6 +192,7 @@ function CaseIdSearchToolbar() {
       const task = await createAttackAIReportTask({
         caseId: normalizedCaseId,
         timezone: REPORT_TIMEZONE,
+        locale: reportLocale,
       })
 
       if (runIdRef.current !== runId) {

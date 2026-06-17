@@ -2975,8 +2975,9 @@
           "timeout": "Analysis task timed out. Try again later.",
           "missingTaskId": "The analysis task was created but no TaskID was returned.",
           "unknownStatus": "Unknown task status: {status}",
-          "translationInvalid": "Chinese translation did not pass validation. Showing the English report.",
-          "translationFailed": "Chinese translation failed. Showing the English report."
+          "translationPending": "The localized report is still being generated. Refresh later.",
+          "translationInvalid": "The localized report did not pass validation.",
+          "translationFailed": "The localized report failed to generate."
         },
         "header": {
           "badge": "FIXED",
@@ -3127,6 +3128,10 @@
           "empty": {
             "none": "None",
             "noReport": "No report data.",
+            "localizedPending": "Localized report is being generated.",
+            "localizedInvalid": "Localized report did not pass validation.",
+            "localizedFailed": "Localized report generation failed.",
+            "localizedMissing": "No localized report data.",
             "noStory": "No story",
             "noFindings": "No findings",
             "noIocs": "No IOCs",

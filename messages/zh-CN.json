@@ -2977,8 +2977,9 @@
           "timeout": "分析任务等待超时，请稍后重试",
           "missingTaskId": "分析任务创建成功，但未返回 TaskID",
           "unknownStatus": "未知任务状态：{status}",
-          "translationInvalid": "中文翻译未通过校验，已显示英文报告。",
-          "translationFailed": "中文翻译执行失败，已显示英文报告。"
+          "translationPending": "中文报告仍在生成，请稍后刷新。",
+          "translationInvalid": "中文翻译未通过校验，请检查翻译任务。",
+          "translationFailed": "中文翻译执行失败，请稍后重试。"
         },
         "header": {
           "badge": "FIXED",
@@ -3129,6 +3130,10 @@
           "empty": {
             "none": "无",
             "noReport": "暂无报告数据。",
+            "localizedPending": "中文报告生成中，请稍候。",
+            "localizedInvalid": "中文报告未通过校验。",
+            "localizedFailed": "中文报告生成失败。",
+            "localizedMissing": "暂无中文报告数据。",
             "noStory": "暂无故事线",
             "noFindings": "暂无发现",
             "noIocs": "暂无 IOC",

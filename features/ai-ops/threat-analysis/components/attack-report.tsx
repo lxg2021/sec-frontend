@@ -18,13 +18,35 @@ function shouldUseLocalizedReport(locale: string) {
   return locale.toLowerCase().startsWith("zh")
 }
 
+function normalizeTaskStatus(status?: string) {
+  return status?.trim().toLowerCase() || "unknown"
+}
+
+function localizedEmptyMessageKey(task: ReportTask) {
+  const status = normalizeTaskStatus(task.localized_status)
+
+  if (status === "pending" || status === "running") {
+    return "empty.localizedPending"
+  }
+
+  if (status === "invalid") {
+    return "empty.localizedInvalid"
+  }
+
+  if (status === "failed") {
+    return "empty.localizedFailed"
+  }
+
+  return "empty.localizedMissing"
+}
+
 export function AttackReport({ task }: { task: ReportTask }) {
   const t = useTranslations("pages.aiops.threatAnalysis.report")
   const locale = useLocale()
   const useLocalizedReport = shouldUseLocalizedReport(locale)
   const parsedLocalizedReport = task.localized_report ?? parseMaybeJson<AttackAIReport>(task.localized_report_json)
   const parsedCanonicalReport = task.report ?? parseMaybeJson<AttackAIReport>(task.report_json)
-  const parsedReport = useLocalizedReport ? parsedLocalizedReport ?? parsedCanonicalReport : parsedCanonicalReport
+  const parsedReport = useLocalizedReport ? parsedLocalizedReport : parsedCanonicalReport
   const report = parsedReport ? normalizeAttackReport(parsedReport) : null
   const canonicalValidation = task.validation ?? parseMaybeJson<ReportValidation>(task.validation_json) ?? null
 
@@ -33,7 +55,7 @@ export function AttackReport({ task }: { task: ReportTask }) {
       <article className="w-full">
         <div className="py-8">
           <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
-            {t("empty.noReport")}
+            {t(useLocalizedReport ? localizedEmptyMessageKey(task) : "empty.noReport")}
           </div>
         </div>
       </article>
