@@ -117,8 +117,9 @@ function AnalysisProgressState({
           <span className="absolute inset-[13px] animate-[ai-core-reverse_7s_linear_infinite] rounded-full border border-dashed border-slate-300/80" />
           <span className="absolute inset-[22px] rounded-full bg-[radial-gradient(circle_at_35%_25%,#ffffff,rgba(248,250,252,0.96)_48%,rgba(226,232,240,0.78))] shadow-inner shadow-slate-200" />
           <span className="absolute inset-[24px] animate-[ai-core-glow_2.4s_ease-in-out_infinite] rounded-full bg-[conic-gradient(from_135deg,rgba(37,99,235,0.18),rgba(148,163,184,0.14),rgba(14,165,233,0.12),rgba(37,99,235,0.18))]" />
-          <div className="absolute inset-[31px] flex items-center justify-center rounded-full bg-white/95 text-blue-600 ring-1 ring-slate-200 shadow-[inset_0_1px_12px_rgba(15,23,42,0.08)]">
-            <BrainCircuit className="h-7 w-7 stroke-[1.75]" />
+          <div className="absolute inset-[31px] flex items-center justify-center overflow-hidden rounded-full bg-[radial-gradient(circle_at_35%_25%,#60a5fa_0%,#2563eb_52%,#1d4ed8_100%)] text-white ring-1 ring-blue-300/80 shadow-[0_10px_24px_rgba(37,99,235,0.34),0_0_18px_rgba(14,165,233,0.26),inset_0_1px_8px_rgba(255,255,255,0.34)]">
+            <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,0.46),transparent_36%)]" />
+            <BrainCircuit className="relative h-7 w-7 stroke-[2.05]" />
           </div>
         </div>
         <div className="text-base font-semibold text-slate-950">{t("progressTitle")}</div>
