@@ -2,7 +2,7 @@ import { ListChecks } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type { RecommendedAction } from "@/features/ai-ops/threat-analysis/report-types"
-import { Section } from "@/features/ai-ops/threat-analysis/components/report/section"
+import { Section, SectionEmptyState } from "@/features/ai-ops/threat-analysis/components/report/section"
 import { EvidenceRefs } from "@/features/ai-ops/threat-analysis/components/report/severity-badge"
 
 export function RecommendedActions({ actions }: { actions: RecommendedAction[] }) {
@@ -17,9 +17,11 @@ export function RecommendedActions({ actions }: { actions: RecommendedAction[] }
       count={actions.length}
       description={t("actions.description")}
     >
+      {!sorted.length ? <SectionEmptyState>{t("empty.noActions")}</SectionEmptyState> : null}
+      {sorted.length ? (
       <ol className="space-y-3">
-        {sorted.map((action) => (
-          <li key={action.priority} className="flex gap-4 rounded-lg border border-border bg-card p-4">
+        {sorted.map((action, index) => (
+          <li key={`${action.priority}-${action.title}-${index}`} className="flex gap-4 rounded-lg border border-border bg-card p-4">
             <div className="flex flex-col items-center">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-mono text-sm font-bold text-primary-foreground">
                 {action.priority}
@@ -36,6 +38,7 @@ export function RecommendedActions({ actions }: { actions: RecommendedAction[] }
           </li>
         ))}
       </ol>
+      ) : null}
     </Section>
   )
 }

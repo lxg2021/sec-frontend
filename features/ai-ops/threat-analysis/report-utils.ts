@@ -1,4 +1,4 @@
-import type { Severity } from "@/features/ai-ops/threat-analysis/report-types"
+import type { AttackAIReport, Severity } from "@/features/ai-ops/threat-analysis/report-types"
 
 export const severityStyles: Record<Severity, { badge: string; dot: string; text: string }> = {
   critical: {
@@ -28,12 +28,16 @@ export const severityStyles: Record<Severity, { badge: string; dot: string; text
   },
 }
 
-export function confidencePct(value: number) {
-  return Math.round(value * 100)
+export function confidencePct(value?: number | null) {
+  const normalized = typeof value === "number" && Number.isFinite(value) ? value : 0
+
+  return Math.min(100, Math.max(0, Math.round(normalized * 100)))
 }
 
 export function normalizeSeverity(value?: string | null): Severity {
-  return value === "critical" || value === "high" || value === "medium" || value === "low" ? value : "info"
+  return value === "critical" || value === "high" || value === "medium" || value === "low" || value === "info"
+    ? value
+    : "info"
 }
 
 export function parseMaybeJson<T>(value?: string | null) {
@@ -42,5 +46,24 @@ export function parseMaybeJson<T>(value?: string | null) {
     return JSON.parse(value) as T
   } catch {
     return null
+  }
+}
+
+export function ensureArray<T>(value?: T[] | null) {
+  return Array.isArray(value) ? value : []
+}
+
+export function normalizeAttackReport(report: Partial<AttackAIReport>): AttackAIReport {
+  return {
+    ...report,
+    risk_level: normalizeSeverity(report.risk_level),
+    confidence: typeof report.confidence === "number" && Number.isFinite(report.confidence) ? report.confidence : undefined,
+    attack_story: ensureArray(report.attack_story),
+    key_findings: ensureArray(report.key_findings),
+    iocs: ensureArray(report.iocs),
+    affected_assets: ensureArray(report.affected_assets),
+    recommended_actions: ensureArray(report.recommended_actions),
+    hypotheses: ensureArray(report.hypotheses),
+    limitations: ensureArray(report.limitations),
   }
 }

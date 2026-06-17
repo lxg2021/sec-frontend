@@ -5,7 +5,7 @@ import { cn } from "@/shared/lib/utils"
 import type { AttackStoryStep } from "@/features/ai-ops/threat-analysis/report-types"
 import { normalizeSeverity, severityStyles } from "@/features/ai-ops/threat-analysis/report-utils"
 import { ConfidenceMeter } from "@/features/ai-ops/threat-analysis/components/report/confidence-meter"
-import { Section } from "@/features/ai-ops/threat-analysis/components/report/section"
+import { Section, SectionEmptyState } from "@/features/ai-ops/threat-analysis/components/report/section"
 import { EvidenceRefs, SeverityBadge } from "@/features/ai-ops/threat-analysis/components/report/severity-badge"
 
 export function AttackStory({ steps }: { steps: AttackStoryStep[] }) {
@@ -19,6 +19,8 @@ export function AttackStory({ steps }: { steps: AttackStoryStep[] }) {
       count={steps.length}
       description={t("story.description")}
     >
+      {!steps.length ? <SectionEmptyState>{t("empty.noStory")}</SectionEmptyState> : null}
+      {steps.length ? (
       <ol className="relative space-y-4 pl-2">
         {steps.map((step, index) => {
           const severity = normalizeSeverity(step.severity)
@@ -26,7 +28,7 @@ export function AttackStory({ steps }: { steps: AttackStoryStep[] }) {
           const isLast = index === steps.length - 1
 
           return (
-            <li key={step.step} className="relative pl-8">
+            <li key={`${step.step}-${step.title}`} className="relative pl-8">
               {!isLast ? <span className="absolute left-[11px] top-7 h-[calc(100%+1rem)] w-px bg-border" aria-hidden /> : null}
               <span
                 className={cn(
@@ -52,6 +54,7 @@ export function AttackStory({ steps }: { steps: AttackStoryStep[] }) {
           )
         })}
       </ol>
+      ) : null}
     </Section>
   )
 }

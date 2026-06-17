@@ -38,3 +38,11 @@ export function Section({
     </section>
   )
 }
+
+export function SectionEmptyState({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-lg border border-dashed border-border bg-card/60 px-4 py-8 text-center text-sm text-muted-foreground">
+      {children}
+    </div>
+  )
+}

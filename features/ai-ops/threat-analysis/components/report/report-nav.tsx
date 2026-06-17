@@ -5,29 +5,34 @@ import { useTranslations } from "next-intl"
 
 import { cn } from "@/shared/lib/utils"
 
+const NAV_ITEMS = [
+  { id: "attack-story", labelKey: "nav.attackStory" },
+  { id: "key-findings", labelKey: "nav.keyFindings" },
+  { id: "iocs", labelKey: "nav.iocs" },
+  { id: "assets", labelKey: "nav.assets" },
+  { id: "actions", labelKey: "nav.actions" },
+  { id: "hypotheses", labelKey: "nav.hypotheses" },
+  { id: "limitations", labelKey: "nav.limitations" },
+] as const
+
+type NavItemId = (typeof NAV_ITEMS)[number]["id"]
+
 export function ReportNav() {
   const t = useTranslations("pages.aiops.threatAnalysis.report")
-  const items = [
-    { id: "attack-story", label: t("nav.attackStory") },
-    { id: "key-findings", label: t("nav.keyFindings") },
-    { id: "iocs", label: t("nav.iocs") },
-    { id: "assets", label: t("nav.assets") },
-    { id: "actions", label: t("nav.actions") },
-    { id: "hypotheses", label: t("nav.hypotheses") },
-    { id: "limitations", label: t("nav.limitations") },
-  ]
-  const [active, setActive] = useState(items[0].id)
+  const [active, setActive] = useState<NavItemId>(NAV_ITEMS[0].id)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) setActive(entry.target.id)
+          if (entry.isIntersecting && NAV_ITEMS.some((item) => item.id === entry.target.id)) {
+            setActive(entry.target.id as NavItemId)
+          }
         })
       },
       { rootMargin: "-20% 0px -70% 0px" },
     )
-    items.forEach((item) => {
+    NAV_ITEMS.forEach((item) => {
       const el = document.getElementById(item.id)
       if (el) observer.observe(el)
     })
@@ -39,7 +44,7 @@ export function ReportNav() {
       <div className="sticky top-8">
         <p className="mb-3 px-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{t("nav.title")}</p>
         <ul className="space-y-0.5">
-          {items.map((item) => (
+          {NAV_ITEMS.map((item) => (
             <li key={item.id}>
               <a
                 href={`#${item.id}`}
@@ -50,7 +55,7 @@ export function ReportNav() {
                     : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
-                {item.label}
+                {t(item.labelKey)}
               </a>
             </li>
           ))}

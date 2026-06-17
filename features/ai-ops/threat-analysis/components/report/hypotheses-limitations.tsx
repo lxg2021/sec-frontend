@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl"
 
 import type { Hypothesis } from "@/features/ai-ops/threat-analysis/report-types"
 import { ConfidenceMeter } from "@/features/ai-ops/threat-analysis/components/report/confidence-meter"
-import { Section } from "@/features/ai-ops/threat-analysis/components/report/section"
+import { Section, SectionEmptyState } from "@/features/ai-ops/threat-analysis/components/report/section"
 import { EvidenceRefs } from "@/features/ai-ops/threat-analysis/components/report/severity-badge"
 
 export function HypothesesAndLimitations({ hypotheses, limitations }: { hypotheses: Hypothesis[]; limitations: string[] }) {
@@ -18,9 +18,11 @@ export function HypothesesAndLimitations({ hypotheses, limitations }: { hypothes
         count={hypotheses.length}
         description={t("hypotheses.description")}
       >
+        {!hypotheses.length ? <SectionEmptyState>{t("empty.noHypotheses")}</SectionEmptyState> : null}
+        {hypotheses.length ? (
         <div className="grid gap-3 md:grid-cols-2">
-          {hypotheses.map((hypothesis) => (
-            <div key={hypothesis.title} className="rounded-lg border border-dashed border-border bg-card/60 p-4">
+          {hypotheses.map((hypothesis, index) => (
+            <div key={`${hypothesis.title}-${index}`} className="rounded-lg border border-dashed border-border bg-card/60 p-4">
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-sm font-semibold text-foreground">{hypothesis.title}</h3>
                 <ConfidenceMeter value={hypothesis.confidence} />
@@ -32,6 +34,7 @@ export function HypothesesAndLimitations({ hypotheses, limitations }: { hypothes
             </div>
           ))}
         </div>
+        ) : null}
       </Section>
 
       <Section
@@ -41,6 +44,8 @@ export function HypothesesAndLimitations({ hypotheses, limitations }: { hypothes
         count={limitations.length}
         description={t("limitations.description")}
       >
+        {!limitations.length ? <SectionEmptyState>{t("empty.noLimitations")}</SectionEmptyState> : null}
+        {limitations.length ? (
         <ul className="space-y-2 rounded-lg border border-border bg-card p-4">
           {limitations.map((item, index) => (
             <li key={index} className="flex gap-3 text-sm leading-relaxed">
@@ -49,6 +54,7 @@ export function HypothesesAndLimitations({ hypotheses, limitations }: { hypothes
             </li>
           ))}
         </ul>
+        ) : null}
       </Section>
     </>
   )

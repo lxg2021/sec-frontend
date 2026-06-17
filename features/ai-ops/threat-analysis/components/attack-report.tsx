@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { ReportOverviewHeader } from "@/features/ai-ops/threat-analysis/components/report-overview-header"
 import { ReportBody } from "@/features/ai-ops/threat-analysis/components/report/report-body"
 import { ReportNav } from "@/features/ai-ops/threat-analysis/components/report/report-nav"
@@ -8,12 +10,14 @@ import type {
   AttackAIReportTask,
   ReportValidation,
 } from "@/features/ai-ops/threat-analysis/report-types"
-import { parseMaybeJson } from "@/features/ai-ops/threat-analysis/report-utils"
+import { normalizeAttackReport, parseMaybeJson } from "@/features/ai-ops/threat-analysis/report-utils"
 
 type ReportTask = AttackAIReportTask
 
 export function AttackReport({ task }: { task: ReportTask }) {
-  const report = task.report ?? parseMaybeJson<AttackAIReport>(task.report_json)
+  const t = useTranslations("pages.aiops.threatAnalysis.report")
+  const parsedReport = task.report ?? parseMaybeJson<AttackAIReport>(task.report_json)
+  const report = parsedReport ? normalizeAttackReport(parsedReport) : null
   const validation = task.validation ?? parseMaybeJson<ReportValidation>(task.validation_json) ?? null
 
   if (!report) {
@@ -21,7 +25,7 @@ export function AttackReport({ task }: { task: ReportTask }) {
       <article className="mx-auto w-full max-w-[120rem]">
         <div className="px-4 py-8 sm:px-6 lg:px-8">
           <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
-            No report data.
+            {t("empty.noReport")}
           </div>
         </div>
       </article>

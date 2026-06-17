@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl"
 
 import type { AffectedAsset } from "@/features/ai-ops/threat-analysis/report-types"
 import { CopyButton } from "@/features/ai-ops/threat-analysis/components/report/copy-button"
-import { Section } from "@/features/ai-ops/threat-analysis/components/report/section"
+import { Section, SectionEmptyState } from "@/features/ai-ops/threat-analysis/components/report/section"
 import { EvidenceRefs } from "@/features/ai-ops/threat-analysis/components/report/severity-badge"
 
 export function AffectedAssets({ assets }: { assets: AffectedAsset[] }) {
@@ -17,9 +17,11 @@ export function AffectedAssets({ assets }: { assets: AffectedAsset[] }) {
       count={assets.length}
       description={t("assets.description")}
     >
+      {!assets.length ? <SectionEmptyState>{t("empty.noAssets")}</SectionEmptyState> : null}
+      {assets.length ? (
       <div className="grid gap-3 lg:grid-cols-2">
-        {assets.map((asset) => (
-          <div key={asset.agent_id} className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-start">
+        {assets.map((asset, index) => (
+          <div key={`${asset.agent_id}-${index}`} className="flex flex-col gap-4 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-start">
             <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-center sm:gap-2">
               <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-destructive/40 bg-destructive/15 text-destructive">
                 <Server className="h-6 w-6" aria-hidden />
@@ -46,6 +48,7 @@ export function AffectedAssets({ assets }: { assets: AffectedAsset[] }) {
           </div>
         ))}
       </div>
+      ) : null}
     </Section>
   )
 }

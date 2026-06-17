@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl"
 
 import type { Ioc, IocType } from "@/features/ai-ops/threat-analysis/report-types"
 import { CopyButton } from "@/features/ai-ops/threat-analysis/components/report/copy-button"
-import { Section } from "@/features/ai-ops/threat-analysis/components/report/section"
+import { Section, SectionEmptyState } from "@/features/ai-ops/threat-analysis/components/report/section"
 
 const iocIcon: Record<IocType, typeof Globe> = {
   ip: Globe,
@@ -28,6 +28,8 @@ export function IocTable({ iocs }: { iocs: Ioc[] }) {
       count={iocs.length}
       description={t("iocs.description")}
     >
+      {!iocs.length ? <SectionEmptyState>{t("empty.noIocs")}</SectionEmptyState> : null}
+      {iocs.length ? (
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         <div className="hidden grid-cols-[7rem_1fr_8rem] gap-4 border-b border-border bg-muted/40 px-4 py-2.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground md:grid">
           <span>{t("iocHeaders.type")}</span>
@@ -53,6 +55,7 @@ export function IocTable({ iocs }: { iocs: Ioc[] }) {
           })}
         </ul>
       </div>
+      ) : null}
     </Section>
   )
 }
