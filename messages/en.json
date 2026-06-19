@@ -132,6 +132,7 @@
     "attack": "Attack Trace",
     "attdash": "Attack Overview",
     "attdetail": "Attack Details",
+    "attworkflow": "AttackWorkflow",
     "attdrill": "Trace Details",
     "attpositioning": "Data Positioning",
     "response": "Response",
@@ -755,6 +756,7 @@
           "description": "View attack cases, stages, techniques, and hit scale by timeline",
           "empty": "No attack cases",
           "viewDetail": "View Details",
+          "workflowAction": "Workflow",
           "traceAction": "Trace Attack",
           "aiAnalysisAction": "AI Analysis",
           "loadMore": "Load More",
@@ -882,6 +884,120 @@
             "loadFailed": "Failed to load host info",
             "failedFallback": "Failed to load host info.",
             "notFound": "Host not found: {host}"
+          }
+        },
+        "workflow": {
+          "title": "Attack workflow closure",
+          "loadingTitle": "Loading attack workflow",
+          "loadingDescription": "Fetching lifecycle status, action results, and audit events.",
+          "emptyInputTitle": "No CaseID or WorkflowID",
+          "emptyInputDescription": "Enter a CaseID or WorkflowID to inspect the attack workflow.",
+          "notFoundTitle": "Attack workflow not found",
+          "notFoundDescription": "No attack workflow was found for the current CaseID or WorkflowID.",
+          "loadFailed": "Failed to load attack workflow",
+          "retry": "Retry",
+          "refresh": "Refresh",
+          "unknown": "Unknown",
+          "unknownStatus": "Unknown status",
+          "closeReason": "Close reason",
+          "notRecorded": "Not recorded",
+          "noTransitions": "No available lifecycle transition for the current status.",
+          "noTransitionsClosed": "This attack workflow is closed.",
+          "transitionTitle": "Lifecycle transition",
+          "transitionDescription": "Advance the whole attack workflow status for this Case.",
+          "recommendedAction": "Next: {status}",
+          "updateSuccess": "Workflow status updated to {status}",
+          "updateFailed": "Failed to update workflow status",
+          "summary": {
+            "instances": "{count} instances",
+            "groups": "{count} groups",
+            "rules": "{count} rules",
+            "empty": "No scope summary"
+          },
+          "statuses": {
+            "detected": "Detected",
+            "investigating": "Investigating",
+            "confirmed": "Confirmed",
+            "forensics": "Forensics",
+            "responding": "Responding",
+            "contained": "Contained",
+            "remediated": "Remediated",
+            "closed": "Closed"
+          },
+          "meta": {
+            "tenantId": "Tenant",
+            "root": "Root",
+            "primaryAgent": "Primary agent",
+            "updatedAt": "Updated",
+            "agents": "Agents",
+            "rules": "Rules",
+            "instances": "Instances",
+            "groups": "Groups"
+          },
+          "events": {
+            "title": "Events ({count})",
+            "empty": "No workflow audit events.",
+            "time": "Time",
+            "transition": "Transition",
+            "comment": "Comment / payload",
+            "operator": "Operator"
+          },
+          "actions": {
+            "title": "Actions ({count})",
+            "empty": "No workflow actions.",
+            "actionId": "Action ID",
+            "batchId": "Batch ID",
+            "target": "Target",
+            "agentId": "Agent",
+            "requestedAt": "Requested",
+            "executedAt": "Executed",
+            "createdBy": "Created by",
+            "updatedAt": "Updated"
+          },
+          "actionRefs": {
+            "investigationJobId": "Investigation job",
+            "investigationTraceId": "Investigation trace",
+            "forensicPlanId": "Forensic plan",
+            "forensicExecutionId": "Forensic execution",
+            "forensicTaskId": "Forensic task",
+            "forensicTraceId": "Forensic trace",
+            "artifactUri": "Artifact URI",
+            "previewId": "Preview ID",
+            "executionId": "Execution ID",
+            "executeTaskId": "Execute task",
+            "pmcTraceId": "PMC trace"
+          },
+          "actionStatuses": {
+            "pending": "Pending",
+            "running": "Running",
+            "success": "Success",
+            "failed": "Failed",
+            "skipped": "Skipped"
+          },
+          "closeReasons": {
+            "resolved": "Resolved",
+            "false_positive": "False positive",
+            "duplicate": "Duplicate",
+            "accepted_risk": "Accepted risk",
+            "other": "Other"
+          },
+          "dialog": {
+            "title": "Update to {status}",
+            "description": "Current status is {from}; target status is {to}.",
+            "closeReasonLabel": "Close reason",
+            "commentLabel": "Status note",
+            "commentPlaceholder": "Record investigation conclusion, evidence, or operation note.",
+            "commentHint": "The note is stored in payload_json as audit context.",
+            "cancel": "Cancel",
+            "confirm": "Confirm update",
+            "closeReasonRequired": "Close reason is required."
+          },
+          "debug": {
+            "title": "Attack workflow debug",
+            "description": "Load a workflow by CaseID or WorkflowID and test the lifecycle closure panel.",
+            "caseIdPlaceholder": "CaseID",
+            "workflowIdPlaceholder": "WorkflowID, optional",
+            "load": "Load"
           }
         },
         "stageDetails": {

@@ -34,7 +34,11 @@ import { Input } from "@/shared/ui/input"
 import { TooltipProvider } from "@/shared/ui/tooltip"
 import { toast } from "@/shared/hooks/use-toast"
 import { AttackCaseRow } from "./attack-case-row"
-import { buildAIAnalysisHref, buildTraceHref } from "../utils/attack-case-format"
+import {
+  buildAIAnalysisHref,
+  buildAttackWorkflowHref,
+  buildTraceHref,
+} from "../utils/attack-case-format"
 import { dedupeAttackCaseItems } from "../utils/attack-case-list-data"
 
 export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/types"
@@ -42,6 +46,7 @@ export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/type
 interface AttackCaseListProps {
   items: AttackCaseTimelineSummary[]
   onViewDetail?: (caseId: string) => void
+  onCaseSelect?: (caseId: string) => void
   className?: string
   snapshotId?: string
   targetCaseId?: string
@@ -62,6 +67,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 export function AttackCaseList({
   items,
   onViewDetail,
+  onCaseSelect,
   className,
   snapshotId = "",
   targetCaseId = "",
@@ -176,6 +182,7 @@ export function AttackCaseList({
   function handleSelectCase(caseId: string) {
     setSelectedCaseId(caseId)
     setCaseIdQuery(caseId)
+    onCaseSelect?.(caseId)
   }
 
   function handleViewDetail(caseId: string) {
@@ -187,6 +194,11 @@ export function AttackCaseList({
     }
 
     router.push(buildTraceHref(caseId, snapshotId))
+  }
+
+  function handleWorkflow(caseId: string) {
+    handleSelectCase(caseId)
+    router.push(buildAttackWorkflowHref(caseId, snapshotId))
   }
 
   function handleAIAnalysis(caseId: string) {
@@ -213,6 +225,7 @@ export function AttackCaseList({
     const matched = caseItems[matchedIndex]
     setSelectedCaseId(matched.case_id)
     setCaseIdQuery(matched.case_id)
+    onCaseSelect?.(matched.case_id)
     setPage(Math.floor(matchedIndex / pageSize) + 1)
     setPendingScrollCaseId(matched.case_id)
   }
@@ -303,6 +316,7 @@ export function AttackCaseList({
                 selected={item.case_id === selectedCaseId}
                 onSelect={handleSelectCase}
                 onViewDetail={handleViewDetail}
+                onWorkflow={handleWorkflow}
                 onAIAnalysis={handleAIAnalysis}
                 onCaseUpdated={handleCaseUpdated}
               />

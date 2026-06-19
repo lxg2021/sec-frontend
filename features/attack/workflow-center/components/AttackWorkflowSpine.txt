@@ -1,0 +1,700 @@
+AttackWorkflowSpine Component Requirements for v0.dev
+
+Purpose
+This document is a detailed implementation prompt for v0.dev.
+Generate a reusable React + TypeScript + Tailwind component named AttackWorkflowSpine.
+The component is used in a security operations product to show the lifecycle progress of one attack case.
+
+The component must be practical, dense, and operational. It is not a marketing component.
+It must help a security operator quickly understand:
+1. Which lifecycle state the attack workflow is currently in.
+2. Which lifecycle states have already been reached.
+3. Which lifecycle states are still pending.
+4. Which timestamp belongs to each lifecycle state.
+5. Whether the workflow data looks incomplete or inconsistent.
+6. What the recommended next lifecycle state is, if provided by the parent.
+
+Target stack
+- React
+- TypeScript
+- Next.js frontend
+- Tailwind CSS
+- shadcn/ui compatible styling
+- lucide-react icons
+
+Important product context
+This is part of an AttackWorkflow control center for a security operations platform.
+The complete lifecycle is:
+detected -> investigating -> confirmed -> forensics -> responding -> contained -> remediated -> closed
+
+The component is a lifecycle spine, not a full page.
+It should fit inside an existing card section such as "Workflow spine".
+Do not create a landing page.
+Do not create fake navigation.
+Do not call backend APIs.
+Do not mutate workflow state inside this component.
+Do not implement dialogs, toast, fetch, or status update requests.
+
+File and export
+Create a component that can live in:
+features/attack/workflow-center/components/attack-workflow-spine.tsx
+
+Export:
+export function AttackWorkflowSpine(...)
+
+The component should be usable like this:
+
+<AttackWorkflowSpine
+  workflow={workflow}
+  loading={loading}
+  recommendedStatus={recommendedStatus}
+/>
+
+If interactive mode is enabled:
+
+<AttackWorkflowSpine
+  workflow={workflow}
+  loading={loading}
+  recommendedStatus={recommendedStatus}
+  interactive
+  onStatusClick={(status) => openStatusDialog(status)}
+/>
+
+Primary responsibility
+AttackWorkflowSpine is responsible for rendering lifecycle status nodes only.
+The parent component remains responsible for:
+- Fetching workflow data.
+- Calling update status APIs.
+- Opening status update dialogs.
+- Showing page cards and page-level headers.
+- Showing current stage action buttons.
+- Showing action list and event timeline.
+
+Required component API
+Use this props interface:
+
+type AttackWorkflowStatus =
+  | "detected"
+  | "investigating"
+  | "confirmed"
+  | "forensics"
+  | "responding"
+  | "contained"
+  | "remediated"
+  | "closed"
+
+interface AttackWorkflowItem {
+  workflow_id: string
+  tenant_id: string
+  root_type: string
+  root_id: string
+  case_id: string
+  status: AttackWorkflowStatus | string
+  severity: string
+  title: string
+  primary_agent_id: string
+  agent_ids: string[]
+  rule_ids: string[]
+  detected_at: string
+  investigation_started_at: string
+  confirmed_at: string
+  forensic_started_at: string
+  response_started_at: string
+  contained_at: string
+  remediated_at: string
+  closed_at: string
+  close_reason: string
+  created_by: string
+  created_at: string
+  updated_at: string
+  instance_ids: string[]
+  group_ids: string[]
+}
+
+interface AttackWorkflowSpineProps {
+  workflow: AttackWorkflowItem | null
+  loading?: boolean
+  recommendedStatus?: AttackWorkflowStatus | null
+  density?: "dense" | "comfortable" | "compact"
+  layout?: "auto" | "horizontal" | "vertical"
+  interactive?: boolean
+  className?: string
+  onStatusClick?: (status: AttackWorkflowStatus) => void
+}
+
+Default prop values:
+- loading: false
+- recommendedStatus: null
+- density: "dense"
+- layout: "auto"
+- interactive: false
+
+Lifecycle nodes
+The component must always render these 8 standard nodes in this exact order:
+
+const ATTACK_WORKFLOW_STATUSES: AttackWorkflowStatus[] = [
+  "detected",
+  "investigating",
+  "confirmed",
+  "forensics",
+  "responding",
+  "contained",
+  "remediated",
+  "closed",
+]
+
+Display labels:
+detected: "Detected"
+investigating: "Investigating"
+confirmed: "Confirmed"
+forensics: "Forensics"
+responding: "Responding"
+contained: "Contained"
+remediated: "Remediated"
+closed: "Closed"
+
+Timestamp mapping:
+detected -> workflow.detected_at
+investigating -> workflow.investigation_started_at
+confirmed -> workflow.confirmed_at
+forensics -> workflow.forensic_started_at
+responding -> workflow.response_started_at
+contained -> workflow.contained_at
+remediated -> workflow.remediated_at
+closed -> workflow.closed_at
+
+Time formatting
+Implement a small local formatter if project utilities are not available.
+The formatter should:
+1. Trim the input string.
+2. Return "not recorded" when the value is empty.
+3. Return "not recorded" when the value starts with "0001-01-01".
+4. If the value matches "YYYY-MM-DD HH:mm:ss" or "YYYY-MM-DDTHH:mm:ss", show "YYYY-MM-DD HH:mm:ss".
+5. If seconds are missing, show "YYYY-MM-DD HH:mm".
+6. If parsing fails, show the original trimmed value.
+
+Do not use browser locale formatting for these timestamps.
+The display must be stable across browsers and machines.
+
+Status normalization
+Normalize workflow.status by trimming and lowercasing.
+A valid status is one of the 8 standard statuses.
+Unknown statuses must not crash the component.
+
+Node state model
+Each node should compute one of these visual states:
+
+type SpineNodeState =
+  | "current"
+  | "completed"
+  | "recorded"
+  | "pending"
+  | "recommended"
+  | "inconsistent"
+  | "unknown"
+
+State rules:
+1. If workflow is null and loading is true, render loading state instead of nodes.
+2. If workflow is null and loading is false, render empty state instead of nodes.
+3. If workflow.status is a known lifecycle status:
+   - The node matching workflow.status is "current".
+   - Nodes before the current status are "completed".
+   - Nodes after the current status are "pending".
+   - If a node after the current status already has a valid timestamp, it should be "recorded" or "inconsistent".
+   - If a node before the current status has no valid timestamp, it can still be "completed" because the lifecycle status implies it was passed, but show "not recorded" under it.
+4. If workflow.status is unknown:
+   - No node should be "current".
+   - Nodes with valid timestamps should be "recorded".
+   - Nodes without valid timestamps should be "pending".
+   - Show a compact warning message: "Unknown workflow status: {workflow.status}".
+5. If recommendedStatus equals a node status:
+   - Do not override "current".
+   - Show a small "Next" badge on that node if it is not current.
+   - The node may still use its base state color. The "Next" badge is enough.
+6. If workflow.status is "closed":
+   - Closed should be current if status is closed.
+   - If workflow.close_reason exists, show it as compact helper text near the closed node or in a small footer line.
+   - Do not make the closed node huge.
+
+Visual language
+This is a security operations UI.
+The design must be calm, dense, and clear.
+Avoid decorative gradients, oversized cards, marketing hero style, or large empty areas.
+Use restrained borders, subtle background colors, and compact typography.
+
+Use icons from lucide-react.
+Do not use emoji.
+Do not draw custom SVGs.
+
+Recommended icons:
+- current: Clock3
+- completed: CheckCircle2
+- recorded: CheckCircle2 or CircleDot
+- pending: Circle
+- recommended next badge: ArrowRight
+- inconsistent: AlertTriangle
+- unknown: ShieldQuestion
+- closed: ShieldCheck or CheckCircle2
+- loading: Loader2
+
+Node color rules
+Use color to support the meaning, but do not rely on color alone.
+Each state must also have text or an icon.
+
+Suggested Tailwind tones:
+
+current:
+border-blue-200 bg-blue-50 text-blue-700
+
+completed:
+border-emerald-200 bg-emerald-50 text-emerald-700
+
+recorded:
+border-cyan-200 bg-cyan-50 text-cyan-700
+
+pending:
+border-slate-200 bg-slate-50 text-slate-400
+
+recommended badge:
+border-blue-200 bg-white text-blue-700
+
+inconsistent:
+border-amber-200 bg-amber-50 text-amber-700
+
+unknown:
+border-rose-200 bg-rose-50 text-rose-700
+
+Do not make the whole component one saturated color.
+Do not use purple/blue gradients.
+Do not use beige/brown palettes.
+
+Layout requirements
+The component must use the full width of its parent.
+Do not set mx-auto.
+Do not set a fixed max width.
+Do not center the component in a narrow container.
+
+The parent page already controls its own width.
+AttackWorkflowSpine must be:
+className includes: w-full min-w-0
+
+Default auto layout:
+- Mobile: 1 column
+- Small screens: 2 columns
+- Large screens: 4 columns
+- Very large screens: 8 columns
+
+Recommended Tailwind:
+grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-8
+
+Node sizing:
+- Each node should have stable height.
+- Use min-h around 64px to 76px for dense mode.
+- Do not allow hover, loading, or badge changes to resize the grid.
+- Use min-w-0 on all text containers.
+- Use truncate for status labels and timestamp lines.
+- Use break-all only for unknown status warning or unexpected text, not for normal status labels.
+
+Density modes
+Implement density prop:
+
+dense:
+- compact for control center
+- node padding: px-3 py-3
+- icon size: 16px
+- title text: text-sm font-semibold
+- time text: text-[11px] font-mono
+
+comfortable:
+- for detail page top sections
+- node padding: px-4 py-4
+- icon size: 18px
+- title text: text-sm or text-base
+- time text: text-xs font-mono
+
+compact:
+- for right sidebars or narrow panels
+- node padding: px-3 py-2.5
+- icon size: 14px to 16px
+- title text: text-xs or text-sm
+- time text: text-[10px] or text-[11px] font-mono
+
+Layout prop
+Implement layout prop:
+
+auto:
+- Use responsive grid described above.
+
+horizontal:
+- Prefer one row on large screens.
+- It may still wrap on small screens to avoid horizontal overflow.
+- Do not force overflow-x scrolling.
+
+vertical:
+- Render as a vertical timeline.
+- Each node appears in one column with a left-side marker and optional connector.
+- Useful for narrow sidebars.
+- Still show the same node states and timestamps.
+
+If implementing all three layouts is too much for a first version, implement auto and vertical. Horizontal can behave like auto on smaller screens.
+
+Node content requirements
+Each lifecycle node must show:
+1. Icon inside a small rounded circle.
+2. Status label.
+3. Timestamp line.
+4. Current text marker when it is the current node.
+5. Next badge if recommendedStatus matches this node and it is not current.
+
+Suggested node structure:
+
+<div className="min-w-0 rounded-xl border px-3 py-3">
+  <div className="flex min-w-0 items-center gap-2">
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-current bg-white/70">
+      <Icon className="size-4" />
+    </span>
+    <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="truncate text-sm font-semibold">Detected</span>
+        <span>Current</span>
+        <span>Next</span>
+      </div>
+      <div className="mt-0.5 truncate font-mono text-[11px] text-current/70">
+        2026-06-11 10:00:48
+      </div>
+    </div>
+  </div>
+</div>
+
+Badges inside nodes
+Current badge:
+- text: "Current"
+- class: rounded-full border border-blue-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-blue-700
+- Only show for the current node.
+
+Next badge:
+- text: "Next"
+- include ArrowRight icon only if it fits cleanly.
+- class: rounded-full border border-blue-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-blue-700
+- Only show when recommendedStatus matches the node and node is not current.
+
+Do not show too many badges in one node.
+If both Current and Next would show, Current wins.
+
+Connector requirement
+For auto/horizontal layout:
+- A connector line between nodes is optional.
+- If implemented, it must not cause layout overflow or alignment problems when wrapping.
+- Prefer no connector over a broken connector.
+
+For vertical layout:
+- Use a simple vertical line between nodes.
+- The line should be subtle, e.g. bg-slate-200.
+- Completed/current segments can use emerald/blue tones, but do not overcomplicate.
+
+Loading state
+When loading is true and workflow is null:
+- Render a stable loading placeholder.
+- Use Loader2 with animate-spin.
+- Text: "Loading AttackWorkflow..."
+- Container should be a rounded-xl dashed border block.
+- Minimum height: 7rem.
+- The loading area must use full width.
+
+Example:
+<div className="flex min-h-28 w-full items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+  <Loader2 className="mr-2 size-4 animate-spin" />
+  Loading AttackWorkflow...
+</div>
+
+Empty state
+When workflow is null and loading is false:
+- Render a stable empty placeholder.
+- Text: "No AttackWorkflow was found for this case."
+- Secondary text can be: "Open detail pages for investigation, then return after a workflow is created."
+- Do not include a CTA button in this component.
+- Parent owns navigation.
+
+Unknown status warning
+When workflow.status is not one of the 8 valid statuses:
+- Render the normal 8 nodes.
+- Show a compact warning above or below the grid:
+  "Unknown workflow status: {status}"
+- Warning style:
+  rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700
+- Long unknown status strings must wrap safely with break-all.
+
+Inconsistent data hints
+The component should detect but not overemphasize inconsistent data.
+Examples:
+- Current status is detected, but remediated_at has a valid timestamp.
+- Current status is closed, but closed_at is not recorded.
+- Later timestamp exists while earlier required timestamps are missing.
+
+For first version:
+- Do not show a large error.
+- Show a small amber hint under the grid if inconsistencies are detected.
+- Text example: "Workflow timestamps contain out-of-order or missing records."
+- It should not block rendering.
+
+Interactivity
+Default interactive is false.
+
+When interactive is false:
+- Nodes are plain div elements.
+- Do not show pointer cursor.
+- Do not include hover styles that imply the node is clickable.
+
+When interactive is true:
+- Each node should be rendered as a button.
+- The button must have type="button".
+- The button must call onStatusClick(status).
+- Use cursor-pointer.
+- Add hover background/border change.
+- Add focus-visible ring.
+- Keep the same size and layout as non-interactive nodes.
+- Current node should set aria-current="step".
+- Button accessible label example:
+  "Workflow status Detected, current, recorded at 2026-06-11 10:00:48"
+
+Important:
+Clicking a node must not update workflow directly.
+Clicking only calls onStatusClick.
+The parent decides whether a transition is allowed.
+
+Accessibility
+The component must be readable without color.
+Current and Next must be visible as text, not color only.
+Use aria-current="step" for current node when rendered as a button.
+If rendered as non-interactive divs, wrap nodes in a semantic list:
+<ol aria-label="Attack workflow lifecycle">
+  <li>...</li>
+</ol>
+
+If using buttons inside list items, keep semantics:
+<ol>
+  <li><button /></li>
+</ol>
+
+Focus rings:
+Use focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2.
+
+Touch target:
+Interactive nodes should have at least 44px height.
+
+Responsive acceptance criteria
+The generated component must pass these visual expectations:
+
+At 2560px wide parent:
+- The component uses the full parent width.
+- Auto layout shows 8 nodes in one row.
+- No large empty side margins.
+- No horizontal scroll.
+
+At 1366px viewport:
+- The component should usually show 4 columns x 2 rows.
+- No horizontal scroll.
+- Node text remains legible.
+
+At 768px viewport:
+- The component should show 2 columns or a clean wrapped layout.
+- No overlap.
+- No horizontal scroll.
+
+At 390px mobile width:
+- The component should show 1 column.
+- No horizontal scroll.
+- Long warning text wraps.
+- Buttons remain at least 44px high if interactive.
+
+Text adaptation requirements
+- Do not scale font size with viewport width.
+- Do not use negative letter spacing.
+- Status labels should truncate if necessary.
+- Timestamps should truncate if necessary.
+- Unknown status values should break-all.
+- Badges must not push layout wider than the node.
+- Node content must use min-w-0 properly.
+
+No layout anti-patterns
+Do not use:
+- mx-auto on the main component wrapper.
+- max-w-* on the main component wrapper.
+- fixed pixel width for the grid.
+- overflow-x-auto as the normal solution.
+- viewport-width based font scaling.
+- decorative gradient backgrounds.
+- nested cards inside this spine.
+- page-level Card wrapper inside this component.
+
+The parent section may wrap this component in a Card.
+This component should only render the spine content, loading state, empty state, and compact warnings.
+
+Suggested helper functions
+Implement these helpers inside the file if project utilities are unavailable:
+
+function normalizeWorkflowStatus(value: string): AttackWorkflowStatus | ""
+
+function workflowStatusIndex(status: string): number
+
+function workflowStatusTime(workflow: AttackWorkflowItem, status: AttackWorkflowStatus): string
+
+function formatWorkflowTime(value: string): string
+
+function getNodeState(params): SpineNodeState
+
+function getNodeTone(state: SpineNodeState): string
+
+function getNodeIcon(state: SpineNodeState, status: AttackWorkflowStatus)
+
+function detectTimestampInconsistency(workflow: AttackWorkflowItem): boolean
+
+Implementation guidance
+Keep the component file understandable.
+Suggested internal structure:
+
+export function AttackWorkflowSpine(props) { ... }
+
+function AttackWorkflowSpineLoading() { ... }
+
+function AttackWorkflowSpineEmpty() { ... }
+
+function AttackWorkflowSpineWarning({ status }) { ... }
+
+function AttackWorkflowSpineNode(props) { ... }
+
+function getLayoutClass(layout, density) { ... }
+
+function getDensityClasses(density) { ... }
+
+function getNodeState(...) { ... }
+
+Do not put all logic inline inside the JSX map.
+
+Use cn helper if available
+If the project has a cn helper, assume it can be imported from:
+@/shared/lib/utils
+
+If v0 cannot resolve that alias, include a local cn implementation:
+function cn(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ")
+}
+
+Do not import shadcn Card in this component
+The parent will provide Card if needed.
+This component should be embeddable in cards, sidebars, or page sections.
+
+Recommended imports
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Circle,
+  CircleDot,
+  Clock3,
+  Loader2,
+  ShieldCheck,
+  ShieldQuestion,
+} from "lucide-react"
+
+Sample data for v0 preview
+Use this only for preview/demo. Do not hardcode it into the production component as default workflow.
+
+const sampleWorkflow: AttackWorkflowItem = {
+  workflow_id: "c8b88ca55c9b24ede3ef7677547b47e6388f48f7",
+  tenant_id: "default",
+  root_type: "case",
+  root_id: "5f0bd1b552905ee7d57333119d34e741b24393fe",
+  case_id: "5f0bd1b552905ee7d57333119d34e741b24393fe",
+  status: "detected",
+  severity: "critical",
+  title: "Suspicious lateral movement",
+  primary_agent_id: "codex-agent-ioc-e2e",
+  agent_ids: ["codex-agent-ioc-e2e"],
+  rule_ids: ["8b6f5d59-7fcb-4cb6-a78f-1c9b0e2f3a11"],
+  detected_at: "2026-06-11 10:00:48",
+  investigation_started_at: "",
+  confirmed_at: "",
+  forensic_started_at: "",
+  response_started_at: "",
+  contained_at: "",
+  remediated_at: "",
+  closed_at: "",
+  close_reason: "",
+  created_by: "system",
+  created_at: "2026-06-11 10:00:48",
+  updated_at: "2026-06-11 10:00:48",
+  instance_ids: ["1404409167"],
+  group_ids: ["4092724105"],
+}
+
+Preview states v0 should show
+If v0 creates a preview page, show multiple examples:
+1. Detected workflow, recommended next investigating.
+2. Responding workflow with earlier timestamps recorded.
+3. Closed workflow with close_reason "resolved".
+4. Unknown status workflow.
+5. Loading state.
+6. Empty state.
+7. Vertical compact mode.
+
+But the final exported component must not depend on the preview data.
+
+Expected final component behavior
+Example 1:
+workflow.status = "detected"
+workflow.detected_at = "2026-06-11 10:00:48"
+recommendedStatus = "investigating"
+
+Expected visual:
+- Detected node is blue current.
+- Investigating node is pending but shows Next badge.
+- Remaining nodes are pending.
+- Detected shows timestamp.
+- Other nodes show "not recorded".
+
+Example 2:
+workflow.status = "responding"
+detected_at, investigation_started_at, confirmed_at, forensic_started_at, response_started_at all exist.
+
+Expected visual:
+- Detected, Investigating, Confirmed, Forensics are completed.
+- Responding is current.
+- Contained, Remediated, Closed are pending.
+
+Example 3:
+workflow.status = "closed"
+close_reason = "false_positive"
+
+Expected visual:
+- Closed is current.
+- Previous nodes completed.
+- Closed timestamp shown if available.
+- Close reason shown compactly, not as a large section.
+
+Example 4:
+workflow.status = "manual_override"
+
+Expected visual:
+- 8 standard nodes still render.
+- Nodes with timestamps are recorded.
+- Nodes without timestamps are pending.
+- A compact red warning says Unknown workflow status: manual_override.
+
+Quality bar
+The component must feel like a real SOC operations control component.
+It should be compact, stable, and scannable.
+It should not look like a landing page, tutorial, or marketing timeline.
+It must not waste horizontal width.
+It must not break at mobile widths.
+It must be safe with incomplete backend data.
+
+Deliverable requested from v0.dev
+Generate the full React TypeScript component code for AttackWorkflowSpine.
+Use Tailwind CSS classes.
+Use lucide-react icons.
+Make the component self-contained except for optional cn import.
+Do not include API calls.
+Do not include backend mocks in the exported component.
+Do not include a full page layout unless a separate preview is needed.
+

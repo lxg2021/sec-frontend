@@ -132,6 +132,7 @@
     "attack": "攻击溯源",
     "attdash": "攻击概览",
     "attdetail": "攻击详情",
+    "attworkflow": "攻击流程",
     "attdrill": "溯源详情",
     "attpositioning": "数据定位",
     "response": "处置响应",
@@ -757,6 +758,7 @@
           "description": "按时间线查看攻击场景、阶段、技术与命中规模",
           "empty": "暂无攻击场景",
           "viewDetail": "查看详情",
+          "workflowAction": "流程",
           "traceAction": "攻击溯源",
           "aiAnalysisAction": "AI 分析",
           "loadMore": "加载更多",
@@ -884,6 +886,120 @@
             "loadFailed": "主机信息加载失败",
             "failedFallback": "主机信息加载失败。",
             "notFound": "未找到主机: {host}"
+          }
+        },
+        "workflow": {
+          "title": "攻击闭环",
+          "loadingTitle": "正在加载攻击闭环",
+          "loadingDescription": "正在获取生命周期状态、动作结果和审计事件。",
+          "emptyInputTitle": "缺少 CaseID 或 WorkflowID",
+          "emptyInputDescription": "请输入 CaseID 或 WorkflowID 查看攻击闭环。",
+          "notFoundTitle": "未找到攻击闭环",
+          "notFoundDescription": "当前 CaseID 或 WorkflowID 没有关联的攻击闭环。",
+          "loadFailed": "攻击闭环加载失败",
+          "retry": "重试",
+          "refresh": "刷新",
+          "unknown": "未知",
+          "unknownStatus": "未知状态",
+          "closeReason": "关闭原因",
+          "notRecorded": "未记录",
+          "noTransitions": "当前状态没有可推进的生命周期转换。",
+          "noTransitionsClosed": "该攻击闭环已关闭。",
+          "transitionTitle": "生命周期推进",
+          "transitionDescription": "推进该 Case 对应的整起攻击闭环状态。",
+          "recommendedAction": "下一步：{status}",
+          "updateSuccess": "闭环状态已更新为 {status}",
+          "updateFailed": "闭环状态更新失败",
+          "summary": {
+            "instances": "{count} 个实例",
+            "groups": "{count} 个分组",
+            "rules": "{count} 条规则",
+            "empty": "暂无范围摘要"
+          },
+          "statuses": {
+            "detected": "已检出",
+            "investigating": "调查中",
+            "confirmed": "已确认",
+            "forensics": "取证中",
+            "responding": "响应中",
+            "contained": "已遏制",
+            "remediated": "已修复",
+            "closed": "已关闭"
+          },
+          "meta": {
+            "tenantId": "租户",
+            "root": "根对象",
+            "primaryAgent": "主机",
+            "updatedAt": "更新时间",
+            "agents": "主机列表",
+            "rules": "规则列表",
+            "instances": "实例列表",
+            "groups": "分组列表"
+          },
+          "events": {
+            "title": "事件 ({count})",
+            "empty": "暂无闭环审计事件。",
+            "time": "时间",
+            "transition": "状态转换",
+            "comment": "说明 / payload",
+            "operator": "操作人"
+          },
+          "actions": {
+            "title": "动作 ({count})",
+            "empty": "暂无闭环动作。",
+            "actionId": "动作 ID",
+            "batchId": "批次 ID",
+            "target": "目标",
+            "agentId": "主机",
+            "requestedAt": "请求时间",
+            "executedAt": "执行时间",
+            "createdBy": "创建者",
+            "updatedAt": "更新时间"
+          },
+          "actionRefs": {
+            "investigationJobId": "调查任务",
+            "investigationTraceId": "调查 trace",
+            "forensicPlanId": "取证计划",
+            "forensicExecutionId": "取证执行",
+            "forensicTaskId": "取证任务",
+            "forensicTraceId": "取证 trace",
+            "artifactUri": "产物 URI",
+            "previewId": "预览 ID",
+            "executionId": "执行 ID",
+            "executeTaskId": "执行任务",
+            "pmcTraceId": "PMC trace"
+          },
+          "actionStatuses": {
+            "pending": "待执行",
+            "running": "执行中",
+            "success": "成功",
+            "failed": "失败",
+            "skipped": "跳过"
+          },
+          "closeReasons": {
+            "resolved": "已解决",
+            "false_positive": "误报",
+            "duplicate": "重复 Case",
+            "accepted_risk": "接受风险",
+            "other": "其他"
+          },
+          "dialog": {
+            "title": "更新为 {status}",
+            "description": "当前状态为 {from}，目标状态为 {to}。",
+            "closeReasonLabel": "关闭原因",
+            "commentLabel": "状态说明",
+            "commentPlaceholder": "记录调查结论、证据或操作说明。",
+            "commentHint": "说明会作为审计上下文写入 payload_json。",
+            "cancel": "取消",
+            "confirm": "确认更新",
+            "closeReasonRequired": "关闭原因必填。"
+          },
+          "debug": {
+            "title": "攻击闭环调试",
+            "description": "通过 CaseID 或 WorkflowID 加载闭环，验证生命周期闭环组件。",
+            "caseIdPlaceholder": "CaseID",
+            "workflowIdPlaceholder": "WorkflowID，可选",
+            "load": "加载"
           }
         },
         "stageDetails": {

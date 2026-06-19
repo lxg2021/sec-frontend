@@ -10,10 +10,14 @@ import {
 } from "react"
 import { ArrowLeft, Loader2, Search, Shield } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
 import AttackReport from "@/features/ai-ops/threat-analysis/components/attack-report"
+import {
+  buildAttackDetailHref,
+  buildAttackWorkflowHref,
+} from "@/features/attack/detail/utils/attack-case-format"
 import {
   AnalysisProgressState,
   type AnalysisPhase,
@@ -29,6 +33,10 @@ import { Input } from "@/shared/ui/input"
 const REPORT_TIMEZONE = "Asia/Shanghai"
 const POLL_INTERVAL_MS = 2000
 const MAX_POLL_ATTEMPTS = 90
+
+function getRouteParam(value: string | null) {
+  return value?.trim() || ""
+}
 
 function normalizeTaskStatus(status?: string) {
   return status?.trim().toLowerCase() || "unknown"
@@ -76,11 +84,20 @@ function NoCaseState() {
 function CaseIdSearchToolbar() {
   const t = useTranslations("pages.aiops.threatAnalysis.search")
   const router = useRouter()
+  const searchParams = useSearchParams()
   const appLocale = useLocale()
   const reportLocale = useMemo(() => reportLocaleFromAppLocale(appLocale), [appLocale])
   const waitForLocalizedReport = shouldWaitForLocalizedReport(reportLocale)
-  const [caseId, setCaseId] = useState("")
-  const [snapshotId, setSnapshotId] = useState("")
+  const routeParams = useMemo(() => ({
+    caseId: getRouteParam(searchParams.get("caseId")) || getRouteParam(searchParams.get("case_id")),
+    snapshotId: getRouteParam(searchParams.get("snapshotId")) || getRouteParam(searchParams.get("snapshot_id")),
+    returnTo: getRouteParam(searchParams.get("returnTo")) || getRouteParam(searchParams.get("return_to")),
+    workflowId: getRouteParam(searchParams.get("workflowId")) || getRouteParam(searchParams.get("workflow_id")),
+  }), [searchParams])
+  const [caseId, setCaseId] = useState(routeParams.caseId)
+  const [snapshotId, setSnapshotId] = useState(routeParams.snapshotId)
+  const [returnTo, setReturnTo] = useState(routeParams.returnTo)
+  const [returnWorkflowId, setReturnWorkflowId] = useState(routeParams.workflowId)
   const [loading, setLoading] = useState(false)
   const [analysisPhase, setAnalysisPhase] = useState<AnalysisPhase>("creating")
   const [reportTask, setReportTask] = useState<AttackAIReportTask | null>(null)
@@ -199,18 +216,11 @@ function CaseIdSearchToolbar() {
   }, [])
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const queryCaseId = params.get("caseId")?.trim() || params.get("case_id")?.trim() || ""
-    const querySnapshotId = params.get("snapshotId")?.trim() || params.get("snapshot_id")?.trim() || ""
-
-    if (!queryCaseId) {
-      setSnapshotId(querySnapshotId)
-      return
-    }
-
-    setCaseId(queryCaseId)
-    setSnapshotId(querySnapshotId)
-  }, [])
+    setReturnTo(routeParams.returnTo)
+    setReturnWorkflowId(routeParams.workflowId)
+    setSnapshotId(routeParams.snapshotId)
+    setCaseId(routeParams.caseId)
+  }, [routeParams])
 
   useEffect(() => {
     return () => {
@@ -273,16 +283,13 @@ function CaseIdSearchToolbar() {
 
   function handleBackToAttackDetail() {
     const normalizedCaseId = caseId.trim()
-    const params = new URLSearchParams()
 
-    if (normalizedCaseId) {
-      params.set("caseId", normalizedCaseId)
-    }
-    if (snapshotId.trim()) {
-      params.set("snapshotId", snapshotId.trim())
+    if (returnTo === "workflow") {
+      router.push(buildAttackWorkflowHref(normalizedCaseId, snapshotId, returnWorkflowId))
+      return
     }
 
-    router.push(`/frame/attack/detail${params.size > 0 ? `?${params.toString()}` : ""}`)
+    router.push(normalizedCaseId ? buildAttackDetailHref(normalizedCaseId, snapshotId) : "/frame/attack/detail")
   }
 
   return (
@@ -297,11 +304,13 @@ function CaseIdSearchToolbar() {
               type="button"
               onClick={handleBackToAttackDetail}
               className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-blue-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-              title={t("backToAttackDetail")}
-              aria-label={t("backToAttackDetail")}
+              title={returnTo === "workflow" ? "Back to AttackWorkflow" : t("backToAttackDetail")}
+              aria-label={returnTo === "workflow" ? "Back to AttackWorkflow" : t("backToAttackDetail")}
             >
               <ArrowLeft className="size-4" />
-              <span className="whitespace-nowrap">{t("backToAttackDetail")}</span>
+              <span className="whitespace-nowrap">
+                {returnTo === "workflow" ? "Back to AttackWorkflow" : t("backToAttackDetail")}
+              </span>
             </button>
             <span className="mx-2 h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
             <Search className="h-4 w-4 shrink-0 text-slate-400" />

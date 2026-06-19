@@ -27,6 +27,7 @@ import {
   Server,
   ShieldAlert,
   Target,
+  Workflow,
 } from "lucide-react"
 
 import {
@@ -85,6 +86,7 @@ export function AttackCaseRow({
   selected,
   onSelect,
   onViewDetail,
+  onWorkflow,
   onAIAnalysis,
   onCaseUpdated,
 }: {
@@ -93,6 +95,7 @@ export function AttackCaseRow({
   selected?: boolean
   onSelect?: (caseId: string) => void
   onViewDetail?: (caseId: string) => void
+  onWorkflow?: (caseId: string) => void
   onAIAnalysis?: (caseId: string) => void
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
@@ -225,6 +228,10 @@ export function AttackCaseRow({
               endTime={item.end_time}
             />
             <div className="flex shrink-0 items-center justify-end gap-1.5">
+              <CaseWorkflowAction
+                disabled={!onWorkflow}
+                onClick={() => onWorkflow?.(item.case_id)}
+              />
               <CaseAIAnalysisAction
                 disabled={!onAIAnalysis}
                 onClick={() => onAIAnalysis?.(item.case_id)}
@@ -853,6 +860,35 @@ function TimeRange({
         </div>
       </div>
     </div>
+  )
+}
+
+function CaseWorkflowAction({
+  disabled,
+  onClick,
+}: {
+  disabled: boolean
+  onClick: () => void
+}) {
+  const t = useTranslations("pages.attack.dashboard.cases")
+
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      disabled={disabled}
+      onClick={(event) => {
+        event.preventDefault()
+        event.stopPropagation()
+        onClick()
+      }}
+      className="h-10 shrink-0 gap-2 rounded-full px-3 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:ring-emerald-300 disabled:text-slate-300"
+      title={t("workflowAction")}
+    >
+      <Workflow className="size-4" />
+      <span className="whitespace-nowrap">{t("workflowAction")}</span>
+    </Button>
   )
 }
 

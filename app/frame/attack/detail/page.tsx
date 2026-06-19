@@ -12,6 +12,7 @@ import {
 } from "@/features/attack/dashboard/api"
 import { AttackDetailHeader } from "@/features/attack/detail/components/attack-detail-header"
 import { AttackCaseList } from "@/features/attack/detail/components/attack-case-list"
+import { AttackWorkflowClosurePanel } from "@/features/attack/workflow"
 import {
   dedupeAttackCaseItems,
   mergeAttackCaseItems,
@@ -133,6 +134,7 @@ export default function AttackDetailPage() {
   const [caseLoadingPrevious, setCaseLoadingPrevious] = useState(false)
   const [casePageSize, setCasePageSize] = useState(DEFAULT_CASE_PAGE_SIZE)
   const [targetCaseId, setTargetCaseId] = useState("")
+  const [selectedWorkflowCaseId, setSelectedWorkflowCaseId] = useState("")
   const [anchorCaseId, setAnchorCaseId] = useState("")
   const [sourceSnapshotId, setSourceSnapshotId] = useState("")
   const loadingCasePageRequestRef = useRef<{
@@ -145,6 +147,7 @@ export default function AttackDetailPage() {
     const initialTargetCaseId = readTargetCaseIdFromLocation()
     const initialSnapshotId = readSnapshotIdFromLocation()
     setTargetCaseId(initialTargetCaseId)
+    setSelectedWorkflowCaseId(initialTargetCaseId)
     setAnchorCaseId(initialTargetCaseId)
     setSourceSnapshotId(initialSnapshotId)
     void loadDetail(undefined, casePageSize, initialTargetCaseId, initialSnapshotId)
@@ -206,7 +209,23 @@ export default function AttackDetailPage() {
       setOverview(nextOverview)
       setSourceSnapshotId(nextOverview.bucket.snapshot_id || nextSourceSnapshotId.trim())
       setData(buildDetailData(nextOverview, nextStages))
-      setCaseItems(dedupeAttackCaseItems(nextCases.items))
+      const nextCaseItems = dedupeAttackCaseItems(nextCases.items)
+      setCaseItems(nextCaseItems)
+      setSelectedWorkflowCaseId((currentCaseId) => {
+        const normalizedTargetCaseId = normalizedAnchorCaseId.toLowerCase()
+        const matchedTarget = normalizedTargetCaseId
+          ? nextCaseItems.find((item) => item.case_id.toLowerCase() === normalizedTargetCaseId)
+          : null
+        if (matchedTarget) return matchedTarget.case_id
+
+        const normalizedCurrentCaseId = currentCaseId.trim().toLowerCase()
+        const matchedCurrent = normalizedCurrentCaseId
+          ? nextCaseItems.find((item) => item.case_id.toLowerCase() === normalizedCurrentCaseId)
+          : null
+        if (matchedCurrent) return matchedCurrent.case_id
+
+        return nextCaseItems[0]?.case_id ?? ""
+      })
       setCaseNextPageToken(nextCases.page.next_page_token)
       setCasePreviousPageToken(nextCases.page.previous_page_token)
       setCaseHasMore(nextCases.page.has_more)
@@ -234,6 +253,7 @@ export default function AttackDetailPage() {
       })
       setData(EMPTY_DATA)
       setCaseItems([])
+      setSelectedWorkflowCaseId("")
       setCaseNextPageToken("")
       setCasePreviousPageToken("")
       setCaseHasMore(false)
@@ -246,6 +266,7 @@ export default function AttackDetailPage() {
     setChecking(true)
     try {
       setTargetCaseId("")
+      setSelectedWorkflowCaseId("")
       setAnchorCaseId("")
       setSourceSnapshotId(snapshot.bucket.snapshot_id || "")
       await loadDetail(snapshot, casePageSize, "")
@@ -386,6 +407,14 @@ export default function AttackDetailPage() {
         anchorCaseId: anchorCaseId.trim(),
       })
       setCaseItems(dedupeAttackCaseItems(nextCases.items))
+      setSelectedWorkflowCaseId((currentCaseId) => {
+        const nextCaseItems = dedupeAttackCaseItems(nextCases.items)
+        const normalizedCurrentCaseId = currentCaseId.trim().toLowerCase()
+        const matchedCurrent = normalizedCurrentCaseId
+          ? nextCaseItems.find((item) => item.case_id.toLowerCase() === normalizedCurrentCaseId)
+          : null
+        return matchedCurrent?.case_id ?? nextCaseItems[0]?.case_id ?? ""
+      })
       setCaseNextPageToken(nextCases.page.next_page_token)
       setCasePreviousPageToken(nextCases.page.previous_page_token)
       setCaseHasMore(nextCases.page.has_more)
@@ -434,10 +463,15 @@ export default function AttackDetailPage() {
           selectedStageSlug={selectedStageSlug}
           onSelectStage={onSelectStage}
         />
+        <AttackWorkflowClosurePanel
+          caseId={selectedWorkflowCaseId}
+          includeActions
+          includeEvents
+        />
         <AttackCaseList
           items={caseItems}
           snapshotId={overview.bucket.snapshot_id}
-          targetCaseId={targetCaseId}
+          targetCaseId={selectedWorkflowCaseId || targetCaseId}
           hasMore={caseHasMore}
           hasPrevious={caseHasPrevious}
           currentPage={caseCurrentPage}
@@ -447,6 +481,7 @@ export default function AttackDetailPage() {
           onLoadMore={handleLoadMoreCases}
           onLoadPrevious={handleLoadPreviousCases}
           onPageSizeChange={handleCasePageSizeChange}
+          onCaseSelect={setSelectedWorkflowCaseId}
         />
       </div>
     </div>

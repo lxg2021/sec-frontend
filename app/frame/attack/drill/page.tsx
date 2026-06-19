@@ -15,8 +15,12 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
+import {
+  buildAttackDetailHref,
+  buildAttackWorkflowHref,
+} from "@/features/attack/detail/utils/attack-case-format"
 import {
   AttackGraphCaseCard,
   buildAttackGraphModel,
@@ -36,6 +40,10 @@ import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
+
+function getRouteParam(value: string | null) {
+  return value?.trim() || ""
+}
 
 function CaseIdSearchToolbar({
   loading,
@@ -84,10 +92,20 @@ function CaseIdSearchToolbar({
 export default function App() {
   const t = useTranslations("pages.attack.drill")
   const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const [timelineCaseId, setTimelineCaseId] = useState("");
-  const [caseIdInput, setCaseIdInput] = useState("");
-  const [timelineSnapshotId, setTimelineSnapshotId] = useState("");
+  const routeParams = useMemo(() => ({
+    caseId: getRouteParam(searchParams.get("caseId")) || getRouteParam(searchParams.get("case_id")),
+    snapshotId: getRouteParam(searchParams.get("snapshotId")) || getRouteParam(searchParams.get("snapshot_id")),
+    returnTo: getRouteParam(searchParams.get("returnTo")) || getRouteParam(searchParams.get("return_to")),
+    workflowId: getRouteParam(searchParams.get("workflowId")) || getRouteParam(searchParams.get("workflow_id")),
+  }), [searchParams])
+
+  const [timelineCaseId, setTimelineCaseId] = useState(routeParams.caseId);
+  const [caseIdInput, setCaseIdInput] = useState(routeParams.caseId);
+  const [timelineSnapshotId, setTimelineSnapshotId] = useState(routeParams.snapshotId);
+  const [returnTo, setReturnTo] = useState(routeParams.returnTo);
+  const [returnWorkflowId, setReturnWorkflowId] = useState(routeParams.workflowId);
   const [refreshKey, setRefreshKey] = useState(0);
   const [graphResponse, setGraphResponse] = useState<GraphCaseResponseDto | null>(null);
   const [graphLoading, setGraphLoading] = useState(false);
@@ -101,19 +119,12 @@ export default function App() {
   const graphResponseRef = useRef<GraphCaseResponseDto | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const initialCaseId =
-      params.get("caseId")?.trim() ||
-      params.get("case_id")?.trim() ||
-      ""
-    setTimelineCaseId(initialCaseId)
-    setCaseIdInput(initialCaseId)
-    setTimelineSnapshotId(
-      params.get("snapshotId")?.trim() ||
-      params.get("snapshot_id")?.trim() ||
-      "",
-    )
-  }, [])
+    setTimelineCaseId(routeParams.caseId)
+    setCaseIdInput(routeParams.caseId)
+    setTimelineSnapshotId(routeParams.snapshotId)
+    setReturnTo(routeParams.returnTo)
+    setReturnWorkflowId(routeParams.workflowId)
+  }, [routeParams])
 
   const graphVisibleStats = useMemo(() => {
     if (!graphResponse) {
@@ -174,14 +185,13 @@ export default function App() {
 
   const handleBackToAttackDetail = useCallback(() => {
     const normalizedCaseId = timelineCaseId.trim()
-    const params = new URLSearchParams()
-
-    if (normalizedCaseId) {
-      params.set("caseId", normalizedCaseId)
+    if (returnTo === "workflow") {
+      router.push(buildAttackWorkflowHref(normalizedCaseId, timelineSnapshotId, returnWorkflowId))
+      return
     }
 
-    router.push(`/frame/attack/detail${params.size > 0 ? `?${params.toString()}` : ""}`)
-  }, [router, timelineCaseId])
+    router.push(normalizedCaseId ? buildAttackDetailHref(normalizedCaseId, timelineSnapshotId) : "/frame/attack/detail")
+  }, [returnTo, returnWorkflowId, router, timelineCaseId, timelineSnapshotId])
 
   const handleGraphMenuAction = useCallback(
     async (action: AttackGraphMenuAction) => {
@@ -392,7 +402,7 @@ export default function App() {
         />
 
         <AttackGraphCaseCard
-          backLabel={t("backToAttackDetail")}
+          backLabel={returnTo === "workflow" ? "Back to AttackWorkflow" : t("backToAttackDetail")}
           caseId={timelineCaseId}
           edgeCount={graphVisibleStats.edgeCount}
           error={graphError}

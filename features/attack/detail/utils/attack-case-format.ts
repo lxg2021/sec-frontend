@@ -70,16 +70,56 @@ export function formatFullTime(value: string) {
   )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
 }
 
-export function buildTraceHref(caseId: string, snapshotId?: string) {
-  return `/frame/attack/drill?caseId=${encodeURIComponent(caseId)}${
-    snapshotId ? `&snapshotId=${encodeURIComponent(snapshotId)}` : ""
-  }`
+export interface AttackWorkflowRouteOptions {
+  workflowId?: string
+  returnToWorkflow?: boolean
 }
 
-export function buildAIAnalysisHref(caseId: string, snapshotId?: string) {
-  return `/frame/ai-ops/threat-analysis?caseId=${encodeURIComponent(caseId)}${
-    snapshotId?.trim() ? `&snapshotId=${encodeURIComponent(snapshotId.trim())}` : ""
-  }`
+function appendOptionalWorkflowParams(
+  params: URLSearchParams,
+  options?: AttackWorkflowRouteOptions,
+) {
+  const workflowId = options?.workflowId?.trim()
+  if (workflowId) params.set("workflowId", workflowId)
+  if (options?.returnToWorkflow) params.set("returnTo", "workflow")
+}
+
+export function buildAttackWorkflowHref(
+  caseId: string,
+  snapshotId?: string,
+  workflowId?: string,
+) {
+  const params = new URLSearchParams()
+  const normalizedCaseId = caseId.trim()
+  if (normalizedCaseId) params.set("caseId", normalizedCaseId)
+  if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
+  if (workflowId?.trim()) params.set("workflowId", workflowId.trim())
+  const query = params.toString()
+  return `/frame/attack/workflow${query ? `?${query}` : ""}`
+}
+
+export function buildTraceHref(
+  caseId: string,
+  snapshotId?: string,
+  options?: AttackWorkflowRouteOptions,
+) {
+  const params = new URLSearchParams()
+  params.set("caseId", caseId)
+  if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
+  appendOptionalWorkflowParams(params, options)
+  return `/frame/attack/drill?${params.toString()}`
+}
+
+export function buildAIAnalysisHref(
+  caseId: string,
+  snapshotId?: string,
+  options?: AttackWorkflowRouteOptions,
+) {
+  const params = new URLSearchParams()
+  params.set("caseId", caseId)
+  if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
+  appendOptionalWorkflowParams(params, options)
+  return `/frame/ai-ops/threat-analysis?${params.toString()}`
 }
 
 export function shortenId(value: string, head = 8, tail = 4) {
