@@ -1,10 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import type { ComponentType, ReactNode } from "react"
+import type { ComponentType, CSSProperties, ReactNode } from "react"
 import {
   Activity,
-  AlertTriangle,
   ArrowRight,
   Bot,
   ClipboardCheck,
@@ -228,18 +227,15 @@ const STAGE_CONFIG: Record<AttackWorkflowStatus, StageConfig> = {
   },
 }
 
-const STATUS_ICON: Record<
-  AttackWorkflowStatus,
-  ComponentType<{ className?: string }>
-> = {
-  detected: AlertTriangle,
-  investigating: FileSearch,
-  confirmed: Shield,
-  forensics: FileSearch,
-  responding: Activity,
-  contained: Lock,
-  remediated: ClipboardCheck,
-  closed: ClipboardCheck,
+const STATUS_ICON_PATHS: Record<AttackWorkflowStatus, string> = {
+  detected: "/icons/flow/detected.svg",
+  investigating: "/icons/flow/investigating.svg",
+  confirmed: "/icons/flow/confirmed.svg",
+  forensics: "/icons/flow/forensics.svg",
+  responding: "/icons/flow/responding.svg",
+  contained: "/icons/flow/contained.svg",
+  remediated: "/icons/flow/remediated.svg",
+  closed: "/icons/flow/closed.svg",
 }
 
 const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
@@ -258,6 +254,27 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 
 function getStatusStyle(status: AttackWorkflowStatus): StatusStyle {
   return STATUS_STYLES[status]
+}
+
+function FlowStatusIcon({
+  className,
+  status,
+}: {
+  className?: string
+  status: AttackWorkflowStatus
+}) {
+  const maskStyle: CSSProperties = {
+    WebkitMask: `url(${STATUS_ICON_PATHS[status]}) center / contain no-repeat`,
+    mask: `url(${STATUS_ICON_PATHS[status]}) center / contain no-repeat`,
+  }
+
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("inline-block shrink-0 bg-current", className)}
+      style={maskStyle}
+    />
+  )
 }
 
 function statusLabel(status: string) {
@@ -621,7 +638,6 @@ export function AttackWorkflowStageWorkbench({
   const config = STAGE_CONFIG[selectedStatus]
   const tools = stageTools({ canOpenDetails, hrefs, selectedStatus })
   const selectedStyle = getStatusStyle(selectedStatus)
-  const StageIcon = STATUS_ICON[selectedStatus] ?? Target
   const stageEvent = eventToStageEvent(latestStageEvent(events, selectedStatus))
   const operatorNote = latestEventComment(events)
   const stageTime = workflow
@@ -658,7 +674,7 @@ export function AttackWorkflowStageWorkbench({
               selectedStyle.iconText,
             )}
           >
-            <StageIcon className="h-5 w-5" aria-hidden="true" />
+            <FlowStatusIcon status={selectedStatus} className="h-5 w-5" />
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
