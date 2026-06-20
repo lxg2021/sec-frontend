@@ -630,7 +630,7 @@ export function AttackWorkflowControlCenter({
           onSnapshotChange={selectAttackOverviewSnapshot}
         />
 
-        <section className="grid min-h-0 w-full flex-1 gap-4 xl:grid-cols-[clamp(340px,24vw,430px)_minmax(0,1fr)]">
+        <section className="grid min-h-0 w-full flex-1 items-stretch gap-4 xl:grid-cols-[clamp(340px,24vw,430px)_minmax(0,1fr)]">
           <AttackWorkflowQueue
             className="xl:h-full"
             caseIdQuery={queueCaseIdQuery}
@@ -723,7 +723,7 @@ function WorkflowMainGrid({
   workflow: AttackWorkflowItem | null
 }) {
   return (
-    <section className="flex min-h-0 w-full flex-1 flex-col gap-4">
+    <section className="flex h-full min-h-0 w-full flex-1 flex-col gap-4">
       <AttackWorkflowProcessCard
         loading={loading}
         onStatusSelect={onWorkbenchStatusSelect}
@@ -749,6 +749,7 @@ function WorkflowMainGrid({
 
       <AttackWorkflowActivityPanel
         actions={actions}
+        className="flex-1"
         events={events}
         loading={loading}
         variant="card"

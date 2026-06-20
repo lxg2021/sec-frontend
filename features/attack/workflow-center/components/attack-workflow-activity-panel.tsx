@@ -32,7 +32,7 @@ export function AttackWorkflowActivityPanel({
   className,
 }: AttackWorkflowActivityPanelProps) {
   const content = (
-    <Tabs defaultValue="events" className="min-w-0">
+    <Tabs defaultValue="events" className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-lg bg-slate-100 p-1 sm:grid-cols-3 lg:inline-flex lg:w-auto">
           <TabsTrigger
@@ -60,7 +60,7 @@ export function AttackWorkflowActivityPanel({
         </TabsList>
       </div>
 
-      <div className="max-h-[clamp(18rem,45dvh,38rem)] min-h-0 overflow-y-auto overflow-x-hidden px-4 py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-4 py-4">
         <TabsContent value="impact" className="m-0 min-w-0">
           <AttackWorkflowImpactSurface workflow={workflow} loading={loading} />
         </TabsContent>
@@ -77,7 +77,7 @@ export function AttackWorkflowActivityPanel({
   if (variant === "embedded") {
     return (
       <section
-        className={cn("min-h-0 w-full min-w-0 overflow-hidden", className)}
+        className={cn("flex min-h-0 w-full min-w-0 flex-col overflow-hidden", className)}
       >
         {content}
       </section>
@@ -87,7 +87,7 @@ export function AttackWorkflowActivityPanel({
   return (
     <Card
       className={cn(
-        "min-h-0 w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm",
+        "flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm",
         className,
       )}
     >
