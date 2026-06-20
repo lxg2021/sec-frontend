@@ -33,7 +33,6 @@ import {
   workflowStatusTime,
 } from "@/features/attack/workflow/utils"
 import { cn } from "@/shared/lib/utils"
-import { Badge } from "@/shared/ui/badge"
 import { Button, buttonVariants } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
 import { Separator } from "@/shared/ui/separator"
@@ -549,6 +548,38 @@ function SectionTitle({
   )
 }
 
+function HeaderMetaField({
+  dot,
+  label,
+  value,
+  valueClassName,
+}: {
+  dot?: string
+  label: string
+  value: string
+  valueClassName: string
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <span className="shrink-0 text-sm font-medium text-slate-600">
+        {label}
+      </span>
+      <span
+        className={cn(
+          "inline-flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-md border px-2.5 text-xs font-semibold leading-none",
+          valueClassName,
+        )}
+        title={value}
+      >
+        {dot ? (
+          <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dot)} />
+        ) : null}
+        <span className="truncate">{value}</span>
+      </span>
+    </div>
+  )
+}
+
 function ToolRow({
   canOpenDetails,
   primary,
@@ -667,18 +698,23 @@ export function AttackWorkflowStageWorkbench({
     <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
       <header className="flex flex-col gap-4 border-b border-slate-100 p-4 sm:p-5 2xl:flex-row 2xl:items-start 2xl:justify-between">
         <div className="flex min-w-0 items-start gap-3">
-          <span
-            className={cn(
-              "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-              selectedStyle.iconBg,
-              selectedStyle.iconText,
-            )}
-          >
-            <FlowStatusIcon status={selectedStatus} className="h-5 w-5" />
+          <span className="flex h-14 w-12 shrink-0 items-center">
+            <span
+              className={cn(
+                "flex size-12 items-center justify-center rounded-xl",
+                selectedStyle.iconBg,
+                selectedStyle.iconText,
+              )}
+            >
+              <FlowStatusIcon
+                status={selectedStatus}
+                className="size-6"
+              />
+            </span>
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-slate-900 lg:text-lg">
+              <h2 className="text-lg font-semibold leading-6 text-slate-900">
                 Stage Workbench
               </h2>
               {loading ? (
@@ -687,36 +723,20 @@ export function AttackWorkflowStageWorkbench({
                 </span>
               ) : null}
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <Badge
-                variant="outline"
-                className={cn("font-medium", selectedStyle.badge)}
-              >
-                <span
-                  className={cn("mr-1 h-1.5 w-1.5 rounded-full", selectedStyle.dot)}
-                  aria-hidden="true"
-                />
-                Selected: {statusLabel(selectedStatus)}
-              </Badge>
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <HeaderMetaField
+                dot={selectedStyle.dot}
+                label="Selected"
+                value={statusLabel(selectedStatus)}
+                valueClassName={selectedStyle.badge}
+              />
               {normalizedCurrentStatus ? (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "font-medium",
-                    getStatusStyle(normalizedCurrentStatus).badge,
-                  )}
-                >
-                  Current: {statusLabel(normalizedCurrentStatus)}
-                </Badge>
-              ) : null}
-              {isReadOnly ? (
-                <Badge
-                  variant="outline"
-                  className="border-slate-300 bg-slate-100 font-medium text-slate-600"
-                >
-                  <Lock className="mr-1 h-3 w-3" aria-hidden="true" />
-                  Review mode
-                </Badge>
+                <HeaderMetaField
+                  dot={getStatusStyle(normalizedCurrentStatus).dot}
+                  label="Current"
+                  value={statusLabel(normalizedCurrentStatus)}
+                  valueClassName={getStatusStyle(normalizedCurrentStatus).badge}
+                />
               ) : null}
             </div>
           </div>
