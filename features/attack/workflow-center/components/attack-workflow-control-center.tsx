@@ -12,7 +12,6 @@ import { fetchAttackOverview } from "@/features/attack/dashboard/api"
 import type { AttackOverview } from "@/features/attack/dashboard/types"
 import { AttackDetailHeader } from "@/features/attack/detail/components/attack-detail-header"
 import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
-import { AttackWorkflowPageHeader } from "./attack-workflow-page-header"
 import { AttackWorkflowProcessCard } from "./attack-workflow-process-card"
 import {
   AttackWorkflowQueue,
@@ -216,7 +215,7 @@ export function AttackWorkflowControlCenter({
   const [attackOverviewLoading, setAttackOverviewLoading] = useState(false)
   const [detail, setDetail] = useState<AttackWorkflowDetail | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [, setError] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<AttackWorkflowStatus | "">("")
   const [selectedWorkbenchStatus, setSelectedWorkbenchStatus] =
     useState<AttackWorkflowStatus>("detected")
@@ -629,19 +628,6 @@ export function AttackWorkflowControlCenter({
           title="AttackWorkflow Control Center"
           onRefresh={() => void refreshAttackOverviewHeader()}
           onSnapshotChange={selectAttackOverviewSnapshot}
-        />
-
-        <AttackWorkflowPageHeader
-          activeCaseId={activeCaseId}
-          activeWorkflowId={activeWorkflowId}
-          canOpenDetails={canOpenDetails}
-          currentStatus={currentStatus}
-          error={error}
-          hrefs={navigationHrefs}
-          loading={loading}
-          onRefresh={loadWorkflow}
-          updating={updating}
-          workflow={workflow}
         />
 
         <section className="grid min-h-0 w-full flex-1 gap-4 xl:grid-cols-[clamp(340px,24vw,430px)_minmax(0,1fr)]">
