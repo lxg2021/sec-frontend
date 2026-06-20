@@ -494,16 +494,16 @@ function getDensityClasses(
     switch (density) {
       case "comfortable":
         return {
-          marker: "size-11",
-          icon: "size-6",
+          marker: "size-12",
+          icon: "size-7",
           label: "text-sm font-medium",
           time: "text-[11px] font-mono",
           gapY: "gap-1",
         }
       case "compact":
         return {
-          marker: "size-8",
-          icon: "size-[18px]",
+          marker: "size-9",
+          icon: "size-5",
           label: "text-[11px] font-medium",
           time: "text-[10px] font-mono",
           gapY: "gap-0.5",
@@ -511,8 +511,8 @@ function getDensityClasses(
       case "dense":
       default:
         return {
-          marker: "size-9",
-          icon: "size-[22px]",
+          marker: "size-10",
+          icon: "size-6",
           label: "text-xs font-medium",
           time: "text-[10px] font-mono",
           gapY: "gap-0.5",
@@ -523,16 +523,16 @@ function getDensityClasses(
   switch (density) {
     case "comfortable":
       return {
-        marker: "size-11",
-        icon: "size-6",
+        marker: "size-12",
+        icon: "size-7",
         label: "text-sm font-semibold",
         time: "text-[11px] font-mono",
         gapY: "gap-1",
       }
     case "compact":
       return {
-        marker: "size-8",
-        icon: "size-[18px]",
+        marker: "size-9",
+        icon: "size-5",
         label: "text-[11px] font-semibold",
         time: "text-[10px] font-mono",
         gapY: "gap-0.5",
@@ -540,8 +540,8 @@ function getDensityClasses(
     case "dense":
     default:
       return {
-        marker: "size-9",
-        icon: "size-[22px]",
+        marker: "size-10",
+        icon: "size-6",
         label: "text-xs font-semibold",
         time: "text-[10px] font-mono",
         gapY: "gap-0.5",
@@ -629,7 +629,7 @@ function WorkflowNodeMarker({
         tone.marker,
         tone.halo,
         node.isCurrent &&
-          "z-20 -translate-y-1.5 scale-[1.16] shadow-xl [transform-style:preserve-3d] will-change-transform motion-reduce:transition-none",
+          "z-20 -translate-y-1.5 scale-[1.25] shadow-xl [transform-style:preserve-3d] will-change-transform motion-reduce:transition-none",
       )}
     >
       {node.isCurrent ? (
