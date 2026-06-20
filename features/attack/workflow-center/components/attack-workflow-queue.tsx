@@ -1,6 +1,7 @@
 "use client"
 
 import { useId, useMemo, type ReactNode } from "react"
+import { useTranslations } from "next-intl"
 import {
   AlertCircle,
   ChevronLeft,
@@ -73,36 +74,36 @@ export interface AttackWorkflowQueueProps {
   className?: string
 }
 
-const STATUS_OPTIONS: { value: AttackWorkflowStatus; label: string }[] = [
-  { value: "detected", label: "Detected" },
-  { value: "investigating", label: "Investigating" },
-  { value: "confirmed", label: "Confirmed" },
-  { value: "forensics", label: "Forensics" },
-  { value: "responding", label: "Responding" },
-  { value: "contained", label: "Contained" },
-  { value: "remediated", label: "Remediated" },
-  { value: "closed", label: "Closed" },
+const STATUS_OPTIONS: { value: AttackWorkflowStatus; labelKey: string }[] = [
+  { value: "detected", labelKey: "statuses.detected" },
+  { value: "investigating", labelKey: "statuses.investigating" },
+  { value: "confirmed", labelKey: "statuses.confirmed" },
+  { value: "forensics", labelKey: "statuses.forensics" },
+  { value: "responding", labelKey: "statuses.responding" },
+  { value: "contained", labelKey: "statuses.contained" },
+  { value: "remediated", labelKey: "statuses.remediated" },
+  { value: "closed", labelKey: "statuses.closed" },
 ]
 
-const SEVERITY_OPTIONS: { value: string; label: string }[] = [
-  { value: "critical", label: "Critical" },
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
-  { value: "info", label: "Info" },
+const SEVERITY_OPTIONS: { value: string; labelKey: string }[] = [
+  { value: "critical", labelKey: "severity.critical" },
+  { value: "high", labelKey: "severity.high" },
+  { value: "medium", labelKey: "severity.medium" },
+  { value: "low", labelKey: "severity.low" },
+  { value: "info", labelKey: "severity.info" },
 ]
 
 const SCOPE_OPTIONS: {
   value: AttackWorkflowQueueStatusScope
-  label: string
+  labelKey: string
 }[] = [
-  { value: "open", label: "Open" },
-  { value: "all", label: "All" },
-  { value: "closed", label: "Closed" },
+  { value: "open", labelKey: "queue.scope.open" },
+  { value: "all", labelKey: "queue.scope.all" },
+  { value: "closed", labelKey: "queue.scope.closed" },
 ]
 
 const STATUS_LABELS: Record<string, string> = Object.fromEntries(
-  STATUS_OPTIONS.map((status) => [status.value, status.label]),
+  STATUS_OPTIONS.map((status) => [status.value, status.labelKey]),
 )
 
 const STATUS_BADGE: Record<string, string> = {
@@ -137,37 +138,40 @@ const SEVERITY_BADGE: Record<string, string> = {
 }
 
 const NEXT_ACTION_FALLBACK: Record<string, string> = {
-  detected: "Start investigation",
-  investigating: "Open Threat Analysis",
-  confirmed: "Start Forensics",
-  forensics: "Review Evidence",
-  responding: "Open Response",
-  contained: "Verify Containment",
-  remediated: "Close Workflow",
-  closed: "Resolved",
+  detected: "queue.nextAction.detected",
+  investigating: "queue.nextAction.investigating",
+  confirmed: "queue.nextAction.confirmed",
+  forensics: "queue.nextAction.forensics",
+  responding: "queue.nextAction.responding",
+  contained: "queue.nextAction.contained",
+  remediated: "queue.nextAction.remediated",
+  closed: "queue.nextAction.closed",
 }
+
+type WorkflowCenterT = ReturnType<typeof useTranslations>
 
 function normalizeToken(value: string) {
   return value.trim().toLowerCase()
 }
 
-function statusLabel(status: string) {
+function statusLabel(t: WorkflowCenterT, status: string) {
   const normalized = normalizeToken(status)
-  return (STATUS_LABELS[normalized] ?? status.trim()) || "Unknown"
+  return STATUS_LABELS[normalized]
+    ? t(STATUS_LABELS[normalized])
+    : status.trim() || t("unknown")
 }
 
-function severityLabel(severity: string) {
+function severityLabel(t: WorkflowCenterT, severity: string) {
   const normalized = severity.trim().toLowerCase()
-  if (!normalized) return "Unknown"
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
+  const option = SEVERITY_OPTIONS.find((item) => item.value === normalized)
+  if (option) return t(option.labelKey)
+  return normalized || t("unknown")
 }
 
-function nextActionText(item: AttackWorkflowQueueItem) {
+function nextActionText(t: WorkflowCenterT, item: AttackWorkflowQueueItem) {
   if (item.next_action_label?.trim()) return item.next_action_label.trim()
-  return (
-    NEXT_ACTION_FALLBACK[normalizeToken(String(item.status))] ??
-    "Review workflow"
-  )
+  const key = NEXT_ACTION_FALLBACK[normalizeToken(String(item.status))]
+  return key ? t(key) : t("queue.nextAction.review")
 }
 
 function formatTime(item: AttackWorkflowQueueItem) {
@@ -184,21 +188,21 @@ function formatTime(item: AttackWorkflowQueueItem) {
   })
 }
 
-function hostSummary(item: AttackWorkflowQueueItem) {
+function hostSummary(t: WorkflowCenterT, item: AttackWorkflowQueueItem) {
   const hostCount = item.agent_ids?.length ?? 0
-  if (hostCount > 0) return `${hostCount} ${hostCount === 1 ? "host" : "hosts"}`
-  if (item.primary_agent_id?.trim()) return "1 host"
+  if (hostCount > 0) return t("queue.hostCount", { count: hostCount })
+  if (item.primary_agent_id?.trim()) return t("queue.hostCount", { count: 1 })
   return ""
 }
 
-function ruleSummary(item: AttackWorkflowQueueItem) {
+function ruleSummary(t: WorkflowCenterT, item: AttackWorkflowQueueItem) {
   const count = item.rule_ids?.length ?? 0
   if (count <= 0) return ""
-  return `${count} ${count === 1 ? "rule" : "rules"}`
+  return t("queue.ruleCount", { count })
 }
 
-function titleText(title: string) {
-  const fallbackTitle = "Untitled workflow"
+function titleText(t: WorkflowCenterT, title: string) {
+  const fallbackTitle = t("queue.untitled")
   const normalizedTitle = title
     .trim()
     .replace(/^\u653b\u51fb\u94fe\s*(?:[:\uFF1A]\s*)?/u, "")
@@ -208,7 +212,7 @@ function titleText(title: string) {
     ? normalizedTitle.slice(titlePrefixMatch[0].length).trim()
     : normalizedTitle
 
-  return `Title: ${displayTitle || fallbackTitle}`
+  return t("queue.titlePrefix", { title: displayTitle || fallbackTitle })
 }
 
 function compactIdentifier(value?: string) {
@@ -258,6 +262,7 @@ export function AttackWorkflowQueue({
   onPageChange,
   className,
 }: AttackWorkflowQueueProps) {
+  const t = useTranslations("pages.attack.workflowCenter")
   const searchId = useId()
   const statusId = useId()
   const severityId = useId()
@@ -272,10 +277,10 @@ export function AttackWorkflowQueue({
   const selectedSeverity = filters.severities[0] ?? ""
   const queueScopeSummary =
     filters.statusScope === "closed"
-      ? "Closed attack workflows"
+      ? t("queue.scopeSummary.closed")
       : filters.statusScope === "all"
-        ? "Attack workflows"
-        : "Open attack workflows"
+        ? t("queue.scopeSummary.all")
+        : t("queue.scopeSummary.open")
   const normalizedTotal = Math.max(0, total ?? items.length)
   const normalizedPage = Math.max(1, Math.trunc(currentPage || 1))
   const normalizedPageSize = Math.max(
@@ -334,12 +339,12 @@ export function AttackWorkflowQueue({
         "max-h-[60dvh] lg:max-h-none",
         className,
       )}
-      aria-label="Workflow queue"
+      aria-label={t("queue.ariaLabel")}
     >
       <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-slate-900">
-            Workflow Queue
+            {t("queue.title")}
           </h2>
           <p className="mt-0.5 truncate text-xs text-slate-500">
             {queueScopeSummary}
@@ -357,7 +362,7 @@ export function AttackWorkflowQueue({
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          aria-label="Refresh workflow queue"
+          aria-label={t("queue.refreshAria")}
           className={cn(
             "inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600",
             "transition-colors hover:bg-slate-50 hover:text-slate-900",
@@ -384,8 +389,8 @@ export function AttackWorkflowQueue({
             type="text"
             value={caseIdQuery}
             onChange={(event) => onCaseIdChange(event.target.value)}
-            placeholder="Case ID"
-            aria-label="Filter workflow queue by case ID"
+            placeholder={t("queue.caseIdPlaceholder")}
+            aria-label={t("queue.caseIdFilterAria")}
             className={cn(
               "h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-900 placeholder:text-slate-400",
               "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
@@ -395,7 +400,7 @@ export function AttackWorkflowQueue({
             <button
               type="button"
               onClick={() => onCaseIdChange("")}
-              aria-label="Clear case ID filter"
+              aria-label={t("queue.clearCaseIdAria")}
               className="absolute right-2 top-1/2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <X className="size-3.5" aria-hidden="true" />
@@ -405,7 +410,7 @@ export function AttackWorkflowQueue({
 
         <div
           role="group"
-          aria-label="Workflow scope"
+          aria-label={t("queue.scopeAria")}
           className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1"
         >
           {SCOPE_OPTIONS.map((option) => {
@@ -423,7 +428,7 @@ export function AttackWorkflowQueue({
                     : "text-slate-600 hover:text-slate-900",
                 )}
               >
-                {option.label}
+                {t(option.labelKey)}
               </button>
             )
           })}
@@ -432,7 +437,7 @@ export function AttackWorkflowQueue({
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label htmlFor={statusId} className="sr-only">
-              Filter by status
+              {t("queue.filterByStatus")}
             </label>
             <select
               id={statusId}
@@ -443,17 +448,17 @@ export function AttackWorkflowQueue({
                 "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
               )}
             >
-              <option value="">All statuses</option>
+              <option value="">{t("queue.allStatuses")}</option>
               {STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.labelKey)}
                 </option>
               ))}
             </select>
           </div>
           <div>
             <label htmlFor={severityId} className="sr-only">
-              Filter by severity
+              {t("queue.filterBySeverity")}
             </label>
             <select
               id={severityId}
@@ -464,10 +469,10 @@ export function AttackWorkflowQueue({
                 "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
               )}
             >
-              <option value="">All severities</option>
+              <option value="">{t("queue.allSeverities")}</option>
               {SEVERITY_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
-                  {option.label}
+                  {t(option.labelKey)}
                 </option>
               ))}
             </select>
@@ -486,7 +491,7 @@ export function AttackWorkflowQueue({
               onClick={onRefresh}
               className="shrink-0 rounded font-medium text-rose-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
             >
-              Retry
+              {t("queue.retry")}
             </button>
           </div>
         ) : null}
@@ -511,7 +516,7 @@ export function AttackWorkflowQueue({
             ))}
           </ul>
         ) : showEmpty ? (
-          <EmptyState hasActiveFilters={hasActiveFilters} error={error} />
+          <EmptyState hasActiveFilters={hasActiveFilters} error={error} t={t} />
         ) : (
           <>
             <ul className="flex flex-col gap-2">
@@ -526,6 +531,7 @@ export function AttackWorkflowQueue({
                     <QueueItemCard
                       item={item}
                       selected={selected}
+                      t={t}
                       onSelect={onSelectWorkflow}
                     />
                   </li>
@@ -544,6 +550,7 @@ export function AttackWorkflowQueue({
                 shownStart={shownStart}
                 total={normalizedTotal}
                 totalPages={paginationTotalPages}
+                t={t}
               />
             ) : null}
           </>
@@ -561,6 +568,7 @@ function QueuePaginationFooter({
   onPageChange,
   shownEnd,
   shownStart,
+  t,
   total,
   totalPages,
 }: {
@@ -571,6 +579,7 @@ function QueuePaginationFooter({
   onPageChange: (page: number) => void
   shownEnd: number
   shownStart: number
+  t: WorkflowCenterT
   total: number
   totalPages: number
 }) {
@@ -585,16 +594,20 @@ function QueuePaginationFooter({
     <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
       <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
         <span className="min-w-0 truncate">
-          Showing {shownStart}-{shownEnd} of {total.toLocaleString()}
+          {t("queue.pagination.showing", {
+            end: shownEnd,
+            start: shownStart,
+            total: total.toLocaleString(),
+          })}
         </span>
         <span className="shrink-0 font-medium text-slate-600">
-          Page {currentPage} / {totalPages}
+          {t("queue.pagination.page", { page: currentPage, totalPages })}
         </span>
       </div>
       <div className="grid grid-cols-4 gap-1.5">
         <button
           type="button"
-          aria-label="First workflow queue page"
+          aria-label={t("queue.pagination.firstAria")}
           className={buttonClassName}
           disabled={disabled || !hasPrevious}
           onClick={() => onPageChange(1)}
@@ -603,7 +616,7 @@ function QueuePaginationFooter({
         </button>
         <button
           type="button"
-          aria-label="Previous workflow queue page"
+          aria-label={t("queue.pagination.previousAria")}
           className={buttonClassName}
           disabled={disabled || !hasPrevious}
           onClick={() => onPageChange(currentPage - 1)}
@@ -612,7 +625,7 @@ function QueuePaginationFooter({
         </button>
         <button
           type="button"
-          aria-label="Next workflow queue page"
+          aria-label={t("queue.pagination.nextAria")}
           className={buttonClassName}
           disabled={disabled || !hasNext}
           onClick={() => onPageChange(currentPage + 1)}
@@ -621,7 +634,7 @@ function QueuePaginationFooter({
         </button>
         <button
           type="button"
-          aria-label="Last workflow queue page"
+          aria-label={t("queue.pagination.lastAria")}
           className={buttonClassName}
           disabled={disabled || !hasNext}
           onClick={() => onPageChange(totalPages)}
@@ -636,17 +649,19 @@ function QueuePaginationFooter({
 function QueueItemCard({
   item,
   selected,
+  t,
   onSelect,
 }: {
   item: AttackWorkflowQueueItem
   selected: boolean
+  t: WorkflowCenterT
   onSelect: (item: AttackWorkflowQueueItem) => void
 }) {
   const severity = normalizeToken(item.severity || "unknown")
   const status = normalizeToken(String(item.status))
   const closed = isClosedStatus(status)
-  const hosts = hostSummary(item)
-  const rules = ruleSummary(item)
+  const hosts = hostSummary(t, item)
+  const rules = ruleSummary(t, item)
   const time = formatTime(item)
   const fullIdentifier = item.case_id || item.workflow_id || "-"
   const shortIdentifier = compactIdentifier(fullIdentifier)
@@ -678,7 +693,9 @@ function QueueItemCard({
             className="inline-flex min-w-0 items-center gap-1 rounded-md bg-slate-50 px-1.5 py-0.5 text-[11px] text-slate-400 ring-1 ring-inset ring-slate-100"
             title={fullIdentifier}
           >
-            <span className="font-medium uppercase tracking-wide">ID</span>
+            <span className="font-medium uppercase tracking-wide">
+              {t("queue.idLabel")}
+            </span>
             <span className="truncate font-mono">{shortIdentifier}</span>
           </span>
         </span>
@@ -695,12 +712,12 @@ function QueueItemCard({
             )}
             aria-hidden="true"
           />
-          {statusLabel(status)}
+          {statusLabel(t, status)}
         </span>
       </div>
 
       <h3 className="mt-1.5 line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
-        {titleText(item.title)}
+        {titleText(t, item.title)}
       </h3>
 
       <p
@@ -719,7 +736,9 @@ function QueueItemCard({
           aria-hidden="true"
         />
         <span className="truncate">
-          {closed ? nextActionText(item) : `Next: ${nextActionText(item)}`}
+          {closed
+            ? nextActionText(t, item)
+            : t("queue.nextPrefix", { action: nextActionText(t, item) })}
         </span>
       </p>
 
@@ -730,13 +749,15 @@ function QueueItemCard({
             SEVERITY_BADGE[severity] ?? SEVERITY_BADGE.unknown,
           )}
         >
-          {severityLabel(severity)}
+          {severityLabel(t, severity)}
         </span>
         {hosts ? <MetaChip>{hosts}</MetaChip> : null}
         {rules ? <MetaChip>{rules}</MetaChip> : null}
         {typeof item.open_action_count === "number" &&
         item.open_action_count > 0 ? (
-          <MetaChip>{`${item.open_action_count} open`}</MetaChip>
+          <MetaChip>
+            {t("queue.openActionCount", { count: item.open_action_count })}
+          </MetaChip>
         ) : null}
         <span className="ml-auto inline-flex items-center gap-1 text-slate-400">
           <Clock3 className="size-3" aria-hidden="true" />
@@ -756,9 +777,11 @@ function MetaChip({ children }: { children: ReactNode }) {
 function EmptyState({
   hasActiveFilters,
   error,
+  t,
 }: {
   hasActiveFilters: boolean
   error?: string
+  t: WorkflowCenterT
 }) {
   if (error) {
     return (
@@ -767,7 +790,7 @@ function EmptyState({
           <AlertCircle className="size-5" aria-hidden="true" />
         </span>
         <p className="text-sm font-medium text-slate-700">
-          Failed to load workflow queue.
+          {t("queue.empty.loadFailed")}
         </p>
         <p className="max-w-[18rem] text-xs text-slate-500">{error}</p>
       </div>
@@ -781,14 +804,14 @@ function EmptyState({
       </span>
       <p className="text-sm font-medium text-slate-700">
         {hasActiveFilters
-          ? "No workflow matches the current filters."
-          : "No workflow case is waiting for action."}
+          ? t("queue.empty.noMatch")
+          : t("queue.empty.noOpenCase")}
       </p>
       <a
         href="/frame/attack/detail"
         className="text-xs font-medium text-blue-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       >
-        Open Attack Cases
+        {t("queue.empty.openAttackCases")}
       </a>
     </div>
   )

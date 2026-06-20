@@ -1,6 +1,7 @@
 "use client"
 
 import { FileText, History, Network } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { AttackWorkflowActionsTable } from "./attack-workflow-actions-table"
 import { AttackWorkflowEventsTable } from "./attack-workflow-events-table"
@@ -31,6 +32,7 @@ export function AttackWorkflowActivityPanel({
   variant = "card",
   className,
 }: AttackWorkflowActivityPanelProps) {
+  const t = useTranslations("pages.attack.workflowCenter")
   const content = (
     <Tabs defaultValue="events" className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
@@ -40,14 +42,14 @@ export function AttackWorkflowActivityPanel({
             className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
           >
             <History className="size-4" />
-            Events ({events.length})
+            {t("activity.events", { count: events.length })}
           </TabsTrigger>
           <TabsTrigger
             value="actions"
             className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
           >
             <FileText className="size-4" />
-            Actions ({actions.length})
+            {t("activity.actions", { count: actions.length })}
           </TabsTrigger>
           <TabsTrigger
             value="impact"
@@ -55,7 +57,7 @@ export function AttackWorkflowActivityPanel({
             className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
           >
             <Network className="size-4" />
-            Impact Surface
+            {t("activity.impactSurface")}
           </TabsTrigger>
         </TabsList>
       </div>
@@ -77,7 +79,10 @@ export function AttackWorkflowActivityPanel({
   if (variant === "embedded") {
     return (
       <section
-        className={cn("flex min-h-0 w-full min-w-0 flex-col overflow-hidden", className)}
+        className={cn(
+          "flex min-h-0 w-full min-w-0 flex-col overflow-hidden",
+          className,
+        )}
       >
         {content}
       </section>

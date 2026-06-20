@@ -1,6 +1,7 @@
 "use client"
 
 import { AlertTriangle, Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import type { AttackWorkflowActionItem } from "@/features/attack/workflow/types"
 import { formatWorkflowTime } from "@/features/attack/workflow/utils"
@@ -24,6 +25,8 @@ interface ReferenceField {
   label: string
   value: string
 }
+
+type WorkflowCenterT = ReturnType<typeof useTranslations>
 
 function displayValue(value?: string | number) {
   const normalized = String(value ?? "").trim()
@@ -59,6 +62,36 @@ function phaseTone(phase: string) {
   }
 }
 
+function actionStatusLabel(t: WorkflowCenterT, status: string) {
+  switch (status.trim().toLowerCase()) {
+    case "success":
+      return t("actions.status.success")
+    case "running":
+      return t("actions.status.running")
+    case "failed":
+      return t("actions.status.failed")
+    case "skipped":
+      return t("actions.status.skipped")
+    case "pending":
+      return t("actions.status.pending")
+    default:
+      return displayValue(status)
+  }
+}
+
+function actionPhaseLabel(t: WorkflowCenterT, phase: string) {
+  switch (phase.trim().toLowerCase()) {
+    case "investigation":
+      return t("actions.phase.investigation")
+    case "forensics":
+      return t("actions.phase.forensics")
+    case "remediation":
+      return t("actions.phase.remediation")
+    default:
+      return displayValue(phase)
+  }
+}
+
 function actionTime(action: AttackWorkflowActionItem) {
   return formatWorkflowTime(
     action.updated_at ||
@@ -76,36 +109,75 @@ function targetText(action: AttackWorkflowActionItem) {
   return target || action.agent_id || action.case_id || "-"
 }
 
-function actionReferences(action: AttackWorkflowActionItem): ReferenceField[] {
+function actionReferences(
+  t: WorkflowCenterT,
+  action: AttackWorkflowActionItem,
+): ReferenceField[] {
   const refs: ReferenceField[] = [
-    { label: "Action", value: action.workflow_action_id },
-    { label: "Batch", value: action.action_batch_id },
+    { label: t("actions.refs.action"), value: action.workflow_action_id },
+    { label: t("actions.refs.batch"), value: action.action_batch_id },
   ]
 
   if (action.investigation) {
     refs.push(
-      { label: "Investigation job", value: action.investigation.investigation_job_id },
-      { label: "Investigation trace", value: action.investigation.investigation_trace_id },
+      {
+        label: t("actions.refs.investigationJob"),
+        value: action.investigation.investigation_job_id,
+      },
+      {
+        label: t("actions.refs.investigationTrace"),
+        value: action.investigation.investigation_trace_id,
+      },
     )
   }
 
   if (action.forensic) {
     refs.push(
-      { label: "Forensic plan", value: action.forensic.forensic_plan_id },
-      { label: "Forensic execution", value: action.forensic.forensic_execution_id },
-      { label: "Forensic task", value: action.forensic.forensic_task_id },
-      { label: "Forensic trace", value: action.forensic.forensic_trace_id },
-      { label: "Artifact", value: action.forensic.artifact_uri },
+      {
+        label: t("actions.refs.forensicPlan"),
+        value: action.forensic.forensic_plan_id,
+      },
+      {
+        label: t("actions.refs.forensicExecution"),
+        value: action.forensic.forensic_execution_id,
+      },
+      {
+        label: t("actions.refs.forensicTask"),
+        value: action.forensic.forensic_task_id,
+      },
+      {
+        label: t("actions.refs.forensicTrace"),
+        value: action.forensic.forensic_trace_id,
+      },
+      {
+        label: t("actions.refs.artifact"),
+        value: action.forensic.artifact_uri,
+      },
     )
   }
 
   if (action.remediation) {
     refs.push(
-      { label: "Preview", value: action.remediation.preview_id },
-      { label: "Execution", value: action.remediation.execution_id },
-      { label: "Execute task", value: action.remediation.execute_task_id },
-      { label: "PMC trace", value: action.remediation.pmc_trace_id },
-      { label: "Control ref", value: action.remediation.control_ref_json },
+      {
+        label: t("actions.refs.preview"),
+        value: action.remediation.preview_id,
+      },
+      {
+        label: t("actions.refs.execution"),
+        value: action.remediation.execution_id,
+      },
+      {
+        label: t("actions.refs.executeTask"),
+        value: action.remediation.execute_task_id,
+      },
+      {
+        label: t("actions.refs.pmcTrace"),
+        value: action.remediation.pmc_trace_id,
+      },
+      {
+        label: t("actions.refs.controlRef"),
+        value: action.remediation.control_ref_json,
+      },
     )
   }
 
@@ -121,24 +193,30 @@ function actionPayload(action: AttackWorkflowActionItem) {
   )
 }
 
-function EmptyState() {
+function EmptyState({ t }: { t: WorkflowCenterT }) {
   return (
     <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-      No workflow action has been recorded yet.
+      {t("actions.empty")}
     </div>
   )
 }
 
-function LoadingState() {
+function LoadingState({ t }: { t: WorkflowCenterT }) {
   return (
     <div className="flex min-h-36 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500">
       <Loader2 className="mr-2 size-4 animate-spin text-sky-500" />
-      Loading workflow actions...
+      {t("actions.loading")}
     </div>
   )
 }
 
-function ReferenceList({ refs }: { refs: ReferenceField[] }) {
+function ReferenceList({
+  refs,
+  t,
+}: {
+  refs: ReferenceField[]
+  t: WorkflowCenterT
+}) {
   if (refs.length === 0) {
     return <span className="text-xs text-slate-400">-</span>
   }
@@ -158,7 +236,7 @@ function ReferenceList({ refs }: { refs: ReferenceField[] }) {
       ))}
       {refs.length > 6 ? (
         <span className="text-xs font-medium text-slate-400">
-          +{refs.length - 6} more references
+          {t("actions.moreReferences", { count: refs.length - 6 })}
         </span>
       ) : null}
     </div>
@@ -178,8 +256,14 @@ function ActionError({ action }: { action: AttackWorkflowActionItem }) {
   )
 }
 
-function ActionMobileCard({ action }: { action: AttackWorkflowActionItem }) {
-  const refs = actionReferences(action)
+function ActionMobileCard({
+  action,
+  t,
+}: {
+  action: AttackWorkflowActionItem
+  t: WorkflowCenterT
+}) {
+  const refs = actionReferences(t, action)
   const payload = actionPayload(action)
 
   return (
@@ -195,9 +279,12 @@ function ActionMobileCard({ action }: { action: AttackWorkflowActionItem }) {
         </div>
         <Badge
           variant="outline"
-          className={cn("shrink-0 rounded-full", actionStatusTone(action.action_status))}
+          className={cn(
+            "shrink-0 rounded-full",
+            actionStatusTone(action.action_status),
+          )}
         >
-          {displayValue(action.action_status)}
+          {actionStatusLabel(t, action.action_status)}
         </Badge>
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -205,14 +292,14 @@ function ActionMobileCard({ action }: { action: AttackWorkflowActionItem }) {
           variant="outline"
           className={cn("rounded-full", phaseTone(action.action_phase))}
         >
-          {displayValue(action.action_phase)}
+          {actionPhaseLabel(t, action.action_phase)}
         </Badge>
         <span className="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs text-slate-500">
           {displayValue(targetText(action))}
         </span>
       </div>
       <div className="mt-3">
-        <ReferenceList refs={refs} />
+        <ReferenceList refs={refs} t={t} />
       </div>
       {payload ? (
         <div
@@ -231,16 +318,22 @@ export function AttackWorkflowActionsTable({
   actions,
   loading = false,
 }: AttackWorkflowActionsTableProps) {
-  if (loading) return <LoadingState />
-  if (actions.length === 0) return <EmptyState />
+  const t = useTranslations("pages.attack.workflowCenter")
+
+  if (loading) return <LoadingState t={t} />
+  if (actions.length === 0) return <EmptyState t={t} />
 
   return (
     <div className="min-w-0">
       <div className="grid gap-3 md:hidden">
         {actions.map((action) => (
           <ActionMobileCard
-            key={action.workflow_action_id || `${action.action_batch_id}:${action.created_at}`}
+            key={
+              action.workflow_action_id ||
+              `${action.action_batch_id}:${action.created_at}`
+            }
             action={action}
+            t={t}
           />
         ))}
       </div>
@@ -250,30 +343,33 @@ export function AttackWorkflowActionsTable({
           <TableHeader className="sticky top-0 z-10 bg-slate-50">
             <TableRow className="hover:bg-slate-50">
               <TableHead className="h-11 w-[13rem] text-xs font-semibold text-slate-500">
-                Time
+                {t("actions.columns.time")}
               </TableHead>
               <TableHead className="h-11 w-[18rem] text-xs font-semibold text-slate-500">
-                Phase / action
+                {t("actions.columns.phaseAction")}
               </TableHead>
               <TableHead className="h-11 w-[18rem] text-xs font-semibold text-slate-500">
-                Target
+                {t("actions.columns.target")}
               </TableHead>
               <TableHead className="h-11 w-[10rem] text-xs font-semibold text-slate-500">
-                Status
+                {t("actions.columns.status")}
               </TableHead>
               <TableHead className="h-11 min-w-[26rem] text-xs font-semibold text-slate-500">
-                References
+                {t("actions.columns.references")}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {actions.map((action) => {
-              const refs = actionReferences(action)
+              const refs = actionReferences(t, action)
               const payload = actionPayload(action)
 
               return (
                 <TableRow
-                  key={action.workflow_action_id || `${action.action_batch_id}:${action.created_at}`}
+                  key={
+                    action.workflow_action_id ||
+                    `${action.action_batch_id}:${action.created_at}`
+                  }
                   className="hover:bg-slate-50/80"
                 >
                   <TableCell className="whitespace-nowrap py-3 align-top font-mono text-xs text-slate-500">
@@ -283,9 +379,12 @@ export function AttackWorkflowActionsTable({
                     <div className="min-w-0">
                       <Badge
                         variant="outline"
-                        className={cn("rounded-full", phaseTone(action.action_phase))}
+                        className={cn(
+                          "rounded-full",
+                          phaseTone(action.action_phase),
+                        )}
                       >
-                        {displayValue(action.action_phase)}
+                        {actionPhaseLabel(t, action.action_phase)}
                       </Badge>
                       <div
                         className="mt-2 truncate text-sm font-semibold text-slate-950"
@@ -307,21 +406,24 @@ export function AttackWorkflowActionsTable({
                         className="mt-1 truncate font-mono text-[11px] text-slate-400"
                         title={action.agent_id}
                       >
-                        agent / {action.agent_id}
+                        {t("actions.agent")} / {action.agent_id}
                       </div>
                     ) : null}
                   </TableCell>
                   <TableCell className="py-3 align-top">
                     <Badge
                       variant="outline"
-                      className={cn("rounded-full", actionStatusTone(action.action_status))}
+                      className={cn(
+                        "rounded-full",
+                        actionStatusTone(action.action_status),
+                      )}
                     >
-                      {displayValue(action.action_status)}
+                      {actionStatusLabel(t, action.action_status)}
                     </Badge>
                     <ActionError action={action} />
                   </TableCell>
                   <TableCell className="py-3 align-top">
-                    <ReferenceList refs={refs} />
+                    <ReferenceList refs={refs} t={t} />
                     {payload ? (
                       <div
                         className="mt-2 line-clamp-2 break-all font-mono text-xs leading-5 text-slate-500"

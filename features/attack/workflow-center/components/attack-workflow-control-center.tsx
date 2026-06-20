@@ -1,12 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import {
-  Activity,
-  Loader2,
-  ShieldCheck,
-} from "lucide-react"
+import { Activity, Loader2, ShieldCheck } from "lucide-react"
 
 import { fetchAttackOverview } from "@/features/attack/dashboard/api"
 import type { AttackOverview } from "@/features/attack/dashboard/types"
@@ -117,27 +114,36 @@ const EMPTY_ATTACK_OVERVIEW: AttackOverview = {
 }
 
 const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
-  detected: "Detected",
-  investigating: "Investigating",
-  confirmed: "Confirmed",
-  forensics: "Forensics",
-  responding: "Responding",
-  contained: "Contained",
-  remediated: "Remediated",
-  closed: "Closed",
+  detected: "statuses.detected",
+  investigating: "statuses.investigating",
+  confirmed: "statuses.confirmed",
+  forensics: "statuses.forensics",
+  responding: "statuses.responding",
+  contained: "statuses.contained",
+  remediated: "statuses.remediated",
+  closed: "statuses.closed",
 }
 
 const CLOSE_REASON_LABELS: Record<AttackWorkflowCloseReason, string> = {
-  resolved: "Resolved",
-  false_positive: "False positive",
-  duplicate: "Duplicate",
-  accepted_risk: "Accepted risk",
-  other: "Other",
+  resolved: "closeReasons.resolved",
+  false_positive: "closeReasons.falsePositive",
+  duplicate: "closeReasons.duplicate",
+  accepted_risk: "closeReasons.acceptedRisk",
+  other: "closeReasons.other",
 }
 
-function statusLabel(status: string) {
+type WorkflowCenterT = ReturnType<typeof useTranslations>
+
+function statusLabel(t: WorkflowCenterT, status: string) {
   const normalized = normalizeWorkflowStatus(status)
-  return normalized ? STATUS_LABELS[normalized] : status || "Unknown"
+  return normalized ? t(STATUS_LABELS[normalized]) : status || t("unknown")
+}
+
+function closeReasonLabel(
+  t: WorkflowCenterT,
+  reason: AttackWorkflowCloseReason,
+) {
+  return t(CLOSE_REASON_LABELS[reason])
 }
 
 function buildStatusPayload(comment: string, source: string) {
@@ -158,7 +164,10 @@ function parseOverviewBucketTime(value?: string) {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-function toWorkflowRangeParam(value?: string, timeZone = WORKFLOW_RANGE_TIMEZONE) {
+function toWorkflowRangeParam(
+  value?: string,
+  timeZone = WORKFLOW_RANGE_TIMEZONE,
+) {
   const date = parseOverviewBucketTime(value)
   if (!date) return ""
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -214,20 +223,25 @@ export function AttackWorkflowControlCenter({
   timezone = "",
 }: AttackWorkflowControlCenterProps) {
   const router = useRouter()
+  const t = useTranslations("pages.attack.workflowCenter")
   const { toast } = useToast()
-  const [attackOverview, setAttackOverview] =
-    useState<AttackOverview | null>(null)
+  const [attackOverview, setAttackOverview] = useState<AttackOverview | null>(
+    null,
+  )
   const [attackOverviewLoading, setAttackOverviewLoading] = useState(false)
   const [detail, setDetail] = useState<AttackWorkflowDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [, setError] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState<AttackWorkflowStatus | "">("")
+  const [selectedStatus, setSelectedStatus] = useState<
+    AttackWorkflowStatus | ""
+  >("")
   const [selectedWorkbenchStatus, setSelectedWorkbenchStatus] =
     useState<AttackWorkflowStatus>("detected")
   const [queueCaseIdQuery, setQueueCaseIdQuery] = useState("")
   const [queueCaseId, setQueueCaseId] = useState("")
-  const [queueFilters, setQueueFilters] =
-    useState<AttackWorkflowQueueFilters>(DEFAULT_QUEUE_FILTERS)
+  const [queueFilters, setQueueFilters] = useState<AttackWorkflowQueueFilters>(
+    DEFAULT_QUEUE_FILTERS,
+  )
   const [queueWorkflows, setQueueWorkflows] = useState<AttackWorkflowItem[]>([])
   const [queueLoading, setQueueLoading] = useState(false)
   const [queueRefreshing, setQueueRefreshing] = useState(false)
@@ -238,7 +252,8 @@ export function AttackWorkflowControlCenter({
   const [queueHasPrevious, setQueueHasPrevious] = useState(false)
   const [queueHasNext, setQueueHasNext] = useState(false)
   const [comment, setComment] = useState("")
-  const [closeReason, setCloseReason] = useState<AttackWorkflowCloseReason>("resolved")
+  const [closeReason, setCloseReason] =
+    useState<AttackWorkflowCloseReason>("resolved")
   const [updating, setUpdating] = useState(false)
   const loadSeqRef = useRef(0)
   const queueLoadSeqRef = useRef(0)
@@ -263,14 +278,14 @@ export function AttackWorkflowControlCenter({
     } catch (err) {
       setAttackOverview((current) => current ?? EMPTY_ATTACK_OVERVIEW)
       toast({
-        title: "Failed to load attack overview",
+        title: t("toasts.loadOverviewFailed"),
         description: err instanceof Error ? err.message : undefined,
         variant: "destructive",
       })
     } finally {
       setAttackOverviewLoading(false)
     }
-  }, [normalizedSnapshotId, toast])
+  }, [normalizedSnapshotId, t, toast])
 
   useEffect(() => {
     void loadAttackOverview()
@@ -284,51 +299,56 @@ export function AttackWorkflowControlCenter({
     return () => window.clearTimeout(timer)
   }, [queueCaseIdQuery])
 
-  const loadWorkflowDetail = useCallback(async ({
-    caseId: targetCaseId = "",
-    workflowId: targetWorkflowId = "",
-  }: WorkflowIdentity = {}) => {
-    const nextSeq = loadSeqRef.current + 1
-    loadSeqRef.current = nextSeq
-    const normalizedTargetCaseId = targetCaseId.trim()
-    const normalizedTargetWorkflowId = targetWorkflowId.trim()
+  const loadWorkflowDetail = useCallback(
+    async ({
+      caseId: targetCaseId = "",
+      workflowId: targetWorkflowId = "",
+    }: WorkflowIdentity = {}) => {
+      const nextSeq = loadSeqRef.current + 1
+      loadSeqRef.current = nextSeq
+      const normalizedTargetCaseId = targetCaseId.trim()
+      const normalizedTargetWorkflowId = targetWorkflowId.trim()
 
-    if (!normalizedTargetCaseId && !normalizedTargetWorkflowId) {
-      setDetail(null)
-      setError("")
-      setLoading(false)
-      return
-    }
-
-    setLoading(true)
-    setError("")
-    try {
-      const nextDetail = normalizedTargetWorkflowId
-        ? await getAttackWorkflow({
-            tenantId,
-            workflowId: normalizedTargetWorkflowId,
-            includeActions: true,
-            includeEvents: true,
-          })
-        : await getAttackWorkflowByCaseId({
-            tenantId,
-            caseId: normalizedTargetCaseId,
-            includeActions: true,
-            includeEvents: true,
-          })
-
-      if (loadSeqRef.current !== nextSeq) return
-      setDetail(nextDetail)
-    } catch (err) {
-      if (loadSeqRef.current !== nextSeq) return
-      setError(err instanceof Error ? err.message : "Failed to load AttackWorkflow.")
-      setDetail(null)
-    } finally {
-      if (loadSeqRef.current === nextSeq) {
+      if (!normalizedTargetCaseId && !normalizedTargetWorkflowId) {
+        setDetail(null)
+        setError("")
         setLoading(false)
+        return
       }
-    }
-  }, [tenantId])
+
+      setLoading(true)
+      setError("")
+      try {
+        const nextDetail = normalizedTargetWorkflowId
+          ? await getAttackWorkflow({
+              tenantId,
+              workflowId: normalizedTargetWorkflowId,
+              includeActions: true,
+              includeEvents: true,
+            })
+          : await getAttackWorkflowByCaseId({
+              tenantId,
+              caseId: normalizedTargetCaseId,
+              includeActions: true,
+              includeEvents: true,
+            })
+
+        if (loadSeqRef.current !== nextSeq) return
+        setDetail(nextDetail)
+      } catch (err) {
+        if (loadSeqRef.current !== nextSeq) return
+        setError(
+          err instanceof Error ? err.message : t("errors.loadWorkflowFailed"),
+        )
+        setDetail(null)
+      } finally {
+        if (loadSeqRef.current === nextSeq) {
+          setLoading(false)
+        }
+      }
+    },
+    [t, tenantId],
+  )
 
   const loadWorkflow = useCallback(
     () =>
@@ -343,78 +363,80 @@ export function AttackWorkflowControlCenter({
     void loadWorkflow()
   }, [loadWorkflow])
 
-  const loadWorkflowQueue = useCallback(async ({
-    page = 1,
-    refreshing = false,
-  }: {
-    page?: number
-    refreshing?: boolean
-  } = {}) => {
-    const nextSeq = queueLoadSeqRef.current + 1
-    queueLoadSeqRef.current = nextSeq
+  const loadWorkflowQueue = useCallback(
+    async ({
+      page = 1,
+      refreshing = false,
+    }: {
+      page?: number
+      refreshing?: boolean
+    } = {}) => {
+      const nextSeq = queueLoadSeqRef.current + 1
+      queueLoadSeqRef.current = nextSeq
 
-    if (refreshing) {
-      setQueueRefreshing(true)
-    } else {
-      setQueueLoading(true)
-    }
-    setQueueError("")
-
-    try {
-      const selectedStatus = queueFilters.statuses[0] ?? ""
-      const selectedSeverity = queueFilters.severities[0] ?? ""
-      const data = await listAttackWorkflows({
-        tenantId,
-        page,
-        pageSize: QUEUE_PAGE_SIZE,
-        timezone: normalizedTimezone || undefined,
-        startTime: normalizedStartTime || undefined,
-        endTime: normalizedEndTime || undefined,
-        statusScope: queueFilters.statusScope,
-        status: selectedStatus || undefined,
-        severity: selectedSeverity || undefined,
-        caseId: queueCaseId || undefined,
-      })
-
-      if (queueLoadSeqRef.current !== nextSeq) return
-
-      const nextPage = data.pagination.current_page || page
-      const nextTotal = data.pagination.total_count || data.items.length
-      const nextTotalPages =
-        data.pagination.total_pages ||
-        (nextTotal > 0 ? Math.ceil(nextTotal / QUEUE_PAGE_SIZE) : 0)
-
-      setQueueWorkflows(data.items)
-      setQueuePage(nextPage)
-      setQueueTotal(nextTotal)
-      setQueueTotalPages(nextTotalPages)
-      setQueueHasPrevious(data.pagination.has_previous || nextPage > 1)
-      setQueueHasNext(
-        data.pagination.has_next ||
-          (nextTotalPages > 0 && nextPage < nextTotalPages),
-      )
-    } catch (err) {
-      if (queueLoadSeqRef.current !== nextSeq) return
-      setQueueError(
-        err instanceof Error
-          ? err.message
-          : "Failed to load AttackWorkflow queue.",
-      )
-      setQueueHasNext(false)
-    } finally {
-      if (queueLoadSeqRef.current === nextSeq) {
-        setQueueLoading(false)
-        setQueueRefreshing(false)
+      if (refreshing) {
+        setQueueRefreshing(true)
+      } else {
+        setQueueLoading(true)
       }
-    }
-  }, [
-    normalizedEndTime,
-    normalizedStartTime,
-    normalizedTimezone,
-    queueCaseId,
-    queueFilters,
-    tenantId,
-  ])
+      setQueueError("")
+
+      try {
+        const selectedStatus = queueFilters.statuses[0] ?? ""
+        const selectedSeverity = queueFilters.severities[0] ?? ""
+        const data = await listAttackWorkflows({
+          tenantId,
+          page,
+          pageSize: QUEUE_PAGE_SIZE,
+          timezone: normalizedTimezone || undefined,
+          startTime: normalizedStartTime || undefined,
+          endTime: normalizedEndTime || undefined,
+          statusScope: queueFilters.statusScope,
+          status: selectedStatus || undefined,
+          severity: selectedSeverity || undefined,
+          caseId: queueCaseId || undefined,
+        })
+
+        if (queueLoadSeqRef.current !== nextSeq) return
+
+        const nextPage = data.pagination.current_page || page
+        const nextTotal = data.pagination.total_count || data.items.length
+        const nextTotalPages =
+          data.pagination.total_pages ||
+          (nextTotal > 0 ? Math.ceil(nextTotal / QUEUE_PAGE_SIZE) : 0)
+
+        setQueueWorkflows(data.items)
+        setQueuePage(nextPage)
+        setQueueTotal(nextTotal)
+        setQueueTotalPages(nextTotalPages)
+        setQueueHasPrevious(data.pagination.has_previous || nextPage > 1)
+        setQueueHasNext(
+          data.pagination.has_next ||
+            (nextTotalPages > 0 && nextPage < nextTotalPages),
+        )
+      } catch (err) {
+        if (queueLoadSeqRef.current !== nextSeq) return
+        setQueueError(
+          err instanceof Error ? err.message : t("errors.loadQueueFailed"),
+        )
+        setQueueHasNext(false)
+      } finally {
+        if (queueLoadSeqRef.current === nextSeq) {
+          setQueueLoading(false)
+          setQueueRefreshing(false)
+        }
+      }
+    },
+    [
+      normalizedEndTime,
+      normalizedStartTime,
+      normalizedTimezone,
+      queueCaseId,
+      queueFilters,
+      t,
+      tenantId,
+    ],
+  )
 
   useEffect(() => {
     void loadWorkflowQueue()
@@ -507,14 +529,12 @@ export function AttackWorkflowControlCenter({
     : null
   const useActiveQueueSelection =
     activeQueueItemOnPage || Boolean(normalizedCaseId || normalizedWorkflowId)
-  const selectedQueueWorkflowId =
-    useActiveQueueSelection
-      ? activeWorkflowId
-      : defaultSelectedQueueItem?.workflow_id || ""
-  const selectedQueueCaseId =
-    useActiveQueueSelection
-      ? activeCaseId
-      : defaultSelectedQueueItem?.case_id || ""
+  const selectedQueueWorkflowId = useActiveQueueSelection
+    ? activeWorkflowId
+    : defaultSelectedQueueItem?.workflow_id || ""
+  const selectedQueueCaseId = useActiveQueueSelection
+    ? activeCaseId
+    : defaultSelectedQueueItem?.case_id || ""
 
   async function refreshAttackOverviewHeader() {
     const refreshWorkflowId =
@@ -569,7 +589,9 @@ export function AttackWorkflowControlCenter({
   function openStatusDialog(status: AttackWorkflowStatus) {
     setSelectedStatus(status)
     setComment("")
-    setCloseReason((workflow?.close_reason as AttackWorkflowCloseReason) || "resolved")
+    setCloseReason(
+      (workflow?.close_reason as AttackWorkflowCloseReason) || "resolved",
+    )
   }
 
   async function submitStatusUpdate() {
@@ -583,14 +605,23 @@ export function AttackWorkflowControlCenter({
         workflowId: workflow.workflow_id,
         status: selectedStatus,
         closeReason: selectedStatus === "closed" ? closeReason : undefined,
-        payloadJson: buildStatusPayload(comment, "attack_workflow_control_center"),
+        payloadJson: buildStatusPayload(
+          comment,
+          "attack_workflow_control_center",
+        ),
       })
 
       if (updated) {
-        setDetail((current) => current ? { ...current, workflow: updated } : current)
+        setDetail((current) =>
+          current ? { ...current, workflow: updated } : current,
+        )
       }
       setSelectedStatus("")
-      toast({ title: `Workflow status updated to ${statusLabel(selectedStatus)}.` })
+      toast({
+        title: t("toasts.statusUpdated", {
+          status: statusLabel(t, selectedStatus),
+        }),
+      })
       await loadWorkflowDetail({
         caseId: workflow.case_id,
         workflowId: workflow.workflow_id,
@@ -598,7 +629,7 @@ export function AttackWorkflowControlCenter({
       await loadWorkflowQueue({ page: queuePage, refreshing: true })
     } catch (err) {
       toast({
-        title: "Failed to update workflow status",
+        title: t("toasts.statusUpdateFailed"),
         description: err instanceof Error ? err.message : undefined,
         variant: "destructive",
       })
@@ -632,7 +663,7 @@ export function AttackWorkflowControlCenter({
         <AttackDetailHeader
           overview={attackOverview ?? EMPTY_ATTACK_OVERVIEW}
           checking={attackOverviewLoading}
-          title="AttackWorkflow Control Center"
+          title={t("title")}
           onRefresh={() => void refreshAttackOverviewHeader()}
           onSnapshotChange={selectAttackOverviewSnapshot}
         />
@@ -789,6 +820,7 @@ function StatusDialog({
   selectedStatus: AttackWorkflowStatus | ""
   updating: boolean
 }) {
+  const t = useTranslations("pages.attack.workflowCenter")
   const canSubmit =
     Boolean(selectedStatus) &&
     !updating &&
@@ -804,10 +836,11 @@ function StatusDialog({
             </span>
             <div>
               <DialogTitle className="text-base font-semibold text-slate-950">
-                Update workflow status
+                {t("dialog.title")}
               </DialogTitle>
               <DialogDescription className="mt-1">
-                {statusLabel(currentStatus)} -&gt; {selectedStatus ? statusLabel(selectedStatus) : "-"}
+                {statusLabel(t, currentStatus)} -&gt;{" "}
+                {selectedStatus ? statusLabel(t, selectedStatus) : "-"}
               </DialogDescription>
             </div>
           </div>
@@ -815,17 +848,25 @@ function StatusDialog({
         <div className="space-y-4 px-5 py-4">
           {selectedStatus === "closed" ? (
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-800" htmlFor="attack-workflow-center-close-reason">
-                Close reason
+              <label
+                className="text-sm font-semibold text-slate-800"
+                htmlFor="attack-workflow-center-close-reason"
+              >
+                {t("dialog.closeReason")}
               </label>
-              <Select value={closeReason} onValueChange={(value) => onCloseReasonChange(value as AttackWorkflowCloseReason)}>
+              <Select
+                value={closeReason}
+                onValueChange={(value) =>
+                  onCloseReasonChange(value as AttackWorkflowCloseReason)
+                }
+              >
                 <SelectTrigger id="attack-workflow-center-close-reason">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {ATTACK_WORKFLOW_CLOSE_REASONS.map((reason) => (
                     <SelectItem key={reason} value={reason}>
-                      {CLOSE_REASON_LABELS[reason]}
+                      {closeReasonLabel(t, reason)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -833,30 +874,37 @@ function StatusDialog({
             </div>
           ) : null}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-800" htmlFor="attack-workflow-center-comment">
-              Operator note
+            <label
+              className="text-sm font-semibold text-slate-800"
+              htmlFor="attack-workflow-center-comment"
+            >
+              {t("dialog.operatorNote")}
             </label>
             <Textarea
               id="attack-workflow-center-comment"
               value={comment}
               onChange={(event) => onCommentChange(event.target.value)}
-              placeholder="Record the decision basis, accepted evidence, or manual override reason."
+              placeholder={t("dialog.operatorNotePlaceholder")}
               className="min-h-28 resize-y rounded-xl border-slate-200 text-sm leading-6"
             />
             <p className="text-xs leading-5 text-slate-500">
-              This note is written to payload_json and will be visible in the workflow timeline.
+              {t("dialog.operatorNoteHint")}
             </p>
           </div>
         </div>
         <DialogFooter className="gap-2 border-t border-slate-100 px-5 py-4 sm:space-x-0">
           <DialogClose asChild>
             <Button type="button" variant="outline" disabled={updating}>
-              Cancel
+              {t("dialog.cancel")}
             </Button>
           </DialogClose>
           <Button type="button" onClick={onSubmit} disabled={!canSubmit}>
-            {updating ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck className="size-4" />}
-            Confirm
+            {updating ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <ShieldCheck className="size-4" />
+            )}
+            {t("dialog.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

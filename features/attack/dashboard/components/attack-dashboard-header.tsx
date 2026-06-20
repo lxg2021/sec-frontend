@@ -5,7 +5,10 @@ import { useState } from "react"
 import { CalendarClock, Loader2, Play, Radar, RefreshCw } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
-import type { AttackOverview, BucketType } from "@/features/attack/dashboard/types"
+import type {
+  AttackOverview,
+  BucketType,
+} from "@/features/attack/dashboard/types"
 import { AttackSnapshotSelector } from "@/features/attack/dashboard/components/attack-snapshot-selector"
 import { SelectAttackWindowDialog } from "@/features/attack/dashboard/components/select-attack-window-dialog"
 import { TriggerCheckDialog } from "@/features/attack/dashboard/components/trigger-check-dialog"
@@ -93,7 +96,9 @@ export function AttackDashboardHeader({
             {icon ?? <Radar className="h-5 w-5" />}
           </div>
           <div className="min-w-0 space-y-1.5">
-            <h1 className="truncate text-lg font-semibold text-slate-950">{title ?? t("title")}</h1>
+            <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
+              {title ?? t("title")}
+            </h1>
             <div className="flex flex-wrap items-center gap-2.5 text-sm">
               <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
                 {BUCKET_LABEL[bucket.bucket_type]}
@@ -140,7 +145,9 @@ export function AttackDashboardHeader({
                   ) : (
                     <Play className="h-4 w-4 fill-current" />
                   )}
-                  <span className="font-medium">{checking ? t("header.checking") : t("header.checkNow")}</span>
+                  <span className="font-medium">
+                    {checking ? t("header.checking") : t("header.checkNow")}
+                  </span>
                 </Button>
               </>
             ) : null}
@@ -156,7 +163,9 @@ export function AttackDashboardHeader({
               aria-label={t("header.refreshOverview")}
               className="h-10 w-10 shrink-0 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
-              <RefreshCw className={cn("h-4 w-4", checking && "animate-spin")} />
+              <RefreshCw
+                className={cn("h-4 w-4", checking && "animate-spin")}
+              />
               <span className="sr-only">{t("header.refreshOverview")}</span>
             </Button>
           </div>

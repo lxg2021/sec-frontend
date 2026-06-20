@@ -6,6 +6,7 @@ import {
   Loader2,
   ShieldQuestion,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
 
 /* -------------------------------------------------------------------------- */
@@ -89,37 +90,37 @@ const ATTACK_WORKFLOW_STATUSES: AttackWorkflowStatus[] = [
   "closed",
 ]
 
-const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
-  detected: "Detected",
-  investigating: "Investigating",
-  confirmed: "Confirmed",
-  forensics: "Forensics",
-  responding: "Responding",
-  contained: "Contained",
-  remediated: "Remediated",
-  closed: "Closed",
+const STATUS_LABEL_KEYS: Record<AttackWorkflowStatus, string> = {
+  detected: "statuses.detected",
+  investigating: "statuses.investigating",
+  confirmed: "statuses.confirmed",
+  forensics: "statuses.forensics",
+  responding: "statuses.responding",
+  contained: "statuses.contained",
+  remediated: "statuses.remediated",
+  closed: "statuses.closed",
 }
 
-const COMPACT_STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
-  detected: "Detect",
-  investigating: "Triage",
-  confirmed: "Confirm",
-  forensics: "Forensics",
-  responding: "Respond",
-  contained: "Contain",
-  remediated: "Remediate",
-  closed: "Closed",
+const COMPACT_STATUS_LABEL_KEYS: Record<AttackWorkflowStatus, string> = {
+  detected: "spine.compactStatuses.detected",
+  investigating: "spine.compactStatuses.investigating",
+  confirmed: "spine.compactStatuses.confirmed",
+  forensics: "spine.compactStatuses.forensics",
+  responding: "spine.compactStatuses.responding",
+  contained: "spine.compactStatuses.contained",
+  remediated: "spine.compactStatuses.remediated",
+  closed: "spine.compactStatuses.closed",
 }
 
-const STATUS_DESCRIPTIONS: Record<AttackWorkflowStatus, string> = {
-  detected: "Signal raised",
-  investigating: "Triage in progress",
-  confirmed: "Threat verified",
-  forensics: "Evidence capture",
-  responding: "Active response",
-  contained: "Spread halted",
-  remediated: "Threat removed",
-  closed: "Case resolved",
+const STATUS_DESCRIPTION_KEYS: Record<AttackWorkflowStatus, string> = {
+  detected: "spine.descriptions.detected",
+  investigating: "spine.descriptions.investigating",
+  confirmed: "spine.descriptions.confirmed",
+  forensics: "spine.descriptions.forensics",
+  responding: "spine.descriptions.responding",
+  contained: "spine.descriptions.contained",
+  remediated: "spine.descriptions.remediated",
+  closed: "spine.descriptions.closed",
 }
 
 const STATUS_ICON_PATHS: Record<AttackWorkflowStatus, string> = {
@@ -204,14 +205,16 @@ function workflowStatusTime(
   }
 }
 
+type WorkflowCenterT = ReturnType<typeof useTranslations>
+
 /**
  * Stable, locale-independent timestamp formatter.
  * Accepts "YYYY-MM-DD HH:mm:ss" or "YYYY-MM-DDTHH:mm:ss".
  */
-function formatWorkflowTime(value: string): string {
+function formatWorkflowTime(value: string, t: WorkflowCenterT): string {
   const trimmed = (value ?? "").trim()
-  if (!trimmed) return "not recorded"
-  if (trimmed.startsWith("0001-01-01")) return "not recorded"
+  if (!trimmed) return t("spine.notRecorded")
+  if (trimmed.startsWith("0001-01-01")) return t("spine.notRecorded")
 
   const fullMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/)
   if (fullMatch) {
@@ -227,7 +230,8 @@ function formatWorkflowTime(value: string): string {
 }
 
 function isRecorded(value: string): boolean {
-  return formatWorkflowTime(value) !== "not recorded"
+  const trimmed = (value ?? "").trim()
+  return Boolean(trimmed) && !trimmed.startsWith("0001-01-01")
 }
 
 interface NodeStateParams {
@@ -584,26 +588,23 @@ function getSeverityTone(severity: string): string {
 /* Placeholder states                                                         */
 /* -------------------------------------------------------------------------- */
 
-function AttackWorkflowSpineLoading() {
+function AttackWorkflowSpineLoading({ t }: { t: WorkflowCenterT }) {
   return (
     <div className="flex min-h-32 w-full items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm text-slate-500">
       <Loader2 className="mr-2 size-4 animate-spin text-sky-500" />
-      Loading AttackWorkflow...
+      {t("spine.loading")}
     </div>
   )
 }
 
-function AttackWorkflowSpineEmpty() {
+function AttackWorkflowSpineEmpty({ t }: { t: WorkflowCenterT }) {
   return (
     <div className="flex min-h-32 w-full flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
       <ShieldQuestion className="size-6 text-slate-400" />
       <p className="text-sm font-medium text-slate-600">
-        No AttackWorkflow was found for this case.
+        {t("spine.emptyTitle")}
       </p>
-      <p className="text-xs text-slate-400">
-        Open detail pages for investigation, then return after a workflow is
-        created.
-      </p>
+      <p className="text-xs text-slate-400">{t("spine.emptyDescription")}</p>
     </div>
   )
 }
@@ -630,10 +631,12 @@ function NodeBadges({
   status,
   isCurrent,
   showNext,
+  t,
 }: {
   status: AttackWorkflowStatus
   isCurrent: boolean
   showNext: boolean
+  t: WorkflowCenterT
 }) {
   const tone = getWorkflowStatusTone(status)
 
@@ -646,7 +649,7 @@ function NodeBadges({
         )}
       >
         <span className="size-1.5 animate-pulse rounded-full bg-white" />
-        Current
+        {t("labels.current")}
       </span>
     )
   }
@@ -659,7 +662,7 @@ function NodeBadges({
         )}
       >
         <ArrowRight className="size-3" />
-        Next
+        {t("labels.next")}
       </span>
     )
   }
@@ -720,13 +723,17 @@ function WorkflowNodeMarker({
 function HorizontalNode({
   node,
   density,
+  t,
 }: {
   node: SpineNodeData
   density: DensityClasses
+  t: WorkflowCenterT
 }) {
   const tone = getNodeTone(node.status, node.state)
   const emphasized = node.isCurrent || node.showNext || node.isSelected
-  const label = emphasized ? node.label : COMPACT_STATUS_LABELS[node.status]
+  const label = emphasized
+    ? node.label
+    : t(COMPACT_STATUS_LABEL_KEYS[node.status])
 
   return (
     <div className="flex w-full min-w-0 flex-col items-center">
@@ -776,6 +783,7 @@ function HorizontalNode({
             status={node.status}
             isCurrent={node.isCurrent}
             showNext={node.showNext}
+            t={t}
           />
         </div>
         <span className={cn(density.accent, tone.accent)}>
@@ -801,9 +809,11 @@ function getConnectorToneAfter(node: SpineNodeData): string {
 function VerticalNode({
   node,
   density,
+  t,
 }: {
   node: SpineNodeData
   density: DensityClasses
+  t: WorkflowCenterT
 }) {
   const tone = getNodeTone(node.status, node.state)
 
@@ -838,6 +848,7 @@ function VerticalNode({
             status={node.status}
             isCurrent={node.isCurrent}
             showNext={node.showNext}
+            t={t}
           />
         </div>
         <span className={cn(density.accent, tone.accent)}>
@@ -869,13 +880,15 @@ export function AttackWorkflowSpine({
   onStatusSelect,
   onStatusClick,
 }: AttackWorkflowSpineProps) {
+  const t = useTranslations("pages.attack.workflowCenter")
+
   if (!workflow) {
     return (
       <div className={cn("w-full min-w-0", className)}>
         {loading ? (
-          <AttackWorkflowSpineLoading />
+          <AttackWorkflowSpineLoading t={t} />
         ) : (
-          <AttackWorkflowSpineEmpty />
+          <AttackWorkflowSpineEmpty t={t} />
         )}
       </div>
     )
@@ -911,10 +924,10 @@ export function AttackWorkflowSpine({
       })
       return {
         status,
-        label: STATUS_LABELS[status],
-        description: STATUS_DESCRIPTIONS[status],
+        label: t(STATUS_LABEL_KEYS[status]),
+        description: t(STATUS_DESCRIPTION_KEYS[status]),
         state,
-        timeDisplay: formatWorkflowTime(rawTime),
+        timeDisplay: formatWorkflowTime(rawTime, t),
         isCurrent: isKnownStatus && index === currentIndex,
         showNext: recommendedStatus === status && index !== currentIndex,
         connectorIn: getConnectorTone(
@@ -932,13 +945,13 @@ export function AttackWorkflowSpine({
 
   const renderItem = (node: SpineNodeData, useVertical: boolean) => {
     const ariaLabel = `${node.label}, ${
-      node.isCurrent ? "current step, " : ""
-    }${node.state === "pending" ? "pending" : `recorded ${node.timeDisplay}`}`
+      node.isCurrent ? t("spine.nodeAria.currentPrefix") : ""
+    }${node.state === "pending" ? t("spine.nodeAria.pending") : t("spine.nodeAria.recorded", { time: node.timeDisplay })}`
 
     const inner = useVertical ? (
-      <VerticalNode node={node} density={densityClasses} />
+      <VerticalNode node={node} density={densityClasses} t={t} />
     ) : (
-      <HorizontalNode node={node} density={densityClasses} />
+      <HorizontalNode node={node} density={densityClasses} t={t} />
     )
 
     const itemClassName = useVertical ? "min-w-0" : "min-w-0 flex-1 basis-0"
@@ -993,13 +1006,13 @@ export function AttackWorkflowSpine({
           : "bg-transparent",
         className,
       )}
-      aria-label="Attack workflow lifecycle"
+      aria-label={t("spine.ariaLabel")}
     >
       {/* Header */}
       {showHeader && (
         <header className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-100 px-4 py-3">
           <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">
-            {workflow.title?.trim() || "Untitled workflow"}
+            {workflow.title?.trim() || t("queue.untitled")}
           </h3>
 
           {workflow.severity?.trim() && (
@@ -1020,12 +1033,12 @@ export function AttackWorkflowSpine({
                 getWorkflowStatusTone(normalizedStatus).statusBadge,
               )}
             >
-              {STATUS_LABELS[normalizedStatus]}
+              {t(STATUS_LABEL_KEYS[normalizedStatus])}
             </span>
           ) : (
             <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-700">
               <ShieldQuestion className="size-3" />
-              Unknown
+              {t("unknown")}
             </span>
           )}
         </header>
@@ -1052,7 +1065,7 @@ export function AttackWorkflowSpine({
       {/* Unknown-status warning */}
       {!isKnownStatus && (
         <div className="mx-4 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
-          <span className="font-medium">Unknown workflow status:</span>{" "}
+          <span className="font-medium">{t("spine.unknownStatusLabel")}</span>{" "}
           <span className="break-all font-mono">{workflow.status}</span>
         </div>
       )}
@@ -1087,16 +1100,16 @@ export function AttackWorkflowSpine({
         <div className="flex flex-col gap-2 border-t border-slate-100 px-4 py-3">
           {showCloseReason && (
             <p className="min-w-0 text-xs text-slate-500">
-              <span className="font-medium text-slate-600">Close reason:</span>{" "}
+              <span className="font-medium text-slate-600">
+                {t("dialog.closeReason")}:
+              </span>{" "}
               <span className="break-all font-mono">{closeReason}</span>
             </p>
           )}
           {hasInconsistency && (
             <p className="inline-flex w-full min-w-0 items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
               <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-              <span className="min-w-0">
-                Workflow timestamps contain out-of-order or missing records.
-              </span>
+              <span className="min-w-0">{t("spine.timestampWarning")}</span>
             </p>
           )}
         </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import { Waypoints } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { AttackWorkflowSpine } from "./attack-workflow-spine"
 import type {
@@ -20,14 +21,14 @@ interface AttackWorkflowProcessCardProps {
 }
 
 const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
-  detected: "Detected",
-  investigating: "Investigating",
-  confirmed: "Confirmed",
-  forensics: "Forensics",
-  responding: "Responding",
-  contained: "Contained",
-  remediated: "Remediated",
-  closed: "Closed",
+  detected: "statuses.detected",
+  investigating: "statuses.investigating",
+  confirmed: "statuses.confirmed",
+  forensics: "statuses.forensics",
+  responding: "statuses.responding",
+  contained: "statuses.contained",
+  remediated: "statuses.remediated",
+  closed: "statuses.closed",
 }
 
 function displayHeaderValue(value?: string) {
@@ -41,25 +42,30 @@ function displayWorkflowTitle(value?: string) {
   return normalized || "-"
 }
 
-function statusLabel(status: string) {
+type WorkflowCenterT = ReturnType<typeof useTranslations>
+
+function statusLabel(t: WorkflowCenterT, status: string) {
   const normalized = normalizeWorkflowStatus(status)
-  return normalized ? STATUS_LABELS[normalized] : status || "Unknown"
+  return normalized ? t(STATUS_LABELS[normalized]) : status || t("unknown")
 }
 
-function processNotice(workflow: AttackWorkflowItem | null) {
+function processNotice(
+  t: WorkflowCenterT,
+  workflow: AttackWorkflowItem | null,
+) {
   if (!workflow) return ""
 
   const normalized = normalizeWorkflowStatus(workflow.status)
   const closeReason = workflow.close_reason.trim()
   if (normalized === "closed") {
     return closeReason
-      ? `This attack workflow is closed. Close reason: ${closeReason}.`
-      : "This attack workflow is closed."
+      ? t("process.closedWithReason", { reason: closeReason })
+      : t("process.closed")
   }
   if (normalized) {
-    return `This attack workflow is currently in ${STATUS_LABELS[normalized]}.`
+    return t("process.currentStatus", { status: statusLabel(t, normalized) })
   }
-  return "This attack workflow has an unknown lifecycle status."
+  return t("process.unknownStatus")
 }
 
 function processNoticeTone(workflow: AttackWorkflowItem | null) {
@@ -88,17 +94,19 @@ function processNoticeTone(workflow: AttackWorkflowItem | null) {
 
 function WorkflowHeader({
   loading,
+  t,
   workflow,
 }: {
   loading: boolean
+  t: WorkflowCenterT
   workflow: AttackWorkflowItem | null
 }) {
   const title =
     loading && !workflow
-      ? "Title loading..."
+      ? t("process.titleLoading")
       : displayWorkflowTitle(workflow?.title)
   const caseId =
-    loading && !workflow ? "Loading..." : displayHeaderValue(workflow?.case_id)
+    loading && !workflow ? t("loading") : displayHeaderValue(workflow?.case_id)
 
   return (
     <header className="flex min-w-0 items-center gap-3 px-6 py-5">
@@ -118,7 +126,7 @@ function WorkflowHeader({
         </h2>
 
         <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 text-sm text-slate-500">
-          <span className="font-medium">Case ID</span>
+          <span className="font-medium">{t("process.caseId")}</span>
           <span
             className={cn(
               "min-w-0 max-w-full rounded-md bg-slate-100 px-3 py-1 font-mono text-xs font-semibold leading-5 text-slate-700",
@@ -141,11 +149,12 @@ export function AttackWorkflowProcessCard({
   selectedStatus = null,
   workflow,
 }: AttackWorkflowProcessCardProps) {
-  const notice = processNotice(workflow)
+  const t = useTranslations("pages.attack.workflowCenter")
+  const notice = processNotice(t, workflow)
 
   return (
     <Card className="min-h-0 w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <WorkflowHeader loading={loading} workflow={workflow} />
+      <WorkflowHeader loading={loading} t={t} workflow={workflow} />
 
       <div className="border-t border-slate-100">
         <AttackWorkflowSpine

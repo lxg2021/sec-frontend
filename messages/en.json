@@ -1555,6 +1555,428 @@
         "title": "Attack demo",
         "description": "A small demo for the date picker component.",
         "selectedRange": "Selected range"
+      },
+      "workflowCenter": {
+        "title": "AttackWorkflow Control Center",
+        "loading": "Loading",
+        "unknown": "Unknown",
+        "statuses": {
+          "detected": "Detected",
+          "investigating": "Investigating",
+          "confirmed": "Confirmed",
+          "forensics": "Forensics",
+          "responding": "Responding",
+          "contained": "Contained",
+          "remediated": "Remediated",
+          "closed": "Closed"
+        },
+        "severity": {
+          "critical": "Critical",
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low",
+          "info": "Info"
+        },
+        "labels": {
+          "current": "Current",
+          "selected": "Selected",
+          "next": "Next",
+          "result": "Result",
+          "time": "Time",
+          "actions": "Actions"
+        },
+        "completion": {
+          "notLoaded": "Not loaded",
+          "completed": "Completed",
+          "closed": "Closed",
+          "current": "Current",
+          "recorded": "Recorded",
+          "pending": "Pending"
+        },
+        "process": {
+          "titleLoading": "Title loading...",
+          "caseId": "Case ID",
+          "closed": "This attack workflow is closed.",
+          "closedWithReason": "This attack workflow is closed. Close reason: {reason}.",
+          "currentStatus": "This attack workflow is currently in {status}.",
+          "unknownStatus": "This attack workflow has an unknown lifecycle status."
+        },
+        "queue": {
+          "title": "Workflow Queue",
+          "ariaLabel": "Workflow queue",
+          "refreshAria": "Refresh workflow queue",
+          "caseIdPlaceholder": "Case ID",
+          "caseIdFilterAria": "Filter workflow queue by case ID",
+          "clearCaseIdAria": "Clear case ID filter",
+          "scopeAria": "Workflow scope",
+          "filterByStatus": "Filter by status",
+          "filterBySeverity": "Filter by severity",
+          "allStatuses": "All statuses",
+          "allSeverities": "All severities",
+          "retry": "Retry",
+          "idLabel": "ID",
+          "untitled": "Untitled workflow",
+          "titlePrefix": "Title: {title}",
+          "nextPrefix": "Next: {action}",
+          "hostCount": "{count} hosts",
+          "ruleCount": "{count} rules",
+          "openActionCount": "{count} open",
+          "scope": {
+            "open": "Open",
+            "all": "All",
+            "closed": "Closed"
+          },
+          "scopeSummary": {
+            "open": "Open attack workflows",
+            "all": "Attack workflows",
+            "closed": "Closed attack workflows"
+          },
+          "nextAction": {
+            "detected": "Start investigation",
+            "investigating": "Open Threat Analysis",
+            "confirmed": "Start Forensics",
+            "forensics": "Review Evidence",
+            "responding": "Open Response",
+            "contained": "Verify Containment",
+            "remediated": "Close Workflow",
+            "closed": "Resolved",
+            "review": "Review workflow"
+          },
+          "pagination": {
+            "showing": "Showing {start}-{end} of {total}",
+            "page": "Page {page} / {totalPages}",
+            "firstAria": "First workflow queue page",
+            "previousAria": "Previous workflow queue page",
+            "nextAria": "Next workflow queue page",
+            "lastAria": "Last workflow queue page"
+          },
+          "empty": {
+            "loadFailed": "Failed to load workflow queue.",
+            "noMatch": "No workflow matches the current filters.",
+            "noOpenCase": "No workflow case is waiting for action.",
+            "openAttackCases": "Open Attack Cases"
+          }
+        },
+        "spine": {
+          "ariaLabel": "Attack workflow lifecycle",
+          "notRecorded": "not recorded",
+          "loading": "Loading AttackWorkflow...",
+          "emptyTitle": "No AttackWorkflow was found for this case.",
+          "emptyDescription": "Open detail pages for investigation, then return after a workflow is created.",
+          "unknownStatusLabel": "Unknown workflow status:",
+          "timestampWarning": "Workflow timestamps contain out-of-order or missing records.",
+          "compactStatuses": {
+            "detected": "Detect",
+            "investigating": "Triage",
+            "confirmed": "Confirm",
+            "forensics": "Forensics",
+            "responding": "Respond",
+            "contained": "Contain",
+            "remediated": "Remediate",
+            "closed": "Closed"
+          },
+          "descriptions": {
+            "detected": "Signal raised",
+            "investigating": "Triage in progress",
+            "confirmed": "Threat verified",
+            "forensics": "Evidence capture",
+            "responding": "Active response",
+            "contained": "Spread halted",
+            "remediated": "Threat removed",
+            "closed": "Case resolved"
+          },
+          "nodeAria": {
+            "currentPrefix": "current step, ",
+            "pending": "pending",
+            "recorded": "recorded {time}"
+          }
+        },
+        "control": {
+          "title": "Stage Control",
+          "reviewMode": "Review mode",
+          "guidance": "Control guidance",
+          "recommendedTransition": "Recommended transition",
+          "updating": "Updating...",
+          "moveTo": "Move to {status}",
+          "whyThisStep": "Why this step",
+          "whatHappensNext": "What happens next",
+          "noRecommended": "No recommended transition for this stage.",
+          "keepSelectedGuidance": "Keep this stage selected until the workflow state or evidence supports a clear transition.",
+          "otherTransitions": "Other available transitions",
+          "otherTransitionsHint": "Use these only when the evidence supports a different workflow branch.",
+          "readOnly": {
+            "notLoaded": "Workflow is not loaded.",
+            "closed": "Closed workflow, review mode.",
+            "viewing": "Viewing {selected} while current stage is {current}."
+          }
+        },
+        "workbench": {
+          "title": "Stage Workbench"
+        },
+        "guide": {
+          "title": "Stage Guide",
+          "purpose": "Purpose",
+          "riskNote": "Risk note",
+          "detailedChecklist": "Detailed checklist",
+          "whatToVerify": "What to verify",
+          "completionCriteria": "Completion criteria"
+        },
+        "tools": {
+          "title": "Tools & Evidence",
+          "empty": "No tools are available for this stage.",
+          "open": "Open",
+          "locked": "Locked",
+          "openAria": "Open {title}",
+          "unavailableAria": "{title} unavailable",
+          "openAttackDetail": {
+            "title": "Open Attack Detail",
+            "description": "Review the alert context, case story, and related evidence.",
+            "closedDescription": "Review the closed case story and evidence context."
+          },
+          "openThreatAnalysis": {
+            "title": "Open Threat Analysis",
+            "description": "Read AI conclusions, evidence references, hypotheses, and response suggestions."
+          },
+          "openTraceDetails": {
+            "title": "Open Trace Details",
+            "description": "Inspect the attack story, trace graph, source fields, and node drilldown.",
+            "auditDescription": "Review historical trace evidence for audit."
+          },
+          "recheckTraceEvidence": {
+            "description": "Recheck the evidence used to confirm the attack."
+          },
+          "traceEvidenceAnchor": {
+            "description": "Use the trace timeline as the evidence collection anchor."
+          },
+          "evidenceCapture": {
+            "title": "Evidence Capture",
+            "description": "Forensic task writeback will appear in workflow actions."
+          },
+          "prepareResponse": {
+            "title": "Prepare Response",
+            "description": "Open the response workspace for preview, execution, and control writeback."
+          },
+          "openResponseResult": {
+            "title": "Open Response Result",
+            "containmentDescription": "Review containment action results and related execution references.",
+            "remediationDescription": "Review remediation evidence before case closure."
+          }
+        },
+        "activity": {
+          "events": "Events ({count})",
+          "actions": "Actions ({count})",
+          "impactSurface": "Impact Surface"
+        },
+        "events": {
+          "payload": "Payload",
+          "payloadItems": "{count} payload items",
+          "payloadFields": "{count} payload fields",
+          "payloadObject": "object",
+          "empty": "No workflow event has been recorded yet.",
+          "loading": "Loading workflow events...",
+          "columns": {
+            "time": "Time",
+            "transition": "Transition",
+            "commentPayload": "Comment / payload",
+            "operator": "Operator"
+          }
+        },
+        "actions": {
+          "empty": "No workflow action has been recorded yet.",
+          "loading": "Loading workflow actions...",
+          "moreReferences": "+{count} more references",
+          "agent": "agent",
+          "columns": {
+            "time": "Time",
+            "phaseAction": "Phase / action",
+            "target": "Target",
+            "status": "Status",
+            "references": "References"
+          },
+          "status": {
+            "success": "Success",
+            "running": "Running",
+            "failed": "Failed",
+            "skipped": "Skipped",
+            "pending": "Pending"
+          },
+          "phase": {
+            "investigation": "Investigation",
+            "forensics": "Forensics",
+            "remediation": "Remediation"
+          },
+          "refs": {
+            "action": "Action",
+            "batch": "Batch",
+            "investigationJob": "Investigation job",
+            "investigationTrace": "Investigation trace",
+            "forensicPlan": "Forensic plan",
+            "forensicExecution": "Forensic execution",
+            "forensicTask": "Forensic task",
+            "forensicTrace": "Forensic trace",
+            "artifact": "Artifact",
+            "preview": "Preview",
+            "execution": "Execution",
+            "executeTask": "Execute task",
+            "pmcTrace": "PMC trace",
+            "controlRef": "Control ref"
+          }
+        },
+        "dialog": {
+          "title": "Update workflow status",
+          "closeReason": "Close reason",
+          "operatorNote": "Operator note",
+          "operatorNotePlaceholder": "Record the decision basis, accepted evidence, or manual override reason.",
+          "operatorNoteHint": "This note is written to payload_json and will be visible in the workflow timeline.",
+          "cancel": "Cancel",
+          "confirm": "Confirm"
+        },
+        "closeReasons": {
+          "resolved": "Resolved",
+          "falsePositive": "False positive",
+          "duplicate": "Duplicate",
+          "acceptedRisk": "Accepted risk",
+          "other": "Other"
+        },
+        "toasts": {
+          "loadOverviewFailed": "Failed to load attack overview",
+          "statusUpdated": "Workflow status updated to {status}.",
+          "statusUpdateFailed": "Failed to update workflow status"
+        },
+        "errors": {
+          "loadWorkflowFailed": "Failed to load AttackWorkflow.",
+          "loadQueueFailed": "Failed to load AttackWorkflow queue."
+        },
+        "stages": {
+          "detected": {
+            "purpose": "Intake the alert signal, create workflow context, and define the first investigation scope before deeper analysis begins.",
+            "whatToVerify": {
+              "1": "Confirm the alert source, matched rule, affected asset, user, and first seen time.",
+              "2": "Check whether the signal is a duplicate of an existing workflow or belongs to a related case.",
+              "3": "Capture the initial business impact so the analyst knows where to start."
+            },
+            "completionCriteria": {
+              "1": "The workflow has a concrete asset, time window, and alert reason.",
+              "2": "The signal is not an obvious duplicate or already covered by another active case.",
+              "3": "The case has enough context for triage to start."
+            },
+            "riskNote": "Do not escalate before the signal is tied to a concrete case, asset, or time window.",
+            "recommendedReason": "Once the signal has enough context, the next useful action is analyst triage.",
+            "transitionEffect": "Moving to Investigating records triage start and shifts the workbench toward evidence review."
+          },
+          "investigating": {
+            "purpose": "Determine whether the alert represents real malicious activity or should be closed as benign or false positive.",
+            "whatToVerify": {
+              "1": "Review the AI report, trace graph, rule hits, and endpoint evidence together.",
+              "2": "Look for behavior that proves intent, execution, persistence, command activity, or lateral movement.",
+              "3": "Compare suspicious signals against known benign operations for the same host or user."
+            },
+            "completionCriteria": {
+              "1": "Evidence is strong enough to confirm the attack or close it with a clear reason.",
+              "2": "Important trace nodes and supporting events have been reviewed.",
+              "3": "The analyst note explains the classification decision."
+            },
+            "riskNote": "Do not confirm without evidence that links the observed behavior to an attack path.",
+            "recommendedReason": "When classification evidence is clear, the workflow should move from triage into a formal decision state.",
+            "transitionEffect": "Moving forward records the investigation decision and enables confirmation, forensics, or closure handling."
+          },
+          "confirmed": {
+            "purpose": "Record that the attack is verified, preserve the decision context, and prepare the case for evidence capture.",
+            "whatToVerify": {
+              "1": "Confirm the malicious behavior, affected assets, severity, and known attack path.",
+              "2": "Make sure the confirmation event references traceable evidence, not only a manual assertion.",
+              "3": "Check whether response urgency changes the amount of forensics that can be collected first."
+            },
+            "completionCriteria": {
+              "1": "The attack classification is recorded and visible in the timeline.",
+              "2": "The main evidence supporting confirmation is available for review.",
+              "3": "The case is ready for forensics or an explicitly justified fast response path."
+            },
+            "riskNote": "Avoid skipping evidence capture when response actions may destroy forensic context.",
+            "recommendedReason": "The attack has been verified, so the next step is to preserve evidence before response work changes the environment.",
+            "transitionEffect": "Moving to Forensics records the verification point and focuses the workbench on evidence capture."
+          },
+          "forensics": {
+            "purpose": "Capture and preserve the evidence needed to explain what happened before execution-oriented response begins.",
+            "whatToVerify": {
+              "1": "Collect the timeline, process tree, artifacts, affected host details, and user context.",
+              "2": "Confirm whether volatile evidence must be captured before isolation or cleanup.",
+              "3": "Identify the evidence that response operators need to choose safe actions."
+            },
+            "completionCriteria": {
+              "1": "Critical artifacts and timeline evidence are preserved or explicitly marked as unavailable.",
+              "2": "The response team has enough context to act without destroying required evidence.",
+              "3": "The next response action can be audited against collected evidence."
+            },
+            "riskNote": "Avoid destructive response before collecting the evidence needed for review, reporting, or root cause analysis.",
+            "recommendedReason": "After evidence is preserved, the workflow can move into response preparation and execution.",
+            "transitionEffect": "Moving to Responding opens the workflow for response action preview, execution, and result tracking."
+          },
+          "responding": {
+            "purpose": "Prepare, preview, execute, and sync response actions while keeping the operator decision auditable.",
+            "whatToVerify": {
+              "1": "Review the action preview, execution target, expected impact, and rollback considerations.",
+              "2": "Confirm that response tasks are aimed at the correct host, process, account, or network path.",
+              "3": "Check execution results and synchronize task status back into the workflow timeline."
+            },
+            "completionCriteria": {
+              "1": "Response actions have been executed, skipped with reason, or queued with visible status.",
+              "2": "The operator note explains the selected action path and known impact.",
+              "3": "The workflow has enough result data to validate containment."
+            },
+            "riskNote": "Review targets carefully before actions that isolate hosts, terminate processes, or block accounts.",
+            "recommendedReason": "Once response actions are complete or ready to validate, the case should move to containment validation.",
+            "transitionEffect": "Moving to Contained records active response completion and starts validation that the attack path is stopped."
+          },
+          "contained": {
+            "purpose": "Validate that the active attack path, spread channel, and control path are stopped before cleanup begins.",
+            "whatToVerify": {
+              "1": "Check isolation, block, termination, and access-control results against the affected scope.",
+              "2": "Look for remaining active connections, suspicious processes, callbacks, or lateral movement.",
+              "3": "Confirm monitoring signals show no continued execution inside the known attack path."
+            },
+            "completionCriteria": {
+              "1": "Active spread and command paths are halted or explicitly accepted as residual risk.",
+              "2": "Containment evidence is recorded and visible in the timeline.",
+              "3": "Cleanup and recovery can start without allowing the active attack to continue."
+            },
+            "riskNote": "Do not mark contained if active execution or lateral movement is still visible.",
+            "recommendedReason": "Validated containment means the team can move from stopping the attack to cleaning and recovering affected assets.",
+            "transitionEffect": "Moving to Remediated records containment completion and shifts the workbench to cleanup validation."
+          },
+          "remediated": {
+            "purpose": "Verify cleanup, recovery, and prevention controls before the workflow is closed.",
+            "whatToVerify": {
+              "1": "Confirm malicious artifacts are removed and affected systems or policies are restored.",
+              "2": "Review validation scans, monitoring signals, or analyst checks for recurrence.",
+              "3": "Make sure the final close reason is supported by the remediation evidence."
+            },
+            "completionCriteria": {
+              "1": "Cleanup is complete and no active recurrence is visible.",
+              "2": "Recovery and prevention tasks have a recorded result.",
+              "3": "The case has a clear closure reason and enough audit evidence for review."
+            },
+            "riskNote": "Do not close while recovery evidence, validation data, or the final close reason is missing.",
+            "recommendedReason": "When cleanup is validated, the workflow can be closed with a final reason and audit trail.",
+            "transitionEffect": "Moving to Closed records final resolution and locks the workflow into review mode."
+          },
+          "closed": {
+            "purpose": "Keep the final decision, close reason, timeline, and operator notes available for audit and review.",
+            "whatToVerify": {
+              "1": "Review the close reason, final operator note, and last workflow event.",
+              "2": "Confirm the timeline explains how the case moved from detection to closure.",
+              "3": "Check whether any follow-up task should be tracked outside this closed workflow."
+            },
+            "completionCriteria": {
+              "1": "Closure is recorded with a clear reason.",
+              "2": "No further workflow action is required inside this case.",
+              "3": "The audit trail is complete enough for later review."
+            },
+            "riskNote": "Closed workflows should be reopened only through an explicit follow-up process.",
+            "recommendedReason": "Closed workflows are review-only and should not receive automatic stage transitions.",
+            "transitionEffect": "No transition is executed from Closed in this workbench."
+          }
+        }
       }
     },
     "baseline": {

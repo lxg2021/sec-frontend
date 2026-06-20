@@ -1557,6 +1557,428 @@
         "title": "攻击演示",
         "description": "日期选择器组件示例。",
         "selectedRange": "已选择范围"
+      },
+      "workflowCenter": {
+        "title": "攻击工作流控制中心",
+        "loading": "加载中",
+        "unknown": "未知",
+        "statuses": {
+          "detected": "已发现",
+          "investigating": "调查中",
+          "confirmed": "已确认",
+          "forensics": "取证中",
+          "responding": "响应中",
+          "contained": "已遏制",
+          "remediated": "已修复",
+          "closed": "已关闭"
+        },
+        "severity": {
+          "critical": "严重",
+          "high": "高危",
+          "medium": "中危",
+          "low": "低危",
+          "info": "信息"
+        },
+        "labels": {
+          "current": "当前",
+          "selected": "已选",
+          "next": "下一步",
+          "result": "结果",
+          "time": "时间",
+          "actions": "动作"
+        },
+        "completion": {
+          "notLoaded": "未加载",
+          "completed": "已完成",
+          "closed": "已关闭",
+          "current": "当前",
+          "recorded": "已记录",
+          "pending": "待处理"
+        },
+        "process": {
+          "titleLoading": "标题加载中...",
+          "caseId": "Case ID",
+          "closed": "该攻击工作流已关闭",
+          "closedWithReason": "该攻击工作流已关闭，关闭原因：{reason}",
+          "currentStatus": "该攻击工作流当前处于 {status}",
+          "unknownStatus": "该攻击工作流存在未知生命周期状态"
+        },
+        "queue": {
+          "title": "工作流队列",
+          "ariaLabel": "工作流队列",
+          "refreshAria": "刷新工作流队列",
+          "caseIdPlaceholder": "Case ID",
+          "caseIdFilterAria": "按 Case ID 筛选工作流队列",
+          "clearCaseIdAria": "清空 Case ID 筛选",
+          "scopeAria": "工作流范围",
+          "filterByStatus": "按状态筛选",
+          "filterBySeverity": "按严重性筛选",
+          "allStatuses": "全部状态",
+          "allSeverities": "全部严重性",
+          "retry": "重试",
+          "idLabel": "ID",
+          "untitled": "未命名工作流",
+          "titlePrefix": "Title: {title}",
+          "nextPrefix": "下一步：{action}",
+          "hostCount": "{count} 台主机",
+          "ruleCount": "{count} 条规则",
+          "openActionCount": "{count} 个待处理动作",
+          "scope": {
+            "open": "打开",
+            "all": "全部",
+            "closed": "已关闭"
+          },
+          "scopeSummary": {
+            "open": "待处理攻击工作流",
+            "all": "攻击工作流",
+            "closed": "已关闭攻击工作流"
+          },
+          "nextAction": {
+            "detected": "开始调查",
+            "investigating": "打开威胁分析",
+            "confirmed": "开始取证",
+            "forensics": "复核证据",
+            "responding": "打开响应",
+            "contained": "验证遏制",
+            "remediated": "关闭工作流",
+            "closed": "已处理",
+            "review": "复核工作流"
+          },
+          "pagination": {
+            "showing": "显示 {start}-{end} / 共 {total}",
+            "page": "第 {page} / {totalPages} 页",
+            "firstAria": "工作流队列第一页",
+            "previousAria": "工作流队列上一页",
+            "nextAria": "工作流队列下一页",
+            "lastAria": "工作流队列最后一页"
+          },
+          "empty": {
+            "loadFailed": "工作流队列加载失败",
+            "noMatch": "没有工作流匹配当前筛选条件",
+            "noOpenCase": "当前没有等待处理的工作流案件",
+            "openAttackCases": "打开攻击案件"
+          }
+        },
+        "spine": {
+          "ariaLabel": "攻击工作流生命周期",
+          "notRecorded": "未记录",
+          "loading": "正在加载攻击工作流...",
+          "emptyTitle": "当前案件没有找到攻击工作流",
+          "emptyDescription": "先打开详情页完成调查，工作流创建后再返回这里",
+          "unknownStatusLabel": "未知工作流状态：",
+          "timestampWarning": "工作流时间戳存在顺序异常或记录缺失",
+          "compactStatuses": {
+            "detected": "发现",
+            "investigating": "研判",
+            "confirmed": "确认",
+            "forensics": "取证",
+            "responding": "响应",
+            "contained": "遏制",
+            "remediated": "修复",
+            "closed": "关闭"
+          },
+          "descriptions": {
+            "detected": "信号已触发",
+            "investigating": "研判进行中",
+            "confirmed": "威胁已验证",
+            "forensics": "证据采集中",
+            "responding": "响应执行中",
+            "contained": "扩散已阻断",
+            "remediated": "威胁已清理",
+            "closed": "案件已结束"
+          },
+          "nodeAria": {
+            "currentPrefix": "当前步骤，",
+            "pending": "待处理",
+            "recorded": "已记录 {time}"
+          }
+        },
+        "control": {
+          "title": "阶段控制",
+          "reviewMode": "复核模式",
+          "guidance": "控制指引",
+          "recommendedTransition": "推荐流转",
+          "updating": "更新中...",
+          "moveTo": "流转到 {status}",
+          "whyThisStep": "为什么执行",
+          "whatHappensNext": "执行后结果",
+          "noRecommended": "当前阶段没有推荐流转",
+          "keepSelectedGuidance": "保持当前阶段选中，直到工作流状态或证据支持明确流转",
+          "otherTransitions": "其他可选流转",
+          "otherTransitionsHint": "仅当证据支持不同工作流分支时使用这些流转",
+          "readOnly": {
+            "notLoaded": "工作流尚未加载",
+            "closed": "工作流已关闭，当前为复核模式",
+            "viewing": "正在查看 {selected}，当前阶段是 {current}"
+          }
+        },
+        "workbench": {
+          "title": "阶段工作台"
+        },
+        "guide": {
+          "title": "阶段说明",
+          "purpose": "阶段目标",
+          "riskNote": "风险提示",
+          "detailedChecklist": "详细检查清单",
+          "whatToVerify": "需要确认",
+          "completionCriteria": "完成标准"
+        },
+        "tools": {
+          "title": "工具与证据",
+          "empty": "当前阶段没有可用工具",
+          "open": "打开",
+          "locked": "锁定",
+          "openAria": "打开 {title}",
+          "unavailableAria": "{title} 不可用",
+          "openAttackDetail": {
+            "title": "打开攻击详情",
+            "description": "查看告警上下文、案件叙事和相关证据",
+            "closedDescription": "查看已关闭案件的叙事和证据上下文"
+          },
+          "openThreatAnalysis": {
+            "title": "打开威胁分析",
+            "description": "阅读 AI 结论、证据引用、假设和响应建议"
+          },
+          "openTraceDetails": {
+            "title": "打开溯源详情",
+            "description": "检查攻击叙事、链路图、来源字段和节点详情",
+            "auditDescription": "复核历史溯源证据用于审计"
+          },
+          "recheckTraceEvidence": {
+            "description": "复核用于确认攻击的证据"
+          },
+          "traceEvidenceAnchor": {
+            "description": "使用溯源时间线作为证据采集锚点"
+          },
+          "evidenceCapture": {
+            "title": "证据采集",
+            "description": "取证任务写回结果会显示在工作流动作中"
+          },
+          "prepareResponse": {
+            "title": "准备响应",
+            "description": "打开响应工作区进行预览、执行和控制写回"
+          },
+          "openResponseResult": {
+            "title": "打开响应结果",
+            "containmentDescription": "查看遏制动作结果和相关执行引用",
+            "remediationDescription": "关闭案件前复核修复证据"
+          }
+        },
+        "activity": {
+          "events": "事件 ({count})",
+          "actions": "动作 ({count})",
+          "impactSurface": "影响面"
+        },
+        "events": {
+          "payload": "载荷",
+          "payloadItems": "{count} 个载荷项",
+          "payloadFields": "{count} 个载荷字段",
+          "payloadObject": "对象",
+          "empty": "还没有记录工作流事件",
+          "loading": "正在加载工作流事件...",
+          "columns": {
+            "time": "时间",
+            "transition": "流转",
+            "commentPayload": "备注 / 载荷",
+            "operator": "操作方"
+          }
+        },
+        "actions": {
+          "empty": "还没有记录工作流动作",
+          "loading": "正在加载工作流动作...",
+          "moreReferences": "+{count} 个更多引用",
+          "agent": "主机",
+          "columns": {
+            "time": "时间",
+            "phaseAction": "阶段 / 动作",
+            "target": "目标",
+            "status": "状态",
+            "references": "引用"
+          },
+          "status": {
+            "success": "成功",
+            "running": "运行中",
+            "failed": "失败",
+            "skipped": "已跳过",
+            "pending": "待处理"
+          },
+          "phase": {
+            "investigation": "调查",
+            "forensics": "取证",
+            "remediation": "修复"
+          },
+          "refs": {
+            "action": "动作",
+            "batch": "批次",
+            "investigationJob": "调查任务",
+            "investigationTrace": "调查链路",
+            "forensicPlan": "取证计划",
+            "forensicExecution": "取证执行",
+            "forensicTask": "取证任务",
+            "forensicTrace": "取证链路",
+            "artifact": "证据文件",
+            "preview": "预览",
+            "execution": "执行",
+            "executeTask": "执行任务",
+            "pmcTrace": "PMC 链路",
+            "controlRef": "控制引用"
+          }
+        },
+        "dialog": {
+          "title": "更新工作流状态",
+          "closeReason": "关闭原因",
+          "operatorNote": "操作备注",
+          "operatorNotePlaceholder": "记录决策依据、采纳证据或人工覆盖原因",
+          "operatorNoteHint": "该备注会写入 payload_json，并显示在工作流时间线中",
+          "cancel": "取消",
+          "confirm": "确认"
+        },
+        "closeReasons": {
+          "resolved": "已解决",
+          "falsePositive": "误报",
+          "duplicate": "重复",
+          "acceptedRisk": "接受风险",
+          "other": "其他"
+        },
+        "toasts": {
+          "loadOverviewFailed": "攻击概览加载失败",
+          "statusUpdated": "工作流状态已更新为 {status}",
+          "statusUpdateFailed": "更新工作流状态失败"
+        },
+        "errors": {
+          "loadWorkflowFailed": "攻击工作流加载失败",
+          "loadQueueFailed": "攻击工作流队列加载失败"
+        },
+        "stages": {
+          "detected": {
+            "purpose": "接收告警信号并建立工作流上下文，在进入深入分析前明确首个调查范围、关联资产和时间窗口",
+            "whatToVerify": {
+              "1": "确认告警来源、命中规则、受影响资产、相关账号以及首次发现时间",
+              "2": "检查该信号是否已经被其它工作流覆盖，或是否属于同一个关联案件",
+              "3": "记录初始业务影响和优先级，让分析人员知道应该从哪里开始"
+            },
+            "completionCriteria": {
+              "1": "工作流已经具备明确资产、时间窗口和告警原因",
+              "2": "该信号不是明显重复，也没有被其它活动案件完整覆盖",
+              "3": "案件上下文足够支撑进入人工或自动研判"
+            },
+            "riskNote": "在信号尚未绑定到具体案件、资产或时间窗口前，不要直接升级阶段",
+            "recommendedReason": "当告警信号具备基本上下文后，下一步应进入调查研判",
+            "transitionEffect": "流转到“调查中”会记录研判开始时间，并把工作台重点切换到证据审查"
+          },
+          "investigating": {
+            "purpose": "判断告警是否代表真实攻击行为，还是应作为良性事件、误报或重复事件关闭",
+            "whatToVerify": {
+              "1": "同时查看 AI 分析、攻击链路、规则命中和终端侧证据",
+              "2": "查找能够证明攻击意图、执行、持久化、命令活动或横向移动的行为",
+              "3": "将可疑信号与同一主机或账号的已知正常操作进行对比"
+            },
+            "completionCriteria": {
+              "1": "证据强度足以确认攻击，或能够给出清晰原因关闭",
+              "2": "关键链路节点和支撑事件已经完成审查",
+              "3": "分析备注能够解释本次分类结论"
+            },
+            "riskNote": "没有证据把观察到的行为连接到攻击路径时，不应直接确认攻击",
+            "recommendedReason": "当分类证据清晰后，工作流应从研判进入正式决策阶段",
+            "transitionEffect": "继续流转会记录调查结论，并允许进入确认、取证或关闭处理"
+          },
+          "confirmed": {
+            "purpose": "记录攻击已经被验证，保留确认依据，并为后续证据采集和处置做准备",
+            "whatToVerify": {
+              "1": "确认恶意行为、影响资产、严重性和已知攻击路径",
+              "2": "确保确认事件引用了可追溯证据，而不是只有人工判断",
+              "3": "评估响应紧急程度是否会影响优先采集的取证范围"
+            },
+            "completionCriteria": {
+              "1": "攻击分类已经记录，并能在时间线中查看",
+              "2": "支撑确认结论的主要证据可被复核",
+              "3": "案件已经可以进入取证，或具备明确理由进入快速响应路径"
+            },
+            "riskNote": "响应动作可能破坏取证上下文时，应避免跳过证据采集",
+            "recommendedReason": "攻击已经确认，下一步应在响应改变环境前保全关键证据",
+            "transitionEffect": "流转到“取证中”会记录确认节点，并把工作台重点切换到证据采集"
+          },
+          "forensics": {
+            "purpose": "在执行型响应开始前，采集并保全能够解释事件过程的关键证据",
+            "whatToVerify": {
+              "1": "收集时间线、进程树、文件痕迹、受影响主机详情和用户上下文",
+              "2": "确认隔离或清理前是否需要先采集易失性证据",
+              "3": "识别响应操作人员选择安全动作所需的证据"
+            },
+            "completionCriteria": {
+              "1": "关键痕迹和时间线证据已经保全，或明确标记为不可获取",
+              "2": "响应团队具备足够上下文，可以在不破坏必要证据的前提下行动",
+              "3": "下一步响应动作能够依据已采集证据进行审计"
+            },
+            "riskNote": "在完成复盘、报告或根因分析所需证据采集前，应避免破坏性响应",
+            "recommendedReason": "关键证据保全后，工作流可以进入响应准备和执行",
+            "transitionEffect": "流转到“响应中”后，可以进行响应动作预览、执行和结果跟踪"
+          },
+          "responding": {
+            "purpose": "准备、预览、执行并同步响应动作，同时保证操作人员决策可审计",
+            "whatToVerify": {
+              "1": "检查动作预览、执行目标、预期影响和回滚考虑",
+              "2": "确认响应任务指向正确的主机、进程、账号或网络路径",
+              "3": "检查执行结果，并将任务状态同步回工作流时间线"
+            },
+            "completionCriteria": {
+              "1": "响应动作已经执行、带原因跳过，或进入可见队列状态",
+              "2": "操作备注解释了选择的动作路径和已知影响",
+              "3": "工作流具备足够结果数据用于验证遏制效果"
+            },
+            "riskNote": "隔离主机、结束进程或封禁账号前，必须仔细复核目标",
+            "recommendedReason": "响应动作完成或具备验证条件后，案件应进入遏制验证",
+            "transitionEffect": "流转到“已遏制”会记录主动响应完成，并开始验证攻击路径是否已被阻断"
+          },
+          "contained": {
+            "purpose": "在清理恢复前，验证活跃攻击路径、扩散通道和控制路径已经停止",
+            "whatToVerify": {
+              "1": "根据影响范围检查隔离、阻断、终止和访问控制结果",
+              "2": "查找是否仍存在活跃连接、可疑进程、回连或横向移动",
+              "3": "确认监控信号显示已知攻击路径内没有持续执行"
+            },
+            "completionCriteria": {
+              "1": "活跃扩散和命令路径已经停止，或被明确接受为残余风险",
+              "2": "遏制证据已经记录，并能在时间线中查看",
+              "3": "可以开始清理恢复，且不会放任攻击继续执行"
+            },
+            "riskNote": "如果仍能看到活跃执行或横向移动，不应标记为已遏制",
+            "recommendedReason": "遏制验证通过后，团队可以从阻断攻击转向清理和恢复资产",
+            "transitionEffect": "流转到“已修复”会记录遏制完成，并把工作台重点切换到清理验证"
+          },
+          "remediated": {
+            "purpose": "在关闭工作流前，验证清理、恢复和预防控制是否完成",
+            "whatToVerify": {
+              "1": "确认恶意痕迹已经移除，受影响系统或策略已经恢复",
+              "2": "查看验证扫描、监控信号或分析人员复核结果，确认没有复发",
+              "3": "确保最终关闭原因有修复证据支撑"
+            },
+            "completionCriteria": {
+              "1": "清理已完成，且没有可见的活跃复发迹象",
+              "2": "恢复和预防任务有明确记录结果",
+              "3": "案件具备清晰关闭原因和足够审计证据"
+            },
+            "riskNote": "恢复证据、验证数据或最终关闭原因缺失时，不应关闭工作流",
+            "recommendedReason": "清理验证通过后，可以带最终原因和审计轨迹关闭工作流",
+            "transitionEffect": "流转到“已关闭”会记录最终处置结论，并进入只读复核模式"
+          },
+          "closed": {
+            "purpose": "保留最终结论、关闭原因、时间线和操作备注，供审计与复盘使用",
+            "whatToVerify": {
+              "1": "复核关闭原因、最终操作备注和最后一条工作流事件",
+              "2": "确认时间线能够解释案件从发现到关闭的全过程",
+              "3": "检查是否需要在关闭工作流外继续跟踪后续任务"
+            },
+            "completionCriteria": {
+              "1": "关闭操作已经记录，并带有清晰原因",
+              "2": "该案件内不再需要进一步工作流动作",
+              "3": "审计轨迹足够支撑后续复盘"
+            },
+            "riskNote": "已关闭工作流只应通过明确的后续流程重新打开或复查",
+            "recommendedReason": "已关闭工作流是复核状态，不应再自动流转阶段",
+            "transitionEffect": "该工作台不会从“已关闭”继续执行阶段流转"
+          }
+        }
       }
     },
     "baseline": {
