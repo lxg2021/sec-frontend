@@ -1,11 +1,12 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import type { ComponentType, CSSProperties, ReactNode } from "react"
+import Link from "next/link";
+import type { ComponentType, CSSProperties, ReactNode } from "react";
 import {
   Activity,
   ArrowRight,
   Bot,
+  CheckCircle2,
   ClipboardCheck,
   ExternalLink,
   FileSearch,
@@ -16,79 +17,72 @@ import {
   Target,
   Timer,
   Wrench,
-} from "lucide-react"
+} from "lucide-react";
 
 import type {
   AttackWorkflowActionItem,
   AttackWorkflowEventItem,
   AttackWorkflowItem,
   AttackWorkflowStatus,
-} from "@/features/attack/workflow/types"
+} from "@/features/attack/workflow/types";
 import {
   formatWorkflowTime,
   normalizeWorkflowStatus,
-  workflowEventComment,
-  workflowEventTime,
   workflowStatusIndex,
   workflowStatusTime,
-} from "@/features/attack/workflow/utils"
-import { cn } from "@/shared/lib/utils"
-import { Badge } from "@/shared/ui/badge"
-import { Button, buttonVariants } from "@/shared/ui/button"
-import { Card } from "@/shared/ui/card"
-import { Separator } from "@/shared/ui/separator"
+} from "@/features/attack/workflow/utils";
+import { cn } from "@/shared/lib/utils";
+import { Badge } from "@/shared/ui/badge";
+import { Button, buttonVariants } from "@/shared/ui/button";
+import { Card } from "@/shared/ui/card";
+import { Separator } from "@/shared/ui/separator";
 
 interface WorkflowNavigationHrefs {
-  attackDetailHref: string
-  traceHref: string
-  aiHref: string
+  attackDetailHref: string;
+  traceHref: string;
+  aiHref: string;
 }
 
 interface AttackWorkflowStageWorkbenchProps {
-  actions: AttackWorkflowActionItem[]
-  allowedStatuses: AttackWorkflowStatus[]
-  canOpenDetails: boolean
-  currentStatus: string
-  events: AttackWorkflowEventItem[]
-  hrefs: WorkflowNavigationHrefs
-  loading?: boolean
-  onOpenStatusDialog: (status: AttackWorkflowStatus) => void
-  recommendedStatus: AttackWorkflowStatus | null
-  selectedStatus: AttackWorkflowStatus
-  updating?: boolean
-  workflow: AttackWorkflowItem | null
+  actions: AttackWorkflowActionItem[];
+  allowedStatuses: AttackWorkflowStatus[];
+  canOpenDetails: boolean;
+  currentStatus: string;
+  events: AttackWorkflowEventItem[];
+  hrefs: WorkflowNavigationHrefs;
+  loading?: boolean;
+  onOpenStatusDialog: (status: AttackWorkflowStatus) => void;
+  recommendedStatus: AttackWorkflowStatus | null;
+  selectedStatus: AttackWorkflowStatus;
+  updating?: boolean;
+  workflow: AttackWorkflowItem | null;
 }
 
 interface StageConfig {
-  title: string
-  purpose: string
-  input: string
-  decision: string
+  purpose: string;
+  whatToVerify: string[];
+  completionCriteria: string[];
+  riskNote: string;
+  recommendedReason: string;
+  transitionEffect: string;
 }
 
 interface StageTool {
-  description: string
-  disabled?: boolean
-  href: string
-  iconName?: string
-  title: string
-}
-
-interface StageEvent {
-  description?: string
-  operator?: string
-  time?: string
-  title: string
+  description: string;
+  disabled?: boolean;
+  href: string;
+  iconName?: string;
+  title: string;
 }
 
 interface StatusStyle {
-  badge: string
-  currentBadge: string
-  dot: string
-  iconBg: string
-  iconText: string
-  label: string
-  primaryBtn: string
+  badge: string;
+  currentBadge: string;
+  dot: string;
+  iconBg: string;
+  iconText: string;
+  label: string;
+  primaryBtn: string;
 }
 
 const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
@@ -100,7 +94,7 @@ const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   contained: "Contained",
   remediated: "Remediated",
   closed: "Closed",
-}
+};
 
 const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   detected: {
@@ -183,58 +177,170 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
     primaryBtn:
       "bg-green-700 text-white hover:bg-green-800 focus-visible:ring-green-500",
   },
-}
+};
 
 const STAGE_CONFIG: Record<AttackWorkflowStatus, StageConfig> = {
   detected: {
-    title: "Signal intake",
-    purpose: "Create the investigation context and confirm the case scope.",
-    input: "Alert source, matched rule, endpoint, first seen time",
-    decision: "Start investigation",
+    purpose:
+      "Intake the alert signal, create workflow context, and define the first investigation scope before deeper analysis begins.",
+    whatToVerify: [
+      "Confirm the alert source, matched rule, affected asset, user, and first seen time.",
+      "Check whether the signal is a duplicate of an existing workflow or belongs to a related case.",
+      "Capture the initial business impact so the analyst knows where to start.",
+    ],
+    completionCriteria: [
+      "The workflow has a concrete asset, time window, and alert reason.",
+      "The signal is not an obvious duplicate or already covered by another active case.",
+      "The case has enough context for triage to start.",
+    ],
+    riskNote:
+      "Do not escalate before the signal is tied to a concrete case, asset, or time window.",
+    recommendedReason:
+      "Once the signal has enough context, the next useful action is analyst triage.",
+    transitionEffect:
+      "Moving to Investigating records triage start and shifts the workbench toward evidence review.",
   },
   investigating: {
-    title: "Investigation",
-    purpose: "Validate whether this alert is a real attack.",
-    input: "AI report, trace graph, rule hits, host evidence",
-    decision: "Confirm attack or close as false positive",
+    purpose:
+      "Determine whether the alert represents real malicious activity or should be closed as benign or false positive.",
+    whatToVerify: [
+      "Review the AI report, trace graph, rule hits, and endpoint evidence together.",
+      "Look for behavior that proves intent, execution, persistence, command activity, or lateral movement.",
+      "Compare suspicious signals against known benign operations for the same host or user.",
+    ],
+    completionCriteria: [
+      "Evidence is strong enough to confirm the attack or close it with a clear reason.",
+      "Important trace nodes and supporting events have been reviewed.",
+      "The analyst note explains the classification decision.",
+    ],
+    riskNote:
+      "Do not confirm without evidence that links the observed behavior to an attack path.",
+    recommendedReason:
+      "When classification evidence is clear, the workflow should move from triage into a formal decision state.",
+    transitionEffect:
+      "Moving forward records the investigation decision and enables confirmation, forensics, or closure handling.",
   },
   confirmed: {
-    title: "Confirmation",
-    purpose: "Record that the attack is verified and ready for evidence capture.",
-    input: "Confirmed evidence, analyst note, accepted severity",
-    decision: "Start forensics",
+    purpose:
+      "Record that the attack is verified, preserve the decision context, and prepare the case for evidence capture.",
+    whatToVerify: [
+      "Confirm the malicious behavior, affected assets, severity, and known attack path.",
+      "Make sure the confirmation event references traceable evidence, not only a manual assertion.",
+      "Check whether response urgency changes the amount of forensics that can be collected first.",
+    ],
+    completionCriteria: [
+      "The attack classification is recorded and visible in the timeline.",
+      "The main evidence supporting confirmation is available for review.",
+      "The case is ready for forensics or an explicitly justified fast response path.",
+    ],
+    riskNote:
+      "Avoid skipping evidence capture when response actions may destroy forensic context.",
+    recommendedReason:
+      "The attack has been verified, so the next step is to preserve evidence before response work changes the environment.",
+    transitionEffect:
+      "Moving to Forensics records the verification point and focuses the workbench on evidence capture.",
   },
   forensics: {
-    title: "Forensics",
-    purpose: "Capture and preserve evidence before execution-oriented response.",
-    input: "Timeline, affected host, process tree, artifacts",
-    decision: "Start response",
+    purpose:
+      "Capture and preserve the evidence needed to explain what happened before execution-oriented response begins.",
+    whatToVerify: [
+      "Collect the timeline, process tree, artifacts, affected host details, and user context.",
+      "Confirm whether volatile evidence must be captured before isolation or cleanup.",
+      "Identify the evidence that response operators need to choose safe actions.",
+    ],
+    completionCriteria: [
+      "Critical artifacts and timeline evidence are preserved or explicitly marked as unavailable.",
+      "The response team has enough context to act without destroying required evidence.",
+      "The next response action can be audited against collected evidence.",
+    ],
+    riskNote:
+      "Avoid destructive response before collecting the evidence needed for review, reporting, or root cause analysis.",
+    recommendedReason:
+      "After evidence is preserved, the workflow can move into response preparation and execution.",
+    transitionEffect:
+      "Moving to Responding opens the workflow for response action preview, execution, and result tracking.",
   },
   responding: {
-    title: "Response",
-    purpose: "Prepare, preview, execute, and sync response actions.",
-    input: "Response preview, execution task, control writeback",
-    decision: "Mark contained",
+    purpose:
+      "Prepare, preview, execute, and sync response actions while keeping the operator decision auditable.",
+    whatToVerify: [
+      "Review the action preview, execution target, expected impact, and rollback considerations.",
+      "Confirm that response tasks are aimed at the correct host, process, account, or network path.",
+      "Check execution results and synchronize task status back into the workflow timeline.",
+    ],
+    completionCriteria: [
+      "Response actions have been executed, skipped with reason, or queued with visible status.",
+      "The operator note explains the selected action path and known impact.",
+      "The workflow has enough result data to validate containment.",
+    ],
+    riskNote:
+      "Review targets carefully before actions that isolate hosts, terminate processes, or block accounts.",
+    recommendedReason:
+      "Once response actions are complete or ready to validate, the case should move to containment validation.",
+    transitionEffect:
+      "Moving to Contained records active response completion and starts validation that the attack path is stopped.",
   },
   contained: {
-    title: "Containment",
-    purpose: "Validate that spread and active control paths are stopped.",
-    input: "Isolation result, blocked connection, terminated process",
-    decision: "Mark remediated",
+    purpose:
+      "Validate that the active attack path, spread channel, and control path are stopped before cleanup begins.",
+    whatToVerify: [
+      "Check isolation, block, termination, and access-control results against the affected scope.",
+      "Look for remaining active connections, suspicious processes, callbacks, or lateral movement.",
+      "Confirm monitoring signals show no continued execution inside the known attack path.",
+    ],
+    completionCriteria: [
+      "Active spread and command paths are halted or explicitly accepted as residual risk.",
+      "Containment evidence is recorded and visible in the timeline.",
+      "Cleanup and recovery can start without allowing the active attack to continue.",
+    ],
+    riskNote:
+      "Do not mark contained if active execution or lateral movement is still visible.",
+    recommendedReason:
+      "Validated containment means the team can move from stopping the attack to cleaning and recovering affected assets.",
+    transitionEffect:
+      "Moving to Remediated records containment completion and shifts the workbench to cleanup validation.",
   },
   remediated: {
-    title: "Remediation",
-    purpose: "Verify cleanup and recovery before closure.",
-    input: "Cleanup evidence, restored policy, validation signal",
-    decision: "Close case",
+    purpose:
+      "Verify cleanup, recovery, and prevention controls before the workflow is closed.",
+    whatToVerify: [
+      "Confirm malicious artifacts are removed and affected systems or policies are restored.",
+      "Review validation scans, monitoring signals, or analyst checks for recurrence.",
+      "Make sure the final close reason is supported by the remediation evidence.",
+    ],
+    completionCriteria: [
+      "Cleanup is complete and no active recurrence is visible.",
+      "Recovery and prevention tasks have a recorded result.",
+      "The case has a clear closure reason and enough audit evidence for review.",
+    ],
+    riskNote:
+      "Do not close while recovery evidence, validation data, or the final close reason is missing.",
+    recommendedReason:
+      "When cleanup is validated, the workflow can be closed with a final reason and audit trail.",
+    transitionEffect:
+      "Moving to Closed records final resolution and locks the workflow into review mode.",
   },
   closed: {
-    title: "Closure",
-    purpose: "Keep the final decision, close reason, and audit trail visible.",
-    input: "Close reason, operator note, event timeline",
-    decision: "Review only",
+    purpose:
+      "Keep the final decision, close reason, timeline, and operator notes available for audit and review.",
+    whatToVerify: [
+      "Review the close reason, final operator note, and last workflow event.",
+      "Confirm the timeline explains how the case moved from detection to closure.",
+      "Check whether any follow-up task should be tracked outside this closed workflow.",
+    ],
+    completionCriteria: [
+      "Closure is recorded with a clear reason.",
+      "No further workflow action is required inside this case.",
+      "The audit trail is complete enough for later review.",
+    ],
+    riskNote:
+      "Closed workflows should be reopened only through an explicit follow-up process.",
+    recommendedReason:
+      "Closed workflows are review-only and should not receive automatic stage transitions.",
+    transitionEffect:
+      "No transition is executed from Closed in this workbench.",
   },
-}
+};
 
 const STATUS_ICON_PATHS: Record<AttackWorkflowStatus, string> = {
   detected: "/icons/flow/detected.svg",
@@ -245,7 +351,7 @@ const STATUS_ICON_PATHS: Record<AttackWorkflowStatus, string> = {
   contained: "/icons/flow/contained.svg",
   remediated: "/icons/flow/remediated.svg",
   closed: "/icons/flow/closed.svg",
-}
+};
 
 const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   activity: Activity,
@@ -259,23 +365,23 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   shield: Shield,
   target: Target,
   wrench: Wrench,
-}
+};
 
 function getStatusStyle(status: AttackWorkflowStatus): StatusStyle {
-  return STATUS_STYLES[status]
+  return STATUS_STYLES[status];
 }
 
 function FlowStatusIcon({
   className,
   status,
 }: {
-  className?: string
-  status: AttackWorkflowStatus
+  className?: string;
+  status: AttackWorkflowStatus;
 }) {
   const maskStyle: CSSProperties = {
     WebkitMask: `url(${STATUS_ICON_PATHS[status]}) center / contain no-repeat`,
     mask: `url(${STATUS_ICON_PATHS[status]}) center / contain no-repeat`,
-  }
+  };
 
   return (
     <span
@@ -283,68 +389,17 @@ function FlowStatusIcon({
       className={cn("inline-block shrink-0 bg-current", className)}
       style={maskStyle}
     />
-  )
+  );
 }
 
 function statusLabel(status: string) {
-  const normalized = normalizeWorkflowStatus(status)
-  return normalized ? STATUS_LABELS[normalized] : status || "Unknown"
+  const normalized = normalizeWorkflowStatus(status);
+  return normalized ? STATUS_LABELS[normalized] : status || "Unknown";
 }
 
 function getToolIcon(iconName?: string): ComponentType<{ className?: string }> {
-  if (iconName && TOOL_ICONS[iconName]) return TOOL_ICONS[iconName]
-  return Wrench
-}
-
-function latestEventComment(events: AttackWorkflowEventItem[]) {
-  for (const event of [...events].reverse()) {
-    const comment = workflowEventComment(event)
-    if (comment) return comment
-  }
-  return ""
-}
-
-function latestStageEvent(
-  events: AttackWorkflowEventItem[],
-  status: AttackWorkflowStatus,
-): AttackWorkflowEventItem | null {
-  return (
-    [...events]
-      .reverse()
-      .find((event) => normalizeWorkflowStatus(event.new_status) === status) ??
-    null
-  )
-}
-
-function latestActionTime(actions: AttackWorkflowActionItem[]) {
-  const latest = [...actions]
-    .map(
-      (action) =>
-        action.updated_at ||
-        action.executed_at ||
-        action.requested_at ||
-        action.created_at,
-    )
-    .filter(Boolean)
-    .sort((a, b) => b.localeCompare(a))[0]
-  return latest ? formatWorkflowTime(latest) : "-"
-}
-
-function eventToStageEvent(
-  event: AttackWorkflowEventItem | null,
-): StageEvent | null {
-  if (!event) return null
-  const operator =
-    event.operator_name || event.operator_id || event.operator_type || "operator"
-  const time = workflowEventTime(event)
-  const comment = workflowEventComment(event)
-
-  return {
-    title: `${operator} recorded ${statusLabel(event.new_status)}`,
-    description: comment || event.event_type || undefined,
-    time,
-    operator,
-  }
+  if (iconName && TOOL_ICONS[iconName]) return TOOL_ICONS[iconName];
+  return Wrench;
 }
 
 function stageTools({
@@ -352,21 +407,22 @@ function stageTools({
   hrefs,
   selectedStatus,
 }: {
-  canOpenDetails: boolean
-  hrefs: WorkflowNavigationHrefs
-  selectedStatus: AttackWorkflowStatus
+  canOpenDetails: boolean;
+  hrefs: WorkflowNavigationHrefs;
+  selectedStatus: AttackWorkflowStatus;
 }): StageTool[] {
   switch (selectedStatus) {
     case "detected":
       return [
         {
           title: "Open Attack Detail",
-          description: "Review the alert context, case story, and related evidence.",
+          description:
+            "Review the alert context, case story, and related evidence.",
           href: hrefs.attackDetailHref,
           iconName: "search",
           disabled: !canOpenDetails,
         },
-      ]
+      ];
     case "investigating":
       return [
         {
@@ -385,7 +441,7 @@ function stageTools({
           iconName: "route",
           disabled: !canOpenDetails,
         },
-      ]
+      ];
     case "confirmed":
       return [
         {
@@ -395,24 +451,26 @@ function stageTools({
           iconName: "route",
           disabled: !canOpenDetails,
         },
-      ]
+      ];
     case "forensics":
       return [
         {
           title: "Open Trace Details",
-          description: "Use the trace timeline as the evidence collection anchor.",
+          description:
+            "Use the trace timeline as the evidence collection anchor.",
           href: hrefs.traceHref,
           iconName: "route",
           disabled: !canOpenDetails,
         },
         {
           title: "Evidence Capture",
-          description: "Forensic task writeback will appear in workflow actions.",
+          description:
+            "Forensic task writeback will appear in workflow actions.",
           href: hrefs.traceHref,
           iconName: "file",
           disabled: true,
         },
-      ]
+      ];
     case "responding":
       return [
         {
@@ -422,7 +480,7 @@ function stageTools({
           href: "/frame/response/dac",
           iconName: "shield",
         },
-      ]
+      ];
     case "contained":
       return [
         {
@@ -432,7 +490,7 @@ function stageTools({
           href: "/frame/response/dac",
           iconName: "lock",
         },
-      ]
+      ];
     case "remediated":
       return [
         {
@@ -441,7 +499,7 @@ function stageTools({
           href: "/frame/response/dac",
           iconName: "clipboard",
         },
-      ]
+      ];
     case "closed":
     default:
       return [
@@ -459,7 +517,7 @@ function stageTools({
           iconName: "route",
           disabled: !canOpenDetails,
         },
-      ]
+      ];
   }
 }
 
@@ -468,16 +526,16 @@ function readOnlyReason({
   selectedStatus,
   workflow,
 }: {
-  currentStatus: AttackWorkflowStatus | ""
-  selectedStatus: AttackWorkflowStatus
-  workflow: AttackWorkflowItem | null
+  currentStatus: AttackWorkflowStatus | "";
+  selectedStatus: AttackWorkflowStatus;
+  workflow: AttackWorkflowItem | null;
 }) {
-  if (!workflow) return "Workflow is not loaded."
-  if (currentStatus === "closed") return "Closed workflow, review mode."
+  if (!workflow) return "Workflow is not loaded.";
+  if (currentStatus === "closed") return "Closed workflow, review mode.";
   if (currentStatus !== selectedStatus) {
-    return `Viewing ${statusLabel(selectedStatus)} while current stage is ${statusLabel(currentStatus)}.`
+    return `Viewing ${statusLabel(selectedStatus)} while current stage is ${statusLabel(currentStatus)}.`;
   }
-  return ""
+  return "";
 }
 
 function stageCompletionLabel({
@@ -485,20 +543,20 @@ function stageCompletionLabel({
   selectedStatus,
   workflow,
 }: {
-  currentStatus: AttackWorkflowStatus | ""
-  selectedStatus: AttackWorkflowStatus
-  workflow: AttackWorkflowItem | null
+  currentStatus: AttackWorkflowStatus | "";
+  selectedStatus: AttackWorkflowStatus;
+  workflow: AttackWorkflowItem | null;
 }) {
-  if (!workflow || !currentStatus) return "Not loaded"
-  const selectedIndex = workflowStatusIndex(selectedStatus)
-  const currentIndex = workflowStatusIndex(currentStatus)
-  const timestamp = workflowStatusTime(workflow, selectedStatus)
-  if (selectedIndex < currentIndex) return "Completed"
+  if (!workflow || !currentStatus) return "Not loaded";
+  const selectedIndex = workflowStatusIndex(selectedStatus);
+  const currentIndex = workflowStatusIndex(currentStatus);
+  const timestamp = workflowStatusTime(workflow, selectedStatus);
+  if (selectedIndex < currentIndex) return "Completed";
   if (selectedIndex === currentIndex) {
-    return currentStatus === "closed" ? "Closed" : "Current"
+    return currentStatus === "closed" ? "Closed" : "Current";
   }
-  if (timestamp) return "Recorded"
-  return "Pending"
+  if (timestamp) return "Recorded";
+  return "Pending";
 }
 
 function HeaderStat({
@@ -508,11 +566,11 @@ function HeaderStat({
   mono = false,
   value,
 }: {
-  icon: ComponentType<{ className?: string }>
-  iconClassName?: string
-  label: string
-  mono?: boolean
-  value: string
+  icon: ComponentType<{ className?: string }>;
+  iconClassName?: string;
+  label: string;
+  mono?: boolean;
+  value: string;
 }) {
   return (
     <div className="flex min-w-0 items-center gap-1.5">
@@ -530,39 +588,68 @@ function HeaderStat({
         {value}
       </span>
     </div>
-  )
+  );
 }
 
-function LabelValueRow({
-  label,
-  value,
-}: {
-  label: string
-  value: ReactNode
-}) {
+function GuideTextBlock({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-1">
       <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
         {label}
       </span>
       <span className="text-sm leading-relaxed text-slate-800">{value}</span>
     </div>
-  )
+  );
+}
+
+function GuideBulletList({ items, label }: { items: string[]; label: string }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
+        {label}
+      </span>
+      <ul className="flex flex-col gap-1.5">
+        {items.map((item) => (
+          <li
+            key={item}
+            className="flex gap-2 text-sm leading-relaxed text-slate-700"
+          >
+            <CheckCircle2
+              className="mt-0.5 size-3.5 shrink-0 text-emerald-500"
+              aria-hidden="true"
+            />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function TransitionDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-slate-50 px-2.5 py-2">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+        {label}
+      </span>
+      <p className="mt-0.5 text-xs leading-relaxed text-slate-600">{value}</p>
+    </div>
+  );
 }
 
 function SectionTitle({
   icon: Icon,
   children,
 }: {
-  icon: ComponentType<{ className?: string }>
-  children: ReactNode
+  icon: ComponentType<{ className?: string }>;
+  children: ReactNode;
 }) {
   return (
     <h3 className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">
       <Icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
       {children}
     </h3>
-  )
+  );
 }
 
 function HeaderMetaField({
@@ -571,10 +658,10 @@ function HeaderMetaField({
   value,
   valueClassName,
 }: {
-  current?: boolean
-  label: string
-  value: string
-  valueClassName: string
+  current?: boolean;
+  label: string;
+  value: string;
+  valueClassName: string;
 }) {
   return (
     <div className="flex min-w-0 items-center gap-2">
@@ -598,7 +685,7 @@ function HeaderMetaField({
         <span className="truncate">{value}</span>
       </Badge>
     </div>
-  )
+  );
 }
 
 function ToolRow({
@@ -606,12 +693,12 @@ function ToolRow({
   primary,
   tool,
 }: {
-  canOpenDetails: boolean
-  primary: boolean
-  tool: StageTool
+  canOpenDetails: boolean;
+  primary: boolean;
+  tool: StageTool;
 }) {
-  const Icon = getToolIcon(tool.iconName)
-  const disabled = Boolean(tool.disabled) || !canOpenDetails
+  const Icon = getToolIcon(tool.iconName);
+  const disabled = Boolean(tool.disabled) || !canOpenDetails;
 
   return (
     <div
@@ -669,7 +756,7 @@ function ToolRow({
         </Link>
       )}
     </div>
-  )
+  );
 }
 
 export function AttackWorkflowStageWorkbench({
@@ -677,7 +764,6 @@ export function AttackWorkflowStageWorkbench({
   allowedStatuses,
   canOpenDetails,
   currentStatus,
-  events,
   hrefs,
   loading = false,
   onOpenStatusDialog,
@@ -686,35 +772,32 @@ export function AttackWorkflowStageWorkbench({
   updating = false,
   workflow,
 }: AttackWorkflowStageWorkbenchProps) {
-  const normalizedCurrentStatus = normalizeWorkflowStatus(currentStatus)
-  const config = STAGE_CONFIG[selectedStatus]
-  const tools = stageTools({ canOpenDetails, hrefs, selectedStatus })
-  const selectedStyle = getStatusStyle(selectedStatus)
-  const stageEvent = eventToStageEvent(latestStageEvent(events, selectedStatus))
-  const operatorNote = latestEventComment(events)
+  const normalizedCurrentStatus = normalizeWorkflowStatus(currentStatus);
+  const config = STAGE_CONFIG[selectedStatus];
+  const tools = stageTools({ canOpenDetails, hrefs, selectedStatus });
+  const selectedStyle = getStatusStyle(selectedStatus);
   const stageTime = workflow
     ? formatWorkflowTime(workflowStatusTime(workflow, selectedStatus))
-    : "-"
+    : "-";
   const completionLabel = stageCompletionLabel({
     currentStatus: normalizedCurrentStatus,
     selectedStatus,
     workflow,
-  })
+  });
   const readOnlyText = readOnlyReason({
     currentStatus: normalizedCurrentStatus,
     selectedStatus,
     workflow,
-  })
-  const isReadOnly = Boolean(readOnlyText)
-  const closeReason = workflow?.close_reason?.trim() || "-"
+  });
+  const isReadOnly = Boolean(readOnlyText);
   const showRecommended =
     !isReadOnly &&
     recommendedStatus != null &&
-    allowedStatuses.includes(recommendedStatus)
+    allowedStatuses.includes(recommendedStatus);
   const secondaryStatuses = allowedStatuses.filter(
     (status) => status !== recommendedStatus,
-  )
-  const isViewingCurrentStage = normalizedCurrentStatus === selectedStatus
+  );
+  const isViewingCurrentStage = normalizedCurrentStatus === selectedStatus;
 
   return (
     <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
@@ -728,10 +811,7 @@ export function AttackWorkflowStageWorkbench({
                 selectedStyle.iconText,
               )}
             >
-              <FlowStatusIcon
-                status={selectedStatus}
-                className="size-6"
-              />
+              <FlowStatusIcon status={selectedStatus} className="size-6" />
             </span>
           </span>
           <div className="min-w-0">
@@ -802,49 +882,32 @@ export function AttackWorkflowStageWorkbench({
       </header>
 
       <div className="grid grid-cols-1 gap-4 p-4 sm:p-5 2xl:grid-cols-12 2xl:gap-5">
-        <section className="flex flex-col gap-3 2xl:col-span-4">
-          <SectionTitle icon={ScrollText}>Stage Brief</SectionTitle>
+        <section className="flex flex-col gap-3 2xl:col-span-5">
+          <SectionTitle icon={ScrollText}>Stage Guide</SectionTitle>
           <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
-            <LabelValueRow label="Input" value={config.input} />
+            <GuideTextBlock label="Purpose" value={config.purpose} />
             <Separator className="bg-slate-200" />
-            <LabelValueRow label="Decision" value={config.decision} />
+            <GuideBulletList
+              label="What to verify"
+              items={config.whatToVerify}
+            />
             <Separator className="bg-slate-200" />
-            <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                Latest stage event
+            <GuideBulletList
+              label="Completion criteria"
+              items={config.completionCriteria}
+            />
+            <div className="rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-amber-700">
+                Risk note
               </span>
-              {stageEvent ? (
-                <div className="rounded-lg border border-slate-200 bg-white p-2.5">
-                  <p className="text-sm font-medium text-slate-900">
-                    {stageEvent.title}
-                  </p>
-                  {stageEvent.description ? (
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-                      {stageEvent.description}
-                    </p>
-                  ) : null}
-                  {(stageEvent.time || stageEvent.operator) && (
-                    <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-slate-400">
-                      {stageEvent.time ? <span>{stageEvent.time}</span> : null}
-                      {stageEvent.time && stageEvent.operator ? (
-                        <span aria-hidden="true">&middot;</span>
-                      ) : null}
-                      {stageEvent.operator ? (
-                        <span>{stageEvent.operator}</span>
-                      ) : null}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="rounded-lg border border-dashed border-slate-200 bg-white px-2.5 py-3 text-xs text-slate-400">
-                  No event recorded for this stage.
-                </p>
-              )}
+              <p className="mt-0.5 text-xs leading-relaxed text-amber-800">
+                {config.riskNote}
+              </p>
             </div>
           </div>
         </section>
 
-        <section className="flex flex-col gap-3 2xl:col-span-5">
+        <section className="flex flex-col gap-3 2xl:col-span-4">
           <SectionTitle icon={Wrench}>Tools &amp; Evidence</SectionTitle>
           <div className="flex flex-col gap-2">
             {tools.length > 0 ? (
@@ -865,7 +928,7 @@ export function AttackWorkflowStageWorkbench({
         </section>
 
         <section className="flex flex-col gap-3 2xl:col-span-3">
-          <SectionTitle icon={Activity}>Control</SectionTitle>
+          <SectionTitle icon={Activity}>Stage Control</SectionTitle>
 
           {isReadOnly ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -876,48 +939,78 @@ export function AttackWorkflowStageWorkbench({
               <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
                 {readOnlyText}
               </p>
+              <div className="mt-3 rounded-lg bg-white px-2.5 py-2">
+                <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+                  Control guidance
+                </span>
+                <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
+                  {config.transitionEffect}
+                </p>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3">
               <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-                Recommended next step
+                Recommended transition
               </span>
 
               {showRecommended ? (
-                <Button
-                  type="button"
-                  disabled={updating}
-                  onClick={() =>
-                    onOpenStatusDialog(recommendedStatus as AttackWorkflowStatus)
-                  }
-                  className={cn(
-                    "w-full justify-between focus-visible:ring-2 focus-visible:ring-offset-2",
-                    getStatusStyle(recommendedStatus as AttackWorkflowStatus)
-                      .primaryBtn,
-                  )}
-                >
-                  <span>
-                    {updating
-                      ? "Updating..."
-                      : `Move to ${statusLabel(
-                          recommendedStatus as AttackWorkflowStatus,
-                        )}`}
-                  </span>
-                  {!updating ? (
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  ) : null}
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    disabled={updating}
+                    onClick={() =>
+                      onOpenStatusDialog(
+                        recommendedStatus as AttackWorkflowStatus,
+                      )
+                    }
+                    className={cn(
+                      "w-full justify-between focus-visible:ring-2 focus-visible:ring-offset-2",
+                      getStatusStyle(recommendedStatus as AttackWorkflowStatus)
+                        .primaryBtn,
+                    )}
+                  >
+                    <span>
+                      {updating
+                        ? "Updating..."
+                        : `Move to ${statusLabel(
+                            recommendedStatus as AttackWorkflowStatus,
+                          )}`}
+                    </span>
+                    {!updating ? (
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    ) : null}
+                  </Button>
+                  <TransitionDetail
+                    label="Why this step"
+                    value={config.recommendedReason}
+                  />
+                  <TransitionDetail
+                    label="What happens next"
+                    value={config.transitionEffect}
+                  />
+                </>
               ) : (
-                <p className="rounded-lg border border-dashed border-slate-200 px-2.5 py-3 text-xs text-slate-400">
-                  No recommended transition for this stage.
-                </p>
+                <>
+                  <p className="rounded-lg border border-dashed border-slate-200 px-2.5 py-3 text-xs text-slate-400">
+                    No recommended transition for this stage.
+                  </p>
+                  <TransitionDetail
+                    label="Control guidance"
+                    value="Keep this stage selected until the workflow state or evidence supports a clear transition."
+                  />
+                </>
               )}
 
               {secondaryStatuses.length > 0 ? (
                 <div className="flex flex-col gap-1.5">
                   <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
-                    Other transitions
+                    Other available transitions
                   </span>
+                  <p className="text-xs leading-relaxed text-slate-500">
+                    Use these only when the evidence supports a different
+                    workflow branch.
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {secondaryStatuses.map((status) => (
                       <Button
@@ -944,31 +1037,8 @@ export function AttackWorkflowStageWorkbench({
               ) : null}
             </div>
           )}
-
-          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-              {selectedStatus === "closed" ? "Closure" : "Operator note"}
-            </span>
-            {selectedStatus === "closed" ? (
-              <p className="mt-1 rounded-lg border border-emerald-100 bg-emerald-50 px-2.5 py-2 text-xs font-semibold text-emerald-700">
-                Close reason: {closeReason}
-              </p>
-            ) : null}
-            {operatorNote ? (
-              <p className="mt-1 text-sm leading-relaxed text-slate-700">
-                {operatorNote}
-              </p>
-            ) : (
-              <p className="mt-1 text-xs leading-relaxed text-slate-400">
-                No operator note has been recorded yet.
-              </p>
-            )}
-            <p className="mt-2 text-[11px] text-slate-400">
-              Last action: {latestActionTime(actions)}
-            </p>
-          </div>
         </section>
       </div>
     </Card>
-  )
+  );
 }
