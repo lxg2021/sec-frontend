@@ -9,16 +9,15 @@ import {
   ExternalLink,
   FileSearch,
   GitBranch,
-  History,
   Loader2,
-  RefreshCw,
   Route,
   ShieldAlert,
   ShieldCheck,
   ShieldQuestion,
-  Workflow,
 } from "lucide-react"
 
+import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
+import { AttackWorkflowPageHeader } from "./attack-workflow-page-header"
 import { AttackWorkflowSpine } from "./attack-workflow-spine"
 import {
   getAttackWorkflow,
@@ -42,7 +41,6 @@ import {
   getRecommendedNextWorkflowStatus,
   normalizeWorkflowStatus,
   workflowEventComment,
-  workflowEventTime,
 } from "@/features/attack/workflow/utils"
 import {
   buildAIAnalysisHref,
@@ -152,27 +150,6 @@ function compactList(values: string[], limit = 3) {
   const head = visible.slice(0, limit)
   const hidden = visible.length - head.length
   return hidden > 0 ? `${head.join(", ")} +${hidden}` : head.join(", ")
-}
-
-function statusTone(status: string) {
-  switch (normalizeWorkflowStatus(status)) {
-    case "closed":
-      return "border-slate-300 bg-slate-100 text-slate-700"
-    case "remediated":
-    case "contained":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
-    case "responding":
-    case "forensics":
-      return "border-blue-200 bg-blue-50 text-blue-700"
-    case "confirmed":
-      return "border-amber-200 bg-amber-50 text-amber-700"
-    case "investigating":
-      return "border-cyan-200 bg-cyan-50 text-cyan-700"
-    case "detected":
-      return "border-rose-200 bg-rose-50 text-rose-700"
-    default:
-      return "border-slate-200 bg-slate-50 text-slate-600"
-  }
 }
 
 function summaryTone(status: PhaseSummary["status"]) {
@@ -443,7 +420,7 @@ export function AttackWorkflowControlCenter({
   return (
     <main className="flex min-h-[calc(100dvh-3rem)] w-full overflow-x-hidden bg-gray-50 p-3 sm:p-4 xl:p-5">
       <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
-        <WorkflowHeader
+        <AttackWorkflowPageHeader
           activeCaseId={activeCaseId}
           activeWorkflowId={activeWorkflowId}
           canOpenDetails={canOpenDetails}
@@ -533,118 +510,6 @@ function WorkflowEmptyState() {
   )
 }
 
-function WorkflowHeader({
-  activeCaseId,
-  activeWorkflowId,
-  canOpenDetails,
-  currentStatus,
-  error,
-  hrefs,
-  loading,
-  onRefresh,
-  updating,
-  workflow,
-}: {
-  activeCaseId: string
-  activeWorkflowId: string
-  canOpenDetails: boolean
-  currentStatus: string
-  error: string
-  hrefs: WorkflowNavigationHrefs
-  loading: boolean
-  onRefresh: () => void | Promise<void>
-  updating: boolean
-  workflow: AttackWorkflowItem | null
-}) {
-  return (
-    <Card className="w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-100 px-5 py-4">
-        <div className="flex w-full min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div className="flex min-w-0 flex-1 items-start gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
-              <Workflow className="size-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <CardTitle className="text-xl font-semibold leading-7 text-slate-950">
-                  AttackWorkflow Control Center
-                </CardTitle>
-                {workflow ? (
-                  <Badge variant="outline" className={cn("rounded-full px-2.5", statusTone(currentStatus))}>
-                    {statusLabel(currentStatus)}
-                  </Badge>
-                ) : null}
-                {workflow?.severity ? (
-                  <Badge variant="outline" className="rounded-full border-rose-200 bg-rose-50 text-rose-700">
-                    {workflow.severity}
-                  </Badge>
-                ) : null}
-              </div>
-              <CardDescription className="mt-1 flex min-w-0 flex-wrap gap-x-3 gap-y-1">
-                <span className="flex min-w-0 max-w-full items-center gap-2">
-                  <span className="shrink-0 font-medium text-slate-500">Case</span>
-                  <span className="min-w-0 break-all font-mono text-slate-600">
-                    {displayValue(activeCaseId)}
-                  </span>
-                </span>
-                {activeWorkflowId ? (
-                  <span className="flex min-w-0 max-w-full items-center gap-2">
-                    <span className="shrink-0 font-medium text-slate-500">Workflow</span>
-                    <span className="min-w-0 break-all font-mono text-slate-600">
-                      {activeWorkflowId}
-                    </span>
-                  </span>
-                ) : null}
-              </CardDescription>
-            </div>
-          </div>
-          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap xl:max-w-[44rem] xl:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void onRefresh()}
-              disabled={loading || updating}
-              className="justify-center whitespace-nowrap"
-            >
-              {loading ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
-              Refresh
-            </Button>
-            <Button asChild variant="outline" className="justify-center whitespace-nowrap">
-              <Link href={hrefs.attackDetailHref}>Attack Cases</Link>
-            </Button>
-            {canOpenDetails ? (
-              <Button asChild variant="outline" className="justify-center whitespace-nowrap">
-                <Link href={hrefs.traceHref}>Trace Details</Link>
-              </Button>
-            ) : (
-              <Button variant="outline" disabled className="justify-center whitespace-nowrap">
-                Trace Details
-              </Button>
-            )}
-            {canOpenDetails ? (
-              <Button asChild className="justify-center whitespace-nowrap">
-                <Link href={hrefs.aiHref}>Threat Analysis</Link>
-              </Button>
-            ) : (
-              <Button disabled className="justify-center whitespace-nowrap">
-                Threat Analysis
-              </Button>
-            )}
-          </div>
-        </div>
-      </CardHeader>
-
-      {error ? (
-        <CardContent className="px-5 py-4">
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-            {error}
-          </div>
-        </CardContent>
-      ) : null}
-    </Card>
-  )
-}
-
 function WorkflowSummaryGrid({
   canOpenDetails,
   hrefs,
@@ -730,6 +595,11 @@ function WorkflowMainGrid({
           recommendedStatus={recommendedStatus}
           workflow={workflow}
         />
+        <AttackWorkflowActivityPanel
+          actions={actions}
+          events={events}
+          loading={loading}
+        />
         <WorkflowCurrentStageSection
           allowedStatuses={allowedStatuses}
           canOpenDetails={canOpenDetails}
@@ -740,7 +610,6 @@ function WorkflowMainGrid({
           statusObjective={statusObjective}
           updating={updating}
         />
-        <WorkflowActionsSection actions={actions} />
       </div>
 
       <WorkflowContextPanel events={events} workflow={workflow} />
@@ -855,22 +724,6 @@ function WorkflowCurrentStageSection({
   )
 }
 
-function WorkflowActionsSection({ actions }: { actions: AttackWorkflowActionItem[] }) {
-  return (
-    <Card className="w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-100 px-5 py-4">
-        <CardTitle className="text-base">Workflow actions</CardTitle>
-        <CardDescription>
-          Action records written by Analysis and Control are summarized here.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-5 py-4">
-        <ActionList actions={actions} />
-      </CardContent>
-    </Card>
-  )
-}
-
 function WorkflowContextPanel({
   events,
   workflow,
@@ -882,7 +735,6 @@ function WorkflowContextPanel({
     <aside className="grid min-w-0 gap-4 xl:grid-cols-2 2xl:flex 2xl:flex-col">
       <WorkflowFactsCard workflow={workflow} />
       <WorkflowOperatorNoteCard events={events} />
-      <WorkflowTimelineCard className="xl:col-span-2 2xl:col-span-1" events={events} />
     </aside>
   )
 }
@@ -917,26 +769,6 @@ function WorkflowOperatorNoteCard({ events }: { events: AttackWorkflowEventItem[
         <div className="min-h-[5rem] break-words rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-600">
           {latestEventComment(events) || "No operator note has been recorded yet."}
         </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function WorkflowTimelineCard({
-  className,
-  events,
-}: {
-  className?: string
-  events: AttackWorkflowEventItem[]
-}) {
-  return (
-    <Card className={cn("min-h-0 w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm", className)}>
-      <CardHeader className="border-b border-slate-100 px-5 py-4">
-        <CardTitle className="text-base">Workflow timeline</CardTitle>
-        <CardDescription>Events and status changes for audit.</CardDescription>
-      </CardHeader>
-      <CardContent className="max-h-[clamp(14rem,42dvh,36rem)] overflow-y-auto overflow-x-hidden px-5 py-4">
-        <EventTimeline events={events} />
       </CardContent>
     </Card>
   )
@@ -1027,58 +859,6 @@ function StageActionCard({
   )
 }
 
-function ActionList({ actions }: { actions: AttackWorkflowActionItem[] }) {
-  if (actions.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-        No workflow action has been recorded yet.
-      </div>
-    )
-  }
-
-  return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),1fr))] gap-3">
-      {actions.map((action) => (
-        <div key={action.workflow_action_id} className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className={cn("rounded-full", summaryTone(action.action_status === "success" ? "ready" : action.action_status === "failed" ? "failed" : action.action_status === "running" ? "running" : "pending"))}>
-              {displayValue(action.action_status)}
-            </Badge>
-            <span className="text-sm font-semibold text-slate-950">{displayValue(action.action_type)}</span>
-            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-              {displayValue(action.action_phase)}
-            </span>
-          </div>
-          <div className="mt-3 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
-            <ActionMeta label="Action ID" value={action.workflow_action_id} />
-            <ActionMeta label="Batch" value={action.action_batch_id} />
-            <ActionMeta label="Target" value={[action.target_type, action.target_key].filter(Boolean).join(": ")} />
-            <ActionMeta label="Agent" value={action.agent_id} />
-            <ActionMeta label="Requested" value={formatWorkflowTime(action.requested_at)} />
-            <ActionMeta label="Updated" value={formatWorkflowTime(action.updated_at)} />
-          </div>
-          {action.error_code || action.error_msg ? (
-            <div className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
-              {action.error_code || "-"} / {action.error_msg || "-"}
-            </div>
-          ) : null}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ActionMeta({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <span className="font-medium text-slate-400">{label}: </span>
-      <span className="break-all font-mono text-slate-600" title={value || "-"}>
-        {displayValue(value)}
-      </span>
-    </div>
-  )
-}
-
 function Fact({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
@@ -1086,43 +866,6 @@ function Fact({ label, value, mono = false }: { label: string; value: string; mo
       <div className={cn("mt-1 break-all text-sm font-semibold text-slate-800", mono && "font-mono text-xs")} title={value}>
         {displayValue(value)}
       </div>
-    </div>
-  )
-}
-
-function EventTimeline({ events }: { events: AttackWorkflowEventItem[] }) {
-  if (events.length === 0) {
-    return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-        No workflow event has been recorded yet.
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      {events.map((event) => (
-        <div key={`${event.event_id}:${event.event_key}`} className="grid grid-cols-[18px_1fr] gap-3">
-          <span className="mt-1 flex size-3 rounded-full bg-blue-500 ring-4 ring-blue-100" />
-          <div className="min-w-0">
-            <div className="truncate text-sm font-semibold text-slate-900" title={event.event_key || event.event_type}>
-              {displayValue(event.event_key || event.event_type)}
-            </div>
-            <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-slate-500">
-              <History className="size-3.5 shrink-0" />
-              <span className="truncate">
-                {event.old_status ? statusLabel(event.old_status) : "-"} -&gt; {event.new_status ? statusLabel(event.new_status) : "-"}
-              </span>
-            </div>
-            <div className="mt-1 break-all text-xs leading-5 text-slate-500">
-              {workflowEventComment(event) || event.payload_json || "-"}
-            </div>
-            <div className="mt-1 truncate font-mono text-[11px] text-slate-400">
-              {workflowEventTime(event)} / {event.operator_name || event.operator_id || "-"}
-            </div>
-          </div>
-        </div>
-      ))}
     </div>
   )
 }
