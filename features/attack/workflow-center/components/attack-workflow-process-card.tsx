@@ -1,6 +1,6 @@
 "use client"
 
-import { ShieldAlert } from "lucide-react"
+import { Waypoints } from "lucide-react"
 
 import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
 import { AttackWorkflowSpine } from "./attack-workflow-spine"
@@ -38,7 +38,9 @@ function displayHeaderValue(value?: string) {
 }
 
 function displayWorkflowTitle(value?: string) {
-  const normalized = value?.trim().replace(/^攻击链[:：]\s*/i, "")
+  const normalized = value
+    ?.trim()
+    .replace(/^\u653b\u51fb\u94fe[:\uff1a]\s*/i, "")
   return normalized || "-"
 }
 
@@ -100,8 +102,8 @@ function WorkflowHeader({
 
   return (
     <header className="flex min-w-0 items-center gap-3 px-6 py-5">
-      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white">
-        <ShieldAlert className="size-6" aria-hidden="true" />
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+        <Waypoints className="size-6" aria-hidden="true" />
       </div>
 
       <div className="min-w-0 flex-1">
