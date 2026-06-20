@@ -6,7 +6,7 @@ import {
   Loader2,
   ShieldQuestion,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
 
 /* -------------------------------------------------------------------------- */
@@ -206,6 +206,10 @@ function workflowStatusTime(
 }
 
 type WorkflowCenterT = ReturnType<typeof useTranslations>
+
+function isChineseLocale(locale: string) {
+  return locale.toLowerCase().startsWith("zh")
+}
 
 /**
  * Stable, locale-independent timestamp formatter.
@@ -532,7 +536,41 @@ interface DensityClasses {
 
 function getDensityClasses(
   density: NonNullable<AttackWorkflowSpineProps["density"]>,
+  isChinese: boolean,
 ): DensityClasses {
+  if (isChinese) {
+    switch (density) {
+      case "comfortable":
+        return {
+          marker: "size-11",
+          icon: "size-6",
+          label: "text-[14px] font-medium",
+          accent: "text-xs",
+          time: "text-[10px] font-mono",
+          gapY: "gap-1",
+        }
+      case "compact":
+        return {
+          marker: "size-8",
+          icon: "size-[18px]",
+          label: "text-xs font-medium",
+          accent: "text-[11px]",
+          time: "text-[10px] font-mono",
+          gapY: "gap-0.5",
+        }
+      case "dense":
+      default:
+        return {
+          marker: "size-9",
+          icon: "size-[22px]",
+          label: "text-[13px] font-medium",
+          accent: "text-[11px]",
+          time: "text-[10px] font-mono",
+          gapY: "gap-0.5",
+        }
+    }
+  }
+
   switch (density) {
     case "comfortable":
       return {
@@ -628,11 +666,13 @@ interface SpineNodeData {
 }
 
 function NodeBadges({
+  isChinese,
   status,
   isCurrent,
   showNext,
   t,
 }: {
+  isChinese: boolean
   status: AttackWorkflowStatus
   isCurrent: boolean
   showNext: boolean
@@ -644,7 +684,8 @@ function NodeBadges({
     return (
       <span
         className={cn(
-          "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+          "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 font-semibold",
+          isChinese ? "text-[11px]" : "text-[10px] uppercase tracking-wide",
           tone.currentBadge,
         )}
       >
@@ -657,7 +698,8 @@ function NodeBadges({
     return (
       <span
         className={cn(
-          "inline-flex shrink-0 items-center gap-0.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+          "inline-flex shrink-0 items-center gap-0.5 rounded-full border px-2 py-0.5 font-semibold",
+          isChinese ? "text-[11px]" : "text-[10px] uppercase tracking-wide",
           tone.nextBadge,
         )}
       >
@@ -723,10 +765,12 @@ function WorkflowNodeMarker({
 function HorizontalNode({
   node,
   density,
+  isChinese,
   t,
 }: {
   node: SpineNodeData
   density: DensityClasses
+  isChinese: boolean
   t: WorkflowCenterT
 }) {
   const tone = getNodeTone(node.status, node.state)
@@ -781,12 +825,15 @@ function HorizontalNode({
           </span>
           <NodeBadges
             status={node.status}
+            isChinese={isChinese}
             isCurrent={node.isCurrent}
             showNext={node.showNext}
             t={t}
           />
         </div>
-        <span className={cn(density.accent, tone.accent)}>
+        <span
+          className={cn(density.accent, tone.accent, isChinese && "leading-4")}
+        >
           {node.description}
         </span>
         <span className={cn("text-slate-400", density.time)}>
@@ -809,10 +856,12 @@ function getConnectorToneAfter(node: SpineNodeData): string {
 function VerticalNode({
   node,
   density,
+  isChinese,
   t,
 }: {
   node: SpineNodeData
   density: DensityClasses
+  isChinese: boolean
   t: WorkflowCenterT
 }) {
   const tone = getNodeTone(node.status, node.state)
@@ -846,12 +895,15 @@ function VerticalNode({
           <span className={cn(density.label, tone.label)}>{node.label}</span>
           <NodeBadges
             status={node.status}
+            isChinese={isChinese}
             isCurrent={node.isCurrent}
             showNext={node.showNext}
             t={t}
           />
         </div>
-        <span className={cn(density.accent, tone.accent)}>
+        <span
+          className={cn(density.accent, tone.accent, isChinese && "leading-5")}
+        >
           {node.description}
         </span>
         <span className={cn("text-slate-400", density.time)}>
@@ -881,6 +933,8 @@ export function AttackWorkflowSpine({
   onStatusClick,
 }: AttackWorkflowSpineProps) {
   const t = useTranslations("pages.attack.workflowCenter")
+  const locale = useLocale()
+  const isChinese = isChineseLocale(locale)
 
   if (!workflow) {
     return (
@@ -900,7 +954,7 @@ export function AttackWorkflowSpine({
     ? workflowStatusIndex(normalizedStatus)
     : -1
 
-  const densityClasses = getDensityClasses(density)
+  const densityClasses = getDensityClasses(density, isChinese)
   const hasInconsistency = detectTimestampInconsistency(workflow)
 
   const closeReason = (workflow.close_reason ?? "").trim()
@@ -949,9 +1003,19 @@ export function AttackWorkflowSpine({
     }${node.state === "pending" ? t("spine.nodeAria.pending") : t("spine.nodeAria.recorded", { time: node.timeDisplay })}`
 
     const inner = useVertical ? (
-      <VerticalNode node={node} density={densityClasses} t={t} />
+      <VerticalNode
+        node={node}
+        density={densityClasses}
+        isChinese={isChinese}
+        t={t}
+      />
     ) : (
-      <HorizontalNode node={node} density={densityClasses} t={t} />
+      <HorizontalNode
+        node={node}
+        density={densityClasses}
+        isChinese={isChinese}
+        t={t}
+      />
     )
 
     const itemClassName = useVertical ? "min-w-0" : "min-w-0 flex-1 basis-0"

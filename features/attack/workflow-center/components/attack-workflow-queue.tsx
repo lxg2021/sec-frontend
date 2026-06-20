@@ -1,7 +1,7 @@
 "use client"
 
 import { useId, useMemo, type ReactNode } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   AlertCircle,
   ChevronLeft,
@@ -150,6 +150,10 @@ const NEXT_ACTION_FALLBACK: Record<string, string> = {
 
 type WorkflowCenterT = ReturnType<typeof useTranslations>
 
+function isChineseLocale(locale: string) {
+  return locale.toLowerCase().startsWith("zh")
+}
+
 function normalizeToken(value: string) {
   return value.trim().toLowerCase()
 }
@@ -263,6 +267,8 @@ export function AttackWorkflowQueue({
   className,
 }: AttackWorkflowQueueProps) {
   const t = useTranslations("pages.attack.workflowCenter")
+  const locale = useLocale()
+  const isChinese = isChineseLocale(locale)
   const searchId = useId()
   const statusId = useId()
   const severityId = useId()
@@ -343,10 +349,20 @@ export function AttackWorkflowQueue({
     >
       <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-slate-900">
+          <h2
+            className={cn(
+              "font-semibold text-slate-900",
+              isChinese ? "text-base leading-6" : "text-sm",
+            )}
+          >
             {t("queue.title")}
           </h2>
-          <p className="mt-0.5 truncate text-xs text-slate-500">
+          <p
+            className={cn(
+              "mt-0.5 truncate text-slate-500",
+              isChinese ? "text-[13px]" : "text-xs",
+            )}
+          >
             {queueScopeSummary}
             {typeof total === "number" ? (
               <>
@@ -422,7 +438,8 @@ export function AttackWorkflowQueue({
                 aria-pressed={active}
                 onClick={() => handleScope(option.value)}
                 className={cn(
-                  "h-7 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                  "rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                  isChinese ? "h-8 text-sm" : "h-7 text-xs",
                   active
                     ? "bg-white text-blue-700 shadow-sm"
                     : "text-slate-600 hover:text-slate-900",
@@ -530,6 +547,7 @@ export function AttackWorkflowQueue({
                   <li key={item.workflow_id || item.case_id}>
                     <QueueItemCard
                       item={item}
+                      isChinese={isChinese}
                       selected={selected}
                       t={t}
                       onSelect={onSelectWorkflow}
@@ -548,6 +566,7 @@ export function AttackWorkflowQueue({
                 onPageChange={handlePageChange}
                 shownEnd={shownEnd}
                 shownStart={shownStart}
+                isChinese={isChinese}
                 total={normalizedTotal}
                 totalPages={paginationTotalPages}
                 t={t}
@@ -568,6 +587,7 @@ function QueuePaginationFooter({
   onPageChange,
   shownEnd,
   shownStart,
+  isChinese,
   t,
   total,
   totalPages,
@@ -579,6 +599,7 @@ function QueuePaginationFooter({
   onPageChange: (page: number) => void
   shownEnd: number
   shownStart: number
+  isChinese: boolean
   t: WorkflowCenterT
   total: number
   totalPages: number
@@ -592,7 +613,12 @@ function QueuePaginationFooter({
 
   return (
     <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
-      <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+      <div
+        className={cn(
+          "flex items-center justify-between gap-3 text-slate-500",
+          isChinese ? "text-[13px]" : "text-xs",
+        )}
+      >
         <span className="min-w-0 truncate">
           {t("queue.pagination.showing", {
             end: shownEnd,
@@ -648,11 +674,13 @@ function QueuePaginationFooter({
 
 function QueueItemCard({
   item,
+  isChinese,
   selected,
   t,
   onSelect,
 }: {
   item: AttackWorkflowQueueItem
+  isChinese: boolean
   selected: boolean
   t: WorkflowCenterT
   onSelect: (item: AttackWorkflowQueueItem) => void
@@ -665,6 +693,12 @@ function QueueItemCard({
   const time = formatTime(item)
   const fullIdentifier = item.case_id || item.workflow_id || "-"
   const shortIdentifier = compactIdentifier(fullIdentifier)
+  const displayTitle = titleText(t, item.title)
+  const displayStatus = statusLabel(t, status)
+  const nextAction = nextActionText(t, item)
+  const displayNextAction = closed
+    ? nextAction
+    : t("queue.nextPrefix", { action: nextAction })
 
   return (
     <button
@@ -672,7 +706,8 @@ function QueueItemCard({
       aria-selected={selected}
       onClick={() => onSelect(item)}
       className={cn(
-        "group relative w-full overflow-hidden rounded-xl border p-3 pl-3.5 text-left transition-all duration-150",
+        "group relative w-full overflow-hidden rounded-xl border text-left transition-all duration-150",
+        "p-2.5 pl-3",
         "before:absolute before:inset-y-0 before:left-0 before:w-1 before:transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
         selected
@@ -680,8 +715,8 @@ function QueueItemCard({
           : "border-slate-200 bg-white before:bg-transparent hover:border-slate-300 hover:bg-slate-50/80 hover:shadow-sm",
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-1.5">
+      <div className="flex min-w-0 items-center justify-between gap-2">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
           <CircleDot
             className={cn(
               "size-3.5 shrink-0",
@@ -690,20 +725,34 @@ function QueueItemCard({
             aria-hidden="true"
           />
           <span
-            className="inline-flex min-w-0 items-center gap-1 rounded-md bg-slate-50 px-1.5 py-0.5 text-[11px] text-slate-400 ring-1 ring-inset ring-slate-100"
+            className={cn(
+              "inline-flex min-w-0 max-w-[8.5rem] items-center gap-1 overflow-hidden rounded-md bg-slate-50 px-1.5 py-0.5 ring-1 ring-inset ring-slate-100",
+              isChinese
+                ? "text-[11px] text-slate-500"
+                : "text-[11px] text-slate-400",
+            )}
             title={fullIdentifier}
           >
-            <span className="font-medium uppercase tracking-wide">
+            <span
+              className={cn(
+                "font-medium",
+                !isChinese && "uppercase tracking-wide",
+              )}
+            >
               {t("queue.idLabel")}
             </span>
-            <span className="truncate font-mono">{shortIdentifier}</span>
+            <span className="min-w-0 truncate font-mono">
+              {shortIdentifier}
+            </span>
           </span>
         </span>
         <span
           className={cn(
-            "inline-flex shrink-0 items-center gap-1.5 rounded-full py-0.5 pl-1.5 pr-2 text-[11px] font-medium ring-1 ring-inset",
+            "inline-flex h-5 max-w-[7.5rem] shrink-0 items-center gap-1.5 overflow-hidden rounded-full font-medium ring-1 ring-inset",
+            isChinese ? "px-2 text-[11px]" : "pl-1.5 pr-2 text-[11px]",
             STATUS_BADGE[status] ?? STATUS_BADGE.detected,
           )}
+          title={displayStatus}
         >
           <span
             className={cn(
@@ -712,21 +761,28 @@ function QueueItemCard({
             )}
             aria-hidden="true"
           />
-          {statusLabel(t, status)}
+          <span className="min-w-0 truncate">{displayStatus}</span>
         </span>
       </div>
 
-      <h3 className="mt-1.5 line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
-        {titleText(t, item.title)}
+      <h3
+        title={displayTitle}
+        className={cn(
+          "mt-1.5 line-clamp-1 min-h-5 font-semibold text-slate-900",
+          isChinese ? "text-[14px] leading-5" : "text-sm leading-5",
+        )}
+      >
+        {displayTitle}
       </h3>
 
       <p
         className={cn(
-          "mt-1.5 inline-flex max-w-full items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium",
+          "mt-1 inline-flex h-5 max-w-full items-center gap-1 overflow-hidden rounded-md px-1.5 text-[11px] font-medium",
           closed
             ? "text-slate-500"
             : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100",
         )}
+        title={displayNextAction}
       >
         <ChevronRight
           className={cn(
@@ -735,33 +791,31 @@ function QueueItemCard({
           )}
           aria-hidden="true"
         />
-        <span className="truncate">
-          {closed
-            ? nextActionText(t, item)
-            : t("queue.nextPrefix", { action: nextActionText(t, item) })}
-        </span>
+        <span className="min-w-0 truncate">{displayNextAction}</span>
       </p>
 
-      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500">
-        <span
-          className={cn(
-            "inline-flex items-center rounded px-1.5 py-0.5 font-medium ring-1 ring-inset",
-            SEVERITY_BADGE[severity] ?? SEVERITY_BADGE.unknown,
-          )}
-        >
-          {severityLabel(t, severity)}
+      <div className="mt-1.5 flex min-w-0 items-center gap-2 overflow-hidden text-[11px] text-slate-500">
+        <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+          <span
+            className={cn(
+              "inline-flex h-5 shrink-0 items-center rounded px-1.5 font-medium ring-1 ring-inset",
+              SEVERITY_BADGE[severity] ?? SEVERITY_BADGE.unknown,
+            )}
+          >
+            {severityLabel(t, severity)}
+          </span>
+          {hosts ? <MetaChip>{hosts}</MetaChip> : null}
+          {rules ? <MetaChip>{rules}</MetaChip> : null}
+          {typeof item.open_action_count === "number" &&
+          item.open_action_count > 0 ? (
+            <MetaChip>
+              {t("queue.openActionCount", { count: item.open_action_count })}
+            </MetaChip>
+          ) : null}
         </span>
-        {hosts ? <MetaChip>{hosts}</MetaChip> : null}
-        {rules ? <MetaChip>{rules}</MetaChip> : null}
-        {typeof item.open_action_count === "number" &&
-        item.open_action_count > 0 ? (
-          <MetaChip>
-            {t("queue.openActionCount", { count: item.open_action_count })}
-          </MetaChip>
-        ) : null}
-        <span className="ml-auto inline-flex items-center gap-1 text-slate-400">
+        <span className="inline-flex shrink-0 items-center gap-1 text-slate-400">
           <Clock3 className="size-3" aria-hidden="true" />
-          {time}
+          <span className="tabular-nums">{time}</span>
         </span>
       </div>
     </button>
@@ -770,7 +824,9 @@ function QueueItemCard({
 
 function MetaChip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center text-slate-500">{children}</span>
+    <span className="inline-flex min-w-0 shrink items-center truncate text-slate-500">
+      {children}
+    </span>
   )
 }
 
