@@ -584,7 +584,7 @@ function HeaderMetaField({
       <Badge
         variant="outline"
         className={cn(
-          "h-6 min-w-0 max-w-full gap-1.5 rounded-md px-2.5 py-0 leading-none",
+          "h-6 min-w-0 max-w-full gap-1.5 rounded-full px-2.5 py-0 leading-none",
           valueClassName,
         )}
         title={value}
