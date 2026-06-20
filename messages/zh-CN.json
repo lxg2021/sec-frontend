@@ -1618,7 +1618,7 @@
           "retry": "重试",
           "idLabel": "ID",
           "untitled": "未命名工作流",
-          "titlePrefix": "Title: {title}",
+          "titlePrefix": "title: {title}",
           "nextPrefix": "下一步：{action}",
           "hostCount": "{count} 台主机",
           "ruleCount": "{count} 条规则",

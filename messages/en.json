@@ -1616,7 +1616,7 @@
           "retry": "Retry",
           "idLabel": "ID",
           "untitled": "Untitled workflow",
-          "titlePrefix": "Title: {title}",
+          "titlePrefix": "title: {title}",
           "nextPrefix": "Next: {action}",
           "hostCount": "{count} hosts",
           "ruleCount": "{count} rules",
