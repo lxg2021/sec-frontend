@@ -444,7 +444,7 @@ function HeaderStat({
         className={cn(
           "inline-flex shrink-0 items-center gap-1.5 text-slate-500",
           isChinese
-            ? "text-[11px] font-medium"
+            ? "text-[11px] font-normal"
             : "text-[11px] font-semibold uppercase tracking-wide",
         )}
       >
@@ -454,6 +454,7 @@ function HeaderStat({
       <span
         className={cn(
           "min-w-0 truncate text-xs font-semibold text-slate-900",
+          isChinese && "font-normal",
           mono && "font-mono text-xs tabular-nums",
         )}
         title={value}
@@ -477,7 +478,7 @@ function GuideTextBlock({
     <div className="flex flex-col gap-1">
       <span
         className={cn(
-          "font-medium text-slate-500",
+          "font-medium text-slate-900",
           isChinese ? "text-[11px]" : "text-[11px] uppercase tracking-wide",
         )}
       >
@@ -485,7 +486,7 @@ function GuideTextBlock({
       </span>
       <span
         className={cn(
-          "text-slate-800",
+          "text-slate-500",
           isChinese ? "text-[13px] leading-5" : "text-sm leading-relaxed",
         )}
       >
@@ -508,7 +509,7 @@ function GuideBulletList({
     <div className="flex flex-col gap-2">
       <span
         className={cn(
-          "font-medium text-slate-500",
+          "font-medium text-slate-900",
           isChinese ? "text-[11px]" : "text-[11px] uppercase tracking-wide",
         )}
       >
@@ -519,7 +520,7 @@ function GuideBulletList({
           <li
             key={item}
             className={cn(
-              "flex gap-2 text-slate-700",
+              "flex gap-2 text-slate-500",
               isChinese ? "text-[13px] leading-5" : "text-sm leading-relaxed",
             )}
           >
@@ -548,7 +549,7 @@ function TransitionDetail({
     <div className="rounded-lg bg-slate-50 px-2.5 py-2">
       <span
         className={cn(
-          "font-medium text-slate-400",
+          "font-medium text-slate-900",
           isChinese ? "text-[11px]" : "text-[11px] uppercase tracking-wide",
         )}
       >
@@ -556,7 +557,7 @@ function TransitionDetail({
       </span>
       <p
         className={cn(
-          "text-slate-600",
+          "text-slate-500",
           isChinese
             ? "mt-0.5 text-[13px] leading-5"
             : "mt-0.5 text-xs leading-relaxed",
@@ -570,13 +571,20 @@ function TransitionDetail({
 
 function SectionTitle({
   icon: Icon,
+  isChinese,
   children,
 }: {
   icon: ComponentType<{ className?: string }>
+  isChinese: boolean
   children: ReactNode
 }) {
   return (
-    <h3 className="flex items-center gap-1.5 text-sm font-semibold text-slate-900">
+    <h3
+      className={cn(
+        "flex items-center gap-1.5 text-sm font-semibold text-slate-900",
+        isChinese && "font-medium",
+      )}
+    >
       <Icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
       {children}
     </h3>
@@ -772,7 +780,12 @@ export function AttackWorkflowStageWorkbench({
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="whitespace-nowrap text-lg font-semibold leading-6 text-slate-900">
+              <h2
+                className={cn(
+                  "whitespace-nowrap text-lg font-semibold leading-6 text-slate-900",
+                  isChinese && "font-medium",
+                )}
+              >
                 {t("workbench.title")}
               </h2>
               {loading ? (
@@ -842,7 +855,9 @@ export function AttackWorkflowStageWorkbench({
 
       <div className="grid grid-cols-1 gap-4 p-4 sm:p-5 2xl:grid-cols-12 2xl:gap-5">
         <section className="flex flex-col gap-3 2xl:col-span-4">
-          <SectionTitle icon={Activity}>{t("control.title")}</SectionTitle>
+          <SectionTitle icon={Activity} isChinese={isChinese}>
+            {t("control.title")}
+          </SectionTitle>
 
           {isReadOnly ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -863,7 +878,7 @@ export function AttackWorkflowStageWorkbench({
             <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3">
               <span
                 className={cn(
-                  "font-medium text-slate-500",
+                  "font-medium text-slate-900",
                   isChinese
                     ? "text-[11px]"
                     : "text-[11px] uppercase tracking-wide",
@@ -936,7 +951,7 @@ export function AttackWorkflowStageWorkbench({
                 <div className="flex flex-col gap-1.5">
                   <span
                     className={cn(
-                      "font-medium text-slate-400",
+                      "font-medium text-slate-900",
                       isChinese
                         ? "text-[11px]"
                         : "text-[11px] uppercase tracking-wide",
@@ -983,7 +998,9 @@ export function AttackWorkflowStageWorkbench({
         </section>
 
         <section className="flex flex-col gap-3 2xl:col-span-3">
-          <SectionTitle icon={Wrench}>{t("tools.title")}</SectionTitle>
+          <SectionTitle icon={Wrench} isChinese={isChinese}>
+            {t("tools.title")}
+          </SectionTitle>
           <div className="flex flex-col gap-2">
             {tools.length > 0 ? (
               tools.map((tool, index) => (
@@ -1010,7 +1027,9 @@ export function AttackWorkflowStageWorkbench({
         </section>
 
         <section className="flex flex-col gap-3 2xl:col-span-5">
-          <SectionTitle icon={ScrollText}>{t("guide.title")}</SectionTitle>
+          <SectionTitle icon={ScrollText} isChinese={isChinese}>
+            {t("guide.title")}
+          </SectionTitle>
           <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
             <GuideTextBlock
               isChinese={isChinese}
@@ -1020,7 +1039,7 @@ export function AttackWorkflowStageWorkbench({
             <div className="rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2">
               <span
                 className={cn(
-                  "font-medium text-amber-700",
+                  "font-medium text-amber-800",
                   isChinese
                     ? "text-[11px]"
                     : "text-[11px] uppercase tracking-wide",
@@ -1030,7 +1049,7 @@ export function AttackWorkflowStageWorkbench({
               </span>
               <p
                 className={cn(
-                  "text-amber-800",
+                  "text-amber-700",
                   isChinese
                     ? "mt-0.5 text-[13px] leading-5"
                     : "mt-0.5 text-xs leading-relaxed",
@@ -1040,7 +1059,7 @@ export function AttackWorkflowStageWorkbench({
               </p>
             </div>
             <details className="group rounded-lg border border-slate-200 bg-white">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
                 <span>{t("guide.detailedChecklist")}</span>
                 <ChevronDown
                   className="size-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"

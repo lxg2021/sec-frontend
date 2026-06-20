@@ -29,6 +29,7 @@ export interface AttackDashboardHeaderProps {
   onSnapshotChange?: (snapshot: AttackOverview) => void
   className?: string
   title?: ReactNode
+  titleClassName?: string
   icon?: ReactNode
   iconContainerClassName?: string
   showCheckAction?: boolean
@@ -69,6 +70,7 @@ export function AttackDashboardHeader({
   onSnapshotChange,
   className,
   title,
+  titleClassName,
   icon,
   iconContainerClassName,
   showCheckAction = true,
@@ -96,7 +98,12 @@ export function AttackDashboardHeader({
             {icon ?? <Radar className="h-5 w-5" />}
           </div>
           <div className="min-w-0 space-y-1.5">
-            <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
+            <h1
+              className={cn(
+                "line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950",
+                titleClassName,
+              )}
+            >
               {title ?? t("title")}
             </h1>
             <div className="flex flex-wrap items-center gap-2.5 text-sm">

@@ -161,7 +161,7 @@ function EventTransition({
       </span>
       <span className="shrink-0 text-center text-slate-300">-&gt;</span>
       <span
-        className="min-w-0 truncate whitespace-nowrap font-semibold text-slate-950"
+        className="min-w-0 truncate whitespace-nowrap text-slate-500"
         title={newStatus}
       >
         {newStatus}

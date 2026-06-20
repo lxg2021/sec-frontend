@@ -1,7 +1,7 @@
 "use client"
 
 import { Waypoints } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { AttackWorkflowSpine } from "./attack-workflow-spine"
 import type {
@@ -43,6 +43,10 @@ function displayWorkflowTitle(value?: string) {
 }
 
 type WorkflowCenterT = ReturnType<typeof useTranslations>
+
+function isChineseLocale(locale: string) {
+  return locale.toLowerCase().startsWith("zh")
+}
 
 function statusLabel(t: WorkflowCenterT, status: string) {
   const normalized = normalizeWorkflowStatus(status)
@@ -93,10 +97,12 @@ function processNoticeTone(workflow: AttackWorkflowItem | null) {
 }
 
 function WorkflowHeader({
+  isChinese,
   loading,
   t,
   workflow,
 }: {
+  isChinese: boolean
   loading: boolean
   t: WorkflowCenterT
   workflow: AttackWorkflowItem | null
@@ -118,6 +124,7 @@ function WorkflowHeader({
         <h2
           className={cn(
             "line-clamp-2 break-words text-lg font-semibold leading-6 text-slate-950",
+            isChinese && "font-normal",
             loading && !workflow && "text-slate-400",
           )}
           title={title}
@@ -150,11 +157,18 @@ export function AttackWorkflowProcessCard({
   workflow,
 }: AttackWorkflowProcessCardProps) {
   const t = useTranslations("pages.attack.workflowCenter")
+  const locale = useLocale()
+  const isChinese = isChineseLocale(locale)
   const notice = processNotice(t, workflow)
 
   return (
     <Card className="min-h-0 w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <WorkflowHeader loading={loading} t={t} workflow={workflow} />
+      <WorkflowHeader
+        isChinese={isChinese}
+        loading={loading}
+        t={t}
+        workflow={workflow}
+      />
 
       <div className="border-t border-slate-100">
         <AttackWorkflowSpine

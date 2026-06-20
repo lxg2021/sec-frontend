@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { Activity, Loader2, ShieldCheck } from "lucide-react"
 
@@ -223,6 +223,7 @@ export function AttackWorkflowControlCenter({
   timezone = "",
 }: AttackWorkflowControlCenterProps) {
   const router = useRouter()
+  const locale = useLocale()
   const t = useTranslations("pages.attack.workflowCenter")
   const { toast } = useToast()
   const [attackOverview, setAttackOverview] = useState<AttackOverview | null>(
@@ -265,6 +266,7 @@ export function AttackWorkflowControlCenter({
   const normalizedStartTime = startTime.trim()
   const normalizedTimezone = timezone.trim()
   const normalizedWorkflowId = workflowId.trim()
+  const isChineseLocale = locale.toLowerCase().startsWith("zh")
 
   const loadAttackOverview = useCallback(async () => {
     setAttackOverviewLoading(true)
@@ -664,6 +666,7 @@ export function AttackWorkflowControlCenter({
           overview={attackOverview ?? EMPTY_ATTACK_OVERVIEW}
           checking={attackOverviewLoading}
           title={t("title")}
+          titleClassName={isChineseLocale ? "font-normal" : undefined}
           onRefresh={() => void refreshAttackOverviewHeader()}
           onSnapshotChange={selectAttackOverviewSnapshot}
         />

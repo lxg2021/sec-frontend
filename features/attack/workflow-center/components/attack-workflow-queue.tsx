@@ -349,7 +349,12 @@ export function AttackWorkflowQueue({
     >
       <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold leading-5 text-slate-900">
+          <h2
+            className={cn(
+              "text-sm font-semibold leading-5 text-slate-900",
+              isChinese && "font-normal",
+            )}
+          >
             {t("queue.title")}
           </h2>
           <p className="mt-0.5 truncate text-xs text-slate-500">
@@ -748,7 +753,10 @@ function QueueItemCard({
 
       <h3
         title={displayTitle}
-        className="mt-1.5 line-clamp-1 min-h-5 text-sm font-semibold leading-5 text-slate-900"
+        className={cn(
+          "mt-1.5 line-clamp-1 min-h-5 text-sm font-semibold leading-5 text-slate-900",
+          isChinese && "font-normal",
+        )}
       >
         {displayTitle}
       </h3>
