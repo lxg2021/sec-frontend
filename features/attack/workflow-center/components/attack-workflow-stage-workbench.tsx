@@ -1064,25 +1064,25 @@ export function AttackWorkflowStageWorkbench({
                       {t("control.otherTransitionsHint")}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div
+                    className="grid gap-1.5"
+                    style={{
+                      gridTemplateColumns: `repeat(${secondaryStatuses.length}, minmax(0, 1fr))`,
+                    }}
+                  >
                     {secondaryStatuses.map((status) => (
                       <Button
                         key={status}
                         type="button"
                         size="sm"
-                        variant="outline"
                         disabled={updating}
                         onClick={() => onOpenStatusDialog(status)}
-                        className="h-7 text-xs"
+                        className={cn(
+                          "h-8 min-w-0 justify-center px-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-offset-2",
+                          getStatusStyle(status).primaryBtn,
+                        )}
                       >
-                        <span
-                          className={cn(
-                            "mr-1 h-1.5 w-1.5 rounded-full",
-                            getStatusStyle(status).dot,
-                          )}
-                          aria-hidden="true"
-                        />
-                        {statusLabel(t, status)}
+                        <span className="truncate">{statusLabel(t, status)}</span>
                       </Button>
                     ))}
                   </div>
