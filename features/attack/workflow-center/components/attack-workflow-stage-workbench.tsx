@@ -2,7 +2,14 @@
 
 import Link from "next/link"
 import { useLocale, useTranslations } from "next-intl"
-import type { ComponentType, CSSProperties, ReactNode } from "react"
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentType,
+  type CSSProperties,
+  type ReactNode,
+} from "react"
 import {
   Activity,
   ArrowRight,
@@ -762,6 +769,60 @@ export function AttackWorkflowStageWorkbench({
     (status) => status !== recommendedStatus,
   )
   const isViewingCurrentStage = normalizedCurrentStatus === selectedStatus
+  const controlSectionRef = useRef<HTMLElement | null>(null)
+  const [controlSectionHeight, setControlSectionHeight] = useState<
+    number | null
+  >(null)
+  const hasControlHeight = controlSectionHeight != null
+  const stageLayoutStyle = hasControlHeight
+    ? ({
+        "--stage-control-section-height": `${controlSectionHeight}px`,
+      } as CSSProperties)
+    : undefined
+
+  useLayoutEffect(() => {
+    const controlSection = controlSectionRef.current
+
+    if (!controlSection) {
+      return undefined
+    }
+
+    const updateControlHeight = () => {
+      const nextHeight = Math.ceil(
+        controlSection.getBoundingClientRect().height,
+      )
+
+      setControlSectionHeight((currentHeight) =>
+        currentHeight === nextHeight ? currentHeight : nextHeight,
+      )
+    }
+
+    updateControlHeight()
+    window.addEventListener("resize", updateControlHeight)
+
+    if (typeof ResizeObserver === "undefined") {
+      return () => {
+        window.removeEventListener("resize", updateControlHeight)
+      }
+    }
+
+    const observer = new ResizeObserver(updateControlHeight)
+    observer.observe(controlSection)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener("resize", updateControlHeight)
+    }
+  }, [
+    config.recommendedReason,
+    config.transitionEffect,
+    isReadOnly,
+    readOnlyText,
+    secondaryStatuses.length,
+    selectedStatus,
+    showRecommended,
+    updating,
+  ])
 
   return (
     <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
@@ -853,8 +914,14 @@ export function AttackWorkflowStageWorkbench({
         </div>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 p-4 sm:p-5 2xl:grid-cols-12 2xl:gap-5">
-        <section className="flex flex-col gap-3 2xl:col-span-4">
+      <div
+        className="grid grid-cols-1 items-start gap-4 p-4 sm:p-5 2xl:grid-cols-12 2xl:gap-5"
+        style={stageLayoutStyle}
+      >
+        <section
+          ref={controlSectionRef}
+          className="flex flex-col gap-3 2xl:col-span-4"
+        >
           <SectionTitle icon={Activity} isChinese={isChinese}>
             {t("control.title")}
           </SectionTitle>
@@ -997,11 +1064,22 @@ export function AttackWorkflowStageWorkbench({
           )}
         </section>
 
-        <section className="flex flex-col gap-3 2xl:col-span-3">
+        <section
+          className={cn(
+            "flex flex-col gap-3 2xl:col-span-3",
+            hasControlHeight &&
+              "2xl:h-[var(--stage-control-section-height)] 2xl:max-h-[var(--stage-control-section-height)]",
+          )}
+        >
           <SectionTitle icon={Wrench} isChinese={isChinese}>
             {t("tools.title")}
           </SectionTitle>
-          <div className="flex flex-col gap-2">
+          <div
+            className={cn(
+              "flex min-h-0 flex-col gap-2",
+              hasControlHeight && "2xl:flex-1 2xl:overflow-y-auto 2xl:pr-1",
+            )}
+          >
             {tools.length > 0 ? (
               tools.map((tool, index) => (
                 <ToolRow
@@ -1026,11 +1104,22 @@ export function AttackWorkflowStageWorkbench({
           </div>
         </section>
 
-        <section className="flex flex-col gap-3 2xl:col-span-5">
+        <section
+          className={cn(
+            "flex flex-col gap-3 overflow-hidden 2xl:col-span-5",
+            hasControlHeight &&
+              "2xl:h-[var(--stage-control-section-height)] 2xl:max-h-[var(--stage-control-section-height)]",
+          )}
+        >
           <SectionTitle icon={ScrollText} isChinese={isChinese}>
             {t("guide.title")}
           </SectionTitle>
-          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
+          <div
+            className={cn(
+              "flex min-h-0 flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-3",
+              hasControlHeight && "2xl:flex-1",
+            )}
+          >
             <GuideTextBlock
               isChinese={isChinese}
               label={t("guide.purpose")}
@@ -1058,7 +1147,7 @@ export function AttackWorkflowStageWorkbench({
                 {config.riskNote}
               </p>
             </div>
-            <details className="group rounded-lg border border-slate-200 bg-white">
+            <details open className="group rounded-lg border border-slate-200 bg-white">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
                 <span>{t("guide.detailedChecklist")}</span>
                 <ChevronDown
