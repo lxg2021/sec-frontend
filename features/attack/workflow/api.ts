@@ -11,7 +11,10 @@ import type {
   AttackWorkflowDetail,
   AttackWorkflowEventItem,
   AttackWorkflowItem,
+  AttackWorkflowPagination,
   GetAttackWorkflowParams,
+  ListAttackWorkflowsData,
+  ListAttackWorkflowsParams,
   UpdateAttackWorkflowStatusParams,
 } from "./types"
 
@@ -32,6 +35,11 @@ interface BackendUpdateAttackWorkflowStatusData {
   workflow?: BackendObject | null
 }
 
+interface BackendListAttackWorkflowsData {
+  items?: BackendObject[] | null
+  pagination?: BackendObject | null
+}
+
 function stringValue(value: unknown) {
   return typeof value === "string" ? value.trim() : ""
 }
@@ -45,6 +53,10 @@ function stringArray(value: unknown) {
   return Array.isArray(value)
     ? value.map((item) => stringValue(item)).filter(Boolean)
     : []
+}
+
+function boolValue(value: unknown) {
+  return value === true
 }
 
 function hasAnyStringValue(value: BackendObject) {
@@ -78,6 +90,17 @@ function normalizeWorkflowItem(raw: BackendObject = {}): AttackWorkflowItem {
     updated_at: stringValue(raw.updated_at),
     instance_ids: stringArray(raw.instance_ids),
     group_ids: stringArray(raw.group_ids),
+  }
+}
+
+function normalizePagination(raw: BackendObject = {}): AttackWorkflowPagination {
+  return {
+    current_page: numberValue(raw.current_page),
+    page_size: numberValue(raw.page_size),
+    total_count: numberValue(raw.total_count),
+    total_pages: numberValue(raw.total_pages),
+    has_previous: boolValue(raw.has_previous),
+    has_next: boolValue(raw.has_next),
   }
 }
 
@@ -267,6 +290,55 @@ export async function getAttackWorkflowByCaseId({
     includeActions,
     includeEvents,
   })
+}
+
+export async function listAttackWorkflows({
+  tenantId,
+  page = 1,
+  pageSize = 50,
+  timezone,
+  startTime,
+  endTime,
+  statusScope,
+  status,
+  severity,
+  caseId,
+}: ListAttackWorkflowsParams = {}): Promise<ListAttackWorkflowsData> {
+  const payload: Record<string, unknown> = {
+    request_id: createRequestId(),
+    page,
+    page_size: pageSize,
+  }
+
+  const normalizedTenantId = stringValue(tenantId)
+  const normalizedTimezone = stringValue(timezone)
+  const normalizedStartTime = stringValue(startTime)
+  const normalizedEndTime = stringValue(endTime)
+  const normalizedStatusScope = stringValue(statusScope)
+  const normalizedStatus = stringValue(status)
+  const normalizedSeverity = stringValue(severity)
+  const normalizedCaseId = stringValue(caseId)
+
+  if (normalizedTenantId) payload.tenant_id = normalizedTenantId
+  if (normalizedTimezone) payload.timezone = normalizedTimezone
+  if (normalizedStartTime) payload.start_time = normalizedStartTime
+  if (normalizedEndTime) payload.end_time = normalizedEndTime
+  if (normalizedStatusScope) payload.status_scope = normalizedStatusScope
+  if (normalizedStatus) payload.status = normalizedStatus
+  if (normalizedSeverity) payload.severity = normalizedSeverity
+  if (normalizedCaseId) payload.case_id = normalizedCaseId
+
+  const result = (await http.post(
+    "/sensor/analysis/attack-workflow/list",
+    payload,
+  )) as ApiResult<BackendListAttackWorkflowsData | null>
+
+  return {
+    items: Array.isArray(result.data?.items)
+      ? result.data.items.map(normalizeWorkflowItem)
+      : [],
+    pagination: normalizePagination(result.data?.pagination ?? {}),
+  }
 }
 
 export async function updateAttackWorkflowStatus({

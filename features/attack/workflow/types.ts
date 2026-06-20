@@ -26,6 +26,8 @@ export type AttackWorkflowActionStatus =
 
 export type AttackWorkflowOperatorType = "system" | "user" | "control"
 
+export type AttackWorkflowStatusScope = "open" | "all" | "closed"
+
 export interface AttackWorkflowItem {
   workflow_id: string
   tenant_id: string
@@ -135,6 +137,15 @@ export interface AttackWorkflowDetail {
   events: AttackWorkflowEventItem[]
 }
 
+export interface AttackWorkflowPagination {
+  current_page: number
+  page_size: number
+  total_count: number
+  total_pages: number
+  has_previous: boolean
+  has_next: boolean
+}
+
 export interface GetAttackWorkflowParams {
   tenantId?: string
   workflowId?: string
@@ -142,6 +153,24 @@ export interface GetAttackWorkflowParams {
   rootId?: string
   includeActions?: boolean
   includeEvents?: boolean
+}
+
+export interface ListAttackWorkflowsParams {
+  tenantId?: string
+  page?: number
+  pageSize?: number
+  timezone?: string
+  startTime?: string
+  endTime?: string
+  statusScope?: AttackWorkflowStatusScope
+  status?: AttackWorkflowStatus | string
+  severity?: string
+  caseId?: string
+}
+
+export interface ListAttackWorkflowsData {
+  items: AttackWorkflowItem[]
+  pagination: AttackWorkflowPagination
 }
 
 export interface UpdateAttackWorkflowStatusParams {

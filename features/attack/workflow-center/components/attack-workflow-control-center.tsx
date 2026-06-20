@@ -20,6 +20,7 @@ import { AttackWorkflowStageWorkbench } from "./attack-workflow-stage-workbench"
 import {
   getAttackWorkflow,
   getAttackWorkflowByCaseId,
+  listAttackWorkflows,
   updateAttackWorkflowStatus,
 } from "@/features/attack/workflow/api"
 import {
@@ -65,9 +66,12 @@ import { Textarea } from "@/shared/ui/textarea"
 
 interface AttackWorkflowControlCenterProps {
   caseId?: string
+  endTime?: string
   snapshotId?: string
+  startTime?: string
   workflowId?: string
   tenantId?: string
+  timezone?: string
 }
 
 interface WorkflowNavigationHrefs {
@@ -83,6 +87,7 @@ const DEFAULT_QUEUE_FILTERS: AttackWorkflowQueueFilters = {
   statuses: [],
   severities: [],
 }
+const QUEUE_PAGE_SIZE = 6
 
 const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   detected: "Detected",
@@ -124,8 +129,8 @@ function actionNeedsAttention(action: AttackWorkflowActionItem) {
 
 function workflowToQueueItem(
   workflow: AttackWorkflowItem,
-  actions: AttackWorkflowActionItem[],
-  events: AttackWorkflowEventItem[],
+  actions: AttackWorkflowActionItem[] = [],
+  events: AttackWorkflowEventItem[] = [],
 ): AttackWorkflowQueueItem {
   return {
     workflow_id: workflow.workflow_id,
@@ -144,50 +149,14 @@ function workflowToQueueItem(
   }
 }
 
-function queueItemMatches(
-  item: AttackWorkflowQueueItem,
-  keyword: string,
-  filters: AttackWorkflowQueueFilters,
-) {
-  const status = item.status.trim().toLowerCase()
-  const severity = item.severity.trim().toLowerCase()
-
-  if (filters.statusScope === "open" && status === "closed") return false
-  if (filters.statusScope === "closed" && status !== "closed") return false
-  if (filters.statuses.length > 0 && !filters.statuses.includes(status)) {
-    return false
-  }
-  if (
-    filters.severities.length > 0 &&
-    !filters.severities.includes(severity)
-  ) {
-    return false
-  }
-
-  const normalizedKeyword = keyword.trim().toLowerCase()
-  if (!normalizedKeyword) return true
-
-  const haystack = [
-    item.workflow_id,
-    item.case_id,
-    item.title,
-    item.severity,
-    item.status,
-    item.primary_agent_id,
-    ...(item.agent_ids ?? []),
-    ...(item.rule_ids ?? []),
-  ]
-    .join(" ")
-    .toLowerCase()
-
-  return haystack.includes(normalizedKeyword)
-}
-
 export function AttackWorkflowControlCenter({
   caseId = "",
+  endTime = "",
   snapshotId = "",
+  startTime = "",
   workflowId = "",
   tenantId = "",
+  timezone = "",
 }: AttackWorkflowControlCenterProps) {
   const router = useRouter()
   const { toast } = useToast()
@@ -197,16 +166,38 @@ export function AttackWorkflowControlCenter({
   const [selectedStatus, setSelectedStatus] = useState<AttackWorkflowStatus | "">("")
   const [selectedWorkbenchStatus, setSelectedWorkbenchStatus] =
     useState<AttackWorkflowStatus>("detected")
-  const [queueKeyword, setQueueKeyword] = useState("")
+  const [queueCaseIdQuery, setQueueCaseIdQuery] = useState("")
+  const [queueCaseId, setQueueCaseId] = useState("")
   const [queueFilters, setQueueFilters] =
     useState<AttackWorkflowQueueFilters>(DEFAULT_QUEUE_FILTERS)
+  const [queueWorkflows, setQueueWorkflows] = useState<AttackWorkflowItem[]>([])
+  const [queueLoading, setQueueLoading] = useState(false)
+  const [queueRefreshing, setQueueRefreshing] = useState(false)
+  const [queueError, setQueueError] = useState("")
+  const [queuePage, setQueuePage] = useState(1)
+  const [queueTotal, setQueueTotal] = useState(0)
+  const [queueTotalPages, setQueueTotalPages] = useState(0)
+  const [queueHasPrevious, setQueueHasPrevious] = useState(false)
+  const [queueHasNext, setQueueHasNext] = useState(false)
   const [comment, setComment] = useState("")
   const [closeReason, setCloseReason] = useState<AttackWorkflowCloseReason>("resolved")
   const [updating, setUpdating] = useState(false)
   const loadSeqRef = useRef(0)
+  const queueLoadSeqRef = useRef(0)
 
   const normalizedCaseId = caseId.trim()
+  const normalizedEndTime = endTime.trim()
+  const normalizedStartTime = startTime.trim()
+  const normalizedTimezone = timezone.trim()
   const normalizedWorkflowId = workflowId.trim()
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setQueueCaseId(queueCaseIdQuery.trim())
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [queueCaseIdQuery])
 
   const loadWorkflow = useCallback(async () => {
     const nextSeq = loadSeqRef.current + 1
@@ -253,6 +244,83 @@ export function AttackWorkflowControlCenter({
     void loadWorkflow()
   }, [loadWorkflow])
 
+  const loadWorkflowQueue = useCallback(async ({
+    page = 1,
+    refreshing = false,
+  }: {
+    page?: number
+    refreshing?: boolean
+  } = {}) => {
+    const nextSeq = queueLoadSeqRef.current + 1
+    queueLoadSeqRef.current = nextSeq
+
+    if (refreshing) {
+      setQueueRefreshing(true)
+    } else {
+      setQueueLoading(true)
+    }
+    setQueueError("")
+
+    try {
+      const selectedStatus = queueFilters.statuses[0] ?? ""
+      const selectedSeverity = queueFilters.severities[0] ?? ""
+      const data = await listAttackWorkflows({
+        tenantId,
+        page,
+        pageSize: QUEUE_PAGE_SIZE,
+        timezone: normalizedTimezone || undefined,
+        startTime: normalizedStartTime || undefined,
+        endTime: normalizedEndTime || undefined,
+        statusScope: queueFilters.statusScope,
+        status: selectedStatus || undefined,
+        severity: selectedSeverity || undefined,
+        caseId: queueCaseId || undefined,
+      })
+
+      if (queueLoadSeqRef.current !== nextSeq) return
+
+      const nextPage = data.pagination.current_page || page
+      const nextTotal = data.pagination.total_count || data.items.length
+      const nextTotalPages =
+        data.pagination.total_pages ||
+        (nextTotal > 0 ? Math.ceil(nextTotal / QUEUE_PAGE_SIZE) : 0)
+
+      setQueueWorkflows(data.items)
+      setQueuePage(nextPage)
+      setQueueTotal(nextTotal)
+      setQueueTotalPages(nextTotalPages)
+      setQueueHasPrevious(data.pagination.has_previous || nextPage > 1)
+      setQueueHasNext(
+        data.pagination.has_next ||
+          (nextTotalPages > 0 && nextPage < nextTotalPages),
+      )
+    } catch (err) {
+      if (queueLoadSeqRef.current !== nextSeq) return
+      setQueueError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load AttackWorkflow queue.",
+      )
+      setQueueHasNext(false)
+    } finally {
+      if (queueLoadSeqRef.current === nextSeq) {
+        setQueueLoading(false)
+        setQueueRefreshing(false)
+      }
+    }
+  }, [
+    normalizedEndTime,
+    normalizedStartTime,
+    normalizedTimezone,
+    queueCaseId,
+    queueFilters,
+    tenantId,
+  ])
+
+  useEffect(() => {
+    void loadWorkflowQueue()
+  }, [loadWorkflowQueue])
+
   const workflow = detail?.workflow ?? null
   const actions = detail?.actions ?? []
   const events = detail?.events ?? []
@@ -287,15 +355,20 @@ export function AttackWorkflowControlCenter({
   }, [workflow?.workflow_id, normalizedStatus])
 
   const rawQueueItems = useMemo<AttackWorkflowQueueItem[]>(
-    () => (workflow ? [workflowToQueueItem(workflow, actions, events)] : []),
-    [actions, events, workflow],
-  )
-  const queueItems = useMemo(
     () =>
-      rawQueueItems.filter((item) =>
-        queueItemMatches(item, queueKeyword, queueFilters),
-      ),
-    [queueFilters, queueKeyword, rawQueueItems],
+      queueWorkflows.map((queueWorkflow) => {
+        const isActiveWorkflow =
+          workflow &&
+          queueWorkflow.workflow_id &&
+          queueWorkflow.workflow_id === workflow.workflow_id
+
+        return workflowToQueueItem(
+          queueWorkflow,
+          isActiveWorkflow ? actions : [],
+          isActiveWorkflow ? events : [],
+        )
+      }),
+    [actions, events, queueWorkflows, workflow],
   )
 
   function openStatusDialog(status: AttackWorkflowStatus) {
@@ -324,6 +397,7 @@ export function AttackWorkflowControlCenter({
       setSelectedStatus("")
       toast({ title: `Workflow status updated to ${statusLabel(selectedStatus)}.` })
       await loadWorkflow()
+      await loadWorkflowQueue({ page: queuePage, refreshing: true })
     } catch (err) {
       toast({
         title: "Failed to update workflow status",
@@ -347,6 +421,9 @@ export function AttackWorkflowControlCenter({
     if (item.case_id) params.set("caseId", item.case_id)
     if (item.workflow_id) params.set("workflowId", item.workflow_id)
     if (snapshotId.trim()) params.set("snapshotId", snapshotId.trim())
+    if (normalizedStartTime) params.set("startTime", normalizedStartTime)
+    if (normalizedEndTime) params.set("endTime", normalizedEndTime)
+    if (normalizedTimezone) params.set("timezone", normalizedTimezone)
     if (tenantId.trim()) params.set("tenantId", tenantId.trim())
     router.push(`/frame/attack/workflow?${params.toString()}`)
   }
@@ -370,19 +447,28 @@ export function AttackWorkflowControlCenter({
         <section className="grid min-h-0 w-full flex-1 gap-4 xl:grid-cols-[clamp(340px,24vw,430px)_minmax(0,1fr)]">
           <AttackWorkflowQueue
             className="xl:h-full"
-            error={error}
+            caseIdQuery={queueCaseIdQuery}
+            error={queueError}
             filters={queueFilters}
-            items={queueItems}
-            keyword={queueKeyword}
-            loading={loading && rawQueueItems.length === 0}
+            items={rawQueueItems}
+            loading={queueLoading}
+            currentPage={queuePage}
+            pageSize={QUEUE_PAGE_SIZE}
+            totalPages={queueTotalPages}
+            hasPrevious={queueHasPrevious}
+            hasNext={queueHasNext}
+            paginationLoading={queueLoading}
             onFiltersChange={setQueueFilters}
-            onKeywordChange={setQueueKeyword}
-            onRefresh={loadWorkflow}
+            onCaseIdChange={setQueueCaseIdQuery}
+            onRefresh={() =>
+              void loadWorkflowQueue({ page: queuePage, refreshing: true })
+            }
+            onPageChange={(page) => void loadWorkflowQueue({ page })}
             onSelectWorkflow={selectQueueWorkflow}
-            refreshing={loading && rawQueueItems.length > 0}
+            refreshing={queueRefreshing}
             selectedCaseId={activeCaseId}
             selectedWorkflowId={activeWorkflowId}
-            total={rawQueueItems.length}
+            total={queueTotal}
           />
 
           <WorkflowMainGrid

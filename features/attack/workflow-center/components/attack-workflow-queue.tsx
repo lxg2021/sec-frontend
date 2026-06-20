@@ -3,7 +3,10 @@
 import { useId, useMemo, type ReactNode } from "react"
 import {
   AlertCircle,
+  ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   CircleDot,
   Clock3,
   Inbox,
@@ -13,10 +16,13 @@ import {
   X,
 } from "lucide-react"
 
-import type { AttackWorkflowStatus } from "@/features/attack/workflow/types"
+import type {
+  AttackWorkflowStatus,
+  AttackWorkflowStatusScope,
+} from "@/features/attack/workflow/types"
 import { cn } from "@/shared/lib/utils"
 
-export type AttackWorkflowQueueStatusScope = "open" | "all" | "closed"
+export type AttackWorkflowQueueStatusScope = AttackWorkflowStatusScope
 
 export interface AttackWorkflowQueueFilters {
   statusScope: AttackWorkflowQueueStatusScope
@@ -50,16 +56,20 @@ export interface AttackWorkflowQueueProps {
   loading?: boolean
   refreshing?: boolean
   error?: string
-  keyword: string
+  caseIdQuery: string
   filters: AttackWorkflowQueueFilters
-  onKeywordChange: (keyword: string) => void
+  onCaseIdChange: (caseId: string) => void
   onFiltersChange: (filters: AttackWorkflowQueueFilters) => void
   onSelectWorkflow: (item: AttackWorkflowQueueItem) => void
   onRefresh: () => void
   total?: number
-  hasMore?: boolean
-  loadingMore?: boolean
-  onLoadMore?: () => void
+  currentPage?: number
+  pageSize?: number
+  totalPages?: number
+  hasPrevious?: boolean
+  hasNext?: boolean
+  paginationLoading?: boolean
+  onPageChange?: (page: number) => void
   className?: string
 }
 
@@ -168,11 +178,10 @@ function formatTime(item: AttackWorkflowQueueItem) {
   })
 }
 
-function agentSummary(item: AttackWorkflowQueueItem) {
-  const ids = item.agent_ids ?? []
-  if (item.primary_agent_id?.trim()) return item.primary_agent_id.trim()
-  if (ids.length === 1) return ids[0]
-  if (ids.length > 1) return `${ids.length} agents`
+function hostSummary(item: AttackWorkflowQueueItem) {
+  const hostCount = item.agent_ids?.length ?? 0
+  if (hostCount > 0) return `${hostCount} ${hostCount === 1 ? "host" : "hosts"}`
+  if (item.primary_agent_id?.trim()) return "1 host"
   return ""
 }
 
@@ -186,9 +195,12 @@ function isClosedStatus(status: string) {
   return normalizeToken(status) === "closed"
 }
 
-function filtersAreActive(keyword: string, filters: AttackWorkflowQueueFilters) {
+function filtersAreActive(
+  caseIdQuery: string,
+  filters: AttackWorkflowQueueFilters,
+) {
   return (
-    keyword.trim().length > 0 ||
+    caseIdQuery.trim().length > 0 ||
     filters.statusScope !== "open" ||
     filters.statuses.length > 0 ||
     filters.severities.length > 0 ||
@@ -203,16 +215,20 @@ export function AttackWorkflowQueue({
   loading = false,
   refreshing = false,
   error,
-  keyword,
+  caseIdQuery,
   filters,
-  onKeywordChange,
+  onCaseIdChange,
   onFiltersChange,
   onSelectWorkflow,
   onRefresh,
   total,
-  hasMore = false,
-  loadingMore = false,
-  onLoadMore,
+  currentPage = 1,
+  pageSize,
+  totalPages,
+  hasPrevious,
+  hasNext,
+  paginationLoading = false,
+  onPageChange,
   className,
 }: AttackWorkflowQueueProps) {
   const searchId = useId()
@@ -222,11 +238,45 @@ export function AttackWorkflowQueue({
   const showSkeletons = loading && items.length === 0
   const showEmpty = !loading && !showSkeletons && items.length === 0
   const hasActiveFilters = useMemo(
-    () => filtersAreActive(keyword, filters),
-    [keyword, filters],
+    () => filtersAreActive(caseIdQuery, filters),
+    [caseIdQuery, filters],
   )
   const selectedStatus = filters.statuses[0] ?? ""
   const selectedSeverity = filters.severities[0] ?? ""
+  const queueScopeSummary =
+    filters.statusScope === "closed"
+      ? "Closed attack workflows"
+      : filters.statusScope === "all"
+        ? "Attack workflows"
+        : "Open attack workflows"
+  const normalizedTotal = Math.max(0, total ?? items.length)
+  const normalizedPage = Math.max(1, Math.trunc(currentPage || 1))
+  const normalizedPageSize = Math.max(
+    1,
+    Math.trunc(pageSize || items.length || normalizedTotal || 1),
+  )
+  const inferredTotalPages =
+    normalizedTotal > 0 ? Math.ceil(normalizedTotal / normalizedPageSize) : 0
+  const normalizedTotalPages = Math.max(
+    0,
+    Math.trunc(totalPages ?? inferredTotalPages),
+  )
+  const paginationTotalPages = Math.max(1, normalizedTotalPages)
+  const shownStart =
+    normalizedTotal > 0
+      ? Math.min((normalizedPage - 1) * normalizedPageSize + 1, normalizedTotal)
+      : 0
+  const shownEnd =
+    normalizedTotal > 0
+      ? Math.min(normalizedPage * normalizedPageSize, normalizedTotal)
+      : 0
+  const canChangePage = Boolean(onPageChange) && normalizedTotalPages > 1
+  const canGoPrevious =
+    canChangePage && (hasPrevious ?? normalizedPage > 1)
+  const canGoNext =
+    canChangePage && (hasNext ?? normalizedPage < normalizedTotalPages)
+  const paginationDisabled = loading || paginationLoading
+  const showPagination = !showSkeletons && !showEmpty && normalizedTotal > 0
 
   function handleScope(scope: AttackWorkflowQueueStatusScope) {
     if (scope === filters.statusScope) return
@@ -239,6 +289,16 @@ export function AttackWorkflowQueue({
 
   function handleSeverity(value: string) {
     onFiltersChange({ ...filters, severities: value ? [value] : [] })
+  }
+
+  function handlePageChange(page: number) {
+    if (!onPageChange || paginationDisabled) return
+    const nextPage = Math.min(
+      Math.max(1, Math.trunc(page)),
+      paginationTotalPages,
+    )
+    if (nextPage === normalizedPage) return
+    onPageChange(nextPage)
   }
 
   return (
@@ -256,12 +316,12 @@ export function AttackWorkflowQueue({
             Workflow Queue
           </h2>
           <p className="mt-0.5 truncate text-xs text-slate-500">
-            Open attack workflows
+            {queueScopeSummary}
             {typeof total === "number" ? (
               <>
                 {" / "}
                 <span className="font-medium text-slate-600">
-                  {items.length < total ? `${items.length} of ${total}` : total}
+                  {normalizedTotal.toLocaleString()}
                 </span>
               </>
             ) : null}
@@ -296,20 +356,20 @@ export function AttackWorkflowQueue({
           <input
             id={searchId}
             type="text"
-            value={keyword}
-            onChange={(event) => onKeywordChange(event.target.value)}
-            placeholder="Search case id / title / agent / rule"
-            aria-label="Search workflow queue"
+            value={caseIdQuery}
+            onChange={(event) => onCaseIdChange(event.target.value)}
+            placeholder="Case ID"
+            aria-label="Filter workflow queue by case ID"
             className={cn(
               "h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-900 placeholder:text-slate-400",
               "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
             )}
           />
-          {keyword.length > 0 ? (
+          {caseIdQuery.length > 0 ? (
             <button
               type="button"
-              onClick={() => onKeywordChange("")}
-              aria-label="Clear search"
+              onClick={() => onCaseIdChange("")}
+              aria-label="Clear case ID filter"
               className="absolute right-2 top-1/2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <X className="size-3.5" aria-hidden="true" />
@@ -447,35 +507,103 @@ export function AttackWorkflowQueue({
               })}
             </ul>
 
-            {hasMore ? (
-              <button
-                type="button"
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                className={cn(
-                  "mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700",
-                  "transition-colors hover:bg-slate-50",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-                  "disabled:cursor-not-allowed disabled:opacity-60",
-                )}
-              >
-                {loadingMore ? (
-                  <>
-                    <Loader2
-                      className="size-4 animate-spin"
-                      aria-hidden="true"
-                    />
-                    Loading...
-                  </>
-                ) : (
-                  "Load more"
-                )}
-              </button>
+            {showPagination ? (
+              <QueuePaginationFooter
+                currentPage={normalizedPage}
+                disabled={paginationDisabled}
+                hasNext={canGoNext}
+                hasPrevious={canGoPrevious}
+                onPageChange={handlePageChange}
+                shownEnd={shownEnd}
+                shownStart={shownStart}
+                total={normalizedTotal}
+                totalPages={paginationTotalPages}
+              />
             ) : null}
           </>
         )}
       </div>
     </section>
+  )
+}
+
+function QueuePaginationFooter({
+  currentPage,
+  disabled,
+  hasNext,
+  hasPrevious,
+  onPageChange,
+  shownEnd,
+  shownStart,
+  total,
+  totalPages,
+}: {
+  currentPage: number
+  disabled: boolean
+  hasNext: boolean
+  hasPrevious: boolean
+  onPageChange: (page: number) => void
+  shownEnd: number
+  shownStart: number
+  total: number
+  totalPages: number
+}) {
+  const buttonClassName = cn(
+    "inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600",
+    "transition-colors hover:bg-slate-50 hover:text-slate-900",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
+    "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-white disabled:hover:text-slate-600",
+  )
+
+  return (
+    <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
+      <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+        <span className="min-w-0 truncate">
+          Showing {shownStart}-{shownEnd} of {total.toLocaleString()}
+        </span>
+        <span className="shrink-0 font-medium text-slate-600">
+          Page {currentPage} / {totalPages}
+        </span>
+      </div>
+      <div className="grid grid-cols-4 gap-1.5">
+        <button
+          type="button"
+          aria-label="First workflow queue page"
+          className={buttonClassName}
+          disabled={disabled || !hasPrevious}
+          onClick={() => onPageChange(1)}
+        >
+          <ChevronsLeft className="size-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Previous workflow queue page"
+          className={buttonClassName}
+          disabled={disabled || !hasPrevious}
+          onClick={() => onPageChange(currentPage - 1)}
+        >
+          <ChevronLeft className="size-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Next workflow queue page"
+          className={buttonClassName}
+          disabled={disabled || !hasNext}
+          onClick={() => onPageChange(currentPage + 1)}
+        >
+          <ChevronRight className="size-4" aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          aria-label="Last workflow queue page"
+          className={buttonClassName}
+          disabled={disabled || !hasNext}
+          onClick={() => onPageChange(totalPages)}
+        >
+          <ChevronsRight className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -491,7 +619,7 @@ function QueueItemCard({
   const severity = normalizeToken(item.severity || "unknown")
   const status = normalizeToken(String(item.status))
   const closed = isClosedStatus(status)
-  const agent = agentSummary(item)
+  const hosts = hostSummary(item)
   const rules = ruleSummary(item)
   const time = formatTime(item)
 
@@ -572,7 +700,7 @@ function QueueItemCard({
         >
           {severityLabel(severity)}
         </span>
-        {agent ? <MetaChip>{agent}</MetaChip> : null}
+        {hosts ? <MetaChip>{hosts}</MetaChip> : null}
         {rules ? <MetaChip>{rules}</MetaChip> : null}
         {typeof item.open_action_count === "number" &&
         item.open_action_count > 0 ? (
