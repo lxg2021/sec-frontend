@@ -9,12 +9,10 @@ import {
   ClipboardCheck,
   ExternalLink,
   FileSearch,
-  Gauge,
   Lock,
   ScrollText,
   Shield,
   Target,
-  Timer,
   Wrench,
 } from "lucide-react"
 
@@ -501,23 +499,25 @@ function stageCompletionLabel({
   return "Pending"
 }
 
-function MetricTile({
-  icon: Icon,
+function HeaderStat({
   label,
+  mono = false,
   value,
 }: {
-  icon: ComponentType<{ className?: string }>
   label: string
+  mono?: boolean
   value: string
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2">
-      <span className="flex items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-slate-500">
-        <Icon className="h-3 w-3" aria-hidden="true" />
+    <div className="flex min-w-0 items-baseline gap-1.5">
+      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </span>
       <span
-        className="truncate text-sm font-semibold text-slate-900"
+        className={cn(
+          "min-w-0 truncate text-sm font-semibold text-slate-900",
+          mono && "font-mono text-xs tabular-nums",
+        )}
         title={value}
       >
         {value}
@@ -769,10 +769,12 @@ export function AttackWorkflowStageWorkbench({
           </div>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 2xl:w-auto 2xl:max-w-md 2xl:grid-cols-3">
-          <MetricTile icon={Gauge} label="Result" value={completionLabel} />
-          <MetricTile icon={Timer} label="Time" value={stageTime} />
-          <MetricTile icon={Activity} label="Actions" value={String(actions.length)} />
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 2xl:w-auto 2xl:max-w-xl">
+          <HeaderStat label="Result" value={completionLabel} />
+          <span className="hidden h-4 w-px shrink-0 bg-slate-200 sm:block" />
+          <HeaderStat label="Time" value={stageTime} mono />
+          <span className="hidden h-4 w-px shrink-0 bg-slate-200 sm:block" />
+          <HeaderStat label="Actions" value={String(actions.length)} />
         </div>
       </header>
 
