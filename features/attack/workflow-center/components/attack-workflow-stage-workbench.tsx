@@ -33,6 +33,7 @@ import {
   workflowStatusTime,
 } from "@/features/attack/workflow/utils"
 import { cn } from "@/shared/lib/utils"
+import { Badge } from "@/shared/ui/badge"
 import { Button, buttonVariants } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
 import { Separator } from "@/shared/ui/separator"
@@ -564,9 +565,10 @@ function HeaderMetaField({
       <span className="shrink-0 text-sm font-medium text-slate-600">
         {label}
       </span>
-      <span
+      <Badge
+        variant="outline"
         className={cn(
-          "inline-flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-md border px-2.5 text-xs font-semibold leading-none",
+          "h-6 min-w-0 max-w-full gap-1.5 rounded-md px-2.5 py-0 leading-none",
           valueClassName,
         )}
         title={value}
@@ -575,7 +577,7 @@ function HeaderMetaField({
           <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dot)} />
         ) : null}
         <span className="truncate">{value}</span>
-      </span>
+      </Badge>
     </div>
   )
 }
@@ -693,6 +695,7 @@ export function AttackWorkflowStageWorkbench({
   const secondaryStatuses = allowedStatuses.filter(
     (status) => status !== recommendedStatus,
   )
+  const isViewingCurrentStage = normalizedCurrentStatus === selectedStatus
 
   return (
     <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
@@ -724,20 +727,33 @@ export function AttackWorkflowStageWorkbench({
               ) : null}
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <HeaderMetaField
-                dot={selectedStyle.dot}
-                label="Selected"
-                value={statusLabel(selectedStatus)}
-                valueClassName={selectedStyle.badge}
-              />
-              {normalizedCurrentStatus ? (
+              {isViewingCurrentStage ? (
                 <HeaderMetaField
-                  dot={getStatusStyle(normalizedCurrentStatus).dot}
-                  label="Current"
-                  value={statusLabel(normalizedCurrentStatus)}
-                  valueClassName={getStatusStyle(normalizedCurrentStatus).badge}
+                  dot={selectedStyle.dot}
+                  label="Stage"
+                  value={statusLabel(selectedStatus)}
+                  valueClassName={selectedStyle.badge}
                 />
-              ) : null}
+              ) : (
+                <>
+                  <HeaderMetaField
+                    dot={selectedStyle.dot}
+                    label="Selected"
+                    value={statusLabel(selectedStatus)}
+                    valueClassName={selectedStyle.badge}
+                  />
+                  {normalizedCurrentStatus ? (
+                    <HeaderMetaField
+                      dot={getStatusStyle(normalizedCurrentStatus).dot}
+                      label="Current"
+                      value={statusLabel(normalizedCurrentStatus)}
+                      valueClassName={
+                        getStatusStyle(normalizedCurrentStatus).badge
+                      }
+                    />
+                  ) : null}
+                </>
+              )}
             </div>
           </div>
         </div>
