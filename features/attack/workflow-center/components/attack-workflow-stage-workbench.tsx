@@ -769,8 +769,7 @@ export function AttackWorkflowStageWorkbench({
           </div>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 2xl:w-auto 2xl:max-w-md 2xl:grid-cols-4">
-          <MetricTile icon={Target} label="Stage" value={statusLabel(selectedStatus)} />
+        <div className="grid w-full grid-cols-2 gap-2 2xl:w-auto 2xl:max-w-md 2xl:grid-cols-3">
           <MetricTile icon={Gauge} label="Result" value={completionLabel} />
           <MetricTile icon={Timer} label="Time" value={stageTime} />
           <MetricTile icon={Activity} label="Actions" value={String(actions.length)} />
