@@ -202,6 +202,17 @@ body {
   will-change: background-color, border-color, color, box-shadow;
 }
 
+@keyframes workflow-current-halo {
+  0%, 100% {
+    transform: scale(0.86);
+    opacity: 0.34;
+  }
+  50% {
+    transform: scale(1.42);
+    opacity: 0.08;
+  }
+}
+
 @keyframes ai-core-breathe {
   0%,
   100% {

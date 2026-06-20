@@ -298,6 +298,7 @@ interface WorkflowStatusTone {
   markerRecommended: string
   accent: string
   halo: string
+  currentHalo: string
   rail: string
   progressBar: string
   statusBadge: string
@@ -309,11 +310,12 @@ interface WorkflowStatusTone {
 const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = {
   detected: {
     markerCurrent:
-      "border-amber-500 bg-white text-amber-600 shadow-sm shadow-amber-200",
+      "border-amber-500 bg-gradient-to-br from-white via-amber-50 to-amber-100 text-amber-700 shadow-lg shadow-amber-300/50",
     markerReached: "border-amber-500 bg-amber-500 text-white",
     markerRecommended: "border-amber-300 bg-amber-50 text-amber-600",
     accent: "text-amber-600",
     halo: "ring-4 ring-amber-100",
+    currentHalo: "bg-amber-300/40",
     rail: "bg-amber-400",
     progressBar: "bg-amber-500",
     statusBadge: "border-amber-200 bg-amber-50 text-amber-700",
@@ -323,11 +325,12 @@ const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = 
   },
   investigating: {
     markerCurrent:
-      "border-cyan-500 bg-white text-cyan-600 shadow-sm shadow-cyan-200",
+      "border-cyan-500 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 text-cyan-700 shadow-lg shadow-cyan-300/50",
     markerReached: "border-cyan-500 bg-cyan-500 text-white",
     markerRecommended: "border-cyan-300 bg-cyan-50 text-cyan-600",
     accent: "text-cyan-600",
     halo: "ring-4 ring-cyan-100",
+    currentHalo: "bg-cyan-300/40",
     rail: "bg-cyan-400",
     progressBar: "bg-cyan-500",
     statusBadge: "border-cyan-200 bg-cyan-50 text-cyan-700",
@@ -337,11 +340,12 @@ const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = 
   },
   confirmed: {
     markerCurrent:
-      "border-blue-500 bg-white text-blue-600 shadow-sm shadow-blue-200",
+      "border-blue-500 bg-gradient-to-br from-white via-blue-50 to-blue-100 text-blue-700 shadow-lg shadow-blue-300/50",
     markerReached: "border-blue-500 bg-blue-500 text-white",
     markerRecommended: "border-blue-300 bg-blue-50 text-blue-600",
     accent: "text-blue-600",
     halo: "ring-4 ring-blue-100",
+    currentHalo: "bg-blue-300/40",
     rail: "bg-blue-400",
     progressBar: "bg-blue-500",
     statusBadge: "border-blue-200 bg-blue-50 text-blue-700",
@@ -351,11 +355,12 @@ const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = 
   },
   forensics: {
     markerCurrent:
-      "border-violet-500 bg-white text-violet-600 shadow-sm shadow-violet-200",
+      "border-violet-500 bg-gradient-to-br from-white via-violet-50 to-violet-100 text-violet-700 shadow-lg shadow-violet-300/50",
     markerReached: "border-violet-500 bg-violet-500 text-white",
     markerRecommended: "border-violet-300 bg-violet-50 text-violet-600",
     accent: "text-violet-600",
     halo: "ring-4 ring-violet-100",
+    currentHalo: "bg-violet-300/40",
     rail: "bg-violet-400",
     progressBar: "bg-violet-500",
     statusBadge: "border-violet-200 bg-violet-50 text-violet-700",
@@ -365,11 +370,12 @@ const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = 
   },
   responding: {
     markerCurrent:
-      "border-teal-500 bg-white text-teal-600 shadow-sm shadow-teal-200",
+      "border-teal-500 bg-gradient-to-br from-white via-teal-50 to-teal-100 text-teal-700 shadow-lg shadow-teal-300/50",
     markerReached: "border-teal-500 bg-teal-500 text-white",
     markerRecommended: "border-teal-300 bg-teal-50 text-teal-600",
     accent: "text-teal-600",
     halo: "ring-4 ring-teal-100",
+    currentHalo: "bg-teal-300/40",
     rail: "bg-teal-400",
     progressBar: "bg-teal-500",
     statusBadge: "border-teal-200 bg-teal-50 text-teal-700",
@@ -379,11 +385,12 @@ const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = 
   },
   contained: {
     markerCurrent:
-      "border-emerald-500 bg-white text-emerald-600 shadow-sm shadow-emerald-200",
+      "border-emerald-500 bg-gradient-to-br from-white via-emerald-50 to-emerald-100 text-emerald-700 shadow-lg shadow-emerald-300/50",
     markerReached: "border-emerald-500 bg-emerald-500 text-white",
     markerRecommended: "border-emerald-300 bg-emerald-50 text-emerald-600",
     accent: "text-emerald-600",
     halo: "ring-4 ring-emerald-100",
+    currentHalo: "bg-emerald-300/40",
     rail: "bg-emerald-400",
     progressBar: "bg-emerald-500",
     statusBadge: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -393,11 +400,12 @@ const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = 
   },
   remediated: {
     markerCurrent:
-      "border-green-500 bg-white text-green-600 shadow-sm shadow-green-200",
+      "border-green-500 bg-gradient-to-br from-white via-green-50 to-green-100 text-green-700 shadow-lg shadow-green-300/50",
     markerReached: "border-green-500 bg-green-500 text-white",
     markerRecommended: "border-green-300 bg-green-50 text-green-600",
     accent: "text-green-600",
     halo: "ring-4 ring-green-100",
+    currentHalo: "bg-green-300/40",
     rail: "bg-green-400",
     progressBar: "bg-green-500",
     statusBadge: "border-green-200 bg-green-50 text-green-700",
@@ -407,11 +415,12 @@ const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = 
   },
   closed: {
     markerCurrent:
-      "border-green-600 bg-white text-green-700 shadow-sm shadow-green-200",
+      "border-green-600 bg-gradient-to-br from-white via-green-50 to-green-100 text-green-800 shadow-lg shadow-green-300/50",
     markerReached: "border-green-600 bg-green-600 text-white",
     markerRecommended: "border-green-300 bg-green-50 text-green-700",
     accent: "text-green-700",
     halo: "ring-4 ring-green-100",
+    currentHalo: "bg-green-400/40",
     rail: "bg-green-500",
     progressBar: "bg-green-600",
     statusBadge: "border-green-200 bg-green-50 text-green-700",
@@ -642,6 +651,55 @@ function NodeBadges({
   return null
 }
 
+function WorkflowNodeMarker({
+  density,
+  node,
+  tone,
+}: {
+  density: DensityClasses
+  node: SpineNodeData
+  tone: NodeTone
+}) {
+  const statusTone = getWorkflowStatusTone(node.status)
+
+  return (
+    <span
+      className={cn(
+        "relative z-10 flex shrink-0 items-center justify-center overflow-visible rounded-full border-2 transition-[background-color,border-color,box-shadow,color,transform] duration-200 ease-out",
+        density.marker,
+        tone.marker,
+        tone.halo,
+        node.isCurrent &&
+          "z-20 -translate-y-1.5 scale-[1.16] shadow-xl [transform-style:preserve-3d] will-change-transform motion-reduce:transition-none",
+      )}
+    >
+      {node.isCurrent ? (
+        <>
+          <span
+            className={cn(
+              "pointer-events-none absolute -inset-2 z-0 rounded-full blur-md motion-safe:animate-[workflow-current-halo_2.2s_ease-in-out_infinite] motion-reduce:animate-none",
+              statusTone.currentHalo,
+            )}
+            aria-hidden
+          />
+          <span
+            className="pointer-events-none absolute left-1.5 top-1 z-0 h-2 w-3 rounded-full bg-white/75 blur-[1px]"
+            aria-hidden
+          />
+        </>
+      ) : null}
+      <FlowStatusIcon
+        status={node.status}
+        className={cn(
+          "relative z-10",
+          density.icon,
+          node.isCurrent && "drop-shadow-[0_2px_3px_rgba(15,23,42,0.22)]",
+        )}
+      />
+    </span>
+  )
+}
+
 /* ------------------------------- horizontal ------------------------------- */
 
 function HorizontalNode({
@@ -664,16 +722,7 @@ function HorizontalNode({
           )}
           aria-hidden
         />
-        <span
-          className={cn(
-            "relative z-10 flex shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-            density.marker,
-            tone.marker,
-            tone.halo,
-          )}
-        >
-          <FlowStatusIcon status={node.status} className={density.icon} />
-        </span>
+        <WorkflowNodeMarker density={density} node={node} tone={tone} />
         <span
           className={cn(
             "h-0.5 flex-1 rounded-full",
@@ -742,16 +791,7 @@ function VerticalNode({
           )}
           aria-hidden
         />
-        <span
-          className={cn(
-            "flex shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-            density.marker,
-            tone.marker,
-            tone.halo,
-          )}
-        >
-          <FlowStatusIcon status={node.status} className={density.icon} />
-        </span>
+        <WorkflowNodeMarker density={density} node={node} tone={tone} />
         <span
           className={cn(
             "w-0.5 flex-1 rounded-full",
