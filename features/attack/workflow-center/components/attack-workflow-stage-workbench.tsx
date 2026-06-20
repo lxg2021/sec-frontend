@@ -687,12 +687,6 @@ export function AttackWorkflowStageWorkbench({
                 </span>
               ) : null}
             </div>
-            <p className="mt-0.5 text-sm font-medium text-slate-700">
-              {config.title}
-            </p>
-            <p className="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-500">
-              {config.purpose}
-            </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <Badge
                 variant="outline"
