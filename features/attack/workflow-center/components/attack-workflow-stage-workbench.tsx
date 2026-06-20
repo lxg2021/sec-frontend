@@ -9,10 +9,12 @@ import {
   ClipboardCheck,
   ExternalLink,
   FileSearch,
+  Gauge,
   Lock,
   ScrollText,
   Shield,
   Target,
+  Timer,
   Wrench,
 } from "lucide-react"
 
@@ -500,18 +502,23 @@ function stageCompletionLabel({
 }
 
 function HeaderStat({
+  icon: Icon,
+  iconClassName = "text-slate-400",
   label,
   mono = false,
   value,
 }: {
+  icon: ComponentType<{ className?: string }>
+  iconClassName?: string
   label: string
   mono?: boolean
   value: string
 }) {
   return (
     <div className="flex min-w-0 items-baseline gap-1.5">
-      <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-        {label}
+      <span className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+        <Icon className={cn("size-3.5", iconClassName)} aria-hidden="true" />
+        <span>{label}</span>
       </span>
       <span
         className={cn(
@@ -770,11 +777,20 @@ export function AttackWorkflowStageWorkbench({
         </div>
 
         <div className="flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 2xl:w-auto 2xl:max-w-xl">
-          <HeaderStat label="Result" value={completionLabel} />
+          <HeaderStat
+            icon={Gauge}
+            iconClassName={selectedStyle.iconText}
+            label="Result"
+            value={completionLabel}
+          />
           <span className="hidden h-4 w-px shrink-0 bg-slate-200 sm:block" />
-          <HeaderStat label="Time" value={stageTime} mono />
+          <HeaderStat icon={Timer} label="Time" value={stageTime} mono />
           <span className="hidden h-4 w-px shrink-0 bg-slate-200 sm:block" />
-          <HeaderStat label="Actions" value={String(actions.length)} />
+          <HeaderStat
+            icon={Activity}
+            label="Actions"
+            value={String(actions.length)}
+          />
         </div>
       </header>
 
