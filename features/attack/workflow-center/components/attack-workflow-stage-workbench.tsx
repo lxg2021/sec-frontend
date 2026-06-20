@@ -515,7 +515,7 @@ function HeaderStat({
   value: string
 }) {
   return (
-    <div className="flex min-w-0 items-baseline gap-1.5">
+    <div className="flex min-w-0 items-center gap-1.5">
       <span className="inline-flex shrink-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
         <Icon className={cn("size-3.5", iconClassName)} aria-hidden="true" />
         <span>{label}</span>
@@ -784,10 +784,17 @@ export function AttackWorkflowStageWorkbench({
             value={completionLabel}
           />
           <span className="hidden h-4 w-px shrink-0 bg-slate-200 sm:block" />
-          <HeaderStat icon={Timer} label="Time" value={stageTime} mono />
+          <HeaderStat
+            icon={Timer}
+            iconClassName="text-cyan-500"
+            label="Time"
+            value={stageTime}
+            mono
+          />
           <span className="hidden h-4 w-px shrink-0 bg-slate-200 sm:block" />
           <HeaderStat
             icon={Activity}
+            iconClassName="text-violet-500"
             label="Actions"
             value={String(actions.length)}
           />
