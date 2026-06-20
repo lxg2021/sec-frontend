@@ -11,9 +11,11 @@ import {
   CircleDot,
   Clock3,
   Inbox,
+  ListFilter,
   Loader2,
   RefreshCw,
   Search,
+  ShieldAlert,
   X,
 } from "lucide-react"
 
@@ -446,16 +448,20 @@ export function AttackWorkflowQueue({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div>
+          <div className="relative">
             <label htmlFor={statusId} className="sr-only">
               {t("queue.filterByStatus")}
             </label>
+            <ListFilter
+              className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-blue-500"
+              aria-hidden="true"
+            />
             <select
               id={statusId}
               value={selectedStatus}
               onChange={(event) => handleStatus(event.target.value)}
               className={cn(
-                "h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700",
+                "h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-700",
                 "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
               )}
             >
@@ -467,16 +473,20 @@ export function AttackWorkflowQueue({
               ))}
             </select>
           </div>
-          <div>
+          <div className="relative">
             <label htmlFor={severityId} className="sr-only">
               {t("queue.filterBySeverity")}
             </label>
+            <ShieldAlert
+              className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-amber-500"
+              aria-hidden="true"
+            />
             <select
               id={severityId}
               value={selectedSeverity}
               onChange={(event) => handleSeverity(event.target.value)}
               className={cn(
-                "h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm text-slate-700",
+                "h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-700",
                 "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
               )}
             >
