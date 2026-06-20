@@ -2,11 +2,8 @@
 
 import { Waypoints } from "lucide-react"
 
-import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
 import { AttackWorkflowSpine } from "./attack-workflow-spine"
 import type {
-  AttackWorkflowActionItem,
-  AttackWorkflowEventItem,
   AttackWorkflowItem,
   AttackWorkflowStatus,
 } from "@/features/attack/workflow/types"
@@ -15,10 +12,10 @@ import { cn } from "@/shared/lib/utils"
 import { Card } from "@/shared/ui/card"
 
 interface AttackWorkflowProcessCardProps {
-  actions: AttackWorkflowActionItem[]
-  events: AttackWorkflowEventItem[]
   loading?: boolean
+  onStatusSelect?: (status: AttackWorkflowStatus) => void
   recommendedStatus: AttackWorkflowStatus | null
+  selectedStatus?: AttackWorkflowStatus | null
   workflow: AttackWorkflowItem | null
 }
 
@@ -135,10 +132,10 @@ function WorkflowHeader({
 }
 
 export function AttackWorkflowProcessCard({
-  actions,
-  events,
   loading = false,
+  onStatusSelect,
   recommendedStatus,
+  selectedStatus = null,
   workflow,
 }: AttackWorkflowProcessCardProps) {
   const notice = processNotice(workflow)
@@ -152,9 +149,11 @@ export function AttackWorkflowProcessCard({
           workflow={workflow}
           loading={loading}
           recommendedStatus={recommendedStatus}
+          selectedStatus={selectedStatus}
           density="dense"
           layout="auto"
           variant="embedded"
+          onStatusSelect={onStatusSelect}
           showFootnotes={false}
         />
       </div>
@@ -171,16 +170,6 @@ export function AttackWorkflowProcessCard({
           </div>
         </div>
       ) : null}
-
-      <div className="border-t border-slate-100">
-        <AttackWorkflowActivityPanel
-          actions={actions}
-          events={events}
-          loading={loading}
-          variant="embedded"
-          workflow={workflow}
-        />
-      </div>
     </Card>
   )
 }

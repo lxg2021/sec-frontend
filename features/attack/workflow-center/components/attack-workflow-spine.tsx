@@ -59,7 +59,9 @@ export interface AttackWorkflowSpineProps {
   variant?: "card" | "embedded"
   interactive?: boolean
   showFootnotes?: boolean
+  selectedStatus?: AttackWorkflowStatus | null
   className?: string
+  onStatusSelect?: (status: AttackWorkflowStatus) => void
   onStatusClick?: (status: AttackWorkflowStatus) => void
 }
 
@@ -461,6 +463,7 @@ interface SpineNodeData {
   connectorIn: string
   isFirst: boolean
   isLast: boolean
+  isSelected: boolean
 }
 
 function NodeBadges({
@@ -637,6 +640,8 @@ export function AttackWorkflowSpine({
   interactive = false,
   showFootnotes = true,
   className,
+  selectedStatus = null,
+  onStatusSelect,
   onStatusClick,
 }: AttackWorkflowSpineProps) {
   if (!workflow) {
@@ -686,6 +691,7 @@ export function AttackWorkflowSpine({
         connectorIn: getConnectorTone(index, currentIndex, isKnownStatus),
         isFirst: index === 0,
         isLast: index === totalSteps - 1,
+        isSelected: selectedStatus === status,
       }
     },
   )
@@ -705,15 +711,24 @@ export function AttackWorkflowSpine({
       ? "min-w-0"
       : "min-w-0 flex-1 basis-0"
 
-    if (interactive) {
+    const isInteractive = interactive || Boolean(onStatusClick || onStatusSelect)
+
+    if (isInteractive) {
       return (
         <li key={node.status} className={itemClassName}>
           <button
             type="button"
             aria-current={node.isCurrent ? "step" : undefined}
             aria-label={ariaLabel}
-            onClick={() => onStatusClick?.(node.status)}
-            className="block w-full min-w-0 cursor-pointer rounded-xl text-left transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
+            aria-pressed={node.isSelected}
+            onClick={() => {
+              onStatusSelect?.(node.status)
+              onStatusClick?.(node.status)
+            }}
+            className={cn(
+              "block w-full min-w-0 cursor-pointer rounded-xl text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2",
+              node.isSelected && "bg-blue-50/70",
+            )}
           >
             {inner}
           </button>

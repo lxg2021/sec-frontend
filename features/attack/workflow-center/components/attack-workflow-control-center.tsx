@@ -4,20 +4,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
   Activity,
-  ArrowRight,
   Bot,
   ExternalLink,
   FileSearch,
-  GitBranch,
   Loader2,
   Route,
-  ShieldAlert,
   ShieldCheck,
   ShieldQuestion,
 } from "lucide-react"
 
+import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
 import { AttackWorkflowPageHeader } from "./attack-workflow-page-header"
 import { AttackWorkflowProcessCard } from "./attack-workflow-process-card"
+import { AttackWorkflowStageWorkbench } from "./attack-workflow-stage-workbench"
 import {
   getAttackWorkflow,
   getAttackWorkflowByCaseId,
@@ -39,7 +38,6 @@ import {
   getAllowedWorkflowTransitions,
   getRecommendedNextWorkflowStatus,
   normalizeWorkflowStatus,
-  workflowEventComment,
 } from "@/features/attack/workflow/utils"
 import {
   buildAIAnalysisHref,
@@ -48,7 +46,6 @@ import {
 } from "@/features/attack/detail/utils/attack-case-format"
 import { cn } from "@/shared/lib/utils"
 import { useToast } from "@/shared/hooks/use-toast"
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import {
   Card,
@@ -115,32 +112,9 @@ const CLOSE_REASON_LABELS: Record<AttackWorkflowCloseReason, string> = {
   other: "Other",
 }
 
-const STATUS_OBJECTIVE: Partial<Record<AttackWorkflowStatus, string>> = {
-  detected:
-    "Create the investigation context, confirm the case scope, and decide whether to start AI analysis or trace review.",
-  investigating:
-    "Review AI conclusions and attack evidence. Open the detailed pages when deep reading is required, then return here for stage acceptance.",
-  confirmed:
-    "The attack has been confirmed. Prepare forensic collection or response preview before moving into execution-oriented stages.",
-  forensics:
-    "Collect host evidence and wait for control-side execution references to be written back into the workflow.",
-  responding:
-    "Generate and review response preview, then confirm execution when the operator accepts the impact.",
-  contained:
-    "Validate that containment actions are effective before starting remediation.",
-  remediated:
-    "Verify cleanup and remediation evidence, then close the case with a clear reason.",
-  closed:
-    "The workflow is closed. Use the timeline for audit and review.",
-}
-
 function statusLabel(status: string) {
   const normalized = normalizeWorkflowStatus(status)
   return normalized ? STATUS_LABELS[normalized] : status || "Unknown"
-}
-
-function displayValue(value?: string) {
-  return value?.trim() || "-"
 }
 
 function summaryTone(status: PhaseSummary["status"]) {
@@ -250,6 +224,8 @@ export function AttackWorkflowControlCenter({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [selectedStatus, setSelectedStatus] = useState<AttackWorkflowStatus | "">("")
+  const [selectedWorkbenchStatus, setSelectedWorkbenchStatus] =
+    useState<AttackWorkflowStatus>("detected")
   const [comment, setComment] = useState("")
   const [closeReason, setCloseReason] = useState<AttackWorkflowCloseReason>("resolved")
   const [updating, setUpdating] = useState(false)
@@ -312,9 +288,6 @@ export function AttackWorkflowControlCenter({
   const normalizedStatus = normalizeWorkflowStatus(currentStatus)
   const recommendedStatus = getRecommendedNextWorkflowStatus(currentStatus)
   const allowedStatuses = getAllowedWorkflowTransitions(currentStatus)
-  const statusObjective =
-    (normalizedStatus && STATUS_OBJECTIVE[normalizedStatus]) ||
-    "Load an AttackWorkflow to see stage objectives and available transitions."
   const canOpenDetails = Boolean(activeCaseId)
   const detailOptions = {
     workflowId: activeWorkflowId,
@@ -332,6 +305,10 @@ export function AttackWorkflowControlCenter({
     traceHref,
     aiHref,
   }
+
+  useEffect(() => {
+    setSelectedWorkbenchStatus(normalizedStatus || "detected")
+  }, [workflow?.workflow_id, normalizedStatus])
 
   const summaries = useMemo(() => {
     const ai = summarizeActions(
@@ -439,8 +416,9 @@ export function AttackWorkflowControlCenter({
           hrefs={navigationHrefs}
           loading={loading}
           onOpenStatusDialog={openStatusDialog}
+          onWorkbenchStatusSelect={setSelectedWorkbenchStatus}
           recommendedStatus={recommendedStatus}
-          statusObjective={statusObjective}
+          selectedWorkbenchStatus={selectedWorkbenchStatus}
           updating={updating}
           workflow={workflow}
         />
@@ -462,14 +440,6 @@ export function AttackWorkflowControlCenter({
       />
     </main>
   )
-}
-
-function latestEventComment(events: AttackWorkflowEventItem[]) {
-  for (const event of [...events].reverse()) {
-    const comment = workflowEventComment(event)
-    if (comment) return comment
-  }
-  return ""
 }
 
 function WorkflowEmptyState() {
@@ -560,8 +530,9 @@ function WorkflowMainGrid({
   hrefs,
   loading,
   onOpenStatusDialog,
+  onWorkbenchStatusSelect,
   recommendedStatus,
-  statusObjective,
+  selectedWorkbenchStatus,
   updating,
   workflow,
 }: {
@@ -573,151 +544,45 @@ function WorkflowMainGrid({
   hrefs: WorkflowNavigationHrefs
   loading: boolean
   onOpenStatusDialog: OpenStatusDialog
+  onWorkbenchStatusSelect: (status: AttackWorkflowStatus) => void
   recommendedStatus: AttackWorkflowStatus | null
-  statusObjective: string
+  selectedWorkbenchStatus: AttackWorkflowStatus
   updating: boolean
   workflow: AttackWorkflowItem | null
 }) {
   return (
     <section className="flex min-h-0 w-full flex-1 flex-col gap-4">
       <AttackWorkflowProcessCard
-        actions={actions}
-        events={events}
         loading={loading}
+        onStatusSelect={onWorkbenchStatusSelect}
         recommendedStatus={recommendedStatus}
+        selectedStatus={selectedWorkbenchStatus}
         workflow={workflow}
       />
 
-      <div className="grid min-h-0 w-full grid-cols-1 items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(24rem,30rem)]">
-        <WorkflowCurrentStageSection
-          allowedStatuses={allowedStatuses}
-          canOpenDetails={canOpenDetails}
-          currentStatus={currentStatus}
-          hrefs={hrefs}
-          onOpenStatusDialog={onOpenStatusDialog}
-          recommendedStatus={recommendedStatus}
-          statusObjective={statusObjective}
-          updating={updating}
-        />
+      <AttackWorkflowStageWorkbench
+        actions={actions}
+        allowedStatuses={allowedStatuses}
+        canOpenDetails={canOpenDetails}
+        currentStatus={currentStatus}
+        events={events}
+        hrefs={hrefs}
+        loading={loading}
+        onOpenStatusDialog={onOpenStatusDialog}
+        recommendedStatus={recommendedStatus}
+        selectedStatus={selectedWorkbenchStatus}
+        updating={updating}
+        workflow={workflow}
+      />
 
-        <WorkflowContextPanel events={events} />
-      </div>
+      <AttackWorkflowActivityPanel
+        actions={actions}
+        events={events}
+        loading={loading}
+        variant="card"
+        workflow={workflow}
+      />
     </section>
-  )
-}
-
-function WorkflowCurrentStageSection({
-  allowedStatuses,
-  canOpenDetails,
-  currentStatus,
-  hrefs,
-  onOpenStatusDialog,
-  recommendedStatus,
-  statusObjective,
-  updating,
-}: {
-  allowedStatuses: AttackWorkflowStatus[]
-  canOpenDetails: boolean
-  currentStatus: string
-  hrefs: WorkflowNavigationHrefs
-  onOpenStatusDialog: OpenStatusDialog
-  recommendedStatus: AttackWorkflowStatus | null
-  statusObjective: string
-  updating: boolean
-}) {
-  return (
-    <Card className="w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-100 px-5 py-4">
-        <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
-            <CardTitle className="text-base">
-              Current stage: {statusLabel(currentStatus)}
-            </CardTitle>
-            <CardDescription className="mt-1 max-w-[90rem] leading-5">
-              {statusObjective}
-            </CardDescription>
-          </div>
-          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:w-auto lg:min-w-[18rem] xl:flex xl:flex-wrap xl:justify-end">
-            {recommendedStatus ? (
-              <Button
-                type="button"
-                onClick={() => onOpenStatusDialog(recommendedStatus)}
-                disabled={updating}
-                className="justify-center whitespace-nowrap"
-              >
-                <ArrowRight className="size-4" />
-                Accept to {statusLabel(recommendedStatus)}
-              </Button>
-            ) : null}
-            {allowedStatuses
-              .filter((status) => status !== recommendedStatus)
-              .map((status) => (
-                <Button
-                  key={status}
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenStatusDialog(status)}
-                  disabled={updating}
-                  className="justify-center whitespace-nowrap"
-                >
-                  {status === "closed" ? <ShieldCheck className="size-4" /> : <GitBranch className="size-4" />}
-                  {statusLabel(status)}
-                </Button>
-              ))}
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] gap-3 px-5 py-4">
-        <StageActionCard
-          title="Open Threat Analysis"
-          description="Read the full AI report, evidence references, hypotheses, and recommended response actions."
-          icon={Bot}
-          href={hrefs.aiHref}
-          disabled={!canOpenDetails}
-        />
-        <StageActionCard
-          title="Open Trace Details"
-          description="Review the attack story, trace graph, source fields, and node drilldown without compressing the detail page."
-          icon={Route}
-          href={hrefs.traceHref}
-          disabled={!canOpenDetails}
-        />
-        <StageActionCard
-          title="Prepare Response"
-          description="After confirmation, use workflow actions and response pages for forensic collection, preview, execution, and writeback."
-          icon={ShieldAlert}
-          href="/frame/response/dac"
-        />
-      </CardContent>
-    </Card>
-  )
-}
-
-function WorkflowContextPanel({
-  events,
-}: {
-  events: AttackWorkflowEventItem[]
-}) {
-  return (
-    <aside className="grid min-w-0 gap-4">
-      <WorkflowOperatorNoteCard events={events} />
-    </aside>
-  )
-}
-
-function WorkflowOperatorNoteCard({ events }: { events: AttackWorkflowEventItem[] }) {
-  return (
-    <Card className="w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-100 px-5 py-4">
-        <CardTitle className="text-base">Operator note</CardTitle>
-        <CardDescription>Latest status comment from workflow events.</CardDescription>
-      </CardHeader>
-      <CardContent className="px-5 py-4">
-        <div className="min-h-[5rem] break-words rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm leading-6 text-slate-600">
-          {latestEventComment(events) || "No operator note has been recorded yet."}
-        </div>
-      </CardContent>
-    </Card>
   )
 }
 
@@ -763,46 +628,6 @@ function SummaryCard({
         )}
       </CardContent>
     </Card>
-  )
-}
-
-function StageActionCard({
-  description,
-  disabled,
-  href,
-  icon: Icon,
-  title,
-}: {
-  description: string
-  disabled?: boolean
-  href: string
-  icon: typeof Bot
-  title: string
-}) {
-  return (
-    <div className="flex min-h-[clamp(10rem,22dvh,12rem)] flex-col justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-4">
-      <div>
-        <div className="flex items-center gap-2">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 ring-1 ring-blue-100">
-            <Icon className="size-4" />
-          </span>
-          <div className="min-w-0 text-sm font-semibold leading-5 text-slate-950">{title}</div>
-        </div>
-        <p className="mt-3 text-sm leading-6 text-slate-500">{description}</p>
-      </div>
-      {disabled ? (
-        <Button variant="outline" size="sm" className="mt-3 w-fit" disabled>
-          Open
-        </Button>
-      ) : (
-        <Button asChild variant="outline" size="sm" className="mt-3 w-fit">
-          <Link href={href}>
-            Open
-            <ExternalLink className="size-3.5" />
-          </Link>
-        </Button>
-      )}
-    </div>
   )
 }
 

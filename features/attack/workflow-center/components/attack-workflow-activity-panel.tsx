@@ -32,16 +32,9 @@ export function AttackWorkflowActivityPanel({
   className,
 }: AttackWorkflowActivityPanelProps) {
   const content = (
-    <Tabs defaultValue="impact" className="min-w-0">
+    <Tabs defaultValue="events" className="min-w-0">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-lg bg-slate-100 p-1 sm:grid-cols-3 lg:inline-flex lg:w-auto">
-          <TabsTrigger
-            value="impact"
-            className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
-          >
-            <Network className="size-4" />
-            Impact Surface
-          </TabsTrigger>
           <TabsTrigger
             value="events"
             className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
@@ -55,6 +48,14 @@ export function AttackWorkflowActivityPanel({
           >
             <FileText className="size-4" />
             Actions ({actions.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="impact"
+            disabled
+            className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
+          >
+            <Network className="size-4" />
+            Impact Surface
           </TabsTrigger>
         </TabsList>
       </div>
