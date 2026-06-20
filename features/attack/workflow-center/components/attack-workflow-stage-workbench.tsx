@@ -751,7 +751,7 @@ export function AttackWorkflowStageWorkbench({
                   <HeaderMetaField
                     label="Selected"
                     value={statusLabel(selectedStatus)}
-                    valueClassName={selectedStyle.badge}
+                    valueClassName={selectedStyle.currentBadge}
                   />
                   {normalizedCurrentStatus ? (
                     <HeaderMetaField
