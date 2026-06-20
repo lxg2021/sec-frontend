@@ -776,7 +776,7 @@ export function AttackWorkflowStageWorkbench({
           </div>
         </div>
 
-        <div className="flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 2xl:w-auto 2xl:max-w-xl">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 2xl:w-auto 2xl:max-w-xl">
           <HeaderStat
             icon={Gauge}
             iconClassName={selectedStyle.iconText}
