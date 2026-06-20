@@ -61,10 +61,17 @@ function EventTransition({ event }: { event: AttackWorkflowEventItem }) {
   const newStatus = event.new_status ? statusLabel(event.new_status) : "-"
 
   return (
-    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-      <span className="truncate text-slate-500">{oldStatus}</span>
-      <span className="shrink-0 text-slate-300">-&gt;</span>
-      <span className="truncate font-semibold text-slate-950">{newStatus}</span>
+    <div className="grid w-full min-w-0 grid-cols-[7.25rem_1.5rem_minmax(0,1fr)] items-center text-sm leading-5">
+      <span className="min-w-0 truncate whitespace-nowrap text-slate-500" title={oldStatus}>
+        {oldStatus}
+      </span>
+      <span className="shrink-0 text-center text-slate-300">-&gt;</span>
+      <span
+        className="min-w-0 truncate whitespace-nowrap font-semibold text-slate-950"
+        title={newStatus}
+      >
+        {newStatus}
+      </span>
     </div>
   )
 }
