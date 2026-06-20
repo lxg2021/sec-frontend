@@ -1,6 +1,6 @@
 "use client"
 
-import { useId, useMemo, type ReactNode } from "react"
+import { Fragment, useId, useMemo, type ReactNode } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   AlertCircle,
@@ -685,6 +685,11 @@ function QueueItemCard({
   const displayNextAction = closed
     ? nextAction
     : t("queue.nextPrefix", { action: nextAction })
+  const openActionSummary =
+    typeof item.open_action_count === "number" && item.open_action_count > 0
+      ? t("queue.openActionCount", { count: item.open_action_count })
+      : null
+  const metaItems = [hosts, rules, openActionSummary].filter(Boolean) as string[]
 
   return (
     <button
@@ -761,29 +766,26 @@ function QueueItemCard({
         {displayTitle}
       </h3>
 
-      <div className="mt-1.5 flex min-w-0 items-center gap-2 overflow-hidden text-[11px] text-slate-500">
-        <span className="flex min-w-0 shrink-0 items-center gap-2 overflow-hidden">
-          <span
-            className={cn(
-              "inline-flex h-5 shrink-0 items-center rounded px-1.5 font-medium ring-1 ring-inset",
-              SEVERITY_BADGE[severity] ?? SEVERITY_BADGE.unknown,
-            )}
-          >
-            {severityLabel(t, severity)}
-          </span>
-          {hosts ? <MetaChip>{hosts}</MetaChip> : null}
-          {rules ? <MetaChip>{rules}</MetaChip> : null}
-          {typeof item.open_action_count === "number" &&
-          item.open_action_count > 0 ? (
-            <MetaChip>
-              {t("queue.openActionCount", { count: item.open_action_count })}
-            </MetaChip>
-          ) : null}
+      <div className="mt-1.5 flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap text-[11px] text-slate-500">
+        <span
+          className={cn(
+            "inline-flex h-5 shrink-0 items-center rounded px-1.5 font-medium ring-1 ring-inset",
+            SEVERITY_BADGE[severity] ?? SEVERITY_BADGE.unknown,
+          )}
+        >
+          {severityLabel(t, severity)}
         </span>
-        <span className="flex min-w-0 flex-1 justify-center overflow-hidden">
+        {metaItems.map((metaItem, index) => (
+          <Fragment key={`${index}-${metaItem}`}>
+            <MetaDivider />
+            <MetaChip>{metaItem}</MetaChip>
+          </Fragment>
+        ))}
+        <MetaDivider />
+        <span className="inline-flex min-w-0 shrink-0 justify-center overflow-hidden">
           <span
             className={cn(
-              "inline-flex h-5 max-w-full items-center gap-1 overflow-hidden rounded-md px-1.5 font-medium",
+              "inline-flex h-5 max-w-[10rem] items-center gap-1 overflow-hidden rounded-md px-1.5 font-medium",
               closed
                 ? "text-slate-500"
                 : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100",
@@ -802,6 +804,7 @@ function QueueItemCard({
             <span className="min-w-0 truncate">{displayNextAction}</span>
           </span>
         </span>
+        <MetaDivider />
         <span className="inline-flex shrink-0 items-center gap-1 text-slate-400">
           <Clock3 className="size-3" aria-hidden="true" />
           <span className="tabular-nums">{time}</span>
@@ -813,8 +816,16 @@ function QueueItemCard({
 
 function MetaChip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex min-w-0 shrink items-center truncate text-slate-500">
+    <span className="inline-flex shrink-0 items-center whitespace-nowrap text-slate-500">
       {children}
+    </span>
+  )
+}
+
+function MetaDivider() {
+  return (
+    <span className="shrink-0 text-slate-300" aria-hidden="true">
+      |
     </span>
   )
 }

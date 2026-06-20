@@ -91,7 +91,7 @@ const DEFAULT_QUEUE_FILTERS: AttackWorkflowQueueFilters = {
   statuses: [],
   severities: [],
 }
-const QUEUE_PAGE_SIZE = 6
+const QUEUE_PAGE_SIZE = 10
 const WORKFLOW_RANGE_TIMEZONE = "Asia/Shanghai"
 
 const EMPTY_ATTACK_OVERVIEW: AttackOverview = {
@@ -671,7 +671,7 @@ export function AttackWorkflowControlCenter({
           onSnapshotChange={selectAttackOverviewSnapshot}
         />
 
-        <section className="grid min-h-0 w-full flex-1 items-stretch gap-4 xl:grid-cols-[clamp(340px,24vw,430px)_minmax(0,1fr)]">
+        <section className="grid min-h-0 w-full flex-1 items-stretch gap-4 xl:grid-cols-[clamp(440px,31vw,480px)_minmax(0,1fr)]">
           <AttackWorkflowQueue
             className="xl:h-full"
             caseIdQuery={queueCaseIdQuery}
