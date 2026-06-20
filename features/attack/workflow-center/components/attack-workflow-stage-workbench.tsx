@@ -204,6 +204,20 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   wrench: Wrench,
 }
 
+const TOOL_ICON_STYLES: Record<string, string> = {
+  activity: "bg-orange-50 text-orange-600",
+  bot: "bg-violet-50 text-violet-600",
+  clipboard: "bg-amber-50 text-amber-600",
+  file: "bg-blue-50 text-blue-600",
+  lock: "bg-emerald-50 text-emerald-600",
+  route: "bg-cyan-50 text-cyan-600",
+  scroll: "bg-indigo-50 text-indigo-600",
+  search: "bg-sky-50 text-sky-600",
+  shield: "bg-teal-50 text-teal-600",
+  target: "bg-rose-50 text-rose-600",
+  wrench: "bg-slate-100 text-slate-600",
+}
+
 function getStatusStyle(status: AttackWorkflowStatus): StatusStyle {
   return STATUS_STYLES[status]
 }
@@ -267,6 +281,12 @@ function getStageConfig(
 function getToolIcon(iconName?: string): ComponentType<{ className?: string }> {
   if (iconName && TOOL_ICONS[iconName]) return TOOL_ICONS[iconName]
   return Wrench
+}
+
+function getToolIconStyle(iconName?: string) {
+  return iconName && TOOL_ICON_STYLES[iconName]
+    ? TOOL_ICON_STYLES[iconName]
+    : TOOL_ICON_STYLES.wrench
 }
 
 function stageTools({
@@ -638,17 +658,16 @@ function HeaderMetaField({
 function ToolRow({
   canOpenDetails,
   isChinese,
-  primary,
   t,
   tool,
 }: {
   canOpenDetails: boolean
   isChinese: boolean
-  primary: boolean
   t: WorkflowCenterT
   tool: StageTool
 }) {
   const Icon = getToolIcon(tool.iconName)
+  const iconStyle = getToolIconStyle(tool.iconName)
   const disabled = Boolean(tool.disabled) || !canOpenDetails
 
   return (
@@ -663,9 +682,7 @@ function ToolRow({
       <span
         className={cn(
           "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
-          disabled
-            ? "bg-slate-100 text-slate-400"
-            : "bg-slate-100 text-slate-600",
+          disabled ? "bg-slate-100 text-slate-400" : iconStyle,
         )}
       >
         <Icon className="h-4 w-4" aria-hidden="true" />
@@ -711,7 +728,7 @@ function ToolRow({
           className={cn(
             buttonVariants({
               size: "sm",
-              variant: primary ? "default" : "outline",
+              variant: "default",
             }),
             "shrink-0",
             isChinese && "h-8 text-xs",
@@ -1087,7 +1104,6 @@ export function AttackWorkflowStageWorkbench({
                   key={`${tool.title}-${index}`}
                   canOpenDetails={canOpenDetails}
                   isChinese={isChinese}
-                  primary={index === 0}
                   t={t}
                   tool={tool}
                 />
