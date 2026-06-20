@@ -352,7 +352,7 @@ export function AttackWorkflowQueue({
           <h2
             className={cn(
               "text-sm font-semibold leading-5 text-slate-900",
-              isChinese && "font-normal",
+              isChinese && "font-semibold",
             )}
           >
             {t("queue.title")}

@@ -124,7 +124,7 @@ function WorkflowHeader({
         <h2
           className={cn(
             "line-clamp-2 break-words text-lg font-semibold leading-6 text-slate-950",
-            isChinese && "font-normal",
+            isChinese && "font-semibold",
             loading && !workflow && "text-slate-400",
           )}
           title={title}

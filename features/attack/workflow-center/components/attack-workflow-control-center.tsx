@@ -666,7 +666,7 @@ export function AttackWorkflowControlCenter({
           overview={attackOverview ?? EMPTY_ATTACK_OVERVIEW}
           checking={attackOverviewLoading}
           title={t("title")}
-          titleClassName={isChineseLocale ? "font-normal" : undefined}
+          titleClassName={isChineseLocale ? "font-semibold" : undefined}
           onRefresh={() => void refreshAttackOverviewHeader()}
           onSnapshotChange={selectAttackOverviewSnapshot}
         />

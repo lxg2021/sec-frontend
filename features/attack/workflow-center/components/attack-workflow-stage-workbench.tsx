@@ -783,7 +783,7 @@ export function AttackWorkflowStageWorkbench({
               <h2
                 className={cn(
                   "whitespace-nowrap text-lg font-semibold leading-6 text-slate-900",
-                  isChinese && "text-base font-medium leading-5",
+                  isChinese && "text-base font-semibold leading-5",
                 )}
               >
                 {t("workbench.title")}
