@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Bot,
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   ExternalLink,
   FileSearch,
@@ -882,52 +883,7 @@ export function AttackWorkflowStageWorkbench({
       </header>
 
       <div className="grid grid-cols-1 gap-4 p-4 sm:p-5 2xl:grid-cols-12 2xl:gap-5">
-        <section className="flex flex-col gap-3 2xl:col-span-5">
-          <SectionTitle icon={ScrollText}>Stage Guide</SectionTitle>
-          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
-            <GuideTextBlock label="Purpose" value={config.purpose} />
-            <Separator className="bg-slate-200" />
-            <GuideBulletList
-              label="What to verify"
-              items={config.whatToVerify}
-            />
-            <Separator className="bg-slate-200" />
-            <GuideBulletList
-              label="Completion criteria"
-              items={config.completionCriteria}
-            />
-            <div className="rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-amber-700">
-                Risk note
-              </span>
-              <p className="mt-0.5 text-xs leading-relaxed text-amber-800">
-                {config.riskNote}
-              </p>
-            </div>
-          </div>
-        </section>
-
         <section className="flex flex-col gap-3 2xl:col-span-4">
-          <SectionTitle icon={Wrench}>Tools &amp; Evidence</SectionTitle>
-          <div className="flex flex-col gap-2">
-            {tools.length > 0 ? (
-              tools.map((tool, index) => (
-                <ToolRow
-                  key={`${tool.title}-${index}`}
-                  canOpenDetails={canOpenDetails}
-                  primary={index === 0}
-                  tool={tool}
-                />
-              ))
-            ) : (
-              <p className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-4 text-xs text-slate-400">
-                No tools are available for this stage.
-              </p>
-            )}
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-3 2xl:col-span-3">
           <SectionTitle icon={Activity}>Stage Control</SectionTitle>
 
           {isReadOnly ? (
@@ -1037,6 +993,61 @@ export function AttackWorkflowStageWorkbench({
               ) : null}
             </div>
           )}
+        </section>
+
+        <section className="flex flex-col gap-3 2xl:col-span-3">
+          <SectionTitle icon={Wrench}>Tools &amp; Evidence</SectionTitle>
+          <div className="flex flex-col gap-2">
+            {tools.length > 0 ? (
+              tools.map((tool, index) => (
+                <ToolRow
+                  key={`${tool.title}-${index}`}
+                  canOpenDetails={canOpenDetails}
+                  primary={index === 0}
+                  tool={tool}
+                />
+              ))
+            ) : (
+              <p className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-4 text-xs text-slate-400">
+                No tools are available for this stage.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-3 2xl:col-span-5">
+          <SectionTitle icon={ScrollText}>Stage Guide</SectionTitle>
+          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
+            <GuideTextBlock label="Purpose" value={config.purpose} />
+            <div className="rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-2">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-amber-700">
+                Risk note
+              </span>
+              <p className="mt-0.5 text-xs leading-relaxed text-amber-800">
+                {config.riskNote}
+              </p>
+            </div>
+            <details className="group rounded-lg border border-slate-200 bg-white">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium text-slate-800 transition-colors hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
+                <span>Detailed checklist</span>
+                <ChevronDown
+                  className="size-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                />
+              </summary>
+              <div className="flex flex-col gap-3 border-t border-slate-200 p-3">
+                <GuideBulletList
+                  label="What to verify"
+                  items={config.whatToVerify}
+                />
+                <Separator className="bg-slate-200" />
+                <GuideBulletList
+                  label="Completion criteria"
+                  items={config.completionCriteria}
+                />
+              </div>
+            </details>
+          </div>
         </section>
       </div>
     </Card>
