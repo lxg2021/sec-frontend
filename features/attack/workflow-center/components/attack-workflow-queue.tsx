@@ -24,6 +24,12 @@ import type {
   AttackWorkflowStatusScope,
 } from "@/features/attack/workflow/types"
 import { cn } from "@/shared/lib/utils"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/shared/ui/select"
 
 export type AttackWorkflowQueueStatusScope = AttackWorkflowStatusScope
 
@@ -130,6 +136,14 @@ const STATUS_DOT: Record<string, string> = {
   closed: "bg-green-600",
 }
 
+const SEVERITY_DOT: Record<string, string> = {
+  critical: "bg-rose-500",
+  high: "bg-red-500",
+  medium: "bg-amber-500",
+  low: "bg-blue-500",
+  info: "bg-slate-400",
+}
+
 const SEVERITY_BADGE: Record<string, string> = {
   critical: "bg-rose-50 text-rose-700 ring-rose-200",
   high: "bg-red-50 text-red-700 ring-red-200",
@@ -149,6 +163,16 @@ const NEXT_ACTION_FALLBACK: Record<string, string> = {
   remediated: "queue.nextAction.remediated",
   closed: "queue.nextAction.closed",
 }
+
+const ALL_STATUS_FILTER_VALUE = "__all_statuses"
+const ALL_SEVERITY_FILTER_VALUE = "__all_severities"
+const FILTER_SELECT_ITEM_CLASS = cn(
+  "h-8 cursor-pointer rounded-md py-1 pl-2.5 pr-2 text-xs text-slate-700 transition-colors",
+  "focus:bg-slate-50 focus:text-slate-900",
+  "data-[state=checked]:bg-white data-[state=checked]:text-slate-950 data-[state=checked]:shadow-sm",
+  "data-[state=checked]:ring-1 data-[state=checked]:ring-slate-200",
+  "[&>span.absolute]:hidden",
+)
 
 type WorkflowCenterT = ReturnType<typeof useTranslations>
 
@@ -242,6 +266,24 @@ function filtersAreActive(
     filters.statuses.length > 0 ||
     filters.severities.length > 0 ||
     Boolean(filters.pendingOnly)
+  )
+}
+
+function FilterItemContent({
+  dotClassName,
+  label,
+}: {
+  dotClassName: string
+  label: string
+}) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <span
+        className={cn("size-1.5 shrink-0 rounded-full", dotClassName)}
+        aria-hidden="true"
+      />
+      <span className="min-w-0 truncate">{label}</span>
+    </span>
   )
 }
 
@@ -448,55 +490,131 @@ export function AttackWorkflowQueue({
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="relative">
+          <div>
             <label htmlFor={statusId} className="sr-only">
               {t("queue.filterByStatus")}
             </label>
-            <ListFilter
-              className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-blue-500"
-              aria-hidden="true"
-            />
-            <select
-              id={statusId}
-              value={selectedStatus}
-              onChange={(event) => handleStatus(event.target.value)}
-              className={cn(
-                "h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-700",
-                "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
-              )}
+            <Select
+              value={selectedStatus || ALL_STATUS_FILTER_VALUE}
+              onValueChange={(value) =>
+                handleStatus(value === ALL_STATUS_FILTER_VALUE ? "" : value)
+              }
             >
-              <option value="">{t("queue.allStatuses")}</option>
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.labelKey)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id={statusId}
+                aria-label={t("queue.filterByStatus")}
+                className={cn(
+                  "h-9 rounded-lg border-slate-200 bg-white px-2.5 py-0 text-sm text-slate-700 shadow-none ring-offset-white",
+                  "focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0 data-[state=open]:border-blue-300 data-[state=open]:ring-2 data-[state=open]:ring-blue-500/20",
+                  "[&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-slate-500 [&>svg]:opacity-80",
+                )}
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-left">
+                  <ListFilter
+                    className="size-4 shrink-0 text-blue-500"
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 truncate">
+                    {selectedStatus
+                      ? statusLabel(t, selectedStatus)
+                      : t("queue.allStatuses")}
+                  </span>
+                </div>
+              </SelectTrigger>
+              <SelectContent
+                align="start"
+                sideOffset={4}
+                className="w-[var(--radix-select-trigger-width)] rounded-lg border-slate-200 bg-white p-1 shadow-lg [&_[data-radix-select-viewport]]:h-auto"
+              >
+                <SelectItem
+                  value={ALL_STATUS_FILTER_VALUE}
+                  className={FILTER_SELECT_ITEM_CLASS}
+                >
+                  <FilterItemContent
+                    dotClassName="bg-slate-300"
+                    label={t("queue.allStatuses")}
+                  />
+                </SelectItem>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className={FILTER_SELECT_ITEM_CLASS}
+                  >
+                    <FilterItemContent
+                      dotClassName={
+                        STATUS_DOT[option.value] ?? STATUS_DOT.detected
+                      }
+                      label={t(option.labelKey)}
+                    />
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="relative">
+          <div>
             <label htmlFor={severityId} className="sr-only">
               {t("queue.filterBySeverity")}
             </label>
-            <ShieldAlert
-              className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-amber-500"
-              aria-hidden="true"
-            />
-            <select
-              id={severityId}
-              value={selectedSeverity}
-              onChange={(event) => handleSeverity(event.target.value)}
-              className={cn(
-                "h-9 w-full cursor-pointer rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-700",
-                "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
-              )}
+            <Select
+              value={selectedSeverity || ALL_SEVERITY_FILTER_VALUE}
+              onValueChange={(value) =>
+                handleSeverity(
+                  value === ALL_SEVERITY_FILTER_VALUE ? "" : value,
+                )
+              }
             >
-              <option value="">{t("queue.allSeverities")}</option>
-              {SEVERITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {t(option.labelKey)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id={severityId}
+                aria-label={t("queue.filterBySeverity")}
+                className={cn(
+                  "h-9 rounded-lg border-slate-200 bg-white px-2.5 py-0 text-sm text-slate-700 shadow-none ring-offset-white",
+                  "focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0 data-[state=open]:border-blue-300 data-[state=open]:ring-2 data-[state=open]:ring-blue-500/20",
+                  "[&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-slate-500 [&>svg]:opacity-80",
+                )}
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-left">
+                  <ShieldAlert
+                    className="size-4 shrink-0 text-amber-500"
+                    aria-hidden="true"
+                  />
+                  <span className="min-w-0 truncate">
+                    {selectedSeverity
+                      ? severityLabel(t, selectedSeverity)
+                      : t("queue.allSeverities")}
+                  </span>
+                </div>
+              </SelectTrigger>
+              <SelectContent
+                align="start"
+                sideOffset={4}
+                className="w-[var(--radix-select-trigger-width)] rounded-lg border-slate-200 bg-white p-1 shadow-lg [&_[data-radix-select-viewport]]:h-auto"
+              >
+                <SelectItem
+                  value={ALL_SEVERITY_FILTER_VALUE}
+                  className={FILTER_SELECT_ITEM_CLASS}
+                >
+                  <FilterItemContent
+                    dotClassName="bg-slate-300"
+                    label={t("queue.allSeverities")}
+                  />
+                </SelectItem>
+                {SEVERITY_OPTIONS.map((option) => (
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
+                    className={FILTER_SELECT_ITEM_CLASS}
+                  >
+                    <FilterItemContent
+                      dotClassName={
+                        SEVERITY_DOT[option.value] ?? SEVERITY_DOT.info
+                      }
+                      label={t(option.labelKey)}
+                    />
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
