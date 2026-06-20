@@ -56,7 +56,9 @@ export interface AttackWorkflowSpineProps {
   recommendedStatus?: AttackWorkflowStatus | null
   density?: "dense" | "comfortable" | "compact"
   layout?: "auto" | "horizontal" | "vertical"
+  variant?: "card" | "embedded"
   interactive?: boolean
+  showFootnotes?: boolean
   className?: string
   onStatusClick?: (status: AttackWorkflowStatus) => void
 }
@@ -631,7 +633,9 @@ export function AttackWorkflowSpine({
   recommendedStatus = null,
   density = "dense",
   layout = "auto",
+  variant = "card",
   interactive = false,
+  showFootnotes = true,
   className,
   onStatusClick,
 }: AttackWorkflowSpineProps) {
@@ -730,43 +734,49 @@ export function AttackWorkflowSpine({
   // Layout selection. "auto" => horizontal on lg+, vertical below.
   const showHorizontal = layout === "horizontal" || layout === "auto"
   const showVertical = layout === "vertical" || layout === "auto"
+  const showHeader = variant === "card"
 
   return (
     <section
       className={cn(
-        "w-full min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm",
+        "w-full min-w-0 overflow-hidden",
+        variant === "card"
+          ? "rounded-2xl border border-slate-200 bg-white shadow-sm"
+          : "bg-transparent",
         className,
       )}
       aria-label="Attack workflow lifecycle"
     >
       {/* Header */}
-      <header className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-100 px-4 py-3">
-        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">
-          {workflow.title?.trim() || "Untitled workflow"}
-        </h3>
+      {showHeader && (
+        <header className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-slate-100 px-4 py-3">
+          <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900">
+            {workflow.title?.trim() || "Untitled workflow"}
+          </h3>
 
-        {workflow.severity?.trim() && (
-          <span
-            className={cn(
-              "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-              getSeverityTone(workflow.severity),
-            )}
-          >
-            {workflow.severity}
-          </span>
-        )}
+          {workflow.severity?.trim() && (
+            <span
+              className={cn(
+                "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                getSeverityTone(workflow.severity),
+              )}
+            >
+              {workflow.severity}
+            </span>
+          )}
 
-        {isKnownStatus ? (
-          <span className="shrink-0 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-700">
-            {STATUS_LABELS[normalizedStatus]}
-          </span>
-        ) : (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-700">
-            <ShieldQuestion className="size-3" />
-            Unknown
-          </span>
-        )}
-      </header>
+          {isKnownStatus ? (
+            <span className="shrink-0 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-700">
+              {STATUS_LABELS[normalizedStatus]}
+            </span>
+          ) : (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-rose-700">
+              <ShieldQuestion className="size-3" />
+              Unknown
+            </span>
+          )}
+        </header>
+      )}
 
       {/* Progress bar */}
       {isKnownStatus && (
@@ -822,7 +832,7 @@ export function AttackWorkflowSpine({
       </div>
 
       {/* Footnotes */}
-      {(showCloseReason || hasInconsistency) && (
+      {showFootnotes && (showCloseReason || hasInconsistency) && (
         <div className="flex flex-col gap-2 border-t border-slate-100 px-4 py-3">
           {showCloseReason && (
             <p className="min-w-0 text-xs text-slate-500">

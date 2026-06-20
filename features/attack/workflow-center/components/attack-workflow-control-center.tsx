@@ -16,9 +16,8 @@ import {
   ShieldQuestion,
 } from "lucide-react"
 
-import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
 import { AttackWorkflowPageHeader } from "./attack-workflow-page-header"
-import { AttackWorkflowSpine } from "./attack-workflow-spine"
+import { AttackWorkflowProcessCard } from "./attack-workflow-process-card"
 import {
   getAttackWorkflow,
   getAttackWorkflowByCaseId,
@@ -142,14 +141,6 @@ function statusLabel(status: string) {
 
 function displayValue(value?: string) {
   return value?.trim() || "-"
-}
-
-function compactList(values: string[], limit = 3) {
-  const visible = values.map((value) => value.trim()).filter(Boolean)
-  if (visible.length === 0) return "-"
-  const head = visible.slice(0, limit)
-  const hidden = visible.length - head.length
-  return hidden > 0 ? `${head.join(", ")} +${hidden}` : head.join(", ")
 }
 
 function summaryTone(status: PhaseSummary["status"]) {
@@ -588,18 +579,16 @@ function WorkflowMainGrid({
   workflow: AttackWorkflowItem | null
 }) {
   return (
-    <section className="grid min-h-0 w-full flex-1 grid-cols-1 items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(24rem,30rem)]">
-      <div className="flex min-w-0 flex-col gap-4">
-        <WorkflowLifecycleSection
-          loading={loading}
-          recommendedStatus={recommendedStatus}
-          workflow={workflow}
-        />
-        <AttackWorkflowActivityPanel
-          actions={actions}
-          events={events}
-          loading={loading}
-        />
+    <section className="flex min-h-0 w-full flex-1 flex-col gap-4">
+      <AttackWorkflowProcessCard
+        actions={actions}
+        events={events}
+        loading={loading}
+        recommendedStatus={recommendedStatus}
+        workflow={workflow}
+      />
+
+      <div className="grid min-h-0 w-full grid-cols-1 items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_minmax(24rem,30rem)]">
         <WorkflowCurrentStageSection
           allowedStatuses={allowedStatuses}
           canOpenDetails={canOpenDetails}
@@ -610,30 +599,10 @@ function WorkflowMainGrid({
           statusObjective={statusObjective}
           updating={updating}
         />
+
+        <WorkflowContextPanel events={events} />
       </div>
-
-      <WorkflowContextPanel events={events} workflow={workflow} />
     </section>
-  )
-}
-
-function WorkflowLifecycleSection({
-  loading,
-  recommendedStatus,
-  workflow,
-}: {
-  loading: boolean
-  recommendedStatus: AttackWorkflowStatus | null
-  workflow: AttackWorkflowItem | null
-}) {
-  return (
-    <AttackWorkflowSpine
-      workflow={workflow}
-      loading={loading}
-      recommendedStatus={recommendedStatus}
-      density="dense"
-      layout="auto"
-    />
   )
 }
 
@@ -726,35 +695,13 @@ function WorkflowCurrentStageSection({
 
 function WorkflowContextPanel({
   events,
-  workflow,
 }: {
   events: AttackWorkflowEventItem[]
-  workflow: AttackWorkflowItem | null
 }) {
   return (
-    <aside className="grid min-w-0 gap-4 xl:grid-cols-2 2xl:flex 2xl:flex-col">
-      <WorkflowFactsCard workflow={workflow} />
+    <aside className="grid min-w-0 gap-4">
       <WorkflowOperatorNoteCard events={events} />
     </aside>
-  )
-}
-
-function WorkflowFactsCard({ workflow }: { workflow: AttackWorkflowItem | null }) {
-  return (
-    <Card className="w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-100 px-5 py-4">
-        <CardTitle className="text-base">Case facts</CardTitle>
-        <CardDescription>Fixed context for every linked detail page.</CardDescription>
-      </CardHeader>
-      <CardContent className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,13rem),1fr))] gap-3 px-5 py-4 2xl:grid-cols-1">
-        <Fact label="Root" value={workflow ? `${workflow.root_type || "-"} / ${workflow.root_id || "-"}` : "-"} mono />
-        <Fact label="Primary agent" value={workflow?.primary_agent_id || "-"} mono />
-        <Fact label="Agents" value={workflow ? compactList(workflow.agent_ids) : "-"} mono />
-        <Fact label="Rules" value={workflow ? compactList(workflow.rule_ids) : "-"} mono />
-        <Fact label="Instances" value={workflow ? compactList(workflow.instance_ids) : "-"} mono />
-        <Fact label="Groups" value={workflow ? compactList(workflow.group_ids) : "-"} mono />
-      </CardContent>
-    </Card>
   )
 }
 
@@ -855,17 +802,6 @@ function StageActionCard({
           </Link>
         </Button>
       )}
-    </div>
-  )
-}
-
-function Fact({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
-      <div className="text-xs font-medium text-slate-400">{label}</div>
-      <div className={cn("mt-1 break-all text-sm font-semibold text-slate-800", mono && "font-mono text-xs")} title={value}>
-        {displayValue(value)}
-      </div>
     </div>
   )
 }
