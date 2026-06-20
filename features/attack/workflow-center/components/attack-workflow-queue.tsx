@@ -92,7 +92,10 @@ const SEVERITY_OPTIONS: { value: string; label: string }[] = [
   { value: "info", label: "Info" },
 ]
 
-const SCOPE_OPTIONS: { value: AttackWorkflowQueueStatusScope; label: string }[] = [
+const SCOPE_OPTIONS: {
+  value: AttackWorkflowQueueStatusScope
+  label: string
+}[] = [
   { value: "open", label: "Open" },
   { value: "all", label: "All" },
   { value: "closed", label: "Closed" },
@@ -161,7 +164,10 @@ function severityLabel(severity: string) {
 
 function nextActionText(item: AttackWorkflowQueueItem) {
   if (item.next_action_label?.trim()) return item.next_action_label.trim()
-  return NEXT_ACTION_FALLBACK[normalizeToken(String(item.status))] ?? "Review workflow"
+  return (
+    NEXT_ACTION_FALLBACK[normalizeToken(String(item.status))] ??
+    "Review workflow"
+  )
 }
 
 function formatTime(item: AttackWorkflowQueueItem) {
@@ -203,6 +209,13 @@ function titleText(title: string) {
     : normalizedTitle
 
   return `Title: ${displayTitle || fallbackTitle}`
+}
+
+function compactIdentifier(value?: string) {
+  const normalized = value?.trim() || ""
+  if (!normalized) return "-"
+  if (normalized.length <= 12) return normalized
+  return `...${normalized.slice(-8)}`
 }
 
 function isClosedStatus(status: string) {
@@ -285,8 +298,7 @@ export function AttackWorkflowQueue({
       ? Math.min(normalizedPage * normalizedPageSize, normalizedTotal)
       : 0
   const canChangePage = Boolean(onPageChange) && normalizedTotalPages > 1
-  const canGoPrevious =
-    canChangePage && (hasPrevious ?? normalizedPage > 1)
+  const canGoPrevious = canChangePage && (hasPrevious ?? normalizedPage > 1)
   const canGoNext =
     canChangePage && (hasNext ?? normalizedPage < normalizedTotalPages)
   const paginationDisabled = loading || paginationLoading
@@ -636,6 +648,8 @@ function QueueItemCard({
   const hosts = hostSummary(item)
   const rules = ruleSummary(item)
   const time = formatTime(item)
+  const fullIdentifier = item.case_id || item.workflow_id || "-"
+  const shortIdentifier = compactIdentifier(fullIdentifier)
 
   return (
     <button
@@ -660,8 +674,12 @@ function QueueItemCard({
             )}
             aria-hidden="true"
           />
-          <span className="truncate font-mono text-xs font-medium text-slate-700">
-            {item.case_id || item.workflow_id || "-"}
+          <span
+            className="inline-flex min-w-0 items-center gap-1 rounded-md bg-slate-50 px-1.5 py-0.5 text-[11px] text-slate-400 ring-1 ring-inset ring-slate-100"
+            title={fullIdentifier}
+          >
+            <span className="font-medium uppercase tracking-wide">ID</span>
+            <span className="truncate font-mono">{shortIdentifier}</span>
           </span>
         </span>
         <span
@@ -730,7 +748,9 @@ function QueueItemCard({
 }
 
 function MetaChip({ children }: { children: ReactNode }) {
-  return <span className="inline-flex items-center text-slate-500">{children}</span>
+  return (
+    <span className="inline-flex items-center text-slate-500">{children}</span>
+  )
 }
 
 function EmptyState({

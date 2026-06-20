@@ -1,6 +1,6 @@
 "use client"
 
-import { History, Loader2, UserRound } from "lucide-react"
+import { ChevronDown, History, Loader2, UserRound } from "lucide-react"
 
 import type {
   AttackWorkflowEventItem,
@@ -38,6 +38,12 @@ interface AttackWorkflowEventsTableProps {
   loading?: boolean
 }
 
+interface EventPayloadDisplay {
+  isJson: boolean
+  raw: string
+  summary: string
+}
+
 function displayValue(value?: string | number) {
   const normalized = String(value ?? "").trim()
   return normalized || "-"
@@ -48,8 +54,81 @@ function statusLabel(status: string) {
   return normalized ? STATUS_LABELS[normalized] : displayValue(status)
 }
 
-function eventPayloadText(event: AttackWorkflowEventItem) {
-  return workflowEventComment(event) || event.payload_json || "-"
+function compactPayloadValue(value: unknown) {
+  if (value == null) return ""
+  if (typeof value === "string") {
+    if (value.length <= 22) return value
+    return `...${value.slice(-18)}`
+  }
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value)
+  if (Array.isArray(value)) return `${value.length} items`
+  return "object"
+}
+
+function summarizeJsonPayload(value: unknown) {
+  if (Array.isArray(value)) return `${value.length} payload items`
+  if (!value || typeof value !== "object")
+    return displayValue(String(value ?? ""))
+
+  const record = value as Record<string, unknown>
+  const keys = Object.keys(record)
+  const priorityKeys = [
+    "comment",
+    "trigger_source",
+    "request_id",
+    "case_id",
+    "workflow_id",
+    "close_reason",
+    "status",
+  ]
+  const summaryParts = priorityKeys
+    .filter((key) => key in record)
+    .map((key) => {
+      const compactValue = compactPayloadValue(record[key])
+      return compactValue ? `${key}: ${compactValue}` : ""
+    })
+    .filter(Boolean)
+
+  if (summaryParts.length > 0) return summaryParts.slice(0, 3).join(" · ")
+  return `${keys.length} payload ${keys.length === 1 ? "field" : "fields"}`
+}
+
+function eventPayloadDisplay(
+  event: AttackWorkflowEventItem,
+): EventPayloadDisplay {
+  const comment = workflowEventComment(event).trim()
+  if (comment) {
+    return {
+      isJson: false,
+      raw: comment,
+      summary: comment,
+    }
+  }
+
+  const rawPayload = event.payload_json?.trim() || ""
+  if (!rawPayload) {
+    return {
+      isJson: false,
+      raw: "",
+      summary: "-",
+    }
+  }
+
+  try {
+    const parsed = JSON.parse(rawPayload) as unknown
+    return {
+      isJson: true,
+      raw: JSON.stringify(parsed, null, 2),
+      summary: summarizeJsonPayload(parsed),
+    }
+  } catch {
+    return {
+      isJson: false,
+      raw: rawPayload,
+      summary: rawPayload,
+    }
+  }
 }
 
 function eventOperatorName(event: AttackWorkflowEventItem) {
@@ -62,7 +141,10 @@ function EventTransition({ event }: { event: AttackWorkflowEventItem }) {
 
   return (
     <div className="grid w-full min-w-0 grid-cols-[7.25rem_1.5rem_minmax(0,1fr)] items-center text-sm leading-5">
-      <span className="min-w-0 truncate whitespace-nowrap text-slate-500" title={oldStatus}>
+      <span
+        className="min-w-0 truncate whitespace-nowrap text-slate-500"
+        title={oldStatus}
+      >
         {oldStatus}
       </span>
       <span className="shrink-0 text-center text-slate-300">-&gt;</span>
@@ -73,6 +155,42 @@ function EventTransition({ event }: { event: AttackWorkflowEventItem }) {
         {newStatus}
       </span>
     </div>
+  )
+}
+
+function PayloadPreview({ payload }: { payload: EventPayloadDisplay }) {
+  if (!payload.isJson) {
+    return (
+      <div
+        className="line-clamp-2 max-w-[52rem] break-all text-xs leading-5 text-slate-600"
+        title={payload.raw || payload.summary}
+      >
+        {payload.summary}
+      </div>
+    )
+  }
+
+  return (
+    <details className="group max-w-[52rem]">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md py-0.5 text-xs text-slate-700 transition-colors hover:text-slate-950 [&::-webkit-details-marker]:hidden">
+        <Badge
+          variant="outline"
+          className="shrink-0 rounded-full border-slate-200 bg-slate-50 px-2 py-0 text-[10px] font-medium text-slate-500"
+        >
+          Payload
+        </Badge>
+        <span className="min-w-0 flex-1 truncate font-medium">
+          {payload.summary}
+        </span>
+        <ChevronDown
+          className="size-3.5 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+          aria-hidden="true"
+        />
+      </summary>
+      <pre className="mt-2 max-h-36 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-2.5 font-mono text-[11px] leading-5 text-slate-500">
+        {payload.raw}
+      </pre>
+    </details>
   )
 }
 
@@ -94,7 +212,7 @@ function LoadingState() {
 }
 
 function EventMobileCard({ event }: { event: AttackWorkflowEventItem }) {
-  const payload = eventPayloadText(event)
+  const payload = eventPayloadDisplay(event)
   const operator = eventOperatorName(event)
 
   return (
@@ -115,18 +233,16 @@ function EventMobileCard({ event }: { event: AttackWorkflowEventItem }) {
           {displayValue(event.event_type)}
         </Badge>
       </div>
-      <div
-        className="mt-3 line-clamp-3 break-all font-mono text-xs leading-5 text-slate-600"
-        title={payload}
-      >
-        {payload}
+      <div className="mt-3">
+        <PayloadPreview payload={payload} />
       </div>
       <div className="mt-3 flex min-w-0 items-center gap-2 text-xs text-slate-500">
         <UserRound className="size-3.5 shrink-0 text-slate-400" />
         <span className="truncate font-medium text-slate-700">{operator}</span>
         <span className="shrink-0 text-slate-300">/</span>
         <span className="truncate font-mono">
-          {displayValue(event.operator_type)} / {displayValue(event.operator_id)}
+          {displayValue(event.operator_type)} /{" "}
+          {displayValue(event.operator_id)}
         </span>
       </div>
     </article>
@@ -171,7 +287,7 @@ export function AttackWorkflowEventsTable({
           </TableHeader>
           <TableBody>
             {events.map((event) => {
-              const payload = eventPayloadText(event)
+              const payload = eventPayloadDisplay(event)
               const operator = eventOperatorName(event)
 
               return (
@@ -189,12 +305,7 @@ export function AttackWorkflowEventsTable({
                     </div>
                   </TableCell>
                   <TableCell className="py-3 align-top">
-                    <div
-                      className="line-clamp-2 max-w-[52rem] break-all font-mono text-xs leading-5 text-slate-600"
-                      title={payload}
-                    >
-                      {payload}
-                    </div>
+                    <PayloadPreview payload={payload} />
                   </TableCell>
                   <TableCell className="py-3 align-top">
                     <div className="flex min-w-0 items-start gap-2">

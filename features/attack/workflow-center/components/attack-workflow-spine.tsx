@@ -100,6 +100,17 @@ const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   closed: "Closed",
 }
 
+const COMPACT_STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
+  detected: "Detect",
+  investigating: "Triage",
+  confirmed: "Confirm",
+  forensics: "Forensics",
+  responding: "Respond",
+  contained: "Contain",
+  remediated: "Remediate",
+  closed: "Closed",
+}
+
 const STATUS_DESCRIPTIONS: Record<AttackWorkflowStatus, string> = {
   detected: "Signal raised",
   investigating: "Triage in progress",
@@ -202,9 +213,7 @@ function formatWorkflowTime(value: string): string {
   if (!trimmed) return "not recorded"
   if (trimmed.startsWith("0001-01-01")) return "not recorded"
 
-  const fullMatch = trimmed.match(
-    /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/,
-  )
+  const fullMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/)
   if (fullMatch) {
     return `${fullMatch[1]} ${fullMatch[2]}`
   }
@@ -307,134 +316,140 @@ interface WorkflowStatusTone {
   selectedBg: string
 }
 
-const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = {
-  detected: {
-    markerCurrent:
-      "border-amber-500 bg-gradient-to-br from-white via-amber-50 to-amber-100 text-amber-700 shadow-lg shadow-amber-300/50",
-    markerReached: "border-amber-500 bg-amber-500 text-white",
-    markerRecommended: "border-amber-300 bg-amber-50 text-amber-600",
-    accent: "text-amber-600",
-    halo: "ring-4 ring-amber-100",
-    currentHalo: "bg-amber-300/40",
-    rail: "bg-amber-400",
-    progressBar: "bg-amber-500",
-    statusBadge: "border-amber-200 bg-amber-50 text-amber-700",
-    currentBadge: "bg-amber-500 text-white",
-    nextBadge: "border-amber-300 bg-amber-50 text-amber-700",
-    selectedBg: "bg-amber-50/70",
-  },
-  investigating: {
-    markerCurrent:
-      "border-cyan-500 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 text-cyan-700 shadow-lg shadow-cyan-300/50",
-    markerReached: "border-cyan-500 bg-cyan-500 text-white",
-    markerRecommended: "border-cyan-300 bg-cyan-50 text-cyan-600",
-    accent: "text-cyan-600",
-    halo: "ring-4 ring-cyan-100",
-    currentHalo: "bg-cyan-300/40",
-    rail: "bg-cyan-400",
-    progressBar: "bg-cyan-500",
-    statusBadge: "border-cyan-200 bg-cyan-50 text-cyan-700",
-    currentBadge: "bg-cyan-500 text-white",
-    nextBadge: "border-cyan-300 bg-cyan-50 text-cyan-700",
-    selectedBg: "bg-cyan-50/70",
-  },
-  confirmed: {
-    markerCurrent:
-      "border-blue-500 bg-gradient-to-br from-white via-blue-50 to-blue-100 text-blue-700 shadow-lg shadow-blue-300/50",
-    markerReached: "border-blue-500 bg-blue-500 text-white",
-    markerRecommended: "border-blue-300 bg-blue-50 text-blue-600",
-    accent: "text-blue-600",
-    halo: "ring-4 ring-blue-100",
-    currentHalo: "bg-blue-300/40",
-    rail: "bg-blue-400",
-    progressBar: "bg-blue-500",
-    statusBadge: "border-blue-200 bg-blue-50 text-blue-700",
-    currentBadge: "bg-blue-500 text-white",
-    nextBadge: "border-blue-300 bg-blue-50 text-blue-700",
-    selectedBg: "bg-blue-50/70",
-  },
-  forensics: {
-    markerCurrent:
-      "border-violet-500 bg-gradient-to-br from-white via-violet-50 to-violet-100 text-violet-700 shadow-lg shadow-violet-300/50",
-    markerReached: "border-violet-500 bg-violet-500 text-white",
-    markerRecommended: "border-violet-300 bg-violet-50 text-violet-600",
-    accent: "text-violet-600",
-    halo: "ring-4 ring-violet-100",
-    currentHalo: "bg-violet-300/40",
-    rail: "bg-violet-400",
-    progressBar: "bg-violet-500",
-    statusBadge: "border-violet-200 bg-violet-50 text-violet-700",
-    currentBadge: "bg-violet-500 text-white",
-    nextBadge: "border-violet-300 bg-violet-50 text-violet-700",
-    selectedBg: "bg-violet-50/70",
-  },
-  responding: {
-    markerCurrent:
-      "border-teal-500 bg-gradient-to-br from-white via-teal-50 to-teal-100 text-teal-700 shadow-lg shadow-teal-300/50",
-    markerReached: "border-teal-500 bg-teal-500 text-white",
-    markerRecommended: "border-teal-300 bg-teal-50 text-teal-600",
-    accent: "text-teal-600",
-    halo: "ring-4 ring-teal-100",
-    currentHalo: "bg-teal-300/40",
-    rail: "bg-teal-400",
-    progressBar: "bg-teal-500",
-    statusBadge: "border-teal-200 bg-teal-50 text-teal-700",
-    currentBadge: "bg-teal-500 text-white",
-    nextBadge: "border-teal-300 bg-teal-50 text-teal-700",
-    selectedBg: "bg-teal-50/70",
-  },
-  contained: {
-    markerCurrent:
-      "border-emerald-500 bg-gradient-to-br from-white via-emerald-50 to-emerald-100 text-emerald-700 shadow-lg shadow-emerald-300/50",
-    markerReached: "border-emerald-500 bg-emerald-500 text-white",
-    markerRecommended: "border-emerald-300 bg-emerald-50 text-emerald-600",
-    accent: "text-emerald-600",
-    halo: "ring-4 ring-emerald-100",
-    currentHalo: "bg-emerald-300/40",
-    rail: "bg-emerald-400",
-    progressBar: "bg-emerald-500",
-    statusBadge: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    currentBadge: "bg-emerald-500 text-white",
-    nextBadge: "border-emerald-300 bg-emerald-50 text-emerald-700",
-    selectedBg: "bg-emerald-50/70",
-  },
-  remediated: {
-    markerCurrent:
-      "border-green-500 bg-gradient-to-br from-white via-green-50 to-green-100 text-green-700 shadow-lg shadow-green-300/50",
-    markerReached: "border-green-500 bg-green-500 text-white",
-    markerRecommended: "border-green-300 bg-green-50 text-green-600",
-    accent: "text-green-600",
-    halo: "ring-4 ring-green-100",
-    currentHalo: "bg-green-300/40",
-    rail: "bg-green-400",
-    progressBar: "bg-green-500",
-    statusBadge: "border-green-200 bg-green-50 text-green-700",
-    currentBadge: "bg-green-500 text-white",
-    nextBadge: "border-green-300 bg-green-50 text-green-700",
-    selectedBg: "bg-green-50/70",
-  },
-  closed: {
-    markerCurrent:
-      "border-green-600 bg-gradient-to-br from-white via-green-50 to-green-100 text-green-800 shadow-lg shadow-green-300/50",
-    markerReached: "border-green-600 bg-green-600 text-white",
-    markerRecommended: "border-green-300 bg-green-50 text-green-700",
-    accent: "text-green-700",
-    halo: "ring-4 ring-green-100",
-    currentHalo: "bg-green-400/40",
-    rail: "bg-green-500",
-    progressBar: "bg-green-600",
-    statusBadge: "border-green-200 bg-green-50 text-green-700",
-    currentBadge: "bg-green-600 text-white",
-    nextBadge: "border-green-300 bg-green-50 text-green-700",
-    selectedBg: "bg-green-50/70",
-  },
-}
+const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> =
+  {
+    detected: {
+      markerCurrent:
+        "border-amber-500 bg-gradient-to-br from-white via-amber-50 to-amber-100 text-amber-700 shadow-lg shadow-amber-300/50",
+      markerReached: "border-amber-500 bg-amber-500 text-white",
+      markerRecommended: "border-amber-300 bg-amber-50 text-amber-600",
+      accent: "text-amber-600",
+      halo: "ring-4 ring-amber-100",
+      currentHalo: "bg-amber-300/40",
+      rail: "bg-amber-400",
+      progressBar: "bg-amber-500",
+      statusBadge: "border-amber-200 bg-amber-50 text-amber-700",
+      currentBadge: "bg-amber-500 text-white",
+      nextBadge: "border-amber-300 bg-amber-50 text-amber-700",
+      selectedBg: "bg-amber-50/70",
+    },
+    investigating: {
+      markerCurrent:
+        "border-cyan-500 bg-gradient-to-br from-white via-cyan-50 to-cyan-100 text-cyan-700 shadow-lg shadow-cyan-300/50",
+      markerReached: "border-cyan-500 bg-cyan-500 text-white",
+      markerRecommended: "border-cyan-300 bg-cyan-50 text-cyan-600",
+      accent: "text-cyan-600",
+      halo: "ring-4 ring-cyan-100",
+      currentHalo: "bg-cyan-300/40",
+      rail: "bg-cyan-400",
+      progressBar: "bg-cyan-500",
+      statusBadge: "border-cyan-200 bg-cyan-50 text-cyan-700",
+      currentBadge: "bg-cyan-500 text-white",
+      nextBadge: "border-cyan-300 bg-cyan-50 text-cyan-700",
+      selectedBg: "bg-cyan-50/70",
+    },
+    confirmed: {
+      markerCurrent:
+        "border-blue-500 bg-gradient-to-br from-white via-blue-50 to-blue-100 text-blue-700 shadow-lg shadow-blue-300/50",
+      markerReached: "border-blue-500 bg-blue-500 text-white",
+      markerRecommended: "border-blue-300 bg-blue-50 text-blue-600",
+      accent: "text-blue-600",
+      halo: "ring-4 ring-blue-100",
+      currentHalo: "bg-blue-300/40",
+      rail: "bg-blue-400",
+      progressBar: "bg-blue-500",
+      statusBadge: "border-blue-200 bg-blue-50 text-blue-700",
+      currentBadge: "bg-blue-500 text-white",
+      nextBadge: "border-blue-300 bg-blue-50 text-blue-700",
+      selectedBg: "bg-blue-50/70",
+    },
+    forensics: {
+      markerCurrent:
+        "border-violet-500 bg-gradient-to-br from-white via-violet-50 to-violet-100 text-violet-700 shadow-lg shadow-violet-300/50",
+      markerReached: "border-violet-500 bg-violet-500 text-white",
+      markerRecommended: "border-violet-300 bg-violet-50 text-violet-600",
+      accent: "text-violet-600",
+      halo: "ring-4 ring-violet-100",
+      currentHalo: "bg-violet-300/40",
+      rail: "bg-violet-400",
+      progressBar: "bg-violet-500",
+      statusBadge: "border-violet-200 bg-violet-50 text-violet-700",
+      currentBadge: "bg-violet-500 text-white",
+      nextBadge: "border-violet-300 bg-violet-50 text-violet-700",
+      selectedBg: "bg-violet-50/70",
+    },
+    responding: {
+      markerCurrent:
+        "border-teal-500 bg-gradient-to-br from-white via-teal-50 to-teal-100 text-teal-700 shadow-lg shadow-teal-300/50",
+      markerReached: "border-teal-500 bg-teal-500 text-white",
+      markerRecommended: "border-teal-300 bg-teal-50 text-teal-600",
+      accent: "text-teal-600",
+      halo: "ring-4 ring-teal-100",
+      currentHalo: "bg-teal-300/40",
+      rail: "bg-teal-400",
+      progressBar: "bg-teal-500",
+      statusBadge: "border-teal-200 bg-teal-50 text-teal-700",
+      currentBadge: "bg-teal-500 text-white",
+      nextBadge: "border-teal-300 bg-teal-50 text-teal-700",
+      selectedBg: "bg-teal-50/70",
+    },
+    contained: {
+      markerCurrent:
+        "border-emerald-500 bg-gradient-to-br from-white via-emerald-50 to-emerald-100 text-emerald-700 shadow-lg shadow-emerald-300/50",
+      markerReached: "border-emerald-500 bg-emerald-500 text-white",
+      markerRecommended: "border-emerald-300 bg-emerald-50 text-emerald-600",
+      accent: "text-emerald-600",
+      halo: "ring-4 ring-emerald-100",
+      currentHalo: "bg-emerald-300/40",
+      rail: "bg-emerald-400",
+      progressBar: "bg-emerald-500",
+      statusBadge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      currentBadge: "bg-emerald-500 text-white",
+      nextBadge: "border-emerald-300 bg-emerald-50 text-emerald-700",
+      selectedBg: "bg-emerald-50/70",
+    },
+    remediated: {
+      markerCurrent:
+        "border-green-500 bg-gradient-to-br from-white via-green-50 to-green-100 text-green-700 shadow-lg shadow-green-300/50",
+      markerReached: "border-green-500 bg-green-500 text-white",
+      markerRecommended: "border-green-300 bg-green-50 text-green-600",
+      accent: "text-green-600",
+      halo: "ring-4 ring-green-100",
+      currentHalo: "bg-green-300/40",
+      rail: "bg-green-400",
+      progressBar: "bg-green-500",
+      statusBadge: "border-green-200 bg-green-50 text-green-700",
+      currentBadge: "bg-green-500 text-white",
+      nextBadge: "border-green-300 bg-green-50 text-green-700",
+      selectedBg: "bg-green-50/70",
+    },
+    closed: {
+      markerCurrent:
+        "border-green-600 bg-gradient-to-br from-white via-green-50 to-green-100 text-green-800 shadow-lg shadow-green-300/50",
+      markerReached: "border-green-600 bg-green-600 text-white",
+      markerRecommended: "border-green-300 bg-green-50 text-green-700",
+      accent: "text-green-700",
+      halo: "ring-4 ring-green-100",
+      currentHalo: "bg-green-400/40",
+      rail: "bg-green-500",
+      progressBar: "bg-green-600",
+      statusBadge: "border-green-200 bg-green-50 text-green-700",
+      currentBadge: "bg-green-600 text-white",
+      nextBadge: "border-green-300 bg-green-50 text-green-700",
+      selectedBg: "bg-green-50/70",
+    },
+  }
 
-function getWorkflowStatusTone(status: AttackWorkflowStatus): WorkflowStatusTone {
+function getWorkflowStatusTone(
+  status: AttackWorkflowStatus,
+): WorkflowStatusTone {
   return WORKFLOW_STATUS_TONES[status]
 }
 
-function getNodeTone(status: AttackWorkflowStatus, state: SpineNodeState): NodeTone {
+function getNodeTone(
+  status: AttackWorkflowStatus,
+  state: SpineNodeState,
+): NodeTone {
   const statusTone = getWorkflowStatusTone(status)
 
   switch (state) {
@@ -710,6 +725,8 @@ function HorizontalNode({
   density: DensityClasses
 }) {
   const tone = getNodeTone(node.status, node.state)
+  const emphasized = node.isCurrent || node.showNext || node.isSelected
+  const label = emphasized ? node.label : COMPACT_STATUS_LABELS[node.status]
 
   return (
     <div className="flex w-full min-w-0 flex-col items-center">
@@ -726,9 +743,7 @@ function HorizontalNode({
         <span
           className={cn(
             "h-0.5 flex-1 rounded-full",
-            node.isLast
-              ? "opacity-0"
-              : getConnectorToneAfter(node),
+            node.isLast ? "opacity-0" : getConnectorToneAfter(node),
           )}
           aria-hidden
         />
@@ -741,9 +756,21 @@ function HorizontalNode({
           density.gapY,
         )}
       >
-        <div className="flex max-w-full flex-wrap items-center justify-center gap-1">
-          <span className={cn("truncate", density.label, tone.label)}>
-            {node.label}
+        <div
+          className={cn(
+            "flex max-w-full flex-col items-center justify-center gap-1",
+            emphasized && "-mx-1 min-w-[4.75rem]",
+          )}
+        >
+          <span
+            className={cn(
+              "max-w-full whitespace-nowrap leading-tight",
+              density.label,
+              tone.label,
+            )}
+            title={node.label}
+          >
+            {label}
           </span>
           <NodeBadges
             status={node.status}
@@ -802,7 +829,9 @@ function VerticalNode({
       </div>
 
       {/* content */}
-      <div className={cn("flex min-w-0 flex-1 flex-col pb-4 pt-1.5", density.gapY)}>
+      <div
+        className={cn("flex min-w-0 flex-1 flex-col pb-4 pt-1.5", density.gapY)}
+      >
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={cn(density.label, tone.label)}>{node.label}</span>
           <NodeBadges
@@ -843,7 +872,11 @@ export function AttackWorkflowSpine({
   if (!workflow) {
     return (
       <div className={cn("w-full min-w-0", className)}>
-        {loading ? <AttackWorkflowSpineLoading /> : <AttackWorkflowSpineEmpty />}
+        {loading ? (
+          <AttackWorkflowSpineLoading />
+        ) : (
+          <AttackWorkflowSpineEmpty />
+        )}
       </div>
     )
   }
@@ -908,11 +941,10 @@ export function AttackWorkflowSpine({
       <HorizontalNode node={node} density={densityClasses} />
     )
 
-    const itemClassName = useVertical
-      ? "min-w-0"
-      : "min-w-0 flex-1 basis-0"
+    const itemClassName = useVertical ? "min-w-0" : "min-w-0 flex-1 basis-0"
 
-    const isInteractive = interactive || Boolean(onStatusClick || onStatusSelect)
+    const isInteractive =
+      interactive || Boolean(onStatusClick || onStatusSelect)
 
     if (isInteractive) {
       return (
