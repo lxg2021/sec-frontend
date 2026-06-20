@@ -83,6 +83,7 @@ interface StageEvent {
 
 interface StatusStyle {
   badge: string
+  currentBadge: string
   dot: string
   iconBg: string
   iconText: string
@@ -105,6 +106,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   detected: {
     label: "Detected",
     badge: "border-amber-200 bg-amber-50 text-amber-700",
+    currentBadge: "border-transparent bg-amber-500 text-white",
     iconBg: "bg-amber-100",
     iconText: "text-amber-700",
     dot: "bg-amber-500",
@@ -114,6 +116,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   investigating: {
     label: "Investigating",
     badge: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    currentBadge: "border-transparent bg-cyan-500 text-white",
     iconBg: "bg-cyan-100",
     iconText: "text-cyan-700",
     dot: "bg-cyan-500",
@@ -123,6 +126,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   confirmed: {
     label: "Confirmed",
     badge: "border-blue-200 bg-blue-50 text-blue-700",
+    currentBadge: "border-transparent bg-blue-500 text-white",
     iconBg: "bg-blue-100",
     iconText: "text-blue-700",
     dot: "bg-blue-500",
@@ -132,6 +136,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   forensics: {
     label: "Forensics",
     badge: "border-violet-200 bg-violet-50 text-violet-700",
+    currentBadge: "border-transparent bg-violet-500 text-white",
     iconBg: "bg-violet-100",
     iconText: "text-violet-700",
     dot: "bg-violet-500",
@@ -141,6 +146,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   responding: {
     label: "Responding",
     badge: "border-teal-200 bg-teal-50 text-teal-700",
+    currentBadge: "border-transparent bg-teal-500 text-white",
     iconBg: "bg-teal-100",
     iconText: "text-teal-700",
     dot: "bg-teal-500",
@@ -150,6 +156,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   contained: {
     label: "Contained",
     badge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    currentBadge: "border-transparent bg-emerald-500 text-white",
     iconBg: "bg-emerald-100",
     iconText: "text-emerald-700",
     dot: "bg-emerald-500",
@@ -159,6 +166,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   remediated: {
     label: "Remediated",
     badge: "border-green-200 bg-green-50 text-green-700",
+    currentBadge: "border-transparent bg-green-500 text-white",
     iconBg: "bg-green-100",
     iconText: "text-green-700",
     dot: "bg-green-500",
@@ -168,6 +176,7 @@ const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   closed: {
     label: "Closed",
     badge: "border-green-300 bg-green-100 text-green-800",
+    currentBadge: "border-transparent bg-green-600 text-white",
     iconBg: "bg-green-200",
     iconText: "text-green-800",
     dot: "bg-green-600",
@@ -550,12 +559,12 @@ function SectionTitle({
 }
 
 function HeaderMetaField({
-  dot,
+  current = false,
   label,
   value,
   valueClassName,
 }: {
-  dot?: string
+  current?: boolean
   label: string
   value: string
   valueClassName: string
@@ -573,8 +582,11 @@ function HeaderMetaField({
         )}
         title={value}
       >
-        {dot ? (
-          <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dot)} />
+        {current ? (
+          <span className="relative flex size-1.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 motion-safe:animate-ping motion-reduce:animate-none" />
+            <span className="relative inline-flex size-1.5 rounded-full bg-white" />
+          </span>
         ) : null}
         <span className="truncate">{value}</span>
       </Badge>
@@ -729,26 +741,25 @@ export function AttackWorkflowStageWorkbench({
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
               {isViewingCurrentStage ? (
                 <HeaderMetaField
-                  dot={selectedStyle.dot}
+                  current
                   label="Stage"
                   value={statusLabel(selectedStatus)}
-                  valueClassName={selectedStyle.badge}
+                  valueClassName={selectedStyle.currentBadge}
                 />
               ) : (
                 <>
                   <HeaderMetaField
-                    dot={selectedStyle.dot}
                     label="Selected"
                     value={statusLabel(selectedStatus)}
                     valueClassName={selectedStyle.badge}
                   />
                   {normalizedCurrentStatus ? (
                     <HeaderMetaField
-                      dot={getStatusStyle(normalizedCurrentStatus).dot}
+                      current
                       label="Current"
                       value={statusLabel(normalizedCurrentStatus)}
                       valueClassName={
-                        getStatusStyle(normalizedCurrentStatus).badge
+                        getStatusStyle(normalizedCurrentStatus).currentBadge
                       }
                     />
                   ) : null}
