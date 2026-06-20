@@ -1,14 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import {
   Activity,
-  Bot,
-  ExternalLink,
-  FileSearch,
   Loader2,
-  Route,
   ShieldCheck,
   ShieldQuestion,
 } from "lucide-react"
@@ -34,7 +30,6 @@ import type {
   AttackWorkflowStatus,
 } from "@/features/attack/workflow/types"
 import {
-  formatWorkflowTime,
   getAllowedWorkflowTransitions,
   getRecommendedNextWorkflowStatus,
   normalizeWorkflowStatus,
@@ -44,7 +39,6 @@ import {
   buildAttackDetailHref,
   buildTraceHref,
 } from "@/features/attack/detail/utils/attack-case-format"
-import { cn } from "@/shared/lib/utils"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
 import {
@@ -79,12 +73,6 @@ interface AttackWorkflowControlCenterProps {
   tenantId?: string
 }
 
-interface PhaseSummary {
-  status: "ready" | "running" | "pending" | "failed" | "empty"
-  label: string
-  description: string
-}
-
 interface WorkflowNavigationHrefs {
   attackDetailHref: string
   traceHref: string
@@ -115,93 +103,6 @@ const CLOSE_REASON_LABELS: Record<AttackWorkflowCloseReason, string> = {
 function statusLabel(status: string) {
   const normalized = normalizeWorkflowStatus(status)
   return normalized ? STATUS_LABELS[normalized] : status || "Unknown"
-}
-
-function summaryTone(status: PhaseSummary["status"]) {
-  switch (status) {
-    case "ready":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
-    case "running":
-      return "border-blue-200 bg-blue-50 text-blue-700"
-    case "failed":
-      return "border-rose-200 bg-rose-50 text-rose-700"
-    case "pending":
-      return "border-amber-200 bg-amber-50 text-amber-700"
-    default:
-      return "border-slate-200 bg-slate-50 text-slate-600"
-  }
-}
-
-function actionStatusRank(status: string) {
-  switch (status.trim().toLowerCase()) {
-    case "failed":
-      return 5
-    case "running":
-      return 4
-    case "pending":
-      return 3
-    case "success":
-      return 2
-    case "skipped":
-      return 1
-    default:
-      return 0
-  }
-}
-
-function latestAction(actions: AttackWorkflowActionItem[]) {
-  return [...actions].sort((a, b) => {
-    const aTime = a.updated_at || a.executed_at || a.requested_at || a.created_at
-    const bTime = b.updated_at || b.executed_at || b.requested_at || b.created_at
-    return bTime.localeCompare(aTime)
-  })[0]
-}
-
-function summarizeActions(
-  actions: AttackWorkflowActionItem[],
-  predicate: (action: AttackWorkflowActionItem) => boolean,
-  emptyDescription: string,
-): PhaseSummary {
-  const matched = actions.filter(predicate)
-  if (matched.length === 0) {
-    return {
-      status: "empty",
-      label: "Not recorded",
-      description: emptyDescription,
-    }
-  }
-
-  const ranked = [...matched].sort((a, b) =>
-    actionStatusRank(b.action_status) - actionStatusRank(a.action_status),
-  )
-  const strongest = ranked[0]
-  const newest = latestAction(matched) ?? strongest
-  const actionStatus = strongest.action_status.trim().toLowerCase()
-  const status: PhaseSummary["status"] =
-    actionStatus === "success"
-      ? "ready"
-      : actionStatus === "running"
-        ? "running"
-        : actionStatus === "failed"
-          ? "failed"
-          : "pending"
-
-  return {
-    status,
-    label: strongest.action_status || "Recorded",
-    description: [
-      newest.action_type || "workflow action",
-      newest.workflow_action_id ? `id ${newest.workflow_action_id}` : "",
-      formatWorkflowTime(newest.updated_at || newest.executed_at || newest.requested_at),
-    ].filter(Boolean).join(" / "),
-  }
-}
-
-function hasTraceEvent(events: AttackWorkflowEventItem[]) {
-  return events.some((event) => {
-    const value = `${event.event_key} ${event.event_type} ${event.payload_json}`.toLowerCase()
-    return value.includes("trace") || value.includes("graph")
-  })
 }
 
 function buildStatusPayload(comment: string, source: string) {
@@ -310,40 +211,6 @@ export function AttackWorkflowControlCenter({
     setSelectedWorkbenchStatus(normalizedStatus || "detected")
   }, [workflow?.workflow_id, normalizedStatus])
 
-  const summaries = useMemo(() => {
-    const ai = summarizeActions(
-      actions,
-      (action) => {
-        const text = `${action.action_phase} ${action.action_type}`.toLowerCase()
-        return text.includes("investigation") || text.includes("ai")
-      },
-      "No investigation action is recorded in this workflow. Open Threat Analysis to inspect or start the AI task.",
-    )
-    const forensic = summarizeActions(
-      actions,
-      (action) => action.action_phase.toLowerCase() === "forensics" || Boolean(action.forensic),
-      "No forensic collection action is recorded yet.",
-    )
-    const remediation = summarizeActions(
-      actions,
-      (action) => action.action_phase.toLowerCase() === "remediation" || Boolean(action.remediation),
-      "No remediation preview or execution action is recorded yet.",
-    )
-    const trace: PhaseSummary = hasTraceEvent(events)
-      ? {
-          status: "ready",
-          label: "Recorded",
-          description: "Trace or graph event exists in workflow timeline.",
-        }
-      : {
-          status: "empty",
-          label: "Open detail",
-          description: "Trace state is owned by the Trace Details page.",
-        }
-
-    return { ai, trace, forensic, remediation }
-  }, [actions, events])
-
   function openStatusDialog(status: AttackWorkflowStatus) {
     setSelectedStatus(status)
     setComment("")
@@ -399,12 +266,6 @@ export function AttackWorkflowControlCenter({
           onRefresh={loadWorkflow}
           updating={updating}
           workflow={workflow}
-        />
-
-        <WorkflowSummaryGrid
-          canOpenDetails={canOpenDetails}
-          hrefs={navigationHrefs}
-          summaries={summaries}
         />
 
         <WorkflowMainGrid
@@ -471,56 +332,6 @@ function WorkflowEmptyState() {
   )
 }
 
-function WorkflowSummaryGrid({
-  canOpenDetails,
-  hrefs,
-  summaries,
-}: {
-  canOpenDetails: boolean
-  hrefs: WorkflowNavigationHrefs
-  summaries: {
-    ai: PhaseSummary
-    trace: PhaseSummary
-    forensic: PhaseSummary
-    remediation: PhaseSummary
-  }
-}) {
-  return (
-    <section className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,17rem),1fr))] gap-3">
-      <SummaryCard
-        title="AI analysis"
-        icon={Bot}
-        summary={summaries.ai}
-        actionHref={hrefs.aiHref}
-        actionLabel="Open AI detail"
-        disabled={!canOpenDetails}
-      />
-      <SummaryCard
-        title="Trace evidence"
-        icon={Route}
-        summary={summaries.trace}
-        actionHref={hrefs.traceHref}
-        actionLabel="Open Drill"
-        disabled={!canOpenDetails}
-      />
-      <SummaryCard
-        title="Forensics"
-        icon={FileSearch}
-        summary={summaries.forensic}
-        actionLabel="Pending action"
-        disabled
-      />
-      <SummaryCard
-        title="Remediation"
-        icon={ShieldCheck}
-        summary={summaries.remediation}
-        actionHref="/frame/response/dac"
-        actionLabel="Open Response"
-      />
-    </section>
-  )
-}
-
 function WorkflowMainGrid({
   actions,
   allowedStatuses,
@@ -583,51 +394,6 @@ function WorkflowMainGrid({
         workflow={workflow}
       />
     </section>
-  )
-}
-
-function SummaryCard({
-  actionHref,
-  actionLabel,
-  disabled,
-  icon: Icon,
-  summary,
-  title,
-}: {
-  actionHref?: string
-  actionLabel: string
-  disabled?: boolean
-  icon: typeof Bot
-  summary: PhaseSummary
-  title: string
-}) {
-  return (
-    <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardContent className="flex min-h-[clamp(9rem,18dvh,11rem)] flex-col justify-between gap-3 px-4 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-xs font-semibold uppercase tracking-normal text-slate-500">{title}</div>
-            <div className="mt-1 truncate text-lg font-semibold text-slate-950">{summary.label}</div>
-          </div>
-          <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl border", summaryTone(summary.status))}>
-            <Icon className="size-4" />
-          </span>
-        </div>
-        <p className="line-clamp-2 text-sm leading-5 text-slate-500">{summary.description}</p>
-        {actionHref && !disabled ? (
-          <Button asChild variant="outline" size="sm" className="w-fit">
-            <Link href={actionHref}>
-              {actionLabel}
-              <ExternalLink className="size-3.5" />
-            </Link>
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" className="w-fit" disabled>
-            {actionLabel}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
   )
 }
 
