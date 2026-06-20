@@ -761,27 +761,8 @@ function QueueItemCard({
         {displayTitle}
       </h3>
 
-      <p
-        className={cn(
-          "mt-1 inline-flex h-5 max-w-full items-center gap-1 overflow-hidden rounded-md px-1.5 text-[11px] font-medium",
-          closed
-            ? "text-slate-500"
-            : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100",
-        )}
-        title={displayNextAction}
-      >
-        <ChevronRight
-          className={cn(
-            "size-3.5 shrink-0",
-            closed ? "" : "transition-transform group-hover:translate-x-0.5",
-          )}
-          aria-hidden="true"
-        />
-        <span className="min-w-0 truncate">{displayNextAction}</span>
-      </p>
-
       <div className="mt-1.5 flex min-w-0 items-center gap-2 overflow-hidden text-[11px] text-slate-500">
-        <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+        <span className="flex min-w-0 shrink-0 items-center gap-2 overflow-hidden">
           <span
             className={cn(
               "inline-flex h-5 shrink-0 items-center rounded px-1.5 font-medium ring-1 ring-inset",
@@ -798,6 +779,28 @@ function QueueItemCard({
               {t("queue.openActionCount", { count: item.open_action_count })}
             </MetaChip>
           ) : null}
+        </span>
+        <span className="flex min-w-0 flex-1 justify-center overflow-hidden">
+          <span
+            className={cn(
+              "inline-flex h-5 max-w-full items-center gap-1 overflow-hidden rounded-md px-1.5 font-medium",
+              closed
+                ? "text-slate-500"
+                : "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-100",
+            )}
+            title={displayNextAction}
+          >
+            <ChevronRight
+              className={cn(
+                "size-3.5 shrink-0",
+                closed
+                  ? ""
+                  : "transition-transform group-hover:translate-x-0.5",
+              )}
+              aria-hidden="true"
+            />
+            <span className="min-w-0 truncate">{displayNextAction}</span>
+          </span>
         </span>
         <span className="inline-flex shrink-0 items-center gap-1 text-slate-400">
           <Clock3 className="size-3" aria-hidden="true" />
