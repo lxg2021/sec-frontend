@@ -1,17 +1,21 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
-import Link from "next/link"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Activity,
   Loader2,
   ShieldCheck,
-  ShieldQuestion,
 } from "lucide-react"
 
 import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
 import { AttackWorkflowPageHeader } from "./attack-workflow-page-header"
 import { AttackWorkflowProcessCard } from "./attack-workflow-process-card"
+import {
+  AttackWorkflowQueue,
+  type AttackWorkflowQueueFilters,
+  type AttackWorkflowQueueItem,
+} from "./attack-workflow-queue"
 import { AttackWorkflowStageWorkbench } from "./attack-workflow-stage-workbench"
 import {
   getAttackWorkflow,
@@ -41,13 +45,6 @@ import {
 } from "@/features/attack/detail/utils/attack-case-format"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/ui/card"
 import {
   Dialog,
   DialogClose,
@@ -80,6 +77,12 @@ interface WorkflowNavigationHrefs {
 }
 
 type OpenStatusDialog = (status: AttackWorkflowStatus) => void
+
+const DEFAULT_QUEUE_FILTERS: AttackWorkflowQueueFilters = {
+  statusScope: "open",
+  statuses: [],
+  severities: [],
+}
 
 const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   detected: "Detected",
@@ -114,12 +117,79 @@ function buildStatusPayload(comment: string, source: string) {
   })
 }
 
+function actionNeedsAttention(action: AttackWorkflowActionItem) {
+  const status = action.action_status.trim().toLowerCase()
+  return status === "pending" || status === "running" || status === "failed"
+}
+
+function workflowToQueueItem(
+  workflow: AttackWorkflowItem,
+  actions: AttackWorkflowActionItem[],
+  events: AttackWorkflowEventItem[],
+): AttackWorkflowQueueItem {
+  return {
+    workflow_id: workflow.workflow_id,
+    tenant_id: workflow.tenant_id,
+    case_id: workflow.case_id,
+    title: workflow.title,
+    severity: workflow.severity,
+    status: workflow.status,
+    primary_agent_id: workflow.primary_agent_id,
+    agent_ids: workflow.agent_ids,
+    rule_ids: workflow.rule_ids,
+    detected_at: workflow.detected_at,
+    updated_at: workflow.updated_at,
+    open_action_count: actions.filter(actionNeedsAttention).length,
+    event_count: events.length,
+  }
+}
+
+function queueItemMatches(
+  item: AttackWorkflowQueueItem,
+  keyword: string,
+  filters: AttackWorkflowQueueFilters,
+) {
+  const status = item.status.trim().toLowerCase()
+  const severity = item.severity.trim().toLowerCase()
+
+  if (filters.statusScope === "open" && status === "closed") return false
+  if (filters.statusScope === "closed" && status !== "closed") return false
+  if (filters.statuses.length > 0 && !filters.statuses.includes(status)) {
+    return false
+  }
+  if (
+    filters.severities.length > 0 &&
+    !filters.severities.includes(severity)
+  ) {
+    return false
+  }
+
+  const normalizedKeyword = keyword.trim().toLowerCase()
+  if (!normalizedKeyword) return true
+
+  const haystack = [
+    item.workflow_id,
+    item.case_id,
+    item.title,
+    item.severity,
+    item.status,
+    item.primary_agent_id,
+    ...(item.agent_ids ?? []),
+    ...(item.rule_ids ?? []),
+  ]
+    .join(" ")
+    .toLowerCase()
+
+  return haystack.includes(normalizedKeyword)
+}
+
 export function AttackWorkflowControlCenter({
   caseId = "",
   snapshotId = "",
   workflowId = "",
   tenantId = "",
 }: AttackWorkflowControlCenterProps) {
+  const router = useRouter()
   const { toast } = useToast()
   const [detail, setDetail] = useState<AttackWorkflowDetail | null>(null)
   const [loading, setLoading] = useState(false)
@@ -127,6 +197,9 @@ export function AttackWorkflowControlCenter({
   const [selectedStatus, setSelectedStatus] = useState<AttackWorkflowStatus | "">("")
   const [selectedWorkbenchStatus, setSelectedWorkbenchStatus] =
     useState<AttackWorkflowStatus>("detected")
+  const [queueKeyword, setQueueKeyword] = useState("")
+  const [queueFilters, setQueueFilters] =
+    useState<AttackWorkflowQueueFilters>(DEFAULT_QUEUE_FILTERS)
   const [comment, setComment] = useState("")
   const [closeReason, setCloseReason] = useState<AttackWorkflowCloseReason>("resolved")
   const [updating, setUpdating] = useState(false)
@@ -194,7 +267,9 @@ export function AttackWorkflowControlCenter({
     workflowId: activeWorkflowId,
     returnToWorkflow: true,
   }
-  const attackDetailHref = buildAttackDetailHref(activeCaseId, snapshotId)
+  const attackDetailHref = activeCaseId
+    ? buildAttackDetailHref(activeCaseId, snapshotId)
+    : "/frame/attack/detail"
   const traceHref = canOpenDetails
     ? buildTraceHref(activeCaseId, snapshotId, detailOptions)
     : "/frame/attack/drill"
@@ -210,6 +285,18 @@ export function AttackWorkflowControlCenter({
   useEffect(() => {
     setSelectedWorkbenchStatus(normalizedStatus || "detected")
   }, [workflow?.workflow_id, normalizedStatus])
+
+  const rawQueueItems = useMemo<AttackWorkflowQueueItem[]>(
+    () => (workflow ? [workflowToQueueItem(workflow, actions, events)] : []),
+    [actions, events, workflow],
+  )
+  const queueItems = useMemo(
+    () =>
+      rawQueueItems.filter((item) =>
+        queueItemMatches(item, queueKeyword, queueFilters),
+      ),
+    [queueFilters, queueKeyword, rawQueueItems],
+  )
 
   function openStatusDialog(status: AttackWorkflowStatus) {
     setSelectedStatus(status)
@@ -248,8 +335,20 @@ export function AttackWorkflowControlCenter({
     }
   }
 
-  if (!normalizedCaseId && !normalizedWorkflowId) {
-    return <WorkflowEmptyState />
+  function selectQueueWorkflow(item: AttackWorkflowQueueItem) {
+    if (
+      item.workflow_id === activeWorkflowId &&
+      item.case_id === activeCaseId
+    ) {
+      return
+    }
+
+    const params = new URLSearchParams()
+    if (item.case_id) params.set("caseId", item.case_id)
+    if (item.workflow_id) params.set("workflowId", item.workflow_id)
+    if (snapshotId.trim()) params.set("snapshotId", snapshotId.trim())
+    if (tenantId.trim()) params.set("tenantId", tenantId.trim())
+    router.push(`/frame/attack/workflow?${params.toString()}`)
   }
 
   return (
@@ -268,21 +367,40 @@ export function AttackWorkflowControlCenter({
           workflow={workflow}
         />
 
-        <WorkflowMainGrid
-          actions={actions}
-          allowedStatuses={allowedStatuses}
-          canOpenDetails={canOpenDetails}
-          currentStatus={currentStatus}
-          events={events}
-          hrefs={navigationHrefs}
-          loading={loading}
-          onOpenStatusDialog={openStatusDialog}
-          onWorkbenchStatusSelect={setSelectedWorkbenchStatus}
-          recommendedStatus={recommendedStatus}
-          selectedWorkbenchStatus={selectedWorkbenchStatus}
-          updating={updating}
-          workflow={workflow}
-        />
+        <section className="grid min-h-0 w-full flex-1 gap-4 xl:grid-cols-[clamp(340px,24vw,430px)_minmax(0,1fr)]">
+          <AttackWorkflowQueue
+            className="xl:h-full"
+            error={error}
+            filters={queueFilters}
+            items={queueItems}
+            keyword={queueKeyword}
+            loading={loading && rawQueueItems.length === 0}
+            onFiltersChange={setQueueFilters}
+            onKeywordChange={setQueueKeyword}
+            onRefresh={loadWorkflow}
+            onSelectWorkflow={selectQueueWorkflow}
+            refreshing={loading && rawQueueItems.length > 0}
+            selectedCaseId={activeCaseId}
+            selectedWorkflowId={activeWorkflowId}
+            total={rawQueueItems.length}
+          />
+
+          <WorkflowMainGrid
+            actions={actions}
+            allowedStatuses={allowedStatuses}
+            canOpenDetails={canOpenDetails}
+            currentStatus={currentStatus}
+            events={events}
+            hrefs={navigationHrefs}
+            loading={loading}
+            onOpenStatusDialog={openStatusDialog}
+            onWorkbenchStatusSelect={setSelectedWorkbenchStatus}
+            recommendedStatus={recommendedStatus}
+            selectedWorkbenchStatus={selectedWorkbenchStatus}
+            updating={updating}
+            workflow={workflow}
+          />
+        </section>
       </div>
 
       <StatusDialog
@@ -299,35 +417,6 @@ export function AttackWorkflowControlCenter({
         selectedStatus={selectedStatus}
         updating={updating}
       />
-    </main>
-  )
-}
-
-function WorkflowEmptyState() {
-  return (
-    <main className="flex min-h-[calc(100dvh-3rem)] w-full overflow-x-hidden bg-gray-50 p-3 sm:p-4 xl:p-5">
-      <Card className="w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-        <CardHeader className="border-b border-slate-100 px-5 py-4">
-          <div className="flex min-w-0 items-start gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-500 ring-1 ring-slate-100">
-              <ShieldQuestion className="size-5" />
-            </span>
-            <div className="min-w-0">
-              <CardTitle className="text-xl font-semibold text-slate-950">
-                AttackWorkflow Control Center
-              </CardTitle>
-              <CardDescription className="mt-1">
-                Open this page with a caseId or workflowId to manage the response workflow.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex justify-end px-5 py-4">
-          <Button asChild>
-            <Link href="/frame/attack/detail">Open Attack Cases</Link>
-          </Button>
-        </CardContent>
-      </Card>
     </main>
   )
 }

@@ -1,8 +1,4 @@
 export {
-  AttackWorkflowClosurePanel,
-  type AttackWorkflowClosurePanelProps,
-} from "./components/attack-workflow-closure-panel"
-export {
   getAttackWorkflow,
   getAttackWorkflowByCaseId,
   updateAttackWorkflowStatus,

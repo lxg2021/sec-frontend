@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react"
 import { useTranslations } from "next-intl"
 import { Search, Workflow } from "lucide-react"
 
-import { AttackWorkflowClosurePanel } from "@/features/attack/workflow"
+import { AttackWorkflowControlCenter } from "@/features/attack/workflow-center/components/attack-workflow-control-center"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
@@ -118,11 +118,9 @@ export default function AttackWorkflowDebugPage() {
           </form>
         </section>
 
-        <AttackWorkflowClosurePanel
+        <AttackWorkflowControlCenter
           caseId={caseId}
           workflowId={workflowId}
-          includeActions
-          includeEvents
         />
       </div>
     </div>

@@ -12,7 +12,6 @@ import {
 } from "@/features/attack/dashboard/api"
 import { AttackDetailHeader } from "@/features/attack/detail/components/attack-detail-header"
 import { AttackCaseList } from "@/features/attack/detail/components/attack-case-list"
-import { AttackWorkflowClosurePanel } from "@/features/attack/workflow"
 import {
   dedupeAttackCaseItems,
   mergeAttackCaseItems,
@@ -462,11 +461,6 @@ export default function AttackDetailPage() {
           stages={stages}
           selectedStageSlug={selectedStageSlug}
           onSelectStage={onSelectStage}
-        />
-        <AttackWorkflowClosurePanel
-          caseId={selectedWorkflowCaseId}
-          includeActions
-          includeEvents
         />
         <AttackCaseList
           items={caseItems}
