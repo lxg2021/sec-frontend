@@ -598,10 +598,12 @@ function TransitionDetail({
 
 function SectionTitle({
   icon: Icon,
+  iconClassName,
   isChinese,
   children,
 }: {
   icon: ComponentType<{ className?: string }>
+  iconClassName?: string
   isChinese: boolean
   children: ReactNode
 }) {
@@ -612,7 +614,10 @@ function SectionTitle({
         isChinese && "font-medium",
       )}
     >
-      <Icon className="h-4 w-4 text-slate-400" aria-hidden="true" />
+      <Icon
+        className={cn("h-4 w-4", iconClassName ?? "text-slate-400")}
+        aria-hidden="true"
+      />
       {children}
     </h3>
   )
@@ -939,17 +944,21 @@ export function AttackWorkflowStageWorkbench({
           ref={controlSectionRef}
           className="flex flex-col gap-3 2xl:col-span-4"
         >
-          <SectionTitle icon={Activity} isChinese={isChinese}>
+          <SectionTitle
+            icon={Activity}
+            iconClassName="text-sky-500"
+            isChinese={isChinese}
+          >
             {t("control.title")}
           </SectionTitle>
 
           {isReadOnly ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
               <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                <Lock className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                <Lock className="h-4 w-4 text-sky-500" aria-hidden="true" />
                 {t("control.reviewMode")}
               </p>
-              <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+              <p className="mt-1.5 pl-2.5 text-xs leading-relaxed text-slate-500">
                 {readOnlyText}
               </p>
               <TransitionDetail
@@ -1033,26 +1042,28 @@ export function AttackWorkflowStageWorkbench({
 
               {secondaryStatuses.length > 0 ? (
                 <div className="flex flex-col gap-1.5">
-                  <span
-                    className={cn(
-                      "font-medium text-slate-900",
-                      isChinese
-                        ? "text-[11px]"
-                        : "text-[11px] uppercase tracking-wide",
-                    )}
-                  >
-                    {t("control.otherTransitions")}
-                  </span>
-                  <p
-                    className={cn(
-                      "text-slate-500",
-                      isChinese
-                        ? "text-xs leading-relaxed"
-                        : "text-xs leading-relaxed",
-                    )}
-                  >
-                    {t("control.otherTransitionsHint")}
-                  </p>
+                  <div className="rounded-lg bg-slate-50 px-2.5 py-2">
+                    <span
+                      className={cn(
+                        "font-medium text-slate-900",
+                        isChinese
+                          ? "text-[11px]"
+                          : "text-[11px] uppercase tracking-wide",
+                      )}
+                    >
+                      {t("control.otherTransitions")}
+                    </span>
+                    <p
+                      className={cn(
+                        "text-slate-500",
+                        isChinese
+                          ? "mt-0.5 text-xs leading-relaxed"
+                          : "mt-0.5 text-xs leading-relaxed",
+                      )}
+                    >
+                      {t("control.otherTransitionsHint")}
+                    </p>
+                  </div>
                   <div className="flex flex-wrap gap-1.5">
                     {secondaryStatuses.map((status) => (
                       <Button
@@ -1088,7 +1099,11 @@ export function AttackWorkflowStageWorkbench({
               "2xl:h-[var(--stage-control-section-height)] 2xl:max-h-[var(--stage-control-section-height)]",
           )}
         >
-          <SectionTitle icon={Wrench} isChinese={isChinese}>
+          <SectionTitle
+            icon={Wrench}
+            iconClassName="text-teal-500"
+            isChinese={isChinese}
+          >
             {t("tools.title")}
           </SectionTitle>
           <div
@@ -1128,7 +1143,11 @@ export function AttackWorkflowStageWorkbench({
               "2xl:h-[var(--stage-control-section-height)] 2xl:max-h-[var(--stage-control-section-height)]",
           )}
         >
-          <SectionTitle icon={ScrollText} isChinese={isChinese}>
+          <SectionTitle
+            icon={ScrollText}
+            iconClassName="text-indigo-500"
+            isChinese={isChinese}
+          >
             {t("guide.title")}
           </SectionTitle>
           <div
@@ -1168,7 +1187,7 @@ export function AttackWorkflowStageWorkbench({
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
                 <span>{t("guide.detailedChecklist")}</span>
                 <ChevronDown
-                  className="size-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+                  className="size-4 shrink-0 text-indigo-400 transition-transform group-open:rotate-180 group-hover:text-indigo-500"
                   aria-hidden="true"
                 />
               </summary>
