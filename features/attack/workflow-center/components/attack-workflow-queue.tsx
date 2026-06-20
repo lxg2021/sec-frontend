@@ -349,20 +349,10 @@ export function AttackWorkflowQueue({
     >
       <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div className="min-w-0">
-          <h2
-            className={cn(
-              "font-semibold text-slate-900",
-              isChinese ? "text-base leading-6" : "text-sm",
-            )}
-          >
+          <h2 className="text-sm font-semibold leading-5 text-slate-900">
             {t("queue.title")}
           </h2>
-          <p
-            className={cn(
-              "mt-0.5 truncate text-slate-500",
-              isChinese ? "text-[13px]" : "text-xs",
-            )}
-          >
+          <p className="mt-0.5 truncate text-xs text-slate-500">
             {queueScopeSummary}
             {typeof total === "number" ? (
               <>
@@ -438,8 +428,7 @@ export function AttackWorkflowQueue({
                 aria-pressed={active}
                 onClick={() => handleScope(option.value)}
                 className={cn(
-                  "rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-                  isChinese ? "h-8 text-sm" : "h-7 text-xs",
+                  "h-7 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                   active
                     ? "bg-white text-blue-700 shadow-sm"
                     : "text-slate-600 hover:text-slate-900",
@@ -566,7 +555,6 @@ export function AttackWorkflowQueue({
                 onPageChange={handlePageChange}
                 shownEnd={shownEnd}
                 shownStart={shownStart}
-                isChinese={isChinese}
                 total={normalizedTotal}
                 totalPages={paginationTotalPages}
                 t={t}
@@ -587,7 +575,6 @@ function QueuePaginationFooter({
   onPageChange,
   shownEnd,
   shownStart,
-  isChinese,
   t,
   total,
   totalPages,
@@ -599,7 +586,6 @@ function QueuePaginationFooter({
   onPageChange: (page: number) => void
   shownEnd: number
   shownStart: number
-  isChinese: boolean
   t: WorkflowCenterT
   total: number
   totalPages: number
@@ -613,12 +599,7 @@ function QueuePaginationFooter({
 
   return (
     <div className="mt-3 flex flex-col gap-2 border-t border-slate-100 pt-3">
-      <div
-        className={cn(
-          "flex items-center justify-between gap-3 text-slate-500",
-          isChinese ? "text-[13px]" : "text-xs",
-        )}
-      >
+      <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
         <span className="min-w-0 truncate">
           {t("queue.pagination.showing", {
             end: shownEnd,
@@ -767,10 +748,7 @@ function QueueItemCard({
 
       <h3
         title={displayTitle}
-        className={cn(
-          "mt-1.5 line-clamp-1 min-h-5 font-semibold text-slate-900",
-          isChinese ? "text-[14px] leading-5" : "text-sm leading-5",
-        )}
+        className="mt-1.5 line-clamp-1 min-h-5 text-sm font-semibold leading-5 text-slate-900"
       >
         {displayTitle}
       </h3>

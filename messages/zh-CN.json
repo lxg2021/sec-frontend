@@ -1581,7 +1581,7 @@
         },
         "labels": {
           "current": "当前",
-          "selected": "已选",
+          "selected": "选中",
           "next": "下一步",
           "result": "结果",
           "time": "时间",
@@ -1624,7 +1624,7 @@
           "ruleCount": "{count} 条规则",
           "openActionCount": "{count} 个待处理动作",
           "scope": {
-            "open": "打开",
+            "open": "待处理",
             "all": "全部",
             "closed": "已关闭"
           },
@@ -1719,7 +1719,7 @@
           "title": "阶段说明",
           "purpose": "阶段目标",
           "riskNote": "风险提示",
-          "detailedChecklist": "详细检查清单",
+          "detailedChecklist": "检查清单",
           "whatToVerify": "需要确认",
           "completionCriteria": "完成标准"
         },

@@ -544,17 +544,17 @@ function getDensityClasses(
         return {
           marker: "size-11",
           icon: "size-6",
-          label: "text-[14px] font-medium",
-          accent: "text-xs",
-          time: "text-[10px] font-mono",
+          label: "text-sm font-medium",
+          accent: "text-[11px]",
+          time: "text-[11px] font-mono",
           gapY: "gap-1",
         }
       case "compact":
         return {
           marker: "size-8",
           icon: "size-[18px]",
-          label: "text-xs font-medium",
-          accent: "text-[11px]",
+          label: "text-[11px] font-medium",
+          accent: "text-[10px]",
           time: "text-[10px] font-mono",
           gapY: "gap-0.5",
         }
@@ -563,8 +563,8 @@ function getDensityClasses(
         return {
           marker: "size-9",
           icon: "size-[22px]",
-          label: "text-[13px] font-medium",
-          accent: "text-[11px]",
+          label: "text-xs font-medium",
+          accent: "text-[10px]",
           time: "text-[10px] font-mono",
           gapY: "gap-0.5",
         }
@@ -685,7 +685,7 @@ function NodeBadges({
       <span
         className={cn(
           "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 font-semibold",
-          isChinese ? "text-[11px]" : "text-[10px] uppercase tracking-wide",
+          isChinese ? "text-[10px]" : "text-[10px] uppercase tracking-wide",
           tone.currentBadge,
         )}
       >
@@ -699,7 +699,7 @@ function NodeBadges({
       <span
         className={cn(
           "inline-flex shrink-0 items-center gap-0.5 rounded-full border px-2 py-0.5 font-semibold",
-          isChinese ? "text-[11px]" : "text-[10px] uppercase tracking-wide",
+          isChinese ? "text-[10px]" : "text-[10px] uppercase tracking-wide",
           tone.nextBadge,
         )}
       >
@@ -831,9 +831,7 @@ function HorizontalNode({
             t={t}
           />
         </div>
-        <span
-          className={cn(density.accent, tone.accent, isChinese && "leading-4")}
-        >
+        <span className={cn(density.accent, tone.accent)}>
           {node.description}
         </span>
         <span className={cn("text-slate-400", density.time)}>
@@ -901,9 +899,7 @@ function VerticalNode({
             t={t}
           />
         </div>
-        <span
-          className={cn(density.accent, tone.accent, isChinese && "leading-5")}
-        >
+        <span className={cn(density.accent, tone.accent)}>
           {node.description}
         </span>
         <span className={cn("text-slate-400", density.time)}>
