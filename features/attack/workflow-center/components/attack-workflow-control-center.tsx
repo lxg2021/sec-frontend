@@ -184,6 +184,7 @@ export function AttackWorkflowControlCenter({
   const [updating, setUpdating] = useState(false)
   const loadSeqRef = useRef(0)
   const queueLoadSeqRef = useRef(0)
+  const autoSelectedQueueKeyRef = useRef("")
 
   const normalizedCaseId = caseId.trim()
   const normalizedEndTime = endTime.trim()
@@ -370,6 +371,90 @@ export function AttackWorkflowControlCenter({
       }),
     [actions, events, queueWorkflows, workflow],
   )
+  const activeQueueItemOnPage = useMemo(
+    () =>
+      rawQueueItems.some(
+        (item) =>
+          (activeWorkflowId && item.workflow_id === activeWorkflowId) ||
+          (activeCaseId && item.case_id === activeCaseId),
+      ),
+    [activeCaseId, activeWorkflowId, rawQueueItems],
+  )
+  const shouldDefaultSelectFirstQueueItem =
+    !normalizedCaseId &&
+    !normalizedWorkflowId &&
+    rawQueueItems.length > 0 &&
+    !activeQueueItemOnPage
+  const defaultSelectedQueueItem = shouldDefaultSelectFirstQueueItem
+    ? rawQueueItems[0]
+    : null
+  const useActiveQueueSelection =
+    activeQueueItemOnPage || Boolean(normalizedCaseId || normalizedWorkflowId)
+  const selectedQueueWorkflowId =
+    useActiveQueueSelection
+      ? activeWorkflowId
+      : defaultSelectedQueueItem?.workflow_id || ""
+  const selectedQueueCaseId =
+    useActiveQueueSelection
+      ? activeCaseId
+      : defaultSelectedQueueItem?.case_id || ""
+
+  useEffect(() => {
+    if (normalizedCaseId || normalizedWorkflowId) return
+    if (queueLoading || queueRefreshing || rawQueueItems.length === 0) return
+    if (activeQueueItemOnPage) return
+
+    const firstItem = rawQueueItems[0]
+    const firstKey = firstItem.workflow_id || firstItem.case_id
+    if (!firstKey || autoSelectedQueueKeyRef.current === firstKey) return
+    autoSelectedQueueKeyRef.current = firstKey
+
+    const nextSeq = loadSeqRef.current + 1
+    loadSeqRef.current = nextSeq
+    setLoading(true)
+    setError("")
+
+    void (async () => {
+      try {
+        const nextDetail = firstItem.workflow_id
+          ? await getAttackWorkflow({
+              tenantId,
+              workflowId: firstItem.workflow_id,
+              includeActions: true,
+              includeEvents: true,
+            })
+          : await getAttackWorkflowByCaseId({
+              tenantId,
+              caseId: firstItem.case_id,
+              includeActions: true,
+              includeEvents: true,
+            })
+
+        if (loadSeqRef.current !== nextSeq) return
+        setDetail(nextDetail)
+      } catch (err) {
+        if (loadSeqRef.current !== nextSeq) return
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to load AttackWorkflow.",
+        )
+        setDetail(null)
+      } finally {
+        if (loadSeqRef.current === nextSeq) {
+          setLoading(false)
+        }
+      }
+    })()
+  }, [
+    activeQueueItemOnPage,
+    normalizedCaseId,
+    normalizedWorkflowId,
+    queueLoading,
+    queueRefreshing,
+    rawQueueItems,
+    tenantId,
+  ])
 
   function openStatusDialog(status: AttackWorkflowStatus) {
     setSelectedStatus(status)
@@ -466,8 +551,8 @@ export function AttackWorkflowControlCenter({
             onPageChange={(page) => void loadWorkflowQueue({ page })}
             onSelectWorkflow={selectQueueWorkflow}
             refreshing={queueRefreshing}
-            selectedCaseId={activeCaseId}
-            selectedWorkflowId={activeWorkflowId}
+            selectedCaseId={selectedQueueCaseId}
+            selectedWorkflowId={selectedQueueWorkflowId}
             total={queueTotal}
           />
 

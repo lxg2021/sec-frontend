@@ -191,6 +191,20 @@ function ruleSummary(item: AttackWorkflowQueueItem) {
   return `${count} ${count === 1 ? "rule" : "rules"}`
 }
 
+function titleText(title: string) {
+  const fallbackTitle = "Untitled workflow"
+  const normalizedTitle = title
+    .trim()
+    .replace(/^\u653b\u51fb\u94fe\s*(?:[:\uFF1A]\s*)?/u, "")
+    .trim()
+  const titlePrefixMatch = normalizedTitle.match(/^title\s*[:\uFF1A]\s*/i)
+  const displayTitle = titlePrefixMatch
+    ? normalizedTitle.slice(titlePrefixMatch[0].length).trim()
+    : normalizedTitle
+
+  return `Title: ${displayTitle || fallbackTitle}`
+}
+
 function isClosedStatus(status: string) {
   return normalizeToken(status) === "closed"
 }
@@ -668,7 +682,7 @@ function QueueItemCard({
       </div>
 
       <h3 className="mt-1.5 line-clamp-2 text-sm font-semibold leading-snug text-slate-900">
-        {item.title || "Untitled workflow"}
+        {titleText(item.title)}
       </h3>
 
       <p
