@@ -1,5 +1,7 @@
 "use client"
 
+import { ShieldAlert } from "lucide-react"
+
 import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
 import { AttackWorkflowSpine } from "./attack-workflow-spine"
 import type {
@@ -8,10 +10,7 @@ import type {
   AttackWorkflowItem,
   AttackWorkflowStatus,
 } from "@/features/attack/workflow/types"
-import {
-  formatWorkflowTime,
-  normalizeWorkflowStatus,
-} from "@/features/attack/workflow/utils"
+import { normalizeWorkflowStatus } from "@/features/attack/workflow/utils"
 import { cn } from "@/shared/lib/utils"
 import { Card } from "@/shared/ui/card"
 
@@ -21,12 +20,6 @@ interface AttackWorkflowProcessCardProps {
   loading?: boolean
   recommendedStatus: AttackWorkflowStatus | null
   workflow: AttackWorkflowItem | null
-}
-
-interface FactItem {
-  label: string
-  value: string
-  mono?: boolean
 }
 
 const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
@@ -40,17 +33,13 @@ const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   closed: "Closed",
 }
 
-function displayValue(value?: string) {
+function displayHeaderValue(value?: string) {
   return value?.trim() || "-"
 }
 
-function compactList(values: string[], limit = 2) {
-  const visible = values.map((value) => value.trim()).filter(Boolean)
-  if (visible.length === 0) return "-"
-
-  const head = visible.slice(0, limit)
-  const hidden = visible.length - head.length
-  return hidden > 0 ? `${head.join(", ")} +${hidden}` : head.join(", ")
+function displayWorkflowTitle(value?: string) {
+  const normalized = value?.trim().replace(/^攻击链[:：]\s*/i, "")
+  return normalized || "-"
 }
 
 function statusLabel(status: string) {
@@ -95,82 +84,51 @@ function processNoticeTone(workflow: AttackWorkflowItem | null) {
   }
 }
 
-function workflowFacts(workflow: AttackWorkflowItem | null): FactItem[] {
-  return [
-    {
-      label: "Tenant",
-      value: workflow?.tenant_id || "-",
-      mono: true,
-    },
-    {
-      label: "Root",
-      value: workflow
-        ? `${displayValue(workflow.root_type)} / ${displayValue(workflow.root_id)}`
-        : "-",
-      mono: true,
-    },
-    {
-      label: "Primary agent",
-      value: workflow?.primary_agent_id || "-",
-      mono: true,
-    },
-    {
-      label: "Updated",
-      value: workflow ? formatWorkflowTime(workflow.updated_at) : "-",
-      mono: true,
-    },
-    {
-      label: "Agents",
-      value: workflow ? compactList(workflow.agent_ids) : "-",
-      mono: true,
-    },
-    {
-      label: "Rules",
-      value: workflow ? compactList(workflow.rule_ids) : "-",
-      mono: true,
-    },
-    {
-      label: "Instances",
-      value: workflow ? compactList(workflow.instance_ids) : "-",
-      mono: true,
-    },
-    {
-      label: "Groups",
-      value: workflow ? compactList(workflow.group_ids) : "-",
-      mono: true,
-    },
-  ]
-}
-
-function FactsStrip({
+function WorkflowHeader({
   loading,
   workflow,
 }: {
   loading: boolean
   workflow: AttackWorkflowItem | null
 }) {
-  const facts = workflowFacts(workflow)
+  const title =
+    loading && !workflow
+      ? "Title loading..."
+      : displayWorkflowTitle(workflow?.title)
+  const caseId =
+    loading && !workflow ? "Loading..." : displayHeaderValue(workflow?.case_id)
 
   return (
-    <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),1fr))] gap-x-8 gap-y-4 px-4 py-4">
-      {facts.map((fact) => (
-        <div key={fact.label} className="min-w-0">
-          <div className="text-[11px] font-semibold text-slate-400">
-            {fact.label}
-          </div>
-          <div
+    <header className="flex min-w-0 items-center gap-3 px-6 py-5">
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white">
+        <ShieldAlert className="size-6" aria-hidden="true" />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <h2
+          className={cn(
+            "line-clamp-2 break-words text-lg font-semibold leading-6 text-slate-950",
+            loading && !workflow && "text-slate-400",
+          )}
+          title={title}
+        >
+          {title}
+        </h2>
+
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 text-sm text-slate-500">
+          <span className="font-medium">Case ID</span>
+          <span
             className={cn(
-              "mt-1 line-clamp-2 break-all text-sm font-semibold text-slate-800",
-              fact.mono && "font-mono text-xs",
+              "min-w-0 max-w-full rounded-md bg-slate-100 px-3 py-1 font-mono text-xs font-semibold leading-5 text-slate-700",
               loading && !workflow && "text-slate-400",
             )}
-            title={fact.value}
+            title={caseId}
           >
-            {loading && !workflow ? "Loading..." : fact.value}
-          </div>
+            <span className="line-clamp-2 break-all">{caseId}</span>
+          </span>
         </div>
-      ))}
-    </div>
+      </div>
+    </header>
   )
 }
 
@@ -185,7 +143,7 @@ export function AttackWorkflowProcessCard({
 
   return (
     <Card className="min-h-0 w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <FactsStrip loading={loading} workflow={workflow} />
+      <WorkflowHeader loading={loading} workflow={workflow} />
 
       <div className="border-t border-slate-100">
         <AttackWorkflowSpine
