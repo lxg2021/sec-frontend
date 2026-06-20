@@ -259,6 +259,7 @@ export function AttackWorkflowControlCenter({
   const loadSeqRef = useRef(0)
   const queueLoadSeqRef = useRef(0)
   const autoSelectedQueueKeyRef = useRef("")
+  const tRef = useRef(t)
 
   const normalizedCaseId = caseId.trim()
   const normalizedEndTime = endTime.trim()
@@ -267,6 +268,10 @@ export function AttackWorkflowControlCenter({
   const normalizedTimezone = timezone.trim()
   const normalizedWorkflowId = workflowId.trim()
   const isChineseLocale = locale.toLowerCase().startsWith("zh")
+
+  useEffect(() => {
+    tRef.current = t
+  }, [t])
 
   const loadAttackOverview = useCallback(async () => {
     setAttackOverviewLoading(true)
@@ -312,6 +317,7 @@ export function AttackWorkflowControlCenter({
       const normalizedTargetWorkflowId = targetWorkflowId.trim()
 
       if (!normalizedTargetCaseId && !normalizedTargetWorkflowId) {
+        autoSelectedQueueKeyRef.current = ""
         setDetail(null)
         setError("")
         setLoading(false)
@@ -340,7 +346,9 @@ export function AttackWorkflowControlCenter({
       } catch (err) {
         if (loadSeqRef.current !== nextSeq) return
         setError(
-          err instanceof Error ? err.message : t("errors.loadWorkflowFailed"),
+          err instanceof Error
+            ? err.message
+            : tRef.current("errors.loadWorkflowFailed"),
         )
         setDetail(null)
       } finally {
@@ -349,7 +357,7 @@ export function AttackWorkflowControlCenter({
         }
       }
     },
-    [t, tenantId],
+    [tenantId],
   )
 
   const loadWorkflow = useCallback(
