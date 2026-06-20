@@ -8,6 +8,9 @@ import {
   ShieldCheck,
 } from "lucide-react"
 
+import { fetchAttackOverview } from "@/features/attack/dashboard/api"
+import type { AttackOverview } from "@/features/attack/dashboard/types"
+import { AttackDetailHeader } from "@/features/attack/detail/components/attack-detail-header"
 import { AttackWorkflowActivityPanel } from "./attack-workflow-activity-panel"
 import { AttackWorkflowPageHeader } from "./attack-workflow-page-header"
 import { AttackWorkflowProcessCard } from "./attack-workflow-process-card"
@@ -88,6 +91,26 @@ const DEFAULT_QUEUE_FILTERS: AttackWorkflowQueueFilters = {
   severities: [],
 }
 const QUEUE_PAGE_SIZE = 6
+const WORKFLOW_RANGE_TIMEZONE = "Asia/Shanghai"
+
+const EMPTY_ATTACK_OVERVIEW: AttackOverview = {
+  bucket: {
+    bucket_type: "fixed",
+    bucket_start: "",
+    bucket_end: "",
+  },
+  scope: "",
+  total_rules: 0,
+  total_groups: 0,
+  total_instances: 0,
+  total_sources: 0,
+  total_hosts: 0,
+  total_cases: 0,
+  critical_count: 0,
+  high_count: 0,
+  medium_count: 0,
+  low_count: 0,
+}
 
 const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   detected: "Detected",
@@ -120,6 +143,34 @@ function buildStatusPayload(comment: string, source: string) {
     comment: normalized,
     source,
   })
+}
+
+function parseOverviewBucketTime(value?: string) {
+  if (!value) return null
+  const normalized = value.trim().replace(" ", "T")
+  if (!normalized) return null
+  const hasExplicitTimezone = /(?:z|[+-]\d{2}:?\d{2})$/i.test(normalized)
+  const date = new Date(hasExplicitTimezone ? normalized : `${normalized}Z`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function toWorkflowRangeParam(value?: string, timeZone = WORKFLOW_RANGE_TIMEZONE) {
+  const date = parseOverviewBucketTime(value)
+  if (!date) return ""
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date)
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+
+  return `${part("year")}-${part("month")}-${part("day")} ${part("hour")}:${part("minute")}:${part("second")}`
 }
 
 function actionNeedsAttention(action: AttackWorkflowActionItem) {
@@ -160,6 +211,9 @@ export function AttackWorkflowControlCenter({
 }: AttackWorkflowControlCenterProps) {
   const router = useRouter()
   const { toast } = useToast()
+  const [attackOverview, setAttackOverview] =
+    useState<AttackOverview | null>(null)
+  const [attackOverviewLoading, setAttackOverviewLoading] = useState(false)
   const [detail, setDetail] = useState<AttackWorkflowDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -188,9 +242,35 @@ export function AttackWorkflowControlCenter({
 
   const normalizedCaseId = caseId.trim()
   const normalizedEndTime = endTime.trim()
+  const normalizedSnapshotId = snapshotId.trim()
   const normalizedStartTime = startTime.trim()
   const normalizedTimezone = timezone.trim()
   const normalizedWorkflowId = workflowId.trim()
+
+  const loadAttackOverview = useCallback(async () => {
+    setAttackOverviewLoading(true)
+
+    try {
+      const nextOverview = await fetchAttackOverview(
+        "fixed",
+        normalizedSnapshotId,
+      )
+      setAttackOverview(nextOverview)
+    } catch (err) {
+      setAttackOverview((current) => current ?? EMPTY_ATTACK_OVERVIEW)
+      toast({
+        title: "Failed to load attack overview",
+        description: err instanceof Error ? err.message : undefined,
+        variant: "destructive",
+      })
+    } finally {
+      setAttackOverviewLoading(false)
+    }
+  }, [normalizedSnapshotId, toast])
+
+  useEffect(() => {
+    void loadAttackOverview()
+  }, [loadAttackOverview])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -322,6 +402,33 @@ export function AttackWorkflowControlCenter({
     void loadWorkflowQueue()
   }, [loadWorkflowQueue])
 
+  async function refreshAttackOverviewHeader() {
+    await Promise.all([
+      loadAttackOverview(),
+      loadWorkflow(),
+      loadWorkflowQueue({ page: queuePage, refreshing: true }),
+    ])
+  }
+
+  function selectAttackOverviewSnapshot(snapshot: AttackOverview) {
+    setAttackOverview(snapshot)
+    autoSelectedQueueKeyRef.current = ""
+
+    const params = new URLSearchParams()
+    const nextSnapshotId = snapshot.bucket.snapshot_id?.trim() || ""
+    const nextStartTime = toWorkflowRangeParam(snapshot.bucket.bucket_start)
+    const nextEndTime = toWorkflowRangeParam(snapshot.bucket.bucket_end)
+
+    if (nextSnapshotId) params.set("snapshotId", nextSnapshotId)
+    if (nextStartTime) params.set("startTime", nextStartTime)
+    if (nextEndTime) params.set("endTime", nextEndTime)
+    params.set("timezone", WORKFLOW_RANGE_TIMEZONE)
+    if (tenantId.trim()) params.set("tenantId", tenantId.trim())
+
+    const query = params.toString()
+    router.push(`/frame/attack/workflow${query ? `?${query}` : ""}`)
+  }
+
   const workflow = detail?.workflow ?? null
   const actions = detail?.actions ?? []
   const events = detail?.events ?? []
@@ -337,13 +444,13 @@ export function AttackWorkflowControlCenter({
     returnToWorkflow: true,
   }
   const attackDetailHref = activeCaseId
-    ? buildAttackDetailHref(activeCaseId, snapshotId)
+    ? buildAttackDetailHref(activeCaseId, normalizedSnapshotId)
     : "/frame/attack/detail"
   const traceHref = canOpenDetails
-    ? buildTraceHref(activeCaseId, snapshotId, detailOptions)
+    ? buildTraceHref(activeCaseId, normalizedSnapshotId, detailOptions)
     : "/frame/attack/drill"
   const aiHref = canOpenDetails
-    ? buildAIAnalysisHref(activeCaseId, snapshotId, detailOptions)
+    ? buildAIAnalysisHref(activeCaseId, normalizedSnapshotId, detailOptions)
     : "/frame/ai-ops/threat-analysis"
   const navigationHrefs: WorkflowNavigationHrefs = {
     attackDetailHref,
@@ -505,7 +612,7 @@ export function AttackWorkflowControlCenter({
     const params = new URLSearchParams()
     if (item.case_id) params.set("caseId", item.case_id)
     if (item.workflow_id) params.set("workflowId", item.workflow_id)
-    if (snapshotId.trim()) params.set("snapshotId", snapshotId.trim())
+    if (normalizedSnapshotId) params.set("snapshotId", normalizedSnapshotId)
     if (normalizedStartTime) params.set("startTime", normalizedStartTime)
     if (normalizedEndTime) params.set("endTime", normalizedEndTime)
     if (normalizedTimezone) params.set("timezone", normalizedTimezone)
@@ -516,6 +623,14 @@ export function AttackWorkflowControlCenter({
   return (
     <main className="flex min-h-[calc(100dvh-3rem)] w-full overflow-x-hidden bg-gray-50 p-3 sm:p-4 xl:p-5">
       <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
+        <AttackDetailHeader
+          overview={attackOverview ?? EMPTY_ATTACK_OVERVIEW}
+          checking={attackOverviewLoading}
+          title="AttackWorkflow Control Center"
+          onRefresh={() => void refreshAttackOverviewHeader()}
+          onSnapshotChange={selectAttackOverviewSnapshot}
+        />
+
         <AttackWorkflowPageHeader
           activeCaseId={activeCaseId}
           activeWorkflowId={activeWorkflowId}
