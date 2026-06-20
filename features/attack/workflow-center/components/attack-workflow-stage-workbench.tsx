@@ -654,10 +654,10 @@ function ToolRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors",
+        "flex items-center gap-3 px-3 py-2.5 transition-colors",
         disabled
-          ? "border-slate-200 bg-slate-50/50 opacity-70"
-          : "border-slate-200 bg-white hover:border-slate-300",
+          ? "bg-slate-50/50 opacity-70"
+          : "bg-white hover:bg-slate-50/80",
       )}
     >
       <span
@@ -1076,8 +1076,9 @@ export function AttackWorkflowStageWorkbench({
           </SectionTitle>
           <div
             className={cn(
-              "flex min-h-0 flex-col gap-2",
-              hasControlHeight && "2xl:flex-1 2xl:overflow-y-auto 2xl:pr-1",
+              "flex min-h-0 flex-col overflow-y-auto rounded-xl border border-slate-200 bg-white",
+              tools.length > 0 && "divide-y divide-slate-100",
+              hasControlHeight && "2xl:flex-1",
             )}
           >
             {tools.length > 0 ? (
@@ -1094,7 +1095,7 @@ export function AttackWorkflowStageWorkbench({
             ) : (
               <p
                 className={cn(
-                  "rounded-lg border border-dashed border-slate-200 bg-white px-3 py-4 text-slate-400",
+                  "px-3 py-4 text-slate-400",
                   isChinese ? "text-xs leading-relaxed" : "text-xs",
                 )}
               >
