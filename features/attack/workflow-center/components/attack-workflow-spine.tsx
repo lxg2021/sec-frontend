@@ -292,28 +292,164 @@ interface NodeTone {
   halo: string
 }
 
-function getNodeTone(state: SpineNodeState): NodeTone {
+interface WorkflowStatusTone {
+  markerCurrent: string
+  markerReached: string
+  markerRecommended: string
+  accent: string
+  halo: string
+  rail: string
+  progressBar: string
+  statusBadge: string
+  currentBadge: string
+  nextBadge: string
+  selectedBg: string
+}
+
+const WORKFLOW_STATUS_TONES: Record<AttackWorkflowStatus, WorkflowStatusTone> = {
+  detected: {
+    markerCurrent:
+      "border-amber-500 bg-white text-amber-600 shadow-sm shadow-amber-200",
+    markerReached: "border-amber-500 bg-amber-500 text-white",
+    markerRecommended: "border-amber-300 bg-amber-50 text-amber-600",
+    accent: "text-amber-600",
+    halo: "ring-4 ring-amber-100",
+    rail: "bg-amber-400",
+    progressBar: "bg-amber-500",
+    statusBadge: "border-amber-200 bg-amber-50 text-amber-700",
+    currentBadge: "bg-amber-500 text-white",
+    nextBadge: "border-amber-300 bg-amber-50 text-amber-700",
+    selectedBg: "bg-amber-50/70",
+  },
+  investigating: {
+    markerCurrent:
+      "border-cyan-500 bg-white text-cyan-600 shadow-sm shadow-cyan-200",
+    markerReached: "border-cyan-500 bg-cyan-500 text-white",
+    markerRecommended: "border-cyan-300 bg-cyan-50 text-cyan-600",
+    accent: "text-cyan-600",
+    halo: "ring-4 ring-cyan-100",
+    rail: "bg-cyan-400",
+    progressBar: "bg-cyan-500",
+    statusBadge: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    currentBadge: "bg-cyan-500 text-white",
+    nextBadge: "border-cyan-300 bg-cyan-50 text-cyan-700",
+    selectedBg: "bg-cyan-50/70",
+  },
+  confirmed: {
+    markerCurrent:
+      "border-blue-500 bg-white text-blue-600 shadow-sm shadow-blue-200",
+    markerReached: "border-blue-500 bg-blue-500 text-white",
+    markerRecommended: "border-blue-300 bg-blue-50 text-blue-600",
+    accent: "text-blue-600",
+    halo: "ring-4 ring-blue-100",
+    rail: "bg-blue-400",
+    progressBar: "bg-blue-500",
+    statusBadge: "border-blue-200 bg-blue-50 text-blue-700",
+    currentBadge: "bg-blue-500 text-white",
+    nextBadge: "border-blue-300 bg-blue-50 text-blue-700",
+    selectedBg: "bg-blue-50/70",
+  },
+  forensics: {
+    markerCurrent:
+      "border-violet-500 bg-white text-violet-600 shadow-sm shadow-violet-200",
+    markerReached: "border-violet-500 bg-violet-500 text-white",
+    markerRecommended: "border-violet-300 bg-violet-50 text-violet-600",
+    accent: "text-violet-600",
+    halo: "ring-4 ring-violet-100",
+    rail: "bg-violet-400",
+    progressBar: "bg-violet-500",
+    statusBadge: "border-violet-200 bg-violet-50 text-violet-700",
+    currentBadge: "bg-violet-500 text-white",
+    nextBadge: "border-violet-300 bg-violet-50 text-violet-700",
+    selectedBg: "bg-violet-50/70",
+  },
+  responding: {
+    markerCurrent:
+      "border-teal-500 bg-white text-teal-600 shadow-sm shadow-teal-200",
+    markerReached: "border-teal-500 bg-teal-500 text-white",
+    markerRecommended: "border-teal-300 bg-teal-50 text-teal-600",
+    accent: "text-teal-600",
+    halo: "ring-4 ring-teal-100",
+    rail: "bg-teal-400",
+    progressBar: "bg-teal-500",
+    statusBadge: "border-teal-200 bg-teal-50 text-teal-700",
+    currentBadge: "bg-teal-500 text-white",
+    nextBadge: "border-teal-300 bg-teal-50 text-teal-700",
+    selectedBg: "bg-teal-50/70",
+  },
+  contained: {
+    markerCurrent:
+      "border-emerald-500 bg-white text-emerald-600 shadow-sm shadow-emerald-200",
+    markerReached: "border-emerald-500 bg-emerald-500 text-white",
+    markerRecommended: "border-emerald-300 bg-emerald-50 text-emerald-600",
+    accent: "text-emerald-600",
+    halo: "ring-4 ring-emerald-100",
+    rail: "bg-emerald-400",
+    progressBar: "bg-emerald-500",
+    statusBadge: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    currentBadge: "bg-emerald-500 text-white",
+    nextBadge: "border-emerald-300 bg-emerald-50 text-emerald-700",
+    selectedBg: "bg-emerald-50/70",
+  },
+  remediated: {
+    markerCurrent:
+      "border-green-500 bg-white text-green-600 shadow-sm shadow-green-200",
+    markerReached: "border-green-500 bg-green-500 text-white",
+    markerRecommended: "border-green-300 bg-green-50 text-green-600",
+    accent: "text-green-600",
+    halo: "ring-4 ring-green-100",
+    rail: "bg-green-400",
+    progressBar: "bg-green-500",
+    statusBadge: "border-green-200 bg-green-50 text-green-700",
+    currentBadge: "bg-green-500 text-white",
+    nextBadge: "border-green-300 bg-green-50 text-green-700",
+    selectedBg: "bg-green-50/70",
+  },
+  closed: {
+    markerCurrent:
+      "border-green-600 bg-white text-green-700 shadow-sm shadow-green-200",
+    markerReached: "border-green-600 bg-green-600 text-white",
+    markerRecommended: "border-green-300 bg-green-50 text-green-700",
+    accent: "text-green-700",
+    halo: "ring-4 ring-green-100",
+    rail: "bg-green-500",
+    progressBar: "bg-green-600",
+    statusBadge: "border-green-200 bg-green-50 text-green-700",
+    currentBadge: "bg-green-600 text-white",
+    nextBadge: "border-green-300 bg-green-50 text-green-700",
+    selectedBg: "bg-green-50/70",
+  },
+}
+
+function getWorkflowStatusTone(status: AttackWorkflowStatus): WorkflowStatusTone {
+  return WORKFLOW_STATUS_TONES[status]
+}
+
+function getNodeTone(status: AttackWorkflowStatus, state: SpineNodeState): NodeTone {
+  const statusTone = getWorkflowStatusTone(status)
+
   switch (state) {
     case "current":
       return {
-        marker: "border-sky-500 bg-white text-sky-600 shadow-sm shadow-sky-200",
+        marker: statusTone.markerCurrent,
         label: "text-slate-900",
-        accent: "text-sky-600",
-        halo: "ring-4 ring-sky-100",
+        accent: statusTone.accent,
+        halo: statusTone.halo,
       }
     case "completed":
-      return {
-        marker: "border-emerald-500 bg-emerald-500 text-white",
-        label: "text-slate-700",
-        accent: "text-emerald-600",
-        halo: "ring-0",
-      }
     case "recorded":
       return {
-        marker: "border-cyan-500 bg-cyan-500 text-white",
+        marker: statusTone.markerReached,
         label: "text-slate-700",
-        accent: "text-cyan-600",
+        accent: statusTone.accent,
         halo: "ring-0",
+      }
+    case "recommended":
+      return {
+        marker: statusTone.markerRecommended,
+        label: statusTone.accent,
+        accent: statusTone.accent,
+        halo: statusTone.halo,
       }
     case "inconsistent":
       return {
@@ -330,7 +466,6 @@ function getNodeTone(state: SpineNodeState): NodeTone {
         halo: "ring-4 ring-rose-100",
       }
     case "pending":
-    case "recommended":
     default:
       return {
         marker: "border-slate-200 bg-white text-slate-300",
@@ -343,12 +478,13 @@ function getNodeTone(state: SpineNodeState): NodeTone {
 
 /** Color of the rail segment that connects into this node from the previous. */
 function getConnectorTone(
+  status: AttackWorkflowStatus,
   nodeIndex: number,
   currentIndex: number,
   isKnownStatus: boolean,
 ): string {
   if (isKnownStatus && nodeIndex <= currentIndex) {
-    return "bg-emerald-400"
+    return getWorkflowStatusTone(status).rail
   }
   return "bg-slate-200"
 }
@@ -467,15 +603,24 @@ interface SpineNodeData {
 }
 
 function NodeBadges({
+  status,
   isCurrent,
   showNext,
 }: {
+  status: AttackWorkflowStatus
   isCurrent: boolean
   showNext: boolean
 }) {
+  const tone = getWorkflowStatusTone(status)
+
   if (isCurrent) {
     return (
-      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+      <span
+        className={cn(
+          "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+          tone.currentBadge,
+        )}
+      >
         <span className="size-1.5 animate-pulse rounded-full bg-white" />
         Current
       </span>
@@ -483,7 +628,12 @@ function NodeBadges({
   }
   if (showNext) {
     return (
-      <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-700">
+      <span
+        className={cn(
+          "inline-flex shrink-0 items-center gap-0.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+          tone.nextBadge,
+        )}
+      >
         <ArrowRight className="size-3" />
         Next
       </span>
@@ -501,7 +651,7 @@ function HorizontalNode({
   node: SpineNodeData
   density: DensityClasses
 }) {
-  const tone = getNodeTone(node.state)
+  const tone = getNodeTone(node.status, node.state)
 
   return (
     <div className="flex w-full min-w-0 flex-col items-center">
@@ -546,7 +696,11 @@ function HorizontalNode({
           <span className={cn("truncate", density.label, tone.label)}>
             {node.label}
           </span>
-          <NodeBadges isCurrent={node.isCurrent} showNext={node.showNext} />
+          <NodeBadges
+            status={node.status}
+            isCurrent={node.isCurrent}
+            showNext={node.showNext}
+          />
         </div>
         <span className={cn(density.accent, tone.accent)}>
           {node.description}
@@ -561,10 +715,8 @@ function HorizontalNode({
 
 /** The outgoing connector of a node mirrors the incoming connector of the next. */
 function getConnectorToneAfter(node: SpineNodeData): string {
-  // If this node is completed/current and reached, the next segment shows
-  // progress only up to the current node; keep it emerald only when the next
-  // node is also reached. We approximate using completed/current state here.
-  if (node.state === "completed") return "bg-emerald-400"
+  // A reached segment keeps the lifecycle color of the node it leaves.
+  if (node.state === "completed") return getWorkflowStatusTone(node.status).rail
   return "bg-slate-200"
 }
 
@@ -577,7 +729,7 @@ function VerticalNode({
   node: SpineNodeData
   density: DensityClasses
 }) {
-  const tone = getNodeTone(node.state)
+  const tone = getNodeTone(node.status, node.state)
 
   return (
     <div className="flex w-full min-w-0 gap-3">
@@ -613,7 +765,11 @@ function VerticalNode({
       <div className={cn("flex min-w-0 flex-1 flex-col pb-4 pt-1.5", density.gapY)}>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={cn(density.label, tone.label)}>{node.label}</span>
-          <NodeBadges isCurrent={node.isCurrent} showNext={node.showNext} />
+          <NodeBadges
+            status={node.status}
+            isCurrent={node.isCurrent}
+            showNext={node.showNext}
+          />
         </div>
         <span className={cn(density.accent, tone.accent)}>
           {node.description}
@@ -688,7 +844,12 @@ export function AttackWorkflowSpine({
         timeDisplay: formatWorkflowTime(rawTime),
         isCurrent: isKnownStatus && index === currentIndex,
         showNext: recommendedStatus === status && index !== currentIndex,
-        connectorIn: getConnectorTone(index, currentIndex, isKnownStatus),
+        connectorIn: getConnectorTone(
+          status,
+          index,
+          currentIndex,
+          isKnownStatus,
+        ),
         isFirst: index === 0,
         isLast: index === totalSteps - 1,
         isSelected: selectedStatus === status,
@@ -727,7 +888,7 @@ export function AttackWorkflowSpine({
             }}
             className={cn(
               "block w-full min-w-0 cursor-pointer rounded-xl text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2",
-              node.isSelected && "bg-blue-50/70",
+              node.isSelected && getWorkflowStatusTone(node.status).selectedBg,
             )}
           >
             {inner}
@@ -781,7 +942,12 @@ export function AttackWorkflowSpine({
           )}
 
           {isKnownStatus ? (
-            <span className="shrink-0 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-700">
+            <span
+              className={cn(
+                "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                getWorkflowStatusTone(normalizedStatus).statusBadge,
+              )}
+            >
               {STATUS_LABELS[normalizedStatus]}
             </span>
           ) : (
@@ -800,9 +966,7 @@ export function AttackWorkflowSpine({
             <div
               className={cn(
                 "h-full rounded-full transition-all",
-                normalizedStatus === "closed"
-                  ? "bg-emerald-500"
-                  : "bg-sky-500",
+                getWorkflowStatusTone(normalizedStatus).progressBar,
               )}
               style={{ width: `${progressPct}%` }}
             />

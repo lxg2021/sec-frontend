@@ -66,18 +66,21 @@ function processNoticeTone(workflow: AttackWorkflowItem | null) {
   const normalized = normalizeWorkflowStatus(workflow?.status ?? "")
   switch (normalized) {
     case "closed":
+      return "border-green-100 bg-green-50/70 text-green-700"
     case "remediated":
+      return "border-green-100 bg-green-50/70 text-green-700"
     case "contained":
       return "border-emerald-100 bg-emerald-50/70 text-emerald-700"
     case "responding":
+      return "border-teal-100 bg-teal-50/70 text-teal-700"
     case "forensics":
-      return "border-blue-100 bg-blue-50/70 text-blue-700"
+      return "border-violet-100 bg-violet-50/70 text-violet-700"
     case "confirmed":
-      return "border-amber-100 bg-amber-50/70 text-amber-700"
+      return "border-blue-100 bg-blue-50/70 text-blue-700"
     case "investigating":
       return "border-cyan-100 bg-cyan-50/70 text-cyan-700"
     case "detected":
-      return "border-rose-100 bg-rose-50/70 text-rose-700"
+      return "border-amber-100 bg-amber-50/70 text-amber-700"
     default:
       return "border-slate-200 bg-slate-50 text-slate-600"
   }

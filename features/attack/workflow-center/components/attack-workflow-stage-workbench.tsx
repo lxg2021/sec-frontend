@@ -143,6 +143,29 @@ function statusLabel(status: string) {
   return normalized ? STATUS_LABELS[normalized] : status || "Unknown"
 }
 
+function statusBadgeTone(status: AttackWorkflowStatus | "") {
+  switch (status) {
+    case "detected":
+      return "border-amber-200 bg-amber-50 text-amber-700"
+    case "investigating":
+      return "border-cyan-200 bg-cyan-50 text-cyan-700"
+    case "confirmed":
+      return "border-blue-200 bg-blue-50 text-blue-700"
+    case "forensics":
+      return "border-violet-200 bg-violet-50 text-violet-700"
+    case "responding":
+      return "border-teal-200 bg-teal-50 text-teal-700"
+    case "contained":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700"
+    case "remediated":
+      return "border-green-200 bg-green-50 text-green-700"
+    case "closed":
+      return "border-green-200 bg-green-50 text-green-700"
+    default:
+      return "border-slate-200 bg-slate-50 text-slate-600"
+  }
+}
+
 function latestEventComment(events: AttackWorkflowEventItem[]) {
   for (const event of [...events].reverse()) {
     const comment = workflowEventComment(event)
@@ -459,11 +482,17 @@ export function AttackWorkflowStageWorkbench({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <CardTitle className="text-base">Stage Workbench</CardTitle>
-              <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700">
+              <Badge
+                variant="outline"
+                className={statusBadgeTone(selectedStatus)}
+              >
                 Selected: {statusLabel(selectedStatus)}
               </Badge>
               {normalizedCurrentStatus ? (
-                <Badge variant="outline" className="border-slate-200 bg-slate-50 text-slate-600">
+                <Badge
+                  variant="outline"
+                  className={statusBadgeTone(normalizedCurrentStatus)}
+                >
                   Current: {statusLabel(normalizedCurrentStatus)}
                 </Badge>
               ) : null}

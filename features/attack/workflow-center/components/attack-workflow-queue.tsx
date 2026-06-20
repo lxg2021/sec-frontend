@@ -103,25 +103,25 @@ const STATUS_LABELS: Record<string, string> = Object.fromEntries(
 )
 
 const STATUS_BADGE: Record<string, string> = {
-  detected: "bg-slate-100 text-slate-700 ring-slate-200",
-  investigating: "bg-blue-50 text-blue-700 ring-blue-200",
-  confirmed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  detected: "bg-amber-50 text-amber-700 ring-amber-200",
+  investigating: "bg-cyan-50 text-cyan-700 ring-cyan-200",
+  confirmed: "bg-blue-50 text-blue-700 ring-blue-200",
   forensics: "bg-violet-50 text-violet-700 ring-violet-200",
-  responding: "bg-amber-50 text-amber-700 ring-amber-200",
-  contained: "bg-teal-50 text-teal-700 ring-teal-200",
+  responding: "bg-teal-50 text-teal-700 ring-teal-200",
+  contained: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   remediated: "bg-green-50 text-green-700 ring-green-200",
-  closed: "bg-slate-100 text-slate-500 ring-slate-200",
+  closed: "bg-green-50 text-green-700 ring-green-200",
 }
 
 const STATUS_DOT: Record<string, string> = {
-  detected: "bg-slate-400",
-  investigating: "bg-blue-500",
-  confirmed: "bg-emerald-500",
+  detected: "bg-amber-500",
+  investigating: "bg-cyan-500",
+  confirmed: "bg-blue-500",
   forensics: "bg-violet-500",
-  responding: "bg-amber-500",
-  contained: "bg-teal-500",
+  responding: "bg-teal-500",
+  contained: "bg-emerald-500",
   remediated: "bg-green-500",
-  closed: "bg-slate-400",
+  closed: "bg-green-600",
 }
 
 const SEVERITY_BADGE: Record<string, string> = {
