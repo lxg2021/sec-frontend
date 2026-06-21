@@ -16,13 +16,11 @@ import {
   CircleDot,
   Copy,
   Crosshair,
-  BrainCircuit,
   ExternalLink,
   FileText,
   FileSearch,
   GitBranch,
   Loader2,
-  Route,
   ScrollText,
   Server,
   ShieldAlert,
@@ -85,18 +83,14 @@ export function AttackCaseRow({
   snapshotId,
   selected,
   onSelect,
-  onViewDetail,
   onWorkflow,
-  onAIAnalysis,
   onCaseUpdated,
 }: {
   item: AttackCaseTimelineSummary
   snapshotId?: string
   selected?: boolean
   onSelect?: (caseId: string) => void
-  onViewDetail?: (caseId: string) => void
   onWorkflow?: (caseId: string) => void
-  onAIAnalysis?: (caseId: string) => void
   onCaseUpdated?: (item: AttackCaseTimelineSummary) => void
 }) {
   const t = useTranslations("pages.attack.dashboard.cases")
@@ -231,14 +225,6 @@ export function AttackCaseRow({
               <CaseWorkflowAction
                 disabled={!onWorkflow}
                 onClick={() => onWorkflow?.(item.case_id)}
-              />
-              <CaseAIAnalysisAction
-                disabled={!onAIAnalysis}
-                onClick={() => onAIAnalysis?.(item.case_id)}
-              />
-              <CaseTraceAction
-                disabled={!onViewDetail}
-                onClick={() => onViewDetail?.(item.case_id)}
               />
             </div>
           </div>
@@ -888,64 +874,6 @@ function CaseWorkflowAction({
     >
       <Workflow className="size-4" />
       <span className="whitespace-nowrap">{t("workflowAction")}</span>
-    </Button>
-  )
-}
-
-function CaseAIAnalysisAction({
-  disabled,
-  onClick,
-}: {
-  disabled: boolean
-  onClick: () => void
-}) {
-  const t = useTranslations("pages.attack.dashboard.cases")
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      disabled={disabled}
-      onClick={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-        onClick()
-      }}
-      className="h-10 shrink-0 gap-2 rounded-full px-3 text-blue-600 hover:bg-blue-50 hover:text-blue-700 focus-visible:ring-blue-300 disabled:text-slate-300"
-      title={t("aiAnalysisAction")}
-    >
-      <BrainCircuit className="size-4" />
-      <span className="whitespace-nowrap">{t("aiAnalysisAction")}</span>
-    </Button>
-  )
-}
-
-function CaseTraceAction({
-  disabled,
-  onClick,
-}: {
-  disabled: boolean
-  onClick: () => void
-}) {
-  const t = useTranslations("pages.attack.dashboard.cases")
-
-  return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      disabled={disabled}
-      onClick={(event) => {
-        event.preventDefault()
-        event.stopPropagation()
-        onClick()
-      }}
-      className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700 focus-visible:ring-cyan-300 disabled:text-slate-300"
-      title={t("traceAction")}
-    >
-      <Route className="size-4" />
-      <span className="whitespace-nowrap">{t("traceAction")}</span>
     </Button>
   )
 }

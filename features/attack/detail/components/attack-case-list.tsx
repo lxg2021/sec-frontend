@@ -35,9 +35,7 @@ import { TooltipProvider } from "@/shared/ui/tooltip"
 import { toast } from "@/shared/hooks/use-toast"
 import { AttackCaseRow } from "./attack-case-row"
 import {
-  buildAIAnalysisHref,
   buildAttackWorkflowHref,
-  buildTraceHref,
 } from "../utils/attack-case-format"
 import { dedupeAttackCaseItems } from "../utils/attack-case-list-data"
 
@@ -45,7 +43,6 @@ export type { AttackCaseTimelineSummary } from "@/features/attack/dashboard/type
 
 interface AttackCaseListProps {
   items: AttackCaseTimelineSummary[]
-  onViewDetail?: (caseId: string) => void
   onCaseSelect?: (caseId: string) => void
   className?: string
   snapshotId?: string
@@ -66,7 +63,6 @@ const PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 export function AttackCaseList({
   items,
-  onViewDetail,
   onCaseSelect,
   className,
   snapshotId = "",
@@ -185,25 +181,9 @@ export function AttackCaseList({
     onCaseSelect?.(caseId)
   }
 
-  function handleViewDetail(caseId: string) {
-    handleSelectCase(caseId)
-
-    if (onViewDetail) {
-      onViewDetail(caseId)
-      return
-    }
-
-    router.push(buildTraceHref(caseId, snapshotId))
-  }
-
   function handleWorkflow(caseId: string) {
     handleSelectCase(caseId)
     router.push(buildAttackWorkflowHref(caseId, snapshotId))
-  }
-
-  function handleAIAnalysis(caseId: string) {
-    handleSelectCase(caseId)
-    router.push(buildAIAnalysisHref(caseId, snapshotId))
   }
 
   function handleLocateCase() {
@@ -315,9 +295,7 @@ export function AttackCaseList({
                 snapshotId={snapshotId}
                 selected={item.case_id === selectedCaseId}
                 onSelect={handleSelectCase}
-                onViewDetail={handleViewDetail}
                 onWorkflow={handleWorkflow}
-                onAIAnalysis={handleAIAnalysis}
                 onCaseUpdated={handleCaseUpdated}
               />
             ))}
