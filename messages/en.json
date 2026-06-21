@@ -3720,6 +3720,106 @@
         "subtitle": "AI-assisted workflows, task orchestration, and service insights"
       }
     },
+    "iocAnalysis": {
+      "verification": {
+        "title": "IOC Verification",
+        "description": "Extract MD5, URL, IP, and domain indicators from the selected AttackWorkflow case, then verify each indicator through local intelligence and remote lookup.",
+        "onlineBadge": "Online verification",
+        "summary": {
+          "total": "Total",
+          "hit": "Hits",
+          "miss": "Misses",
+          "remote": "Remote",
+          "pending": "Pending",
+          "error": "Issues"
+        },
+        "casePanel": {
+          "title": "Case IOC source",
+          "description": "Use the AI case analysis result as the IOC source for this verification.",
+          "casePlaceholder": "Enter CaseID"
+        },
+        "manual": {
+          "title": "Manual IOC input",
+          "description": "Add indicators manually when the case report has not produced them yet.",
+          "placeholder": "One indicator per line. Examples:\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com"
+        },
+        "results": {
+          "title": "Verification results",
+          "description": "Each row calls the IOC query API. A remote hit means online intelligence confirmed the indicator."
+        },
+        "empty": {
+          "title": "No indicators loaded",
+          "description": "Open from an AttackWorkflow case or paste MD5, URL, IP, and domain indicators to start online verification."
+        },
+        "actions": {
+          "back": "Back",
+          "extractVerify": "Extract & verify",
+          "extracting": "Extracting",
+          "addVerify": "Add & verify",
+          "verifyAll": "Verify all",
+          "verifying": "Verifying",
+          "recheck": "Recheck"
+        },
+        "fields": {
+          "caseId": "CaseID",
+          "type": "Type",
+          "value": "Value",
+          "source": "Source",
+          "evidence": "Evidence",
+          "observations": "Observations",
+          "relations": "Relations",
+          "risk": "Risk",
+          "confidence": "Confidence",
+          "tags": "Tags",
+          "taskStatus": "AI task",
+          "intelSources": "Intel sources"
+        },
+        "types": {
+          "auto": "AUTO",
+          "hash": "HASH",
+          "md5": "MD5",
+          "sha1": "SHA1",
+          "sha256": "SHA256",
+          "url": "URL",
+          "ip": "IP",
+          "domain": "DOMAIN",
+          "hostname": "HOST",
+          "email": "EMAIL"
+        },
+        "status": {
+          "idle": "Ready",
+          "checking": "Checking",
+          "hit": "Hit",
+          "miss": "Miss",
+          "suppressed": "Remote error",
+          "error": "Error"
+        },
+        "source": {
+          "cacheHit": "Cache hit",
+          "localHit": "Local hit",
+          "remoteHit": "Remote hit",
+          "remoteMiss": "Remote miss",
+          "missCacheHit": "Miss cache",
+          "remoteErrorSuppressed": "Remote error suppressed",
+          "unknown": "Unknown source"
+        },
+        "toasts": {
+          "caseRequired": "Enter CaseID first.",
+          "noIocs": "No verifiable IOC was found.",
+          "manualInvalid": "No valid IOC was parsed.",
+          "extracted": "Extracted {count} verifiable IOCs.",
+          "verifyComplete": "IOC verification complete."
+        },
+        "errors": {
+          "extractFailed": "Failed to extract case IOCs.",
+          "verifyFailed": "IOC verification failed.",
+          "analysisTimeout": "AI analysis timed out. Try again later.",
+          "analysisFailed": "AI analysis failed.",
+          "analysisInvalid": "AI analysis result did not pass validation.",
+          "analysisUnknown": "Unknown AI analysis status: {status}"
+        }
+      }
+    },
     "response": {
       "dac": {
         "title": "Access Control",

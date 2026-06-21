@@ -3722,6 +3722,106 @@
         "subtitle": "基于 AI 的工作流、任务编排与运营洞察"
       }
     },
+    "iocAnalysis": {
+      "verification": {
+        "title": "IOC验证",
+        "description": "从选中的 AttackWorkflow 案件中提取 MD5、URL、IP 和域名指标，并通过本地情报与远程查询逐项验证",
+        "onlineBadge": "联网验证",
+        "summary": {
+          "total": "总数",
+          "hit": "命中",
+          "miss": "未命中",
+          "remote": "远程",
+          "pending": "待验证",
+          "error": "异常"
+        },
+        "casePanel": {
+          "title": "案件 IOC 来源",
+          "description": "使用 AI 案件分析结果作为本次 IOC 验证的数据来源",
+          "casePlaceholder": "请输入 CaseID"
+        },
+        "manual": {
+          "title": "手动输入 IOC",
+          "description": "当案件报告尚未产出 IOC 时，可以手动补充指标",
+          "placeholder": "每行一个指标，例如：\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com"
+        },
+        "results": {
+          "title": "验证结果",
+          "description": "每一行都会调用 IOC 查询接口，Remote hit 表示联网情报确认命中"
+        },
+        "empty": {
+          "title": "暂无指标",
+          "description": "从 AttackWorkflow 案件进入，或粘贴 MD5、URL、IP、域名指标后开始联网验证"
+        },
+        "actions": {
+          "back": "返回",
+          "extractVerify": "提取并验证",
+          "extracting": "提取中",
+          "addVerify": "添加并验证",
+          "verifyAll": "全部验证",
+          "verifying": "验证中",
+          "recheck": "重查"
+        },
+        "fields": {
+          "caseId": "CaseID",
+          "type": "类型",
+          "value": "指标值",
+          "source": "来源",
+          "evidence": "证据",
+          "observations": "观测",
+          "relations": "关联",
+          "risk": "风险",
+          "confidence": "置信",
+          "tags": "标签",
+          "taskStatus": "AI任务",
+          "intelSources": "情报来源"
+        },
+        "types": {
+          "auto": "AUTO",
+          "hash": "HASH",
+          "md5": "MD5",
+          "sha1": "SHA1",
+          "sha256": "SHA256",
+          "url": "URL",
+          "ip": "IP",
+          "domain": "DOMAIN",
+          "hostname": "HOST",
+          "email": "EMAIL"
+        },
+        "status": {
+          "idle": "待查",
+          "checking": "查询中",
+          "hit": "命中",
+          "miss": "未命中",
+          "suppressed": "远程异常",
+          "error": "错误"
+        },
+        "source": {
+          "cacheHit": "缓存命中",
+          "localHit": "本地命中",
+          "remoteHit": "远程命中",
+          "remoteMiss": "远程未命中",
+          "missCacheHit": "未命中缓存",
+          "remoteErrorSuppressed": "远程异常抑制",
+          "unknown": "未知来源"
+        },
+        "toasts": {
+          "caseRequired": "请先输入 CaseID",
+          "noIocs": "没有找到可验证的 IOC",
+          "manualInvalid": "未解析到有效 IOC",
+          "extracted": "已提取 {count} 个可验证 IOC",
+          "verifyComplete": "IOC 验证完成"
+        },
+        "errors": {
+          "extractFailed": "提取案件 IOC 失败",
+          "verifyFailed": "IOC 验证失败",
+          "analysisTimeout": "AI 分析等待超时，请稍后重试",
+          "analysisFailed": "AI 分析失败",
+          "analysisInvalid": "AI 分析结果未通过校验",
+          "analysisUnknown": "未知 AI 分析状态：{status}"
+        }
+      }
+    },
     "response": {
       "dac": {
         "title": "访问控制",

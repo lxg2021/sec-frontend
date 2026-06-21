@@ -41,6 +41,7 @@ import {
 import {
   buildAIAnalysisHref,
   buildAttackDetailHref,
+  buildIOCVerificationHref,
   buildTraceHref,
 } from "@/features/attack/detail/utils/attack-case-format"
 import { useToast } from "@/shared/hooks/use-toast"
@@ -79,6 +80,7 @@ interface WorkflowNavigationHrefs {
   attackDetailHref: string
   traceHref: string
   aiHref: string
+  iocHref: string
 }
 
 interface WorkflowIdentity {
@@ -522,10 +524,14 @@ export function AttackWorkflowControlCenter({
   const aiHref = canOpenDetails
     ? buildAIAnalysisHref(activeCaseId, normalizedSnapshotId, detailOptions)
     : "/frame/ai-ops/threat-analysis"
+  const iocHref = canOpenDetails
+    ? buildIOCVerificationHref(activeCaseId, normalizedSnapshotId, detailOptions)
+    : "/frame/ioc-analysis/ioc-verification"
   const navigationHrefs: WorkflowNavigationHrefs = {
     attackDetailHref,
     traceHref,
     aiHref,
+    iocHref,
   }
 
   useEffect(() => {

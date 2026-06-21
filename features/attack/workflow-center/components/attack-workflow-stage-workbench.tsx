@@ -53,6 +53,7 @@ interface WorkflowNavigationHrefs {
   attackDetailHref: string
   traceHref: string
   aiHref: string
+  iocHref: string
 }
 
 interface AttackWorkflowStageWorkbenchProps {
@@ -403,7 +404,7 @@ function stageTools({
     {
       title: t("tools.iocInvestigation.title"),
       description: t("tools.iocInvestigation.description"),
-      href: `${hrefs.aiHref}#iocs`,
+      href: hrefs.iocHref,
       iconName: "ioc",
       disabled: !canInvestigateIoc,
     },
@@ -801,8 +802,7 @@ export function AttackWorkflowStageWorkbench({
   const isChinese = isChineseLocale(locale)
   const normalizedCurrentStatus = normalizeWorkflowStatus(currentStatus)
   const config = getStageConfig(t, selectedStatus)
-  // IOC investigation needs a backend IOC availability signal before it can be enabled reliably.
-  const canInvestigateIoc = false
+  const canInvestigateIoc = Boolean(workflow?.case_id)
   const tools = stageTools({
     canInvestigateIoc,
     currentStatus: normalizedCurrentStatus,

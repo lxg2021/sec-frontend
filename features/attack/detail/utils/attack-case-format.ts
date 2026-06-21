@@ -131,6 +131,18 @@ export function buildAIAnalysisHref(
   return `/frame/ai-ops/threat-analysis?${params.toString()}`
 }
 
+export function buildIOCVerificationHref(
+  caseId: string,
+  snapshotId?: string,
+  options?: AttackWorkflowRouteOptions,
+) {
+  const params = new URLSearchParams()
+  params.set("caseId", caseId)
+  if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
+  appendOptionalWorkflowParams(params, options)
+  return `/frame/ioc-analysis/ioc-verification?${params.toString()}`
+}
+
 export function shortenId(value: string, head = 8, tail = 4) {
   if (!value) return "-"
   if (value.length <= head + tail + 3) return value
