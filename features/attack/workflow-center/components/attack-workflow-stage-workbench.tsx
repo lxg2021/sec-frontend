@@ -113,6 +113,12 @@ const STATUS_LABEL_KEYS: Record<AttackWorkflowStatus, string> = {
   closed: "statuses.closed",
 }
 
+const RESPONSE_ORCHESTRATION_STATUSES = new Set<AttackWorkflowStatus>([
+  "responding",
+  "contained",
+  "remediated",
+])
+
 const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
   detected: {
     badge: "border-amber-200 bg-amber-50 text-amber-700",
@@ -367,12 +373,20 @@ function getToolActionStyle(iconName?: string) {
 }
 
 function stageTools({
+  canInvestigateIoc,
+  currentStatus,
   hrefs,
   t,
 }: {
+  canInvestigateIoc: boolean
+  currentStatus: AttackWorkflowStatus | ""
   hrefs: WorkflowNavigationHrefs
   t: WorkflowCenterT
 }): StageTool[] {
+  const canUseForensicOrchestration = currentStatus === "forensics"
+  const canUseResponseOrchestration =
+    currentStatus !== "" && RESPONSE_ORCHESTRATION_STATUSES.has(currentStatus)
+
   return [
     {
       title: t("tools.attackTrace.title"),
@@ -391,18 +405,21 @@ function stageTools({
       description: t("tools.iocInvestigation.description"),
       href: `${hrefs.aiHref}#iocs`,
       iconName: "ioc",
+      disabled: !canInvestigateIoc,
     },
     {
       title: t("tools.forensicOrchestration.title"),
       description: t("tools.forensicOrchestration.description"),
       href: "/frame/evidence",
       iconName: "forensics",
+      disabled: !canUseForensicOrchestration,
     },
     {
       title: t("tools.responseOrchestration.title"),
       description: t("tools.responseOrchestration.description"),
       href: "/frame/response/dac",
       iconName: "orchestration",
+      disabled: !canUseResponseOrchestration,
     },
   ]
 }
@@ -784,7 +801,14 @@ export function AttackWorkflowStageWorkbench({
   const isChinese = isChineseLocale(locale)
   const normalizedCurrentStatus = normalizeWorkflowStatus(currentStatus)
   const config = getStageConfig(t, selectedStatus)
-  const tools = stageTools({ hrefs, t })
+  // IOC investigation needs a backend IOC availability signal before it can be enabled reliably.
+  const canInvestigateIoc = false
+  const tools = stageTools({
+    canInvestigateIoc,
+    currentStatus: normalizedCurrentStatus,
+    hrefs,
+    t,
+  })
   const selectedStyle = getStatusStyle(selectedStatus)
   const stageTime = workflow
     ? formatWorkflowTime(workflowStatusTime(workflow, selectedStatus))
