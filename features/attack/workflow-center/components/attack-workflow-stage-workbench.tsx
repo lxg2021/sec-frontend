@@ -16,6 +16,7 @@ import {
   BrainCircuit,
   CheckCircle2,
   ChevronDown,
+  ChevronRight,
   ClipboardCheck,
   ExternalLink,
   FileSearch,
@@ -84,6 +85,12 @@ interface StageTool {
   href: string
   iconName?: string
   title: string
+}
+
+interface ToolActionStyle {
+  bar: string
+  hover: string
+  tile: string
 }
 
 interface StatusStyle {
@@ -210,22 +217,82 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   wrench: Wrench,
 }
 
-const TOOL_ICON_STYLES: Record<string, string> = {
-  activity: "bg-orange-50 text-orange-600",
-  aiops: "bg-violet-50 text-violet-600",
-  clipboard: "bg-amber-50 text-amber-600",
-  external: "bg-sky-50 text-sky-600",
-  file: "bg-blue-50 text-blue-600",
-  forensics: "bg-blue-50 text-blue-600",
-  ioc: "bg-rose-50 text-rose-600",
-  lock: "bg-emerald-50 text-emerald-600",
-  orchestration: "bg-teal-50 text-teal-600",
-  route: "bg-cyan-50 text-cyan-600",
-  scroll: "bg-indigo-50 text-indigo-600",
-  search: "bg-sky-50 text-sky-600",
-  shield: "bg-teal-50 text-teal-600",
-  target: "bg-rose-50 text-rose-600",
-  wrench: "bg-slate-100 text-slate-600",
+const TOOL_ACTION_STYLES: Record<string, ToolActionStyle> = {
+  activity: {
+    bar: "bg-orange-500",
+    hover: "group-hover:bg-orange-50/80",
+    tile: "from-orange-500 to-amber-600",
+  },
+  aiops: {
+    bar: "bg-violet-500",
+    hover: "group-hover:bg-violet-50/80",
+    tile: "from-violet-500 to-indigo-600",
+  },
+  clipboard: {
+    bar: "bg-amber-500",
+    hover: "group-hover:bg-amber-50/80",
+    tile: "from-amber-500 to-orange-600",
+  },
+  external: {
+    bar: "bg-sky-500",
+    hover: "group-hover:bg-sky-50/80",
+    tile: "from-sky-500 to-blue-600",
+  },
+  file: {
+    bar: "bg-blue-500",
+    hover: "group-hover:bg-blue-50/80",
+    tile: "from-blue-500 to-cyan-600",
+  },
+  forensics: {
+    bar: "bg-amber-500",
+    hover: "group-hover:bg-amber-50/80",
+    tile: "from-amber-500 to-orange-600",
+  },
+  ioc: {
+    bar: "bg-rose-500",
+    hover: "group-hover:bg-rose-50/80",
+    tile: "from-rose-500 to-red-600",
+  },
+  lock: {
+    bar: "bg-emerald-500",
+    hover: "group-hover:bg-emerald-50/80",
+    tile: "from-emerald-500 to-teal-600",
+  },
+  orchestration: {
+    bar: "bg-emerald-500",
+    hover: "group-hover:bg-emerald-50/80",
+    tile: "from-emerald-500 to-teal-600",
+  },
+  route: {
+    bar: "bg-sky-500",
+    hover: "group-hover:bg-sky-50/80",
+    tile: "from-sky-500 to-blue-600",
+  },
+  scroll: {
+    bar: "bg-indigo-500",
+    hover: "group-hover:bg-indigo-50/80",
+    tile: "from-indigo-500 to-violet-600",
+  },
+  search: {
+    bar: "bg-sky-500",
+    hover: "group-hover:bg-sky-50/80",
+    tile: "from-sky-500 to-blue-600",
+  },
+  shield: {
+    bar: "bg-teal-500",
+    hover: "group-hover:bg-teal-50/80",
+    tile: "from-teal-500 to-emerald-600",
+  },
+  target: {
+    bar: "bg-rose-500",
+    hover: "group-hover:bg-rose-50/80",
+    tile: "from-rose-500 to-red-600",
+  },
+  wrench: {
+    bar: "bg-slate-500",
+    hover: "group-hover:bg-slate-50/80",
+    tile: "from-slate-500 to-slate-700",
+  },
 }
 
 function getStatusStyle(status: AttackWorkflowStatus): StatusStyle {
@@ -293,10 +360,10 @@ function getToolIcon(iconName?: string): ComponentType<{ className?: string }> {
   return Wrench
 }
 
-function getToolIconStyle(iconName?: string) {
-  return iconName && TOOL_ICON_STYLES[iconName]
-    ? TOOL_ICON_STYLES[iconName]
-    : TOOL_ICON_STYLES.wrench
+function getToolActionStyle(iconName?: string) {
+  return iconName && TOOL_ACTION_STYLES[iconName]
+    ? TOOL_ACTION_STYLES[iconName]
+    : TOOL_ACTION_STYLES.wrench
 }
 
 function stageTools({
@@ -607,25 +674,43 @@ function ToolRow({
   tool: StageTool
 }) {
   const Icon = getToolIcon(tool.iconName)
-  const iconStyle = getToolIconStyle(tool.iconName)
+  const actionStyle = getToolActionStyle(tool.iconName)
   const disabled = Boolean(tool.disabled)
   const content = (
     <>
       <span
+        aria-hidden="true"
         className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-full ring-1 ring-inset transition-colors",
+          "pointer-events-none absolute inset-0 rounded-2xl bg-transparent transition-colors duration-200",
+          !disabled && actionStyle.hover,
+        )}
+      />
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-full opacity-0 transition-opacity duration-200",
+          !disabled && "group-hover:opacity-100",
+          actionStyle.bar,
+        )}
+      />
+      <span
+        className={cn(
+          "relative flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm ring-1 ring-inset ring-white/20 transition-all duration-200",
           disabled
-            ? "bg-slate-50 text-slate-400 ring-slate-100"
-            : cn(iconStyle, "ring-black/5 group-hover:bg-white"),
+            ? "bg-slate-200 text-slate-400"
+            : cn(
+                "bg-gradient-to-br group-hover:-translate-y-0.5 group-hover:shadow-md",
+                actionStyle.tile,
+              ),
         )}
       >
-        <Icon className="size-5" aria-hidden="true" />
+        <Icon className="size-[22px]" aria-hidden="true" />
       </span>
-      <span className="min-w-0 flex-1">
+      <span className="relative min-w-0 flex-1">
         <span
           className={cn(
-            "block truncate text-base font-semibold leading-5 text-slate-950",
-            isChinese && "font-semibold",
+            "block truncate text-[15px] font-semibold leading-tight text-slate-900",
+            isChinese && "font-medium",
             disabled && "text-slate-500",
           )}
         >
@@ -633,14 +718,21 @@ function ToolRow({
         </span>
         <span
           className={cn(
-            "mt-0.5 block truncate text-sm leading-5 text-slate-500",
-            isChinese && "leading-5",
+            "mt-0.5 block truncate text-[13px] leading-relaxed text-slate-500",
+            isChinese && "leading-5 text-slate-500/90",
             disabled && "text-slate-400",
           )}
         >
           {tool.description}
         </span>
       </span>
+      <ChevronRight
+        aria-hidden="true"
+        className={cn(
+          "relative ml-auto size-4 shrink-0 text-slate-300 transition-all duration-200",
+          !disabled && "group-hover:translate-x-0.5 group-hover:text-slate-500",
+        )}
+      />
     </>
   )
 
@@ -650,8 +742,8 @@ function ToolRow({
         aria-disabled="true"
         aria-label={t("tools.unavailableAria", { title: tool.title })}
         className={cn(
-          "group flex min-h-[56px] items-center gap-3 rounded-full border px-3 py-2.5",
-          "border-slate-200 bg-slate-50/80 text-left opacity-80",
+          "group relative flex min-h-[68px] w-full items-center gap-4 rounded-2xl px-3 py-3 text-left opacity-70",
+          "focus-visible:outline-none",
         )}
         title={tool.title}
       >
@@ -665,11 +757,8 @@ function ToolRow({
       href={tool.href}
       aria-label={t("tools.openAria", { title: tool.title })}
       className={cn(
-        "group flex min-h-[56px] items-center gap-3 rounded-full border px-3 py-2.5 text-left",
-        "border-sky-200 bg-white transition-all duration-200 ease-out",
-        "shadow-[0_1px_2px_rgba(15,23,42,0.03)]",
-        "hover:border-sky-300 hover:bg-sky-50/40 hover:shadow-[0_8px_22px_rgba(2,132,199,0.08)]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2",
+        "group relative flex min-h-[68px] w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition-colors duration-200",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300",
       )}
       title={`${tool.title} - ${tool.description}`}
     >
@@ -1042,9 +1131,9 @@ export function AttackWorkflowStageWorkbench({
           </SectionTitle>
           <div
             className={cn(
-              "flex min-h-0 flex-col overflow-y-auto",
+              "flex min-h-0 flex-col",
               tools.length > 0
-                ? "gap-2"
+                ? "overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)]"
                 : "rounded-xl border border-slate-200 bg-white/95 p-2",
             )}
           >
