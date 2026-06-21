@@ -834,49 +834,49 @@ export function AttackWorkflowStageWorkbench({
     (status) => status !== recommendedStatus,
   )
   const isViewingCurrentStage = normalizedCurrentStatus === selectedStatus
-  const toolsSectionRef = useRef<HTMLElement | null>(null)
-  const [toolsSectionHeight, setToolsSectionHeight] = useState<number | null>(
+  const pairedSectionsRef = useRef<HTMLDivElement | null>(null)
+  const [pairedSectionHeight, setPairedSectionHeight] = useState<number | null>(
     null,
   )
-  const hasToolsHeight = toolsSectionHeight != null
-  const stageLayoutStyle = hasToolsHeight
+  const hasPairedSectionHeight = pairedSectionHeight != null
+  const stageLayoutStyle = hasPairedSectionHeight
     ? ({
-        "--stage-workbench-section-height": `${toolsSectionHeight}px`,
+        "--stage-workbench-pair-height": `${pairedSectionHeight}px`,
       } as CSSProperties)
     : undefined
 
   useLayoutEffect(() => {
-    const toolsSection = toolsSectionRef.current
+    const pairedSections = pairedSectionsRef.current
 
-    if (!toolsSection) {
+    if (!pairedSections) {
       return undefined
     }
 
-    const updateToolsHeight = () => {
+    const updatePairedSectionHeight = () => {
       const nextHeight = Math.ceil(
-        toolsSection.getBoundingClientRect().height,
+        pairedSections.getBoundingClientRect().height,
       )
 
-      setToolsSectionHeight((currentHeight) =>
+      setPairedSectionHeight((currentHeight) =>
         currentHeight === nextHeight ? currentHeight : nextHeight,
       )
     }
 
-    updateToolsHeight()
-    window.addEventListener("resize", updateToolsHeight)
+    updatePairedSectionHeight()
+    window.addEventListener("resize", updatePairedSectionHeight)
 
     if (typeof ResizeObserver === "undefined") {
       return () => {
-        window.removeEventListener("resize", updateToolsHeight)
+        window.removeEventListener("resize", updatePairedSectionHeight)
       }
     }
 
-    const observer = new ResizeObserver(updateToolsHeight)
-    observer.observe(toolsSection)
+    const observer = new ResizeObserver(updatePairedSectionHeight)
+    observer.observe(pairedSections)
 
     return () => {
       observer.disconnect()
-      window.removeEventListener("resize", updateToolsHeight)
+      window.removeEventListener("resize", updatePairedSectionHeight)
     }
   }, [
     isChinese,
@@ -977,13 +977,11 @@ export function AttackWorkflowStageWorkbench({
         className="grid grid-cols-1 items-start gap-4 p-4 sm:p-5 2xl:grid-cols-12 2xl:gap-5"
         style={stageLayoutStyle}
       >
-        <section
-          className={cn(
-            "flex flex-col gap-3 overflow-hidden 2xl:col-span-4",
-            hasToolsHeight &&
-              "2xl:h-[var(--stage-workbench-section-height)] 2xl:max-h-[var(--stage-workbench-section-height)]",
-          )}
+        <div
+          ref={pairedSectionsRef}
+          className="grid grid-cols-1 items-stretch gap-4 2xl:col-span-7 2xl:grid-cols-7 2xl:gap-5"
         >
+        <section className="flex flex-col gap-3 2xl:col-span-4">
           <SectionTitle
             icon={Activity}
             iconClassName="text-sky-500"
@@ -996,7 +994,7 @@ export function AttackWorkflowStageWorkbench({
             <div
               className={cn(
                 "min-h-0 rounded-xl border border-slate-200 bg-slate-50 p-3",
-                hasToolsHeight && "2xl:flex-1 2xl:overflow-y-auto",
+                "2xl:flex-1",
               )}
             >
               <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
@@ -1016,7 +1014,7 @@ export function AttackWorkflowStageWorkbench({
             <div
               className={cn(
                 "flex min-h-0 flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3",
-                hasToolsHeight && "2xl:flex-1 2xl:overflow-y-auto",
+                "2xl:flex-1",
               )}
             >
               <span
@@ -1142,10 +1140,7 @@ export function AttackWorkflowStageWorkbench({
           )}
         </section>
 
-        <section
-          ref={toolsSectionRef}
-          className="flex flex-col gap-3 2xl:col-span-3"
-        >
+        <section className="flex flex-col gap-3 2xl:col-span-3">
           <SectionTitle
             icon={Wrench}
             iconClassName="text-teal-500"
@@ -1155,7 +1150,7 @@ export function AttackWorkflowStageWorkbench({
           </SectionTitle>
           <div
             className={cn(
-              "flex min-h-0 flex-col",
+              "flex min-h-0 flex-col 2xl:flex-1",
               tools.length > 0
                 ? "overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)]"
                 : "rounded-xl border border-slate-200 bg-white/95 p-2",
@@ -1182,12 +1177,13 @@ export function AttackWorkflowStageWorkbench({
             )}
           </div>
         </section>
+        </div>
 
         <section
           className={cn(
             "flex flex-col gap-3 overflow-hidden 2xl:col-span-5",
-            hasToolsHeight &&
-              "2xl:h-[var(--stage-workbench-section-height)] 2xl:max-h-[var(--stage-workbench-section-height)]",
+            hasPairedSectionHeight &&
+              "2xl:h-[var(--stage-workbench-pair-height)] 2xl:max-h-[var(--stage-workbench-pair-height)]",
           )}
         >
           <SectionTitle
@@ -1200,7 +1196,7 @@ export function AttackWorkflowStageWorkbench({
           <div
             className={cn(
               "flex min-h-0 flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-3",
-              hasToolsHeight && "2xl:flex-1",
+              hasPairedSectionHeight && "2xl:flex-1",
             )}
           >
             <GuideTextBlock
