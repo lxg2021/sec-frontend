@@ -132,7 +132,7 @@
     "attack": "攻击溯源",
     "attdash": "攻击概览",
     "attdetail": "攻击详情",
-    "attworkflow": "攻击流程",
+    "attworkflow": "Attack工作流",
     "attdrill": "溯源详情",
     "attpositioning": "数据定位",
     "response": "处置响应",
@@ -1559,7 +1559,7 @@
         "selectedRange": "已选择范围"
       },
       "workflowCenter": {
-        "title": "攻击工作流控制中心",
+        "title": "Attacks工作流中心",
         "loading": "加载中",
         "unknown": "未知",
         "statuses": {
@@ -1713,7 +1713,7 @@
           }
         },
         "workbench": {
-          "title": "阶段工作台"
+          "title": "阶段流转"
         },
         "guide": {
           "title": "阶段说明",

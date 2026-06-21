@@ -1557,7 +1557,7 @@
         "selectedRange": "Selected range"
       },
       "workflowCenter": {
-        "title": "AttackWorkflow Control Center",
+        "title": "Attacks Workflow Center",
         "loading": "Loading",
         "unknown": "Unknown",
         "statuses": {
@@ -1711,7 +1711,7 @@
           }
         },
         "workbench": {
-          "title": "Stage Workbench"
+          "title": "Stage Flow"
         },
         "guide": {
           "title": "Stage Guide",
