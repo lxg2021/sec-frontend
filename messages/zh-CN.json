@@ -1724,7 +1724,7 @@
           "completionCriteria": "完成标准"
         },
         "tools": {
-          "title": "工具与证据",
+          "title": "分析与处置",
           "empty": "当前阶段没有可用工具",
           "open": "打开",
           "locked": "锁定",

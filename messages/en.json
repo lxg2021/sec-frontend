@@ -1722,7 +1722,7 @@
           "completionCriteria": "Completion criteria"
         },
         "tools": {
-          "title": "Tools & Evidence",
+          "title": "Analysis & Response",
           "empty": "No tools are available for this stage.",
           "open": "Open",
           "locked": "Locked",
