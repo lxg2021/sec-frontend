@@ -1,6 +1,13 @@
 "use client"
 
-import { Fragment, useId, useMemo, type ReactNode } from "react"
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   AlertCircle,
@@ -316,6 +323,7 @@ export function AttackWorkflowQueue({
   const searchId = useId()
   const statusId = useId()
   const severityId = useId()
+  const selectedItemRef = useRef<HTMLLIElement | null>(null)
 
   const showSkeletons = loading && items.length === 0
   const showEmpty = !loading && !showSkeletons && items.length === 0
@@ -358,6 +366,21 @@ export function AttackWorkflowQueue({
     canChangePage && (hasNext ?? normalizedPage < normalizedTotalPages)
   const paginationDisabled = loading || paginationLoading
   const showPagination = !showSkeletons && !showEmpty && normalizedTotal > 0
+
+  useEffect(() => {
+    if (loading || showSkeletons) return
+
+    selectedItemRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    })
+  }, [
+    items,
+    loading,
+    selectedCaseId,
+    selectedWorkflowId,
+    showSkeletons,
+  ])
 
   function handleScope(scope: AttackWorkflowQueueStatusScope) {
     if (scope === filters.statusScope) return
@@ -666,7 +689,10 @@ export function AttackWorkflowQueue({
                   (selectedCaseId != null && item.case_id === selectedCaseId)
 
                 return (
-                  <li key={item.workflow_id || item.case_id}>
+                  <li
+                    key={item.workflow_id || item.case_id}
+                    ref={selected ? selectedItemRef : undefined}
+                  >
                     <QueueItemCard
                       item={item}
                       isChinese={isChinese}

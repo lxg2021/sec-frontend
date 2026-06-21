@@ -183,7 +183,11 @@ export function AttackCaseList({
 
   function handleWorkflow(caseId: string) {
     handleSelectCase(caseId)
-    router.push(buildAttackWorkflowHref(caseId, snapshotId))
+    router.push(
+      buildAttackWorkflowHref(caseId, snapshotId, undefined, {
+        focusQueue: true,
+      }),
+    )
   }
 
   function handleLocateCase() {

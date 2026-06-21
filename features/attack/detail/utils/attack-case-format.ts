@@ -88,12 +88,14 @@ export function buildAttackWorkflowHref(
   caseId: string,
   snapshotId?: string,
   workflowId?: string,
+  options?: { focusQueue?: boolean },
 ) {
   const params = new URLSearchParams()
   const normalizedCaseId = caseId.trim()
   if (normalizedCaseId) params.set("caseId", normalizedCaseId)
   if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
   if (workflowId?.trim()) params.set("workflowId", workflowId.trim())
+  if (options?.focusQueue) params.set("focusQueue", "1")
   const query = params.toString()
   return `/frame/attack/workflow${query ? `?${query}` : ""}`
 }

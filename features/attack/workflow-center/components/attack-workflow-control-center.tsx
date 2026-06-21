@@ -66,6 +66,7 @@ import { Textarea } from "@/shared/ui/textarea"
 interface AttackWorkflowControlCenterProps {
   caseId?: string
   endTime?: string
+  focusQueue?: boolean
   snapshotId?: string
   startTime?: string
   workflowId?: string
@@ -216,6 +217,7 @@ function workflowToQueueItem(
 export function AttackWorkflowControlCenter({
   caseId = "",
   endTime = "",
+  focusQueue = false,
   snapshotId = "",
   startTime = "",
   workflowId = "",
@@ -272,6 +274,15 @@ export function AttackWorkflowControlCenter({
   useEffect(() => {
     tRef.current = t
   }, [t])
+
+  useEffect(() => {
+    if (!focusQueue || !normalizedCaseId) return
+
+    setQueueCaseIdQuery(normalizedCaseId)
+    setQueueCaseId(normalizedCaseId)
+    setQueuePage(1)
+    setQueueFilters({ ...DEFAULT_QUEUE_FILTERS, statusScope: "all" })
+  }, [focusQueue, normalizedCaseId])
 
   const loadAttackOverview = useCallback(async () => {
     setAttackOverviewLoading(true)
