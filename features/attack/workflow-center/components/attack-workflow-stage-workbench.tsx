@@ -1152,7 +1152,7 @@ export function AttackWorkflowStageWorkbench({
             className={cn(
               "flex min-h-0 flex-col 2xl:flex-1",
               tools.length > 0
-                ? "overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)]"
+                ? "overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)] 2xl:justify-evenly"
                 : "rounded-xl border border-slate-200 bg-white/95 p-2",
             )}
           >
