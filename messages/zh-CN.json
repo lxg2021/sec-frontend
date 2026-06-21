@@ -1732,7 +1732,7 @@
           "unavailableAria": "{title} 不可用",
           "openAttackDetail": {
             "title": "打开攻击详情",
-            "description": "查看告警上下文、案件叙事和相关证据",
+            "description": "了解案件叙事、证据链条与攻击追踪",
             "closedDescription": "查看已关闭案件的叙事和证据上下文"
           },
           "openThreatAnalysis": {
