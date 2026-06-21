@@ -1633,10 +1633,10 @@
           },
           "nextAction": {
             "detected": "Start investigation",
-            "investigating": "Open Threat Analysis",
+            "investigating": "Threat Analysis",
             "confirmed": "Start Forensics",
             "forensics": "Review Evidence",
-            "responding": "Open Response",
+            "responding": "Response",
             "contained": "Verify Containment",
             "remediated": "Close Workflow",
             "closed": "Resolved",
@@ -1728,17 +1728,37 @@
           "locked": "Locked",
           "openAria": "Open {title}",
           "unavailableAria": "{title} unavailable",
+          "attackTrace": {
+            "title": "Attack Trace",
+            "description": "Inspect the attack path, trace graph, and key node details."
+          },
+          "aiAnalysis": {
+            "title": "AI Analysis",
+            "description": "Review AI conclusions, evidence references, hypotheses, and response suggestions."
+          },
+          "iocInvestigation": {
+            "title": "IOC Investigation",
+            "description": "Investigate IOC hits, threat indicators, and related evidence."
+          },
+          "forensicOrchestration": {
+            "title": "Forensic Orchestration",
+            "description": "Orchestrate evidence collection and preservation tasks."
+          },
+          "responseOrchestration": {
+            "title": "Response Orchestration",
+            "description": "Orchestrate containment, remediation, and writeback actions."
+          },
           "openAttackDetail": {
-            "title": "Open Attack Detail",
+            "title": "Attack Detail",
             "description": "Review the alert context, case story, and related evidence.",
             "closedDescription": "Review the closed case story and evidence context."
           },
           "openThreatAnalysis": {
-            "title": "Open Threat Analysis",
+            "title": "Threat Analysis",
             "description": "Read AI conclusions, evidence references, hypotheses, and response suggestions."
           },
           "openTraceDetails": {
-            "title": "Open Trace Details",
+            "title": "Trace Details",
             "description": "Inspect the attack story, trace graph, source fields, and node drilldown.",
             "auditDescription": "Review historical trace evidence for audit."
           },
@@ -1757,7 +1777,7 @@
             "description": "Open the response workspace for preview, execution, and control writeback."
           },
           "openResponseResult": {
-            "title": "Open Response Result",
+            "title": "Response Result",
             "containmentDescription": "Review containment action results and related execution references.",
             "remediationDescription": "Review remediation evidence before case closure."
           }

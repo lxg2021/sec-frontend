@@ -1635,10 +1635,10 @@
           },
           "nextAction": {
             "detected": "开始调查",
-            "investigating": "打开威胁分析",
+            "investigating": "威胁分析",
             "confirmed": "开始取证",
             "forensics": "复核证据",
-            "responding": "打开响应",
+            "responding": "响应",
             "contained": "验证遏制",
             "remediated": "关闭工作流",
             "closed": "已处理",
@@ -1730,17 +1730,37 @@
           "locked": "锁定",
           "openAria": "打开 {title}",
           "unavailableAria": "{title} 不可用",
+          "attackTrace": {
+            "title": "攻击溯源",
+            "description": "查看攻击链路、溯源图谱和关键节点详情"
+          },
+          "aiAnalysis": {
+            "title": "AI智能分析",
+            "description": "阅读 AI 结论、证据引用、假设和响应建议"
+          },
+          "iocInvestigation": {
+            "title": "IOC调查",
+            "description": "定位 IOC 命中、威胁指标和关联证据"
+          },
+          "forensicOrchestration": {
+            "title": "取证编排",
+            "description": "进入取证工作区编排采集任务和证据保全"
+          },
+          "responseOrchestration": {
+            "title": "处置编排",
+            "description": "进入处置工作区编排遏制、修复和写回动作"
+          },
           "openAttackDetail": {
-            "title": "打开攻击详情",
+            "title": "攻击详情",
             "description": "了解案件叙事、证据链条与攻击追踪",
             "closedDescription": "查看已关闭案件的叙事和证据上下文"
           },
           "openThreatAnalysis": {
-            "title": "打开威胁分析",
+            "title": "威胁分析",
             "description": "阅读 AI 结论、证据引用、假设和响应建议"
           },
           "openTraceDetails": {
-            "title": "打开溯源详情",
+            "title": "溯源详情",
             "description": "检查攻击叙事、链路图、来源字段和节点详情",
             "auditDescription": "复核历史溯源证据用于审计"
           },
@@ -1759,7 +1779,7 @@
             "description": "打开响应工作区进行预览、执行和控制写回"
           },
           "openResponseResult": {
-            "title": "打开响应结果",
+            "title": "响应结果",
             "containmentDescription": "查看遏制动作结果和相关执行引用",
             "remediationDescription": "关闭案件前复核修复证据"
           }

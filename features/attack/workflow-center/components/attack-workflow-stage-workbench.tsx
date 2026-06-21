@@ -13,7 +13,7 @@ import {
 import {
   Activity,
   ArrowRight,
-  Bot,
+  BrainCircuit,
   CheckCircle2,
   ChevronDown,
   ClipboardCheck,
@@ -21,10 +21,12 @@ import {
   FileSearch,
   Gauge,
   Lock,
+  Radar,
   ScrollText,
   Shield,
   Target,
   Timer,
+  Workflow,
   Wrench,
 } from "lucide-react"
 
@@ -42,7 +44,7 @@ import {
 } from "@/features/attack/workflow/utils"
 import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
-import { Button, buttonVariants } from "@/shared/ui/button"
+import { Button } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
 import { Separator } from "@/shared/ui/separator"
 
@@ -192,10 +194,14 @@ const STATUS_ICON_PATHS: Record<AttackWorkflowStatus, string> = {
 
 const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
   activity: Activity,
-  bot: Bot,
+  aiops: BrainCircuit,
   clipboard: ClipboardCheck,
+  external: ExternalLink,
   file: FileSearch,
+  forensics: FileSearch,
+  ioc: Radar,
   lock: Lock,
+  orchestration: Workflow,
   route: Target,
   scroll: ScrollText,
   search: FileSearch,
@@ -206,10 +212,14 @@ const TOOL_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 
 const TOOL_ICON_STYLES: Record<string, string> = {
   activity: "bg-orange-50 text-orange-600",
-  bot: "bg-violet-50 text-violet-600",
+  aiops: "bg-violet-50 text-violet-600",
   clipboard: "bg-amber-50 text-amber-600",
+  external: "bg-sky-50 text-sky-600",
   file: "bg-blue-50 text-blue-600",
+  forensics: "bg-blue-50 text-blue-600",
+  ioc: "bg-rose-50 text-rose-600",
   lock: "bg-emerald-50 text-emerald-600",
+  orchestration: "bg-teal-50 text-teal-600",
   route: "bg-cyan-50 text-cyan-600",
   scroll: "bg-indigo-50 text-indigo-600",
   search: "bg-sky-50 text-sky-600",
@@ -290,117 +300,44 @@ function getToolIconStyle(iconName?: string) {
 }
 
 function stageTools({
-  canOpenDetails,
   hrefs,
-  selectedStatus,
   t,
 }: {
-  canOpenDetails: boolean
   hrefs: WorkflowNavigationHrefs
-  selectedStatus: AttackWorkflowStatus
   t: WorkflowCenterT
 }): StageTool[] {
-  switch (selectedStatus) {
-    case "detected":
-      return [
-        {
-          title: t("tools.openAttackDetail.title"),
-          description: t("tools.openAttackDetail.description"),
-          href: hrefs.attackDetailHref,
-          iconName: "search",
-          disabled: !canOpenDetails,
-        },
-      ]
-    case "investigating":
-      return [
-        {
-          title: t("tools.openThreatAnalysis.title"),
-          description: t("tools.openThreatAnalysis.description"),
-          href: hrefs.aiHref,
-          iconName: "bot",
-          disabled: !canOpenDetails,
-        },
-        {
-          title: t("tools.openTraceDetails.title"),
-          description: t("tools.openTraceDetails.description"),
-          href: hrefs.traceHref,
-          iconName: "route",
-          disabled: !canOpenDetails,
-        },
-      ]
-    case "confirmed":
-      return [
-        {
-          title: t("tools.openTraceDetails.title"),
-          description: t("tools.recheckTraceEvidence.description"),
-          href: hrefs.traceHref,
-          iconName: "route",
-          disabled: !canOpenDetails,
-        },
-      ]
-    case "forensics":
-      return [
-        {
-          title: t("tools.openTraceDetails.title"),
-          description: t("tools.traceEvidenceAnchor.description"),
-          href: hrefs.traceHref,
-          iconName: "route",
-          disabled: !canOpenDetails,
-        },
-        {
-          title: t("tools.evidenceCapture.title"),
-          description: t("tools.evidenceCapture.description"),
-          href: hrefs.traceHref,
-          iconName: "file",
-          disabled: true,
-        },
-      ]
-    case "responding":
-      return [
-        {
-          title: t("tools.prepareResponse.title"),
-          description: t("tools.prepareResponse.description"),
-          href: "/frame/response/dac",
-          iconName: "shield",
-        },
-      ]
-    case "contained":
-      return [
-        {
-          title: t("tools.openResponseResult.title"),
-          description: t("tools.openResponseResult.containmentDescription"),
-          href: "/frame/response/dac",
-          iconName: "lock",
-        },
-      ]
-    case "remediated":
-      return [
-        {
-          title: t("tools.openResponseResult.title"),
-          description: t("tools.openResponseResult.remediationDescription"),
-          href: "/frame/response/dac",
-          iconName: "clipboard",
-        },
-      ]
-    case "closed":
-    default:
-      return [
-        {
-          title: t("tools.openAttackDetail.title"),
-          description: t("tools.openAttackDetail.closedDescription"),
-          href: hrefs.attackDetailHref,
-          iconName: "search",
-          disabled: !canOpenDetails,
-        },
-        {
-          title: t("tools.openTraceDetails.title"),
-          description: t("tools.openTraceDetails.auditDescription"),
-          href: hrefs.traceHref,
-          iconName: "route",
-          disabled: !canOpenDetails,
-        },
-      ]
-  }
+  return [
+    {
+      title: t("tools.attackTrace.title"),
+      description: t("tools.attackTrace.description"),
+      href: hrefs.traceHref,
+      iconName: "route",
+    },
+    {
+      title: t("tools.aiAnalysis.title"),
+      description: t("tools.aiAnalysis.description"),
+      href: hrefs.aiHref,
+      iconName: "aiops",
+    },
+    {
+      title: t("tools.iocInvestigation.title"),
+      description: t("tools.iocInvestigation.description"),
+      href: `${hrefs.aiHref}#iocs`,
+      iconName: "ioc",
+    },
+    {
+      title: t("tools.forensicOrchestration.title"),
+      description: t("tools.forensicOrchestration.description"),
+      href: "/frame/evidence",
+      iconName: "forensics",
+    },
+    {
+      title: t("tools.responseOrchestration.title"),
+      description: t("tools.responseOrchestration.description"),
+      href: "/frame/response/dac",
+      iconName: "orchestration",
+    },
+  ]
 }
 
 function readOnlyReason({
@@ -661,96 +598,89 @@ function HeaderMetaField({
 }
 
 function ToolRow({
-  canOpenDetails,
   isChinese,
   t,
   tool,
 }: {
-  canOpenDetails: boolean
   isChinese: boolean
   t: WorkflowCenterT
   tool: StageTool
 }) {
   const Icon = getToolIcon(tool.iconName)
   const iconStyle = getToolIconStyle(tool.iconName)
-  const disabled = Boolean(tool.disabled) || !canOpenDetails
-
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-3 px-3 py-2.5 transition-colors",
-        disabled
-          ? "bg-slate-50/50 opacity-70"
-          : "bg-white hover:bg-slate-50/80",
-      )}
-    >
+  const disabled = Boolean(tool.disabled)
+  const content = (
+    <>
       <span
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
-          disabled ? "bg-slate-100 text-slate-400" : iconStyle,
+          "flex size-10 shrink-0 items-center justify-center rounded-full ring-1 ring-inset transition-colors",
+          disabled
+            ? "bg-slate-50 text-slate-400 ring-slate-100"
+            : cn(iconStyle, "ring-black/5 group-hover:bg-white"),
         )}
       >
-        <Icon className="h-4 w-4" aria-hidden="true" />
+        <Icon className="size-5" aria-hidden="true" />
       </span>
-      <div className="min-w-0 flex-1">
-        <p
+      <span className="min-w-0 flex-1">
+        <span
           className={cn(
-            "text-slate-900",
-            isChinese
-              ? "truncate text-sm font-medium"
-              : "truncate text-sm font-medium",
+            "block truncate text-base font-semibold leading-5 text-slate-950",
+            isChinese && "font-semibold",
+            disabled && "text-slate-500",
           )}
         >
           {tool.title}
-        </p>
-        <p
+        </span>
+        <span
           className={cn(
-            "text-slate-500",
-            isChinese
-              ? "truncate text-xs leading-relaxed"
-              : "truncate text-xs leading-relaxed",
+            "mt-0.5 block truncate text-sm leading-5 text-slate-500",
+            isChinese && "leading-5",
+            disabled && "text-slate-400",
           )}
         >
           {tool.description}
-        </p>
+        </span>
+      </span>
+    </>
+  )
+
+  if (disabled) {
+    return (
+      <div
+        aria-disabled="true"
+        aria-label={t("tools.unavailableAria", { title: tool.title })}
+        className={cn(
+          "group flex min-h-[56px] items-center gap-3 rounded-full border px-3 py-2.5",
+          "border-slate-200 bg-slate-50/80 text-left opacity-80",
+        )}
+        title={tool.title}
+      >
+        {content}
       </div>
-      {disabled ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled
-          className={cn("shrink-0", isChinese && "h-8 text-xs")}
-          aria-label={t("tools.unavailableAria", { title: tool.title })}
-        >
-          <Lock className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>{t("tools.locked")}</span>
-        </Button>
-      ) : (
-        <Link
-          href={tool.href}
-          aria-label={t("tools.openAria", { title: tool.title })}
-          className={cn(
-            buttonVariants({
-              size: "sm",
-              variant: "default",
-            }),
-            "shrink-0",
-            isChinese && "h-8 text-xs",
-          )}
-        >
-          <span>{t("tools.open")}</span>
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-        </Link>
+    )
+  }
+
+  return (
+    <Link
+      href={tool.href}
+      aria-label={t("tools.openAria", { title: tool.title })}
+      className={cn(
+        "group flex min-h-[56px] items-center gap-3 rounded-full border px-3 py-2.5 text-left",
+        "border-sky-200 bg-white transition-all duration-200 ease-out",
+        "shadow-[0_1px_2px_rgba(15,23,42,0.03)]",
+        "hover:border-sky-300 hover:bg-sky-50/40 hover:shadow-[0_8px_22px_rgba(2,132,199,0.08)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2",
       )}
-    </div>
+      title={`${tool.title} - ${tool.description}`}
+    >
+      {content}
+    </Link>
   )
 }
 
 export function AttackWorkflowStageWorkbench({
   actions,
   allowedStatuses,
-  canOpenDetails,
   currentStatus,
   hrefs,
   loading = false,
@@ -765,7 +695,7 @@ export function AttackWorkflowStageWorkbench({
   const isChinese = isChineseLocale(locale)
   const normalizedCurrentStatus = normalizeWorkflowStatus(currentStatus)
   const config = getStageConfig(t, selectedStatus)
-  const tools = stageTools({ canOpenDetails, hrefs, selectedStatus, t })
+  const tools = stageTools({ hrefs, t })
   const selectedStyle = getStatusStyle(selectedStatus)
   const stageTime = workflow
     ? formatWorkflowTime(workflowStatusTime(workflow, selectedStatus))
@@ -1108,8 +1038,10 @@ export function AttackWorkflowStageWorkbench({
           </SectionTitle>
           <div
             className={cn(
-              "flex min-h-0 flex-col overflow-y-auto rounded-xl border border-slate-200 bg-white",
-              tools.length > 0 && "divide-y divide-slate-100",
+              "flex min-h-0 flex-col overflow-y-auto",
+              tools.length > 0
+                ? "gap-2"
+                : "rounded-xl border border-slate-200 bg-white/95 p-2",
               hasControlHeight && "2xl:flex-1",
             )}
           >
@@ -1117,7 +1049,6 @@ export function AttackWorkflowStageWorkbench({
               tools.map((tool, index) => (
                 <ToolRow
                   key={`${tool.title}-${index}`}
-                  canOpenDetails={canOpenDetails}
                   isChinese={isChinese}
                   t={t}
                   tool={tool}
