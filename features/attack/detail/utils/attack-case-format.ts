@@ -73,6 +73,7 @@ export function formatFullTime(value: string) {
 export interface AttackWorkflowRouteOptions {
   workflowId?: string
   returnToWorkflow?: boolean
+  queuePage?: number
 }
 
 function appendOptionalWorkflowParams(
@@ -82,13 +83,16 @@ function appendOptionalWorkflowParams(
   const workflowId = options?.workflowId?.trim()
   if (workflowId) params.set("workflowId", workflowId)
   if (options?.returnToWorkflow) params.set("returnTo", "workflow")
+  if (options?.queuePage && options.queuePage > 0) {
+    params.set("queuePage", String(Math.trunc(options.queuePage)))
+  }
 }
 
 export function buildAttackWorkflowHref(
   caseId: string,
   snapshotId?: string,
   workflowId?: string,
-  options?: { focusQueue?: boolean },
+  options?: { focusQueue?: boolean; queuePage?: number },
 ) {
   const params = new URLSearchParams()
   const normalizedCaseId = caseId.trim()
@@ -96,6 +100,9 @@ export function buildAttackWorkflowHref(
   if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
   if (workflowId?.trim()) params.set("workflowId", workflowId.trim())
   if (options?.focusQueue) params.set("focusQueue", "1")
+  if (options?.queuePage && options.queuePage > 0) {
+    params.set("queuePage", String(Math.trunc(options.queuePage)))
+  }
   const query = params.toString()
   return `/frame/attack/workflow${query ? `?${query}` : ""}`
 }

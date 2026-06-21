@@ -45,6 +45,13 @@ function getRouteParam(value: string | null) {
   return value?.trim() || ""
 }
 
+function getRoutePageParam(value: string | null) {
+  const normalized = getRouteParam(value)
+  if (!normalized) return undefined
+  const parsed = Number.parseInt(normalized, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
+
 function CaseIdSearchToolbar({
   loading,
   onSearch,
@@ -96,6 +103,9 @@ export default function App() {
 
   const routeParams = useMemo(() => ({
     caseId: getRouteParam(searchParams.get("caseId")) || getRouteParam(searchParams.get("case_id")),
+    queuePage:
+      getRoutePageParam(searchParams.get("queuePage")) ||
+      getRoutePageParam(searchParams.get("queue_page")),
     snapshotId: getRouteParam(searchParams.get("snapshotId")) || getRouteParam(searchParams.get("snapshot_id")),
     returnTo: getRouteParam(searchParams.get("returnTo")) || getRouteParam(searchParams.get("return_to")),
     workflowId: getRouteParam(searchParams.get("workflowId")) || getRouteParam(searchParams.get("workflow_id")),
@@ -106,6 +116,7 @@ export default function App() {
   const [timelineSnapshotId, setTimelineSnapshotId] = useState(routeParams.snapshotId);
   const [returnTo, setReturnTo] = useState(routeParams.returnTo);
   const [returnWorkflowId, setReturnWorkflowId] = useState(routeParams.workflowId);
+  const [returnQueuePage, setReturnQueuePage] = useState(routeParams.queuePage);
   const [refreshKey, setRefreshKey] = useState(0);
   const [graphResponse, setGraphResponse] = useState<GraphCaseResponseDto | null>(null);
   const [graphLoading, setGraphLoading] = useState(false);
@@ -124,6 +135,7 @@ export default function App() {
     setTimelineSnapshotId(routeParams.snapshotId)
     setReturnTo(routeParams.returnTo)
     setReturnWorkflowId(routeParams.workflowId)
+    setReturnQueuePage(routeParams.queuePage)
   }, [routeParams])
 
   const graphVisibleStats = useMemo(() => {
@@ -183,15 +195,27 @@ export default function App() {
     [applyCaseId, caseIdInput],
   )
 
-  const handleBackToAttackDetail = useCallback(() => {
+  const backHref = useMemo(() => {
     const normalizedCaseId = timelineCaseId.trim()
     if (returnTo === "workflow") {
-      router.push(buildAttackWorkflowHref(normalizedCaseId, timelineSnapshotId, returnWorkflowId))
-      return
+      return buildAttackWorkflowHref(
+        normalizedCaseId,
+        timelineSnapshotId,
+        returnWorkflowId,
+        {
+          queuePage: returnQueuePage,
+        },
+      )
     }
 
-    router.push(normalizedCaseId ? buildAttackDetailHref(normalizedCaseId, timelineSnapshotId) : "/frame/attack/detail")
-  }, [returnTo, returnWorkflowId, router, timelineCaseId, timelineSnapshotId])
+    return normalizedCaseId
+      ? buildAttackDetailHref(normalizedCaseId, timelineSnapshotId)
+      : "/frame/attack/detail"
+  }, [returnQueuePage, returnTo, returnWorkflowId, timelineCaseId, timelineSnapshotId])
+
+  const handleBackToAttackDetail = useCallback(() => {
+    router.push(backHref)
+  }, [backHref, router])
 
   const handleGraphMenuAction = useCallback(
     async (action: AttackGraphMenuAction) => {
@@ -394,6 +418,8 @@ export default function App() {
 
         <AttackCaseStoryTimelineRender
           key={`${timelineCaseId}:${timelineSnapshotId}:${refreshKey}`}
+          backHref={backHref}
+          backLabel={returnTo === "workflow" ? "Back" : t("backToAttackDetail")}
           caseId={timelineCaseId}
           snapshotId={timelineSnapshotId}
           timezone={DRILL_TIMEZONE}
@@ -402,7 +428,7 @@ export default function App() {
         />
 
         <AttackGraphCaseCard
-          backLabel={returnTo === "workflow" ? "Back to AttackWorkflow" : t("backToAttackDetail")}
+          backLabel={returnTo === "workflow" ? "Back" : t("backToAttackDetail")}
           caseId={timelineCaseId}
           edgeCount={graphVisibleStats.edgeCount}
           error={graphError}

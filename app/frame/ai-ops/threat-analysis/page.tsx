@@ -38,6 +38,13 @@ function getRouteParam(value: string | null) {
   return value?.trim() || ""
 }
 
+function getRoutePageParam(value: string | null) {
+  const normalized = getRouteParam(value)
+  if (!normalized) return undefined
+  const parsed = Number.parseInt(normalized, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
+
 function normalizeTaskStatus(status?: string) {
   return status?.trim().toLowerCase() || "unknown"
 }
@@ -90,6 +97,9 @@ function CaseIdSearchToolbar() {
   const waitForLocalizedReport = shouldWaitForLocalizedReport(reportLocale)
   const routeParams = useMemo(() => ({
     caseId: getRouteParam(searchParams.get("caseId")) || getRouteParam(searchParams.get("case_id")),
+    queuePage:
+      getRoutePageParam(searchParams.get("queuePage")) ||
+      getRoutePageParam(searchParams.get("queue_page")),
     snapshotId: getRouteParam(searchParams.get("snapshotId")) || getRouteParam(searchParams.get("snapshot_id")),
     returnTo: getRouteParam(searchParams.get("returnTo")) || getRouteParam(searchParams.get("return_to")),
     workflowId: getRouteParam(searchParams.get("workflowId")) || getRouteParam(searchParams.get("workflow_id")),
@@ -98,6 +108,7 @@ function CaseIdSearchToolbar() {
   const [snapshotId, setSnapshotId] = useState(routeParams.snapshotId)
   const [returnTo, setReturnTo] = useState(routeParams.returnTo)
   const [returnWorkflowId, setReturnWorkflowId] = useState(routeParams.workflowId)
+  const [returnQueuePage, setReturnQueuePage] = useState(routeParams.queuePage)
   const [loading, setLoading] = useState(false)
   const [analysisPhase, setAnalysisPhase] = useState<AnalysisPhase>("creating")
   const [reportTask, setReportTask] = useState<AttackAIReportTask | null>(null)
@@ -218,6 +229,7 @@ function CaseIdSearchToolbar() {
   useEffect(() => {
     setReturnTo(routeParams.returnTo)
     setReturnWorkflowId(routeParams.workflowId)
+    setReturnQueuePage(routeParams.queuePage)
     setSnapshotId(routeParams.snapshotId)
     setCaseId(routeParams.caseId)
   }, [routeParams])
@@ -285,7 +297,11 @@ function CaseIdSearchToolbar() {
     const normalizedCaseId = caseId.trim()
 
     if (returnTo === "workflow") {
-      router.push(buildAttackWorkflowHref(normalizedCaseId, snapshotId, returnWorkflowId))
+      router.push(
+        buildAttackWorkflowHref(normalizedCaseId, snapshotId, returnWorkflowId, {
+          queuePage: returnQueuePage,
+        }),
+      )
       return
     }
 

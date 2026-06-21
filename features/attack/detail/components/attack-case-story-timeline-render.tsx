@@ -59,6 +59,8 @@ interface AttackCaseStoryTimelineRenderProps {
   caseId?: string
   snapshotId?: string
   timezone?: string
+  backHref?: string
+  backLabel?: string
   className?: string
   noCaseDescription?: string
   noCaseHint?: string
@@ -171,6 +173,8 @@ export function AttackCaseStoryTimelineRender({
   caseId = "",
   snapshotId = "",
   timezone = "Asia/Shanghai",
+  backHref,
+  backLabel,
   className,
   noCaseDescription,
   noCaseHint,
@@ -401,6 +405,8 @@ export function AttackCaseStoryTimelineRender({
   }
 
   const summary = data.case
+  const resolvedBackHref = backHref || buildAttackDetailHref(summary.case_id, snapshotId)
+  const resolvedBackLabel = backLabel || t("backToCaseList")
 
   return (
     <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm", className)}>
@@ -419,15 +425,15 @@ export function AttackCaseStoryTimelineRender({
                       <TooltipTrigger asChild>
                         <button
                           type="button"
-                          aria-label={t("backToCaseList")}
+                          aria-label={resolvedBackLabel}
                           className="inline-flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-sky-100 bg-sky-50/80 text-sky-700 shadow-sm transition-all duration-150 hover:-translate-x-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200 motion-reduce:transform-none motion-reduce:transition-none"
-                          onClick={() => router.push(buildAttackDetailHref(summary.case_id, snapshotId))}
+                          onClick={() => router.push(resolvedBackHref)}
                         >
                           <ArrowLeft className="size-4" />
                         </button>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="text-xs">
-                        {t("backToCaseList")}
+                        {resolvedBackLabel}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

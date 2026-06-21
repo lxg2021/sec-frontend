@@ -67,6 +67,7 @@ interface AttackWorkflowControlCenterProps {
   caseId?: string
   endTime?: string
   focusQueue?: boolean
+  initialQueuePage?: number
   snapshotId?: string
   startTime?: string
   workflowId?: string
@@ -94,6 +95,11 @@ const DEFAULT_QUEUE_FILTERS: AttackWorkflowQueueFilters = {
 }
 const QUEUE_PAGE_SIZE = 10
 const WORKFLOW_RANGE_TIMEZONE = "Asia/Shanghai"
+
+function normalizeQueuePage(value?: number) {
+  const page = Math.trunc(value ?? 1)
+  return Number.isFinite(page) && page > 0 ? page : 1
+}
 
 const EMPTY_ATTACK_OVERVIEW: AttackOverview = {
   bucket: {
@@ -218,6 +224,7 @@ export function AttackWorkflowControlCenter({
   caseId = "",
   endTime = "",
   focusQueue = false,
+  initialQueuePage = 1,
   snapshotId = "",
   startTime = "",
   workflowId = "",
@@ -228,6 +235,7 @@ export function AttackWorkflowControlCenter({
   const locale = useLocale()
   const t = useTranslations("pages.attack.workflowCenter")
   const { toast } = useToast()
+  const normalizedInitialQueuePage = normalizeQueuePage(initialQueuePage)
   const [attackOverview, setAttackOverview] = useState<AttackOverview | null>(
     null,
   )
@@ -249,7 +257,7 @@ export function AttackWorkflowControlCenter({
   const [queueLoading, setQueueLoading] = useState(false)
   const [queueRefreshing, setQueueRefreshing] = useState(false)
   const [queueError, setQueueError] = useState("")
-  const [queuePage, setQueuePage] = useState(1)
+  const [queuePage, setQueuePage] = useState(normalizedInitialQueuePage)
   const [queueTotal, setQueueTotal] = useState(0)
   const [queueTotalPages, setQueueTotalPages] = useState(0)
   const [queueHasPrevious, setQueueHasPrevious] = useState(false)
@@ -274,6 +282,10 @@ export function AttackWorkflowControlCenter({
   useEffect(() => {
     tRef.current = t
   }, [t])
+
+  useEffect(() => {
+    setQueuePage(normalizedInitialQueuePage)
+  }, [normalizedInitialQueuePage])
 
   useEffect(() => {
     if (!focusQueue || !normalizedCaseId) return
@@ -311,11 +323,15 @@ export function AttackWorkflowControlCenter({
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setQueueCaseId(queueCaseIdQuery.trim())
+      const nextCaseId = queueCaseIdQuery.trim()
+      if (nextCaseId === queueCaseId) return
+
+      setQueuePage(1)
+      setQueueCaseId(nextCaseId)
     }, 300)
 
     return () => window.clearTimeout(timer)
-  }, [queueCaseIdQuery])
+  }, [queueCaseId, queueCaseIdQuery])
 
   const loadWorkflowDetail = useCallback(
     async ({
@@ -460,8 +476,8 @@ export function AttackWorkflowControlCenter({
   )
 
   useEffect(() => {
-    void loadWorkflowQueue()
-  }, [loadWorkflowQueue])
+    void loadWorkflowQueue({ page: queuePage })
+  }, [loadWorkflowQueue, queuePage])
 
   function selectAttackOverviewSnapshot(snapshot: AttackOverview) {
     setAttackOverview(snapshot)
@@ -495,6 +511,7 @@ export function AttackWorkflowControlCenter({
   const detailOptions = {
     workflowId: activeWorkflowId,
     returnToWorkflow: true,
+    queuePage,
   }
   const attackDetailHref = activeCaseId
     ? buildAttackDetailHref(activeCaseId, normalizedSnapshotId)
@@ -675,7 +692,17 @@ export function AttackWorkflowControlCenter({
     if (normalizedEndTime) params.set("endTime", normalizedEndTime)
     if (normalizedTimezone) params.set("timezone", normalizedTimezone)
     if (tenantId.trim()) params.set("tenantId", tenantId.trim())
+    params.set("queuePage", String(queuePage))
     router.push(`/frame/attack/workflow?${params.toString()}`)
+  }
+
+  function updateQueueFilters(nextFilters: AttackWorkflowQueueFilters) {
+    setQueuePage(1)
+    setQueueFilters(nextFilters)
+  }
+
+  function changeQueuePage(page: number) {
+    setQueuePage(normalizeQueuePage(page))
   }
 
   return (
@@ -704,12 +731,12 @@ export function AttackWorkflowControlCenter({
             hasPrevious={queueHasPrevious}
             hasNext={queueHasNext}
             paginationLoading={queueLoading}
-            onFiltersChange={setQueueFilters}
+            onFiltersChange={updateQueueFilters}
             onCaseIdChange={setQueueCaseIdQuery}
             onRefresh={() =>
               void loadWorkflowQueue({ page: queuePage, refreshing: true })
             }
-            onPageChange={(page) => void loadWorkflowQueue({ page })}
+            onPageChange={changeQueuePage}
             onSelectWorkflow={selectQueueWorkflow}
             refreshing={queueRefreshing}
             selectedCaseId={selectedQueueCaseId}
