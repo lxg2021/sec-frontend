@@ -15,6 +15,7 @@ import {
   Package,
   Settings,
   Send,
+  Search,
   Shield,
   ShieldCheck,
   SlidersHorizontal,
@@ -95,6 +96,15 @@ export const menuItems = [
     submenu: [
       { id: "aithreat", icon: ChartNoAxesCombined, labelKey: "aithreat", path: "/frame/ai-ops/threat-analysis" },
       { id: "aioperations", icon: Bot, labelKey: "aioperations", path: "/frame/ai-ops/operations" },
+    ],
+  },
+  {
+    id: "iocAnalysis",
+    icon: Search,
+    labelKey: "iocAnalysis",
+    submenu: [
+      { id: "iocVerification", icon: ShieldCheck, labelKey: "iocVerification", path: "/frame/ioc-analysis/ioc-verification" },
+      { id: "dataInvestigation", icon: MapPin, labelKey: "dataInvestigation", path: "/frame/ioc-analysis/data-investigation" },
     ],
   },
   { id: "evidence", icon: Terminal, labelKey: "evidence", path: "/frame/evidence" },
