@@ -59,6 +59,7 @@ const IOC_QUERY_TYPE_LABEL: Record<number, IocVerificationType | string> = {
 }
 
 const DEFAULT_TENANT_ID = "public"
+const HIDDEN_CASE_IOC_TYPES = new Set<IocVerificationType>(["certificate"])
 
 const HIT_SOURCE_LABEL: Record<number, string> = {
   1: "cache_hit",
@@ -363,6 +364,7 @@ function normalizeCaseCandidate(raw: unknown): IocVerificationItem | null {
   const candidateId = stringValue(item.candidate_id)
   const type = normalizeCaseIocType(item.ioc_type || item.query_type)
   const value = stringValue(item.normalized_value) || stringValue(item.value)
+  if (HIDDEN_CASE_IOC_TYPES.has(type)) return null
   if (!candidateId || !value) return null
 
   const verification = normalizeVerification(item.verification)
