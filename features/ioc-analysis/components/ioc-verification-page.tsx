@@ -707,8 +707,15 @@ function SelectedIocDetail({
   if (!item) {
     return (
       <section className="flex h-full w-full flex-col rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-        <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">{t("detail.noSelection")}</p>
+        <div className="flex items-center gap-3">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+            <ShieldCheck className="size-6" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
+            <p className="mt-1 text-xs leading-5 text-slate-500">{t("detail.noSelection")}</p>
+          </div>
+        </div>
       </section>
     )
   }
@@ -748,9 +755,14 @@ function SelectedIocDetail({
 
   return (
     <section className="flex h-full w-full flex-col rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-      <div>
-        <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
-        <p className="mt-1 text-xs leading-5 text-slate-500">{t("detail.description")}</p>
+      <div className="flex items-center gap-3">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+          <ShieldCheck className="size-6" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{t("detail.description")}</p>
+        </div>
       </div>
 
       <div className="mt-4 rounded-[20px] border border-blue-200 bg-blue-50 p-4">
@@ -1547,8 +1559,8 @@ export function IocVerificationPage() {
           <div className="flex flex-col gap-4">
             <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
               <div className="flex items-center gap-3">
-                <span className="flex size-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
-                  <FileSearch className="size-5" aria-hidden="true" />
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                  <FileSearch className="size-6" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
                   <h2 className="text-base font-semibold text-slate-950">
@@ -1704,13 +1716,18 @@ export function IocVerificationPage() {
 
           <section className="min-w-0 rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold text-slate-950">
-                  {t("results.title")}
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  {t("results.description")}
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
+                  <Radar className="size-6" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold text-slate-950">
+                    {t("results.title")}
+                  </h2>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {t("results.description")}
+                  </p>
+                </div>
               </div>
               {verifying ? (
                 <Badge
