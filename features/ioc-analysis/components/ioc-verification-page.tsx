@@ -11,17 +11,13 @@ import {
 import { useTranslations } from "next-intl"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
-  BadgeCheck,
   CheckCircle2,
   CircleAlert,
   CircleCheckBig,
   CircleDashed,
   CircleX,
   Clipboard,
-  Database,
   FileSearch,
-  Globe2,
-  ListChecks,
   Loader2,
   Plus,
   Radar,
@@ -548,121 +544,6 @@ function EmptyState() {
   )
 }
 
-function VerificationPipeline({
-  counts,
-  extracting,
-  verifying,
-}: {
-  counts: ReturnType<typeof summaryCounts>
-  extracting: boolean
-  verifying: boolean
-}) {
-  const t = useTranslations("pages.iocAnalysis.verification")
-  const steps = [
-    {
-      key: "extracted",
-      icon: FileSearch,
-      value: counts.total,
-      active: extracting,
-      tone: "slate",
-    },
-    {
-      key: "normalized",
-      icon: ListChecks,
-      value: counts.total,
-      active: false,
-      tone: "slate",
-    },
-    {
-      key: "allowlist",
-      icon: ShieldCheck,
-      value: counts.whitelist,
-      active: false,
-      tone: "emerald",
-    },
-    {
-      key: "localIntel",
-      icon: Database,
-      value: counts.hit,
-      active: verifying,
-      tone: "blue",
-    },
-    {
-      key: "onlineIntel",
-      icon: Globe2,
-      value: counts.remote,
-      active: verifying,
-      tone: "slate",
-    },
-    {
-      key: "verdict",
-      icon: BadgeCheck,
-      value: counts.hit + counts.error,
-      active: false,
-      tone: "rose",
-    },
-  ] as const
-
-  return (
-    <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-      <div className="flex flex-wrap items-baseline gap-2">
-        <h2 className="text-base font-semibold text-slate-950">
-          {t("pipeline.title")}
-        </h2>
-        <p className="text-xs leading-5 text-slate-500">
-          {t("pipeline.description")}
-        </p>
-      </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-3 2xl:grid-cols-6">
-        {steps.map((step, index) => {
-          const Icon = step.icon
-          const isEmerald = step.tone === "emerald"
-          const isBlue = step.tone === "blue"
-          const isRose = step.tone === "rose"
-
-          return (
-            <div key={step.key} className="relative">
-              {index > 0 ? (
-                <span className="absolute -left-3 top-1/2 hidden h-px w-3 bg-slate-200 2xl:block" />
-              ) : null}
-              <div
-                className={cn(
-                  "flex min-h-12 items-center gap-3 rounded-2xl border px-4 py-3",
-                  isEmerald && "border-emerald-200 bg-emerald-50",
-                  isBlue && "border-blue-200 bg-blue-50",
-                  isRose && "border-rose-200 bg-rose-50",
-                  !isEmerald && !isBlue && !isRose && "border-slate-200 bg-slate-50",
-                  step.active && "ring-2 ring-blue-100",
-                )}
-              >
-                <span
-                  className={cn(
-                    "flex size-9 shrink-0 items-center justify-center rounded-xl",
-                    isEmerald && "bg-emerald-100 text-emerald-700",
-                    isBlue && "bg-blue-100 text-blue-700",
-                    isRose && "bg-rose-100 text-rose-700",
-                    !isEmerald && !isBlue && !isRose && "bg-white text-blue-700",
-                  )}
-                >
-                  <Icon className="size-4" aria-hidden="true" />
-                </span>
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-slate-950">
-                    {t(`pipeline.steps.${step.key}`)}
-                  </div>
-                  <div className="mt-0.5 text-xs text-slate-500">
-                    {step.active ? t("pipeline.active") : t("pipeline.count", { count: step.value })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </section>
-  )
-}
-
 function VerdictBadge({ item }: { item: IocVerificationItem }) {
   const t = useTranslations("pages.iocAnalysis.verification")
   const verdict = verdictFromItem(item)
@@ -825,7 +706,7 @@ function SelectedIocDetail({
 
   if (!item) {
     return (
-      <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <section className="flex h-full w-full flex-col rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
         <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">{t("detail.noSelection")}</p>
       </section>
@@ -866,7 +747,7 @@ function SelectedIocDetail({
     (item.result?.hit_source === "remote_hit" ? "hit" : "skipped")
 
   return (
-    <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <section className="flex h-full w-full flex-col rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <div>
         <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
         <p className="mt-1 text-xs leading-5 text-slate-500">{t("detail.description")}</p>
@@ -883,7 +764,7 @@ function SelectedIocDetail({
         </div>
       </div>
 
-      <ScrollArea className="mt-5 h-[560px] pr-3">
+      <ScrollArea className="mt-5 h-[560px] pr-3 2xl:h-auto 2xl:min-h-0 2xl:flex-1">
         <div className="space-y-5">
           <div>
             <h3 className="text-sm font-semibold text-slate-950">{t("detail.decision")}</h3>
@@ -1662,9 +1543,7 @@ export function IocVerificationPage() {
       <div className="flex w-full min-w-0 flex-col gap-4">
         <IocVerificationHeader counts={counts} onBack={handleBack} />
 
-        <VerificationPipeline counts={counts} extracting={extracting} verifying={verifying} />
-
-        <section className="grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(300px,360px)_minmax(520px,1fr)_minmax(320px,400px)]">
+        <section className="grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(300px,360px)_minmax(520px,1fr)_minmax(320px,400px)] 2xl:items-stretch">
           <div className="flex flex-col gap-4">
             <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
               <div className="flex items-center gap-3">
@@ -1935,7 +1814,7 @@ export function IocVerificationPage() {
             </div>
           </section>
 
-          <div className="min-w-0 xl:col-span-2 2xl:col-span-1">
+          <div className="min-w-0 xl:col-span-2 2xl:col-span-1 2xl:flex">
             <SelectedIocDetail
               item={selectedItem}
               verifying={verifying}
