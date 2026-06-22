@@ -1,5 +1,6 @@
 "use client"
 
+import type { KeyboardEvent } from "react"
 import { Clipboard, Loader2, RefreshCw } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -33,6 +34,13 @@ export function IocResultsTable({
 
   if (!items.length) return <IocVerificationEmptyState />
 
+  function handleRowKeyDown(event: KeyboardEvent<HTMLDivElement>, id: string) {
+    if (event.currentTarget !== event.target) return
+    if (event.key !== "Enter" && event.key !== " ") return
+    event.preventDefault()
+    onSelect(id)
+  }
+
   return (
     <div className="min-w-[760px] overflow-hidden rounded-2xl border border-slate-100">
       <div className="grid grid-cols-[minmax(240px,1.4fr)_88px_112px_150px_110px_98px] items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400">
@@ -51,12 +59,14 @@ export function IocResultsTable({
           const checkedAt = item.verification?.checked_at || item.verification?.updated_at || ""
 
           return (
-            <button
+            <div
               key={item.id}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => onSelect(item.id)}
+              onKeyDown={(event) => handleRowKeyDown(event, item.id)}
               className={cn(
-                "group grid w-full grid-cols-[minmax(240px,1.4fr)_88px_112px_150px_110px_98px] items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-slate-50",
+                "group grid w-full cursor-pointer grid-cols-[minmax(240px,1.4fr)_88px_112px_150px_110px_98px] items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
                 selected && "relative bg-blue-50 hover:bg-blue-50",
               )}
             >
@@ -118,7 +128,7 @@ export function IocResultsTable({
                   <Clipboard className="size-4" />
                 </Button>
               </div>
-            </button>
+            </div>
           )
         })}
       </div>

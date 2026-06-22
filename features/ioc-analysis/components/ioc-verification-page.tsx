@@ -781,11 +781,9 @@ export function IocVerificationPage() {
               manualInput={manualInput}
               typeOptions={TYPE_OPTIONS}
               verifying={verifying}
-              hasItems={Boolean(items.length)}
               onManualTypeChange={setManualType}
               onManualInputChange={setManualInput}
               onSubmit={handleManualSubmit}
-              onVerifyAll={verifyAll}
             />
           </div>
 
