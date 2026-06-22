@@ -3755,7 +3755,20 @@
         "manual": {
           "title": "Manual IOC input",
           "description": "Add indicators manually when the case report has not produced them yet.",
-          "placeholder": "One indicator per line. Examples:\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com"
+          "placeholder": "One indicator per line. Examples:\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com",
+          "rowPlaceholder": "Paste or type IOC...",
+          "addRow": "Add",
+          "bulkPaste": "Bulk paste",
+          "removeRow": "Remove row",
+          "table": {
+            "indicator": "IOC",
+            "formatCheck": "Format",
+            "empty": "No manual indicators added.",
+            "status": {
+              "ready": "Ready",
+              "invalid": "Fix"
+            }
+          }
         },
         "results": {
           "title": "IOC Precheck Preview",
@@ -3772,7 +3785,7 @@
           "loadPreview": "Load preview",
           "loadingPreview": "Loading preview",
           "refreshPreview": "Refresh preview",
-          "addVerify": "Add & precheck",
+          "addVerify": "Precheck",
           "verifyAll": "Start precheck",
           "verifying": "Prechecking",
           "recheck": "Precheck again",
@@ -3812,7 +3825,7 @@
           "idle": "Ready",
           "checking": "Checking",
           "hit": "Hit",
-          "allowlisted": "Allowlisted",
+          "allowlisted": "Whitelisted",
           "miss": "Miss",
           "suppressed": "Remote error",
           "error": "Error"
@@ -3831,13 +3844,13 @@
         },
         "pipeline": {
           "title": "Verification pipeline",
-          "description": "Allowlist first. IOC lookup is skipped when a skip rule is matched.",
+          "description": "Whitelist first. IOC lookup is skipped when a skip rule is matched.",
           "active": "Running",
           "count": "{count} items",
           "steps": {
             "extracted": "Extracted",
             "normalized": "Normalized",
-            "allowlist": "Allowlist",
+            "allowlist": "Whitelist",
             "localIntel": "Local intel",
             "onlineIntel": "Online intel",
             "verdict": "Verdict"
@@ -3851,8 +3864,9 @@
         },
         "table": {
           "ioc": "IOC",
-          "allowlist": "Allowlist",
+          "allowlist": "Whitelist",
           "verification": "Verification",
+          "time": "Occurred at",
           "verdict": "Verdict",
           "action": "Action"
         },
@@ -3876,21 +3890,21 @@
           "noSelection": "Select an IOC to view its verification path.",
           "decision": "Decision",
           "verificationPath": "Verification Path",
-          "allowlistEvidence": "Allowlist Evidence",
+          "allowlistEvidence": "Whitelist Evidence",
           "threatIntel": "Threat Intelligence",
           "recommendedActions": "Recommended Actions",
           "workflow": "Workflow",
           "extracted": "Extracted",
-          "extractedCount": "{count} case IOCs",
+          "extractedCount": "{count} IOCs",
           "caseSource": "case",
           "manualSource": "manual",
           "observationCount": "{count} observations",
           "maliciousReason": "Threat intelligence confirmed this IOC. Continue investigation and response.",
-          "allowReason": "This IOC matched an allowlist rule and does not need threat-intel escalation.",
+          "allowReason": "This IOC matched a whitelist rule and does not need threat-intel escalation.",
           "unknownReason": "No intelligence hit was found. This does not prove the IOC is safe.",
           "checkingReason": "The IOC is being verified. Wait for local and online intelligence results.",
           "readyReason": "This IOC is waiting for verification.",
-          "allowlistNotConnected": "Allowlist result is not returned by the current query response.",
+          "allowlistNotConnected": "Whitelist result is not returned by the current query response.",
           "investigate": "Investigate",
           "noQuery": "No Query"
         },

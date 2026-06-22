@@ -271,3 +271,32 @@ body {
   transform: translateZ(0);
   transition: transform 1s ease-out;
 }
+
+.ioc-manual-table-scroll {
+  height: 280px;
+  max-height: 280px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-color: #64748b #e2e8f0;
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+}
+
+.ioc-manual-table-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.ioc-manual-table-scroll::-webkit-scrollbar-track {
+  background: #e2e8f0;
+  border-left: 1px solid #cbd5e1;
+}
+
+.ioc-manual-table-scroll::-webkit-scrollbar-thumb {
+  background: #64748b;
+  border: 2px solid #e2e8f0;
+  border-radius: 999px;
+}
+
+.ioc-manual-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

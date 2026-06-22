@@ -3757,7 +3757,20 @@
         "manual": {
           "title": "手动输入 IOC",
           "description": "当案件报告尚未产出 IOC 时，可以手动补充指标",
-          "placeholder": "每行一个指标，例如：\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com"
+          "placeholder": "每行一个指标，例如：\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com",
+          "rowPlaceholder": "粘贴或输入 IOC...",
+          "addRow": "添加",
+          "bulkPaste": "批量粘贴",
+          "removeRow": "删除行",
+          "table": {
+            "indicator": "IOC",
+            "formatCheck": "格式",
+            "empty": "尚未添加手动 IOC",
+            "status": {
+              "ready": "可用",
+              "invalid": "修正"
+            }
+          }
         },
         "results": {
           "title": "待预检 IOC 预览",
@@ -3774,7 +3787,7 @@
           "loadPreview": "加载预览",
           "loadingPreview": "加载中",
           "refreshPreview": "刷新预览",
-          "addVerify": "添加并预检",
+          "addVerify": "预检",
           "verifyAll": "开始预检",
           "verifying": "预检中",
           "recheck": "重新预检",
@@ -3855,6 +3868,7 @@
           "ioc": "IOC",
           "allowlist": "白名单",
           "verification": "验证来源",
+          "time": "发生时间",
           "verdict": "判定",
           "action": "操作"
         },
@@ -3883,7 +3897,7 @@
           "recommendedActions": "建议操作",
           "workflow": "工作流",
           "extracted": "提取结果",
-          "extractedCount": "{count} 个案件 IOC",
+          "extractedCount": "{count} 个 IOC",
           "caseSource": "case",
           "manualSource": "manual",
           "observationCount": "{count} 条观测",
