@@ -3723,8 +3723,8 @@
     "iocAnalysis": {
       "verification": {
         "title": "IOC Verification",
-        "description": "Extract MD5, URL, IP, and domain indicators from the selected AttackWorkflow case, then verify each indicator through local intelligence and remote lookup.",
-        "onlineBadge": "Online verification",
+        "description": "Extract and verify case IOCs.",
+        "onlineBadge": "Online",
         "summary": {
           "total": "Total",
           "hit": "Hits",
@@ -3740,7 +3740,7 @@
         },
         "casePanel": {
           "title": "Case IOC source",
-          "description": "Use the AI case analysis result as the IOC source for this verification.",
+          "description": "Use extracted case IOCs for verification.",
           "casePlaceholder": "Enter CaseID",
           "loadingPreview": "Loading IOC preview",
           "previewNotLoaded": "Load the case IOC preview before starting verification.",

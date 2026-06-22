@@ -3725,7 +3725,7 @@
     "iocAnalysis": {
       "verification": {
         "title": "IOC验证",
-        "description": "从选中的 AttackWorkflow 案件中提取 MD5、URL、IP 和域名指标，并通过本地情报与远程查询逐项验证",
+        "description": "提取并验证案件 IOC",
         "onlineBadge": "联网验证",
         "summary": {
           "total": "总数",
@@ -3742,7 +3742,7 @@
         },
         "casePanel": {
           "title": "案件 IOC 来源",
-          "description": "使用 AI 案件分析结果作为本次 IOC 验证的数据来源",
+          "description": "使用案件提取 IOC 作为验证来源",
           "casePlaceholder": "请输入 CaseID",
           "loadingPreview": "正在加载 IOC 预览",
           "previewNotLoaded": "先加载案件 IOC 预览，再开始验证",
