@@ -85,7 +85,7 @@ export function IocVerificationHeader({
               {t("onlineBadge")}
             </Badge>
           </div>
-          <h1 className="mt-4 text-3xl font-medium tracking-normal text-slate-950">
+          <h1 className="mt-4 line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
             {t("title")}
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">
