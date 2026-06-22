@@ -756,12 +756,12 @@ export function IocVerificationPage() {
   }
 
   return (
-    <main className="min-h-[calc(100dvh-3rem)] w-full min-w-0 bg-gray-50 p-3 sm:p-4 xl:p-5 2xl:p-6">
-      <div className="flex w-full min-w-0 flex-col gap-4">
+    <main className="flex min-h-[calc(100dvh-3rem)] w-full min-w-0 bg-gray-50 p-3 sm:p-4 xl:p-5 2xl:p-6">
+      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4">
         <IocVerificationHeader counts={counts} onBack={handleBack} />
 
-        <section className="grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(300px,360px)_minmax(520px,1fr)_minmax(320px,400px)] 2xl:items-stretch">
-          <div className="flex flex-col gap-4">
+        <section className="grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(340px,400px)_minmax(0,1fr)] 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(360px,420px)_minmax(520px,1fr)_minmax(320px,400px)] 2xl:items-stretch">
+          <div className="flex flex-col gap-4 2xl:min-h-0">
             <IocVerificationSourcePanel
               caseId={caseId}
               workflowId={routeParams.workflowId}
@@ -807,7 +807,7 @@ export function IocVerificationPage() {
             onVerifyOne={(candidate) => void verifyCandidates([candidate])}
           />
 
-          <div className="min-w-0 xl:col-span-2 2xl:col-span-1 2xl:flex">
+          <div className="min-w-0 xl:col-span-2 2xl:col-span-1 2xl:flex 2xl:min-h-0">
             <IocVerificationDetailPanel
               item={selectedItem}
               verifying={verifying}

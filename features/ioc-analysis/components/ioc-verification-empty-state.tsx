@@ -7,7 +7,7 @@ export function IocVerificationEmptyState() {
   const t = useTranslations("pages.iocAnalysis.verification")
 
   return (
-    <div className="flex min-h-[260px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white/70 px-6 text-center">
+    <div className="flex h-full min-h-[260px] flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white/70 px-6 text-center">
       <div className="flex size-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
         <ShieldCheck className="size-5" aria-hidden="true" />
       </div>

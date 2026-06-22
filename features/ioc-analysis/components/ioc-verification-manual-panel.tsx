@@ -192,7 +192,7 @@ export function IocVerificationManualPanel({
   }
 
   return (
-    <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <section className="flex flex-col rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)] 2xl:min-h-0 2xl:flex-1">
       <div className="flex items-center gap-3">
         <span className="flex size-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
           <Plus className="size-5" aria-hidden="true" />
@@ -207,7 +207,7 @@ export function IocVerificationManualPanel({
         </div>
       </div>
 
-      <form className="mt-5 space-y-4" onSubmit={onSubmit}>
+      <form className="mt-4 flex flex-col gap-3 2xl:min-h-0 2xl:flex-1" onSubmit={onSubmit}>
         <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-3">
           <div className="grid grid-cols-[6.25rem_minmax(0,1fr)] gap-2">
             <select
@@ -250,7 +250,7 @@ export function IocVerificationManualPanel({
           </Button>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white 2xl:min-h-0 2xl:flex-1">
           <div className="grid grid-cols-[3.75rem_minmax(0,1fr)_4.75rem_2rem] items-center gap-2 bg-slate-50 px-2.5 py-2 text-[10px] font-semibold uppercase text-slate-400">
             <div>{t("fields.type")}</div>
             <div>{t("manual.table.indicator")}</div>
@@ -258,7 +258,7 @@ export function IocVerificationManualPanel({
             <div />
           </div>
           {rows.length ? (
-            <div className="divide-y divide-slate-100">
+            <div className="max-h-[220px] divide-y divide-slate-100 overflow-y-scroll [scrollbar-gutter:stable] [scrollbar-width:thin] 2xl:min-h-0 2xl:max-h-none 2xl:flex-1">
               {rows.map((row, index) => (
                 <div
                   key={`${row.line}-${index}`}
@@ -309,7 +309,7 @@ export function IocVerificationManualPanel({
               ))}
             </div>
           ) : (
-            <div className="px-3 py-8 text-center text-xs leading-5 text-slate-500">
+            <div className="flex min-h-[220px] flex-1 items-center justify-center px-3 py-4 text-center text-xs leading-5 text-slate-500 2xl:min-h-0">
               {t("manual.table.empty")}
             </div>
           )}
@@ -330,7 +330,7 @@ export function IocVerificationManualPanel({
           </div>
         </details>
 
-        <div className="px-3">
+        <div className="px-3 pt-3">
           <Button
             type="submit"
             className="h-9 w-full rounded-xl bg-slate-950 px-4 text-white hover:bg-slate-800"
