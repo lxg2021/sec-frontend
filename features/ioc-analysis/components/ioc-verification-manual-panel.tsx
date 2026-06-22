@@ -258,7 +258,7 @@ export function IocVerificationManualPanel({
             <div />
           </div>
           {rows.length ? (
-            <div className="max-h-[220px] divide-y divide-slate-100 overflow-y-scroll [scrollbar-gutter:stable] [scrollbar-width:thin] 2xl:min-h-0 2xl:max-h-none 2xl:flex-1">
+            <div className="ioc-manual-table-scroll divide-y divide-slate-100">
               {rows.map((row, index) => (
                 <div
                   key={`${row.line}-${index}`}
@@ -309,7 +309,7 @@ export function IocVerificationManualPanel({
               ))}
             </div>
           ) : (
-            <div className="flex min-h-[220px] flex-1 items-center justify-center px-3 py-4 text-center text-xs leading-5 text-slate-500 2xl:min-h-0">
+            <div className="flex h-[280px] items-center justify-center px-3 py-4 text-center text-xs leading-5 text-slate-500">
               {t("manual.table.empty")}
             </div>
           )}
