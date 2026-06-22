@@ -3731,12 +3731,26 @@
           "miss": "Misses",
           "remote": "Remote",
           "pending": "Pending",
-          "error": "Issues"
+          "error": "Issues",
+          "whitelist": "Whitelisted",
+          "malicious": "Malicious",
+          "suspicious": "Suspicious",
+          "danger": "Dangerous",
+          "unknown": "Unknown"
         },
         "casePanel": {
           "title": "Case IOC source",
           "description": "Use the AI case analysis result as the IOC source for this verification.",
-          "casePlaceholder": "Enter CaseID"
+          "casePlaceholder": "Enter CaseID",
+          "loadingPreview": "Loading IOC preview",
+          "previewNotLoaded": "Load the case IOC preview before starting verification.",
+          "noExtractTask": "No case IOC extraction task exists yet, so there is no preview to verify.",
+          "noExtractTaskShort": "No extract task",
+          "extractRunning": "IOC extraction is still {status}. Refresh this preview after it finishes.",
+          "extractFailed": "IOC extraction failed.",
+          "noPreviewItems": "Extraction completed, but no verifiable IOC candidates were found.",
+          "previewReady": "{count} IOC candidates are ready for precheck.",
+          "verifyProgress": "Precheck {done}/{total} ({status})"
         },
         "manual": {
           "title": "Manual IOC input",
@@ -3744,8 +3758,8 @@
           "placeholder": "One indicator per line. Examples:\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com"
         },
         "results": {
-          "title": "Verification results",
-          "description": "Each row calls the IOC query API. A remote hit means online intelligence confirmed the indicator."
+          "title": "IOC Precheck Preview",
+          "description": "Review the IOC candidates extracted for this case before creating a precheck task."
         },
         "empty": {
           "title": "No indicators loaded",
@@ -3753,12 +3767,17 @@
         },
         "actions": {
           "back": "Back",
-          "extractVerify": "Extract & verify",
-          "extracting": "Extracting",
-          "addVerify": "Add & verify",
-          "verifyAll": "Verify all",
-          "verifying": "Verifying",
-          "recheck": "Recheck"
+          "extractVerify": "Load preview",
+          "extracting": "Loading",
+          "loadPreview": "Load preview",
+          "loadingPreview": "Loading preview",
+          "refreshPreview": "Refresh preview",
+          "addVerify": "Add & precheck",
+          "verifyAll": "Start precheck",
+          "verifying": "Prechecking",
+          "recheck": "Precheck again",
+          "copy": "Copy IOC",
+          "refreshExtract": "Refresh"
         },
         "fields": {
           "caseId": "CaseID",
@@ -3771,8 +3790,10 @@
           "risk": "Risk",
           "confidence": "Confidence",
           "tags": "Tags",
-          "taskStatus": "AI task",
-          "intelSources": "Intel sources"
+          "taskStatus": "Task",
+          "intelSources": "Intel sources",
+          "tenant": "Tenant",
+          "verifyTask": "Verify task"
         },
         "types": {
           "auto": "AUTO",
@@ -3784,12 +3805,14 @@
           "ip": "IP",
           "domain": "DOMAIN",
           "hostname": "HOST",
-          "email": "EMAIL"
+          "email": "EMAIL",
+          "certificate": "CERT"
         },
         "status": {
           "idle": "Ready",
           "checking": "Checking",
           "hit": "Hit",
+          "allowlisted": "Allowlisted",
           "miss": "Miss",
           "suppressed": "Remote error",
           "error": "Error"
@@ -3797,18 +3820,88 @@
         "source": {
           "cacheHit": "Cache hit",
           "localHit": "Local hit",
+          "localMiss": "Local miss",
+          "localError": "Local error",
           "remoteHit": "Remote hit",
           "remoteMiss": "Remote miss",
+          "remoteError": "Remote error",
           "missCacheHit": "Miss cache",
           "remoteErrorSuppressed": "Remote error suppressed",
           "unknown": "Unknown source"
+        },
+        "pipeline": {
+          "title": "Verification pipeline",
+          "description": "Allowlist first. IOC lookup is skipped when a skip rule is matched.",
+          "active": "Running",
+          "count": "{count} items",
+          "steps": {
+            "extracted": "Extracted",
+            "normalized": "Normalized",
+            "allowlist": "Allowlist",
+            "localIntel": "Local intel",
+            "onlineIntel": "Online intel",
+            "verdict": "Verdict"
+          }
+        },
+        "filters": {
+          "searchPlaceholder": "Search IOC / source / tag",
+          "allTypes": "All types",
+          "allVerdicts": "All verdicts",
+          "actionOnly": "Only action required"
+        },
+        "table": {
+          "ioc": "IOC",
+          "allowlist": "Allowlist",
+          "verification": "Verification",
+          "verdict": "Verdict",
+          "action": "Action"
+        },
+        "allowlist": {
+          "pending": "Pending",
+          "checking": "Checking",
+          "hit": "Allowed",
+          "miss": "No hit"
+        },
+        "verdict": {
+          "ready": "Ready",
+          "checking": "Checking",
+          "malicious": "Malicious",
+          "allow": "Allowed",
+          "unknown": "Unknown",
+          "error": "Issue"
+        },
+        "detail": {
+          "title": "IOC detail",
+          "description": "Full decision path for the selected row.",
+          "noSelection": "Select an IOC to view its verification path.",
+          "decision": "Decision",
+          "verificationPath": "Verification Path",
+          "allowlistEvidence": "Allowlist Evidence",
+          "threatIntel": "Threat Intelligence",
+          "recommendedActions": "Recommended Actions",
+          "workflow": "Workflow",
+          "extracted": "Extracted",
+          "extractedCount": "{count} case IOCs",
+          "caseSource": "case",
+          "manualSource": "manual",
+          "observationCount": "{count} observations",
+          "maliciousReason": "Threat intelligence confirmed this IOC. Continue investigation and response.",
+          "allowReason": "This IOC matched an allowlist rule and does not need threat-intel escalation.",
+          "unknownReason": "No intelligence hit was found. This does not prove the IOC is safe.",
+          "checkingReason": "The IOC is being verified. Wait for local and online intelligence results.",
+          "readyReason": "This IOC is waiting for verification.",
+          "allowlistNotConnected": "Allowlist result is not returned by the current query response.",
+          "investigate": "Investigate",
+          "noQuery": "No Query"
         },
         "toasts": {
           "caseRequired": "Enter CaseID first.",
           "noIocs": "No verifiable IOC was found.",
           "manualInvalid": "No valid IOC was parsed.",
           "extracted": "Extracted {count} verifiable IOCs.",
-          "verifyComplete": "IOC verification complete."
+          "previewLoaded": "Loaded {count} IOC candidates for precheck.",
+          "verifyComplete": "IOC verification complete.",
+          "copied": "IOC copied."
         },
         "errors": {
           "extractFailed": "Failed to extract case IOCs.",

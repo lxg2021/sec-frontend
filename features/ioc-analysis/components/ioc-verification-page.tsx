@@ -8,43 +8,42 @@ import {
   useState,
   type FormEvent,
 } from "react"
-import { useLocale, useTranslations } from "next-intl"
+import { useTranslations } from "next-intl"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
-  ArrowLeft,
+  BadgeCheck,
+  CheckCircle2,
   CircleAlert,
   CircleCheckBig,
   CircleDashed,
   CircleX,
+  Clipboard,
+  Database,
   FileSearch,
+  Globe2,
+  ListChecks,
   Loader2,
   Plus,
   Radar,
   RefreshCw,
   Search,
   ShieldCheck,
-  Wifi,
 } from "lucide-react"
 
-import {
-  createAttackAIReportTask,
-  getAttackAIReportTask,
-} from "@/features/ai-ops/threat-analysis/api"
-import type {
-  AttackAIReport,
-  AttackAIReportTask,
-  Ioc,
-} from "@/features/ai-ops/threat-analysis/report-types"
-import {
-  normalizeAttackReport,
-  parseMaybeJson,
-} from "@/features/ai-ops/threat-analysis/report-utils"
 import {
   buildAttackDetailHref,
   buildAttackWorkflowHref,
 } from "@/features/attack/detail/utils/attack-case-format"
-import { queryIoc } from "@/features/ioc-analysis/api"
+import { IocVerificationHeader } from "@/features/ioc-analysis/components/ioc-verification-header"
+import {
+  createAttackCaseIocVerifyTask,
+  getAttackCaseIocVerification,
+  getAttackCaseIocVerifyTask,
+  listAttackCaseIocCandidates,
+  queryIoc,
+} from "@/features/ioc-analysis/api"
 import type {
+  AttackCaseIOCCandidateListData,
   IocCandidate,
   IocQueryResult,
   IocVerificationItem,
@@ -56,22 +55,13 @@ import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
+import { ScrollArea } from "@/shared/ui/scroll-area"
+import { Separator } from "@/shared/ui/separator"
 import { Textarea } from "@/shared/ui/textarea"
 
-const REPORT_TIMEZONE = "Asia/Shanghai"
+const DEFAULT_TENANT_ID = "public"
 const POLL_INTERVAL_MS = 2000
 const MAX_POLL_ATTEMPTS = 90
-
-const VERIFIABLE_REPORT_TYPES = new Set([
-  "hash",
-  "md5",
-  "sha1",
-  "sha256",
-  "url",
-  "domain",
-  "hostname",
-  "ip",
-])
 
 const TYPE_OPTIONS: IocVerificationType[] = [
   "auto",
@@ -82,6 +72,7 @@ const TYPE_OPTIONS: IocVerificationType[] = [
   "ip",
   "domain",
   "hostname",
+  "certificate",
 ]
 const MANUAL_TYPE_PREFIXES = new Set<IocVerificationType>([
   "auto",
@@ -94,6 +85,7 @@ const MANUAL_TYPE_PREFIXES = new Set<IocVerificationType>([
   "hostname",
   "ip",
   "email",
+  "certificate",
 ])
 
 function getRouteParam(value: string | null) {
@@ -115,18 +107,8 @@ function isActiveTaskStatus(status: string) {
   return status === "pending" || status === "running"
 }
 
-function reportLocaleFromAppLocale(locale: string) {
-  return locale.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US"
-}
-
 function delay(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
-}
-
-function reportFromTask(task: AttackAIReportTask) {
-  const parsedReport =
-    task.report ?? parseMaybeJson<AttackAIReport>(task.report_json)
-  return parsedReport ? normalizeAttackReport(parsedReport) : null
 }
 
 function normalizeIocType(type: string, value: string): IocVerificationType | null {
@@ -139,7 +121,8 @@ function normalizeIocType(type: string, value: string): IocVerificationType | nu
     normalizedType === "domain" ||
     normalizedType === "hostname" ||
     normalizedType === "ip" ||
-    normalizedType === "email"
+    normalizedType === "email" ||
+    normalizedType === "certificate"
   ) {
     return normalizedType
   }
@@ -200,43 +183,6 @@ function candidateId(candidate: Pick<IocCandidate, "origin" | "type" | "value">)
   return `${candidate.origin}:${candidateKey(candidate.type, candidate.value)}`
 }
 
-function candidateFromReportIoc(ioc: Ioc): IocCandidate | null {
-  const value = ioc.value.trim()
-  if (!value || !VERIFIABLE_REPORT_TYPES.has(ioc.type)) return null
-
-  const type = normalizeIocType(ioc.type, value)
-  if (!type) return null
-
-  const normalizedValue = normalizeIocValue(type, value)
-  return {
-    id: candidateId({ origin: "case", type, value: normalizedValue }),
-    type,
-    value: normalizedValue,
-    source: ioc.source.trim(),
-    evidence_refs: Array.isArray(ioc.evidence_refs) ? ioc.evidence_refs : [],
-    origin: "case",
-  }
-}
-
-function extractCaseCandidates(report: AttackAIReport | null): IocCandidate[] {
-  if (!report) return []
-
-  const seen = new Set<string>()
-  const candidates: IocCandidate[] = []
-
-  for (const ioc of report.iocs) {
-    const candidate = candidateFromReportIoc(ioc)
-    if (!candidate) continue
-
-    const key = candidateKey(candidate.type, candidate.value)
-    if (seen.has(key)) continue
-    seen.add(key)
-    candidates.push(candidate)
-  }
-
-  return candidates
-}
-
 function parseManualLine(line: string, defaultType: IocVerificationType) {
   const trimmed = line.trim()
   if (!trimmed) return null
@@ -286,7 +232,13 @@ function parseManualCandidates(input: string, defaultType: IocVerificationType) 
   return candidates
 }
 
-function toVerificationItem(candidate: IocCandidate): IocVerificationItem {
+function isVerificationItem(candidate: IocCandidate | IocVerificationItem): candidate is IocVerificationItem {
+  return "status" in candidate && "result" in candidate && "error" in candidate
+}
+
+function toVerificationItem(candidate: IocCandidate | IocVerificationItem): IocVerificationItem {
+  if (isVerificationItem(candidate)) return candidate
+
   return {
     ...candidate,
     status: "idle",
@@ -297,7 +249,7 @@ function toVerificationItem(candidate: IocCandidate): IocVerificationItem {
 
 function mergeCandidates(
   current: IocVerificationItem[],
-  candidates: IocCandidate[],
+  candidates: Array<IocCandidate | IocVerificationItem>,
   options: { replaceCase?: boolean } = {},
 ) {
   const base = options.replaceCase
@@ -306,7 +258,9 @@ function mergeCandidates(
   const byId = new Map(base.map((item) => [item.id, item]))
 
   for (const candidate of candidates) {
-    byId.set(candidate.id, byId.get(candidate.id) ?? toVerificationItem(candidate))
+    const next = toVerificationItem(candidate)
+    const existing = byId.get(candidate.id)
+    byId.set(candidate.id, existing ? { ...existing, ...next } : next)
   }
 
   return Array.from(byId.values())
@@ -345,6 +299,8 @@ function statusIcon(status: IocVerificationStatus) {
       return Loader2
     case "hit":
       return CircleAlert
+    case "allowlisted":
+      return CircleCheckBig
     case "miss":
       return CircleCheckBig
     case "suppressed":
@@ -362,6 +318,8 @@ function statusClass(status: IocVerificationStatus) {
       return "border-blue-200 bg-blue-50 text-blue-700"
     case "hit":
       return "border-red-200 bg-red-50 text-red-700"
+    case "allowlisted":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700"
     case "miss":
       return "border-emerald-200 bg-emerald-50 text-emerald-700"
     case "suppressed":
@@ -387,9 +345,27 @@ function typeClass(type: IocVerificationType) {
     case "domain":
     case "hostname":
       return "border-emerald-200 bg-emerald-50 text-emerald-700"
+    case "certificate":
+      return "border-amber-200 bg-amber-50 text-amber-700"
     default:
       return "border-slate-200 bg-slate-50 text-slate-600"
   }
+}
+
+function isAllowlisted(item: IocVerificationItem) {
+  return (
+    item.status === "allowlisted" ||
+    item.verification?.final_status === "allowlisted" ||
+    item.verification?.whitelist_status === "hit"
+  )
+}
+
+function isRemoteHit(item: IocVerificationItem) {
+  return (
+    item.result?.hit_source === "remote_hit" ||
+    item.verification?.final_status === "remote_hit" ||
+    item.verification?.remote_status === "hit"
+  )
 }
 
 function summaryCounts(items: IocVerificationItem[]) {
@@ -397,10 +373,128 @@ function summaryCounts(items: IocVerificationItem[]) {
     total: items.length,
     hit: items.filter((item) => item.status === "hit").length,
     miss: items.filter((item) => item.status === "miss").length,
-    remote: items.filter((item) => item.result?.hit_source === "remote_hit").length,
+    remote: items.filter(isRemoteHit).length,
     pending: items.filter((item) => item.status === "idle" || item.status === "checking").length,
     error: items.filter((item) => item.status === "error" || item.status === "suppressed").length,
+    whitelist: items.filter(isAllowlisted).length,
   }
+}
+
+type IocVerdict = "checking" | "malicious" | "allow" | "unknown" | "error" | "ready"
+
+function verdictFromItem(item: IocVerificationItem): IocVerdict {
+  const finalStatus = item.verification?.final_status
+  const finalVerdict = item.verification?.final_verdict
+
+  if (item.status === "checking") return "checking"
+  if (finalStatus === "allowlisted" || finalVerdict === "allow") return "allow"
+  if (
+    finalStatus === "local_hit" ||
+    finalStatus === "remote_hit" ||
+    finalVerdict === "malicious" ||
+    item.status === "hit"
+  ) {
+    return "malicious"
+  }
+  if (
+    finalStatus === "local_error" ||
+    finalStatus === "remote_error" ||
+    finalVerdict === "error" ||
+    item.status === "error" ||
+    item.status === "suppressed"
+  ) {
+    return "error"
+  }
+  if (
+    finalStatus === "local_miss" ||
+    finalStatus === "remote_miss" ||
+    finalVerdict === "unknown"
+  ) {
+    return "unknown"
+  }
+  if (item.status === "idle") return "ready"
+  return "unknown"
+}
+
+function verdictClass(verdict: IocVerdict) {
+  switch (verdict) {
+    case "checking":
+      return "border-blue-200 bg-blue-50 text-blue-700"
+    case "malicious":
+      return "border-red-200 bg-red-50 text-red-700"
+    case "allow":
+      return "border-emerald-200 bg-emerald-50 text-emerald-700"
+    case "error":
+      return "border-rose-200 bg-rose-50 text-rose-700"
+    case "unknown":
+      return "border-slate-200 bg-slate-100 text-slate-600"
+    default:
+      return "border-slate-200 bg-slate-50 text-slate-500"
+  }
+}
+
+function allowlistClass(item: IocVerificationItem) {
+  if (item.status === "checking") return "border-blue-200 bg-blue-50 text-blue-700"
+  if (isAllowlisted(item)) return "border-emerald-200 bg-emerald-50 text-emerald-700"
+  if (item.status === "idle") return "border-slate-200 bg-slate-50 text-slate-500"
+  return "border-slate-200 bg-slate-100 text-slate-600"
+}
+
+function verificationSourceText(
+  item: IocVerificationItem,
+  t: ReturnType<typeof useTranslations>,
+) {
+  if (item.status === "checking") return t("status.checking")
+  if (item.error) return item.error
+  if (item.result) return t(sourceLabelKey(item.result.hit_source))
+  if (item.verification) {
+    switch (item.verification.final_status) {
+      case "allowlisted":
+        return t("allowlist.hit")
+      case "local_hit":
+        return t("source.localHit")
+      case "local_miss":
+        return t("source.localMiss")
+      case "local_error":
+        return t("source.localError")
+      case "remote_hit":
+        return t("source.remoteHit")
+      case "remote_miss":
+        return t("source.remoteMiss")
+      case "remote_error":
+        return t("source.remoteError")
+      default:
+        return t("status.idle")
+    }
+  }
+  return t("status.idle")
+}
+
+function observationSources(item: IocVerificationItem) {
+  return Array.from(
+    new Set(
+      item.result?.observations
+        .map((observation) => observation.source_name)
+        .filter(Boolean) ?? [],
+    ),
+  )
+}
+
+function riskText(item: IocVerificationItem) {
+  const score = item.verification?.risk_score || item.result?.entry?.risk_score
+  if (typeof score === "number" && score > 0) return String(score)
+  if (item.status === "hit") return "High"
+  if (item.status === "miss") return "Low"
+  if (item.status === "checking") return "-"
+  return "-"
+}
+
+function confidenceText(item: IocVerificationItem) {
+  const confidence = item.verification?.confidence || item.result?.entry?.confidence
+  if (typeof confidence === "number" && confidence > 0) return `${confidence}%`
+  if (item.status === "hit") return "80%"
+  if (item.status === "miss") return "60%"
+  return "-"
 }
 
 function VerificationStatusBadge({
@@ -451,6 +545,495 @@ function EmptyState() {
         {t("empty.description")}
       </p>
     </div>
+  )
+}
+
+function VerificationPipeline({
+  counts,
+  extracting,
+  verifying,
+}: {
+  counts: ReturnType<typeof summaryCounts>
+  extracting: boolean
+  verifying: boolean
+}) {
+  const t = useTranslations("pages.iocAnalysis.verification")
+  const steps = [
+    {
+      key: "extracted",
+      icon: FileSearch,
+      value: counts.total,
+      active: extracting,
+      tone: "slate",
+    },
+    {
+      key: "normalized",
+      icon: ListChecks,
+      value: counts.total,
+      active: false,
+      tone: "slate",
+    },
+    {
+      key: "allowlist",
+      icon: ShieldCheck,
+      value: counts.whitelist,
+      active: false,
+      tone: "emerald",
+    },
+    {
+      key: "localIntel",
+      icon: Database,
+      value: counts.hit,
+      active: verifying,
+      tone: "blue",
+    },
+    {
+      key: "onlineIntel",
+      icon: Globe2,
+      value: counts.remote,
+      active: verifying,
+      tone: "slate",
+    },
+    {
+      key: "verdict",
+      icon: BadgeCheck,
+      value: counts.hit + counts.error,
+      active: false,
+      tone: "rose",
+    },
+  ] as const
+
+  return (
+    <section className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <div className="flex flex-wrap items-baseline gap-2">
+        <h2 className="text-base font-semibold text-slate-950">
+          {t("pipeline.title")}
+        </h2>
+        <p className="text-xs leading-5 text-slate-500">
+          {t("pipeline.description")}
+        </p>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-3 2xl:grid-cols-6">
+        {steps.map((step, index) => {
+          const Icon = step.icon
+          const isEmerald = step.tone === "emerald"
+          const isBlue = step.tone === "blue"
+          const isRose = step.tone === "rose"
+
+          return (
+            <div key={step.key} className="relative">
+              {index > 0 ? (
+                <span className="absolute -left-3 top-1/2 hidden h-px w-3 bg-slate-200 2xl:block" />
+              ) : null}
+              <div
+                className={cn(
+                  "flex min-h-12 items-center gap-3 rounded-2xl border px-4 py-3",
+                  isEmerald && "border-emerald-200 bg-emerald-50",
+                  isBlue && "border-blue-200 bg-blue-50",
+                  isRose && "border-rose-200 bg-rose-50",
+                  !isEmerald && !isBlue && !isRose && "border-slate-200 bg-slate-50",
+                  step.active && "ring-2 ring-blue-100",
+                )}
+              >
+                <span
+                  className={cn(
+                    "flex size-9 shrink-0 items-center justify-center rounded-xl",
+                    isEmerald && "bg-emerald-100 text-emerald-700",
+                    isBlue && "bg-blue-100 text-blue-700",
+                    isRose && "bg-rose-100 text-rose-700",
+                    !isEmerald && !isBlue && !isRose && "bg-white text-blue-700",
+                  )}
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                </span>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-slate-950">
+                    {t(`pipeline.steps.${step.key}`)}
+                  </div>
+                  <div className="mt-0.5 text-xs text-slate-500">
+                    {step.active ? t("pipeline.active") : t("pipeline.count", { count: step.value })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function VerdictBadge({ item }: { item: IocVerificationItem }) {
+  const t = useTranslations("pages.iocAnalysis.verification")
+  const verdict = verdictFromItem(item)
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", verdictClass(verdict))}
+    >
+      {t(`verdict.${verdict}`)}
+    </Badge>
+  )
+}
+
+function AllowlistBadge({ item }: { item: IocVerificationItem }) {
+  const t = useTranslations("pages.iocAnalysis.verification")
+  const label =
+    item.status === "checking"
+      ? t("allowlist.checking")
+      : isAllowlisted(item)
+        ? t("allowlist.hit")
+      : item.status === "idle"
+        ? t("allowlist.pending")
+        : t("allowlist.miss")
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", allowlistClass(item))}
+    >
+      {label}
+    </Badge>
+  )
+}
+
+function IocResultsTable({
+  items,
+  selectedId,
+  verifying,
+  onCopy,
+  onSelect,
+  onVerify,
+}: {
+  items: IocVerificationItem[]
+  selectedId: string
+  verifying: boolean
+  onCopy: (value: string) => void
+  onSelect: (id: string) => void
+  onVerify: (item: IocCandidate) => void
+}) {
+  const t = useTranslations("pages.iocAnalysis.verification")
+
+  if (!items.length) return <EmptyState />
+
+  return (
+    <div className="min-w-[760px] overflow-hidden rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-[minmax(240px,1.4fr)_88px_112px_150px_110px_98px] items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400">
+        <div>{t("table.ioc")}</div>
+        <div>{t("fields.type")}</div>
+        <div>{t("table.allowlist")}</div>
+        <div>{t("table.verification")}</div>
+        <div>{t("table.verdict")}</div>
+        <div>{t("table.action")}</div>
+      </div>
+      <div className="divide-y divide-slate-100">
+        {items.map((item) => {
+          const selected = item.id === selectedId
+          const observationCount = item.result?.observations.length ?? 0
+          const source = item.origin === "case" ? t("detail.caseSource") : t("detail.manualSource")
+          const checkedAt = item.verification?.checked_at || item.verification?.updated_at || ""
+
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelect(item.id)}
+              className={cn(
+                "group grid w-full grid-cols-[minmax(240px,1.4fr)_88px_112px_150px_110px_98px] items-center gap-4 px-4 py-3 text-left transition-colors hover:bg-slate-50",
+                selected && "relative bg-blue-50 hover:bg-blue-50",
+              )}
+            >
+              {selected ? (
+                <span className="absolute left-0 top-0 h-full w-1 rounded-r-full bg-blue-600" />
+              ) : null}
+              <div className="min-w-0 pl-1">
+                <code className="block truncate font-mono text-sm text-slate-950">
+                  {item.value}
+                </code>
+                <span className="mt-1 block truncate text-xs text-slate-400">
+                  {source}
+                  {item.evidence_refs.length ? ` · ${item.evidence_refs[0]}` : ""}
+                </span>
+              </div>
+              <TypeBadge type={item.type} />
+              <AllowlistBadge item={item} />
+              <div className="min-w-0">
+                <div className="truncate text-sm text-slate-700">
+                  {verificationSourceText(item, t)}
+                </div>
+                <div className="mt-1 truncate text-xs text-slate-400">
+                  {observationCount
+                    ? t("detail.observationCount", { count: observationCount })
+                    : checkedAt || item.result?.hit_source || "-"}
+                </div>
+              </div>
+              <VerdictBadge item={item} />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-8 rounded-xl border-blue-100 bg-white text-blue-700 hover:bg-blue-50"
+                  disabled={verifying || item.status === "checking"}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onVerify(item)
+                  }}
+                  aria-label={t("actions.recheck")}
+                >
+                  {item.status === "checking" ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-4" />
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-8 rounded-xl border-blue-100 bg-white text-blue-700 hover:bg-blue-50"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    onCopy(item.value)
+                  }}
+                  aria-label={t("actions.copy")}
+                >
+                  <Clipboard className="size-4" />
+                </Button>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function SelectedIocDetail({
+  item,
+  onCopy,
+  onVerify,
+  verifying,
+}: {
+  item: IocVerificationItem | null
+  onCopy: (value: string) => void
+  onVerify: (item: IocCandidate) => void
+  verifying: boolean
+}) {
+  const t = useTranslations("pages.iocAnalysis.verification")
+
+  if (!item) {
+    return (
+      <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+        <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-500">{t("detail.noSelection")}</p>
+      </section>
+    )
+  }
+
+  const verdict = verdictFromItem(item)
+  const sources = observationSources(item)
+  const entry = item.result?.entry
+  const allowlistHit = item.verification?.allowlist_hit
+  const allowlistSource = [
+    allowlistHit?.source_name,
+    allowlistHit?.source_version,
+  ].filter(Boolean).join(" ")
+  const allowlistLabel =
+    item.status === "checking"
+      ? t("allowlist.checking")
+      : isAllowlisted(item)
+        ? t("allowlist.hit")
+      : item.status === "idle"
+        ? t("allowlist.pending")
+        : t("allowlist.miss")
+  const allowlistAction =
+    allowlistHit?.action ||
+    (isAllowlisted(item) ? item.verification?.whitelist_status || allowlistLabel : allowlistLabel)
+  const allowlistLevel = allowlistHit?.allow_level || "-"
+  const allowlistReason =
+    allowlistHit?.reason ||
+    item.verification?.local_hit_source ||
+    t("detail.allowlistNotConnected")
+  const localIntelStatus =
+    item.verification?.local_status ||
+    item.verification?.local_decision ||
+    item.result?.hit_source ||
+    "pending"
+  const remoteIntelStatus =
+    item.verification?.remote_status ||
+    (item.result?.hit_source === "remote_hit" ? "hit" : "skipped")
+
+  return (
+    <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <div>
+        <h2 className="text-base font-semibold text-slate-950">{t("detail.title")}</h2>
+        <p className="mt-1 text-xs leading-5 text-slate-500">{t("detail.description")}</p>
+      </div>
+
+      <div className="mt-4 rounded-[20px] border border-blue-200 bg-blue-50 p-4">
+        <code className="block break-all font-mono text-sm font-semibold text-blue-950">
+          {item.value}
+        </code>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <VerdictBadge item={item} />
+          <TypeBadge type={item.type} />
+          <span className="text-xs text-slate-400">{item.result?.entry?.last_seen || ""}</span>
+        </div>
+      </div>
+
+      <ScrollArea className="mt-5 h-[560px] pr-3">
+        <div className="space-y-5">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-950">{t("detail.decision")}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              {item.error ||
+                (verdict === "malicious"
+                  ? t("detail.maliciousReason")
+                  : verdict === "allow"
+                    ? t("detail.allowReason")
+                  : verdict === "unknown"
+                    ? t("detail.unknownReason")
+                    : verdict === "checking"
+                      ? t("detail.checkingReason")
+                      : t("detail.readyReason"))}
+            </p>
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
+                <div className="text-xs text-emerald-700">{t("fields.risk")}</div>
+                <div className="mt-1 font-mono text-lg font-semibold text-emerald-700">
+                  {riskText(item)}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-xs text-slate-400">{t("fields.confidence")}</div>
+                <div className="mt-1 font-mono text-lg font-semibold text-slate-950">
+                  {confidenceText(item)}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                <div className="text-xs text-slate-400">{t("table.action")}</div>
+                <div className="mt-1 text-sm font-semibold text-slate-950">
+                  {verdict === "malicious" ? t("detail.investigate") : t("detail.noQuery")}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="bg-slate-200" />
+
+          <div>
+            <h3 className="text-sm font-semibold text-slate-950">{t("detail.verificationPath")}</h3>
+            <div className="mt-4 space-y-4">
+              {[
+                [t("pipeline.steps.normalized"), "completed", true],
+                [t("pipeline.steps.allowlist"), allowlistLabel, item.status !== "idle"],
+                [t("pipeline.steps.localIntel"), localIntelStatus, Boolean(item.result || item.verification)],
+                [t("pipeline.steps.onlineIntel"), remoteIntelStatus, isRemoteHit(item)],
+              ].map(([label, status, done], index) => (
+                <div key={`${label}-${index}`} className="flex items-center gap-3">
+                  <span
+                    className={cn(
+                      "flex size-4 items-center justify-center rounded-full",
+                      done ? "bg-emerald-500" : "bg-slate-300",
+                    )}
+                  >
+                    {done ? <CheckCircle2 className="size-3 text-white" /> : null}
+                  </span>
+                  <span className="min-w-0 flex-1 text-sm text-slate-700">{label}</span>
+                  <span className="max-w-[9rem] truncate text-xs text-slate-400">{status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Separator className="bg-slate-200" />
+
+          <div>
+            <h3 className="text-sm font-semibold text-slate-950">{t("detail.allowlistEvidence")}</h3>
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
+              <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-y-2">
+                <span className="text-slate-400">Action</span>
+                <span className="font-mono text-slate-700">{allowlistAction}</span>
+                <span className="text-slate-400">Level</span>
+                <span className="font-mono text-slate-700">{allowlistLevel}</span>
+                <span className="text-slate-400">Source</span>
+                <span className="text-slate-700">{allowlistSource || "-"}</span>
+                <span className="text-slate-400">Reason</span>
+                <span className="text-slate-700">{allowlistReason}</span>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="bg-slate-200" />
+
+          <div>
+            <h3 className="text-sm font-semibold text-slate-950">{t("detail.threatIntel")}</h3>
+            <div className="mt-3 grid gap-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">{t("fields.observations")}</span>
+                <span className="font-mono text-slate-700">
+                  {item.result?.observations.length ?? (item.verification ? 1 : 0)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-slate-400">{t("fields.relations")}</span>
+                <span className="font-mono text-slate-700">
+                  {item.result?.relations.length ?? 0}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-slate-400">{t("fields.intelSources")}</span>
+                <span className="text-right text-slate-700">
+                  {sources.length
+                    ? sources.join(", ")
+                    : item.verification?.local_hit_source ||
+                      item.verification?.remote_hit_source ||
+                      "-"}
+                </span>
+              </div>
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-slate-400">{t("fields.tags")}</span>
+                <span className="text-right text-slate-700">
+                  {entry?.tags.length ? entry.tags.join(", ") : "-"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <Separator className="bg-slate-200" />
+
+          <div>
+            <h3 className="text-sm font-semibold text-slate-950">{t("detail.recommendedActions")}</h3>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <Button
+                type="button"
+                className="h-10 rounded-2xl bg-slate-950 text-white hover:bg-slate-800"
+                onClick={() => onCopy(item.value)}
+              >
+                <Clipboard className="size-4" />
+                {t("actions.copy")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-2xl border-slate-200"
+                disabled={verifying || item.status === "checking"}
+                onClick={() => onVerify(item)}
+              >
+                {item.status === "checking" ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                {t("actions.recheck")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
+    </section>
   )
 }
 
@@ -580,8 +1163,6 @@ export function IocVerificationPage() {
   const t = useTranslations("pages.iocAnalysis.verification")
   const router = useRouter()
   const searchParams = useSearchParams()
-  const locale = useLocale()
-  const reportLocale = useMemo(() => reportLocaleFromAppLocale(locale), [locale])
   const routeParams = useMemo(
     () => ({
       caseId:
@@ -596,6 +1177,9 @@ export function IocVerificationPage() {
       returnTo:
         getRouteParam(searchParams.get("returnTo")) ||
         getRouteParam(searchParams.get("return_to")),
+      tenantId:
+        getRouteParam(searchParams.get("tenantId")) ||
+        getRouteParam(searchParams.get("tenant_id")),
       queuePage:
         getRoutePageParam(searchParams.get("queuePage")) ||
         getRoutePageParam(searchParams.get("queue_page")),
@@ -603,28 +1187,222 @@ export function IocVerificationPage() {
     [searchParams],
   )
   const [caseId, setCaseId] = useState(routeParams.caseId)
+  const tenantId = routeParams.tenantId || DEFAULT_TENANT_ID
   const [manualType, setManualType] = useState<IocVerificationType>("auto")
   const [manualInput, setManualInput] = useState("")
   const [items, setItems] = useState<IocVerificationItem[]>([])
+  const [casePreview, setCasePreview] =
+    useState<AttackCaseIOCCandidateListData | null>(null)
   const [extracting, setExtracting] = useState(false)
   const [verifying, setVerifying] = useState(false)
   const [taskStatus, setTaskStatus] = useState("")
-  const [reportTaskId, setReportTaskId] = useState("")
+  const [caseTaskId, setCaseTaskId] = useState("")
+  const [selectedItemId, setSelectedItemId] = useState("")
+  const [searchText, setSearchText] = useState("")
+  const [typeFilter, setTypeFilter] = useState<IocVerificationType | "all">("all")
+  const [statusFilter, setStatusFilter] = useState<IocVerificationStatus | "all">("all")
+  const [actionOnly, setActionOnly] = useState(false)
   const extractRunIdRef = useRef(0)
   const verifyRunIdRef = useRef(0)
+  const detailRunIdRef = useRef(0)
   const autoLoadedCaseRef = useRef("")
+  const mountedRef = useRef(false)
   const counts = useMemo(() => summaryCounts(items), [items])
+  const casePreviewMessage = useMemo(() => {
+    if (!caseId.trim()) return ""
+    if (!casePreview) return t("casePanel.previewNotLoaded")
+    if (!casePreview.extract_task_exists) return t("casePanel.noExtractTask")
+
+    const status = normalizeTaskStatus(casePreview.extract_task?.status)
+    if (isActiveTaskStatus(status)) return t("casePanel.extractRunning", { status })
+    if (status === "failed") {
+      return casePreview.extract_task?.error_message || t("casePanel.extractFailed")
+    }
+    if (!casePreview.items.length) return t("casePanel.noPreviewItems")
+    return t("casePanel.previewReady", { count: casePreview.items.length })
+  }, [caseId, casePreview, t])
+
+  const filteredItems = useMemo(() => {
+    const keyword = searchText.trim().toLowerCase()
+    return items.filter((item) => {
+      if (typeFilter !== "all" && item.type !== typeFilter) return false
+      if (statusFilter !== "all") {
+        if (statusFilter === "allowlisted") {
+          if (!isAllowlisted(item)) return false
+        } else if (item.status !== statusFilter) {
+          return false
+        }
+      }
+      if (actionOnly && item.status !== "hit" && item.status !== "error" && item.status !== "suppressed") {
+        return false
+      }
+      if (!keyword) return true
+      return (
+        item.value.toLowerCase().includes(keyword) ||
+        item.source.toLowerCase().includes(keyword) ||
+        item.evidence_refs.some((ref) => ref.toLowerCase().includes(keyword)) ||
+        observationSources(item).some((source) => source.toLowerCase().includes(keyword))
+      )
+    })
+  }, [actionOnly, items, searchText, statusFilter, typeFilter])
+  const selectedItem =
+    items.find((item) => item.id === selectedItemId) ??
+    filteredItems[0] ??
+    items[0] ??
+    null
 
   useEffect(() => {
     setCaseId(routeParams.caseId)
   }, [routeParams.caseId])
 
   useEffect(() => {
+    if (!items.length) {
+      setSelectedItemId("")
+      return
+    }
+    if (!items.some((item) => item.id === selectedItemId)) {
+      setSelectedItemId(items[0].id)
+    }
+  }, [items, selectedItemId])
+
+  useEffect(() => {
+    mountedRef.current = true
     return () => {
-      extractRunIdRef.current += 1
-      verifyRunIdRef.current += 1
+      mountedRef.current = false
     }
   }, [])
+
+  useEffect(() => {
+    const candidateId = selectedItem?.candidate_id?.trim() || ""
+    const normalizedCaseId =
+      selectedItem?.case_id?.trim() || caseId.trim() || routeParams.caseId.trim()
+
+    if (
+      !selectedItem ||
+      selectedItem.origin !== "case" ||
+      !candidateId ||
+      !normalizedCaseId ||
+      !selectedItem.verification ||
+      !isAllowlisted(selectedItem) ||
+      selectedItem.verification.allowlist_hit
+    ) {
+      return
+    }
+
+    const runId = detailRunIdRef.current + 1
+    detailRunIdRef.current = runId
+
+    void (async () => {
+      try {
+        const detail = await getAttackCaseIocVerification({
+          caseId: normalizedCaseId,
+          tenantId,
+          candidateId,
+        })
+
+        if (!mountedRef.current || detailRunIdRef.current !== runId) return
+
+        setItems((current) =>
+          current.map((item) => {
+            if ((item.candidate_id || item.id) !== candidateId) return item
+
+            const baseVerification = item.verification || detail.item
+            if (!baseVerification) return item
+
+            return {
+              ...item,
+              verification: {
+                ...baseVerification,
+                ...(detail.item || {}),
+                raw_local_json:
+                  detail.raw_local_json ||
+                  detail.item?.raw_local_json ||
+                  baseVerification.raw_local_json,
+                raw_remote_json:
+                  detail.raw_remote_json ||
+                  detail.item?.raw_remote_json ||
+                  baseVerification.raw_remote_json,
+                allowlist_hit:
+                  detail.allowlist_hit ||
+                  detail.item?.allowlist_hit ||
+                  baseVerification.allowlist_hit,
+              },
+            }
+          }),
+        )
+      } catch {
+        // Detail enrichment is best-effort; the list row remains usable.
+      }
+    })()
+  }, [
+    caseId,
+    routeParams.caseId,
+    selectedItem,
+    selectedItem?.candidate_id,
+    selectedItem?.case_id,
+    selectedItem?.origin,
+    selectedItem?.verification,
+    selectedItem?.verification?.allowlist_hit,
+    selectedItem?.verification?.verification_id,
+    selectedItem?.verification?.whitelist_status,
+    tenantId,
+  ])
+
+  const loadCaseIocs = useCallback(
+    async () => {
+      const normalizedCaseId = caseId.trim()
+      if (!normalizedCaseId) {
+        toast({ title: t("toasts.caseRequired"), variant: "destructive" })
+        return
+      }
+
+      const runId = extractRunIdRef.current + 1
+      extractRunIdRef.current = runId
+      setExtracting(true)
+      setTaskStatus(t("casePanel.loadingPreview"))
+      setCaseTaskId("")
+
+      try {
+        const preview = await listAttackCaseIocCandidates({
+          caseId: normalizedCaseId,
+          tenantId,
+        })
+
+        if (!mountedRef.current || extractRunIdRef.current !== runId) return
+
+        setCasePreview(preview)
+        setTaskStatus(
+          preview.extract_task_exists
+            ? normalizeTaskStatus(preview.extract_task?.status)
+            : t("casePanel.noExtractTaskShort"),
+        )
+        setItems((current) =>
+          mergeCandidates(current, preview.items, { replaceCase: true }),
+        )
+
+        if (preview.items.length) {
+          toast({ title: t("toasts.previewLoaded", { count: preview.items.length }) })
+        } else if (preview.extract_task_exists) {
+          toast({ title: t("toasts.noIocs") })
+        }
+      } catch (error) {
+        if (!mountedRef.current || extractRunIdRef.current !== runId) return
+
+        toast({
+          title:
+            error instanceof Error && error.message
+              ? error.message
+              : t("errors.extractFailed"),
+          variant: "destructive",
+        })
+      } finally {
+        if (mountedRef.current && extractRunIdRef.current === runId) {
+          setExtracting(false)
+        }
+      }
+    },
+    [caseId, t, tenantId],
+  )
 
   const verifyCandidates = useCallback(
     async (candidates: IocCandidate[]) => {
@@ -633,14 +1411,108 @@ export function IocVerificationPage() {
         return
       }
 
+      const caseCandidates = candidates.filter(
+        (candidate) => candidate.origin === "case" && candidate.candidate_id,
+      )
+      const manualCandidates = candidates.filter(
+        (candidate) => candidate.origin !== "case" || !candidate.candidate_id,
+      )
+      const normalizedCaseId =
+        caseId.trim() || caseCandidates[0]?.case_id?.trim() || routeParams.caseId.trim()
+
       const runId = verifyRunIdRef.current + 1
       verifyRunIdRef.current = runId
       setVerifying(true)
-      setItems((current) => mergeCandidates(current, candidates))
+      setItems((current) => mergeCandidates(current, manualCandidates))
 
       try {
-        for (const candidate of candidates) {
-          if (verifyRunIdRef.current !== runId) return
+        if (caseCandidates.length) {
+          if (!normalizedCaseId) {
+            throw new Error(t("toasts.caseRequired"))
+          }
+
+          const candidateIds = Array.from(
+            new Set(
+              caseCandidates
+                .map((candidate) => candidate.candidate_id?.trim())
+                .filter((candidateId): candidateId is string => Boolean(candidateId)),
+            ),
+          )
+
+          setItems((current) =>
+            current.map((item) =>
+              candidateIds.includes(item.candidate_id || item.id)
+                ? { ...item, status: "checking", error: "", result: null }
+                : item,
+            ),
+          )
+
+          let task = (
+            await createAttackCaseIocVerifyTask({
+              caseId: normalizedCaseId,
+              tenantId,
+              candidateIds,
+            })
+          ).task
+
+          if (!mountedRef.current || verifyRunIdRef.current !== runId) return
+
+          setCaseTaskId(task.task_id ? String(task.task_id) : "")
+          let status = normalizeTaskStatus(task.status)
+          setTaskStatus(t("casePanel.verifyProgress", {
+            done: task.done_count,
+            total: task.total_count,
+            status,
+          }))
+
+          for (let attempt = 0; isActiveTaskStatus(status); attempt += 1) {
+            if (attempt >= MAX_POLL_ATTEMPTS) {
+              throw new Error(t("errors.analysisTimeout"))
+            }
+
+            await delay(POLL_INTERVAL_MS)
+            if (!mountedRef.current || verifyRunIdRef.current !== runId) return
+
+            task = await getAttackCaseIocVerifyTask({
+              caseId: normalizedCaseId,
+              tenantId,
+              taskId: task.task_id,
+            })
+
+            if (!mountedRef.current || verifyRunIdRef.current !== runId) return
+
+            status = normalizeTaskStatus(task.status)
+            setTaskStatus(t("casePanel.verifyProgress", {
+              done: task.done_count,
+              total: task.total_count,
+              status,
+            }))
+          }
+
+          if (status === "failed") {
+            throw new Error(task.error_message || t("errors.verifyFailed"))
+          }
+
+          if (status !== "success" && status !== "partial_success") {
+            throw new Error(t("errors.analysisUnknown", { status: task.status || "unknown" }))
+          }
+
+          const preview = await listAttackCaseIocCandidates({
+            caseId: normalizedCaseId,
+            tenantId,
+          })
+
+          if (!mountedRef.current || verifyRunIdRef.current !== runId) return
+
+          setCasePreview(preview)
+          setItems((current) =>
+            mergeCandidates(current, preview.items, { replaceCase: true }),
+          )
+          setTaskStatus(status)
+        }
+
+        for (const candidate of manualCandidates) {
+          if (!mountedRef.current || verifyRunIdRef.current !== runId) return
 
           setItems((current) =>
             current.map((item) =>
@@ -656,7 +1528,7 @@ export function IocVerificationPage() {
               value: candidate.value,
             })
 
-            if (verifyRunIdRef.current !== runId) return
+            if (!mountedRef.current || verifyRunIdRef.current !== runId) return
 
             setItems((current) =>
               current.map((item) =>
@@ -671,7 +1543,7 @@ export function IocVerificationPage() {
               ),
             )
           } catch (error) {
-            if (verifyRunIdRef.current !== runId) return
+            if (!mountedRef.current || verifyRunIdRef.current !== runId) return
 
             setItems((current) =>
               current.map((item) =>
@@ -692,115 +1564,47 @@ export function IocVerificationPage() {
         }
 
         toast({ title: t("toasts.verifyComplete") })
-      } finally {
-        if (verifyRunIdRef.current === runId) {
-          setVerifying(false)
-        }
-      }
-    },
-    [t],
-  )
-
-  const loadCaseIocs = useCallback(
-    async (verifyAfterLoad = true) => {
-      const normalizedCaseId = caseId.trim()
-      if (!normalizedCaseId) {
-        toast({ title: t("toasts.caseRequired"), variant: "destructive" })
-        return
-      }
-
-      const runId = extractRunIdRef.current + 1
-      extractRunIdRef.current = runId
-      setExtracting(true)
-      setTaskStatus("creating")
-      setReportTaskId("")
-
-      try {
-        let task = await createAttackAIReportTask({
-          caseId: normalizedCaseId,
-          timezone: REPORT_TIMEZONE,
-          locale: reportLocale,
-        })
-
-        if (extractRunIdRef.current !== runId) return
-
-        setReportTaskId(task.task_id || "")
-        let status = normalizeTaskStatus(task.status)
-        setTaskStatus(status)
-
-        for (let attempt = 0; isActiveTaskStatus(status); attempt += 1) {
-          if (attempt >= MAX_POLL_ATTEMPTS) {
-            throw new Error(t("errors.analysisTimeout"))
-          }
-
-          await delay(POLL_INTERVAL_MS)
-          if (extractRunIdRef.current !== runId) return
-
-          task = await getAttackAIReportTask({
-            taskId: task.task_id,
-            locale: reportLocale,
-          })
-
-          if (extractRunIdRef.current !== runId) return
-
-          status = normalizeTaskStatus(task.status)
-          setTaskStatus(status)
-        }
-
-        if (status === "failed") {
-          throw new Error(task.error_message || t("errors.analysisFailed"))
-        }
-
-        if (status === "invalid") {
-          throw new Error(task.error_message || t("errors.analysisInvalid"))
-        }
-
-        if (status !== "succeeded") {
-          throw new Error(t("errors.analysisUnknown", { status: task.status || "unknown" }))
-        }
-
-        const report = reportFromTask(task)
-        const candidates = extractCaseCandidates(report)
-        setItems((current) =>
-          mergeCandidates(current, candidates, { replaceCase: true }),
-        )
-
-        if (!candidates.length) {
-          toast({ title: t("toasts.noIocs") })
-          return
-        }
-
-        toast({
-          title: t("toasts.extracted", { count: candidates.length }),
-        })
-
-        if (verifyAfterLoad) {
-          void verifyCandidates(candidates)
-        }
       } catch (error) {
-        if (extractRunIdRef.current !== runId) return
+        if (!mountedRef.current || verifyRunIdRef.current !== runId) return
 
+        const caseCandidateIds = new Set(
+          caseCandidates.map((candidate) => candidate.candidate_id || candidate.id),
+        )
+        setItems((current) =>
+          current.map((item) =>
+            caseCandidateIds.has(item.candidate_id || item.id)
+              ? {
+                  ...item,
+                  status: "error",
+                  error:
+                    error instanceof Error && error.message
+                      ? error.message
+                      : t("errors.verifyFailed"),
+                }
+              : item,
+          ),
+        )
         toast({
           title:
             error instanceof Error && error.message
               ? error.message
-              : t("errors.extractFailed"),
+              : t("errors.verifyFailed"),
           variant: "destructive",
         })
       } finally {
-        if (extractRunIdRef.current === runId) {
-          setExtracting(false)
+        if (mountedRef.current && verifyRunIdRef.current === runId) {
+          setVerifying(false)
         }
       }
     },
-    [caseId, reportLocale, t, verifyCandidates],
+    [caseId, routeParams.caseId, t, tenantId],
   )
 
   useEffect(() => {
     const normalizedCaseId = routeParams.caseId.trim()
     if (!normalizedCaseId || autoLoadedCaseRef.current === normalizedCaseId) return
     autoLoadedCaseRef.current = normalizedCaseId
-    void loadCaseIocs(true)
+    void loadCaseIocs()
   }, [loadCaseIocs, routeParams.caseId])
 
   function handleBack() {
@@ -812,7 +1616,7 @@ export function IocVerificationPage() {
           normalizedCaseId,
           routeParams.snapshotId,
           routeParams.workflowId,
-          { queuePage: routeParams.queuePage },
+          { queuePage: routeParams.queuePage, tenantId },
         ),
       )
       return
@@ -848,71 +1652,27 @@ export function IocVerificationPage() {
     void verifyCandidates(candidates)
   }
 
+  function copyIoc(value: string) {
+    void navigator.clipboard.writeText(value)
+    toast({ title: t("toasts.copied") })
+  }
+
   return (
-    <main className="min-h-[calc(100dvh-3rem)] bg-gray-50 p-4 sm:p-5 xl:p-6">
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4">
-        <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_14px_38px_rgba(15,23,42,0.07)]">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-9 rounded-full border-slate-200 px-3 text-slate-800"
-                  onClick={handleBack}
-                >
-                  <ArrowLeft className="size-4" />
-                  {t("actions.back")}
-                </Button>
-                <Badge
-                  variant="outline"
-                  className="gap-1.5 rounded-full border-blue-200 bg-blue-50 px-2.5 py-1 font-medium text-blue-700"
-                >
-                  <Wifi className="size-3.5" aria-hidden="true" />
-                  {t("onlineBadge")}
-                </Badge>
-              </div>
-              <h1 className="mt-4 text-2xl font-semibold tracking-normal text-slate-950">
-                {t("title")}
-              </h1>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-                {t("description")}
-              </p>
-            </div>
+    <main className="min-h-[calc(100dvh-3rem)] w-full min-w-0 bg-gray-50 p-3 sm:p-4 xl:p-5 2xl:p-6">
+      <div className="flex w-full min-w-0 flex-col gap-4">
+        <IocVerificationHeader counts={counts} onBack={handleBack} />
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:min-w-[420px]">
-              {[
-                ["total", counts.total, "bg-slate-50 text-slate-900"],
-                ["hit", counts.hit, "bg-red-50 text-red-700"],
-                ["miss", counts.miss, "bg-emerald-50 text-emerald-700"],
-                ["remote", counts.remote, "bg-blue-50 text-blue-700"],
-                ["pending", counts.pending, "bg-amber-50 text-amber-700"],
-                ["error", counts.error, "bg-slate-100 text-slate-600"],
-              ].map(([key, value, className]) => (
-                <div
-                  key={key}
-                  className={cn("rounded-2xl px-3 py-2", className as string)}
-                >
-                  <div className="font-mono text-lg font-semibold">{value}</div>
-                  <div className="text-[11px] font-medium uppercase tracking-normal opacity-70">
-                    {t(`summary.${key}`)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <VerificationPipeline counts={counts} extracting={extracting} verifying={verifying} />
 
-        <section className="grid gap-4 xl:grid-cols-[minmax(360px,0.42fr)_minmax(0,1fr)]">
+        <section className="grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(280px,340px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(300px,360px)_minmax(520px,1fr)_minmax(320px,400px)]">
           <div className="flex flex-col gap-4">
-            <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+            <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
               <div className="flex items-center gap-3">
                 <span className="flex size-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
                   <FileSearch className="size-5" aria-hidden="true" />
                 </span>
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-950">
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold text-slate-950">
                     {t("casePanel.title")}
                   </h2>
                   <p className="text-xs leading-5 text-slate-500">
@@ -921,48 +1681,81 @@ export function IocVerificationPage() {
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3">
+              <div className="mt-5 space-y-4">
                 <label className="block text-xs font-medium text-slate-500">
                   {t("fields.caseId")}
-                </label>
-                <div className="flex gap-2">
                   <Input
                     value={caseId}
                     onChange={(event) => setCaseId(event.target.value)}
                     placeholder={t("casePanel.casePlaceholder")}
                     disabled={extracting || verifying}
-                    className="h-10 rounded-2xl border-slate-200 bg-slate-50 font-mono text-sm shadow-none focus-visible:ring-blue-200"
+                    className="mt-2 h-10 rounded-2xl border-slate-200 bg-slate-50 font-mono text-sm shadow-none focus-visible:ring-blue-200"
                   />
+                </label>
+
+                <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-y-3 border-y border-slate-100 py-4 text-sm">
+                  <span className="text-slate-400">{t("detail.workflow")}</span>
+                  <span className="truncate font-mono text-slate-700">
+                    {routeParams.workflowId || "-"}
+                  </span>
+                  <span className="text-slate-400">{t("fields.tenant")}</span>
+                  <span className="truncate font-mono text-slate-700">
+                    {tenantId}
+                  </span>
+                  <span className="text-slate-400">{t("fields.taskStatus")}</span>
+                  <span className="text-slate-700">{taskStatus || "-"}</span>
+                  <span className="text-slate-400">{t("detail.extracted")}</span>
+                  <span className="text-slate-700">
+                    {t("detail.extractedCount", { count: items.filter((item) => item.origin === "case").length })}
+                  </span>
+                </div>
+
+                {casePreviewMessage ? (
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-800">
+                    {casePreviewMessage}
+                  </div>
+                ) : null}
+
+                <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
-                    className="h-10 shrink-0 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
+                    className="h-10 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
                     disabled={extracting || verifying || !caseId.trim()}
-                    onClick={() => void loadCaseIocs(true)}
+                    onClick={() => void loadCaseIocs()}
                   >
                     {extracting ? (
                       <Loader2 className="size-4 animate-spin" />
                     ) : (
                       <Radar className="size-4" />
                     )}
-                    {extracting ? t("actions.extracting") : t("actions.extractVerify")}
+                    {extracting ? t("actions.loadingPreview") : t("actions.loadPreview")}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-2xl border-slate-200"
+                    disabled={extracting || verifying || !caseId.trim()}
+                    onClick={() => void loadCaseIocs()}
+                  >
+                    <RefreshCw className="size-4" />
+                    {t("actions.refreshPreview")}
                   </Button>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                  <span>{t("fields.taskStatus")}: {taskStatus || "-"}</span>
-                  {reportTaskId ? (
-                    <span className="font-mono text-slate-400">| {reportTaskId}</span>
-                  ) : null}
-                </div>
+                {caseTaskId ? (
+                  <div className="truncate font-mono text-xs text-slate-400">
+                    {t("fields.verifyTask")}: {caseTaskId}
+                  </div>
+                ) : null}
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+            <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
               <div className="flex items-center gap-3">
                 <span className="flex size-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
                   <Plus className="size-5" aria-hidden="true" />
                 </span>
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-950">
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold text-slate-950">
                     {t("manual.title")}
                   </h2>
                   <p className="text-xs leading-5 text-slate-500">
@@ -971,8 +1764,8 @@ export function IocVerificationPage() {
                 </div>
               </div>
 
-              <form className="mt-4 space-y-3" onSubmit={handleManualSubmit}>
-                <div className="grid gap-2 sm:grid-cols-[8rem_minmax(0,1fr)]">
+              <form className="mt-5 space-y-4" onSubmit={handleManualSubmit}>
+                <div className="grid gap-3">
                   <label className="block text-xs font-medium text-slate-500">
                     {t("fields.type")}
                     <select
@@ -981,7 +1774,7 @@ export function IocVerificationPage() {
                         setManualType(event.target.value as IocVerificationType)
                       }
                       disabled={verifying}
-                      className="mt-1 h-10 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition-colors focus:border-blue-300 focus:bg-white"
+                      className="mt-2 h-10 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-800 outline-none transition-colors focus:border-blue-300 focus:bg-white"
                     >
                       {TYPE_OPTIONS.map((type) => (
                         <option key={type} value={type}>
@@ -997,7 +1790,7 @@ export function IocVerificationPage() {
                       onChange={(event) => setManualInput(event.target.value)}
                       placeholder={t("manual.placeholder")}
                       disabled={verifying}
-                      className="mt-1 min-h-[120px] resize-none rounded-2xl border-slate-200 bg-slate-50 font-mono text-sm shadow-none focus-visible:ring-blue-200"
+                      className="mt-2 min-h-[174px] resize-none rounded-2xl border-slate-200 bg-slate-50 font-mono text-sm shadow-none focus-visible:ring-blue-200"
                     />
                   </label>
                 </div>
@@ -1030,13 +1823,13 @@ export function IocVerificationPage() {
             </section>
           </div>
 
-          <section className="min-w-0 rounded-[28px] border border-slate-200 bg-white/60 p-3 shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+          <section className="min-w-0 rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold text-slate-950">
+                <h2 className="text-base font-semibold text-slate-950">
                   {t("results.title")}
                 </h2>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="mt-1 text-xs leading-5 text-slate-500">
                   {t("results.description")}
                 </p>
               </div>
@@ -1051,21 +1844,105 @@ export function IocVerificationPage() {
               ) : null}
             </div>
 
-            {items.length ? (
-              <div className="grid gap-3">
-                {items.map((item) => (
-                  <IocResultRow
-                    key={item.id}
-                    item={item}
-                    onVerify={(candidate) => void verifyCandidates([candidate])}
-                    verifying={verifying}
-                  />
-                ))}
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div className="relative min-w-[240px] flex-1">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  value={searchText}
+                  onChange={(event) => setSearchText(event.target.value)}
+                  placeholder={t("filters.searchPlaceholder")}
+                  className="h-10 rounded-2xl border-slate-200 bg-slate-50 pl-9 shadow-none focus-visible:ring-blue-200"
+                />
               </div>
-            ) : (
-              <EmptyState />
-            )}
+              <select
+                value={typeFilter}
+                onChange={(event) =>
+                  setTypeFilter(event.target.value as IocVerificationType | "all")
+                }
+                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-300"
+              >
+                <option value="all">{t("filters.allTypes")}</option>
+                {TYPE_OPTIONS.filter((type) => type !== "auto").map((type) => (
+                  <option key={type} value={type}>
+                    {t(`types.${type}`)}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value as IocVerificationStatus | "all")
+                }
+                className="h-10 rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-blue-300"
+              >
+                <option value="all">{t("filters.allVerdicts")}</option>
+                {([
+                  "hit",
+                  "allowlisted",
+                  "miss",
+                  "checking",
+                  "error",
+                  "suppressed",
+                  "idle",
+                ] as IocVerificationStatus[]).map((status) => (
+                  <option key={status} value={status}>
+                    {t(`status.${status}`)}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setActionOnly((value) => !value)}
+                className={cn(
+                  "flex h-10 items-center gap-2 rounded-full border px-4 text-sm transition-colors",
+                  actionOnly
+                    ? "border-blue-200 bg-blue-50 text-blue-700"
+                    : "border-slate-200 bg-slate-50 text-slate-600",
+                )}
+              >
+                <span
+                  className={cn(
+                    "size-5 rounded-full border bg-white",
+                    actionOnly ? "border-blue-500 bg-blue-500" : "border-slate-300",
+                  )}
+                />
+                {t("filters.actionOnly")}
+              </button>
+              <Button
+                type="button"
+                className="h-10 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
+                disabled={verifying || !items.length}
+                onClick={verifyAll}
+              >
+                {verifying ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4" />
+                )}
+                {t("actions.verifyAll")}
+              </Button>
+            </div>
+
+            <div className="mt-4 overflow-x-auto">
+              <IocResultsTable
+                items={filteredItems}
+                selectedId={selectedItem?.id ?? ""}
+                verifying={verifying}
+                onCopy={copyIoc}
+                onSelect={setSelectedItemId}
+                onVerify={(candidate) => void verifyCandidates([candidate])}
+              />
+            </div>
           </section>
+
+          <div className="min-w-0 xl:col-span-2 2xl:col-span-1">
+            <SelectedIocDetail
+              item={selectedItem}
+              verifying={verifying}
+              onCopy={copyIoc}
+              onVerify={(candidate) => void verifyCandidates([candidate])}
+            />
+          </div>
         </section>
       </div>
     </main>

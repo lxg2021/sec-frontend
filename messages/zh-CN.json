@@ -3733,12 +3733,26 @@
           "miss": "未命中",
           "remote": "远程",
           "pending": "待验证",
-          "error": "异常"
+          "error": "异常",
+          "whitelist": "白名单",
+          "malicious": "恶意",
+          "suspicious": "可疑",
+          "danger": "危险",
+          "unknown": "未知"
         },
         "casePanel": {
           "title": "案件 IOC 来源",
           "description": "使用 AI 案件分析结果作为本次 IOC 验证的数据来源",
-          "casePlaceholder": "请输入 CaseID"
+          "casePlaceholder": "请输入 CaseID",
+          "loadingPreview": "正在加载 IOC 预览",
+          "previewNotLoaded": "先加载案件 IOC 预览，再开始验证",
+          "noExtractTask": "当前案件还没有 IOC 提取任务，暂无可预检的 IOC 预览",
+          "noExtractTaskShort": "无提取任务",
+          "extractRunning": "IOC 提取任务仍为 {status}，完成后刷新预览",
+          "extractFailed": "IOC 提取失败",
+          "noPreviewItems": "提取已完成，但没有发现可验证 IOC 候选",
+          "previewReady": "{count} 个 IOC 候选可预检",
+          "verifyProgress": "预检 {done}/{total}（{status}）"
         },
         "manual": {
           "title": "手动输入 IOC",
@@ -3746,8 +3760,8 @@
           "placeholder": "每行一个指标，例如：\nmd5: 90d358e2d9f830f2af817d3e00c1f338\nurl: http://20.0.40.208:8080/payload.dll\nip: 20.0.40.208\ndomain: example.com"
         },
         "results": {
-          "title": "验证结果",
-          "description": "每一行都会调用 IOC 查询接口，Remote hit 表示联网情报确认命中"
+          "title": "待预检 IOC 预览",
+          "description": "先展示当前案件已提取的 IOC 候选，确认后再创建预检任务"
         },
         "empty": {
           "title": "暂无指标",
@@ -3755,12 +3769,17 @@
         },
         "actions": {
           "back": "返回",
-          "extractVerify": "提取并验证",
-          "extracting": "提取中",
-          "addVerify": "添加并验证",
-          "verifyAll": "全部验证",
-          "verifying": "验证中",
-          "recheck": "重查"
+          "extractVerify": "加载预览",
+          "extracting": "加载中",
+          "loadPreview": "加载预览",
+          "loadingPreview": "加载中",
+          "refreshPreview": "刷新预览",
+          "addVerify": "添加并预检",
+          "verifyAll": "开始预检",
+          "verifying": "预检中",
+          "recheck": "重新预检",
+          "copy": "复制 IOC",
+          "refreshExtract": "重新提取"
         },
         "fields": {
           "caseId": "CaseID",
@@ -3773,8 +3792,10 @@
           "risk": "风险",
           "confidence": "置信",
           "tags": "标签",
-          "taskStatus": "AI任务",
-          "intelSources": "情报来源"
+          "taskStatus": "任务",
+          "intelSources": "情报来源",
+          "tenant": "租户",
+          "verifyTask": "验证任务"
         },
         "types": {
           "auto": "AUTO",
@@ -3786,12 +3807,14 @@
           "ip": "IP",
           "domain": "DOMAIN",
           "hostname": "HOST",
-          "email": "EMAIL"
+          "email": "EMAIL",
+          "certificate": "CERT"
         },
         "status": {
           "idle": "待查",
           "checking": "查询中",
           "hit": "命中",
+          "allowlisted": "白名单",
           "miss": "未命中",
           "suppressed": "远程异常",
           "error": "错误"
@@ -3799,18 +3822,88 @@
         "source": {
           "cacheHit": "缓存命中",
           "localHit": "本地命中",
+          "localMiss": "本地未命中",
+          "localError": "本地异常",
           "remoteHit": "远程命中",
           "remoteMiss": "远程未命中",
+          "remoteError": "远程异常",
           "missCacheHit": "未命中缓存",
           "remoteErrorSuppressed": "远程异常抑制",
           "unknown": "未知来源"
+        },
+        "pipeline": {
+          "title": "验证链路",
+          "description": "白名单优先，命中跳过规则时不再联网",
+          "active": "执行中",
+          "count": "{count} 个",
+          "steps": {
+            "extracted": "已提取",
+            "normalized": "已规范化",
+            "allowlist": "白名单检查",
+            "localIntel": "本地情报",
+            "onlineIntel": "联网情报",
+            "verdict": "最终判定"
+          }
+        },
+        "filters": {
+          "searchPlaceholder": "搜索 IOC / 来源 / 标签",
+          "allTypes": "全部类型",
+          "allVerdicts": "全部判定",
+          "actionOnly": "仅看需处置"
+        },
+        "table": {
+          "ioc": "IOC",
+          "allowlist": "白名单",
+          "verification": "验证来源",
+          "verdict": "判定",
+          "action": "操作"
+        },
+        "allowlist": {
+          "pending": "待检查",
+          "checking": "检查中",
+          "hit": "已放行",
+          "miss": "未命中"
+        },
+        "verdict": {
+          "ready": "待验证",
+          "checking": "验证中",
+          "malicious": "恶意",
+          "allow": "放行",
+          "unknown": "未知",
+          "error": "异常"
+        },
+        "detail": {
+          "title": "IOC 详情",
+          "description": "选中行的完整判断路径",
+          "noSelection": "选择一个 IOC 后查看验证路径",
+          "decision": "判断结论",
+          "verificationPath": "验证路径",
+          "allowlistEvidence": "白名单证据",
+          "threatIntel": "威胁情报",
+          "recommendedActions": "建议操作",
+          "workflow": "工作流",
+          "extracted": "提取结果",
+          "extractedCount": "{count} 个案件 IOC",
+          "caseSource": "case",
+          "manualSource": "manual",
+          "observationCount": "{count} 条观测",
+          "maliciousReason": "威胁情报已确认命中，建议继续调查并进入处置",
+          "allowReason": "该 IOC 命中白名单规则，不需要升级到威胁情报处置",
+          "unknownReason": "当前未发现情报命中，但这不代表 IOC 一定安全",
+          "checkingReason": "正在验证该 IOC，请等待本地和联网情报结果",
+          "readyReason": "该 IOC 正在等待验证",
+          "allowlistNotConnected": "当前查询结果暂未返回白名单详情",
+          "investigate": "调查",
+          "noQuery": "不查询"
         },
         "toasts": {
           "caseRequired": "请先输入 CaseID",
           "noIocs": "没有找到可验证的 IOC",
           "manualInvalid": "未解析到有效 IOC",
           "extracted": "已提取 {count} 个可验证 IOC",
-          "verifyComplete": "IOC 验证完成"
+          "previewLoaded": "已加载 {count} 个待预检 IOC",
+          "verifyComplete": "IOC 验证完成",
+          "copied": "IOC 已复制"
         },
         "errors": {
           "extractFailed": "提取案件 IOC 失败",

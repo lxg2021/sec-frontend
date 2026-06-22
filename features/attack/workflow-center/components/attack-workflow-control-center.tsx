@@ -514,6 +514,7 @@ export function AttackWorkflowControlCenter({
     workflowId: activeWorkflowId,
     returnToWorkflow: true,
     queuePage,
+    tenantId,
   }
   const attackDetailHref = activeCaseId
     ? buildAttackDetailHref(activeCaseId, normalizedSnapshotId)
