@@ -42,21 +42,20 @@ export function IocResultsTable({
   }
 
   return (
-    <div className="min-w-[760px] overflow-hidden rounded-2xl border border-slate-100">
-      <div className="grid grid-cols-[minmax(240px,1.4fr)_88px_112px_150px_110px_98px] items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400">
+    <div className="min-w-[900px] overflow-hidden rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_140px_110px_98px] items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400">
         <div>{t("table.ioc")}</div>
         <div>{t("fields.type")}</div>
         <div>{t("table.allowlist")}</div>
         <div>{t("table.verification")}</div>
+        <div>{t("table.time")}</div>
         <div>{t("table.verdict")}</div>
         <div>{t("table.action")}</div>
       </div>
       <div className="divide-y divide-slate-100">
         {items.map((item) => {
           const selected = item.id === selectedId
-          const observationCount = item.result?.observations.length ?? 0
-          const source = item.origin === "case" ? t("detail.caseSource") : t("detail.manualSource")
-          const checkedAt = item.verification?.checked_at || item.verification?.updated_at || ""
+          const occurredAt = item.occurred_at || ""
 
           return (
             <div
@@ -66,7 +65,7 @@ export function IocResultsTable({
               onClick={() => onSelect(item.id)}
               onKeyDown={(event) => handleRowKeyDown(event, item.id)}
               className={cn(
-                "group grid w-full cursor-pointer grid-cols-[minmax(240px,1.4fr)_88px_112px_150px_110px_98px] items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
+                "group grid w-full cursor-pointer grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_140px_110px_98px] items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
                 selected && "relative bg-blue-50 hover:bg-blue-50",
               )}
             >
@@ -77,10 +76,6 @@ export function IocResultsTable({
                 <code className="block truncate font-mono text-sm text-slate-950">
                   {item.value}
                 </code>
-                <span className="mt-1 block truncate text-xs text-slate-400">
-                  {source}
-                  {item.evidence_refs.length ? ` 路 ${item.evidence_refs[0]}` : ""}
-                </span>
               </div>
               <TypeBadge type={item.type} />
               <AllowlistBadge item={item} />
@@ -88,11 +83,12 @@ export function IocResultsTable({
                 <div className="truncate text-sm text-slate-700">
                   {verificationSourceText(item, t)}
                 </div>
-                <div className="mt-1 truncate text-xs text-slate-400">
-                  {observationCount
-                    ? t("detail.observationCount", { count: observationCount })
-                    : checkedAt || item.result?.hit_source || "-"}
-                </div>
+              </div>
+              <div
+                className="truncate font-mono text-xs text-slate-500"
+                title={occurredAt || undefined}
+              >
+                {occurredAt || "-"}
               </div>
               <VerdictBadge item={item} />
               <div className="flex items-center gap-2">

@@ -30,7 +30,6 @@ const MANUAL_TYPE_SET = new Set<IocVerificationType>([
   "hostname",
   "ip",
   "email",
-  "certificate",
 ])
 const HASH_PATTERN = /^[a-f0-9]{32}$|^[a-f0-9]{40}$|^[a-f0-9]{64}$/i
 const MD5_PATTERN = /^[a-f0-9]{32}$/i
@@ -115,8 +114,6 @@ function isRowReady(type: IocVerificationType, value: string) {
       return HOSTNAME_PATTERN.test(value)
     case "email":
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-    case "certificate":
-      return value.trim().length >= 8
     default:
       return true
   }
@@ -131,7 +128,6 @@ function typeRailClass(type: IocVerificationType) {
   if (type === "domain" || type === "hostname") {
     return "bg-emerald-600"
   }
-  if (type === "certificate") return "bg-amber-500"
   return "bg-slate-400"
 }
 

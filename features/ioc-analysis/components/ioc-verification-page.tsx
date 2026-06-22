@@ -45,6 +45,7 @@ import { toast } from "@/shared/hooks/use-toast"
 const DEFAULT_TENANT_ID = "public"
 const POLL_INTERVAL_MS = 2000
 const MAX_POLL_ATTEMPTS = 90
+const DISABLED_IOC_TYPES = new Set<IocVerificationType>(["certificate"])
 
 const TYPE_OPTIONS: IocVerificationType[] = [
   "auto",
@@ -55,7 +56,6 @@ const TYPE_OPTIONS: IocVerificationType[] = [
   "ip",
   "domain",
   "hostname",
-  "certificate",
 ]
 const MANUAL_TYPE_PREFIXES = new Set<IocVerificationType>([
   "auto",
@@ -68,7 +68,6 @@ const MANUAL_TYPE_PREFIXES = new Set<IocVerificationType>([
   "hostname",
   "ip",
   "email",
-  "certificate",
 ])
 
 function getRouteParam(value: string | null) {
@@ -180,7 +179,7 @@ function parseManualLine(line: string, defaultType: IocVerificationType) {
     : defaultType
   const rawValue = hasKnownTypePrefix && typedMatch ? typedMatch[2] ?? "" : trimmed
   const type = rawType === "auto" ? detectIocType(rawValue) ?? "auto" : normalizeIocType(rawType, rawValue)
-  if (!type) return null
+  if (!type || DISABLED_IOC_TYPES.has(type)) return null
 
   const value = normalizeIocValue(type, rawValue)
   if (!value) return null
@@ -504,16 +503,25 @@ export function IocVerificationPage() {
 
   const verifyCandidates = useCallback(
     async (candidates: IocCandidate[]) => {
-      if (!candidates.length) {
+      const supportedCandidates = candidates.filter(
+        (candidate) => !DISABLED_IOC_TYPES.has(candidate.type),
+      )
+
+      if (!supportedCandidates.length) {
         toast({ title: t("toasts.noIocs") })
         return
       }
 
-      const caseCandidates = candidates.filter(
-        (candidate) => candidate.origin === "case" && candidate.candidate_id,
+      const caseCandidates = supportedCandidates.filter(
+        (candidate) =>
+          candidate.origin === "case" &&
+          candidate.candidate_id &&
+          !DISABLED_IOC_TYPES.has(candidate.type),
       )
-      const manualCandidates = candidates.filter(
-        (candidate) => candidate.origin !== "case" || !candidate.candidate_id,
+      const manualCandidates = supportedCandidates.filter(
+        (candidate) =>
+          (candidate.origin !== "case" || !candidate.candidate_id) &&
+          !DISABLED_IOC_TYPES.has(candidate.type),
       )
       const normalizedCaseId =
         caseId.trim() || caseCandidates[0]?.case_id?.trim() || routeParams.caseId.trim()
