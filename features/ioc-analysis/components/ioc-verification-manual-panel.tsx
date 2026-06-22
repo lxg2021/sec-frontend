@@ -122,17 +122,17 @@ function isRowReady(type: IocVerificationType, value: string) {
   }
 }
 
-function typeClass(type: IocVerificationType) {
+function typeRailClass(type: IocVerificationType) {
   if (type === "md5" || type === "sha1" || type === "sha256" || type === "hash") {
-    return "border-violet-200 bg-violet-50 text-violet-700"
+    return "bg-violet-600"
   }
-  if (type === "url") return "border-blue-200 bg-blue-50 text-blue-700"
-  if (type === "ip") return "border-cyan-200 bg-cyan-50 text-cyan-700"
+  if (type === "url") return "bg-blue-600"
+  if (type === "ip") return "bg-cyan-600"
   if (type === "domain" || type === "hostname") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700"
+    return "bg-emerald-600"
   }
-  if (type === "certificate") return "border-amber-200 bg-amber-50 text-amber-700"
-  return "border-slate-200 bg-slate-50 text-slate-600"
+  if (type === "certificate") return "bg-amber-500"
+  return "bg-slate-400"
 }
 
 export function IocVerificationManualPanel({
@@ -251,7 +251,7 @@ export function IocVerificationManualPanel({
         </div>
 
         <div className="flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white 2xl:min-h-0 2xl:flex-1">
-          <div className="grid grid-cols-[3.75rem_minmax(0,1fr)_4.75rem_2rem] items-center gap-2 bg-slate-50 px-2.5 py-2 text-[10px] font-semibold uppercase text-slate-400">
+          <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_4.75rem_2rem] items-center gap-2 bg-slate-50 px-2.5 py-2 text-[10px] font-semibold uppercase text-slate-400">
             <div>{t("fields.type")}</div>
             <div>{t("manual.table.indicator")}</div>
             <div>{t("manual.table.formatCheck")}</div>
@@ -262,15 +262,19 @@ export function IocVerificationManualPanel({
               {rows.map((row, index) => (
                 <div
                   key={`${row.line}-${index}`}
-                  className="grid grid-cols-[3.75rem_minmax(0,1fr)_4.75rem_2rem] items-center gap-2 px-2.5 py-2"
+                  className="grid grid-cols-[4.5rem_minmax(0,1fr)_4.75rem_2rem] items-center gap-2 px-2.5 py-2"
                 >
-                  <span
-                    className={cn(
-                      "inline-flex w-fit rounded-full border px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase",
-                      typeClass(row.displayType),
-                    )}
-                  >
-                    {t(`types.${row.displayType}`)}
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className={cn(
+                        "h-5 w-1.5 shrink-0 rounded-full",
+                        typeRailClass(row.displayType),
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span className="truncate font-mono text-[11px] font-bold uppercase text-slate-900">
+                      {t(`types.${row.displayType}`)}
+                    </span>
                   </span>
                   <code
                     className="truncate font-mono text-xs text-slate-900"
