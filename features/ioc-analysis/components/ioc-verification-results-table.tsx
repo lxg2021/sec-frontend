@@ -14,9 +14,13 @@ import { Button } from "@/shared/ui/button"
 import { VerdictBadge } from "./ioc-verification-badges"
 import {
   isAllowlisted,
+  riskText,
   verificationSourceText,
 } from "./ioc-verification-display-utils"
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
+
+const tableGridClass =
+  "grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_168px_88px_128px_98px]"
 
 export function IocResultsTable({
   items,
@@ -52,15 +56,21 @@ export function IocResultsTable({
   }
 
   return (
-    <div className="min-w-[960px] overflow-hidden rounded-2xl border border-slate-100">
-      <div className="grid grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_168px_128px_98px] items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400">
-        <div>{t("table.ioc")}</div>
-        <div>{t("fields.type")}</div>
-        <div>{t("table.allowlist")}</div>
-        <div>{t("table.verification")}</div>
-        <div>{t("table.time")}</div>
-        <div className="text-center">{t("table.verdict")}</div>
-        <div>{t("table.action")}</div>
+    <div className="min-w-[1060px] overflow-hidden rounded-2xl border border-slate-100">
+      <div
+        className={cn(
+          "grid items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400",
+          tableGridClass,
+        )}
+      >
+        <div>{t("table.ioc").toLocaleLowerCase()}</div>
+        <div>{t("fields.type").toLocaleLowerCase()}</div>
+        <div>{t("table.allowlist").toLocaleLowerCase()}</div>
+        <div>{t("table.verification").toLocaleLowerCase()}</div>
+        <div>{t("table.time").toLocaleLowerCase()}</div>
+        <div className="text-center">{t("fields.risk").toLocaleLowerCase()}</div>
+        <div className="text-center">{t("table.verdict").toLocaleLowerCase()}</div>
+        <div>{t("table.action").toLocaleLowerCase()}</div>
       </div>
       <div className="divide-y divide-slate-100">
         {items.map((item) => {
@@ -68,6 +78,7 @@ export function IocResultsTable({
           const occurredAt = item.occurred_at || ""
           const allowlistLabel = allowlistText(item)
           const verificationLabel = verificationSourceText(item, t)
+          const riskLabel = riskText(item)
 
           return (
             <div
@@ -77,7 +88,8 @@ export function IocResultsTable({
               onClick={() => onSelect(item.id)}
               onKeyDown={(event) => handleRowKeyDown(event, item.id)}
               className={cn(
-                "group grid w-full cursor-pointer grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_168px_128px_98px] items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
+                "group grid w-full cursor-pointer items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
+                tableGridClass,
                 selected && "relative bg-blue-50 hover:bg-blue-50",
               )}
             >
@@ -111,6 +123,12 @@ export function IocResultsTable({
                 title={occurredAt || undefined}
               >
                 {occurredAt || "-"}
+              </div>
+              <div
+                className="truncate text-center font-mono text-xs font-semibold text-slate-500"
+                title={riskLabel}
+              >
+                {riskLabel.toLocaleLowerCase()}
               </div>
               <div className="flex justify-center">
                 <VerdictBadge item={item} lowercase />

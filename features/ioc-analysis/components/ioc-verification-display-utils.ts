@@ -215,6 +215,8 @@ export function observationSources(item: IocVerificationItem) {
 }
 
 export function riskText(item: IocVerificationItem) {
+  if (verdictFromItem(item) === "allow") return "0"
+
   const score = item.verification?.risk_score || item.result?.entry?.risk_score
   if (typeof score === "number" && score > 0) return String(score)
   if (item.status === "hit") return "High"
