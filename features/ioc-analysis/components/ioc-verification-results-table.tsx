@@ -11,7 +11,7 @@ import type {
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 
-import { AllowlistBadge, TypeBadge, VerdictBadge } from "./ioc-verification-badges"
+import { AllowlistBadge, VerdictBadge } from "./ioc-verification-badges"
 import { verificationSourceText } from "./ioc-verification-display-utils"
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
 
@@ -56,6 +56,7 @@ export function IocResultsTable({
         {items.map((item) => {
           const selected = item.id === selectedId
           const occurredAt = item.occurred_at || ""
+          const verificationLabel = verificationSourceText(item, t)
 
           return (
             <div
@@ -77,11 +78,16 @@ export function IocResultsTable({
                   {item.value}
                 </code>
               </div>
-              <TypeBadge type={item.type} />
-              <AllowlistBadge item={item} />
+              <div
+                className="truncate font-mono text-xs font-semibold text-slate-500"
+                title={item.type}
+              >
+                {item.type}
+              </div>
+              <AllowlistBadge item={item} lowercase />
               <div className="min-w-0">
                 <div className="truncate text-sm text-slate-700">
-                  {verificationSourceText(item, t)}
+                  {verificationLabel.toLocaleLowerCase()}
                 </div>
               </div>
               <div
@@ -90,7 +96,7 @@ export function IocResultsTable({
               >
                 {occurredAt || "-"}
               </div>
-              <VerdictBadge item={item} />
+              <VerdictBadge item={item} lowercase />
               <div className="flex items-center gap-2">
                 <Button
                   type="button"

@@ -30,21 +30,34 @@ export function TypeBadge({ type }: { type: IocVerificationType }) {
   )
 }
 
-export function VerdictBadge({ item }: { item: IocVerificationItem }) {
+export function VerdictBadge({
+  item,
+  lowercase = false,
+}: {
+  item: IocVerificationItem
+  lowercase?: boolean
+}) {
   const t = useTranslations("pages.iocAnalysis.verification")
   const verdict = verdictFromItem(item)
+  const label = t(`verdict.${verdict}`)
 
   return (
     <Badge
       variant="outline"
       className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", verdictClass(verdict))}
     >
-      {t(`verdict.${verdict}`)}
+      {lowercase ? label.toLocaleLowerCase() : label}
     </Badge>
   )
 }
 
-export function AllowlistBadge({ item }: { item: IocVerificationItem }) {
+export function AllowlistBadge({
+  item,
+  lowercase = false,
+}: {
+  item: IocVerificationItem
+  lowercase?: boolean
+}) {
   const t = useTranslations("pages.iocAnalysis.verification")
   const label =
     item.status === "checking"
@@ -60,7 +73,7 @@ export function AllowlistBadge({ item }: { item: IocVerificationItem }) {
       variant="outline"
       className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", allowlistClass(item))}
     >
-      {label}
+      {lowercase ? label.toLocaleLowerCase() : label}
     </Badge>
   )
 }
