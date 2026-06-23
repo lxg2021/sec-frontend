@@ -161,6 +161,29 @@ function candidateKey(type: IocVerificationType, value: string) {
   return `${type}:${value.toLowerCase()}`
 }
 
+function isHashType(type: IocVerificationType) {
+  return type === "md5" || type === "sha1" || type === "sha256" || type === "hash"
+}
+
+function fileNameFromPath(value: string) {
+  const trimmed = value.trim().replace(/[\\/]+$/, "")
+  return trimmed.split(/[\\/]/).pop() || value.trim()
+}
+
+function candidateFileKey(candidate: Pick<IocCandidate, "file_name" | "file_path">) {
+  const fileName = candidate.file_name?.trim() || ""
+  const filePath = candidate.file_path?.trim() || ""
+  return (fileName || (filePath ? fileNameFromPath(filePath) : "")).toLowerCase()
+}
+
+function candidateDisplayKey(
+  candidate: Pick<IocCandidate, "origin" | "type" | "value" | "file_name" | "file_path">,
+) {
+  const valueKey = candidateKey(candidate.type, candidate.value)
+  if (!isHashType(candidate.type)) return `${candidate.origin}:${valueKey}`
+  return `${candidate.origin}:${valueKey}:file:${candidateFileKey(candidate)}`
+}
+
 function candidateId(candidate: Pick<IocCandidate, "origin" | "type" | "value">) {
   return `${candidate.origin}:${candidateKey(candidate.type, candidate.value)}`
 }
@@ -229,6 +252,30 @@ function toVerificationItem(candidate: IocCandidate | IocVerificationItem): IocV
   }
 }
 
+function mergeCandidateItem(
+  existing: IocVerificationItem,
+  next: IocVerificationItem,
+): IocVerificationItem {
+  const merged: IocVerificationItem = {
+    ...existing,
+    ...next,
+    id: existing.id,
+    candidate_id: existing.candidate_id || next.candidate_id,
+    file_name: next.file_name || existing.file_name,
+    file_path: next.file_path || existing.file_path,
+    evidence_refs: Array.from(
+      new Set([...existing.evidence_refs, ...next.evidence_refs].filter(Boolean)),
+    ),
+  }
+
+  if (!next.verification && existing.verification) merged.verification = existing.verification
+  if (!next.result && existing.result) merged.result = existing.result
+  if (next.status === "idle" && existing.status !== "idle") merged.status = existing.status
+  if (!next.error && existing.error) merged.error = existing.error
+
+  return merged
+}
+
 function mergeCandidates(
   current: IocVerificationItem[],
   candidates: Array<IocCandidate | IocVerificationItem>,
@@ -237,15 +284,22 @@ function mergeCandidates(
   const base = options.replaceCase
     ? current.filter((item) => item.origin !== "case")
     : [...current]
-  const byId = new Map(base.map((item) => [item.id, item]))
+  const byDisplayKey = new Map(base.map((item) => [candidateDisplayKey(item), item]))
 
   for (const candidate of candidates) {
     const next = toVerificationItem(candidate)
-    const existing = byId.get(candidate.id)
-    byId.set(candidate.id, existing ? { ...existing, ...next } : next)
+    const key = candidateDisplayKey(next)
+    const existing = byDisplayKey.get(key)
+
+    if (existing) {
+      byDisplayKey.set(key, mergeCandidateItem(existing, next))
+      continue
+    }
+
+    byDisplayKey.set(key, next)
   }
 
-  return Array.from(byId.values())
+  return Array.from(byDisplayKey.values())
 }
 
 function statusFromResult(result: IocQueryResult): IocVerificationStatus {
