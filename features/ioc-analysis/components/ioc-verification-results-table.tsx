@@ -70,7 +70,10 @@ function statusTextClass(tone: IntelTone) {
   }
 }
 
-function statusFromRaw(raw: string): { label: string; tone: IntelTone } {
+function statusFromRaw(
+  raw: string,
+  missLabel = "miss",
+): { label: string; tone: IntelTone } {
   const value = raw.trim().toLowerCase()
   if (!value) return { label: "pending", tone: "pending" }
   if (value.includes("checking") || value.includes("running")) {
@@ -80,7 +83,7 @@ function statusFromRaw(raw: string): { label: string; tone: IntelTone } {
     return { label: "error", tone: "error" }
   }
   if (value.includes("miss") || value.includes("no_hit") || value.includes("no hit")) {
-    return { label: "no hit", tone: "miss" }
+    return { label: missLabel, tone: "miss" }
   }
   if (
     value.includes("skip") ||
@@ -181,8 +184,12 @@ export function IocResultsTable({
       if (verification.hit_status_key === "error" || verification.final_status === "local_error") {
         return { label: t("status.error"), tone: "error" as const }
       }
-      if (verification.local_status) return statusFromRaw(verification.local_status)
-      if (verification.local_decision) return statusFromRaw(verification.local_decision)
+      if (verification.local_status) {
+        return statusFromRaw(verification.local_status, t("allowlist.miss"))
+      }
+      if (verification.local_decision) {
+        return statusFromRaw(verification.local_decision, t("allowlist.miss"))
+      }
       if (verification.hit_status_key === "no_hit" || verification.final_status === "local_miss") {
         return { label: t("allowlist.miss"), tone: "miss" as const }
       }
@@ -224,7 +231,9 @@ export function IocResultsTable({
       if (verification.final_status === "remote_error") {
         return { label: t("status.error"), tone: "error" as const }
       }
-      if (verification.remote_status) return statusFromRaw(verification.remote_status)
+      if (verification.remote_status) {
+        return statusFromRaw(verification.remote_status, t("allowlist.miss"))
+      }
       if (
         verification.hit_status_key === "local_ioc_hit" ||
         verification.hit_status_key === "local_whitelist_hit" ||
@@ -279,7 +288,7 @@ export function IocResultsTable({
         <div className="text-center">{t("table.verdict").toLocaleLowerCase()}</div>
         <div className="text-center">refresh</div>
       </div>
-      <div className="max-h-[520px] divide-y divide-slate-100 overflow-y-auto">
+      <div className="h-[260px] divide-y divide-slate-100 overflow-y-auto">
         {items.map((item) => {
           const selected = item.id === selectedId
           const occurredAt = item.occurred_at || ""

@@ -3874,7 +3874,7 @@
           "pending": "Pending",
           "checking": "Checking",
           "hit": "Allowed",
-          "miss": "No hit"
+          "miss": "Miss"
         },
         "verdict": {
           "ready": "Ready",
