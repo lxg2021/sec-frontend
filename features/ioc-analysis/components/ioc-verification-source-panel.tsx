@@ -3,6 +3,7 @@
 import { FileSearch, Loader2, Radar, RefreshCw } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
@@ -16,6 +17,7 @@ export function IocVerificationSourcePanel({
   previewMessage,
   extracting,
   verifying,
+  className,
   onCaseIdChange,
   onLoadPreview,
 }: {
@@ -28,13 +30,19 @@ export function IocVerificationSourcePanel({
   previewMessage: string
   extracting: boolean
   verifying: boolean
+  className?: string
   onCaseIdChange: (value: string) => void
   onLoadPreview: () => void
 }) {
   const t = useTranslations("pages.iocAnalysis.verification")
 
   return (
-    <section className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <section
+      className={cn(
+        "rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
+        className,
+      )}
+    >
       <div className="flex items-center gap-3">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
           <FileSearch className="size-6" aria-hidden="true" />

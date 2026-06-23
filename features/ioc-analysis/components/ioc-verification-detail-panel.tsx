@@ -1,14 +1,10 @@
 "use client"
 
-import { CheckCircle2, Clipboard, FileText, Loader2, RefreshCw, ShieldCheck } from "lucide-react"
+import { CheckCircle2, FileText, ShieldCheck } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import type {
-  IocCandidate,
-  IocVerificationItem,
-} from "@/features/ioc-analysis/types"
+import type { IocVerificationItem } from "@/features/ioc-analysis/types"
 import { cn } from "@/shared/lib/utils"
-import { Button } from "@/shared/ui/button"
 import { ScrollArea } from "@/shared/ui/scroll-area"
 import { Separator } from "@/shared/ui/separator"
 
@@ -23,14 +19,8 @@ import {
 
 export function IocVerificationDetailPanel({
   item,
-  onCopy,
-  onVerify,
-  verifying,
 }: {
   item: IocVerificationItem | null
-  onCopy: (value: string) => void
-  onVerify: (item: IocCandidate) => void
-  verifying: boolean
 }) {
   const t = useTranslations("pages.iocAnalysis.verification")
 
@@ -173,33 +163,6 @@ export function IocVerificationDetailPanel({
             </div>
           </div>
 
-          <div>
-            <h3 className="text-sm font-semibold text-slate-950">{t("detail.recommendedActions")}</h3>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <Button
-                type="button"
-                className="h-10 rounded-2xl bg-slate-950 text-white hover:bg-slate-800"
-                onClick={() => onCopy(item.value)}
-              >
-                <Clipboard className="size-4" />
-                {t("actions.copy")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 rounded-2xl border-slate-200"
-                disabled={verifying || item.status === "checking"}
-                onClick={() => onVerify(item)}
-              >
-                {item.status === "checking" ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="size-4" />
-                )}
-                {t("actions.recheck")}
-              </Button>
-            </div>
-          </div>
         </div>
       </ScrollArea>
     </section>

@@ -13,22 +13,111 @@ import { Button } from "@/shared/ui/button"
 
 import { VerdictBadge } from "./ioc-verification-badges"
 import {
+  confidenceText,
   isAllowlisted,
   riskText,
-  verificationSourceText,
+  verdictFromItem,
 } from "./ioc-verification-display-utils"
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
 
 const tableGridClass =
-  "grid-cols-[minmax(360px,1.8fr)_minmax(140px,0.7fr)_64px_92px_108px_148px_64px_108px_64px]"
+  "grid-cols-[minmax(420px,1.8fr)_minmax(128px,0.6fr)_64px_92px_92px_92px_148px_64px_88px_96px_108px_64px]"
 const actionButtonClass =
   "h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
 const inlineCopyButtonClass =
   "h-7 w-7 shrink-0 rounded-full text-slate-400 hover:bg-teal-50 hover:text-teal-700"
 
+type IntelTone = "hit" | "miss" | "skipped" | "pending" | "checking" | "error"
+
 function fileNameFromPath(value: string) {
   const trimmed = value.trim().replace(/[\\/]+$/, "")
   return trimmed.split(/[\\/]/).pop() || value
+}
+
+function compactLabel(value: string) {
+  return value.trim().replace(/_/g, " ").toLocaleLowerCase()
+}
+
+function statusDotClass(tone: IntelTone) {
+  switch (tone) {
+    case "hit":
+      return "bg-emerald-500"
+    case "checking":
+      return "bg-blue-500"
+    case "error":
+      return "bg-rose-500"
+    case "miss":
+      return "bg-violet-300"
+    case "skipped":
+      return "bg-slate-300"
+    default:
+      return "bg-slate-300"
+  }
+}
+
+function statusTextClass(tone: IntelTone) {
+  switch (tone) {
+    case "hit":
+      return "text-emerald-700"
+    case "checking":
+      return "text-blue-700"
+    case "error":
+      return "text-rose-700"
+    case "miss":
+      return "text-violet-700"
+    default:
+      return "text-slate-500"
+  }
+}
+
+function statusFromRaw(raw: string): { label: string; tone: IntelTone } {
+  const value = raw.trim().toLowerCase()
+  if (!value) return { label: "pending", tone: "pending" }
+  if (value.includes("checking") || value.includes("running")) {
+    return { label: "checking", tone: "checking" }
+  }
+  if (value.includes("error") || value.includes("failed")) {
+    return { label: "error", tone: "error" }
+  }
+  if (value.includes("miss") || value.includes("no_hit") || value.includes("no hit")) {
+    return { label: "no hit", tone: "miss" }
+  }
+  if (
+    value.includes("skip") ||
+    value.includes("not_required") ||
+    value.includes("not required") ||
+    value.includes("disabled")
+  ) {
+    return { label: "skipped", tone: "skipped" }
+  }
+  if (value.includes("hit") || value.includes("allow")) {
+    return { label: value.includes("allow") ? "allowed" : "hit", tone: "hit" }
+  }
+  if (value.includes("pending") || value.includes("idle") || value.includes("ready")) {
+    return { label: "pending", tone: "pending" }
+  }
+  return { label: compactLabel(raw), tone: "pending" }
+}
+
+function StatusSignal({
+  label,
+  tone,
+}: {
+  label: string
+  tone: IntelTone
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex min-w-0 items-center gap-1.5 text-xs font-medium",
+        statusTextClass(tone),
+      )}
+      title={label}
+    >
+      <span className={cn("size-2.5 shrink-0 rounded-full", statusDotClass(tone))} />
+      <span className="truncate">{compactLabel(label)}</span>
+    </span>
+  )
 }
 
 export function IocResultsTable({
@@ -57,15 +146,120 @@ export function IocResultsTable({
     onSelect(id)
   }
 
-  function allowlistText(item: IocVerificationItem) {
-    if (item.status === "checking") return t("allowlist.checking")
-    if (isAllowlisted(item)) return t("allowlist.hit")
-    if (item.status === "idle") return t("allowlist.pending")
-    return t("allowlist.miss")
+  function whitelistStatus(item: IocVerificationItem) {
+    if (item.status === "checking") {
+      return { label: t("allowlist.checking"), tone: "checking" as const }
+    }
+    if (isAllowlisted(item)) {
+      return { label: t("allowlist.hit"), tone: "hit" as const }
+    }
+    if (item.status === "idle") {
+      return { label: t("allowlist.pending"), tone: "pending" as const }
+    }
+    return { label: t("allowlist.miss"), tone: "miss" as const }
+  }
+
+  function localIntelStatus(item: IocVerificationItem) {
+    if (item.status === "checking") return { label: t("status.checking"), tone: "checking" as const }
+    if (item.error) return { label: t("status.error"), tone: "error" as const }
+
+    const verification = item.verification
+    if (verification) {
+      if (
+        verification.hit_status_key === "local_ioc_hit" ||
+        verification.final_status === "local_hit" ||
+        (verification.hit && verification.hit_scope === "local" && verification.hit_kind === "ioc")
+      ) {
+        return { label: t("status.hit"), tone: "hit" as const }
+      }
+      if (
+        verification.hit_status_key === "local_whitelist_hit" ||
+        verification.hit_kind === "whitelist"
+      ) {
+        return { label: "skipped", tone: "skipped" as const }
+      }
+      if (verification.hit_status_key === "error" || verification.final_status === "local_error") {
+        return { label: t("status.error"), tone: "error" as const }
+      }
+      if (verification.local_status) return statusFromRaw(verification.local_status)
+      if (verification.local_decision) return statusFromRaw(verification.local_decision)
+      if (verification.hit_status_key === "no_hit" || verification.final_status === "local_miss") {
+        return { label: t("allowlist.miss"), tone: "miss" as const }
+      }
+    }
+
+    switch (item.result?.hit_source) {
+      case "local_hit":
+      case "cache_hit":
+        return { label: t("status.hit"), tone: "hit" as const }
+      case "remote_hit":
+      case "remote_miss":
+      case "miss_cache_hit":
+        return { label: t("allowlist.miss"), tone: "miss" as const }
+      case "remote_error_suppressed":
+        return { label: t("status.error"), tone: "error" as const }
+      default:
+        break
+    }
+
+    if (item.status === "idle") return { label: t("allowlist.pending"), tone: "pending" as const }
+    if (item.status === "miss") return { label: t("allowlist.miss"), tone: "miss" as const }
+    return { label: "-", tone: "pending" as const }
+  }
+
+  function onlineIntelStatus(item: IocVerificationItem) {
+    if (item.status === "checking") return { label: t("status.checking"), tone: "checking" as const }
+    if (item.error) return { label: t("status.error"), tone: "error" as const }
+    if (isAllowlisted(item)) return { label: "skipped", tone: "skipped" as const }
+
+    const verification = item.verification
+    if (verification) {
+      if (
+        verification.hit_status_key === "remote_ioc_hit" ||
+        verification.final_status === "remote_hit" ||
+        (verification.hit && verification.hit_scope === "remote" && verification.hit_kind === "ioc")
+      ) {
+        return { label: t("status.hit"), tone: "hit" as const }
+      }
+      if (verification.final_status === "remote_error") {
+        return { label: t("status.error"), tone: "error" as const }
+      }
+      if (verification.remote_status) return statusFromRaw(verification.remote_status)
+      if (
+        verification.hit_status_key === "local_ioc_hit" ||
+        verification.hit_status_key === "local_whitelist_hit" ||
+        verification.final_status === "local_hit" ||
+        verification.final_status === "allowlisted"
+      ) {
+        return { label: "skipped", tone: "skipped" as const }
+      }
+      if (verification.hit_status_key === "no_hit" || verification.final_status === "remote_miss") {
+        return { label: t("allowlist.miss"), tone: "miss" as const }
+      }
+    }
+
+    switch (item.result?.hit_source) {
+      case "remote_hit":
+        return { label: t("status.hit"), tone: "hit" as const }
+      case "remote_miss":
+      case "miss_cache_hit":
+        return { label: t("allowlist.miss"), tone: "miss" as const }
+      case "remote_error_suppressed":
+        return { label: t("status.error"), tone: "error" as const }
+      case "local_hit":
+      case "cache_hit":
+        return { label: "skipped", tone: "skipped" as const }
+      default:
+        break
+    }
+
+    if (item.status === "idle") return { label: t("allowlist.pending"), tone: "pending" as const }
+    if (item.status === "miss") return { label: t("allowlist.miss"), tone: "miss" as const }
+    return { label: "-", tone: "pending" as const }
   }
 
   return (
-    <div className="min-w-[1220px] overflow-hidden rounded-2xl border border-slate-100">
+    <div className="min-w-[1660px] overflow-hidden rounded-2xl border border-slate-100">
       <div
         className={cn(
           "grid items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400",
@@ -76,19 +270,28 @@ export function IocResultsTable({
         <div>filename</div>
         <div>{t("fields.type").toLocaleLowerCase()}</div>
         <div>{t("table.allowlist").toLocaleLowerCase()}</div>
-        <div>{t("table.verification").toLocaleLowerCase()}</div>
+        <div>{t("pipeline.steps.localIntel").toLocaleLowerCase()}</div>
+        <div>{t("pipeline.steps.onlineIntel").toLocaleLowerCase()}</div>
         <div>{t("table.time").toLocaleLowerCase()}</div>
         <div className="text-center">{t("fields.risk").toLocaleLowerCase()}</div>
+        <div className="text-center">{t("fields.confidence").toLocaleLowerCase()}</div>
+        <div>{t("table.action").toLocaleLowerCase()}</div>
         <div className="text-center">{t("table.verdict").toLocaleLowerCase()}</div>
         <div className="text-center">refresh</div>
       </div>
-      <div className="divide-y divide-slate-100">
+      <div className="max-h-[520px] divide-y divide-slate-100 overflow-y-auto">
         {items.map((item) => {
           const selected = item.id === selectedId
           const occurredAt = item.occurred_at || ""
-          const allowlistLabel = allowlistText(item)
-          const verificationLabel = verificationSourceText(item, t)
+          const whitelist = whitelistStatus(item)
+          const localIntel = localIntelStatus(item)
+          const onlineIntel = onlineIntelStatus(item)
           const riskLabel = riskText(item)
+          const confidenceLabel = confidenceText(item)
+          const actionLabel =
+            verdictFromItem(item) === "malicious"
+              ? t("detail.investigate")
+              : t("detail.noQuery")
           const fileLabel = item.file_name || (item.file_path ? fileNameFromPath(item.file_path) : "")
           const fileTitle = item.file_path || item.file_name || undefined
 
@@ -100,7 +303,7 @@ export function IocResultsTable({
               onClick={() => onSelect(item.id)}
               onKeyDown={(event) => handleRowKeyDown(event, item.id)}
               className={cn(
-                "group grid w-full cursor-pointer items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
+                "group grid h-[52px] w-full cursor-pointer items-center gap-4 px-4 py-2 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
                 tableGridClass,
                 selected && "relative bg-blue-50 hover:bg-blue-50",
               )}
@@ -147,16 +350,14 @@ export function IocResultsTable({
               >
                 {item.type}
               </div>
-              <div
-                className="truncate text-sm font-medium text-slate-600"
-                title={allowlistLabel}
-              >
-                {allowlistLabel.toLocaleLowerCase()}
+              <div className="min-w-0">
+                <StatusSignal label={whitelist.label} tone={whitelist.tone} />
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm text-slate-700">
-                  {verificationLabel.toLocaleLowerCase()}
-                </div>
+                <StatusSignal label={localIntel.label} tone={localIntel.tone} />
+              </div>
+              <div className="min-w-0">
+                <StatusSignal label={onlineIntel.label} tone={onlineIntel.tone} />
               </div>
               <div
                 className="truncate font-mono text-xs text-slate-500"
@@ -169,6 +370,18 @@ export function IocResultsTable({
                 title={riskLabel}
               >
                 {riskLabel.toLocaleLowerCase()}
+              </div>
+              <div
+                className="truncate text-center font-mono text-xs font-semibold text-slate-500"
+                title={confidenceLabel}
+              >
+                {confidenceLabel.toLocaleLowerCase()}
+              </div>
+              <div
+                className="truncate text-sm font-semibold text-slate-700"
+                title={actionLabel}
+              >
+                {actionLabel.toLocaleLowerCase()}
               </div>
               <div className="flex justify-center">
                 <VerdictBadge item={item} lowercase />

@@ -3887,7 +3887,7 @@
           "error": "异常"
         },
         "detail": {
-          "title": "IOC 详情",
+          "title": "IOC 摘要",
           "description": "选中行的完整判断路径",
           "noSelection": "选择一个 IOC 后查看验证路径",
           "decision": "判断结论",

@@ -3885,7 +3885,7 @@
           "error": "Issue"
         },
         "detail": {
-          "title": "IOC detail",
+          "title": "IOC Summary",
           "description": "Full decision path for the selected row.",
           "noSelection": "Select an IOC to view its verification path.",
           "decision": "Decision",

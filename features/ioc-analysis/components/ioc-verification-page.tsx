@@ -20,7 +20,6 @@ import {
   observationSources,
   summaryCounts,
 } from "@/features/ioc-analysis/components/ioc-verification-display-utils"
-import { IocVerificationDetailPanel } from "@/features/ioc-analysis/components/ioc-verification-detail-panel"
 import { IocVerificationHeader } from "@/features/ioc-analysis/components/ioc-verification-header"
 import { IocVerificationManualPanel } from "@/features/ioc-analysis/components/ioc-verification-manual-panel"
 import { IocVerificationResultsPanel } from "@/features/ioc-analysis/components/ioc-verification-results-panel"
@@ -399,7 +398,7 @@ export function IocVerificationPage() {
     })
   }, [actionOnly, items, searchText, statusFilter, typeFilter])
   const selectedItem =
-    items.find((item) => item.id === selectedItemId) ??
+    filteredItems.find((item) => item.id === selectedItemId) ??
     filteredItems[0] ??
     items[0] ??
     null
@@ -849,22 +848,23 @@ export function IocVerificationPage() {
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4">
         <IocVerificationHeader counts={counts} onBack={handleBack} />
 
-        <section className="grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(340px,400px)_minmax(0,1fr)] 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(360px,420px)_minmax(520px,1fr)_minmax(320px,400px)] 2xl:items-stretch">
-          <div className="flex flex-col gap-4 2xl:min-h-0">
-            <IocVerificationSourcePanel
-              caseId={caseId}
-              workflowId={routeParams.workflowId}
-              tenantId={tenantId}
-              taskStatus={taskStatus}
-              caseTaskId={caseTaskId}
-              extractedCount={items.filter((item) => item.origin === "case").length}
-              previewMessage={casePreviewMessage}
-              extracting={extracting}
-              verifying={verifying}
-              onCaseIdChange={setCaseId}
-              onLoadPreview={() => void loadCaseIocs()}
-            />
+        <section className="grid w-full min-w-0 items-start gap-4 xl:grid-cols-[minmax(340px,400px)_minmax(0,1fr)] xl:items-stretch 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(360px,420px)_minmax(0,1fr)]">
+          <IocVerificationSourcePanel
+            className="xl:col-start-1 xl:row-start-1"
+            caseId={caseId}
+            workflowId={routeParams.workflowId}
+            tenantId={tenantId}
+            taskStatus={taskStatus}
+            caseTaskId={caseTaskId}
+            extractedCount={items.filter((item) => item.origin === "case").length}
+            previewMessage={casePreviewMessage}
+            extracting={extracting}
+            verifying={verifying}
+            onCaseIdChange={setCaseId}
+            onLoadPreview={() => void loadCaseIocs()}
+          />
 
+          <div className="min-w-0 xl:col-start-1 xl:row-start-2">
             <IocVerificationManualPanel
               manualType={manualType}
               manualInput={manualInput}
@@ -877,6 +877,7 @@ export function IocVerificationPage() {
           </div>
 
           <IocVerificationResultsPanel
+            className="xl:col-start-2 xl:row-start-1"
             filteredItems={filteredItems}
             selectedId={selectedItem?.id ?? ""}
             verifying={verifying}
@@ -895,15 +896,6 @@ export function IocVerificationPage() {
             onSelect={setSelectedItemId}
             onVerifyOne={(candidate) => void verifyCandidates([candidate])}
           />
-
-          <div className="min-w-0 xl:col-span-2 2xl:col-span-1 2xl:flex 2xl:min-h-0">
-            <IocVerificationDetailPanel
-              item={selectedItem}
-              verifying={verifying}
-              onCopy={copyIoc}
-              onVerify={(candidate) => void verifyCandidates([candidate])}
-            />
-          </div>
         </section>
       </div>
     </main>
