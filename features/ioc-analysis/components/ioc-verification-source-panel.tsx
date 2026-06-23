@@ -39,7 +39,7 @@ export function IocVerificationSourcePanel({
   return (
     <section
       className={cn(
-        "rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
+        "flex flex-col rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
         className,
       )}
     >
@@ -57,7 +57,7 @@ export function IocVerificationSourcePanel({
         </div>
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-5 flex flex-1 flex-col gap-4">
         <label className="block text-xs font-medium text-slate-500">
           {t("fields.caseId")}
           <Input
@@ -92,7 +92,13 @@ export function IocVerificationSourcePanel({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-2">
+        {caseTaskId ? (
+          <div className="truncate font-mono text-xs text-slate-400">
+            {t("fields.verifyTask")}: {caseTaskId}
+          </div>
+        ) : null}
+
+        <div className="mt-auto flex flex-wrap justify-center gap-2 pt-4">
           <Button
             type="button"
             className="h-10 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
@@ -117,11 +123,6 @@ export function IocVerificationSourcePanel({
             {t("actions.refreshPreview")}
           </Button>
         </div>
-        {caseTaskId ? (
-          <div className="truncate font-mono text-xs text-slate-400">
-            {t("fields.verifyTask")}: {caseTaskId}
-          </div>
-        ) : null}
       </div>
     </section>
   )
