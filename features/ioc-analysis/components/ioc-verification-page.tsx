@@ -337,6 +337,8 @@ export function IocVerificationPage() {
       return (
         item.value.toLowerCase().includes(keyword) ||
         item.source.toLowerCase().includes(keyword) ||
+        (item.file_name || "").toLowerCase().includes(keyword) ||
+        (item.file_path || "").toLowerCase().includes(keyword) ||
         item.evidence_refs.some((ref) => ref.toLowerCase().includes(keyword)) ||
         observationSources(item).some((source) => source.toLowerCase().includes(keyword))
       )

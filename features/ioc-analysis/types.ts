@@ -95,6 +95,8 @@ export interface IocCandidate {
   normalized_value?: string
   source_ref_id?: string
   source_field?: string
+  file_name?: string
+  file_path?: string
   evidence_id?: string
   event_name?: string
   source_unique_id?: string

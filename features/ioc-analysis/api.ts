@@ -359,6 +359,8 @@ function normalizeCaseCandidate(raw: unknown): IocVerificationItem | null {
   const evidenceId = stringValue(item.evidence_id)
   const sourceRefId = stringValue(item.source_ref_id)
   const sourceField = stringValue(item.source_field)
+  const fileName = stringValue(item.file_name)
+  const filePath = stringValue(item.file_path)
   const eventName = stringValue(item.event_name)
   const evidenceRefs = [evidenceId, sourceRefId, sourceField, eventName].filter(Boolean)
 
@@ -374,6 +376,8 @@ function normalizeCaseCandidate(raw: unknown): IocVerificationItem | null {
     source,
     source_ref_id: sourceRefId,
     source_field: sourceField,
+    file_name: fileName,
+    file_path: filePath,
     evidence_id: evidenceId,
     event_name: eventName,
     source_unique_id: stringValue(item.source_unique_id),

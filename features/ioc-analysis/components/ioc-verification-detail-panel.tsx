@@ -1,6 +1,6 @@
 "use client"
 
-import { CheckCircle2, Clipboard, Loader2, RefreshCw, ShieldCheck } from "lucide-react"
+import { CheckCircle2, Clipboard, FileText, Loader2, RefreshCw, ShieldCheck } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type {
@@ -79,6 +79,9 @@ export function IocVerificationDetailPanel({
   const remoteIntelStatus =
     verification?.remote_status ||
     (item.result?.hit_source === "remote_hit" ? "hit" : "skipped")
+  const fileLabel = item.file_name || item.file_path || ""
+  const fileTitle = item.file_path || item.file_name || undefined
+  const filePathLine = item.file_path && item.file_path !== fileLabel ? item.file_path : ""
 
   return (
     <section className="flex h-full w-full flex-col rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
@@ -101,6 +104,21 @@ export function IocVerificationDetailPanel({
           <TypeBadge type={item.type} />
           <span className="text-xs text-slate-400">{item.result?.entry?.last_seen || ""}</span>
         </div>
+        {fileLabel ? (
+          <div
+            className="mt-3 flex min-w-0 items-start gap-2 border-t border-blue-100 pt-3 text-xs text-slate-600"
+            title={fileTitle}
+          >
+            <FileText className="mt-0.5 size-4 shrink-0 text-blue-500" aria-hidden="true" />
+            <div className="min-w-0">
+              <div className="font-medium text-slate-700">{t("detail.sourceFile")}</div>
+              <div className="mt-0.5 truncate font-mono text-slate-700">{fileLabel}</div>
+              {filePathLine ? (
+                <div className="mt-0.5 truncate font-mono text-slate-500">{filePathLine}</div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <ScrollArea className="mt-5 h-[560px] pr-3 2xl:h-auto 2xl:min-h-0 2xl:flex-1">

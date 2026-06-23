@@ -3897,6 +3897,7 @@
           "recommendedActions": "建议操作",
           "workflow": "工作流",
           "extracted": "提取结果",
+          "sourceFile": "源文件",
           "extractedCount": "{count} 个 IOC",
           "caseSource": "case",
           "manualSource": "manual",

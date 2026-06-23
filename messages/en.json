@@ -3895,6 +3895,7 @@
           "recommendedActions": "Recommended Actions",
           "workflow": "Workflow",
           "extracted": "Extracted",
+          "sourceFile": "Source file",
           "extractedCount": "{count} IOCs",
           "caseSource": "case",
           "manualSource": "manual",
