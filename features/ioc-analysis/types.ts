@@ -160,20 +160,6 @@ export interface AttackCaseIOCCandidateSummary {
   runtime_hit_count: number
 }
 
-export interface AttackCaseIOCAllowlistHit {
-  action: string
-  allow_level: string
-  entry_key: string
-  ioc_type: string
-  match_type: string
-  normalized_value: string
-  reason: string
-  source_name: string
-  source_version: string
-  tenant_id: string
-  updated_at: string
-}
-
 export interface AttackCaseIOCVerificationItem {
   verification_id: string
   candidate_id: string
@@ -183,11 +169,7 @@ export interface AttackCaseIOCVerificationItem {
   whitelist_status: string
   local_status: string
   local_hit_source: string
-  local_ioc_storage: string
-  local_ioc_entry_id: string
   remote_status: string
-  remote_provider: string
-  remote_hit_source: string
   final_status: string
   final_verdict: string
   risk_score: number
@@ -196,9 +178,16 @@ export interface AttackCaseIOCVerificationItem {
   error_message: string
   created_at: string
   updated_at: string
-  raw_local_json: string
-  raw_remote_json: string
-  allowlist_hit: AttackCaseIOCAllowlistHit | null
+  hit: boolean
+  hit_scope: string
+  hit_kind: string
+  hit_category: string
+  hit_status_key: string
+  hit_verdict: string
+  hit_source_database: string
+  hit_source_table: string
+  hit_source_record_id: string
+  local_eval_raw_json: string
 }
 
 export interface AttackCaseIOCCandidateListData {
@@ -210,7 +199,5 @@ export interface AttackCaseIOCCandidateListData {
 
 export interface AttackCaseIOCVerificationDetail {
   item: AttackCaseIOCVerificationItem | null
-  raw_local_json: string
-  raw_remote_json: string
-  allowlist_hit: AttackCaseIOCAllowlistHit | null
+  local_eval_raw_json: string
 }

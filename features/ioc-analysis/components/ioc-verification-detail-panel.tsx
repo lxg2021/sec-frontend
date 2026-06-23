@@ -54,11 +54,7 @@ export function IocVerificationDetailPanel({
   const verdict = verdictFromItem(item)
   const sources = observationSources(item)
   const entry = item.result?.entry
-  const allowlistHit = item.verification?.allowlist_hit
-  const allowlistSource = [
-    allowlistHit?.source_name,
-    allowlistHit?.source_version,
-  ].filter(Boolean).join(" ")
+  const verification = item.verification
   const allowlistLabel =
     item.status === "checking"
       ? t("allowlist.checking")
@@ -67,21 +63,21 @@ export function IocVerificationDetailPanel({
       : item.status === "idle"
         ? t("allowlist.pending")
         : t("allowlist.miss")
-  const allowlistAction =
-    allowlistHit?.action ||
-    (isAllowlisted(item) ? item.verification?.whitelist_status || allowlistLabel : allowlistLabel)
-  const allowlistLevel = allowlistHit?.allow_level || "-"
-  const allowlistReason =
-    allowlistHit?.reason ||
-    item.verification?.local_hit_source ||
-    t("detail.allowlistNotConnected")
+  const hitSource = [
+    verification?.hit_source_database,
+    verification?.hit_source_table,
+  ].filter(Boolean).join(".")
+  const hitScope = verification?.hit_scope || "-"
+  const hitKind = verification?.hit_kind || "-"
+  const hitCategory = verification?.hit_category || "-"
+  const hitRecordId = verification?.hit_source_record_id || "-"
   const localIntelStatus =
-    item.verification?.local_status ||
-    item.verification?.local_decision ||
+    verification?.local_status ||
+    verification?.local_decision ||
     item.result?.hit_source ||
     "pending"
   const remoteIntelStatus =
-    item.verification?.remote_status ||
+    verification?.remote_status ||
     (item.result?.hit_source === "remote_hit" ? "hit" : "skipped")
 
   return (
@@ -175,17 +171,19 @@ export function IocVerificationDetailPanel({
           <Separator className="bg-slate-200" />
 
           <div>
-            <h3 className="text-sm font-semibold text-slate-950">{t("detail.allowlistEvidence")}</h3>
+            <h3 className="text-sm font-semibold text-slate-950">Hit Source</h3>
             <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
               <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-y-2">
-                <span className="text-slate-400">Action</span>
-                <span className="font-mono text-slate-700">{allowlistAction}</span>
-                <span className="text-slate-400">Level</span>
-                <span className="font-mono text-slate-700">{allowlistLevel}</span>
+                <span className="text-slate-400">Scope</span>
+                <span className="font-mono text-slate-700">{hitScope}</span>
+                <span className="text-slate-400">Kind</span>
+                <span className="font-mono text-slate-700">{hitKind}</span>
+                <span className="text-slate-400">Category</span>
+                <span className="font-mono text-slate-700">{hitCategory}</span>
                 <span className="text-slate-400">Source</span>
-                <span className="text-slate-700">{allowlistSource || "-"}</span>
-                <span className="text-slate-400">Reason</span>
-                <span className="text-slate-700">{allowlistReason}</span>
+                <span className="break-all font-mono text-slate-700">{hitSource || "-"}</span>
+                <span className="text-slate-400">Record</span>
+                <span className="break-all font-mono text-slate-700">{hitRecordId}</span>
               </div>
             </div>
           </div>
@@ -212,8 +210,8 @@ export function IocVerificationDetailPanel({
                 <span className="text-right text-slate-700">
                   {sources.length
                     ? sources.join(", ")
-                    : item.verification?.local_hit_source ||
-                      item.verification?.remote_hit_source ||
+                    : hitSource ||
+                      item.verification?.local_hit_source ||
                       "-"}
                 </span>
               </div>

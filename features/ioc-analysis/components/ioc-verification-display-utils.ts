@@ -50,18 +50,25 @@ export function typeClass(type: IocVerificationType) {
 }
 
 export function isAllowlisted(item: IocVerificationItem) {
+  const verification = item.verification
   return (
     item.status === "allowlisted" ||
-    item.verification?.final_status === "allowlisted" ||
-    item.verification?.whitelist_status === "hit"
+    verification?.hit_status_key === "local_whitelist_hit" ||
+    verification?.hit_kind === "whitelist" ||
+    verification?.hit_verdict === "allow" ||
+    verification?.final_status === "allowlisted" ||
+    verification?.whitelist_status === "hit"
   )
 }
 
 export function isRemoteHit(item: IocVerificationItem) {
+  const verification = item.verification
   return (
     item.result?.hit_source === "remote_hit" ||
-    item.verification?.final_status === "remote_hit" ||
-    item.verification?.remote_status === "hit"
+    verification?.hit_status_key === "remote_ioc_hit" ||
+    (verification?.hit_scope === "remote" && verification?.hit === true) ||
+    verification?.final_status === "remote_hit" ||
+    verification?.remote_status === "hit"
   )
 }
 
@@ -78,12 +85,28 @@ export function summaryCounts(items: IocVerificationItem[]) {
 }
 
 export function verdictFromItem(item: IocVerificationItem): IocVerdict {
-  const finalStatus = item.verification?.final_status
-  const finalVerdict = item.verification?.final_verdict
+  const verification = item.verification
+  const finalStatus = verification?.final_status
+  const finalVerdict = verification?.final_verdict
+  const hitStatusKey = verification?.hit_status_key
+  const hitKind = verification?.hit_kind
+  const hitVerdict = verification?.hit_verdict
 
   if (item.status === "checking") return "checking"
-  if (finalStatus === "allowlisted" || finalVerdict === "allow") return "allow"
   if (
+    hitStatusKey === "local_whitelist_hit" ||
+    hitKind === "whitelist" ||
+    hitVerdict === "allow" ||
+    finalStatus === "allowlisted" ||
+    finalVerdict === "allow"
+  ) {
+    return "allow"
+  }
+  if (
+    hitStatusKey === "local_ioc_hit" ||
+    hitStatusKey === "remote_ioc_hit" ||
+    (verification?.hit === true && hitKind === "ioc") ||
+    hitVerdict === "malicious" ||
     finalStatus === "local_hit" ||
     finalStatus === "remote_hit" ||
     finalVerdict === "malicious" ||
@@ -92,6 +115,8 @@ export function verdictFromItem(item: IocVerificationItem): IocVerdict {
     return "malicious"
   }
   if (
+    hitStatusKey === "error" ||
+    hitVerdict === "error" ||
     finalStatus === "local_error" ||
     finalStatus === "remote_error" ||
     finalVerdict === "error" ||
@@ -101,6 +126,7 @@ export function verdictFromItem(item: IocVerificationItem): IocVerdict {
     return "error"
   }
   if (
+    hitStatusKey === "no_hit" ||
     finalStatus === "local_miss" ||
     finalStatus === "remote_miss" ||
     finalVerdict === "unknown"
@@ -143,6 +169,19 @@ export function verificationSourceText(
   if (item.error) return item.error
   if (item.result) return t(sourceLabelKey(item.result.hit_source))
   if (item.verification) {
+    const verification = item.verification
+    if (verification.hit_status_key === "local_whitelist_hit" || verification.hit_kind === "whitelist") {
+      return t("allowlist.hit")
+    }
+    if (verification.hit_status_key === "local_ioc_hit" || (verification.hit && verification.hit_scope === "local")) {
+      return t("source.localHit")
+    }
+    if (verification.hit_status_key === "remote_ioc_hit" || (verification.hit && verification.hit_scope === "remote")) {
+      return t("source.remoteHit")
+    }
+    if (verification.hit_status_key === "no_hit") return t("source.localMiss")
+    if (verification.hit_status_key === "error") return t("source.localError")
+
     switch (item.verification.final_status) {
       case "allowlisted":
         return t("allowlist.hit")

@@ -3912,16 +3912,24 @@
         },
         "toasts": {
           "caseRequired": "请先输入 CaseID",
+          "caseRequiredDescription": "先加载案件，再执行 IOC 提取或验证。",
           "noIocs": "没有找到可验证的 IOC",
+          "noIocsDescription": "当前输入中没有支持的 MD5、SHA1、SHA256、URL、IP 或域名指标。",
           "manualInvalid": "未解析到有效 IOC",
+          "manualInvalidDescription": "每行输入一个 IOC，或使用 md5:、url:、ip:、domain: 等支持的前缀。",
           "extracted": "已提取 {count} 个可验证 IOC",
           "previewLoaded": "已加载 {count} 个待预检 IOC",
+          "previewLoadedDescription": "{count} 个 active IOC 候选项已准备进行本地预检。",
           "verifyComplete": "IOC 验证完成",
-          "copied": "IOC 已复制"
+          "verifyCompleteDescription": "已验证 {count} 个 IOC 候选项，请在表格中查看最新命中范围和命中类别。",
+          "copied": "IOC 已复制",
+          "copiedDescription": "选中的 IOC 值已复制到剪贴板。"
         },
         "errors": {
           "extractFailed": "提取案件 IOC 失败",
+          "extractFailedDescription": "检查 CaseID 和后台提取任务状态后重试。",
           "verifyFailed": "IOC 验证失败",
+          "verifyFailedDescription": "验证任务未完成，检查后台任务状态后重试。",
           "analysisTimeout": "AI 分析等待超时，请稍后重试",
           "analysisFailed": "AI 分析失败",
           "analysisInvalid": "AI 分析结果未通过校验",

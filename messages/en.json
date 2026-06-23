@@ -3910,16 +3910,24 @@
         },
         "toasts": {
           "caseRequired": "Enter CaseID first.",
+          "caseRequiredDescription": "Load a case first, then run IOC extraction or verification.",
           "noIocs": "No verifiable IOC was found.",
+          "noIocsDescription": "The current input does not contain supported MD5, SHA1, SHA256, URL, IP, or domain indicators.",
           "manualInvalid": "No valid IOC was parsed.",
+          "manualInvalidDescription": "Enter one IOC per line, or use a supported prefix such as md5:, url:, ip:, or domain:.",
           "extracted": "Extracted {count} verifiable IOCs.",
           "previewLoaded": "Loaded {count} IOC candidates for precheck.",
+          "previewLoadedDescription": "{count} active IOC candidates are ready for local precheck.",
           "verifyComplete": "IOC verification complete.",
-          "copied": "IOC copied."
+          "verifyCompleteDescription": "Verified {count} IOC candidates. Review the latest hit scope and category in the table.",
+          "copied": "IOC copied.",
+          "copiedDescription": "The selected IOC value has been copied to the clipboard."
         },
         "errors": {
           "extractFailed": "Failed to extract case IOCs.",
+          "extractFailedDescription": "Check the CaseID and backend extraction task status, then try again.",
           "verifyFailed": "IOC verification failed.",
+          "verifyFailedDescription": "The verification task did not complete. Check the backend task status and retry.",
           "analysisTimeout": "AI analysis timed out. Try again later.",
           "analysisFailed": "AI analysis failed.",
           "analysisInvalid": "AI analysis result did not pass validation.",

@@ -380,8 +380,7 @@ export function IocVerificationPage() {
       !candidateId ||
       !normalizedCaseId ||
       !selectedItem.verification ||
-      !isAllowlisted(selectedItem) ||
-      selectedItem.verification.allowlist_hit
+      selectedItem.verification.local_eval_raw_json
     ) {
       return
     }
@@ -411,18 +410,10 @@ export function IocVerificationPage() {
               verification: {
                 ...baseVerification,
                 ...(detail.item || {}),
-                raw_local_json:
-                  detail.raw_local_json ||
-                  detail.item?.raw_local_json ||
-                  baseVerification.raw_local_json,
-                raw_remote_json:
-                  detail.raw_remote_json ||
-                  detail.item?.raw_remote_json ||
-                  baseVerification.raw_remote_json,
-                allowlist_hit:
-                  detail.allowlist_hit ||
-                  detail.item?.allowlist_hit ||
-                  baseVerification.allowlist_hit,
+                local_eval_raw_json:
+                  detail.local_eval_raw_json ||
+                  detail.item?.local_eval_raw_json ||
+                  baseVerification.local_eval_raw_json,
               },
             }
           }),
@@ -439,7 +430,7 @@ export function IocVerificationPage() {
     selectedItem?.case_id,
     selectedItem?.origin,
     selectedItem?.verification,
-    selectedItem?.verification?.allowlist_hit,
+    selectedItem?.verification?.local_eval_raw_json,
     selectedItem?.verification?.verification_id,
     selectedItem?.verification?.whitelist_status,
     tenantId,
@@ -449,7 +440,11 @@ export function IocVerificationPage() {
     async () => {
       const normalizedCaseId = caseId.trim()
       if (!normalizedCaseId) {
-        toast({ title: t("toasts.caseRequired"), variant: "destructive" })
+        toast({
+          title: t("toasts.caseRequired"),
+          description: t("toasts.caseRequiredDescription"),
+          variant: "warning",
+        })
         return
       }
 
@@ -478,18 +473,29 @@ export function IocVerificationPage() {
         )
 
         if (preview.items.length) {
-          toast({ title: t("toasts.previewLoaded", { count: preview.items.length }) })
+          toast({
+            title: t("toasts.previewLoaded", { count: preview.items.length }),
+            description: t("toasts.previewLoadedDescription", {
+              count: preview.items.length,
+            }),
+            variant: "success",
+          })
         } else if (preview.extract_task_exists) {
-          toast({ title: t("toasts.noIocs") })
+          toast({
+            title: t("toasts.noIocs"),
+            description: t("toasts.noIocsDescription"),
+            variant: "info",
+          })
         }
       } catch (error) {
         if (!mountedRef.current || extractRunIdRef.current !== runId) return
 
         toast({
-          title:
+          title: t("errors.extractFailed"),
+          description:
             error instanceof Error && error.message
               ? error.message
-              : t("errors.extractFailed"),
+              : t("errors.extractFailedDescription"),
           variant: "destructive",
         })
       } finally {
@@ -508,7 +514,11 @@ export function IocVerificationPage() {
       )
 
       if (!supportedCandidates.length) {
-        toast({ title: t("toasts.noIocs") })
+        toast({
+          title: t("toasts.noIocs"),
+          description: t("toasts.noIocsDescription"),
+          variant: "info",
+        })
         return
       }
 
@@ -669,7 +679,13 @@ export function IocVerificationPage() {
           }
         }
 
-        toast({ title: t("toasts.verifyComplete") })
+        toast({
+          title: t("toasts.verifyComplete"),
+          description: t("toasts.verifyCompleteDescription", {
+            count: supportedCandidates.length,
+          }),
+          variant: "success",
+        })
       } catch (error) {
         if (!mountedRef.current || verifyRunIdRef.current !== runId) return
 
@@ -691,10 +707,11 @@ export function IocVerificationPage() {
           ),
         )
         toast({
-          title:
+          title: t("errors.verifyFailed"),
+          description:
             error instanceof Error && error.message
               ? error.message
-              : t("errors.verifyFailed"),
+              : t("errors.verifyFailedDescription"),
           variant: "destructive",
         })
       } finally {
@@ -741,7 +758,11 @@ export function IocVerificationPage() {
     const candidates = parseManualCandidates(manualInput, manualType)
 
     if (!candidates.length) {
-      toast({ title: t("toasts.manualInvalid"), variant: "destructive" })
+      toast({
+        title: t("toasts.manualInvalid"),
+        description: t("toasts.manualInvalidDescription"),
+        variant: "warning",
+      })
       return
     }
 
@@ -760,7 +781,11 @@ export function IocVerificationPage() {
 
   function copyIoc(value: string) {
     void navigator.clipboard.writeText(value)
-    toast({ title: t("toasts.copied") })
+    toast({
+      title: t("toasts.copied"),
+      description: t("toasts.copiedDescription"),
+      variant: "success",
+    })
   }
 
   return (

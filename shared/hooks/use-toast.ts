@@ -1,20 +1,28 @@
 "use client"
 
 import * as React from "react"
-import { toast as sonnerToast } from "sonner"
+import { toast as sonnerToast, type ExternalToast } from "sonner"
 
-import type {
-  ToastActionElement,
-  ToastProps,
-} from "@/shared/ui/toast"
+import type { ToastProps } from "@/shared/ui/toast"
 
-type ToasterToast = Partial<ToastProps> & {
-  id?: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-  variant?: "default" | "destructive"
-}
+type ToastVariant =
+  | "default"
+  | "success"
+  | "info"
+  | "warning"
+  | "destructive"
+  | "loading"
+
+type ToasterToast = Omit<
+  Partial<ToastProps>,
+  "id" | "title" | "description" | "action" | "variant"
+> &
+  Omit<ExternalToast, "id" | "description"> & {
+    id?: string | number
+    title?: React.ReactNode
+    description?: React.ReactNode
+    variant?: ToastVariant
+  }
 
 type Toast = Omit<ToasterToast, "id">
 
@@ -28,21 +36,30 @@ function showToast({
   id,
   title,
   description,
-  variant,
+  variant = "default",
+  ...options
 }: ToasterToast) {
   const { message, details } = getMessageParts(title, description)
-
-  if (variant === "destructive") {
-    return sonnerToast.error(message, {
-      id,
-      description: details,
-    })
-  }
-
-  return sonnerToast(message, {
+  const toastOptions: ExternalToast = {
+    ...options,
     id,
     description: details,
-  })
+  }
+
+  switch (variant) {
+    case "success":
+      return sonnerToast.success(message, toastOptions)
+    case "info":
+      return sonnerToast.info(message, toastOptions)
+    case "warning":
+      return sonnerToast.warning(message, toastOptions)
+    case "destructive":
+      return sonnerToast.error(message, toastOptions)
+    case "loading":
+      return sonnerToast.loading(message, toastOptions)
+    default:
+      return sonnerToast(message, toastOptions)
+  }
 }
 
 function toast(props: Toast) {
@@ -58,9 +75,9 @@ function toast(props: Toast) {
 function useToast() {
   return {
     toast,
-    dismiss: (toastId?: string) => sonnerToast.dismiss(toastId),
+    dismiss: (toastId?: string | number) => sonnerToast.dismiss(toastId),
     toasts: [] as ToasterToast[],
   }
 }
 
-export { useToast, toast }
+export { useToast, toast, type ToastVariant }

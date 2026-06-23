@@ -4,7 +4,6 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 
 import type {
-  AttackCaseIOCAllowlistHit,
   AttackCaseIOCCandidateListData,
   AttackCaseIOCCandidateSummary,
   AttackCaseIOCExtractTask,
@@ -93,38 +92,6 @@ function stringArray(value: unknown) {
   return Array.isArray(value)
     ? value.map((item) => stringValue(item)).filter(Boolean)
     : []
-}
-
-function parseJsonObject(value: string): BackendObject {
-  if (!value) return {}
-  try {
-    return objectValue(JSON.parse(value))
-  } catch {
-    return {}
-  }
-}
-
-function normalizeAllowlistHit(raw: unknown): AttackCaseIOCAllowlistHit | null {
-  const item = objectValue(raw)
-  if (!Object.keys(item).length) return null
-
-  return {
-    action: stringValue(item.action),
-    allow_level: stringValue(item.allow_level),
-    entry_key: stringValue(item.entry_key),
-    ioc_type: stringValue(item.ioc_type),
-    match_type: stringValue(item.match_type),
-    normalized_value: stringValue(item.normalized_value),
-    reason: stringValue(item.reason),
-    source_name: stringValue(item.source_name),
-    source_version: stringValue(item.source_version),
-    tenant_id: stringValue(item.tenant_id),
-    updated_at: stringValue(item.updated_at),
-  }
-}
-
-function allowlistHitFromRawLocalJson(rawLocalJson: string) {
-  return normalizeAllowlistHit(parseJsonObject(rawLocalJson).allowlist_hit)
 }
 
 function normalizeCaseIocType(value: unknown): IocVerificationType {
@@ -290,9 +257,6 @@ function normalizeVerification(raw: unknown): AttackCaseIOCVerificationItem | nu
   const item = objectValue(raw)
   if (!Object.keys(item).length) return null
 
-  const rawLocalJson = stringValue(item.raw_local_json)
-  const rawRemoteJson = stringValue(item.raw_remote_json)
-
   return {
     verification_id: stringValue(item.verification_id),
     candidate_id: stringValue(item.candidate_id),
@@ -302,11 +266,7 @@ function normalizeVerification(raw: unknown): AttackCaseIOCVerificationItem | nu
     whitelist_status: stringValue(item.whitelist_status),
     local_status: stringValue(item.local_status),
     local_hit_source: stringValue(item.local_hit_source),
-    local_ioc_storage: stringValue(item.local_ioc_storage),
-    local_ioc_entry_id: stringValue(item.local_ioc_entry_id),
     remote_status: stringValue(item.remote_status),
-    remote_provider: stringValue(item.remote_provider),
-    remote_hit_source: stringValue(item.remote_hit_source),
     final_status: stringValue(item.final_status),
     final_verdict: stringValue(item.final_verdict),
     risk_score: numberValue(item.risk_score),
@@ -315,11 +275,16 @@ function normalizeVerification(raw: unknown): AttackCaseIOCVerificationItem | nu
     error_message: stringValue(item.error_message),
     created_at: stringValue(item.created_at),
     updated_at: stringValue(item.updated_at),
-    raw_local_json: rawLocalJson,
-    raw_remote_json: rawRemoteJson,
-    allowlist_hit:
-      normalizeAllowlistHit(item.allowlist_hit) ||
-      allowlistHitFromRawLocalJson(rawLocalJson),
+    hit: boolValue(item.hit),
+    hit_scope: stringValue(item.hit_scope),
+    hit_kind: stringValue(item.hit_kind),
+    hit_category: stringValue(item.hit_category),
+    hit_status_key: stringValue(item.hit_status_key),
+    hit_verdict: stringValue(item.hit_verdict),
+    hit_source_database: stringValue(item.hit_source_database),
+    hit_source_table: stringValue(item.hit_source_table),
+    hit_source_record_id: stringValue(item.hit_source_record_id),
+    local_eval_raw_json: stringValue(item.local_eval_raw_json),
   }
 }
 
@@ -327,6 +292,28 @@ function statusFromVerification(
   verification: AttackCaseIOCVerificationItem | null,
 ): IocVerificationStatus {
   if (!verification || verification.final_status === "unverified") return "idle"
+  if (
+    verification.hit_status_key === "local_whitelist_hit" ||
+    verification.hit_kind === "whitelist" ||
+    verification.hit_verdict === "allow"
+  ) {
+    return "allowlisted"
+  }
+  if (
+    verification.hit_status_key === "local_ioc_hit" ||
+    verification.hit_status_key === "remote_ioc_hit" ||
+    (verification.hit && verification.hit_kind === "ioc") ||
+    verification.hit_verdict === "malicious"
+  ) {
+    return "hit"
+  }
+  if (
+    verification.hit_status_key === "error" ||
+    verification.hit_verdict === "error"
+  ) {
+    return "error"
+  }
+  if (verification.hit_status_key === "no_hit") return "miss"
   if (
     verification.final_status === "allowlisted" ||
     verification.final_verdict === "allow"
@@ -455,25 +442,16 @@ function normalizeVerifyTask(raw: unknown): AttackCaseIOCVerifyTask {
 
 function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDetail {
   const detail = objectValue(raw)
-  const rawLocalJson = stringValue(detail.raw_local_json)
-  const rawRemoteJson = stringValue(detail.raw_remote_json)
+  const localEvalRawJson = stringValue(detail.local_eval_raw_json)
   const item = normalizeVerification(detail.item)
-  const allowlistHit =
-    normalizeAllowlistHit(detail.allowlist_hit) ||
-    item?.allowlist_hit ||
-    allowlistHitFromRawLocalJson(rawLocalJson)
 
   if (item) {
-    item.raw_local_json = rawLocalJson || item.raw_local_json
-    item.raw_remote_json = rawRemoteJson || item.raw_remote_json
-    item.allowlist_hit = allowlistHit
+    item.local_eval_raw_json = localEvalRawJson || item.local_eval_raw_json
   }
 
   return {
     item,
-    raw_local_json: rawLocalJson,
-    raw_remote_json: rawRemoteJson,
-    allowlist_hit: allowlistHit,
+    local_eval_raw_json: localEvalRawJson,
   }
 }
 
