@@ -1,7 +1,23 @@
 "use client"
 
 import type { KeyboardEvent } from "react"
-import { Clipboard, Loader2, RefreshCw } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+import {
+  Activity,
+  BadgeCheck,
+  Clipboard,
+  Cloud,
+  Clock3,
+  Database,
+  FileText,
+  Gauge,
+  Hash,
+  Loader2,
+  Percent,
+  RefreshCw,
+  ShieldCheck,
+  Tag,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type {
@@ -120,6 +136,29 @@ function StatusSignal({
       <span className={cn("size-2.5 shrink-0 rounded-full", statusDotClass(tone))} />
       <span className="truncate">{compactLabel(label)}</span>
     </span>
+  )
+}
+
+function TableHeaderCell({
+  icon: Icon,
+  label,
+  center,
+}: {
+  icon: LucideIcon
+  label: string
+  center?: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 items-center gap-1.5",
+        center && "justify-center",
+      )}
+      title={label}
+    >
+      <Icon className="size-3.5 shrink-0 text-slate-400" aria-hidden="true" />
+      <span className="truncate">{label}</span>
+    </div>
   )
 }
 
@@ -275,18 +314,32 @@ export function IocResultsTable({
           tableGridClass,
         )}
       >
-        <div>{t("table.ioc").toLocaleLowerCase()}</div>
-        <div>filename</div>
-        <div>{t("fields.type").toLocaleLowerCase()}</div>
-        <div>{t("table.allowlist").toLocaleLowerCase()}</div>
-        <div>{t("pipeline.steps.localIntel").toLocaleLowerCase()}</div>
-        <div>{t("pipeline.steps.onlineIntel").toLocaleLowerCase()}</div>
-        <div>{t("table.time").toLocaleLowerCase()}</div>
-        <div className="text-center">{t("fields.risk").toLocaleLowerCase()}</div>
-        <div className="text-center">{t("fields.confidence").toLocaleLowerCase()}</div>
-        <div>{t("table.action").toLocaleLowerCase()}</div>
-        <div className="text-center">{t("table.verdict").toLocaleLowerCase()}</div>
-        <div className="text-center">refresh</div>
+        <TableHeaderCell icon={Hash} label={t("table.ioc").toLocaleLowerCase()} />
+        <TableHeaderCell icon={FileText} label="filename" />
+        <TableHeaderCell icon={Tag} label={t("fields.type").toLocaleLowerCase()} />
+        <TableHeaderCell icon={ShieldCheck} label={t("table.allowlist").toLocaleLowerCase()} />
+        <TableHeaderCell
+          icon={Database}
+          label={t("pipeline.steps.localIntel").toLocaleLowerCase()}
+        />
+        <TableHeaderCell
+          icon={Cloud}
+          label={t("pipeline.steps.onlineIntel").toLocaleLowerCase()}
+        />
+        <TableHeaderCell icon={Clock3} label={t("table.time").toLocaleLowerCase()} />
+        <TableHeaderCell icon={Gauge} label={t("fields.risk").toLocaleLowerCase()} center />
+        <TableHeaderCell
+          icon={Percent}
+          label={t("fields.confidence").toLocaleLowerCase()}
+          center
+        />
+        <TableHeaderCell icon={Activity} label={t("table.action").toLocaleLowerCase()} />
+        <TableHeaderCell
+          icon={BadgeCheck}
+          label={t("table.verdict").toLocaleLowerCase()}
+          center
+        />
+        <TableHeaderCell icon={RefreshCw} label="refresh" center />
       </div>
       <div className="h-[260px] divide-y divide-slate-100 overflow-y-auto">
         {items.map((item) => {

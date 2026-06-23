@@ -20,6 +20,7 @@ import {
   observationSources,
   summaryCounts,
 } from "@/features/ioc-analysis/components/ioc-verification-display-utils"
+import { IocVerificationDetailPanel } from "@/features/ioc-analysis/components/ioc-verification-detail-panel"
 import { IocVerificationHeader } from "@/features/ioc-analysis/components/ioc-verification-header"
 import { IocVerificationManualPanel } from "@/features/ioc-analysis/components/ioc-verification-manual-panel"
 import { IocVerificationResultsPanel } from "@/features/ioc-analysis/components/ioc-verification-results-panel"
@@ -268,6 +269,9 @@ function mergeCandidateItem(
   }
 
   if (!next.verification && existing.verification) merged.verification = existing.verification
+  if (!next.verification_detail && existing.verification_detail) {
+    merged.verification_detail = existing.verification_detail
+  }
   if (!next.result && existing.result) merged.result = existing.result
   if (next.status === "idle" && existing.status !== "idle") merged.status = existing.status
   if (!next.error && existing.error) merged.error = existing.error
@@ -428,6 +432,7 @@ export function IocVerificationPage() {
     const candidateId = selectedItem?.candidate_id?.trim() || ""
     const normalizedCaseId =
       selectedItem?.case_id?.trim() || caseId.trim() || routeParams.caseId.trim()
+    const hasVerificationDetail = Boolean(selectedItem?.verification_detail)
 
     if (
       !selectedItem ||
@@ -435,7 +440,7 @@ export function IocVerificationPage() {
       !candidateId ||
       !normalizedCaseId ||
       !selectedItem.verification ||
-      selectedItem.verification.local_eval_raw_json
+      hasVerificationDetail
     ) {
       return
     }
@@ -462,6 +467,7 @@ export function IocVerificationPage() {
 
             return {
               ...item,
+              verification_detail: detail,
               verification: {
                 ...baseVerification,
                 ...(detail.item || {}),
@@ -485,6 +491,7 @@ export function IocVerificationPage() {
     selectedItem?.case_id,
     selectedItem?.origin,
     selectedItem?.verification,
+    selectedItem?.verification_detail,
     selectedItem?.verification?.local_eval_raw_json,
     selectedItem?.verification?.verification_id,
     selectedItem?.verification?.whitelist_status,
@@ -613,7 +620,13 @@ export function IocVerificationPage() {
           setItems((current) =>
             current.map((item) =>
               candidateIds.includes(item.candidate_id || item.id)
-                ? { ...item, status: "checking", error: "", result: null }
+                ? {
+                    ...item,
+                    status: "checking",
+                    error: "",
+                    result: null,
+                    verification_detail: null,
+                  }
                 : item,
             ),
           )
@@ -688,7 +701,13 @@ export function IocVerificationPage() {
           setItems((current) =>
             current.map((item) =>
               item.id === candidate.id
-                ? { ...item, status: "checking", error: "", result: null }
+                ? {
+                    ...item,
+                    status: "checking",
+                    error: "",
+                    result: null,
+                    verification_detail: null,
+                  }
                 : item,
             ),
           )
@@ -723,6 +742,7 @@ export function IocVerificationPage() {
                       ...item,
                       status: "error",
                       result: null,
+                      verification_detail: null,
                       error:
                         error instanceof Error
                           ? error.message
@@ -753,6 +773,7 @@ export function IocVerificationPage() {
               ? {
                   ...item,
                   status: "error",
+                  verification_detail: null,
                   error:
                     error instanceof Error && error.message
                       ? error.message
@@ -895,6 +916,12 @@ export function IocVerificationPage() {
             onCopy={copyIoc}
             onSelect={setSelectedItemId}
             onVerifyOne={(candidate) => void verifyCandidates([candidate])}
+          />
+
+          <IocVerificationDetailPanel
+            className="xl:col-start-2 xl:row-start-2"
+            item={selectedItem}
+            onCopy={copyIoc}
           />
         </section>
       </div>

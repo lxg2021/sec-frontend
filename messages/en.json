@@ -3885,9 +3885,9 @@
           "error": "Issue"
         },
         "detail": {
-          "title": "IOC Summary",
-          "description": "Full decision path for the selected row.",
-          "noSelection": "Select an IOC to view its verification path.",
+          "title": "IOC Details",
+          "description": "Source table row for the selected IOC.",
+          "noSelection": "Select an IOC to view source table details.",
           "decision": "Decision",
           "verificationPath": "Verification Path",
           "allowlistEvidence": "Whitelist Evidence",
@@ -3907,7 +3907,12 @@
           "readyReason": "This IOC is waiting for verification.",
           "allowlistNotConnected": "Whitelist result is not returned by the current query response.",
           "investigate": "Investigate",
-          "noQuery": "No Query"
+          "noQuery": "No Query",
+          "noSourceTable": "No source table",
+          "column": "column",
+          "value": "value",
+          "loading": "Loading source table details...",
+          "unavailable": "No source table detail is returned for this IOC yet."
         },
         "toasts": {
           "caseRequired": "Enter CaseID first.",

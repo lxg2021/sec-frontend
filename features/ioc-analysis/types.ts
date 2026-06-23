@@ -107,6 +107,7 @@ export interface IocCandidate {
   candidate_status?: string
   last_seen_at?: string
   verification?: AttackCaseIOCVerificationItem | null
+  verification_detail?: AttackCaseIOCVerificationDetail | null
 }
 
 export interface IocVerificationItem extends IocCandidate {
@@ -192,6 +193,100 @@ export interface AttackCaseIOCVerificationItem {
   local_eval_raw_json: string
 }
 
+export interface AttackCaseIOCHitSourceRef {
+  database: string
+  table: string
+  record_id: string
+}
+
+export interface AttackCaseIOCJSONEvidence {
+  raw_json: string
+  raw_json_preview: string
+  raw_json_length: number
+  raw_json_keys: string[]
+}
+
+export interface AttackCaseIOCDetailPage {
+  total: number
+  returned: number
+  offset: number
+  limit: number
+  has_more: boolean
+}
+
+export interface AttackCaseIOCIocEntryRecord {
+  id: string
+  ioc_type: string
+  observable_type: string
+  normalized_value: string
+  display_value: string
+  status: string
+  risk_score: number
+  confidence: number
+  tags: string[]
+  extra_json: string
+  extra_json_keys: string[]
+  first_seen: string
+  last_seen: string
+}
+
+export interface AttackCaseIOCIocObservation {
+  source_name: string
+  source_record_id: string
+  source_url: string
+  confidence: number
+  first_seen: string
+  last_seen: string
+  evidence: AttackCaseIOCJSONEvidence | null
+}
+
+export interface AttackCaseIOCIocRelation {
+  relation_type: string
+  direction: string
+  source_name: string
+  source_record_id: string
+  first_seen: string
+  last_seen: string
+  evidence: AttackCaseIOCJSONEvidence | null
+  peer_entry: AttackCaseIOCIocEntryRecord | null
+}
+
+export interface AttackCaseIOCIocEntryHitDetail {
+  source: AttackCaseIOCHitSourceRef | null
+  entry: AttackCaseIOCIocEntryRecord | null
+  observations: AttackCaseIOCIocObservation[]
+  observations_page: AttackCaseIOCDetailPage | null
+  relations: AttackCaseIOCIocRelation[]
+  relations_page: AttackCaseIOCDetailPage | null
+}
+
+export interface AttackCaseIOCBlacklistIndicatorHitDetail {
+  source: AttackCaseIOCHitSourceRef | null
+  indicator_key: string
+  ioc_type: string
+  value_subtype: string
+  normalized_value: string
+  display_value: string
+  status: string
+  categories: string[]
+  confidence: number
+  source_count: number
+  feed_count: number
+  source_names: string[]
+  feed_names: string[]
+  source_urls: string[]
+  first_seen: string
+  last_seen: string
+  last_batch_id: string
+  extra_json: string
+  extra_json_keys: string[]
+}
+
+export interface AttackCaseIOCVerificationHitSourceDetail {
+  ioc_entry: AttackCaseIOCIocEntryHitDetail | null
+  blacklist_indicator: AttackCaseIOCBlacklistIndicatorHitDetail | null
+}
+
 export interface AttackCaseIOCCandidateListData {
   extract_task: AttackCaseIOCExtractTask | null
   extract_task_exists: boolean
@@ -202,4 +297,6 @@ export interface AttackCaseIOCCandidateListData {
 export interface AttackCaseIOCVerificationDetail {
   item: AttackCaseIOCVerificationItem | null
   local_eval_raw_json: string
+  hit_source: AttackCaseIOCHitSourceRef | null
+  hit_source_detail: AttackCaseIOCVerificationHitSourceDetail | null
 }

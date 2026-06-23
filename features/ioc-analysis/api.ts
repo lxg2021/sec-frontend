@@ -7,7 +7,16 @@ import type {
   AttackCaseIOCCandidateListData,
   AttackCaseIOCCandidateSummary,
   AttackCaseIOCExtractTask,
+  AttackCaseIOCBlacklistIndicatorHitDetail,
+  AttackCaseIOCDetailPage,
+  AttackCaseIOCHitSourceRef,
+  AttackCaseIOCIocEntryHitDetail,
+  AttackCaseIOCIocEntryRecord,
+  AttackCaseIOCIocObservation,
+  AttackCaseIOCIocRelation,
+  AttackCaseIOCJSONEvidence,
   AttackCaseIOCVerificationDetail,
+  AttackCaseIOCVerificationHitSourceDetail,
   AttackCaseIOCVerificationItem,
   AttackCaseIOCVerifyTask,
   IocQueryEntry,
@@ -86,6 +95,13 @@ function numberValue(value: unknown) {
 
 function boolValue(value: unknown) {
   return value === true
+}
+
+function fieldValue(item: BackendObject, ...keys: string[]) {
+  for (const key of keys) {
+    if (key in item) return item[key]
+  }
+  return undefined
 }
 
 function stringArray(value: unknown) {
@@ -288,6 +304,198 @@ function normalizeVerification(raw: unknown): AttackCaseIOCVerificationItem | nu
   }
 }
 
+function normalizeHitSourceRef(raw: unknown): AttackCaseIOCHitSourceRef | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  const database = stringValue(fieldValue(item, "database", "Database"))
+  const table = stringValue(fieldValue(item, "table", "Table"))
+  const recordId = stringValue(fieldValue(item, "record_id", "recordId", "RecordId"))
+
+  if (!database && !table && !recordId) return null
+
+  return {
+    database,
+    table,
+    record_id: recordId,
+  }
+}
+
+function normalizeJSONEvidence(raw: unknown): AttackCaseIOCJSONEvidence | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    raw_json: stringValue(fieldValue(item, "raw_json", "rawJson", "RawJson")),
+    raw_json_preview: stringValue(
+      fieldValue(item, "raw_json_preview", "rawJsonPreview", "RawJsonPreview"),
+    ),
+    raw_json_length: numberValue(
+      fieldValue(item, "raw_json_length", "rawJsonLength", "RawJsonLength"),
+    ),
+    raw_json_keys: stringArray(
+      fieldValue(item, "raw_json_keys", "rawJsonKeys", "RawJsonKeys"),
+    ),
+  }
+}
+
+function normalizeDetailPage(raw: unknown): AttackCaseIOCDetailPage | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    total: numberValue(fieldValue(item, "total", "Total")),
+    returned: numberValue(fieldValue(item, "returned", "Returned")),
+    offset: numberValue(fieldValue(item, "offset", "Offset")),
+    limit: numberValue(fieldValue(item, "limit", "Limit")),
+    has_more: boolValue(fieldValue(item, "has_more", "hasMore", "HasMore")),
+  }
+}
+
+function normalizeIocEntryRecord(raw: unknown): AttackCaseIOCIocEntryRecord | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    id: stringValue(fieldValue(item, "id", "Id", "ID")),
+    ioc_type: stringValue(fieldValue(item, "ioc_type", "iocType", "IocType")),
+    observable_type: stringValue(
+      fieldValue(item, "observable_type", "observableType", "ObservableType"),
+    ),
+    normalized_value: stringValue(
+      fieldValue(item, "normalized_value", "normalizedValue", "NormalizedValue"),
+    ),
+    display_value: stringValue(
+      fieldValue(item, "display_value", "displayValue", "DisplayValue"),
+    ),
+    status: stringValue(fieldValue(item, "status", "Status")),
+    risk_score: numberValue(fieldValue(item, "risk_score", "riskScore", "RiskScore")),
+    confidence: numberValue(fieldValue(item, "confidence", "Confidence")),
+    tags: stringArray(fieldValue(item, "tags", "Tags")),
+    extra_json: stringValue(fieldValue(item, "extra_json", "extraJson", "ExtraJson")),
+    extra_json_keys: stringArray(
+      fieldValue(item, "extra_json_keys", "extraJsonKeys", "ExtraJsonKeys"),
+    ),
+    first_seen: stringValue(fieldValue(item, "first_seen", "firstSeen", "FirstSeen")),
+    last_seen: stringValue(fieldValue(item, "last_seen", "lastSeen", "LastSeen")),
+  }
+}
+
+function normalizeIocObservation(raw: unknown): AttackCaseIOCIocObservation {
+  const item = objectValue(raw)
+  return {
+    source_name: stringValue(fieldValue(item, "source_name", "sourceName", "SourceName")),
+    source_record_id: stringValue(
+      fieldValue(item, "source_record_id", "sourceRecordId", "SourceRecordId"),
+    ),
+    source_url: stringValue(fieldValue(item, "source_url", "sourceUrl", "SourceUrl")),
+    confidence: numberValue(fieldValue(item, "confidence", "Confidence")),
+    first_seen: stringValue(fieldValue(item, "first_seen", "firstSeen", "FirstSeen")),
+    last_seen: stringValue(fieldValue(item, "last_seen", "lastSeen", "LastSeen")),
+    evidence: normalizeJSONEvidence(fieldValue(item, "evidence", "Evidence")),
+  }
+}
+
+function normalizeIocRelation(raw: unknown): AttackCaseIOCIocRelation {
+  const item = objectValue(raw)
+  return {
+    relation_type: stringValue(
+      fieldValue(item, "relation_type", "relationType", "RelationType"),
+    ),
+    direction: stringValue(fieldValue(item, "direction", "Direction")),
+    source_name: stringValue(fieldValue(item, "source_name", "sourceName", "SourceName")),
+    source_record_id: stringValue(
+      fieldValue(item, "source_record_id", "sourceRecordId", "SourceRecordId"),
+    ),
+    first_seen: stringValue(fieldValue(item, "first_seen", "firstSeen", "FirstSeen")),
+    last_seen: stringValue(fieldValue(item, "last_seen", "lastSeen", "LastSeen")),
+    evidence: normalizeJSONEvidence(fieldValue(item, "evidence", "Evidence")),
+    peer_entry: normalizeIocEntryRecord(
+      fieldValue(item, "peer_entry", "peerEntry", "PeerEntry"),
+    ),
+  }
+}
+
+function normalizeIocEntryHitDetail(
+  raw: unknown,
+): AttackCaseIOCIocEntryHitDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    source: normalizeHitSourceRef(fieldValue(item, "source", "Source")),
+    entry: normalizeIocEntryRecord(fieldValue(item, "entry", "Entry")),
+    observations: Array.isArray(
+      fieldValue(item, "observations", "Observations"),
+    )
+      ? (fieldValue(item, "observations", "Observations") as unknown[]).map(
+          normalizeIocObservation,
+        )
+      : [],
+    observations_page: normalizeDetailPage(
+      fieldValue(item, "observations_page", "observationsPage", "ObservationsPage"),
+    ),
+    relations: Array.isArray(fieldValue(item, "relations", "Relations"))
+      ? (fieldValue(item, "relations", "Relations") as unknown[]).map(
+          normalizeIocRelation,
+        )
+      : [],
+    relations_page: normalizeDetailPage(
+      fieldValue(item, "relations_page", "relationsPage", "RelationsPage"),
+    ),
+  }
+}
+
+function normalizeBlacklistIndicatorHitDetail(
+  raw: unknown,
+): AttackCaseIOCBlacklistIndicatorHitDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    source: normalizeHitSourceRef(fieldValue(item, "source", "Source")),
+    indicator_key: stringValue(fieldValue(item, "indicator_key", "indicatorKey", "IndicatorKey")),
+    ioc_type: stringValue(fieldValue(item, "ioc_type", "iocType", "IocType")),
+    value_subtype: stringValue(fieldValue(item, "value_subtype", "valueSubtype", "ValueSubtype")),
+    normalized_value: stringValue(fieldValue(item, "normalized_value", "normalizedValue", "NormalizedValue")),
+    display_value: stringValue(fieldValue(item, "display_value", "displayValue", "DisplayValue")),
+    status: stringValue(fieldValue(item, "status", "Status")),
+    categories: stringArray(fieldValue(item, "categories", "Categories")),
+    confidence: numberValue(fieldValue(item, "confidence", "Confidence")),
+    source_count: numberValue(fieldValue(item, "source_count", "sourceCount", "SourceCount")),
+    feed_count: numberValue(fieldValue(item, "feed_count", "feedCount", "FeedCount")),
+    source_names: stringArray(fieldValue(item, "source_names", "sourceNames", "SourceNames")),
+    feed_names: stringArray(fieldValue(item, "feed_names", "feedNames", "FeedNames")),
+    source_urls: stringArray(fieldValue(item, "source_urls", "sourceUrls", "SourceUrls")),
+    first_seen: stringValue(fieldValue(item, "first_seen", "firstSeen", "FirstSeen")),
+    last_seen: stringValue(fieldValue(item, "last_seen", "lastSeen", "LastSeen")),
+    last_batch_id: stringValue(fieldValue(item, "last_batch_id", "lastBatchId", "LastBatchId")),
+    extra_json: stringValue(fieldValue(item, "extra_json", "extraJson", "ExtraJson")),
+    extra_json_keys: stringArray(fieldValue(item, "extra_json_keys", "extraJsonKeys", "ExtraJsonKeys")),
+  }
+}
+
+function normalizeHitSourceDetail(
+  raw: unknown,
+): AttackCaseIOCVerificationHitSourceDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  const blacklistIndicator = normalizeBlacklistIndicatorHitDetail(
+    fieldValue(item, "blacklist_indicator", "blacklistIndicator", "BlacklistIndicator"),
+  )
+  const iocEntry = normalizeIocEntryHitDetail(
+    fieldValue(item, "ioc_entry", "iocEntry", "IocEntry"),
+  )
+
+  if (!blacklistIndicator && !iocEntry) return null
+
+  return {
+    ioc_entry: iocEntry,
+    blacklist_indicator: blacklistIndicator,
+  }
+}
+
 function statusFromVerification(
   verification: AttackCaseIOCVerificationItem | null,
 ): IocVerificationStatus {
@@ -448,6 +656,26 @@ function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDet
   const detail = objectValue(raw)
   const localEvalRawJson = stringValue(detail.local_eval_raw_json)
   const item = normalizeVerification(detail.item)
+  const hitSource = normalizeHitSourceRef(
+    fieldValue(detail, "hit_source", "hitSource", "HitSource"),
+  )
+  const hitSourceDetailRaw = objectValue(
+    fieldValue(detail, "hit_source_detail", "hitSourceDetail", "HitSourceDetail"),
+  )
+  const directIocEntry = fieldValue(detail, "ioc_entry", "iocEntry", "IocEntry")
+  const directBlacklistIndicator = fieldValue(
+    detail,
+    "blacklist_indicator",
+    "blacklistIndicator",
+    "BlacklistIndicator",
+  )
+  const hitSourceDetail = normalizeHitSourceDetail({
+    ...hitSourceDetailRaw,
+    ...(directIocEntry ? { ioc_entry: directIocEntry } : {}),
+    ...(directBlacklistIndicator
+      ? { blacklist_indicator: directBlacklistIndicator }
+      : {}),
+  })
 
   if (item) {
     item.local_eval_raw_json = localEvalRawJson || item.local_eval_raw_json
@@ -456,6 +684,8 @@ function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDet
   return {
     item,
     local_eval_raw_json: localEvalRawJson,
+    hit_source: hitSource,
+    hit_source_detail: hitSourceDetail,
   }
 }
 
@@ -571,6 +801,7 @@ export async function getAttackCaseIocVerification({
       tenant_id: tenantId.trim() || DEFAULT_TENANT_ID,
       case_id: caseId.trim(),
       candidate_id: candidateId.trim(),
+      include_raw_json: true,
     },
   )) as ApiResult<unknown>
 
