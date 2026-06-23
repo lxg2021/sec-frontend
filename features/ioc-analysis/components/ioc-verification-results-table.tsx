@@ -1,7 +1,7 @@
 "use client"
 
 import type { KeyboardEvent } from "react"
-import { Clipboard, FileText, Loader2, RefreshCw } from "lucide-react"
+import { Clipboard, Loader2, RefreshCw } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type {
@@ -21,7 +21,7 @@ import {
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
 
 const tableGridClass =
-  "grid-cols-[minmax(420px,1.8fr)_minmax(128px,0.6fr)_64px_92px_92px_92px_148px_64px_88px_96px_108px_64px]"
+  "grid-cols-[minmax(320px,1.15fr)_minmax(136px,0.65fr)_52px_minmax(84px,0.35fr)_minmax(88px,0.35fr)_minmax(96px,0.4fr)_minmax(148px,0.55fr)_56px_76px_minmax(96px,0.35fr)_92px_52px]"
 const actionButtonClass =
   "h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
 const inlineCopyButtonClass =
@@ -268,10 +268,10 @@ export function IocResultsTable({
   }
 
   return (
-    <div className="min-w-[1660px] overflow-hidden rounded-2xl border border-slate-100">
+    <div className="min-w-[1460px] overflow-hidden rounded-2xl border border-slate-100">
       <div
         className={cn(
-          "grid items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400",
+          "grid items-center gap-3 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400",
           tableGridClass,
         )}
       >
@@ -312,7 +312,7 @@ export function IocResultsTable({
               onClick={() => onSelect(item.id)}
               onKeyDown={(event) => handleRowKeyDown(event, item.id)}
               className={cn(
-                "group grid h-[52px] w-full cursor-pointer items-center gap-4 px-4 py-2 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
+                "group grid h-[52px] w-full cursor-pointer items-center gap-3 px-4 py-2 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
                 tableGridClass,
                 selected && "relative bg-blue-50 hover:bg-blue-50",
               )}
@@ -340,15 +340,9 @@ export function IocResultsTable({
                   </Button>
                 </div>
               </div>
-              <div
-                className="flex min-w-0 items-center gap-1.5 text-xs text-slate-500"
-                title={fileTitle}
-              >
+              <div className="min-w-0 text-xs text-slate-500" title={fileTitle}>
                 {fileLabel ? (
-                  <>
-                    <FileText className="size-3.5 shrink-0 text-slate-400" aria-hidden="true" />
-                    <span className="truncate">{fileLabel}</span>
-                  </>
+                  <span className="block truncate">{fileLabel}</span>
                 ) : (
                   <span className="text-slate-300">-</span>
                 )}
