@@ -140,25 +140,25 @@ export function verdictFromItem(item: IocVerificationItem): IocVerdict {
 export function verdictClass(verdict: IocVerdict) {
   switch (verdict) {
     case "checking":
-      return "border-blue-200 bg-blue-50 text-blue-700"
+      return "border-transparent bg-blue-600 text-white"
     case "malicious":
-      return "border-red-200 bg-red-50 text-red-700"
+      return "border-transparent bg-red-600 text-white"
     case "allow":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
+      return "border-transparent bg-emerald-600 text-white"
     case "error":
-      return "border-rose-200 bg-rose-50 text-rose-700"
+      return "border-transparent bg-rose-600 text-white"
     case "unknown":
-      return "border-slate-200 bg-slate-100 text-slate-600"
+      return "border-transparent bg-slate-500 text-white"
     default:
-      return "border-slate-200 bg-slate-50 text-slate-500"
+      return "border-transparent bg-slate-400 text-white"
   }
 }
 
 export function allowlistClass(item: IocVerificationItem) {
-  if (item.status === "checking") return "border-blue-200 bg-blue-50 text-blue-700"
-  if (isAllowlisted(item)) return "border-emerald-200 bg-emerald-50 text-emerald-700"
-  if (item.status === "idle") return "border-slate-200 bg-slate-50 text-slate-500"
-  return "border-slate-200 bg-slate-100 text-slate-600"
+  if (item.status === "checking") return "border-transparent bg-blue-600 text-white"
+  if (isAllowlisted(item)) return "border-transparent bg-emerald-600 text-white"
+  if (item.status === "idle") return "border-transparent bg-slate-400 text-white"
+  return "border-transparent bg-slate-500 text-white"
 }
 
 export function verificationSourceText(

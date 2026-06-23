@@ -44,7 +44,10 @@ export function VerdictBadge({
   return (
     <Badge
       variant="outline"
-      className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", verdictClass(verdict))}
+      className={cn(
+        "w-20 justify-center rounded-full px-2.5 py-1 text-center text-xs font-semibold",
+        verdictClass(verdict),
+      )}
     >
       {lowercase ? label.toLocaleLowerCase() : label}
     </Badge>

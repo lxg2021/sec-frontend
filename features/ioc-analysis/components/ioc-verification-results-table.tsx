@@ -11,8 +11,11 @@ import type {
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 
-import { AllowlistBadge, VerdictBadge } from "./ioc-verification-badges"
-import { verificationSourceText } from "./ioc-verification-display-utils"
+import { VerdictBadge } from "./ioc-verification-badges"
+import {
+  isAllowlisted,
+  verificationSourceText,
+} from "./ioc-verification-display-utils"
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
 
 export function IocResultsTable({
@@ -41,21 +44,29 @@ export function IocResultsTable({
     onSelect(id)
   }
 
+  function allowlistText(item: IocVerificationItem) {
+    if (item.status === "checking") return t("allowlist.checking")
+    if (isAllowlisted(item)) return t("allowlist.hit")
+    if (item.status === "idle") return t("allowlist.pending")
+    return t("allowlist.miss")
+  }
+
   return (
-    <div className="min-w-[900px] overflow-hidden rounded-2xl border border-slate-100">
-      <div className="grid grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_140px_110px_98px] items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400">
+    <div className="min-w-[960px] overflow-hidden rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_168px_128px_98px] items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400">
         <div>{t("table.ioc")}</div>
         <div>{t("fields.type")}</div>
         <div>{t("table.allowlist")}</div>
         <div>{t("table.verification")}</div>
         <div>{t("table.time")}</div>
-        <div>{t("table.verdict")}</div>
+        <div className="text-center">{t("table.verdict")}</div>
         <div>{t("table.action")}</div>
       </div>
       <div className="divide-y divide-slate-100">
         {items.map((item) => {
           const selected = item.id === selectedId
           const occurredAt = item.occurred_at || ""
+          const allowlistLabel = allowlistText(item)
           const verificationLabel = verificationSourceText(item, t)
 
           return (
@@ -66,7 +77,7 @@ export function IocResultsTable({
               onClick={() => onSelect(item.id)}
               onKeyDown={(event) => handleRowKeyDown(event, item.id)}
               className={cn(
-                "group grid w-full cursor-pointer grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_140px_110px_98px] items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
+                "group grid w-full cursor-pointer grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_168px_128px_98px] items-center gap-4 px-4 py-3 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
                 selected && "relative bg-blue-50 hover:bg-blue-50",
               )}
             >
@@ -84,7 +95,12 @@ export function IocResultsTable({
               >
                 {item.type}
               </div>
-              <AllowlistBadge item={item} lowercase />
+              <div
+                className="truncate text-sm font-medium text-slate-600"
+                title={allowlistLabel}
+              >
+                {allowlistLabel.toLocaleLowerCase()}
+              </div>
               <div className="min-w-0">
                 <div className="truncate text-sm text-slate-700">
                   {verificationLabel.toLocaleLowerCase()}
@@ -96,7 +112,9 @@ export function IocResultsTable({
               >
                 {occurredAt || "-"}
               </div>
-              <VerdictBadge item={item} lowercase />
+              <div className="flex justify-center">
+                <VerdictBadge item={item} lowercase />
+              </div>
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
