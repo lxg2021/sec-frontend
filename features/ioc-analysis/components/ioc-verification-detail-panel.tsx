@@ -17,7 +17,6 @@ import {
   confidenceText,
   isAllowlisted,
   isRemoteHit,
-  observationSources,
   riskText,
   verdictFromItem,
 } from "./ioc-verification-display-utils"
@@ -52,8 +51,6 @@ export function IocVerificationDetailPanel({
   }
 
   const verdict = verdictFromItem(item)
-  const sources = observationSources(item)
-  const entry = item.result?.entry
   const verification = item.verification
   const allowlistLabel =
     item.status === "checking"
@@ -63,14 +60,6 @@ export function IocVerificationDetailPanel({
       : item.status === "idle"
         ? t("allowlist.pending")
         : t("allowlist.miss")
-  const hitSource = [
-    verification?.hit_source_database,
-    verification?.hit_source_table,
-  ].filter(Boolean).join(".")
-  const hitScope = verification?.hit_scope || "-"
-  const hitKind = verification?.hit_kind || "-"
-  const hitCategory = verification?.hit_category || "-"
-  const hitRecordId = verification?.hit_source_record_id || "-"
   const localIntelStatus =
     verification?.local_status ||
     verification?.local_decision ||
@@ -102,7 +91,6 @@ export function IocVerificationDetailPanel({
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <VerdictBadge item={item} />
           <TypeBadge type={item.type} />
-          <span className="text-xs text-slate-400">{item.result?.entry?.last_seen || ""}</span>
         </div>
         {fileLabel ? (
           <div
@@ -165,7 +153,6 @@ export function IocVerificationDetailPanel({
             <h3 className="text-sm font-semibold text-slate-950">{t("detail.verificationPath")}</h3>
             <div className="mt-4 space-y-4">
               {[
-                [t("pipeline.steps.normalized"), "completed", true],
                 [t("pipeline.steps.allowlist"), allowlistLabel, item.status !== "idle"],
                 [t("pipeline.steps.localIntel"), localIntelStatus, Boolean(item.result || item.verification)],
                 [t("pipeline.steps.onlineIntel"), remoteIntelStatus, isRemoteHit(item)],
@@ -185,64 +172,6 @@ export function IocVerificationDetailPanel({
               ))}
             </div>
           </div>
-
-          <Separator className="bg-slate-200" />
-
-          <div>
-            <h3 className="text-sm font-semibold text-slate-950">Hit Source</h3>
-            <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
-              <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-y-2">
-                <span className="text-slate-400">Scope</span>
-                <span className="font-mono text-slate-700">{hitScope}</span>
-                <span className="text-slate-400">Kind</span>
-                <span className="font-mono text-slate-700">{hitKind}</span>
-                <span className="text-slate-400">Category</span>
-                <span className="font-mono text-slate-700">{hitCategory}</span>
-                <span className="text-slate-400">Source</span>
-                <span className="break-all font-mono text-slate-700">{hitSource || "-"}</span>
-                <span className="text-slate-400">Record</span>
-                <span className="break-all font-mono text-slate-700">{hitRecordId}</span>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-slate-200" />
-
-          <div>
-            <h3 className="text-sm font-semibold text-slate-950">{t("detail.threatIntel")}</h3>
-            <div className="mt-3 grid gap-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">{t("fields.observations")}</span>
-                <span className="font-mono text-slate-700">
-                  {item.result?.observations.length ?? (item.verification ? 1 : 0)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">{t("fields.relations")}</span>
-                <span className="font-mono text-slate-700">
-                  {item.result?.relations.length ?? 0}
-                </span>
-              </div>
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-slate-400">{t("fields.intelSources")}</span>
-                <span className="text-right text-slate-700">
-                  {sources.length
-                    ? sources.join(", ")
-                    : hitSource ||
-                      item.verification?.local_hit_source ||
-                      "-"}
-                </span>
-              </div>
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-slate-400">{t("fields.tags")}</span>
-                <span className="text-right text-slate-700">
-                  {entry?.tags.length ? entry.tags.join(", ") : "-"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <Separator className="bg-slate-200" />
 
           <div>
             <h3 className="text-sm font-semibold text-slate-950">{t("detail.recommendedActions")}</h3>
