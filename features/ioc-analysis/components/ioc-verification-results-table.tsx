@@ -20,7 +20,9 @@ import {
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
 
 const tableGridClass =
-  "grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_168px_88px_128px_98px]"
+  "grid-cols-[minmax(220px,1.4fr)_88px_112px_132px_168px_88px_128px_72px_64px]"
+const actionButtonClass =
+  "h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
 
 export function IocResultsTable({
   items,
@@ -56,7 +58,7 @@ export function IocResultsTable({
   }
 
   return (
-    <div className="min-w-[1060px] overflow-hidden rounded-2xl border border-slate-100">
+    <div className="min-w-[1100px] overflow-hidden rounded-2xl border border-slate-100">
       <div
         className={cn(
           "grid items-center gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400",
@@ -70,7 +72,8 @@ export function IocResultsTable({
         <div>{t("table.time").toLocaleLowerCase()}</div>
         <div className="text-center">{t("fields.risk").toLocaleLowerCase()}</div>
         <div className="text-center">{t("table.verdict").toLocaleLowerCase()}</div>
-        <div>{t("table.action").toLocaleLowerCase()}</div>
+        <div className="text-center">refresh</div>
+        <div className="text-center">copy</div>
       </div>
       <div className="divide-y divide-slate-100">
         {items.map((item) => {
@@ -133,12 +136,12 @@ export function IocResultsTable({
               <div className="flex justify-center">
                 <VerdictBadge item={item} lowercase />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex justify-center">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="size-8 rounded-xl border-blue-100 bg-white text-blue-700 hover:bg-blue-50"
+                  className={actionButtonClass}
                   disabled={verifying || item.status === "checking"}
                   onClick={(event) => {
                     event.stopPropagation()
@@ -152,11 +155,13 @@ export function IocResultsTable({
                     <RefreshCw className="size-4" />
                   )}
                 </Button>
+              </div>
+              <div className="flex justify-center">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="size-8 rounded-xl border-blue-100 bg-white text-blue-700 hover:bg-blue-50"
+                  className={actionButtonClass}
                   onClick={(event) => {
                     event.stopPropagation()
                     onCopy(item.value)
