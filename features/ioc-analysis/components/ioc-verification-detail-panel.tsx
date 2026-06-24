@@ -591,11 +591,9 @@ function iocEntryFields(detail: AttackCaseIOCIocEntryHitDetail): DetailField[] {
 
 function evidenceValue(evidence: AttackCaseIOCJSONEvidence | null) {
   if (!evidence) return "-"
-  return (
-    evidence.raw_json_preview ||
-    formatList(evidence.raw_json_keys) ||
-    displayValue(evidence.raw_json_length)
-  )
+  if (evidence.raw_json_preview) return evidence.raw_json_preview
+  if (evidence.raw_json_keys.length) return formatList(evidence.raw_json_keys)
+  return displayValue(evidence.raw_json_length)
 }
 
 function CopyValueButton({
@@ -945,11 +943,11 @@ function PairedFieldRows({
 
   return (
     <>
-      {rows.map((row) => {
+      {rows.map((row, rowIndex) => {
         if (row.type === "wide") {
           return (
             <FieldRow
-              key={`wide-${row.field.column}`}
+              key={`wide-${rowIndex}-${row.field.column}`}
               field={row.field}
               onCopy={onCopy}
             />
@@ -966,7 +964,7 @@ function PairedFieldRows({
 
         return (
           <div
-            key={`${left.column}-${right?.column || "empty"}`}
+            key={`pair-${rowIndex}-${left.column}-${right?.column || "empty"}`}
             className="grid min-h-10 grid-cols-[128px_minmax(0,1fr)] border-t border-slate-100 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]"
           >
             <div className="px-4 py-2 text-xs font-semibold text-slate-500">
