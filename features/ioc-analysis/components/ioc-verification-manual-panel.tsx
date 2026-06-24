@@ -194,7 +194,7 @@ export function IocVerificationManualPanel({
           <Plus className="size-5" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <h2 className="text-base font-semibold text-slate-950">
+          <h2 className="text-base font-medium text-slate-950">
             {t("manual.title")}
           </h2>
           <p className="text-xs leading-5 text-slate-500">
@@ -247,7 +247,7 @@ export function IocVerificationManualPanel({
         </div>
 
         <div className="flex min-h-[260px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white 2xl:min-h-0 2xl:flex-1">
-          <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_4.75rem_2rem] items-center gap-2 bg-slate-50 px-2.5 py-2 text-[10px] font-semibold uppercase text-slate-400">
+          <div className="grid grid-cols-[4.5rem_minmax(0,1fr)_4.75rem_2rem] items-center gap-2 bg-slate-50 px-2.5 py-2 text-[10px] font-medium uppercase text-slate-400">
             <div>{t("fields.type")}</div>
             <div>{t("manual.table.indicator")}</div>
             <div>{t("manual.table.formatCheck")}</div>
@@ -268,7 +268,7 @@ export function IocVerificationManualPanel({
                       )}
                       aria-hidden="true"
                     />
-                    <span className="truncate font-mono text-[11px] font-bold uppercase text-slate-900">
+                    <span className="truncate text-xs font-medium uppercase text-slate-700">
                       {t(`types.${row.displayType}`)}
                     </span>
                   </span>
@@ -280,7 +280,7 @@ export function IocVerificationManualPanel({
                   </code>
                   <span
                     className={cn(
-                      "inline-flex w-fit items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold",
+                      "inline-flex w-fit items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
                       row.status === "ready"
                         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                         : "border-red-200 bg-red-50 text-red-700",

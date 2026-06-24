@@ -70,7 +70,7 @@ export function IocVerificationResultsPanel({
             <Radar className="size-6" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-slate-950">
+            <h2 className="text-base font-medium text-slate-950">
               {t("results.title")}
             </h2>
             <p className="mt-1 text-xs leading-5 text-slate-500">

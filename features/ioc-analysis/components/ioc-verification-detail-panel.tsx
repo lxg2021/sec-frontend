@@ -57,7 +57,7 @@ export function IocVerificationDetailPanel({
             <Table2 className="size-5" aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-slate-950">
+            <h3 className="text-sm font-medium text-slate-950">
               {t("detail.title")}
             </h3>
             <p className="mt-0.5 truncate text-xs text-slate-500">

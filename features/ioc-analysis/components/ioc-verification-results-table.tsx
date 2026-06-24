@@ -310,7 +310,7 @@ export function IocResultsTable({
     <div className="min-w-[1460px] overflow-hidden rounded-2xl border border-slate-100">
       <div
         className={cn(
-          "grid items-center gap-3 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-400",
+          "grid items-center gap-3 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-400",
           tableGridClass,
         )}
       >
@@ -375,7 +375,7 @@ export function IocResultsTable({
               ) : null}
               <div className="min-w-0 pl-1">
                 <div className="inline-flex max-w-full items-center gap-1.5">
-                  <code className="min-w-0 truncate font-mono text-sm text-slate-950">
+                  <code className="min-w-0 truncate font-mono text-xs font-medium text-slate-800">
                     {item.value}
                   </code>
                   <Button
@@ -401,7 +401,7 @@ export function IocResultsTable({
                 )}
               </div>
               <div
-                className="truncate font-mono text-xs font-semibold text-slate-500"
+                className="truncate text-xs font-medium text-slate-500"
                 title={item.type}
               >
                 {item.type}
@@ -422,19 +422,19 @@ export function IocResultsTable({
                 {occurredAt || "-"}
               </div>
               <div
-                className="truncate text-center font-mono text-xs font-semibold text-slate-500"
+                className="truncate text-center font-mono text-xs font-medium text-slate-500"
                 title={riskLabel}
               >
                 {riskLabel.toLocaleLowerCase()}
               </div>
               <div
-                className="truncate text-center font-mono text-xs font-semibold text-slate-500"
+                className="truncate text-center font-mono text-xs font-medium text-slate-500"
                 title={confidenceLabel}
               >
                 {confidenceLabel.toLocaleLowerCase()}
               </div>
               <div
-                className="truncate text-sm font-semibold text-slate-700"
+                className="truncate text-xs font-medium text-slate-700"
                 title={actionLabel}
               >
                 {actionLabel.toLocaleLowerCase()}

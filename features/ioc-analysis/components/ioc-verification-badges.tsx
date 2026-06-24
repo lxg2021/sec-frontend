@@ -45,7 +45,7 @@ export function VerdictBadge({
     <Badge
       variant="outline"
       className={cn(
-        "w-20 justify-center rounded-full px-2.5 py-1 text-center text-xs font-semibold",
+        "w-20 justify-center rounded-full px-2.5 py-1 text-center text-xs font-medium",
         verdictClass(verdict),
       )}
     >
@@ -74,7 +74,7 @@ export function AllowlistBadge({
   return (
     <Badge
       variant="outline"
-      className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", allowlistClass(item))}
+      className={cn("rounded-full px-2.5 py-1 text-xs font-medium", allowlistClass(item))}
     >
       {lowercase ? label.toLocaleLowerCase() : label}
     </Badge>

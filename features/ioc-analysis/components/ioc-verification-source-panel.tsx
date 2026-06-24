@@ -48,7 +48,7 @@ export function IocVerificationSourcePanel({
           <FileSearch className="size-6" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <h2 className="text-base font-semibold text-slate-950">
+          <h2 className="text-base font-medium text-slate-950">
             {t("casePanel.title")}
           </h2>
           <p className="text-xs leading-5 text-slate-500">
@@ -71,11 +71,11 @@ export function IocVerificationSourcePanel({
 
         <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-y-3 border-y border-slate-100 py-4 text-sm">
           <span className="text-slate-400">{t("detail.workflow")}</span>
-          <span className="truncate font-mono text-slate-700">
+          <span className="truncate font-mono text-xs font-medium text-slate-700">
             {workflowId || "-"}
           </span>
           <span className="text-slate-400">{t("fields.tenant")}</span>
-          <span className="truncate font-mono text-slate-700">
+          <span className="truncate text-slate-700">
             {tenantId}
           </span>
           <span className="text-slate-400">{t("fields.taskStatus")}</span>

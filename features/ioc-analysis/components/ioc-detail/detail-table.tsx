@@ -10,6 +10,7 @@ import type {
 } from "./detail-fields"
 import {
   compactFields,
+  detailFieldKey,
   detailFieldLabel,
   detailFieldValue,
   detailSectionSubtitle,
@@ -42,6 +43,121 @@ function CopyValueButton({
   )
 }
 
+const MONOSPACE_VALUE_FIELD_KEYS = new Set([
+  "authentihash",
+  "batch_id",
+  "certificate_thumbprint",
+  "cert_thumbprint",
+  "display_value",
+  "entry_id",
+  "hash_value",
+  "indicator_key",
+  "ip",
+  "ip_value",
+  "last_batch_id",
+  "last_seen",
+  "last_seen_utc",
+  "md5",
+  "md5_hash",
+  "normalized_value",
+  "peer_entry_id",
+  "peer_value",
+  "reference",
+  "response_md5",
+  "response_sha256",
+  "serial_number",
+  "sha1",
+  "sha1_hash",
+  "sha256",
+  "sha256_hash",
+  "source_url",
+  "source_urls",
+  "url",
+  "urlhaus_download",
+  "urlhaus_reference",
+])
+
+const SOFT_TEXT_FIELD_KEYS = new Set([
+  "comment",
+  "description",
+  "event_info",
+  "info",
+  "object_comment",
+  "object_description",
+  "reason",
+  "reasons",
+  "summary",
+])
+
+function isTechnicalValue(field: DetailField, value: string) {
+  const key = detailFieldKey(field.column)
+  if (MONOSPACE_VALUE_FIELD_KEYS.has(key)) return true
+  if (key.endsWith("_id") || key.endsWith("_url") || key.endsWith("_hash")) {
+    return true
+  }
+  if (/^https?:\/\//i.test(value)) return true
+  if (/^[a-f0-9]{24,}$/i.test(value)) return true
+  if (/^\d{1,3}(?:\.\d{1,3}){3}(?:\/\d{1,2})?$/.test(value)) return true
+  if (/^\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2}:\d{2})?/.test(value)) return true
+  return false
+}
+
+function isSoftTextValue(field: DetailField, value: string) {
+  const key = detailFieldKey(field.column)
+  return SOFT_TEXT_FIELD_KEYS.has(key) || value.length > 48
+}
+
+function DetailValueText({
+  field,
+  value,
+}: {
+  field: DetailField
+  value: string
+}) {
+  const technical = isTechnicalValue(field, value)
+  const softText = isSoftTextValue(field, value)
+  const Component = technical ? "code" : "span"
+
+  return (
+    <Component
+      className={cn(
+        "min-w-0 flex-1 leading-5 text-slate-800",
+        technical
+          ? "break-all font-mono text-[11px] font-medium"
+          : "break-words text-xs",
+        !technical && softText ? "font-normal text-slate-700" : "",
+        !technical && !softText ? "font-medium" : "",
+      )}
+      title={value}
+    >
+      {value}
+    </Component>
+  )
+}
+
+function DetailValueCell({
+  field,
+  value,
+  copyable,
+  copyLabel,
+  onCopy,
+}: {
+  field: DetailField
+  value: string
+  copyable: boolean
+  copyLabel: string
+  onCopy: (value: string) => void
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
+      <DetailValueText field={field} value={value} />
+      {copyable ? (
+        <CopyValueButton value={value} label={copyLabel} onCopy={onCopy} />
+      ) : null}
+    </div>
+  )
+}
+
 export function DetailFieldTable({
   fields,
   columnLabel,
@@ -69,7 +185,7 @@ export function DetailFieldTable({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-semibold text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
+      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
         <div className="px-4 py-2">{columnLabel}</div>
         <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
         <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
@@ -116,7 +232,7 @@ export function DetailFieldSections({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-semibold text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
+      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
         <div className="px-4 py-2">{columnLabel}</div>
         <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
         <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
@@ -136,7 +252,7 @@ export function DetailFieldSections({
           <div key={section.id} className="border-t border-slate-100">
             <div className="bg-slate-50 px-4 py-2">
               <div
-                className="truncate text-xs font-semibold text-slate-700"
+                className="truncate text-xs font-medium text-slate-700"
                 title={title}
               >
                 {title}
@@ -187,20 +303,16 @@ function FieldRow({
           : "grid-cols-[128px_minmax(0,1fr)] md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]",
       )}
     >
-      <div className="px-4 py-2 text-xs font-semibold text-slate-500">
+      <div className="px-4 py-2 text-xs font-medium text-slate-500">
         {label}
       </div>
-      <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
-        <code
-          className="min-w-0 flex-1 break-all font-mono text-[11px] font-semibold leading-5 text-slate-800"
-          title={value}
-        >
-          {value}
-        </code>
-        {copyable ? (
-          <CopyValueButton value={value} label={copyLabel} onCopy={onCopy} />
-        ) : null}
-      </div>
+      <DetailValueCell
+        field={field}
+        value={value}
+        copyable={copyable}
+        copyLabel={copyLabel}
+        onCopy={onCopy}
+      />
     </div>
   )
 }
@@ -275,44 +387,28 @@ function PairedFieldRows({
             key={`pair-${rowIndex}-${left.column}-${right?.column || "empty"}`}
             className="grid min-h-10 grid-cols-[128px_minmax(0,1fr)] border-t border-slate-100 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]"
           >
-            <div className="px-4 py-2 text-xs font-semibold text-slate-500">
+            <div className="px-4 py-2 text-xs font-medium text-slate-500">
               {leftLabel}
             </div>
-            <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
-              <code
-                className="min-w-0 flex-1 break-all font-mono text-[11px] font-semibold leading-5 text-slate-800"
-                title={leftValue}
-              >
-                {leftValue}
-              </code>
-              {leftCopyable ? (
-                <CopyValueButton
-                  value={leftValue}
-                  label={copyLabel}
-                  onCopy={onCopy}
-                />
-              ) : null}
-            </div>
+            <DetailValueCell
+              field={left}
+              value={leftValue}
+              copyable={leftCopyable}
+              copyLabel={copyLabel}
+              onCopy={onCopy}
+            />
             {right ? (
               <>
-                <div className="border-l border-slate-100 px-4 py-2 text-xs font-semibold text-slate-500">
+                <div className="border-l border-slate-100 px-4 py-2 text-xs font-medium text-slate-500">
                   {rightLabel}
                 </div>
-                <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
-                  <code
-                    className="min-w-0 flex-1 break-all font-mono text-[11px] font-semibold leading-5 text-slate-800"
-                    title={rightValue}
-                  >
-                    {rightValue}
-                  </code>
-                  {rightCopyable ? (
-                    <CopyValueButton
-                      value={rightValue}
-                      label={copyLabel}
-                      onCopy={onCopy}
-                    />
-                  ) : null}
-                </div>
+                <DetailValueCell
+                  field={right}
+                  value={rightValue}
+                  copyable={rightCopyable}
+                  copyLabel={copyLabel}
+                  onCopy={onCopy}
+                />
               </>
             ) : (
               <>
