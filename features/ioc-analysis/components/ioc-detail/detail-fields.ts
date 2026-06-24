@@ -94,6 +94,8 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     comment: "备注",
     confidence: "置信度",
     credits: "署名",
+    data_level: "数据层级",
+    description: "描述",
     direction: "方向",
     display_value: "IOC值",
     domain: "域名",
@@ -108,11 +110,13 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     file_name: "文件名",
     file_size: "文件大小",
     filename: "文件名",
+    has_malicious_tag: "含恶意标签",
     hash_type: "哈希类型",
     hash_value: "哈希值",
-    host: "Host",
+    host: "主机",
     hostname: "主机名",
     indicator_key: "指标键",
+    info: "信息",
     ioc: "IOC",
     ioc_type_desc: "IOC类型说明",
     ioc_type: "IOC类型",
@@ -127,6 +131,10 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     malware_malpedia: "Malpedia链接",
     malware_printable: "恶意软件",
     md5: "MD5",
+    mime_type: "MIME类型",
+    object_comment: "对象备注",
+    object_description: "对象描述",
+    object_name: "对象名称",
     object_type: "对象类型",
     observable_type: "观测类型",
     peer_entry_id: "关联条目ID",
@@ -151,6 +159,7 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     sha256: "SHA256",
     signature: "签名",
     sightings: "观测次数",
+    size_bytes: "大小(字节)",
     source: "来源",
     source_count: "来源数量",
     source_ioc_type: "来源IOC类型",
@@ -187,6 +196,8 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     comment: "Comment",
     confidence: "Confidence",
     credits: "Credits",
+    data_level: "Data level",
+    description: "Description",
     direction: "Direction",
     display_value: "IOC value",
     domain: "Domain",
@@ -201,11 +212,13 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     file_name: "File name",
     file_size: "File size",
     filename: "File name",
+    has_malicious_tag: "Has malicious tag",
     hash_type: "Hash type",
     hash_value: "Hash value",
     host: "Host",
     hostname: "Hostname",
     indicator_key: "Indicator key",
+    info: "Info",
     ioc: "IOC",
     ioc_type_desc: "IOC type description",
     ioc_type: "IOC type",
@@ -220,6 +233,10 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     malware_malpedia: "Malpedia link",
     malware_printable: "Malware",
     md5: "MD5",
+    mime_type: "MIME type",
+    object_comment: "Object comment",
+    object_description: "Object description",
+    object_name: "Object name",
     object_type: "Object type",
     observable_type: "Observable type",
     peer_entry_id: "Peer entry ID",
@@ -244,6 +261,7 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     sha256: "SHA256",
     signature: "Signature",
     sightings: "Sightings",
+    size_bytes: "Size bytes",
     source: "Source",
     source_count: "Source count",
     source_ioc_type: "Source IOC type",
@@ -380,6 +398,30 @@ const DIRECTION_VALUES: LocalizedDetailMap = {
   },
 }
 
+const BOOLEAN_VALUES: LocalizedDetailMap = {
+  "zh-CN": {
+    "0": "否",
+    "1": "是",
+    false: "否",
+    no: "否",
+    true: "是",
+    yes: "是",
+  },
+  en: {
+    "0": "No",
+    "1": "Yes",
+    false: "No",
+    no: "No",
+    true: "Yes",
+    yes: "Yes",
+  },
+}
+
+const BOOLEAN_FIELD_KEYS = new Set([
+  "has_malicious_tag",
+  "is_compromised",
+])
+
 function translateWhitelistDetailText(value: string, locale?: string | null) {
   if (normalizeDetailLocale(locale) === "en") return value
 
@@ -461,6 +503,12 @@ function detailFieldValue(field: DetailField, locale?: string | null) {
   if (key === "direction") {
     return (
       localizedDetailValue(DIRECTION_VALUES, normalizedDetailValue(field.value), locale) ||
+      field.value
+    )
+  }
+  if (BOOLEAN_FIELD_KEYS.has(key)) {
+    return (
+      localizedDetailValue(BOOLEAN_VALUES, normalizedDetailValue(field.value), locale) ||
       field.value
     )
   }
@@ -623,7 +671,7 @@ function normalizedDetailValue(value: string) {
 }
 
 function detailFieldKey(column: string) {
-  return column.trim().toLowerCase().replace(/[\s-]+/g, "_")
+  return column.trim().toLowerCase().replace(/[.[\]\s-]+/g, "_")
 }
 
 function sourceTableName(table: string | undefined | null) {

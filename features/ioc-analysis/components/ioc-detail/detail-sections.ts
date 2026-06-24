@@ -17,6 +17,7 @@ import type {
 } from "./detail-fields"
 import {
   compactFields,
+  detailFieldValue,
   detailFieldKey,
   detailViewSourceTableName,
   displayListItems,
@@ -224,8 +225,11 @@ function sourceDisplaySubtitle(
   source: AttackCaseIOCIntelSource,
   locale: IocDetailLocale,
 ) {
+  const sourceType = source.source_type
+    ? detailFieldValue({ column: "source_type", value: source.source_type }, locale)
+    : ""
   const parts = [
-    source.source_type,
+    sourceType,
     source.records.length > 1
       ? locale === "zh-CN"
         ? `${source.records.length} 条记录`
