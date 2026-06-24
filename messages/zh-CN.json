@@ -3829,6 +3829,7 @@
           "hit": "命中",
           "allowlisted": "白名单",
           "miss": "未命中",
+          "skipped": "跳过",
           "suppressed": "远程异常",
           "error": "错误"
         },

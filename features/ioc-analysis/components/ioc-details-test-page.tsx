@@ -36,7 +36,10 @@ import type {
   AttackCaseIOCIocEntryRecord,
   AttackCaseIOCIocObservation,
   AttackCaseIOCIocRelation,
+  AttackCaseIOCIntelSource,
   AttackCaseIOCRawFieldGroup,
+  AttackCaseIOCSourceFact,
+  AttackCaseIOCSourceRecord,
   AttackCaseIOCVerificationItem,
   IocVerificationItem,
   IocVerificationStatus,
@@ -443,7 +446,13 @@ function rawGroupFromJSON(
 
 function sourceTypeForName(sourceName: string) {
   const normalized = sourceName.trim().toLowerCase()
-  if (normalized === "urlhaus" || normalized === "threatfox") return "threat_feed"
+  if (
+    normalized === "urlhaus" ||
+    normalized === "threatfox" ||
+    normalized === "malwarebazaar"
+  ) {
+    return "threat_feed"
+  }
   return normalized || "source"
 }
 
@@ -469,6 +478,85 @@ function detailField(
     important: options.important ?? true,
     source_path: options.sourcePath || key,
   }
+}
+
+function compactStrings(values: Array<string | undefined | null>) {
+  const seen = new Set<string>()
+  const items: string[] = []
+  values.forEach((value) => {
+    const normalized = value?.trim() || ""
+    if (!normalized) return
+    const key = normalized.toLowerCase()
+    if (seen.has(key)) return
+    seen.add(key)
+    items.push(normalized)
+  })
+  return items
+}
+
+function sourceFact(
+  key: string,
+  label: string,
+  value: string | number | undefined | null,
+  sourcePath = key,
+): AttackCaseIOCSourceFact | null {
+  const normalized = displayValue(value)
+  if (normalized === "-") return null
+  return {
+    key,
+    label,
+    value: normalized,
+    source_path: sourcePath,
+  }
+}
+
+function compactSourceFacts(
+  facts: Array<AttackCaseIOCSourceFact | null | undefined>,
+) {
+  const seen = new Set<string>()
+  const items: AttackCaseIOCSourceFact[] = []
+  facts.forEach((fact) => {
+    if (!fact) return
+    const key = `${fact.key.toLowerCase()}\u0000${fact.value.toLowerCase()}`
+    if (seen.has(key)) return
+    seen.add(key)
+    items.push(fact)
+  })
+  return items
+}
+
+function compactSourceFields(fields: AttackCaseIOCEvidenceField[]) {
+  const seen = new Set<string>()
+  const items: AttackCaseIOCEvidenceField[] = []
+  fields.forEach((fieldItem) => {
+    const key = `${fieldItem.source_path || fieldItem.key}\u0000${fieldItem.value}`.toLowerCase()
+    if (seen.has(key)) return
+    seen.add(key)
+    items.push(fieldItem)
+  })
+  return items
+}
+
+function minimumTextTime(values: string[]) {
+  return compactStrings(values).sort()[0] || ""
+}
+
+function maximumTextTime(values: string[]) {
+  const sorted = compactStrings(values).sort()
+  return sorted[sorted.length - 1] || ""
+}
+
+function sourceRecordKind(sourceName: string, recordId: string) {
+  const source = sourceName.trim().toLowerCase()
+  const record = recordId.trim().toLowerCase()
+  if (record.startsWith("misp:event:")) return "misp_export"
+  if (source === "urlhaus" && /^\d+$/.test(record)) return "urlhaus_native"
+  if (source === "threatfox" && /^\d+$/.test(record)) return "threatfox_native"
+  if (source === "malwarebazaar" && /^\d+$/.test(record)) {
+    return "malwarebazaar_native"
+  }
+  if (source) return `${source}_record`
+  return "source_record"
 }
 
 function whitelistSourceRef(record: WhitelistMockRecord): AttackCaseIOCHitSourceRef {
@@ -646,8 +734,81 @@ function whitelistEvidence(record: WhitelistMockRecord): AttackCaseIOCHitEvidenc
   }
 }
 
+function whitelistSourceKeyFields(
+  record: WhitelistMockRecord,
+  evidence: AttackCaseIOCHitEvidence,
+) {
+  const detailFields = evidence.field_groups
+    .filter((group) => group.group !== "allowlist")
+    .flatMap((group) => group.fields)
+
+  return compactSourceFields([
+    detailField("allowlist", "entry_key", "entry key", record.entryKey, {
+      copyable: true,
+      sourcePath: "entry_key",
+    }),
+    detailField("allowlist", "match_type", "match type", record.matchType, {
+      sourcePath: "match_type",
+    }),
+    detailField("allowlist", "display_value", "display value", record.value, {
+      copyable: true,
+      sourcePath: "display_value",
+    }),
+    ...detailFields,
+  ])
+}
+
+function whitelistIntelSource(
+  record: WhitelistMockRecord,
+  evidence: AttackCaseIOCHitEvidence,
+): AttackCaseIOCIntelSource {
+  const facts = compactSourceFacts([
+    sourceFact("allow_level", "allow level", record.allowLevel, "allow_level"),
+    sourceFact("action", "action", record.action, "action"),
+    sourceFact(
+      "source_version",
+      "source version",
+      record.sourceVersion,
+      "source_version",
+    ),
+    sourceFact("reason", "reason", record.reason, "reason"),
+  ])
+  const keyFields = whitelistSourceKeyFields(record, evidence)
+  const sourceUrls = compactStrings([record.sourceUrl])
+
+  return {
+    source_type: "whitelist",
+    source_name: record.sourceName || "whitelist",
+    display_name: record.sourceName || "whitelist",
+    source_urls: sourceUrls,
+    tags: [],
+    max_confidence: record.confidence,
+    max_risk_score: 0,
+    first_seen: "",
+    last_seen: record.updatedAt,
+    facts,
+    key_fields: keyFields,
+    records: [
+      {
+        record_id: record.entryKey,
+        record_kind: "whitelist_entry",
+        title: `${record.sourceName || "whitelist"} · ${record.updatedAt}`,
+        source_url: record.sourceUrl,
+        first_seen: "",
+        last_seen: record.updatedAt,
+        confidence: record.confidence,
+        tags: [],
+        facts,
+        fields: keyFields,
+        raw: evidence.raw,
+      },
+    ],
+  }
+}
+
 function whitelistDetailView(record: WhitelistMockRecord): AttackCaseIOCHitDetailView {
   const sourceRef = whitelistSourceRef(record)
+  const evidence = whitelistEvidence(record)
 
   return {
     source_ref: sourceRef,
@@ -667,10 +828,10 @@ function whitelistDetailView(record: WhitelistMockRecord): AttackCaseIOCHitDetai
       source_count: 0,
       feed_count: 0,
     },
-    evidence: [whitelistEvidence(record)],
+    evidence: [evidence],
     relations: [],
     raw_groups: [],
-    sources: [],
+    sources: [whitelistIntelSource(record, evidence)],
   }
 }
 
@@ -843,7 +1004,89 @@ function blacklistEvidence(record: BlacklistMockRecord): AttackCaseIOCHitEvidenc
   }
 }
 
+function blacklistIntelSource(
+  record: BlacklistMockRecord,
+  evidence: AttackCaseIOCHitEvidence,
+): AttackCaseIOCIntelSource {
+  const facts = compactSourceFacts([
+    sourceFact("status", "status", record.status, "status"),
+    sourceFact("categories", "categories", record.categories.join(", "), "categories"),
+  ])
+  const keyFields = compactSourceFields([
+    detailField(
+      "intelligence",
+      "indicator_key",
+      "indicator key",
+      record.indicatorKey,
+      {
+        copyable: true,
+        sourcePath: "indicator_key",
+      },
+    ),
+    detailField(
+      "intelligence",
+      "value_subtype",
+      "value subtype",
+      record.valueSubtype,
+      {
+        sourcePath: "value_subtype",
+      },
+    ),
+    detailField(
+      "intelligence",
+      "display_value",
+      "display value",
+      record.displayValue,
+      {
+        copyable: true,
+        sourcePath: "display_value",
+      },
+    ),
+    detailField(
+      "intelligence",
+      "normalized_value",
+      "normalized value",
+      record.normalizedValue,
+      {
+        copyable: true,
+        sourcePath: "normalized_value",
+      },
+    ),
+  ])
+
+  return {
+    source_type: "blacklist",
+    source_name: "ioc_blacklist_indicator",
+    display_name: "IOC Blacklist",
+    source_urls: compactStrings(record.sourceUrls),
+    tags: [],
+    max_confidence: record.confidence,
+    max_risk_score: 0,
+    first_seen: record.firstSeen,
+    last_seen: record.lastSeen,
+    facts,
+    key_fields: keyFields,
+    records: [
+      {
+        record_id: record.indicatorKey,
+        record_kind: "blacklist_indicator",
+        title: `${record.sourceNames[0] || "IOC blacklist"} · ${record.firstSeen}`,
+        source_url: record.sourceUrls[0] || "",
+        first_seen: record.firstSeen,
+        last_seen: record.lastSeen,
+        confidence: record.confidence,
+        tags: [],
+        facts,
+        fields: keyFields,
+        raw: evidence.raw,
+      },
+    ],
+  }
+}
+
 function blacklistDetailView(record: BlacklistMockRecord): AttackCaseIOCHitDetailView {
+  const evidence = blacklistEvidence(record)
+
   return {
     source_ref: blacklistSourceRef(record),
     primary: {
@@ -862,10 +1105,10 @@ function blacklistDetailView(record: BlacklistMockRecord): AttackCaseIOCHitDetai
       source_count: record.sourceCount,
       feed_count: record.feedCount,
     },
-    evidence: [blacklistEvidence(record)],
+    evidence: [evidence],
     relations: [],
     raw_groups: [],
-    sources: [],
+    sources: [blacklistIntelSource(record, evidence)],
   }
 }
 
@@ -1089,6 +1332,107 @@ function iocEntryHitDetail(record: IocEntryMockRecord): AttackCaseIOCIocEntryHit
   }
 }
 
+function iocEntryObservationKeyFields(observation: IocEntryMockObservation) {
+  return compactSourceFields(
+    observation.fieldGroups.flatMap((group) =>
+      group.fields.filter((fieldItem) => fieldItem.important),
+    ),
+  )
+}
+
+function iocEntryObservationFacts(observation: IocEntryMockObservation) {
+  return compactSourceFacts([
+    ...observation.reasons.map((reason) =>
+      sourceFact(reason.type, reason.type, reason.value, reason.source_path),
+    ),
+    sourceFact("summary", "summary", observation.summary, "summary"),
+  ])
+}
+
+function iocEntrySourceRecord(
+  observation: IocEntryMockObservation,
+): AttackCaseIOCSourceRecord {
+  return {
+    record_id: observation.sourceRecordId,
+    record_kind: sourceRecordKind(observation.sourceName, observation.sourceRecordId),
+    title: `${observation.sourceName} · ${observation.firstSeen}`,
+    source_url: observation.sourceUrl,
+    first_seen: observation.firstSeen,
+    last_seen: observation.lastSeen,
+    confidence: observation.confidence,
+    tags: compactStrings(observation.tags),
+    facts: iocEntryObservationFacts(observation),
+    fields: iocEntryObservationKeyFields(observation),
+    raw: jsonEvidence(observation.rawJson),
+  }
+}
+
+function iocEntryIntelSources(record: IocEntryMockRecord): AttackCaseIOCIntelSource[] {
+  const byKey = new Map<string, AttackCaseIOCIntelSource>()
+
+  record.observations.forEach((observation) => {
+    const sourceType = sourceTypeForName(observation.sourceName)
+    const sourceName = observation.sourceName.trim()
+    const key = `${sourceType}\u0000${sourceName}`.toLowerCase()
+    const existing =
+      byKey.get(key) ??
+      ({
+        source_type: sourceType,
+        source_name: sourceName,
+        display_name: sourceName || sourceType,
+        source_urls: [],
+        tags: [],
+        max_confidence: 0,
+        max_risk_score: 0,
+        first_seen: "",
+        last_seen: "",
+        facts: [],
+        key_fields: [],
+        records: [],
+      } satisfies AttackCaseIOCIntelSource)
+
+    existing.source_urls = compactStrings([
+      ...existing.source_urls,
+      observation.sourceUrl,
+    ])
+    existing.tags = compactStrings([...existing.tags, ...observation.tags])
+    existing.max_confidence = Math.max(
+      existing.max_confidence,
+      observation.confidence,
+    )
+    existing.max_risk_score = Math.max(
+      existing.max_risk_score,
+      record.entry.riskScore,
+    )
+    existing.first_seen = minimumTextTime([
+      existing.first_seen,
+      observation.firstSeen,
+    ])
+    existing.last_seen = maximumTextTime([
+      existing.last_seen,
+      observation.lastSeen,
+    ])
+    existing.facts = compactSourceFacts([
+      ...existing.facts,
+      ...iocEntryObservationFacts(observation),
+    ])
+    existing.key_fields = compactSourceFields([
+      ...existing.key_fields,
+      ...iocEntryObservationKeyFields(observation),
+    ])
+    existing.records = [...existing.records, iocEntrySourceRecord(observation)]
+
+    byKey.set(key, existing)
+  })
+
+  return Array.from(byKey.values()).sort((left, right) => {
+    if (left.source_type !== right.source_type) {
+      return left.source_type.localeCompare(right.source_type)
+    }
+    return left.display_name.localeCompare(right.display_name)
+  })
+}
+
 function iocEntryDetailView(record: IocEntryMockRecord): AttackCaseIOCHitDetailView {
   const entryExtra = rawGroupFromJSON(
     "IOC Entry Context",
@@ -1119,7 +1463,7 @@ function iocEntryDetailView(record: IocEntryMockRecord): AttackCaseIOCHitDetailV
     evidence: record.observations.map(iocEntryEvidence),
     relations: record.relations.map(iocEntryRelationView),
     raw_groups: entryExtra ? [entryExtra] : [],
-    sources: [],
+    sources: iocEntryIntelSources(record),
   }
 }
 

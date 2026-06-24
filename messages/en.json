@@ -3827,6 +3827,7 @@
           "hit": "Hit",
           "allowlisted": "Whitelisted",
           "miss": "Miss",
+          "skipped": "Skipped",
           "suppressed": "Remote error",
           "error": "Error"
         },
