@@ -1,6 +1,6 @@
 "use client"
 
-import { Clipboard, Database, Loader2, Table2 } from "lucide-react"
+import { Clipboard, Loader2, Table2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type {
@@ -9,7 +9,6 @@ import type {
   AttackCaseIOCHitDetailView,
   AttackCaseIOCHitEvidence,
   AttackCaseIOCHitRelation,
-  AttackCaseIOCHitSourceRef,
   AttackCaseIOCIocEntryHitDetail,
   AttackCaseIOCIocObservation,
   AttackCaseIOCIocRelation,
@@ -24,6 +23,7 @@ type DetailField = {
   column: string
   value: string
   wide?: boolean
+  copyable?: boolean
 }
 
 type DetailFieldSection = {
@@ -86,6 +86,120 @@ function detailFieldValue(field: DetailField) {
   return field.value
 }
 
+const COPYABLE_DETAIL_FIELD_KEYS = new Set([
+  "authentihash",
+  "certificate_thumbprint",
+  "cert_thumbprint",
+  "display_value",
+  "domain",
+  "file_name",
+  "filename",
+  "gimphash",
+  "hash_value",
+  "host",
+  "hostname",
+  "imphash",
+  "import_hash",
+  "ip",
+  "ip_value",
+  "issuer",
+  "issuer_cn",
+  "md5",
+  "md5_hash",
+  "normalized_value",
+  "peer_value",
+  "pehash",
+  "rdata",
+  "registered_domain",
+  "reference",
+  "rrname",
+  "serial_number",
+  "sha1",
+  "sha1_hash",
+  "sha224",
+  "sha224_hash",
+  "sha256",
+  "sha256_hash",
+  "sha384",
+  "sha384_hash",
+  "sha3_384",
+  "sha3_384_hash",
+  "sha512",
+  "sha512_hash",
+  "source_url",
+  "source_urls",
+  "ssdeep",
+  "subject",
+  "subject_cn",
+  "telfhash",
+  "tlsh",
+  "url",
+  "urlhaus_link",
+  "urlhaus_reference",
+  "vhash",
+])
+
+const NON_COPYABLE_DETAIL_FIELD_KEYS = new Set([
+  "action",
+  "allow_level",
+  "categories",
+  "confidence",
+  "credits",
+  "direction",
+  "entry_id",
+  "extra_json",
+  "extra_json_keys",
+  "feed_count",
+  "feed_names",
+  "first_seen",
+  "first_seen_utc",
+  "hash_algorithm",
+  "hash_type",
+  "indicator_key",
+  "ioc_type",
+  "last_batch_id",
+  "last_seen",
+  "last_seen_utc",
+  "meta_category",
+  "normalized_value_hash",
+  "object_type",
+  "observable_type",
+  "peer_entry_id",
+  "peer_ioc_type",
+  "reason",
+  "reasons",
+  "relation_type",
+  "reporter",
+  "risk_score",
+  "scores",
+  "source_count",
+  "source_name",
+  "source_names",
+  "source_type",
+  "status",
+  "summary",
+  "tags",
+  "thumbprint_algorithm",
+  "url_status",
+  "value_hash",
+  "value_subtype",
+])
+
+function shouldCopyDetailField(field: DetailField, value: string) {
+  if (!value || value === "-" || value === "[]") return false
+
+  const key = detailFieldKey(detailFieldLabel(field.column))
+  if (NON_COPYABLE_DETAIL_FIELD_KEYS.has(key)) return false
+  if (typeof field.copyable === "boolean") return field.copyable
+  if (COPYABLE_DETAIL_FIELD_KEYS.has(key)) return true
+
+  return (
+    key.endsWith("_url") ||
+    key.endsWith("_hash") ||
+    key.endsWith("_thumbprint")
+  )
+}
+
 function isEmptyDisplayValue(value: string) {
   return !value || value === "-" || value === "[]"
 }
@@ -122,12 +236,17 @@ function compactSections(sections: DetailFieldSection[]) {
     .filter((section) => section.fields.length)
 }
 
-function field(column: string, value: string | number | undefined | null, wide = false) {
-  return { column, value: displayValue(value), wide }
+function field(
+  column: string,
+  value: string | number | undefined | null,
+  wide = false,
+  copyable?: boolean,
+) {
+  return { column, value: displayValue(value), wide, copyable }
 }
 
-function listField(column: string, values: string[], wide = false) {
-  return { column, value: formatList(values), wide }
+function listField(column: string, values: string[], wide = false, copyable?: boolean) {
+  return { column, value: formatList(values), wide, copyable }
 }
 
 function fieldTitle(value: string) {
@@ -157,29 +276,6 @@ function shouldUseWideField(column: string, value: string) {
     normalized.includes("record_id") ||
     normalized.includes("indicator_key")
   )
-}
-
-function tableName(source: AttackCaseIOCHitSourceRef | null) {
-  if (!source) return ""
-  return [source.database, source.table].filter(Boolean).join(".")
-}
-
-function hitSourceFromItem(item: IocVerificationItem) {
-  const verification = item.verification
-  if (!verification) return null
-  if (
-    !verification.hit_source_database &&
-    !verification.hit_source_table &&
-    !verification.hit_source_record_id
-  ) {
-    return null
-  }
-
-  return {
-    database: verification.hit_source_database,
-    table: verification.hit_source_table,
-    record_id: verification.hit_source_record_id,
-  }
 }
 
 function hasFeedCoverage(detailView: AttackCaseIOCHitDetailView) {
@@ -291,6 +387,7 @@ function fieldGroupSection(
         column,
         value: displayValue(item.value),
         wide: shouldUseWideField(column, item.value),
+        copyable: item.copyable || undefined,
       }
     }),
   }
@@ -381,6 +478,7 @@ function rawGroupSection(
         column,
         value: displayValue(item.value),
         wide: item.multiline || shouldUseWideField(column, item.value),
+        copyable: item.copyable || undefined,
       }
     }),
   }
@@ -568,10 +666,8 @@ function DetailFieldSections({
 
 function IocEntryObservationRows({
   observations,
-  onCopy,
 }: {
   observations: AttackCaseIOCIocObservation[]
-  onCopy: (value: string) => void
 }) {
   if (!observations.length) return null
 
@@ -612,7 +708,6 @@ function IocEntryObservationRows({
                     <code className="truncate font-mono" title={evidence}>
                       {evidence}
                     </code>
-                    <CopyValueButton value={evidence} onCopy={onCopy} />
                   </span>
                 </div>
               )
@@ -626,10 +721,8 @@ function IocEntryObservationRows({
 
 function IocEntryRelationRows({
   relations,
-  onCopy,
 }: {
   relations: AttackCaseIOCIocRelation[]
-  onCopy: (value: string) => void
 }) {
   if (!relations.length) return null
 
@@ -670,7 +763,6 @@ function IocEntryRelationRows({
                     >
                       {displayValue(peerEntryId)}
                     </code>
-                    <CopyValueButton value={peerEntryId} onCopy={onCopy} />
                   </span>
                   <span className="truncate" title={relation.last_seen}>
                     {displayValue(relation.last_seen)}
@@ -704,8 +796,8 @@ function IocEntryDetailView({
         valueLabel={valueLabel}
         onCopy={onCopy}
       />
-      <IocEntryObservationRows observations={detail.observations} onCopy={onCopy} />
-      <IocEntryRelationRows relations={detail.relations} onCopy={onCopy} />
+      <IocEntryObservationRows observations={detail.observations} />
+      <IocEntryRelationRows relations={detail.relations} />
     </div>
   )
 }
@@ -740,6 +832,7 @@ function FieldRow({
 }) {
   const label = detailFieldLabel(field.column)
   const value = detailFieldValue(field)
+  const copyable = shouldCopyDetailField(field, value)
 
   return (
     <div
@@ -762,7 +855,7 @@ function FieldRow({
         >
           {value}
         </code>
-        <CopyValueButton value={value} onCopy={onCopy} />
+        {copyable ? <CopyValueButton value={value} onCopy={onCopy} /> : null}
       </div>
     </div>
   )
@@ -820,8 +913,10 @@ function PairedFieldRows({
         const { left, right } = row
         const leftLabel = detailFieldLabel(left.column)
         const leftValue = detailFieldValue(left)
+        const leftCopyable = shouldCopyDetailField(left, leftValue)
         const rightLabel = right ? detailFieldLabel(right.column) : ""
         const rightValue = right ? detailFieldValue(right) : ""
+        const rightCopyable = right ? shouldCopyDetailField(right, rightValue) : false
 
         return (
           <div
@@ -838,7 +933,9 @@ function PairedFieldRows({
               >
                 {leftValue}
               </code>
-              <CopyValueButton value={leftValue} onCopy={onCopy} />
+              {leftCopyable ? (
+                <CopyValueButton value={leftValue} onCopy={onCopy} />
+              ) : null}
             </div>
             {right ? (
               <>
@@ -852,7 +949,9 @@ function PairedFieldRows({
                   >
                     {rightValue}
                   </code>
-                  <CopyValueButton value={rightValue} onCopy={onCopy} />
+                  {rightCopyable ? (
+                    <CopyValueButton value={rightValue} onCopy={onCopy} />
+                  ) : null}
                 </div>
               </>
             ) : (
@@ -883,14 +982,6 @@ export function IocVerificationDetailPanel({
   const detailView = detail?.detail_view ?? null
   const iocEntry = detail?.hit_source_detail?.ioc_entry ?? null
   const blacklist = detail?.hit_source_detail?.blacklist_indicator ?? null
-  const source =
-    detailView?.source_ref ??
-    iocEntry?.source ??
-    blacklist?.source ??
-    detail?.hit_source ??
-    (item ? hitSourceFromItem(item) : null)
-  const sourceTable = tableName(source)
-  const recordId = source?.record_id || item?.verification?.hit_source_record_id || ""
 
   return (
     <section
@@ -899,7 +990,7 @@ export function IocVerificationDetailPanel({
         className,
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
+      <div className="flex items-center border-b border-slate-100 bg-slate-50 px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
             <Table2 className="size-5" aria-hidden="true" />
@@ -912,27 +1003,6 @@ export function IocVerificationDetailPanel({
               {t("detail.description")}
             </p>
           </div>
-        </div>
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {sourceTable ? (
-            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white">
-              <Database className="size-3.5 shrink-0" aria-hidden="true" />
-              <span className="truncate">{sourceTable}</span>
-            </span>
-          ) : null}
-          {recordId ? (
-            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-              <span className="truncate font-mono">{recordId}</span>
-              <button
-                type="button"
-                className="text-blue-500 hover:text-blue-700"
-                onClick={() => onCopy(recordId)}
-                aria-label="Copy record id"
-              >
-                <Clipboard className="size-3.5" aria-hidden="true" />
-              </button>
-            </span>
-          ) : null}
         </div>
       </div>
 
