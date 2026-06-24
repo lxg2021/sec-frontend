@@ -206,6 +206,10 @@ function isEmptyDisplayValue(value: string) {
   return !value || value === "-" || value === "[]"
 }
 
+function normalizedDetailValue(value: string) {
+  return value.trim().toLowerCase()
+}
+
 function detailFieldKey(column: string) {
   return column.trim().toLowerCase().replace(/[\s-]+/g, "_")
 }
@@ -226,10 +230,27 @@ function isHiddenDetailField(column: string) {
 }
 
 function compactFields(fields: DetailField[]) {
-  return fields.filter(
+  const visibleFields = fields.filter(
     (field) =>
       !isHiddenDetailField(field.column) && !isEmptyDisplayValue(field.value),
   )
+  const objectTypeValue =
+    visibleFields.find(
+      (field) => detailFieldKey(detailFieldLabel(field.column)) === "object_type",
+    )?.value || ""
+  const normalizedObjectType = normalizedDetailValue(objectTypeValue)
+
+  return visibleFields.filter((field) => {
+    const key = detailFieldKey(detailFieldLabel(field.column))
+    if (
+      key === "meta_category" &&
+      normalizedObjectType &&
+      normalizedDetailValue(field.value) === normalizedObjectType
+    ) {
+      return false
+    }
+    return true
+  })
 }
 
 function compactSections(sections: DetailFieldSection[]) {
