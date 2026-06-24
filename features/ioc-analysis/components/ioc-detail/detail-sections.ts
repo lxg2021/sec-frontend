@@ -782,7 +782,7 @@ function fieldGroupSection(
     id,
     title: group.title || fieldTitle(group.group) || "Evidence",
     subtitle,
-    fields: evidenceGroupFields(group),
+    fields: sourceTwoColumnFields(evidenceGroupFields(group)),
   }
 }
 
@@ -827,7 +827,7 @@ function relationSections(detailView: AttackCaseIOCHitDetailView) {
           title: relation.relation_type
             ? `Relation · ${relation.relation_type}`
             : `Relation ${index + 1}`,
-          fields: [
+          fields: sourceTwoColumnFields([
             field("direction", relation.direction),
             field("relation_type", relation.relation_type),
             field("peer_ioc_type", relation.peer_ioc_type),
@@ -841,7 +841,7 @@ function relationSections(detailView: AttackCaseIOCHitDetailView) {
             field("observed_at", time?.observed_at),
             field("added_at", time?.added_at),
             field("event_time", time?.event_time),
-          ],
+          ]),
         },
         ...relation.field_groups.map((group, groupIndex) =>
           fieldGroupSection(

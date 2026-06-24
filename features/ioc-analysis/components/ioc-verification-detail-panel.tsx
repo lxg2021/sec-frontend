@@ -7,18 +7,23 @@ import type { IocVerificationItem } from "@/features/ioc-analysis/types"
 import { cn } from "@/shared/lib/utils"
 
 import { DetailFieldSections, DetailFieldTable } from "./ioc-detail/detail-table"
-import { IocEntryDetailView } from "./ioc-detail/detail-legacy"
 import { normalizeDetailLocale } from "./ioc-detail/detail-fields"
 import { blacklistFields } from "./ioc-detail/detail-legacy-fields"
+import {
+  iocEntryHitDetailView,
+  queryResultDetailView,
+} from "./ioc-detail/detail-query-fallback"
 import { detailViewSections } from "./ioc-detail/detail-sections"
 
 export function IocVerificationDetailPanel({
   className,
   item,
+  loading = false,
   onCopy,
 }: {
   className?: string
   item: IocVerificationItem | null
+  loading?: boolean
   onCopy: (value: string) => void
 }) {
   const t = useTranslations("pages.iocAnalysis.verification")
@@ -28,21 +33,14 @@ export function IocVerificationDetailPanel({
   const detail = item?.verification_detail ?? null
   const detailView = detail?.detail_view ?? null
   const iocEntry = detail?.hit_source_detail?.ioc_entry ?? null
+  const iocEntryDetailView = iocEntryHitDetailView(iocEntry)
   const blacklist = detail?.hit_source_detail?.blacklist_indicator ?? null
+  const queryResultFallbackView = queryResultDetailView(item)
+  const normalizedDetailView =
+    detailView || iocEntryDetailView || queryResultFallbackView
   const detailColumnLabel = t("detail.column")
   const detailValueLabel = t("detail.value")
   const copyFieldValueLabel = t("detail.copyFieldValue")
-  const legacyLabels = {
-    observations: t("detail.observations"),
-    sourceName: t("detail.sourceName"),
-    confidence: t("detail.confidence"),
-    lastSeen: t("detail.lastSeen"),
-    evidence: t("detail.evidence"),
-    relations: t("detail.relations"),
-    direction: t("detail.direction"),
-    relationType: t("detail.relationType"),
-    peerEntryId: t("detail.peerEntryId"),
-  }
 
   return (
     <section
@@ -72,23 +70,13 @@ export function IocVerificationDetailPanel({
           <div className="flex min-h-[156px] items-center justify-center px-4 py-8 text-sm text-slate-500">
             {t("detail.noSelection")}
           </div>
-        ) : detailView ? (
+        ) : normalizedDetailView ? (
           <DetailFieldSections
-            sections={detailViewSections(detailView, detailLocale)}
+            sections={detailViewSections(normalizedDetailView, detailLocale)}
             columnLabel={detailColumnLabel}
             valueLabel={detailValueLabel}
             locale={detailLocale}
             copyLabel={copyFieldValueLabel}
-            onCopy={onCopy}
-          />
-        ) : iocEntry ? (
-          <IocEntryDetailView
-            detail={iocEntry}
-            columnLabel={detailColumnLabel}
-            valueLabel={detailValueLabel}
-            locale={detailLocale}
-            copyLabel={copyFieldValueLabel}
-            labels={legacyLabels}
             onCopy={onCopy}
           />
         ) : blacklist ? (
@@ -100,7 +88,7 @@ export function IocVerificationDetailPanel({
             copyLabel={copyFieldValueLabel}
             onCopy={onCopy}
           />
-        ) : item.verification && !detail ? (
+        ) : loading || (item.verification && !detail) ? (
           <div className="flex min-h-[156px] items-center justify-center gap-2 px-4 py-8 text-sm text-slate-500">
             <Loader2 className="size-4 animate-spin text-sky-600" aria-hidden="true" />
             {t("detail.loading")}

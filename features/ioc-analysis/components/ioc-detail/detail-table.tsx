@@ -185,7 +185,7 @@ export function DetailFieldTable({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
+      <div className="sticky top-0 z-10 grid grid-cols-[144px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]">
         <div className="px-4 py-2">{columnLabel}</div>
         <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
         <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
@@ -232,7 +232,7 @@ export function DetailFieldSections({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
+      <div className="sticky top-0 z-10 grid grid-cols-[144px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]">
         <div className="px-4 py-2">{columnLabel}</div>
         <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
         <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
@@ -299,8 +299,8 @@ function FieldRow({
       className={cn(
         "grid min-h-10 items-center border-t border-slate-100",
         field.wide
-          ? "grid-cols-[128px_minmax(0,1fr)]"
-          : "grid-cols-[128px_minmax(0,1fr)] md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]",
+          ? "grid-cols-[144px_minmax(0,1fr)]"
+          : "grid-cols-[144px_minmax(0,1fr)] md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]",
       )}
     >
       <div className="flex items-center px-4 py-2 text-xs font-medium text-slate-500">
@@ -385,7 +385,7 @@ function PairedFieldRows({
         return (
           <div
             key={`pair-${rowIndex}-${left.column}-${right?.column || "empty"}`}
-            className="grid min-h-10 grid-cols-[128px_minmax(0,1fr)] border-t border-slate-100 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]"
+            className="grid min-h-10 grid-cols-[144px_minmax(0,1fr)] border-t border-slate-100 md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]"
           >
             <div className="flex items-center px-4 py-2 text-xs font-medium text-slate-500">
               {leftLabel}

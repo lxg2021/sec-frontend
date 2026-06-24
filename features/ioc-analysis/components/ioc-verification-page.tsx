@@ -29,6 +29,7 @@ import {
   createAttackCaseIocVerifyTask,
   getAttackCaseIocVerification,
   getAttackCaseIocVerifyTask,
+  getIocHitDetail,
   listAttackCaseIocCandidates,
   queryIoc,
 } from "@/features/ioc-analysis/api"
@@ -356,6 +357,7 @@ export function IocVerificationPage() {
   const [typeFilter, setTypeFilter] = useState<IocVerificationType | "all">("all")
   const [statusFilter, setStatusFilter] = useState<IocVerificationStatus | "all">("all")
   const [actionOnly, setActionOnly] = useState(false)
+  const [detailLoadingItemId, setDetailLoadingItemId] = useState("")
   const extractRunIdRef = useRef(0)
   const verifyRunIdRef = useRef(0)
   const detailRunIdRef = useRef(0)
@@ -447,6 +449,7 @@ export function IocVerificationPage() {
 
     const runId = detailRunIdRef.current + 1
     detailRunIdRef.current = runId
+    setDetailLoadingItemId(selectedItem.id)
 
     void (async () => {
       try {
@@ -481,6 +484,10 @@ export function IocVerificationPage() {
         )
       } catch {
         // Detail enrichment is best-effort; the list row remains usable.
+      } finally {
+        if (mountedRef.current && detailRunIdRef.current === runId) {
+          setDetailLoadingItemId("")
+        }
       }
     })()
   }, [
@@ -495,6 +502,75 @@ export function IocVerificationPage() {
     selectedItem?.verification?.local_eval_raw_json,
     selectedItem?.verification?.verification_id,
     selectedItem?.verification?.whitelist_status,
+    tenantId,
+  ])
+
+  useEffect(() => {
+    const manualItemId = selectedItem?.id?.trim() || ""
+    const value = selectedItem?.value?.trim() || ""
+    const hasVerificationDetail = Boolean(selectedItem?.verification_detail)
+    const shouldLoad =
+      selectedItem?.origin === "manual" &&
+      Boolean(manualItemId) &&
+      Boolean(value) &&
+      !hasVerificationDetail &&
+      selectedItem.status !== "idle" &&
+      selectedItem.status !== "checking" &&
+      selectedItem.status !== "error"
+
+    if (!selectedItem || !shouldLoad) return
+
+    const runId = detailRunIdRef.current + 1
+    detailRunIdRef.current = runId
+    setDetailLoadingItemId(manualItemId)
+
+    void (async () => {
+      try {
+        const detail = await getIocHitDetail({
+          tenantId,
+          type: selectedItem.type,
+          value,
+        })
+
+        if (!mountedRef.current || detailRunIdRef.current !== runId) return
+
+        setItems((current) =>
+          current.map((item) => {
+            if (item.id !== manualItemId) return item
+
+            const baseVerification = item.verification || detail.item
+            return {
+              ...item,
+              verification_detail: detail,
+              verification: baseVerification
+                ? {
+                    ...baseVerification,
+                    ...(detail.item || {}),
+                    local_eval_raw_json:
+                      detail.local_eval_raw_json ||
+                      detail.item?.local_eval_raw_json ||
+                      baseVerification.local_eval_raw_json,
+                  }
+                : item.verification,
+            }
+          }),
+        )
+      } catch {
+        // Detail enrichment is best-effort; the list row remains usable.
+      } finally {
+        if (mountedRef.current && detailRunIdRef.current === runId) {
+          setDetailLoadingItemId("")
+        }
+      }
+    })()
+  }, [
+    selectedItem,
+    selectedItem?.id,
+    selectedItem?.origin,
+    selectedItem?.status,
+    selectedItem?.type,
+    selectedItem?.value,
+    selectedItem?.verification_detail,
     tenantId,
   ])
 
@@ -921,6 +997,7 @@ export function IocVerificationPage() {
           <IocVerificationDetailPanel
             className="xl:col-start-2 xl:row-start-2 xl:h-0 xl:min-h-full"
             item={selectedItem}
+            loading={Boolean(selectedItem && detailLoadingItemId === selectedItem.id)}
             onCopy={copyIoc}
           />
         </section>

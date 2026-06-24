@@ -1185,3 +1185,27 @@ export async function getAttackCaseIocVerification({
 
   return normalizeVerificationDetail(result.data)
 }
+
+function iocHitDetailType(type: IocVerificationType) {
+  return type === "hostname" ? "domain" : type
+}
+
+export async function getIocHitDetail({
+  tenantId = DEFAULT_TENANT_ID,
+  type,
+  value,
+}: {
+  tenantId?: string
+  type: IocVerificationType
+  value: string
+}): Promise<AttackCaseIOCVerificationDetail> {
+  const result = (await http.post("/sensor/analysis/ioc-hit-detail/get", {
+    request_id: createRequestId(),
+    tenant_id: tenantId.trim() || DEFAULT_TENANT_ID,
+    ioc_type: iocHitDetailType(type),
+    value: value.trim(),
+    include_raw_json: true,
+  })) as ApiResult<unknown>
+
+  return normalizeVerificationDetail(result.data)
+}
