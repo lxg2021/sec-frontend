@@ -9,12 +9,25 @@ import type {
   AttackCaseIOCExtractTask,
   AttackCaseIOCBlacklistIndicatorHitDetail,
   AttackCaseIOCDetailPage,
+  AttackCaseIOCEvidenceField,
+  AttackCaseIOCEvidenceFieldGroup,
+  AttackCaseIOCEvidenceReason,
+  AttackCaseIOCEvidenceScore,
+  AttackCaseIOCEvidenceTag,
+  AttackCaseIOCHitDetailView,
+  AttackCaseIOCHitEvidence,
+  AttackCaseIOCHitEvidenceSource,
+  AttackCaseIOCHitEvidenceTime,
+  AttackCaseIOCHitPrimary,
+  AttackCaseIOCHitRelation,
   AttackCaseIOCHitSourceRef,
   AttackCaseIOCIocEntryHitDetail,
   AttackCaseIOCIocEntryRecord,
   AttackCaseIOCIocObservation,
   AttackCaseIOCIocRelation,
   AttackCaseIOCJSONEvidence,
+  AttackCaseIOCRawField,
+  AttackCaseIOCRawFieldGroup,
   AttackCaseIOCVerificationDetail,
   AttackCaseIOCVerificationHitSourceDetail,
   AttackCaseIOCVerificationItem,
@@ -339,6 +352,266 @@ function normalizeJSONEvidence(raw: unknown): AttackCaseIOCJSONEvidence | null {
   }
 }
 
+function normalizeHitPrimary(raw: unknown): AttackCaseIOCHitPrimary | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    ioc_type: stringValue(fieldValue(item, "ioc_type", "iocType", "IocType")),
+    value_subtype: stringValue(
+      fieldValue(item, "value_subtype", "valueSubtype", "ValueSubtype"),
+    ),
+    normalized_value: stringValue(
+      fieldValue(item, "normalized_value", "normalizedValue", "NormalizedValue"),
+    ),
+    display_value: stringValue(
+      fieldValue(item, "display_value", "displayValue", "DisplayValue"),
+    ),
+    status: stringValue(fieldValue(item, "status", "Status")),
+    risk_score: numberValue(fieldValue(item, "risk_score", "riskScore", "RiskScore")),
+    confidence: numberValue(fieldValue(item, "confidence", "Confidence")),
+    tags: stringArray(fieldValue(item, "tags", "Tags")),
+    first_seen: stringValue(fieldValue(item, "first_seen", "firstSeen", "FirstSeen")),
+    last_seen: stringValue(fieldValue(item, "last_seen", "lastSeen", "LastSeen")),
+    source_names: stringArray(
+      fieldValue(item, "source_names", "sourceNames", "SourceNames"),
+    ),
+    feed_names: stringArray(fieldValue(item, "feed_names", "feedNames", "FeedNames")),
+    source_count: numberValue(
+      fieldValue(item, "source_count", "sourceCount", "SourceCount"),
+    ),
+    feed_count: numberValue(fieldValue(item, "feed_count", "feedCount", "FeedCount")),
+  }
+}
+
+function normalizeEvidenceSource(
+  raw: unknown,
+): AttackCaseIOCHitEvidenceSource | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    source_name: stringValue(
+      fieldValue(item, "source_name", "sourceName", "SourceName"),
+    ),
+    source_type: stringValue(
+      fieldValue(item, "source_type", "sourceType", "SourceType"),
+    ),
+    source_record_id: stringValue(
+      fieldValue(item, "source_record_id", "sourceRecordId", "SourceRecordId"),
+    ),
+    source_url: stringValue(fieldValue(item, "source_url", "sourceUrl", "SourceUrl")),
+    reporter: stringValue(fieldValue(item, "reporter", "Reporter")),
+    credits: stringValue(fieldValue(item, "credits", "Credits")),
+  }
+}
+
+function normalizeEvidenceTime(raw: unknown): AttackCaseIOCHitEvidenceTime | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    first_seen: stringValue(fieldValue(item, "first_seen", "firstSeen", "FirstSeen")),
+    last_seen: stringValue(fieldValue(item, "last_seen", "lastSeen", "LastSeen")),
+    observed_at: stringValue(
+      fieldValue(item, "observed_at", "observedAt", "ObservedAt"),
+    ),
+    added_at: stringValue(fieldValue(item, "added_at", "addedAt", "AddedAt")),
+    event_time: stringValue(fieldValue(item, "event_time", "eventTime", "EventTime")),
+  }
+}
+
+function normalizeEvidenceTag(raw: unknown): AttackCaseIOCEvidenceTag {
+  const item = objectValue(raw)
+  return {
+    value: stringValue(fieldValue(item, "value", "Value")),
+    source_path: stringValue(
+      fieldValue(item, "source_path", "sourcePath", "SourcePath"),
+    ),
+  }
+}
+
+function normalizeEvidenceScore(raw: unknown): AttackCaseIOCEvidenceScore {
+  const item = objectValue(raw)
+  return {
+    name: stringValue(fieldValue(item, "name", "Name")),
+    value: stringValue(fieldValue(item, "value", "Value")),
+    normalized_score: numberValue(
+      fieldValue(item, "normalized_score", "normalizedScore", "NormalizedScore"),
+    ),
+    source_path: stringValue(
+      fieldValue(item, "source_path", "sourcePath", "SourcePath"),
+    ),
+  }
+}
+
+function normalizeEvidenceReason(raw: unknown): AttackCaseIOCEvidenceReason {
+  const item = objectValue(raw)
+  return {
+    type: stringValue(fieldValue(item, "type", "Type")),
+    value: stringValue(fieldValue(item, "value", "Value")),
+    source_path: stringValue(
+      fieldValue(item, "source_path", "sourcePath", "SourcePath"),
+    ),
+  }
+}
+
+function normalizeEvidenceField(raw: unknown): AttackCaseIOCEvidenceField {
+  const item = objectValue(raw)
+  return {
+    group: stringValue(fieldValue(item, "group", "Group")),
+    key: stringValue(fieldValue(item, "key", "Key")),
+    label: stringValue(fieldValue(item, "label", "Label")),
+    value: stringValue(fieldValue(item, "value", "Value")),
+    value_type: stringValue(fieldValue(item, "value_type", "valueType", "ValueType")),
+    copyable: boolValue(fieldValue(item, "copyable", "Copyable")),
+    important: boolValue(fieldValue(item, "important", "Important")),
+    source_path: stringValue(
+      fieldValue(item, "source_path", "sourcePath", "SourcePath"),
+    ),
+  }
+}
+
+function normalizeEvidenceFieldGroup(
+  raw: unknown,
+): AttackCaseIOCEvidenceFieldGroup {
+  const item = objectValue(raw)
+  return {
+    group: stringValue(fieldValue(item, "group", "Group")),
+    title: stringValue(fieldValue(item, "title", "Title")),
+    fields: Array.isArray(fieldValue(item, "fields", "Fields"))
+      ? (fieldValue(item, "fields", "Fields") as unknown[]).map(
+          normalizeEvidenceField,
+        )
+      : [],
+  }
+}
+
+function normalizeHitEvidence(raw: unknown): AttackCaseIOCHitEvidence {
+  const item = objectValue(raw)
+  return {
+    evidence_id: stringValue(
+      fieldValue(item, "evidence_id", "evidenceId", "EvidenceId"),
+    ),
+    source: normalizeEvidenceSource(fieldValue(item, "source", "Source")),
+    time: normalizeEvidenceTime(fieldValue(item, "time", "Time")),
+    tags: Array.isArray(fieldValue(item, "tags", "Tags"))
+      ? (fieldValue(item, "tags", "Tags") as unknown[]).map(normalizeEvidenceTag)
+      : [],
+    scores: Array.isArray(fieldValue(item, "scores", "Scores"))
+      ? (fieldValue(item, "scores", "Scores") as unknown[]).map(
+          normalizeEvidenceScore,
+        )
+      : [],
+    reasons: Array.isArray(fieldValue(item, "reasons", "Reasons"))
+      ? (fieldValue(item, "reasons", "Reasons") as unknown[]).map(
+          normalizeEvidenceReason,
+        )
+      : [],
+    field_groups: Array.isArray(
+      fieldValue(item, "field_groups", "fieldGroups", "FieldGroups"),
+    )
+      ? (
+          fieldValue(
+            item,
+            "field_groups",
+            "fieldGroups",
+            "FieldGroups",
+          ) as unknown[]
+        ).map(normalizeEvidenceFieldGroup)
+      : [],
+    raw: normalizeJSONEvidence(fieldValue(item, "raw", "Raw")),
+    title: stringValue(fieldValue(item, "title", "Title")),
+    summary: stringValue(fieldValue(item, "summary", "Summary")),
+  }
+}
+
+function normalizeHitRelation(raw: unknown): AttackCaseIOCHitRelation {
+  const item = objectValue(raw)
+  return {
+    direction: stringValue(fieldValue(item, "direction", "Direction")),
+    relation_type: stringValue(
+      fieldValue(item, "relation_type", "relationType", "RelationType"),
+    ),
+    peer_ioc_type: stringValue(
+      fieldValue(item, "peer_ioc_type", "peerIocType", "PeerIocType"),
+    ),
+    peer_value: stringValue(fieldValue(item, "peer_value", "peerValue", "PeerValue")),
+    peer_entry_id: stringValue(
+      fieldValue(item, "peer_entry_id", "peerEntryId", "PeerEntryId"),
+    ),
+    source: normalizeEvidenceSource(fieldValue(item, "source", "Source")),
+    time: normalizeEvidenceTime(fieldValue(item, "time", "Time")),
+    field_groups: Array.isArray(
+      fieldValue(item, "field_groups", "fieldGroups", "FieldGroups"),
+    )
+      ? (
+          fieldValue(
+            item,
+            "field_groups",
+            "fieldGroups",
+            "FieldGroups",
+          ) as unknown[]
+        ).map(normalizeEvidenceFieldGroup)
+      : [],
+    raw: normalizeJSONEvidence(fieldValue(item, "raw", "Raw")),
+  }
+}
+
+function normalizeRawField(raw: unknown): AttackCaseIOCRawField {
+  const item = objectValue(raw)
+  return {
+    key: stringValue(fieldValue(item, "key", "Key")),
+    label: stringValue(fieldValue(item, "label", "Label")),
+    value: stringValue(fieldValue(item, "value", "Value")),
+    value_type: stringValue(fieldValue(item, "value_type", "valueType", "ValueType")),
+    copyable: boolValue(fieldValue(item, "copyable", "Copyable")),
+    multiline: boolValue(fieldValue(item, "multiline", "Multiline")),
+  }
+}
+
+function normalizeRawFieldGroup(raw: unknown): AttackCaseIOCRawFieldGroup {
+  const item = objectValue(raw)
+  return {
+    title: stringValue(fieldValue(item, "title", "Title")),
+    source_table: stringValue(
+      fieldValue(item, "source_table", "sourceTable", "SourceTable"),
+    ),
+    fields: Array.isArray(fieldValue(item, "fields", "Fields"))
+      ? (fieldValue(item, "fields", "Fields") as unknown[]).map(normalizeRawField)
+      : [],
+  }
+}
+
+function normalizeHitDetailView(raw: unknown): AttackCaseIOCHitDetailView | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    source_ref: normalizeHitSourceRef(
+      fieldValue(item, "source_ref", "sourceRef", "SourceRef"),
+    ),
+    primary: normalizeHitPrimary(fieldValue(item, "primary", "Primary")),
+    evidence: Array.isArray(fieldValue(item, "evidence", "Evidence"))
+      ? (fieldValue(item, "evidence", "Evidence") as unknown[]).map(
+          normalizeHitEvidence,
+        )
+      : [],
+    relations: Array.isArray(fieldValue(item, "relations", "Relations"))
+      ? (fieldValue(item, "relations", "Relations") as unknown[]).map(
+          normalizeHitRelation,
+        )
+      : [],
+    raw_groups: Array.isArray(
+      fieldValue(item, "raw_groups", "rawGroups", "RawGroups"),
+    )
+      ? (
+          fieldValue(item, "raw_groups", "rawGroups", "RawGroups") as unknown[]
+        ).map(normalizeRawFieldGroup)
+      : [],
+  }
+}
+
 function normalizeDetailPage(raw: unknown): AttackCaseIOCDetailPage | null {
   const item = objectValue(raw)
   if (!Object.keys(item).length) return null
@@ -659,6 +932,9 @@ function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDet
   const hitSource = normalizeHitSourceRef(
     fieldValue(detail, "hit_source", "hitSource", "HitSource"),
   )
+  const detailView = normalizeHitDetailView(
+    fieldValue(detail, "detail_view", "detailView", "DetailView"),
+  )
   const hitSourceDetailRaw = objectValue(
     fieldValue(detail, "hit_source_detail", "hitSourceDetail", "HitSourceDetail"),
   )
@@ -686,6 +962,7 @@ function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDet
     local_eval_raw_json: localEvalRawJson,
     hit_source: hitSource,
     hit_source_detail: hitSourceDetail,
+    detail_view: detailView,
   }
 }
 

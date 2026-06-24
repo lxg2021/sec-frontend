@@ -869,7 +869,7 @@ export function IocVerificationPage() {
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col gap-4">
         <IocVerificationHeader counts={counts} onBack={handleBack} />
 
-        <section className="grid w-full min-w-0 items-start gap-4 xl:grid-cols-[minmax(340px,400px)_minmax(0,1fr)] xl:items-stretch 2xl:min-h-0 2xl:flex-1 2xl:grid-cols-[minmax(360px,420px)_minmax(0,1fr)]">
+        <section className="grid w-full min-w-0 items-start gap-4 xl:grid-cols-[minmax(340px,400px)_minmax(0,1fr)] xl:grid-rows-[auto_auto] xl:items-stretch 2xl:grid-cols-[minmax(360px,420px)_minmax(0,1fr)]">
           <IocVerificationSourcePanel
             className="xl:col-start-1 xl:row-start-1"
             caseId={caseId}
@@ -885,7 +885,7 @@ export function IocVerificationPage() {
             onLoadPreview={() => void loadCaseIocs()}
           />
 
-          <div className="min-w-0 xl:col-start-1 xl:row-start-2">
+          <div className="min-w-0 xl:col-start-1 xl:row-start-2 xl:min-h-0">
             <IocVerificationManualPanel
               manualType={manualType}
               manualInput={manualInput}
@@ -919,7 +919,7 @@ export function IocVerificationPage() {
           />
 
           <IocVerificationDetailPanel
-            className="xl:col-start-2 xl:row-start-2"
+            className="xl:col-start-2 xl:row-start-2 xl:h-0 xl:min-h-full"
             item={selectedItem}
             onCopy={copyIoc}
           />

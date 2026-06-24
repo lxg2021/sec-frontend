@@ -5,11 +5,16 @@ import { useTranslations } from "next-intl"
 
 import type {
   AttackCaseIOCBlacklistIndicatorHitDetail,
+  AttackCaseIOCEvidenceFieldGroup,
+  AttackCaseIOCHitDetailView,
+  AttackCaseIOCHitEvidence,
+  AttackCaseIOCHitRelation,
   AttackCaseIOCHitSourceRef,
   AttackCaseIOCIocEntryHitDetail,
   AttackCaseIOCIocObservation,
   AttackCaseIOCIocRelation,
   AttackCaseIOCJSONEvidence,
+  AttackCaseIOCRawFieldGroup,
   IocVerificationItem,
 } from "@/features/ioc-analysis/types"
 import { cn } from "@/shared/lib/utils"
@@ -21,6 +26,23 @@ type DetailField = {
   wide?: boolean
 }
 
+type DetailFieldSection = {
+  id: string
+  title: string
+  subtitle?: string
+  fields: DetailField[]
+}
+
+const HIDDEN_DETAIL_FIELD_NAMES = new Set([
+  "evidence_id",
+  "event_time",
+  "normalized_value",
+  "observed_at",
+  "path",
+  "source_path",
+  "source_record_id",
+])
+
 function formatList(values: string[]) {
   if (!values.length) return "-"
   return `[${values.map((value) => `'${value}'`).join(", ")}]`
@@ -30,6 +52,105 @@ function displayValue(value: string | number | undefined | null) {
   if (typeof value === "number") return String(value)
   const normalized = value?.trim() || ""
   return normalized || "-"
+}
+
+function scoreDisplayValue(value: string, mode: "risk" | "confidence") {
+  const normalized = value.trim()
+  if (!normalized || normalized === "-") return value
+
+  const numericText = normalized.endsWith("%")
+    ? normalized.slice(0, -1).trim()
+    : normalized
+  const numericValue = Number(numericText)
+  if (!Number.isFinite(numericValue)) return value
+
+  const cleanValue = Number.isInteger(numericValue)
+    ? String(numericValue)
+    : String(Number(numericValue.toFixed(1)))
+
+  return mode === "risk" ? `${cleanValue}/100` : `${cleanValue}%`
+}
+
+function detailFieldLabel(column: string) {
+  const key = detailFieldKey(column)
+  if (key === "risk_score") return "risk"
+  return column
+}
+
+function detailFieldValue(field: DetailField) {
+  const key = detailFieldKey(field.column)
+  if (key === "risk_score") return scoreDisplayValue(field.value, "risk")
+  if (key === "confidence") {
+    return scoreDisplayValue(field.value, "confidence")
+  }
+  return field.value
+}
+
+function isEmptyDisplayValue(value: string) {
+  return !value || value === "-" || value === "[]"
+}
+
+function detailFieldKey(column: string) {
+  return column.trim().toLowerCase().replace(/[\s-]+/g, "_")
+}
+
+function isHiddenDetailField(column: string) {
+  const key = detailFieldKey(column)
+  const segments = key.split(/[.[\]]+/).filter(Boolean)
+  const leafKey = segments[segments.length - 1] || key
+
+  return (
+    key === "first_seen" ||
+    key.startsWith("first_seen_") ||
+    leafKey === "first_seen" ||
+    leafKey.startsWith("first_seen_") ||
+    HIDDEN_DETAIL_FIELD_NAMES.has(key) ||
+    HIDDEN_DETAIL_FIELD_NAMES.has(leafKey)
+  )
+}
+
+function compactFields(fields: DetailField[]) {
+  return fields.filter(
+    (field) =>
+      !isHiddenDetailField(field.column) && !isEmptyDisplayValue(field.value),
+  )
+}
+
+function compactSections(sections: DetailFieldSection[]) {
+  return sections
+    .map((section) => ({ ...section, fields: compactFields(section.fields) }))
+    .filter((section) => section.fields.length)
+}
+
+function field(column: string, value: string | number | undefined | null, wide = false) {
+  return { column, value: displayValue(value), wide }
+}
+
+function listField(column: string, values: string[], wide = false) {
+  return { column, value: formatList(values), wide }
+}
+
+function fieldTitle(value: string) {
+  const normalized = value.trim()
+  if (!normalized) return ""
+  return normalized
+    .split(/[_\s]+/)
+    .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
+    .join(" ")
+}
+
+function shouldUseWideField(column: string, value: string) {
+  const normalized = column.toLowerCase()
+  return (
+    value.length > 72 ||
+    normalized.includes("json") ||
+    normalized.includes("url") ||
+    normalized.includes("value") ||
+    normalized.includes("summary") ||
+    normalized.includes("reason") ||
+    normalized.includes("record_id") ||
+    normalized.includes("indicator_key")
+  )
 }
 
 function tableName(source: AttackCaseIOCHitSourceRef | null) {
@@ -53,6 +174,219 @@ function hitSourceFromItem(item: IocVerificationItem) {
     table: verification.hit_source_table,
     record_id: verification.hit_source_record_id,
   }
+}
+
+function hasFeedCoverage(detailView: AttackCaseIOCHitDetailView) {
+  const table = detailView.source_ref?.table.trim().toLowerCase() || ""
+  return table === "ioc_blacklist_indicator" || table === "ioc_blacklist_host"
+}
+
+function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSection[] {
+  const primary = detailView.primary
+  if (!primary) return []
+  const showFeedCoverage = hasFeedCoverage(detailView)
+
+  return compactSections([
+    {
+      id: "primary",
+      title: "Primary",
+      fields: [
+        field("display_value", primary.display_value),
+        field("ioc_type", primary.ioc_type),
+        field("value_subtype", primary.value_subtype),
+        field("status", primary.status),
+        field("risk_score", primary.risk_score),
+        field("confidence", primary.confidence),
+        listField("tags", primary.tags),
+        ...(showFeedCoverage
+          ? [
+              field("source_count", primary.source_count),
+              field("feed_count", primary.feed_count),
+            ]
+          : []),
+        field("first_seen", primary.first_seen),
+        field("last_seen", primary.last_seen),
+        ...(showFeedCoverage
+          ? [
+              listField("source_names", primary.source_names, true),
+              listField("feed_names", primary.feed_names, true),
+            ]
+          : []),
+        field("normalized_value", primary.normalized_value, true),
+      ],
+    },
+  ])
+}
+
+function evidenceOverviewFields(evidence: AttackCaseIOCHitEvidence) {
+  const source = evidence.source
+  const time = evidence.time
+  const scores = evidence.scores
+    .map((score) =>
+      [score.name, score.value || score.normalized_score || ""]
+        .filter(Boolean)
+        .join("="),
+    )
+    .filter(Boolean)
+  const reasons = evidence.reasons
+    .map((reason) =>
+      [reason.type, reason.value].filter(Boolean).join("="),
+    )
+    .filter(Boolean)
+
+  return compactFields([
+    field("evidence_id", evidence.evidence_id, true),
+    field("source_name", source?.source_name),
+    field("source_type", source?.source_type),
+    field("source_record_id", source?.source_record_id, true),
+    field("source_url", source?.source_url),
+    field("reporter", source?.reporter),
+    field("credits", source?.credits),
+    field("first_seen", time?.first_seen),
+    field("last_seen", time?.last_seen),
+    field("observed_at", time?.observed_at),
+    field("added_at", time?.added_at),
+    field("event_time", time?.event_time),
+    listField(
+      "tags",
+      evidence.tags.map((tag) => tag.value).filter(Boolean),
+    ),
+    listField("scores", scores, true),
+    listField("reasons", reasons),
+    field("summary", evidence.summary),
+  ])
+}
+
+function evidenceFieldGroupSections(
+  evidence: AttackCaseIOCHitEvidence,
+  evidenceIndex: number,
+) {
+  return evidence.field_groups.map((group, groupIndex) =>
+    fieldGroupSection(
+      group,
+      `evidence-${evidenceIndex}-group-${group.group || groupIndex}`,
+      evidence.title,
+    ),
+  )
+}
+
+function fieldGroupSection(
+  group: AttackCaseIOCEvidenceFieldGroup,
+  id: string,
+  subtitle?: string,
+): DetailFieldSection {
+  return {
+    id,
+    title: group.title || fieldTitle(group.group) || "Evidence",
+    subtitle,
+    fields: group.fields.map((item) => {
+      const column = item.label || item.key || item.source_path || "field"
+      return {
+        column,
+        value: displayValue(item.value),
+        wide: shouldUseWideField(column, item.value),
+      }
+    }),
+  }
+}
+
+function evidenceSections(detailView: AttackCaseIOCHitDetailView) {
+  return compactSections(
+    detailView.evidence.flatMap((evidence, index) => {
+      const title =
+        evidence.title ||
+        evidence.source?.source_name ||
+        `Evidence ${index + 1}`
+      const overview = evidenceOverviewFields(evidence)
+      return [
+        ...(overview.length
+          ? [
+              {
+                id: `evidence-${index}-overview`,
+                title,
+                subtitle: evidence.summary,
+                fields: overview,
+              },
+            ]
+          : []),
+        ...evidenceFieldGroupSections(evidence, index),
+      ]
+    }),
+  )
+}
+
+function relationSections(detailView: AttackCaseIOCHitDetailView) {
+  return compactSections(
+    detailView.relations.flatMap((relation, index) => {
+      const source = relation.source
+      const time = relation.time
+      return [
+        {
+          id: `relation-${index}`,
+          title: relation.relation_type
+            ? `Relation · ${relation.relation_type}`
+            : `Relation ${index + 1}`,
+          fields: [
+            field("direction", relation.direction),
+            field("relation_type", relation.relation_type),
+            field("peer_ioc_type", relation.peer_ioc_type),
+            field("peer_value", relation.peer_value, true),
+            field("peer_entry_id", relation.peer_entry_id, true),
+            field("source_name", source?.source_name),
+            field("source_type", source?.source_type),
+            field("source_record_id", source?.source_record_id, true),
+            field("source_url", source?.source_url, true),
+            field("first_seen", time?.first_seen),
+            field("last_seen", time?.last_seen),
+            field("observed_at", time?.observed_at),
+            field("added_at", time?.added_at),
+            field("event_time", time?.event_time),
+          ],
+        },
+        ...relation.field_groups.map((group, groupIndex) =>
+          fieldGroupSection(
+            group,
+            `relation-${index}-group-${group.group || groupIndex}`,
+            relation.relation_type,
+          ),
+        ),
+      ]
+    }),
+  )
+}
+
+function rawGroupSections(detailView: AttackCaseIOCHitDetailView) {
+  return compactSections(
+    detailView.raw_groups.map((group, index) => rawGroupSection(group, index)),
+  )
+}
+
+function rawGroupSection(
+  group: AttackCaseIOCRawFieldGroup,
+  index: number,
+): DetailFieldSection {
+  return {
+    id: `raw-${index}-${group.title || "group"}`,
+    title: group.title || "Raw",
+    subtitle: group.source_table,
+    fields: group.fields.map((item) => {
+      const column = item.label || item.key || "field"
+      return {
+        column,
+        value: displayValue(item.value),
+        wide: item.multiline || shouldUseWideField(column, item.value),
+      }
+    }),
+  }
+}
+
+function detailViewSections(detailView: AttackCaseIOCHitDetailView) {
+  return compactSections([
+    ...primarySections(detailView),
+    ...evidenceSections(detailView),
+    ...relationSections(detailView),
+    ...rawGroupSections(detailView),
+  ])
 }
 
 function blacklistFields(
@@ -147,7 +481,9 @@ function DetailFieldTable({
   valueLabel: string
   onCopy: (value: string) => void
 }) {
-  if (!fields.length) {
+  const visibleFields = compactFields(fields)
+
+  if (!visibleFields.length) {
     return (
       <div className="border-t border-slate-100 px-4 py-5 text-sm text-slate-500">
         -
@@ -157,7 +493,7 @@ function DetailFieldTable({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 grid grid-cols-[160px_minmax(0,1fr)] bg-white text-xs font-semibold text-slate-400 md:grid-cols-[160px_minmax(0,1fr)_160px_minmax(0,1fr)]">
+      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-semibold text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
         <div className="px-4 py-2">{columnLabel}</div>
         <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
         <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
@@ -167,7 +503,59 @@ function DetailFieldTable({
           {valueLabel}
         </div>
       </div>
-      <PairedFieldRows fields={fields} onCopy={onCopy} />
+      <PairedFieldRows fields={visibleFields} onCopy={onCopy} />
+    </div>
+  )
+}
+
+function DetailFieldSections({
+  sections,
+  columnLabel,
+  valueLabel,
+  onCopy,
+}: {
+  sections: DetailFieldSection[]
+  columnLabel: string
+  valueLabel: string
+  onCopy: (value: string) => void
+}) {
+  const visibleSections = compactSections(sections)
+
+  if (!visibleSections.length) {
+    return (
+      <div className="border-t border-slate-100 px-4 py-5 text-sm text-slate-500">
+        -
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="sticky top-0 z-10 grid grid-cols-[128px_minmax(0,1fr)] bg-white text-xs font-semibold text-slate-400 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]">
+        <div className="px-4 py-2">{columnLabel}</div>
+        <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
+        <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
+          {columnLabel}
+        </div>
+        <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
+          {valueLabel}
+        </div>
+      </div>
+      {visibleSections.map((section) => (
+        <div key={section.id} className="border-t border-slate-100">
+          <div className="bg-slate-50 px-4 py-2">
+            <div className="truncate text-xs font-semibold text-slate-700">
+              {section.title}
+            </div>
+            {section.subtitle ? (
+              <div className="mt-0.5 truncate text-[11px] text-slate-400">
+                {section.subtitle}
+              </div>
+            ) : null}
+          </div>
+          <PairedFieldRows fields={section.fields} onCopy={onCopy} />
+        </div>
+      ))}
     </div>
   )
 }
@@ -188,42 +576,29 @@ function IocEntryObservationRows({
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[760px]">
-          <div className="grid grid-cols-[1fr_1.2fr_80px_128px_128px_1.4fr] border-t border-slate-100 bg-white px-4 py-2 text-xs font-semibold text-slate-400">
+          <div className="grid grid-cols-[1fr_80px_128px_1.4fr] border-t border-slate-100 bg-white px-4 py-2 text-xs font-semibold text-slate-400">
             <span>source_name</span>
-            <span>source_record_id</span>
             <span>confidence</span>
-            <span>first_seen</span>
             <span>last_seen</span>
             <span>evidence</span>
           </div>
           <div className="divide-y divide-slate-100">
             {observations.map((observation, index) => {
               const evidence = evidenceValue(observation.evidence)
+              const confidence = scoreDisplayValue(
+                displayValue(observation.confidence),
+                "confidence",
+              )
               const rowKey = `${observation.source_name}-${observation.source_record_id}-${index}`
               return (
                 <div
                   key={rowKey}
-                  className="grid grid-cols-[1fr_1.2fr_80px_128px_128px_1.4fr] items-center px-4 py-2 text-xs text-slate-700"
+                  className="grid grid-cols-[1fr_80px_128px_1.4fr] items-center px-4 py-2 text-xs text-slate-700"
                 >
                   <span className="truncate font-medium" title={observation.source_name}>
                     {displayValue(observation.source_name)}
                   </span>
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <code
-                      className="truncate font-mono font-semibold text-slate-800"
-                      title={observation.source_record_id}
-                    >
-                      {displayValue(observation.source_record_id)}
-                    </code>
-                    <CopyValueButton
-                      value={observation.source_record_id}
-                      onCopy={onCopy}
-                    />
-                  </span>
-                  <span>{displayValue(observation.confidence)}</span>
-                  <span className="truncate" title={observation.first_seen}>
-                    {displayValue(observation.first_seen)}
-                  </span>
+                  <span>{confidence}</span>
                   <span className="truncate" title={observation.last_seen}>
                     {displayValue(observation.last_seen)}
                   </span>
@@ -259,11 +634,10 @@ function IocEntryRelationRows({
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[760px]">
-          <div className="grid grid-cols-[72px_1fr_1fr_1.2fr_1.4fr_128px] border-t border-slate-100 bg-white px-4 py-2 text-xs font-semibold text-slate-400">
+          <div className="grid grid-cols-[72px_1fr_1fr_1.4fr_128px] border-t border-slate-100 bg-white px-4 py-2 text-xs font-semibold text-slate-400">
             <span>direction</span>
             <span>relation_type</span>
             <span>source_name</span>
-            <span>source_record_id</span>
             <span>peer_entry_id</span>
             <span>last_seen</span>
           </div>
@@ -274,7 +648,7 @@ function IocEntryRelationRows({
               return (
                 <div
                   key={rowKey}
-                  className="grid grid-cols-[72px_1fr_1fr_1.2fr_1.4fr_128px] items-center px-4 py-2 text-xs text-slate-700"
+                  className="grid grid-cols-[72px_1fr_1fr_1.4fr_128px] items-center px-4 py-2 text-xs text-slate-700"
                 >
                   <span>{displayValue(relation.direction)}</span>
                   <span className="truncate font-medium" title={relation.relation_type}>
@@ -282,18 +656,6 @@ function IocEntryRelationRows({
                   </span>
                   <span className="truncate" title={relation.source_name}>
                     {displayValue(relation.source_name)}
-                  </span>
-                  <span className="flex min-w-0 items-center gap-1.5">
-                    <code
-                      className="truncate font-mono font-semibold text-slate-800"
-                      title={relation.source_record_id}
-                    >
-                      {displayValue(relation.source_record_id)}
-                    </code>
-                    <CopyValueButton
-                      value={relation.source_record_id}
-                      onCopy={onCopy}
-                    />
                   </span>
                   <span className="flex min-w-0 items-center gap-1.5">
                     <code
@@ -342,6 +704,27 @@ function IocEntryDetailView({
   )
 }
 
+function HitDetailView({
+  detailView,
+  columnLabel,
+  valueLabel,
+  onCopy,
+}: {
+  detailView: AttackCaseIOCHitDetailView
+  columnLabel: string
+  valueLabel: string
+  onCopy: (value: string) => void
+}) {
+  return (
+    <DetailFieldSections
+      sections={detailViewSections(detailView)}
+      columnLabel={columnLabel}
+      valueLabel={valueLabel}
+      onCopy={onCopy}
+    />
+  )
+}
+
 function FieldRow({
   field,
   onCopy,
@@ -349,28 +732,31 @@ function FieldRow({
   field: DetailField
   onCopy: (value: string) => void
 }) {
+  const label = detailFieldLabel(field.column)
+  const value = detailFieldValue(field)
+
   return (
     <div
       className={cn(
         "grid min-h-10 items-center border-t border-slate-100",
         field.wide
-          ? "grid-cols-[160px_minmax(0,1fr)]"
-          : "grid-cols-[160px_minmax(0,1fr)] md:grid-cols-[160px_minmax(0,1fr)_160px_minmax(0,1fr)]",
+          ? "grid-cols-[128px_minmax(0,1fr)]"
+          : "grid-cols-[128px_minmax(0,1fr)] md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]",
       )}
     >
       <div className="px-4 py-2 text-xs font-semibold text-slate-500">
-        {field.column}
+        {label}
       </div>
       <div
         className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2"
       >
         <code
-          className="min-w-0 flex-1 break-all font-mono text-xs font-semibold leading-5 text-slate-800"
-          title={field.value}
+          className="min-w-0 flex-1 break-all font-mono text-[11px] font-semibold leading-5 text-slate-800"
+          title={value}
         >
-          {field.value}
+          {value}
         </code>
-        <CopyValueButton value={field.value} onCopy={onCopy} />
+        <CopyValueButton value={value} onCopy={onCopy} />
       </div>
     </div>
   )
@@ -383,65 +769,95 @@ function PairedFieldRows({
   fields: DetailField[]
   onCopy: (value: string) => void
 }) {
-  const rows: Array<[DetailField, DetailField | null]> = []
-  const wideRows: DetailField[] = []
-  const compact = fields.filter((field) => {
+  const rows: Array<
+    | { type: "pair"; left: DetailField; right: DetailField | null }
+    | { type: "wide"; field: DetailField }
+  > = []
+  let pendingField: DetailField | null = null
+
+  fields.forEach((field) => {
     if (field.wide) {
-      wideRows.push(field)
-      return false
+      if (pendingField) {
+        rows.push({ type: "pair", left: pendingField, right: null })
+        pendingField = null
+      }
+      rows.push({ type: "wide", field })
+      return
     }
-    return true
+
+    if (pendingField) {
+      rows.push({ type: "pair", left: pendingField, right: field })
+      pendingField = null
+      return
+    }
+
+    pendingField = field
   })
 
-  for (let index = 0; index < compact.length; index += 2) {
-    rows.push([compact[index], compact[index + 1] ?? null])
+  if (pendingField) {
+    rows.push({ type: "pair", left: pendingField, right: null })
   }
 
   return (
     <>
-      {rows.map(([left, right]) => (
-        <div
-          key={`${left.column}-${right?.column || "empty"}`}
-          className="grid min-h-10 grid-cols-[160px_minmax(0,1fr)] border-t border-slate-100 md:grid-cols-[160px_minmax(0,1fr)_160px_minmax(0,1fr)]"
-        >
-          <div className="px-4 py-2 text-xs font-semibold text-slate-500">
-            {left.column}
+      {rows.map((row) => {
+        if (row.type === "wide") {
+          return (
+            <FieldRow
+              key={`wide-${row.field.column}`}
+              field={row.field}
+              onCopy={onCopy}
+            />
+          )
+        }
+
+        const { left, right } = row
+        const leftLabel = detailFieldLabel(left.column)
+        const leftValue = detailFieldValue(left)
+        const rightLabel = right ? detailFieldLabel(right.column) : ""
+        const rightValue = right ? detailFieldValue(right) : ""
+
+        return (
+          <div
+            key={`${left.column}-${right?.column || "empty"}`}
+            className="grid min-h-10 grid-cols-[128px_minmax(0,1fr)] border-t border-slate-100 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]"
+          >
+            <div className="px-4 py-2 text-xs font-semibold text-slate-500">
+              {leftLabel}
+            </div>
+            <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
+              <code
+                className="min-w-0 flex-1 break-all font-mono text-[11px] font-semibold leading-5 text-slate-800"
+                title={leftValue}
+              >
+                {leftValue}
+              </code>
+              <CopyValueButton value={leftValue} onCopy={onCopy} />
+            </div>
+            {right ? (
+              <>
+                <div className="border-l border-slate-100 px-4 py-2 text-xs font-semibold text-slate-500">
+                  {rightLabel}
+                </div>
+                <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
+                  <code
+                    className="min-w-0 flex-1 break-all font-mono text-[11px] font-semibold leading-5 text-slate-800"
+                    title={rightValue}
+                  >
+                    {rightValue}
+                  </code>
+                  <CopyValueButton value={rightValue} onCopy={onCopy} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="hidden border-l border-slate-100 px-4 py-2 md:block" />
+                <div className="hidden border-l border-slate-100 px-4 py-2 md:block" />
+              </>
+            )}
           </div>
-          <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
-            <code
-              className="min-w-0 flex-1 break-all font-mono text-xs font-semibold leading-5 text-slate-800"
-              title={left.value}
-            >
-              {left.value}
-            </code>
-            <CopyValueButton value={left.value} onCopy={onCopy} />
-          </div>
-          {right ? (
-            <>
-              <div className="border-l border-slate-100 px-4 py-2 text-xs font-semibold text-slate-500">
-                {right.column}
-              </div>
-              <div className="flex min-w-0 items-center gap-2 border-l border-slate-100 px-4 py-2">
-                <code
-                  className="min-w-0 flex-1 break-all font-mono text-xs font-semibold leading-5 text-slate-800"
-                  title={right.value}
-                >
-                  {right.value}
-                </code>
-                <CopyValueButton value={right.value} onCopy={onCopy} />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="hidden border-l border-slate-100 px-4 py-2 md:block" />
-              <div className="hidden border-l border-slate-100 px-4 py-2 md:block" />
-            </>
-          )}
-        </div>
-      ))}
-      {wideRows.map((field) => (
-        <FieldRow key={field.column} field={field} onCopy={onCopy} />
-      ))}
+        )
+      })}
     </>
   )
 }
@@ -458,9 +874,11 @@ export function IocVerificationDetailPanel({
   const t = useTranslations("pages.iocAnalysis.verification")
 
   const detail = item?.verification_detail ?? null
+  const detailView = detail?.detail_view ?? null
   const iocEntry = detail?.hit_source_detail?.ioc_entry ?? null
   const blacklist = detail?.hit_source_detail?.blacklist_indicator ?? null
   const source =
+    detailView?.source_ref ??
     iocEntry?.source ??
     blacklist?.source ??
     detail?.hit_source ??
@@ -471,7 +889,7 @@ export function IocVerificationDetailPanel({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-2xl border border-slate-200 bg-white",
+        "flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white",
         className,
       )}
     >
@@ -512,11 +930,18 @@ export function IocVerificationDetailPanel({
         </div>
       </div>
 
-      <div className="max-h-[420px] overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {!item ? (
           <div className="flex min-h-[156px] items-center justify-center px-4 py-8 text-sm text-slate-500">
             {t("detail.noSelection")}
           </div>
+        ) : detailView ? (
+          <HitDetailView
+            detailView={detailView}
+            columnLabel={t("detail.column")}
+            valueLabel={t("detail.value")}
+            onCopy={onCopy}
+          />
         ) : iocEntry ? (
           <IocEntryDetailView
             detail={iocEntry}

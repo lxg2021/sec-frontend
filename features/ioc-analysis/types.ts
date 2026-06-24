@@ -206,6 +206,123 @@ export interface AttackCaseIOCJSONEvidence {
   raw_json_keys: string[]
 }
 
+export interface AttackCaseIOCHitPrimary {
+  ioc_type: string
+  value_subtype: string
+  normalized_value: string
+  display_value: string
+  status: string
+  risk_score: number
+  confidence: number
+  tags: string[]
+  first_seen: string
+  last_seen: string
+  source_names: string[]
+  feed_names: string[]
+  source_count: number
+  feed_count: number
+}
+
+export interface AttackCaseIOCHitEvidenceSource {
+  source_name: string
+  source_type: string
+  source_record_id: string
+  source_url: string
+  reporter: string
+  credits: string
+}
+
+export interface AttackCaseIOCHitEvidenceTime {
+  first_seen: string
+  last_seen: string
+  observed_at: string
+  added_at: string
+  event_time: string
+}
+
+export interface AttackCaseIOCEvidenceTag {
+  value: string
+  source_path: string
+}
+
+export interface AttackCaseIOCEvidenceScore {
+  name: string
+  value: string
+  normalized_score: number
+  source_path: string
+}
+
+export interface AttackCaseIOCEvidenceReason {
+  type: string
+  value: string
+  source_path: string
+}
+
+export interface AttackCaseIOCEvidenceField {
+  group: string
+  key: string
+  label: string
+  value: string
+  value_type: string
+  copyable: boolean
+  important: boolean
+  source_path: string
+}
+
+export interface AttackCaseIOCEvidenceFieldGroup {
+  group: string
+  title: string
+  fields: AttackCaseIOCEvidenceField[]
+}
+
+export interface AttackCaseIOCHitEvidence {
+  evidence_id: string
+  source: AttackCaseIOCHitEvidenceSource | null
+  time: AttackCaseIOCHitEvidenceTime | null
+  tags: AttackCaseIOCEvidenceTag[]
+  scores: AttackCaseIOCEvidenceScore[]
+  reasons: AttackCaseIOCEvidenceReason[]
+  field_groups: AttackCaseIOCEvidenceFieldGroup[]
+  raw: AttackCaseIOCJSONEvidence | null
+  title: string
+  summary: string
+}
+
+export interface AttackCaseIOCHitRelation {
+  direction: string
+  relation_type: string
+  peer_ioc_type: string
+  peer_value: string
+  peer_entry_id: string
+  source: AttackCaseIOCHitEvidenceSource | null
+  time: AttackCaseIOCHitEvidenceTime | null
+  field_groups: AttackCaseIOCEvidenceFieldGroup[]
+  raw: AttackCaseIOCJSONEvidence | null
+}
+
+export interface AttackCaseIOCRawField {
+  key: string
+  label: string
+  value: string
+  value_type: string
+  copyable: boolean
+  multiline: boolean
+}
+
+export interface AttackCaseIOCRawFieldGroup {
+  title: string
+  source_table: string
+  fields: AttackCaseIOCRawField[]
+}
+
+export interface AttackCaseIOCHitDetailView {
+  source_ref: AttackCaseIOCHitSourceRef | null
+  primary: AttackCaseIOCHitPrimary | null
+  evidence: AttackCaseIOCHitEvidence[]
+  relations: AttackCaseIOCHitRelation[]
+  raw_groups: AttackCaseIOCRawFieldGroup[]
+}
+
 export interface AttackCaseIOCDetailPage {
   total: number
   returned: number
@@ -299,4 +416,5 @@ export interface AttackCaseIOCVerificationDetail {
   local_eval_raw_json: string
   hit_source: AttackCaseIOCHitSourceRef | null
   hit_source_detail: AttackCaseIOCVerificationHitSourceDetail | null
+  detail_view: AttackCaseIOCHitDetailView | null
 }
