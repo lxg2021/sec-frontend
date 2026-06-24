@@ -139,6 +139,12 @@ function fieldTitle(value: string) {
     .join(" ")
 }
 
+function fieldColumnLabel(label: string, key: string, sourcePath = "") {
+  const normalizedPath = (sourcePath || key).trim().toLowerCase()
+  if (normalizedPath === "object.name") return "object type"
+  return label || key || sourcePath || "field"
+}
+
 function shouldUseWideField(column: string, value: string) {
   const normalized = column.toLowerCase()
   return (
@@ -280,7 +286,7 @@ function fieldGroupSection(
     title: group.title || fieldTitle(group.group) || "Evidence",
     subtitle,
     fields: group.fields.map((item) => {
-      const column = item.label || item.key || item.source_path || "field"
+      const column = fieldColumnLabel(item.label, item.key, item.source_path)
       return {
         column,
         value: displayValue(item.value),
@@ -370,7 +376,7 @@ function rawGroupSection(
     title: group.title || "Raw",
     subtitle: group.source_table,
     fields: group.fields.map((item) => {
-      const column = item.label || item.key || "field"
+      const column = fieldColumnLabel(item.label, item.key)
       return {
         column,
         value: displayValue(item.value),
