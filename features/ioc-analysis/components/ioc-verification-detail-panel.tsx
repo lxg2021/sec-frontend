@@ -8,6 +8,7 @@ import type {
   AttackCaseIOCEvidenceFieldGroup,
   AttackCaseIOCHitDetailView,
   AttackCaseIOCHitEvidence,
+  AttackCaseIOCHitPrimary,
   AttackCaseIOCHitRelation,
   AttackCaseIOCIocEntryHitDetail,
   AttackCaseIOCIocObservation,
@@ -172,6 +173,7 @@ const NON_COPYABLE_DETAIL_FIELD_KEYS = new Set([
   "reporter",
   "risk_score",
   "scores",
+  "source",
   "source_count",
   "source_name",
   "source_names",
@@ -283,6 +285,33 @@ function hasFeedCoverage(detailView: AttackCaseIOCHitDetailView) {
   return table === "ioc_blacklist_indicator" || table === "ioc_blacklist_host"
 }
 
+function primaryValueColumn(primary: AttackCaseIOCHitPrimary) {
+  const iocType = primary.ioc_type.trim().toLowerCase()
+  const subtype = primary.value_subtype.trim().toLowerCase()
+
+  if (iocType === "hash" && subtype) return subtype
+  if (iocType === "domain" || iocType === "url" || iocType === "ip") {
+    return iocType
+  }
+  if (iocType === "hostname") return "hostname"
+  return subtype || iocType || "value"
+}
+
+function primaryValueField(primary: AttackCaseIOCHitPrimary) {
+  const column = primaryValueColumn(primary)
+  const value = primary.display_value || primary.normalized_value
+  return field(column, value, shouldUseWideField(column, value), true)
+}
+
+function sourceField(source: AttackCaseIOCHitEvidence["source"]) {
+  const sourceType = source?.source_type.trim() || ""
+  const sourceName = source?.source_name.trim() || ""
+
+  if (sourceType && sourceName) return field(sourceType, sourceName, false, false)
+  if (sourceName) return field("source", sourceName, false, false)
+  return field("source_type", sourceType, false, false)
+}
+
 function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSection[] {
   const primary = detailView.primary
   if (!primary) return []
@@ -293,9 +322,8 @@ function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSec
       id: "primary",
       title: "Primary",
       fields: [
-        field("display_value", primary.display_value),
+        primaryValueField(primary),
         field("ioc_type", primary.ioc_type),
-        field("value_subtype", primary.value_subtype),
         field("status", primary.status),
         field("risk_score", primary.risk_score),
         field("confidence", primary.confidence),
@@ -314,7 +342,6 @@ function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSec
               listField("feed_names", primary.feed_names, true),
             ]
           : []),
-        field("normalized_value", primary.normalized_value, true),
       ],
     },
   ])
@@ -338,8 +365,7 @@ function evidenceOverviewFields(evidence: AttackCaseIOCHitEvidence) {
 
   return compactFields([
     field("evidence_id", evidence.evidence_id, true),
-    field("source_name", source?.source_name),
-    field("source_type", source?.source_type),
+    sourceField(source),
     field("source_record_id", source?.source_record_id, true),
     field("source_url", source?.source_url),
     field("reporter", source?.reporter),
@@ -435,8 +461,7 @@ function relationSections(detailView: AttackCaseIOCHitDetailView) {
             field("peer_ioc_type", relation.peer_ioc_type),
             field("peer_value", relation.peer_value, true),
             field("peer_entry_id", relation.peer_entry_id, true),
-            field("source_name", source?.source_name),
-            field("source_type", source?.source_type),
+            sourceField(source),
             field("source_record_id", source?.source_record_id, true),
             field("source_url", source?.source_url, true),
             field("first_seen", time?.first_seen),
