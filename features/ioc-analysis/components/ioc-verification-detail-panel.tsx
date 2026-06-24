@@ -35,8 +35,10 @@ type DetailFieldSection = {
 }
 
 const HIDDEN_DETAIL_FIELD_NAMES = new Set([
+  "entry_key",
   "evidence_id",
   "event_time",
+  "match_type",
   "normalized_value",
   "observed_at",
   "path",
@@ -72,10 +74,159 @@ function scoreDisplayValue(value: string, mode: "risk" | "confidence") {
   return mode === "risk" ? `${cleanValue}/100` : `${cleanValue}%`
 }
 
+const DETAIL_FIELD_LABELS: Record<string, string> = {
+  action: "处理方式",
+  added_at: "添加时间",
+  allow_level: "放行级别",
+  categories: "分类",
+  cidr_prefix: "CIDR前缀",
+  cloud_provider: "云厂商",
+  confidence: "置信度",
+  credits: "署名",
+  direction: "方向",
+  display_value: "IOC值",
+  domain: "域名",
+  entry_id: "条目ID",
+  feed_count: "情报源数量",
+  feed_names: "情报源",
+  file_name: "文件名",
+  file_size: "文件大小",
+  hash_type: "哈希类型",
+  hash_value: "哈希值",
+  hostname: "主机名",
+  indicator_key: "指标键",
+  ioc_type: "IOC类型",
+  ip: "IP",
+  ip_value: "IP",
+  ip_version: "IP版本",
+  issuer: "颁发者",
+  last_batch_id: "批次",
+  last_seen: "最后发现时间",
+  md5: "MD5",
+  object_type: "对象类型",
+  observable_type: "观测类型",
+  peer_entry_id: "关联条目ID",
+  peer_ioc_type: "关联IOC类型",
+  peer_value: "关联IOC值",
+  product_name: "产品名称",
+  publisher: "发布者",
+  reason: "原因",
+  reasons: "命中原因",
+  reference: "引用",
+  registered_domain: "注册域名",
+  region: "区域",
+  relation_type: "关联类型",
+  reporter: "报告者",
+  risk: "风险",
+  risk_score: "风险",
+  sha1: "SHA1",
+  sha256: "SHA256",
+  source_count: "来源数量",
+  source_name: "来源名称",
+  source_names: "来源名称",
+  source_type: "来源类型",
+  source_url: "来源链接",
+  source_urls: "来源链接",
+  source_version: "来源版本",
+  status: "状态",
+  subject: "使用者",
+  summary: "摘要",
+  tags: "标签",
+  threat_feed: "威胁情报源",
+  url: "URL",
+  value_subtype: "值类型",
+  whitelist: "白名单来源",
+}
+
+const DETAIL_SECTION_TITLES: Record<string, string> = {
+  certificate: "证书信息",
+  evidence: "证据信息",
+  file: "文件信息",
+  hash: "哈希信息",
+  ioc_entry_context: "IOC上下文",
+  network: "网络信息",
+  primary: "基础信息",
+  raw: "原始字段",
+  whitelist: "白名单信息",
+}
+
+const IOC_TYPE_VALUES: Record<string, string> = {
+  certificate: "证书",
+  domain: "域名",
+  hash: "哈希",
+  hostname: "主机名",
+  ip: "IP",
+  md5: "MD5",
+  sha1: "SHA1",
+  sha256: "SHA256",
+  service_name: "服务名称",
+  url: "URL",
+}
+
+const STATUS_VALUES: Record<string, string> = {
+  active: "启用",
+  annotate_only: "仅标注",
+  disabled: "禁用",
+  inactive: "停用",
+  skip_ioc_query: "跳过IOC查询",
+}
+
+const ALLOW_LEVEL_VALUES: Record<string, string> = {
+  known_good_hash: "已知可信哈希",
+  tenant_allow: "租户放行",
+  trusted_vendor: "可信厂商",
+}
+
+const SOURCE_TYPE_VALUES: Record<string, string> = {
+  threat_feed: "威胁情报源",
+  whitelist: "白名单",
+}
+
+const DIRECTION_VALUES: Record<string, string> = {
+  in: "入向",
+  inbound: "入向",
+  out: "出向",
+  outbound: "出向",
+}
+
+function translateWhitelistDetailText(value: string) {
+  return value
+    .replace(/\baction=/g, "处理方式=")
+    .replace(/\ballow_level=/g, "放行级别=")
+    .replace(/\breason=/g, "原因=")
+    .replace(/\bannotate_only\b/g, "仅标注")
+    .replace(/\bskip_ioc_query\b/g, "跳过IOC查询")
+    .replace(/\bknown_good_hash\b/g, "已知可信哈希")
+    .replace(
+      /executable or script hash extracted from NSRL RDS ([^'\];]+)/g,
+      "来自 NSRL RDS $1 的可执行文件或脚本哈希",
+    )
+}
+
 function detailFieldLabel(column: string) {
   const key = detailFieldKey(column)
-  if (key === "risk_score") return "risk"
-  return column
+  return DETAIL_FIELD_LABELS[key] || column
+}
+
+function detailSectionTitle(title: string) {
+  const key = detailFieldKey(title)
+  const knownTitle = DETAIL_SECTION_TITLES[key]
+  if (knownTitle) return knownTitle
+
+  const relationMatch = title.match(/^Relation(?:\s+→|\s+-|\s+)?\s*(.*)$/i)
+  if (relationMatch) {
+    const suffix = relationMatch[1]?.trim()
+    return suffix ? `关联关系 ${suffix}` : "关联关系"
+  }
+
+  const evidenceMatch = title.match(/^Evidence\s+(\d+)$/i)
+  if (evidenceMatch) return `证据 ${evidenceMatch[1]}`
+
+  return title
+}
+
+function detailSectionSubtitle(subtitle: string) {
+  return translateWhitelistDetailText(subtitle)
 }
 
 function detailFieldValue(field: DetailField) {
@@ -83,6 +234,24 @@ function detailFieldValue(field: DetailField) {
   if (key === "risk_score") return scoreDisplayValue(field.value, "risk")
   if (key === "confidence") {
     return scoreDisplayValue(field.value, "confidence")
+  }
+  if (key === "ioc_type") {
+    return IOC_TYPE_VALUES[normalizedDetailValue(field.value)] || field.value
+  }
+  if (key === "status" || key === "action") {
+    return STATUS_VALUES[normalizedDetailValue(field.value)] || field.value
+  }
+  if (key === "allow_level") {
+    return ALLOW_LEVEL_VALUES[normalizedDetailValue(field.value)] || field.value
+  }
+  if (key === "source_type") {
+    return SOURCE_TYPE_VALUES[normalizedDetailValue(field.value)] || field.value
+  }
+  if (key === "direction") {
+    return DIRECTION_VALUES[normalizedDetailValue(field.value)] || field.value
+  }
+  if (key === "reasons" || key === "summary") {
+    return translateWhitelistDetailText(field.value)
   }
   return field.value
 }
@@ -190,7 +359,7 @@ const NON_COPYABLE_DETAIL_FIELD_KEYS = new Set([
 function shouldCopyDetailField(field: DetailField, value: string) {
   if (!value || value === "-" || value === "[]") return false
 
-  const key = detailFieldKey(detailFieldLabel(field.column))
+  const key = detailFieldKey(field.column)
   if (NON_COPYABLE_DETAIL_FIELD_KEYS.has(key)) return false
   if (typeof field.copyable === "boolean") return field.copyable
   if (COPYABLE_DETAIL_FIELD_KEYS.has(key)) return true
@@ -236,12 +405,12 @@ function compactFields(fields: DetailField[]) {
   )
   const objectTypeValue =
     visibleFields.find(
-      (field) => detailFieldKey(detailFieldLabel(field.column)) === "object_type",
+      (field) => detailFieldKey(field.column) === "object_type",
     )?.value || ""
   const normalizedObjectType = normalizedDetailValue(objectTypeValue)
 
   return visibleFields.filter((field) => {
-    const key = detailFieldKey(detailFieldLabel(field.column))
+    const key = detailFieldKey(field.column)
     if (
       key === "meta_category" &&
       normalizedObjectType &&
@@ -279,6 +448,12 @@ function fieldTitle(value: string) {
     .split(/[_\s]+/)
     .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : part))
     .join(" ")
+}
+
+function rawGroupDisplayTitle(group: AttackCaseIOCRawFieldGroup) {
+  const title = group.title.trim()
+  if (title.toLowerCase() === "ioc entry extra") return "IOC Entry Context"
+  return title || "Raw"
 }
 
 function fieldColumnLabel(label: string, key: string, sourcePath = "") {
@@ -333,10 +508,45 @@ function sourceField(source: AttackCaseIOCHitEvidence["source"]) {
   return field("source_type", sourceType, false, false)
 }
 
+function isWhitelistDomainDetailView(detailView: AttackCaseIOCHitDetailView) {
+  const sourceTable = detailView.source_ref?.table.trim().toLowerCase() || ""
+  const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
+
+  return sourceTable === "ioc_allowlist_domain" && primaryType === "domain"
+}
+
+function whitelistDomainRegisteredDomainField(
+  detailView: AttackCaseIOCHitDetailView,
+) {
+  if (!isWhitelistDomainDetailView(detailView)) return null
+
+  for (const evidence of detailView.evidence) {
+    for (const group of evidence.field_groups) {
+      for (const item of group.fields) {
+        if (detailFieldKey(item.key) !== "registered_domain") continue
+        return field("registered_domain", item.value, false, item.copyable || undefined)
+      }
+    }
+  }
+
+  return null
+}
+
+function isCompactWhitelistDetailView(detailView: AttackCaseIOCHitDetailView) {
+  const sourceTable = detailView.source_ref?.table.trim().toLowerCase() || ""
+  const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
+
+  return (
+    (sourceTable === "ioc_allowlist_domain" && primaryType === "domain") ||
+    (sourceTable === "ioc_allowlist_ip" && primaryType === "ip")
+  )
+}
+
 function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSection[] {
   const primary = detailView.primary
   if (!primary) return []
   const showFeedCoverage = hasFeedCoverage(detailView)
+  const registeredDomainField = whitelistDomainRegisteredDomainField(detailView)
 
   return compactSections([
     {
@@ -344,6 +554,7 @@ function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSec
       title: "Primary",
       fields: [
         primaryValueField(primary),
+        ...(registeredDomainField ? [registeredDomainField] : []),
         field("ioc_type", primary.ioc_type),
         field("status", primary.status),
         field("risk_score", primary.risk_score),
@@ -368,16 +579,29 @@ function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSec
   ])
 }
 
+function compactWhitelistFields(evidence: AttackCaseIOCHitEvidence) {
+  const allowedKeys = new Set(["allow_level", "action", "source_version"])
+
+  return evidence.field_groups
+    .filter((group) => detailFieldKey(group.group) === "allowlist")
+    .flatMap((group) =>
+      group.fields
+        .filter((item) => allowedKeys.has(detailFieldKey(item.key)))
+        .map((item) => {
+          const column = fieldColumnLabel(item.label, item.key, item.source_path)
+          return {
+            column,
+            value: displayValue(item.value),
+            wide: shouldUseWideField(column, item.value),
+            copyable: item.copyable || undefined,
+          }
+        }),
+    )
+}
+
 function evidenceOverviewFields(evidence: AttackCaseIOCHitEvidence) {
   const source = evidence.source
   const time = evidence.time
-  const scores = evidence.scores
-    .map((score) =>
-      [score.name, score.value || score.normalized_score || ""]
-        .filter(Boolean)
-        .join("="),
-    )
-    .filter(Boolean)
   const reasons = evidence.reasons
     .map((reason) =>
       [reason.type, reason.value].filter(Boolean).join("="),
@@ -392,7 +616,6 @@ function evidenceOverviewFields(evidence: AttackCaseIOCHitEvidence) {
     field("reporter", source?.reporter),
     field("credits", source?.credits),
     field("first_seen", time?.first_seen),
-    field("last_seen", time?.last_seen),
     field("observed_at", time?.observed_at),
     field("added_at", time?.added_at),
     field("event_time", time?.event_time),
@@ -400,23 +623,30 @@ function evidenceOverviewFields(evidence: AttackCaseIOCHitEvidence) {
       "tags",
       evidence.tags.map((tag) => tag.value).filter(Boolean),
     ),
-    listField("scores", scores, true),
     listField("reasons", reasons),
     field("summary", evidence.summary),
   ])
 }
 
-function evidenceFieldGroupSections(
+function evidenceFieldGroupSectionsForDetailView(
+  detailView: AttackCaseIOCHitDetailView,
   evidence: AttackCaseIOCHitEvidence,
   evidenceIndex: number,
 ) {
-  return evidence.field_groups.map((group, groupIndex) =>
-    fieldGroupSection(
-      group,
-      `evidence-${evidenceIndex}-group-${group.group || groupIndex}`,
-      evidence.title,
-    ),
-  )
+  const compactWhitelist = isCompactWhitelistDetailView(detailView)
+
+  return evidence.field_groups
+    .filter(
+      (group) =>
+        !compactWhitelist || detailFieldKey(group.group) !== "allowlist",
+    )
+    .map((group, groupIndex) =>
+      fieldGroupSection(
+        group,
+        `evidence-${evidenceIndex}-group-${group.group || groupIndex}`,
+        evidence.title,
+      ),
+    )
 }
 
 function fieldGroupSection(
@@ -447,7 +677,12 @@ function evidenceSections(detailView: AttackCaseIOCHitDetailView) {
         evidence.title ||
         evidence.source?.source_name ||
         `Evidence ${index + 1}`
-      const overview = evidenceOverviewFields(evidence)
+      const overview = [
+        ...evidenceOverviewFields(evidence),
+        ...(isCompactWhitelistDetailView(detailView)
+          ? compactWhitelistFields(evidence)
+          : []),
+      ]
       return [
         ...(overview.length
           ? [
@@ -459,7 +694,7 @@ function evidenceSections(detailView: AttackCaseIOCHitDetailView) {
               },
             ]
           : []),
-        ...evidenceFieldGroupSections(evidence, index),
+        ...evidenceFieldGroupSectionsForDetailView(detailView, evidence, index),
       ]
     }),
   )
@@ -514,9 +749,10 @@ function rawGroupSection(
   group: AttackCaseIOCRawFieldGroup,
   index: number,
 ): DetailFieldSection {
+  const title = rawGroupDisplayTitle(group)
   return {
-    id: `raw-${index}-${group.title || "group"}`,
-    title: group.title || "Raw",
+    id: `raw-${index}-${title}`,
+    title,
     subtitle: group.source_table,
     fields: group.fields.map((item) => {
       const column = fieldColumnLabel(item.label, item.key)
@@ -530,13 +766,49 @@ function rawGroupSection(
   }
 }
 
+function isDuplicatePrimaryHashSection(
+  section: DetailFieldSection,
+  detailView: AttackCaseIOCHitDetailView,
+) {
+  const primary = detailView.primary
+  if (!primary || primary.ioc_type.trim().toLowerCase() !== "hash") return false
+  if (detailFieldKey(section.title) !== "hash") return false
+
+  const hashFieldKeys = new Set(["hash_type", "hash_value"])
+  return (
+    section.fields.length > 0 &&
+    section.fields.every((field) =>
+      hashFieldKeys.has(detailFieldKey(field.column)),
+    )
+  )
+}
+
+function isRedundantWhitelistNetworkSection(
+  section: DetailFieldSection,
+  detailView: AttackCaseIOCHitDetailView,
+) {
+  const sourceTable = detailView.source_ref?.table.trim().toLowerCase() || ""
+  const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
+  const isNetworkSection = detailFieldKey(section.title) === "network"
+
+  return (
+    isNetworkSection &&
+    ((sourceTable === "ioc_allowlist_ip" && primaryType === "ip") ||
+      (sourceTable === "ioc_allowlist_domain" && primaryType === "domain"))
+  )
+}
+
 function detailViewSections(detailView: AttackCaseIOCHitDetailView) {
   return compactSections([
     ...primarySections(detailView),
     ...evidenceSections(detailView),
     ...relationSections(detailView),
     ...rawGroupSections(detailView),
-  ])
+  ]).filter(
+    (section) =>
+      !isDuplicatePrimaryHashSection(section, detailView) &&
+      !isRedundantWhitelistNetworkSection(section, detailView),
+  )
 }
 
 function blacklistFields(
@@ -689,21 +961,34 @@ function DetailFieldSections({
           {valueLabel}
         </div>
       </div>
-      {visibleSections.map((section) => (
-        <div key={section.id} className="border-t border-slate-100">
-          <div className="bg-slate-50 px-4 py-2">
-            <div className="truncate text-xs font-semibold text-slate-700">
-              {section.title}
-            </div>
-            {section.subtitle ? (
-              <div className="mt-0.5 truncate text-[11px] text-slate-400">
-                {section.subtitle}
+      {visibleSections.map((section) => {
+        const title = detailSectionTitle(section.title)
+        const subtitle = section.subtitle
+          ? detailSectionSubtitle(section.subtitle)
+          : ""
+
+        return (
+          <div key={section.id} className="border-t border-slate-100">
+            <div className="bg-slate-50 px-4 py-2">
+              <div
+                className="truncate text-xs font-semibold text-slate-700"
+                title={title}
+              >
+                {title}
               </div>
-            ) : null}
+              {subtitle ? (
+                <div
+                  className="mt-0.5 truncate text-[11px] text-slate-400"
+                  title={subtitle}
+                >
+                  {subtitle}
+                </div>
+              ) : null}
+            </div>
+            <PairedFieldRows fields={section.fields} onCopy={onCopy} />
           </div>
-          <PairedFieldRows fields={section.fields} onCopy={onCopy} />
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -718,15 +1003,15 @@ function IocEntryObservationRows({
   return (
     <div className="border-t border-slate-100">
       <div className="bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600">
-        observations
+        观测记录
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[760px]">
           <div className="grid grid-cols-[1fr_80px_128px_1.4fr] border-t border-slate-100 bg-white px-4 py-2 text-xs font-semibold text-slate-400">
-            <span>source_name</span>
-            <span>confidence</span>
-            <span>last_seen</span>
-            <span>evidence</span>
+            <span>来源名称</span>
+            <span>置信度</span>
+            <span>最后发现时间</span>
+            <span>证据</span>
           </div>
           <div className="divide-y divide-slate-100">
             {observations.map((observation, index) => {
@@ -773,16 +1058,16 @@ function IocEntryRelationRows({
   return (
     <div className="border-t border-slate-100">
       <div className="bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600">
-        relations
+        关联关系
       </div>
       <div className="overflow-x-auto">
         <div className="min-w-[760px]">
           <div className="grid grid-cols-[72px_1fr_1fr_1.4fr_128px] border-t border-slate-100 bg-white px-4 py-2 text-xs font-semibold text-slate-400">
-            <span>direction</span>
-            <span>relation_type</span>
-            <span>source_name</span>
-            <span>peer_entry_id</span>
-            <span>last_seen</span>
+            <span>方向</span>
+            <span>关联类型</span>
+            <span>来源名称</span>
+            <span>关联条目ID</span>
+            <span>最后发现时间</span>
           </div>
           <div className="divide-y divide-slate-100">
             {relations.map((relation, index) => {
@@ -793,7 +1078,10 @@ function IocEntryRelationRows({
                   key={rowKey}
                   className="grid grid-cols-[72px_1fr_1fr_1.4fr_128px] items-center px-4 py-2 text-xs text-slate-700"
                 >
-                  <span>{displayValue(relation.direction)}</span>
+                  <span>
+                    {DIRECTION_VALUES[normalizedDetailValue(relation.direction)] ||
+                      displayValue(relation.direction)}
+                  </span>
                   <span className="truncate font-medium" title={relation.relation_type}>
                     {displayValue(relation.relation_type)}
                   </span>
@@ -1026,6 +1314,8 @@ export function IocVerificationDetailPanel({
   const detailView = detail?.detail_view ?? null
   const iocEntry = detail?.hit_source_detail?.ioc_entry ?? null
   const blacklist = detail?.hit_source_detail?.blacklist_indicator ?? null
+  const detailColumnLabel = "字段"
+  const detailValueLabel = "值"
 
   return (
     <section
@@ -1058,22 +1348,22 @@ export function IocVerificationDetailPanel({
         ) : detailView ? (
           <HitDetailView
             detailView={detailView}
-            columnLabel={t("detail.column")}
-            valueLabel={t("detail.value")}
+            columnLabel={detailColumnLabel}
+            valueLabel={detailValueLabel}
             onCopy={onCopy}
           />
         ) : iocEntry ? (
           <IocEntryDetailView
             detail={iocEntry}
-            columnLabel={t("detail.column")}
-            valueLabel={t("detail.value")}
+            columnLabel={detailColumnLabel}
+            valueLabel={detailValueLabel}
             onCopy={onCopy}
           />
         ) : blacklist ? (
           <DetailFieldTable
             fields={blacklistFields(blacklist)}
-            columnLabel={t("detail.column")}
-            valueLabel={t("detail.value")}
+            columnLabel={detailColumnLabel}
+            valueLabel={detailValueLabel}
             onCopy={onCopy}
           />
         ) : item.verification && !detail ? (
