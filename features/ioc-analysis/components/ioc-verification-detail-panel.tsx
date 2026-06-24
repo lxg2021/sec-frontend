@@ -356,6 +356,31 @@ const NON_COPYABLE_DETAIL_FIELD_KEYS = new Set([
   "value_subtype",
 ])
 
+const REDUNDANT_BLACKLIST_INTELLIGENCE_FIELD_KEYS = new Set([
+  "categories",
+  "confidence",
+  "display_value",
+  "feed_count",
+  "feed_name",
+  "feed_names",
+  "first_seen",
+  "first_seen_utc",
+  "indicator_key",
+  "ioc_type",
+  "last_batch_id",
+  "last_seen",
+  "last_seen_utc",
+  "normalized_value",
+  "risk_score",
+  "source_count",
+  "source_name",
+  "source_names",
+  "source_url",
+  "source_urls",
+  "status",
+  "value_subtype",
+])
+
 function shouldCopyDetailField(field: DetailField, value: string) {
   if (!value || value === "-" || value === "[]") return false
 
@@ -381,6 +406,11 @@ function normalizedDetailValue(value: string) {
 
 function detailFieldKey(column: string) {
   return column.trim().toLowerCase().replace(/[\s-]+/g, "_")
+}
+
+function detailViewSourceTableName(detailView: AttackCaseIOCHitDetailView) {
+  const table = detailView.source_ref?.table.trim().toLowerCase() || ""
+  return table.split(".").pop() || table
 }
 
 function isHiddenDetailField(column: string) {
@@ -477,7 +507,7 @@ function shouldUseWideField(column: string, value: string) {
 }
 
 function hasFeedCoverage(detailView: AttackCaseIOCHitDetailView) {
-  const table = detailView.source_ref?.table.trim().toLowerCase() || ""
+  const table = detailViewSourceTableName(detailView)
   return table === "ioc_blacklist_indicator" || table === "ioc_blacklist_host"
 }
 
@@ -509,7 +539,7 @@ function sourceField(source: AttackCaseIOCHitEvidence["source"]) {
 }
 
 function isWhitelistDomainDetailView(detailView: AttackCaseIOCHitDetailView) {
-  const sourceTable = detailView.source_ref?.table.trim().toLowerCase() || ""
+  const sourceTable = detailViewSourceTableName(detailView)
   const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
 
   return sourceTable === "ioc_allowlist_domain" && primaryType === "domain"
@@ -532,8 +562,15 @@ function whitelistDomainRegisteredDomainField(
   return null
 }
 
+function isHashWhitelistDetailView(detailView: AttackCaseIOCHitDetailView) {
+  const sourceTable = detailViewSourceTableName(detailView)
+  const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
+
+  return sourceTable === "ioc_allowlist_hash" && primaryType === "hash"
+}
+
 function isCompactWhitelistDetailView(detailView: AttackCaseIOCHitDetailView) {
-  const sourceTable = detailView.source_ref?.table.trim().toLowerCase() || ""
+  const sourceTable = detailViewSourceTableName(detailView)
   const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
 
   return (
@@ -543,11 +580,34 @@ function isCompactWhitelistDetailView(detailView: AttackCaseIOCHitDetailView) {
   )
 }
 
+function evidenceGroupFields(group: AttackCaseIOCEvidenceFieldGroup) {
+  return group.fields.map((item) => {
+    const column = fieldColumnLabel(item.label, item.key, item.source_path)
+    return {
+      column,
+      value: displayValue(item.value),
+      wide: shouldUseWideField(column, item.value),
+      copyable: item.copyable || undefined,
+    }
+  })
+}
+
+function hashWhitelistFileFields(detailView: AttackCaseIOCHitDetailView) {
+  if (!isHashWhitelistDetailView(detailView)) return []
+
+  return detailView.evidence.flatMap((evidence) =>
+    evidence.field_groups
+      .filter((group) => detailFieldKey(group.group) === "file")
+      .flatMap(evidenceGroupFields),
+  )
+}
+
 function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSection[] {
   const primary = detailView.primary
   if (!primary) return []
   const showFeedCoverage = hasFeedCoverage(detailView)
   const registeredDomainField = whitelistDomainRegisteredDomainField(detailView)
+  const fileFields = hashWhitelistFileFields(detailView)
 
   return compactSections([
     {
@@ -569,6 +629,7 @@ function primarySections(detailView: AttackCaseIOCHitDetailView): DetailFieldSec
           : []),
         field("first_seen", primary.first_seen),
         field("last_seen", primary.last_seen),
+        ...fileFields,
         ...(showFeedCoverage
           ? [
               listField("source_names", primary.source_names, true),
@@ -637,10 +698,14 @@ function evidenceFieldGroupSectionsForDetailView(
   const compactWhitelist = isCompactWhitelistDetailView(detailView)
 
   return evidence.field_groups
-    .filter(
-      (group) =>
-        !compactWhitelist || detailFieldKey(group.group) !== "allowlist",
-    )
+    .filter((group) => {
+      const groupKey = detailFieldKey(group.group)
+      if (compactWhitelist && groupKey === "allowlist") return false
+      if (isHashWhitelistDetailView(detailView) && groupKey === "file") {
+        return false
+      }
+      return true
+    })
     .map((group, groupIndex) =>
       fieldGroupSection(
         group,
@@ -659,15 +724,7 @@ function fieldGroupSection(
     id,
     title: group.title || fieldTitle(group.group) || "Evidence",
     subtitle,
-    fields: group.fields.map((item) => {
-      const column = fieldColumnLabel(item.label, item.key, item.source_path)
-      return {
-        column,
-        value: displayValue(item.value),
-        wide: shouldUseWideField(column, item.value),
-        copyable: item.copyable || undefined,
-      }
-    }),
+    fields: evidenceGroupFields(group),
   }
 }
 
@@ -742,7 +799,30 @@ function relationSections(detailView: AttackCaseIOCHitDetailView) {
 
 function rawGroupSections(detailView: AttackCaseIOCHitDetailView) {
   return compactSections(
-    detailView.raw_groups.map((group, index) => rawGroupSection(group, index)),
+    detailView.raw_groups
+      .filter((group) => !isRedundantBlacklistIntelligenceRawGroup(group, detailView))
+      .map((group, index) => rawGroupSection(group, index)),
+  )
+}
+
+function isRedundantBlacklistIntelligenceRawGroup(
+  group: AttackCaseIOCRawFieldGroup,
+  detailView: AttackCaseIOCHitDetailView,
+) {
+  if (detailViewSourceTableName(detailView) !== "ioc_blacklist_indicator") {
+    return false
+  }
+  if (detailFieldKey(rawGroupDisplayTitle(group)) !== "intelligence") {
+    return false
+  }
+
+  return (
+    group.fields.length > 0 &&
+    group.fields.every((field) =>
+      REDUNDANT_BLACKLIST_INTELLIGENCE_FIELD_KEYS.has(
+        detailFieldKey(field.key || field.label),
+      ),
+    )
   )
 }
 
@@ -788,7 +868,7 @@ function isRedundantWhitelistNetworkSection(
   section: DetailFieldSection,
   detailView: AttackCaseIOCHitDetailView,
 ) {
-  const sourceTable = detailView.source_ref?.table.trim().toLowerCase() || ""
+  const sourceTable = detailViewSourceTableName(detailView)
   const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
   const isNetworkSection = detailFieldKey(section.title) === "network"
 
