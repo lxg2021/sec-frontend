@@ -37,7 +37,7 @@ import {
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
 
 const tableGridClass =
-  "grid-cols-[minmax(300px,1.15fr)_minmax(190px,0.78fr)_64px_108px_108px_108px_156px_64px_78px_88px_92px_82px]"
+  "grid-cols-[minmax(320px,1.1fr)_minmax(210px,0.75fr)_60px_104px_112px_112px_158px_64px_76px_92px_96px_90px]"
 const actionButtonClass =
   "h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
 const inlineCopyButtonClass =
@@ -308,7 +308,7 @@ export function IocResultsTable({
   }
 
   return (
-    <div className="min-w-[1560px] overflow-hidden rounded-2xl border border-slate-100">
+    <div className="min-w-[1610px] overflow-hidden rounded-2xl border border-slate-100">
       <div
         className={cn(
           "grid items-center gap-2 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-400",
