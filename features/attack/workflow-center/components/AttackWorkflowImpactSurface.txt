@@ -1,0 +1,910 @@
+AttackWorkflowImpactSurface Requirements
+
+Purpose
+This document defines the product and UI requirements for the real EDR Attack Impact Surface.
+
+The impact surface must answer this operational question:
+What did this attack touch, change, control, or spread to across endpoints and related assets?
+
+This is not the same as workflow scope.
+Workflow scope only answers:
+- Which agents are linked to the workflow.
+- Which attack instances are linked to the workflow.
+- Which detection rules are linked to the workflow.
+- Which asset groups are linked to the workflow.
+
+Attack impact surface must go deeper than workflow references.
+It must summarize endpoint evidence such as processes, files, registry keys, persistence points, network connections, identities, lateral movement, system modification, data access, and timeline evidence.
+
+Target stack
+- React
+- TypeScript
+- Next.js frontend
+- Tailwind CSS
+- shadcn/ui compatible styling
+- lucide-react icons
+
+Component name
+The real impact component should be:
+AttackWorkflowImpactSurface
+
+Suggested file:
+features/attack/workflow-center/components/attack-workflow-impact-surface.tsx
+
+Important naming rule
+The existing agent/rule/instance/group visualization is not enough to be called Impact Surface.
+If it is kept, it should be renamed or repositioned as one of:
+- AttackWorkflowScopeSummary
+- AttackWorkflowLinkedScope
+- Workflow Scope
+- Case Scope
+
+The real AttackWorkflowImpactSurface may include a small Workflow Scope summary, but that summary must not be the whole component.
+
+Product context
+This component belongs to the AttackWorkflow control center for a security operations product.
+It should work together with:
+- /frame/attack/detail
+- /frame/attack/drill
+- /frame/ai-ops/threat-analysis
+- AttackWorkflow lifecycle status controls
+- AttackWorkflow Events table
+- AttackWorkflow Actions table
+
+The component is an operations component, not a marketing component.
+It should be dense, practical, scan-friendly, and built for repeated use by security operators.
+
+Primary responsibility
+AttackWorkflowImpactSurface is responsible for rendering the current attack impact surface of one attack workflow or one attack case.
+
+It must help the operator quickly understand:
+1. Which assets are affected.
+2. Which endpoint objects are affected.
+3. Which attack behaviors happened against those objects.
+4. Whether there is persistence, credential impact, lateral movement, data access, or C2 activity.
+5. What evidence supports each impact category.
+6. Which parts are already contained or remediated.
+7. Where to drill down for raw events, graph detail, threat analysis, or response actions.
+
+Non-goals
+Do not treat the following as the full impact surface:
+- agent_ids only
+- rule_ids only
+- instance_ids only
+- group_ids only
+- workflow_id/case_id metadata only
+
+Do not create a landing page.
+Do not implement backend calls inside the pure presentation component.
+Do not mutate workflow status inside this component.
+Do not execute response actions directly from this component unless the parent explicitly passes callbacks.
+Do not hide missing data as zero risk.
+
+Concept model
+The impact surface should be organized into three levels:
+
+L1: Asset-level impact
+Question:
+Which assets are affected?
+
+Examples:
+- Hosts
+- Agents
+- Asset groups
+- Business groups
+- Logged-in users
+- Online/offline state
+- Isolation state
+- First seen / last seen attack activity
+- Whether the asset is part of lateral movement
+
+L2: Object-level impact
+Question:
+Which endpoint objects were touched?
+
+Examples:
+- Processes
+- Files
+- Registry keys
+- Services
+- Scheduled tasks
+- WMI subscriptions
+- Network endpoints
+- Domains
+- IPs
+- User accounts
+- Credentials
+- Memory modules
+- Sensitive data objects
+
+L3: Behavior-level impact
+Question:
+What did the attack do to those objects?
+
+Examples:
+- create
+- execute
+- inject
+- modify
+- delete
+- encrypt
+- connect
+- download
+- upload
+- dump
+- persist
+- disable
+- scan
+- lateral_move
+- exfiltrate
+- clear_logs
+
+Required impact categories
+The component must support these categories, even if some categories have zero or unknown data in the first implementation.
+
+1. Asset Impact
+Purpose:
+Show affected hosts and asset scope.
+
+Required data examples:
+- host_id
+- agent_id
+- hostname
+- ip_addresses
+- os
+- asset_group_ids
+- business_group_name
+- severity
+- containment_status
+- first_seen_at
+- last_seen_at
+- related_instance_ids
+
+Operator questions:
+- Which machines are involved?
+- Which machine is the initial host?
+- Which machines are downstream targets?
+- Are any machines already isolated or remediated?
+
+2. Process Impact
+Purpose:
+Show how the attack executed on endpoints.
+
+Required data examples:
+- process_id
+- host_id / agent_id
+- pid
+- ppid
+- process_name
+- process_path
+- command_line
+- parent_process_name
+- parent_command_line
+- user_name
+- integrity_level
+- file_hash
+- signer
+- started_at
+- ended_at
+- risk_tags
+- mitre_techniques
+- action_state
+
+Required UI behavior:
+- Show process execution chain or process tree when available.
+- Highlight suspicious command line fragments.
+- Show risky process names such as powershell.exe, cmd.exe, wmic.exe, rundll32.exe, regsvr32.exe, mshta.exe, psexec.exe.
+- Allow drill-down to raw event or attack drill page.
+
+Operator questions:
+- What process started the attack?
+- What child processes were spawned?
+- Was there command execution, script execution, or living-off-the-land behavior?
+- Which process should be killed or investigated further?
+
+3. File Impact
+Purpose:
+Show files dropped, modified, deleted, encrypted, or quarantined by the attack.
+
+Required data examples:
+- file_id
+- host_id / agent_id
+- path
+- file_name
+- operation
+- hash_sha256
+- signer
+- size
+- first_seen_at
+- modified_at
+- quarantine_state
+- risk_tags
+- related_process_id
+
+Operations:
+- created
+- modified
+- deleted
+- encrypted
+- renamed
+- executed
+- quarantined
+
+Operator questions:
+- What payloads were dropped?
+- Which files were modified or deleted?
+- Are malicious files already quarantined?
+- Are there leftover artifacts that require cleanup?
+
+4. Persistence Impact
+Purpose:
+Show whether the attack can survive reboot or user logout.
+
+Required data examples:
+- persistence_id
+- host_id / agent_id
+- persistence_type
+- object_path
+- object_name
+- command
+- created_by_process
+- created_at
+- state
+- cleanup_state
+- risk_tags
+
+Persistence types:
+- Run key
+- RunOnce key
+- Service
+- Scheduled Task
+- WMI Event Subscription
+- IFEO
+- Winlogon
+- Shell
+- Userinit
+- Startup folder
+- COM hijack
+
+Operator questions:
+- Did the attacker establish persistence?
+- Which startup mechanism is used?
+- Has it been removed?
+- Does the host need reboot verification?
+
+5. Network Impact
+Purpose:
+Show external communication, C2, download, upload, and internal communication.
+
+Required data examples:
+- network_id
+- host_id / agent_id
+- process_id
+- direction
+- protocol
+- local_ip
+- local_port
+- remote_ip
+- remote_port
+- domain
+- url
+- dns_query
+- country
+- asn
+- reputation
+- bytes_sent
+- bytes_received
+- first_seen_at
+- last_seen_at
+- blocked_state
+- risk_tags
+
+Network groups:
+- External C2 / suspicious outbound
+- DNS activity
+- HTTP/HTTPS activity
+- TCP/UDP connections
+- Internal scanning
+- Internal remote execution
+- Data upload / exfiltration candidate
+
+Operator questions:
+- Did the attack connect to C2?
+- Which domains or IPs were involved?
+- Was data uploaded?
+- Should the address/domain be blocked?
+
+6. Memory and Injection Impact
+Purpose:
+Show memory-only or injection-based attack behavior.
+
+Required data examples:
+- memory_event_id
+- host_id / agent_id
+- source_process_id
+- target_process_id
+- technique
+- module_path
+- memory_region
+- shellcode_indicator
+- created_at
+- risk_tags
+- evidence_id
+
+Techniques:
+- CreateRemoteThread
+- APC injection
+- Process hollowing
+- DLL injection
+- Reflective DLL loading
+- Shellcode execution
+- Suspicious unsigned module
+- LSASS memory access
+
+Operator questions:
+- Did the attack hide inside another process?
+- Which process was injected?
+- Is credential dumping suspected?
+- Is memory forensics required?
+
+7. Identity and Credential Impact
+Purpose:
+Show affected users, privilege changes, credential theft, and account abuse.
+
+Required data examples:
+- identity_event_id
+- user_name
+- user_id
+- domain
+- host_id / agent_id
+- action
+- privilege
+- logon_type
+- source_process_id
+- created_at
+- risk_tags
+- evidence_id
+
+Actions:
+- suspicious_logon
+- privilege_escalation
+- token_impersonation
+- credential_dump
+- lsass_access
+- browser_credential_access
+- account_created
+- account_added_to_group
+- pass_the_hash
+- pass_the_ticket
+
+Operator questions:
+- Which accounts are affected?
+- Was privilege escalation observed?
+- Are credentials likely compromised?
+- Is password reset or ticket revocation required?
+
+8. Lateral Movement Impact
+Purpose:
+Show whether the attack spread across machines.
+
+Required data examples:
+- movement_id
+- source_host_id
+- source_agent_id
+- target_host_id
+- target_agent_id
+- user_name
+- protocol
+- technique
+- command
+- success_state
+- first_seen_at
+- last_seen_at
+- evidence_id
+
+Techniques:
+- PsExec
+- WMI
+- WinRM
+- RDP
+- SMB admin share
+- SSH
+- NTLM relay
+- Pass-the-hash
+- Remote scheduled task
+
+Required UI behavior:
+- Show source -> target relationships.
+- Show a compact topology when there are multiple hosts.
+- Show table fallback for dense cases.
+- Clearly distinguish confirmed lateral movement from suspicious internal access.
+
+Operator questions:
+- Did the attack move from one host to another?
+- What account and protocol were used?
+- Which host is the source?
+- Which host is the downstream target?
+
+9. System Modification Impact
+Purpose:
+Show defense evasion and security state changes.
+
+Required data examples:
+- system_event_id
+- host_id / agent_id
+- object_type
+- object_name
+- operation
+- old_value
+- new_value
+- source_process_id
+- created_at
+- risk_tags
+- remediation_state
+
+Objects and operations:
+- Defender disabled
+- EDR agent stopped
+- Firewall rule changed
+- Event log cleared
+- Audit policy changed
+- Security policy changed
+- UAC setting changed
+- hosts file changed
+- DNS/proxy setting changed
+- Service stopped
+- Driver loaded
+
+Operator questions:
+- Did the attacker weaken system protection?
+- Is the host still trustworthy?
+- Which system settings must be restored?
+
+10. Data Impact
+Purpose:
+Show sensitive data access, collection, packaging, or exfiltration.
+
+Required data examples:
+- data_event_id
+- host_id / agent_id
+- data_type
+- path
+- operation
+- file_count
+- total_size
+- process_id
+- destination
+- created_at
+- confidence
+- risk_tags
+
+Operations:
+- sensitive_file_read
+- mass_file_read
+- archive_created
+- browser_data_access
+- database_file_access
+- clipboard_access
+- screenshot
+- upload
+- exfiltration_suspected
+- exfiltration_confirmed
+
+Operator questions:
+- Was sensitive data touched?
+- Was data packed or uploaded?
+- Is compliance escalation required?
+- What files or data types are involved?
+
+11. Timeline Evidence
+Purpose:
+Show the time-ordered evidence that supports the impact surface.
+
+Required data examples:
+- evidence_id
+- occurred_at
+- category
+- host_id / agent_id
+- object_type
+- object_name
+- action
+- severity
+- confidence
+- mitre_technique
+- source
+- raw_event_id
+- summary
+
+Required UI behavior:
+- Timeline should be filterable by category.
+- Timeline should support dense evidence display.
+- Timeline should provide drill-down links to raw events or attack drill pages.
+
+Operator questions:
+- What happened first?
+- What happened after the initial execution?
+- Which evidence supports each impact category?
+- Has the investigation missed a time window?
+
+High-level UI layout
+The component should be organized as a dense operations panel:
+
+1. Header row
+- Title: Impact Surface
+- Short subtitle: Endpoint evidence grouped by asset, object, behavior, and timeline.
+- Optional freshness indicator: Updated at ...
+- Optional data quality indicator: Complete / Partial / No telemetry
+
+2. Overview KPI row
+Suggested metrics:
+- Affected Hosts
+- Processes
+- Files
+- Persistence
+- Network
+- Identities
+- Lateral Targets
+- Data Events
+
+Each metric should show:
+- count
+- risk tone
+- unknown/missing state when data is not available
+- optional mini label such as "confirmed", "suspected", or "blocked"
+
+3. Primary layout
+Desktop layout:
+- Left or top summary area for overall scope and severity.
+- Main area with impact categories.
+- Right or bottom evidence preview if space allows.
+
+Recommended desktop sections:
+- Asset Impact
+- Process Impact
+- Persistence
+- Network
+- Identity
+- Lateral Movement
+- Data
+- Timeline Evidence
+
+Small-screen layout:
+- Single-column.
+- KPI row wraps.
+- Categories become accordion sections or stacked cards.
+- No horizontal overflow.
+- Long IDs and command lines must wrap or be truncated with title tooltip.
+
+4. Category cards
+Each category card should contain:
+- Category icon
+- Category label
+- Count
+- Highest severity
+- Confidence state
+- Top 2-4 representative objects
+- Evidence count
+- Drill-down button/link when a route is available
+- Empty state when no data is present
+- Unknown state when data source is not connected
+
+5. Detail views inside the component
+The first version can use tabs or segmented controls:
+- Overview
+- Process
+- File
+- Persistence
+- Network
+- Identity
+- Lateral
+- Data
+- Timeline
+
+If nested tabs make the panel too heavy, use category cards in Overview and let each card open an inline section or detail drawer owned by the parent.
+
+6. Drill-down integration
+The component should not know routing implementation details deeply, but it should expose callbacks or links for:
+- Open attack detail
+- Open attack drill
+- Open threat analysis
+- Open raw event
+- Open host detail
+- Open process detail
+- Open file detail
+- Open network entity
+- Open response action preview
+
+Suggested props:
+- onOpenAttackDetail?: (params) => void
+- onOpenAttackDrill?: (params) => void
+- onOpenThreatAnalysis?: (params) => void
+- onOpenEvidence?: (evidenceId) => void
+- onOpenHost?: (hostId) => void
+- onOpenProcess?: (processId) => void
+- onOpenFile?: (fileId) => void
+- onOpenNetworkEntity?: (entity) => void
+
+Data contract
+The presentation component should accept normalized data. It should not parse backend raw event formats directly.
+
+Recommended TypeScript model:
+
+type ImpactSeverity = "critical" | "high" | "medium" | "low" | "info" | "unknown"
+
+type ImpactConfidence = "confirmed" | "suspected" | "unknown"
+
+type ImpactDataQuality = "complete" | "partial" | "missing" | "loading" | "error"
+
+interface AttackImpactSurface {
+  workflow_id: string
+  case_id: string
+  tenant_id: string
+  generated_at: string
+  data_quality: ImpactDataQuality
+  summary: AttackImpactSummary
+  workflow_scope?: WorkflowScopeSummary
+  assets: AssetImpactItem[]
+  processes: ProcessImpactItem[]
+  files: FileImpactItem[]
+  persistence: PersistenceImpactItem[]
+  network: NetworkImpactItem[]
+  memory: MemoryImpactItem[]
+  identities: IdentityImpactItem[]
+  lateral_movements: LateralMovementImpactItem[]
+  system_modifications: SystemModificationImpactItem[]
+  data_events: DataImpactItem[]
+  timeline: TimelineEvidenceItem[]
+}
+
+interface AttackImpactSummary {
+  severity: ImpactSeverity
+  confidence: ImpactConfidence
+  affected_host_count: number
+  affected_process_count: number
+  affected_file_count: number
+  persistence_count: number
+  network_indicator_count: number
+  identity_count: number
+  lateral_movement_count: number
+  system_modification_count: number
+  data_event_count: number
+  evidence_count: number
+  first_seen_at: string
+  last_seen_at: string
+}
+
+interface WorkflowScopeSummary {
+  agent_ids: string[]
+  instance_ids: string[]
+  rule_ids: string[]
+  group_ids: string[]
+}
+
+Component API
+The final presentation component should use this shape:
+
+interface AttackWorkflowImpactSurfaceProps {
+  impact: AttackImpactSurface | null
+  workflow?: AttackWorkflowItem | null
+  loading?: boolean
+  error?: string | null
+  className?: string
+  defaultView?: "overview" | "process" | "file" | "persistence" | "network" | "identity" | "lateral" | "data" | "timeline"
+  onOpenAttackDetail?: (params: { caseId: string; workflowId?: string }) => void
+  onOpenAttackDrill?: (params: { caseId: string; instanceId?: string }) => void
+  onOpenThreatAnalysis?: (params: { caseId: string; workflowId?: string }) => void
+  onOpenEvidence?: (evidenceId: string) => void
+  onOpenHost?: (hostId: string) => void
+  onOpenProcess?: (processId: string) => void
+  onOpenFile?: (fileId: string) => void
+}
+
+Note:
+workflow can be used only as context and fallback.
+impact is the real data source for the component.
+
+MVP implementation
+The first real version should implement these sections:
+
+1. Overview
+- KPI row.
+- Data quality state.
+- Highest severity and confidence.
+- First seen / last seen.
+- Small workflow scope summary.
+
+2. Asset Impact
+- Affected hosts list.
+- Show containment state.
+- Show first/last activity.
+- Link to host or attack detail.
+
+3. Process Impact
+- Top risky processes.
+- Parent/child relationship when available.
+- Command line preview.
+- Link to attack drill.
+
+4. File Impact
+- Dropped/modified/quarantined files.
+- Path/hash preview.
+- Cleanup/quarantine state.
+
+5. Persistence Impact
+- Startup mechanisms.
+- State: active / removed / unknown.
+- Needs cleanup indicator.
+
+6. Network Impact
+- External indicators.
+- Internal movement candidates.
+- Blocked/unblocked state.
+
+7. Timeline Evidence
+- Latest or most important evidence rows.
+- Filter by category if feasible.
+
+Deferred to later versions:
+- Full memory forensics visualization.
+- Full credential graph.
+- Large lateral movement topology.
+- Full data exfiltration workflow.
+- Bulk remediation controls.
+
+Data state requirements
+The UI must distinguish:
+
+Zero:
+The category was checked and no impact was found.
+Example: "No persistence found."
+
+Unknown:
+The category was not checked or source data is missing.
+Example: "Persistence telemetry unavailable."
+
+Loading:
+Data is currently being fetched.
+
+Error:
+Impact data failed to load.
+
+Partial:
+Some categories are loaded but others are missing.
+
+Do not display unknown as zero.
+This is important for security operations because unknown means investigation gap, not safety.
+
+Severity and confidence
+Every category and important item should support:
+- severity
+- confidence
+
+Severity answers:
+How bad is it?
+
+Confidence answers:
+How sure are we?
+
+Example:
+- C2 connection confirmed, high severity.
+- Data exfiltration suspected, medium severity.
+- Persistence unknown because telemetry missing.
+
+Visual design requirements
+- Dense operations dashboard style.
+- Use existing project colors and shadcn-compatible surfaces.
+- Avoid decorative hero patterns.
+- Avoid large empty illustrations.
+- Avoid nested cards inside cards where possible.
+- Use cards only for repeated category items or contained panels.
+- Use lucide-react icons.
+- Do not use emoji as structural icons.
+- Use semantic color for severity and state.
+- Do not rely on color alone; include labels and icons.
+- Maintain readable contrast in light mode.
+- Text must not overflow its container.
+- Long IDs, paths, hashes, and command lines must wrap or be truncated with title tooltip.
+- No horizontal scroll on normal mobile widths.
+- Support dense desktop view without wasting width.
+
+Responsive requirements
+Desktop:
+- Use available width.
+- Avoid narrow centered layouts.
+- KPI row should use responsive grid.
+- Category overview should use 2-4 columns depending on width.
+- Detail tables can be dense.
+
+Tablet:
+- Use 2-column category layout where possible.
+- Keep timeline readable.
+
+Mobile:
+- Single-column.
+- Compact KPI cards.
+- Category cards stacked.
+- Tables must switch to mobile cards.
+- No fixed pixel width that causes horizontal scroll.
+
+Accessibility requirements
+- Interactive elements must have labels.
+- Icons must be decorative with aria-hidden when text label exists.
+- Selected tabs must expose selected state via shadcn/Radix behavior.
+- Loading and error states must be visible text, not only spinner.
+- Color must not be the only severity indicator.
+- Focus rings must remain visible.
+
+Filtering requirements
+The first real version should support lightweight filtering:
+- Category filter
+- Severity filter
+- Confidence filter
+- Host filter
+
+Advanced filtering can be deferred:
+- Time range
+- MITRE technique
+- Evidence source
+- Action state
+
+Sorting requirements
+Important lists should sort by:
+- severity desc
+- confidence desc
+- latest activity desc
+- count desc
+
+Default sort:
+Show the most operationally important items first.
+
+Route integration requirements
+The impact surface should connect to existing pages:
+
+/frame/attack/detail
+Use for case-level detail and existing attack case content.
+
+/frame/attack/drill
+Use for graph, chain, and event drill-down.
+
+/frame/ai-ops/threat-analysis
+Use for AI analysis, investigation narrative, and recommendation detail.
+
+The component should expose callbacks instead of hardcoding navigation where possible.
+The page/container layer should decide route construction.
+
+Acceptance criteria
+The implementation is acceptable when:
+
+1. The UI no longer presents agent/rule/instance/group references as the complete impact surface.
+2. Workflow scope is clearly labeled as scope, not impact.
+3. Impact Surface shows at least Asset, Process, File, Persistence, Network, and Timeline categories.
+4. Unknown data is visually different from zero impact.
+5. The component can render loading, empty, partial, and error states.
+6. The layout uses full available width in the AttackWorkflow control center.
+7. It is responsive on desktop, tablet, and mobile.
+8. Long command lines, hashes, file paths, URLs, and IDs do not break layout.
+9. Category cards expose counts, severity, confidence, representative objects, and evidence count.
+10. The component is data-driven and does not depend on hardcoded demo-only objects.
+11. It can link or callback into attack detail, attack drill, and threat analysis flows.
+12. Production build passes after integration.
+
+Recommended next implementation steps
+1. Rename or reposition the current implementation as Workflow Scope if it is kept.
+2. Add normalized frontend types for AttackImpactSurface.
+3. Add a mock adapter that can map current workflow data into a partial impact shape for UI development.
+4. Implement real Impact Surface overview with unknown states for missing telemetry categories.
+5. Connect real backend data category by category.
+6. Add drill-down callbacks to existing pages.
+
+Important product rule
+The AttackWorkflow lifecycle and the Attack Impact Timeline are different concepts.
+
+AttackWorkflow lifecycle:
+detected -> investigating -> confirmed -> forensics -> responding -> contained -> remediated -> closed
+
+Attack Impact Timeline:
+initial access -> execution -> persistence -> privilege escalation -> defense evasion -> credential access -> discovery -> lateral movement -> collection -> exfiltration -> command and control -> impact -> containment -> remediation
+
+Do not merge these two timelines into one visual.
+The lifecycle is for operator handling state.
+The impact timeline is for attack evidence and behavior.
