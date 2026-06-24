@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 
 import type {
   AttackCaseIOCBlacklistIndicatorHitDetail,
+  AttackCaseIOCEvidenceField,
   AttackCaseIOCEvidenceFieldGroup,
   AttackCaseIOCHitDetailView,
   AttackCaseIOCHitEvidence,
@@ -13,8 +14,11 @@ import type {
   AttackCaseIOCIocEntryHitDetail,
   AttackCaseIOCIocObservation,
   AttackCaseIOCIocRelation,
+  AttackCaseIOCIntelSource,
   AttackCaseIOCJSONEvidence,
   AttackCaseIOCRawFieldGroup,
+  AttackCaseIOCSourceFact,
+  AttackCaseIOCSourceRecord,
   IocVerificationItem,
 } from "@/features/ioc-analysis/types"
 import { cn } from "@/shared/lib/utils"
@@ -42,6 +46,8 @@ const HIDDEN_DETAIL_FIELD_NAMES = new Set([
   "normalized_value",
   "observed_at",
   "path",
+  "record_id",
+  "record_kind",
   "source_path",
   "source_record_id",
 ])
@@ -440,9 +446,22 @@ function compactFields(fields: DetailField[]) {
   })
 }
 
+function uniqueDetailFields(fields: DetailField[]) {
+  const seen = new Set<string>()
+  return fields.filter((field) => {
+    const key = `${detailFieldKey(field.column)}\u0000${field.value}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 function compactSections(sections: DetailFieldSection[]) {
   return sections
-    .map((section) => ({ ...section, fields: compactFields(section.fields) }))
+    .map((section) => ({
+      ...section,
+      fields: uniqueDetailFields(compactFields(section.fields)),
+    }))
     .filter((section) => section.fields.length)
 }
 
@@ -525,11 +544,250 @@ function sourceField(source: AttackCaseIOCHitEvidence["source"]) {
   return field("source_type", sourceType, false, false)
 }
 
+function evidenceFieldToDetailField(item: AttackCaseIOCEvidenceField): DetailField {
+  const column = fieldColumnLabel(item.label, item.key, item.source_path)
+  return {
+    column,
+    value: displayValue(item.value),
+    wide: shouldUseWideField(column, item.value),
+    copyable: item.copyable || undefined,
+  }
+}
+
+function sourceFactField(fact: AttackCaseIOCSourceFact): DetailField {
+  const column = fieldColumnLabel(fact.label, fact.key, fact.source_path)
+  return {
+    column,
+    value: displayValue(fact.value),
+    wide: shouldUseWideField(column, fact.value),
+  }
+}
+
+function sourceDisplayTitle(source: AttackCaseIOCIntelSource) {
+  return (
+    source.display_name.trim() ||
+    source.source_name.trim() ||
+    source.source_type.trim() ||
+    "source"
+  )
+}
+
+function sourceDisplaySubtitle(source: AttackCaseIOCIntelSource) {
+  const parts = [
+    source.source_type,
+    source.records.length ? `${source.records.length} records` : "",
+  ].filter(Boolean)
+  return parts.join(" · ")
+}
+
+function sourceNameField(source: AttackCaseIOCIntelSource) {
+  const sourceType = source.source_type.trim()
+  const sourceName = source.source_name.trim()
+  if (sourceType && sourceName) return field(sourceType, sourceName)
+  if (sourceName) return field("source_name", sourceName)
+  return field("source_type", sourceType)
+}
+
+function sourceRecordIdField(record: AttackCaseIOCSourceRecord, index: number) {
+  const column = record.record_kind || `record_${index + 1}`
+  const value = record.record_id || record.title || `record ${index + 1}`
+  return field(column, value, true, true)
+}
+
+function sourceRecordOverviewFields(records: AttackCaseIOCSourceRecord[]) {
+  if (records.length !== 1) return []
+
+  const record = records[0]
+  return compactFields([
+    field("record_kind", record.record_kind),
+    field("record_id", record.record_id, true, true),
+    field("source_url", record.source_url, true, true),
+  ])
+}
+
+const WHITELIST_DOMAIN_SOURCE_DUPLICATE_FIELD_KEYS = new Set([
+  "domain",
+  "registered_domain",
+])
+
+const WHITELIST_IP_SOURCE_DUPLICATE_FIELD_KEYS = new Set(["ip", "ip_value"])
+
+function filterSourceOverviewFields(
+  detailView: AttackCaseIOCHitDetailView,
+  fields: DetailField[],
+) {
+  if (isWhitelistIPDetailView(detailView)) {
+    return fields.filter(
+      (item) =>
+        !WHITELIST_IP_SOURCE_DUPLICATE_FIELD_KEYS.has(
+          detailFieldKey(item.column),
+        ),
+    )
+  }
+
+  if (!isWhitelistDomainDetailView(detailView)) return fields
+
+  return fields.filter(
+    (item) =>
+      !WHITELIST_DOMAIN_SOURCE_DUPLICATE_FIELD_KEYS.has(
+        detailFieldKey(item.column),
+      ),
+  )
+}
+
+function sourceOverviewFields(
+  source: AttackCaseIOCIntelSource,
+  detailView: AttackCaseIOCHitDetailView,
+) {
+  return filterSourceOverviewFields(detailView, compactFields([
+    sourceNameField(source),
+    field("records", source.records.length),
+    ...(source.max_confidence > 0
+      ? [field("confidence", source.max_confidence)]
+      : []),
+    ...(source.max_risk_score > 0
+      ? [field("risk_score", source.max_risk_score)]
+      : []),
+    listField("tags", source.tags),
+    listField("source_urls", source.source_urls, true, true),
+    field("first_seen", source.first_seen),
+    field("last_seen", source.last_seen),
+    ...sourceRecordOverviewFields(source.records),
+    ...source.facts.map(sourceFactField),
+    ...source.key_fields.map(evidenceFieldToDetailField),
+  ]))
+}
+
+function sourceRecordSections(source: AttackCaseIOCIntelSource, sourceIndex: number) {
+  if (source.records.length <= 1) return []
+
+  return compactSections([
+    {
+      id: `source-${sourceIndex}-records`,
+      title: `${sourceDisplayTitle(source)} records`,
+      subtitle: source.source_type,
+      fields: source.records.map(sourceRecordIdField),
+    },
+  ])
+}
+
+function legacySourcesFromEvidence(
+  detailView: AttackCaseIOCHitDetailView,
+): AttackCaseIOCIntelSource[] {
+  const byKey = new Map<string, AttackCaseIOCIntelSource>()
+
+  detailView.evidence.forEach((evidence) => {
+    const source = evidence.source
+    if (!source) return
+
+    const sourceType = source.source_type.trim()
+    const sourceName = source.source_name.trim()
+    if (!sourceType && !sourceName) return
+
+    const key = `${sourceType}\u0000${sourceName}`.toLowerCase()
+    const existing =
+      byKey.get(key) ??
+      ({
+        source_type: sourceType,
+        source_name: sourceName,
+        display_name: sourceName || sourceType,
+        source_urls: [],
+        tags: [],
+        max_confidence: 0,
+        max_risk_score: 0,
+        first_seen: "",
+        last_seen: "",
+        facts: [],
+        key_fields: [],
+        records: [],
+      } satisfies AttackCaseIOCIntelSource)
+
+    if (source.source_url && !existing.source_urls.includes(source.source_url)) {
+      existing.source_urls.push(source.source_url)
+    }
+    evidence.tags.forEach((tag) => {
+      if (tag.value && !existing.tags.includes(tag.value)) {
+        existing.tags.push(tag.value)
+      }
+    })
+    evidence.scores.forEach((score) => {
+      const scoreName = detailFieldKey(score.name)
+      if (scoreName === "confidence") {
+        existing.max_confidence = Math.max(
+          existing.max_confidence,
+          score.normalized_score,
+        )
+      }
+      if (scoreName === "risk" || scoreName === "risk_score") {
+        existing.max_risk_score = Math.max(
+          existing.max_risk_score,
+          score.normalized_score,
+        )
+      }
+      existing.facts.push({
+        key: score.name,
+        label: score.name,
+        value: score.value,
+        source_path: score.source_path,
+      })
+    })
+    evidence.reasons.forEach((reason) => {
+      existing.facts.push({
+        key: reason.type,
+        label: reason.type,
+        value: reason.value,
+        source_path: reason.source_path,
+      })
+    })
+    evidence.field_groups.forEach((group) => {
+      group.fields.forEach((item) => {
+        if (item.important) existing.key_fields.push(item)
+      })
+    })
+    if (evidence.time?.first_seen) {
+      existing.first_seen =
+        !existing.first_seen || evidence.time.first_seen < existing.first_seen
+          ? evidence.time.first_seen
+          : existing.first_seen
+    }
+    if (evidence.time?.last_seen) {
+      existing.last_seen =
+        !existing.last_seen || evidence.time.last_seen > existing.last_seen
+          ? evidence.time.last_seen
+          : existing.last_seen
+    }
+    existing.records.push({
+      record_id: source.source_record_id || evidence.evidence_id,
+      record_kind: "source_record",
+      title: evidence.title,
+      source_url: source.source_url,
+      first_seen: evidence.time?.first_seen || "",
+      last_seen: evidence.time?.last_seen || "",
+      confidence: existing.max_confidence,
+      tags: evidence.tags.map((tag) => tag.value).filter(Boolean),
+      facts: [],
+      fields: [],
+      raw: evidence.raw,
+    })
+
+    byKey.set(key, existing)
+  })
+
+  return Array.from(byKey.values())
+}
+
 function isWhitelistDomainDetailView(detailView: AttackCaseIOCHitDetailView) {
   const sourceTable = detailViewSourceTableName(detailView)
   const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
 
   return sourceTable === "ioc_allowlist_domain" && primaryType === "domain"
+}
+
+function isWhitelistIPDetailView(detailView: AttackCaseIOCHitDetailView) {
+  const sourceTable = detailViewSourceTableName(detailView)
+  const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
+
+  return sourceTable === "ioc_allowlist_ip" && primaryType === "ip"
 }
 
 function whitelistDomainRegisteredDomainField(
@@ -568,15 +826,7 @@ function isCompactWhitelistDetailView(detailView: AttackCaseIOCHitDetailView) {
 }
 
 function evidenceGroupFields(group: AttackCaseIOCEvidenceFieldGroup) {
-  return group.fields.map((item) => {
-    const column = fieldColumnLabel(item.label, item.key, item.source_path)
-    return {
-      column,
-      value: displayValue(item.value),
-      wide: shouldUseWideField(column, item.value),
-      copyable: item.copyable || undefined,
-    }
-  })
+  return group.fields.map(evidenceFieldToDetailField)
 }
 
 function hashWhitelistFileFields(detailView: AttackCaseIOCHitDetailView) {
@@ -911,10 +1161,30 @@ function isRedundantWhitelistNetworkSection(
   )
 }
 
+function sourceSections(detailView: AttackCaseIOCHitDetailView) {
+  const sources = detailView.sources.length
+    ? detailView.sources
+    : legacySourcesFromEvidence(detailView)
+
+  return compactSections(
+    sources.flatMap((source, index) => [
+      {
+        id: `source-${index}`,
+        title: sourceDisplayTitle(source),
+        subtitle: sourceDisplaySubtitle(source),
+        fields: sourceOverviewFields(source, detailView),
+      },
+      ...sourceRecordSections(source, index),
+    ]),
+  )
+}
+
 function detailViewSections(detailView: AttackCaseIOCHitDetailView) {
+  const sources = sourceSections(detailView)
+
   return compactSections([
     ...primarySections(detailView),
-    ...evidenceSections(detailView),
+    ...(sources.length ? sources : evidenceSections(detailView)),
     ...relationSections(detailView),
     ...rawGroupSections(detailView),
   ]).filter(
