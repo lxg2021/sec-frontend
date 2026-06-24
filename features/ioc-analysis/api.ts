@@ -1130,7 +1130,7 @@ export async function createAttackCaseIocVerifyTask({
       tenant_id: tenantId.trim() || DEFAULT_TENANT_ID,
       case_id: caseId.trim(),
       candidate_ids: candidateIds,
-      remote: false,
+      remote: true,
     },
   )) as ApiResult<unknown>
 

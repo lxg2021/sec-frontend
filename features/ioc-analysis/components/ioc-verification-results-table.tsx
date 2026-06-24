@@ -89,6 +89,7 @@ function statusTextClass(tone: IntelTone) {
 function statusFromRaw(
   raw: string,
   missLabel = "miss",
+  skippedLabel = "skipped",
 ): { label: string; tone: IntelTone } {
   const value = raw.trim().toLowerCase()
   if (!value) return { label: "pending", tone: "pending" }
@@ -107,7 +108,7 @@ function statusFromRaw(
     value.includes("not required") ||
     value.includes("disabled")
   ) {
-    return { label: "skipped", tone: "skipped" }
+    return { label: skippedLabel, tone: "skipped" }
   }
   if (value.includes("hit") || value.includes("allow")) {
     return { label: value.includes("allow") ? "allowed" : "hit", tone: "hit" }
@@ -218,16 +219,16 @@ export function IocResultsTable({
         verification.hit_status_key === "local_whitelist_hit" ||
         verification.hit_kind === "whitelist"
       ) {
-        return { label: "skipped", tone: "skipped" as const }
+        return { label: t("status.skipped"), tone: "skipped" as const }
       }
       if (verification.hit_status_key === "error" || verification.final_status === "local_error") {
         return { label: t("status.error"), tone: "error" as const }
       }
       if (verification.local_status) {
-        return statusFromRaw(verification.local_status, t("allowlist.miss"))
+        return statusFromRaw(verification.local_status, t("allowlist.miss"), t("status.skipped"))
       }
       if (verification.local_decision) {
-        return statusFromRaw(verification.local_decision, t("allowlist.miss"))
+        return statusFromRaw(verification.local_decision, t("allowlist.miss"), t("status.skipped"))
       }
       if (verification.hit_status_key === "no_hit" || verification.final_status === "local_miss") {
         return { label: t("allowlist.miss"), tone: "miss" as const }
@@ -256,7 +257,7 @@ export function IocResultsTable({
   function onlineIntelStatus(item: IocVerificationItem) {
     if (item.status === "checking") return { label: t("status.checking"), tone: "checking" as const }
     if (item.error) return { label: t("status.error"), tone: "error" as const }
-    if (isAllowlisted(item)) return { label: "skipped", tone: "skipped" as const }
+    if (isAllowlisted(item)) return { label: t("status.skipped"), tone: "skipped" as const }
 
     const verification = item.verification
     if (verification) {
@@ -271,7 +272,7 @@ export function IocResultsTable({
         return { label: t("status.error"), tone: "error" as const }
       }
       if (verification.remote_status) {
-        return statusFromRaw(verification.remote_status, t("allowlist.miss"))
+        return statusFromRaw(verification.remote_status, t("allowlist.miss"), t("status.skipped"))
       }
       if (
         verification.hit_status_key === "local_ioc_hit" ||
@@ -279,7 +280,7 @@ export function IocResultsTable({
         verification.final_status === "local_hit" ||
         verification.final_status === "allowlisted"
       ) {
-        return { label: "skipped", tone: "skipped" as const }
+        return { label: t("status.skipped"), tone: "skipped" as const }
       }
       if (verification.hit_status_key === "no_hit" || verification.final_status === "remote_miss") {
         return { label: t("allowlist.miss"), tone: "miss" as const }
@@ -296,7 +297,7 @@ export function IocResultsTable({
         return { label: t("status.error"), tone: "error" as const }
       case "local_hit":
       case "cache_hit":
-        return { label: "skipped", tone: "skipped" as const }
+        return { label: t("status.skipped"), tone: "skipped" as const }
       default:
         break
     }
