@@ -28,6 +28,9 @@ import type {
   AttackCaseIOCJSONEvidence,
   AttackCaseIOCRawField,
   AttackCaseIOCRawFieldGroup,
+  AttackCaseIOCIntelSource,
+  AttackCaseIOCSourceFact,
+  AttackCaseIOCSourceRecord,
   AttackCaseIOCVerificationDetail,
   AttackCaseIOCVerificationHitSourceDetail,
   AttackCaseIOCVerificationItem,
@@ -583,6 +586,99 @@ function normalizeRawFieldGroup(raw: unknown): AttackCaseIOCRawFieldGroup {
   }
 }
 
+function normalizeSourceFact(raw: unknown): AttackCaseIOCSourceFact {
+  const item = objectValue(raw)
+  return {
+    key: stringValue(fieldValue(item, "key", "Key")),
+    label: stringValue(fieldValue(item, "label", "Label")),
+    value: stringValue(fieldValue(item, "value", "Value")),
+    source_path: stringValue(
+      fieldValue(item, "source_path", "sourcePath", "SourcePath"),
+    ),
+  }
+}
+
+function normalizeSourceRecord(raw: unknown): AttackCaseIOCSourceRecord {
+  const item = objectValue(raw)
+  return {
+    record_id: stringValue(
+      fieldValue(item, "record_id", "recordId", "RecordId"),
+    ),
+    record_kind: stringValue(
+      fieldValue(item, "record_kind", "recordKind", "RecordKind"),
+    ),
+    title: stringValue(fieldValue(item, "title", "Title")),
+    source_url: stringValue(
+      fieldValue(item, "source_url", "sourceUrl", "SourceUrl"),
+    ),
+    first_seen: stringValue(
+      fieldValue(item, "first_seen", "firstSeen", "FirstSeen"),
+    ),
+    last_seen: stringValue(
+      fieldValue(item, "last_seen", "lastSeen", "LastSeen"),
+    ),
+    confidence: numberValue(fieldValue(item, "confidence", "Confidence")),
+    tags: stringArray(fieldValue(item, "tags", "Tags")),
+    facts: Array.isArray(fieldValue(item, "facts", "Facts"))
+      ? (fieldValue(item, "facts", "Facts") as unknown[]).map(
+          normalizeSourceFact,
+        )
+      : [],
+    fields: Array.isArray(fieldValue(item, "fields", "Fields"))
+      ? (fieldValue(item, "fields", "Fields") as unknown[]).map(
+          normalizeEvidenceField,
+        )
+      : [],
+    raw: normalizeJSONEvidence(fieldValue(item, "raw", "Raw")),
+  }
+}
+
+function normalizeIntelSource(raw: unknown): AttackCaseIOCIntelSource {
+  const item = objectValue(raw)
+  return {
+    source_type: stringValue(
+      fieldValue(item, "source_type", "sourceType", "SourceType"),
+    ),
+    source_name: stringValue(
+      fieldValue(item, "source_name", "sourceName", "SourceName"),
+    ),
+    display_name: stringValue(
+      fieldValue(item, "display_name", "displayName", "DisplayName"),
+    ),
+    source_urls: stringArray(
+      fieldValue(item, "source_urls", "sourceUrls", "SourceUrls"),
+    ),
+    tags: stringArray(fieldValue(item, "tags", "Tags")),
+    max_confidence: numberValue(
+      fieldValue(item, "max_confidence", "maxConfidence", "MaxConfidence"),
+    ),
+    max_risk_score: numberValue(
+      fieldValue(item, "max_risk_score", "maxRiskScore", "MaxRiskScore"),
+    ),
+    first_seen: stringValue(
+      fieldValue(item, "first_seen", "firstSeen", "FirstSeen"),
+    ),
+    last_seen: stringValue(fieldValue(item, "last_seen", "lastSeen", "LastSeen")),
+    facts: Array.isArray(fieldValue(item, "facts", "Facts"))
+      ? (fieldValue(item, "facts", "Facts") as unknown[]).map(
+          normalizeSourceFact,
+        )
+      : [],
+    key_fields: Array.isArray(
+      fieldValue(item, "key_fields", "keyFields", "KeyFields"),
+    )
+      ? (
+          fieldValue(item, "key_fields", "keyFields", "KeyFields") as unknown[]
+        ).map(normalizeEvidenceField)
+      : [],
+    records: Array.isArray(fieldValue(item, "records", "Records"))
+      ? (fieldValue(item, "records", "Records") as unknown[]).map(
+          normalizeSourceRecord,
+        )
+      : [],
+  }
+}
+
 function normalizeHitDetailView(raw: unknown): AttackCaseIOCHitDetailView | null {
   const item = objectValue(raw)
   if (!Object.keys(item).length) return null
@@ -608,6 +704,11 @@ function normalizeHitDetailView(raw: unknown): AttackCaseIOCHitDetailView | null
       ? (
           fieldValue(item, "raw_groups", "rawGroups", "RawGroups") as unknown[]
         ).map(normalizeRawFieldGroup)
+      : [],
+    sources: Array.isArray(fieldValue(item, "sources", "Sources"))
+      ? (fieldValue(item, "sources", "Sources") as unknown[]).map(
+          normalizeIntelSource,
+        )
       : [],
   }
 }

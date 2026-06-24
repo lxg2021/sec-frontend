@@ -315,12 +315,49 @@ export interface AttackCaseIOCRawFieldGroup {
   fields: AttackCaseIOCRawField[]
 }
 
+export interface AttackCaseIOCSourceFact {
+  key: string
+  label: string
+  value: string
+  source_path: string
+}
+
+export interface AttackCaseIOCSourceRecord {
+  record_id: string
+  record_kind: string
+  title: string
+  source_url: string
+  first_seen: string
+  last_seen: string
+  confidence: number
+  tags: string[]
+  facts: AttackCaseIOCSourceFact[]
+  fields: AttackCaseIOCEvidenceField[]
+  raw: AttackCaseIOCJSONEvidence | null
+}
+
+export interface AttackCaseIOCIntelSource {
+  source_type: string
+  source_name: string
+  display_name: string
+  source_urls: string[]
+  tags: string[]
+  max_confidence: number
+  max_risk_score: number
+  first_seen: string
+  last_seen: string
+  facts: AttackCaseIOCSourceFact[]
+  key_fields: AttackCaseIOCEvidenceField[]
+  records: AttackCaseIOCSourceRecord[]
+}
+
 export interface AttackCaseIOCHitDetailView {
   source_ref: AttackCaseIOCHitSourceRef | null
   primary: AttackCaseIOCHitPrimary | null
   evidence: AttackCaseIOCHitEvidence[]
   relations: AttackCaseIOCHitRelation[]
   raw_groups: AttackCaseIOCRawFieldGroup[]
+  sources: AttackCaseIOCIntelSource[]
 }
 
 export interface AttackCaseIOCDetailPage {
