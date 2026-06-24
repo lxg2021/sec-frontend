@@ -153,7 +153,7 @@ const DETAIL_SECTION_TITLES: Record<string, string> = {
 const IOC_TYPE_VALUES: Record<string, string> = {
   certificate: "证书",
   domain: "域名",
-  hash: "哈希",
+  hash: "hash",
   hostname: "主机名",
   ip: "IP",
   md5: "MD5",
