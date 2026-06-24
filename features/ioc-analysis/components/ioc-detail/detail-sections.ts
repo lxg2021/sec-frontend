@@ -26,6 +26,7 @@ import {
   formatList,
   isBlacklistDetailView,
   isEmptyDisplayValue,
+  isHiddenDetailField,
   normalizedDuplicateValue,
   normalizedDetailValue,
   sourceTableName,
@@ -145,7 +146,23 @@ function rawGroupDisplayTitle(group: AttackCaseIOCRawFieldGroup) {
 function fieldColumnLabel(label: string, key: string, sourcePath = "") {
   const normalizedPath = (sourcePath || key).trim().toLowerCase()
   if (normalizedPath === "object.name") return "object type"
+
+  const normalizedKey = detailFieldKey(key)
+  if (normalizedKey && detailFieldKey(label) === normalizedKey) {
+    return normalizedKey
+  }
+
   return label || key || sourcePath || "field"
+}
+
+function isHiddenSourceField(label: string, key: string, sourcePath = "") {
+  return [label, key, sourcePath].some(
+    (value) => value.trim() && isHiddenDetailField(value),
+  )
+}
+
+function isDetailField(field: DetailField | null): field is DetailField {
+  return Boolean(field)
 }
 
 function shouldUseWideField(column: string, value: string) {
@@ -193,7 +210,11 @@ function sourceField(source: AttackCaseIOCHitEvidence["source"]) {
   return field("source_type", sourceType, false, false)
 }
 
-function evidenceFieldToDetailField(item: AttackCaseIOCEvidenceField): DetailField {
+function evidenceFieldToDetailField(
+  item: AttackCaseIOCEvidenceField,
+): DetailField | null {
+  if (isHiddenSourceField(item.label, item.key, item.source_path)) return null
+
   const column = fieldColumnLabel(item.label, item.key, item.source_path)
   return {
     column,
@@ -203,7 +224,9 @@ function evidenceFieldToDetailField(item: AttackCaseIOCEvidenceField): DetailFie
   }
 }
 
-function sourceFactField(fact: AttackCaseIOCSourceFact): DetailField {
+function sourceFactField(fact: AttackCaseIOCSourceFact): DetailField | null {
+  if (isHiddenSourceField(fact.label, fact.key, fact.source_path)) return null
+
   const column = fieldColumnLabel(fact.label, fact.key, fact.source_path)
   return {
     column,
@@ -423,8 +446,8 @@ function sourceOverviewFields(
           listField("tags", source.tags),
           listField("source_urls", source.source_urls, true, true),
           ...sourceRecordOverviewFields(source.records),
-          ...source.facts.map(sourceFactField),
-          ...source.key_fields.map(evidenceFieldToDetailField),
+          ...source.facts.map(sourceFactField).filter(isDetailField),
+          ...source.key_fields.map(evidenceFieldToDetailField).filter(isDetailField),
         ])).filter((item) => !isSourceHeaderDuplicateField(source, item)),
       ),
     ),
@@ -586,7 +609,7 @@ function isCompactWhitelistDetailView(detailView: AttackCaseIOCHitDetailView) {
 }
 
 function evidenceGroupFields(group: AttackCaseIOCEvidenceFieldGroup) {
-  return group.fields.map(evidenceFieldToDetailField)
+  return group.fields.map(evidenceFieldToDetailField).filter(isDetailField)
 }
 
 function hashWhitelistFileFields(detailView: AttackCaseIOCHitDetailView) {
@@ -872,19 +895,24 @@ function rawGroupSection(
   index: number,
 ): DetailFieldSection {
   const title = rawGroupDisplayTitle(group)
+  const fields = group.fields.reduce<DetailField[]>((items, item) => {
+    if (isHiddenSourceField(item.label, item.key)) return items
+
+    const column = fieldColumnLabel(item.label, item.key)
+    items.push({
+      column,
+      value: displayValue(item.value),
+      wide: item.multiline || shouldUseWideField(column, item.value),
+      copyable: item.copyable || undefined,
+    })
+    return items
+  }, [])
+
   return {
     id: `raw-${index}-${title}`,
     title,
     subtitle: group.source_table,
-    fields: group.fields.map((item) => {
-      const column = fieldColumnLabel(item.label, item.key)
-      return {
-        column,
-        value: displayValue(item.value),
-        wide: item.multiline || shouldUseWideField(column, item.value),
-        copyable: item.copyable || undefined,
-      }
-    }),
+    fields,
   }
 }
 

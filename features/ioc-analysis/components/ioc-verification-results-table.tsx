@@ -37,7 +37,7 @@ import {
 import { IocVerificationEmptyState } from "./ioc-verification-empty-state"
 
 const tableGridClass =
-  "grid-cols-[minmax(320px,1.15fr)_minmax(136px,0.65fr)_52px_minmax(84px,0.35fr)_minmax(88px,0.35fr)_minmax(96px,0.4fr)_minmax(148px,0.55fr)_56px_76px_minmax(96px,0.35fr)_92px_52px]"
+  "grid-cols-[minmax(300px,1.15fr)_minmax(190px,0.78fr)_64px_108px_108px_108px_156px_64px_78px_88px_92px_82px]"
 const actionButtonClass =
   "h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
 const inlineCopyButtonClass =
@@ -308,16 +308,16 @@ export function IocResultsTable({
   }
 
   return (
-    <div className="min-w-[1460px] overflow-hidden rounded-2xl border border-slate-100">
+    <div className="min-w-[1560px] overflow-hidden rounded-2xl border border-slate-100">
       <div
         className={cn(
-          "grid items-center gap-3 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-400",
+          "grid items-center gap-2 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-400",
           tableGridClass,
         )}
       >
         <TableHeaderCell icon={Hash} label={t("table.ioc").toLocaleLowerCase()} />
         <TableHeaderCell icon={FileText} label="filename" />
-        <TableHeaderCell icon={Tag} label={t("fields.type").toLocaleLowerCase()} />
+        <TableHeaderCell icon={Tag} label={t("fields.type").toLocaleLowerCase()} center />
         <TableHeaderCell icon={ShieldCheck} label={t("table.allowlist").toLocaleLowerCase()} />
         <TableHeaderCell
           icon={Database}
@@ -334,7 +334,7 @@ export function IocResultsTable({
           label={t("fields.confidence").toLocaleLowerCase()}
           center
         />
-        <TableHeaderCell icon={Activity} label={t("table.action").toLocaleLowerCase()} />
+        <TableHeaderCell icon={Activity} label={t("table.action").toLocaleLowerCase()} center />
         <TableHeaderCell
           icon={BadgeCheck}
           label={t("table.verdict").toLocaleLowerCase()}
@@ -366,7 +366,7 @@ export function IocResultsTable({
               onClick={() => onSelect(item.id)}
               onKeyDown={(event) => handleRowKeyDown(event, item.id)}
               className={cn(
-                "group grid h-[52px] w-full cursor-pointer items-center gap-3 px-4 py-2 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
+                "group grid h-[52px] w-full cursor-pointer items-center gap-2 px-4 py-2 text-left outline-none transition-colors hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-200",
                 tableGridClass,
                 selected && "relative bg-blue-50 hover:bg-blue-50",
               )}
@@ -402,7 +402,7 @@ export function IocResultsTable({
                 )}
               </div>
               <div
-                className="truncate text-xs font-medium text-slate-500"
+                className="truncate text-center text-xs font-medium text-slate-500"
                 title={item.type}
               >
                 {item.type}
@@ -435,7 +435,7 @@ export function IocResultsTable({
                 {confidenceLabel.toLocaleLowerCase()}
               </div>
               <div
-                className="truncate text-xs font-medium text-slate-700"
+                className="truncate text-center text-xs font-medium text-slate-700"
                 title={actionLabel}
               >
                 {actionLabel.toLocaleLowerCase()}
