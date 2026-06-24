@@ -537,6 +537,7 @@ function isCompactWhitelistDetailView(detailView: AttackCaseIOCHitDetailView) {
   const primaryType = detailView.primary?.ioc_type.trim().toLowerCase() || ""
 
   return (
+    (sourceTable === "ioc_allowlist_hash" && primaryType === "hash") ||
     (sourceTable === "ioc_allowlist_domain" && primaryType === "domain") ||
     (sourceTable === "ioc_allowlist_ip" && primaryType === "ip")
   )
