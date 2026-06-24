@@ -303,7 +303,7 @@ function FieldRow({
           : "grid-cols-[128px_minmax(0,1fr)] md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]",
       )}
     >
-      <div className="px-4 py-2 text-xs font-medium text-slate-500">
+      <div className="flex items-center px-4 py-2 text-xs font-medium text-slate-500">
         {label}
       </div>
       <DetailValueCell
@@ -387,7 +387,7 @@ function PairedFieldRows({
             key={`pair-${rowIndex}-${left.column}-${right?.column || "empty"}`}
             className="grid min-h-10 grid-cols-[128px_minmax(0,1fr)] border-t border-slate-100 md:grid-cols-[128px_minmax(0,1fr)_128px_minmax(0,1fr)]"
           >
-            <div className="px-4 py-2 text-xs font-medium text-slate-500">
+            <div className="flex items-center px-4 py-2 text-xs font-medium text-slate-500">
               {leftLabel}
             </div>
             <DetailValueCell
@@ -399,7 +399,7 @@ function PairedFieldRows({
             />
             {right ? (
               <>
-                <div className="border-l border-slate-100 px-4 py-2 text-xs font-medium text-slate-500">
+                <div className="flex items-center border-l border-slate-100 px-4 py-2 text-xs font-medium text-slate-500">
                   {rightLabel}
                 </div>
                 <DetailValueCell

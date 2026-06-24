@@ -221,6 +221,110 @@ function sourceDisplayTitle(source: AttackCaseIOCIntelSource) {
   )
 }
 
+const LAST_SEEN_FIELD_KEYS = new Set(["last_seen", "last_seen_utc"])
+
+function isLastSeenField(column: string) {
+  return LAST_SEEN_FIELD_KEYS.has(detailFieldKey(column))
+}
+
+function comparableTimeValue(value: string) {
+  const normalized = displayValue(value)
+  if (!normalized || normalized === "-") return null
+
+  const isoLike = normalized
+    .replace(/^(\d{4}-\d{2}-\d{2})\s+/, "$1T")
+    .replace(/\s+\+(\d{2})(\d{2})$/, "+$1:$2")
+    .replace(/\s+UTC$/i, "Z")
+  const timestamp = Date.parse(isoLike)
+
+  return Number.isFinite(timestamp)
+    ? { timestamp, text: normalized }
+    : { timestamp: null, text: normalized }
+}
+
+function minimumTimeValue(values: string[]) {
+  return values.reduce<string>((minimum, value) => {
+    const candidate = comparableTimeValue(value)
+    if (!candidate) return minimum
+    const current = comparableTimeValue(minimum)
+    if (!current) return candidate.text
+
+    if (
+      candidate.timestamp !== null &&
+      current.timestamp !== null &&
+      candidate.timestamp < current.timestamp
+    ) {
+      return candidate.text
+    }
+
+    if (
+      (candidate.timestamp === null || current.timestamp === null) &&
+      candidate.text < current.text
+    ) {
+      return candidate.text
+    }
+
+    return minimum
+  }, "")
+}
+
+function sourceMinimumLastSeen(source: AttackCaseIOCIntelSource) {
+  const factLastSeen = source.facts
+    .filter((fact) => isLastSeenField(fact.label || fact.key))
+    .map((fact) => fact.value)
+  const keyFieldLastSeen = source.key_fields
+    .filter((item) => isLastSeenField(item.label || item.key))
+    .map((item) => item.value)
+
+  return minimumTimeValue([
+    source.last_seen,
+    ...source.records.map((record) => record.last_seen),
+    ...factLastSeen,
+    ...keyFieldLastSeen,
+  ])
+}
+
+function coalesceLastSeenFields(fields: DetailField[]) {
+  const minimumLastSeen = minimumTimeValue(
+    fields
+      .filter((field) => isLastSeenField(field.column))
+      .map((field) => field.value),
+  )
+
+  if (!minimumLastSeen) return fields
+
+  let hasLastSeen = false
+  return fields.reduce<DetailField[]>((items, field) => {
+    if (!isLastSeenField(field.column)) {
+      items.push(field)
+      return items
+    }
+
+    if (hasLastSeen) return items
+    hasLastSeen = true
+    items.push({ ...field, value: minimumLastSeen })
+    return items
+  }, [])
+}
+
+function moveLastSeenFieldToMiddle(fields: DetailField[]) {
+  const lastSeenIndex = fields.findIndex((field) => isLastSeenField(field.column))
+  if (lastSeenIndex < 0) return fields
+
+  const lastSeenField = fields[lastSeenIndex]
+  const otherFields = fields.filter((_, index) => index !== lastSeenIndex)
+  const insertIndex = Math.min(
+    otherFields.length,
+    Math.max(2, Math.ceil(otherFields.length / 2)),
+  )
+
+  return [
+    ...otherFields.slice(0, insertIndex),
+    lastSeenField,
+    ...otherFields.slice(insertIndex),
+  ]
+}
+
 function sourceDisplaySubtitle(
   source: AttackCaseIOCIntelSource,
   locale: IocDetailLocale,
@@ -235,7 +339,7 @@ function sourceDisplaySubtitle(
         ? `${source.records.length} 条记录`
         : `${source.records.length} records`
       : "",
-    source.last_seen || source.first_seen,
+    sourceMinimumLastSeen(source) || source.first_seen,
   ].filter(Boolean)
   return parts.join(" · ")
 }
@@ -307,19 +411,23 @@ function sourceOverviewFields(
   detailView: AttackCaseIOCHitDetailView,
 ) {
   return sourceTwoColumnFields(
-    filterSourceOverviewFields(detailView, compactFields([
-      ...(source.max_confidence > 0
-        ? [field("confidence", source.max_confidence)]
-        : []),
-      ...(source.max_risk_score > 0
-        ? [field("risk_score", source.max_risk_score)]
-        : []),
-      listField("tags", source.tags),
-      listField("source_urls", source.source_urls, true, true),
-      ...sourceRecordOverviewFields(source.records),
-      ...source.facts.map(sourceFactField),
-      ...source.key_fields.map(evidenceFieldToDetailField),
-    ])).filter((item) => !isSourceHeaderDuplicateField(source, item)),
+    moveLastSeenFieldToMiddle(
+      coalesceLastSeenFields(
+        filterSourceOverviewFields(detailView, compactFields([
+          ...(source.max_confidence > 0
+            ? [field("confidence", source.max_confidence)]
+            : []),
+          ...(source.max_risk_score > 0
+            ? [field("risk_score", source.max_risk_score)]
+            : []),
+          listField("tags", source.tags),
+          listField("source_urls", source.source_urls, true, true),
+          ...sourceRecordOverviewFields(source.records),
+          ...source.facts.map(sourceFactField),
+          ...source.key_fields.map(evidenceFieldToDetailField),
+        ])).filter((item) => !isSourceHeaderDuplicateField(source, item)),
+      ),
+    ),
   )
 }
 
