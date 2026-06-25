@@ -52,6 +52,7 @@ const HIDDEN_DETAIL_FIELD_NAMES = new Set([
   "source_record_id",
   "tenant_id",
   "threat_level_id",
+  "to_ids",
   "value_hash",
   "indicator_key",
 ])
@@ -134,6 +135,7 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     hostname: "主机名",
     imphash: "导入哈希",
     indicator_key: "指标键",
+    intel_note: "情报说明",
     import_hash: "导入哈希",
     info: "信息",
     ioc: "IOC",
@@ -288,6 +290,7 @@ const DETAIL_FIELD_LABELS: LocalizedDetailMap = {
     hostname: "Hostname",
     imphash: "Import hash",
     indicator_key: "Indicator key",
+    intel_note: "Intel note",
     import_hash: "Import hash",
     info: "Info",
     ioc: "IOC",

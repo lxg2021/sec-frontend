@@ -31,12 +31,11 @@ import {
   getAttackCaseIocVerifyTask,
   getIocHitDetail,
   listAttackCaseIocCandidates,
-  queryIoc,
 } from "@/features/ioc-analysis/api"
 import type {
+  AttackCaseIOCVerificationDetail,
   AttackCaseIOCCandidateListData,
   IocCandidate,
-  IocQueryResult,
   IocVerificationItem,
   IocVerificationStatus,
   IocVerificationType,
@@ -306,11 +305,70 @@ function mergeCandidates(
   return Array.from(byDisplayKey.values())
 }
 
-function statusFromResult(result: IocQueryResult): IocVerificationStatus {
-  if (result.hit) return "hit"
-  if (result.hit_source === "remote_error_suppressed" || result.hit_source_code === 6) {
-    return "suppressed"
+function statusFromVerificationDetail(
+  detail: AttackCaseIOCVerificationDetail,
+): IocVerificationStatus {
+  const verification = detail.item
+
+  if (verification) {
+    if (
+      verification.hit_status_key === "remote_error_suppressed" ||
+      verification.remote_status === "remote_error_suppressed"
+    ) {
+      return "suppressed"
+    }
+
+    if (
+      verification.final_status === "allowlisted" ||
+      verification.final_verdict === "allow" ||
+      verification.hit_verdict === "allow"
+    ) {
+      return "allowlisted"
+    }
+
+    if (
+      verification.hit_status_key === "error" ||
+      verification.hit_verdict === "error" ||
+      verification.final_status === "local_error" ||
+      verification.final_status === "remote_error" ||
+      verification.final_verdict === "error"
+    ) {
+      return "error"
+    }
+
+    if (
+      verification.hit_status_key === "local_ioc_hit" ||
+      verification.hit_status_key === "remote_ioc_hit" ||
+      (verification.hit === true && verification.hit_kind === "ioc") ||
+      verification.hit_verdict === "malicious" ||
+      verification.final_status === "local_hit" ||
+      verification.final_status === "remote_hit" ||
+      verification.final_verdict === "malicious"
+    ) {
+      return "hit"
+    }
+
+    if (
+      verification.hit_status_key === "no_hit" ||
+      verification.final_status === "local_miss" ||
+      verification.final_status === "remote_miss" ||
+      verification.final_verdict === "unknown"
+    ) {
+      return "miss"
+    }
   }
+
+  const sourceDetail = detail.final_hit_detail ?? detail.hit_source_detail
+
+  if (sourceDetail?.whitelist) return "allowlisted"
+  if (
+    sourceDetail?.ioc_entry ||
+    sourceDetail?.blacklist_indicator ||
+    detail.detail_view?.primary
+  ) {
+    return "hit"
+  }
+
   return "miss"
 }
 
@@ -782,6 +840,7 @@ export function IocVerificationPage() {
                     status: "checking",
                     error: "",
                     result: null,
+                    verification: null,
                     verification_detail: null,
                   }
                 : item,
@@ -789,7 +848,8 @@ export function IocVerificationPage() {
           )
 
           try {
-            const result = await queryIoc({
+            const detail = await getIocHitDetail({
+              tenantId,
               type: candidate.type,
               value: candidate.value,
             })
@@ -801,8 +861,10 @@ export function IocVerificationPage() {
                 item.id === candidate.id
                   ? {
                       ...item,
-                      status: statusFromResult(result),
-                      result,
+                      status: statusFromVerificationDetail(detail),
+                      result: null,
+                      verification: detail.item,
+                      verification_detail: detail,
                       error: "",
                     }
                   : item,
@@ -818,6 +880,7 @@ export function IocVerificationPage() {
                       ...item,
                       status: "error",
                       result: null,
+                      verification: null,
                       verification_detail: null,
                       error:
                         error instanceof Error

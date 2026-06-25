@@ -89,23 +89,16 @@ export function verdictFromItem(item: IocVerificationItem): IocVerdict {
   const finalStatus = verification?.final_status
   const finalVerdict = verification?.final_verdict
   const hitStatusKey = verification?.hit_status_key
-  const hitKind = verification?.hit_kind
   const hitVerdict = verification?.hit_verdict
 
   if (item.status === "checking") return "checking"
-  if (
-    hitStatusKey === "local_whitelist_hit" ||
-    hitKind === "whitelist" ||
-    hitVerdict === "allow" ||
-    finalStatus === "allowlisted" ||
-    finalVerdict === "allow"
-  ) {
+  if (finalStatus === "allowlisted" || finalVerdict === "allow" || hitVerdict === "allow") {
     return "allow"
   }
   if (
     hitStatusKey === "local_ioc_hit" ||
     hitStatusKey === "remote_ioc_hit" ||
-    (verification?.hit === true && hitKind === "ioc") ||
+    (verification?.hit === true && verification?.hit_kind === "ioc") ||
     hitVerdict === "malicious" ||
     finalStatus === "local_hit" ||
     finalStatus === "remote_hit" ||
@@ -205,13 +198,16 @@ export function verificationSourceText(
 }
 
 export function observationSources(item: IocVerificationItem) {
-  return Array.from(
-    new Set(
-      item.result?.observations
-        .map((observation) => observation.source_name)
-        .filter(Boolean) ?? [],
-    ),
-  )
+  const resultSources =
+    item.result?.observations
+      .map((observation) => observation.source_name)
+      .filter(Boolean) ?? []
+  const detailSources =
+    item.verification_detail?.detail_view?.sources
+      .flatMap((source) => [source.source_name, source.display_name])
+      .filter(Boolean) ?? []
+
+  return Array.from(new Set([...resultSources, ...detailSources]))
 }
 
 export function riskText(item: IocVerificationItem) {

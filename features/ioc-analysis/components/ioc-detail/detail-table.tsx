@@ -82,6 +82,7 @@ const SOFT_TEXT_FIELD_KEYS = new Set([
   "description",
   "event_info",
   "info",
+  "intel_note",
   "object_comment",
   "object_description",
   "reason",

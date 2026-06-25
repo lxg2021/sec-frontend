@@ -98,6 +98,57 @@ function isSourceHeaderDuplicateField(
   )
 }
 
+function isLocalIntelSource(source: AttackCaseIOCIntelSource) {
+  const sourceType = detailFieldKey(source.source_type)
+  return (
+    sourceType === "threat_feed" ||
+    sourceType === "misp" ||
+    sourceType === "osint" ||
+    sourceType === "local_intel"
+  )
+}
+
+function normalizedTextForDuplicateCheck(value: string) {
+  return value
+    .trim()
+    .replace(/\s*;\s*(?:true|false)\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+}
+
+function isDuplicateLocalIntelSummary(
+  field: DetailField,
+  fields: DetailField[],
+) {
+  if (detailFieldKey(field.column) !== "summary") return false
+
+  const summaryValue = normalizedTextForDuplicateCheck(field.value)
+  if (!summaryValue || summaryValue === "-") return false
+
+  return fields.some((item) => {
+    const key = detailFieldKey(item.column)
+    if (key !== "comment" && key !== "intel_note" && key !== "reason") {
+      return false
+    }
+    return normalizedTextForDuplicateCheck(item.value) === summaryValue
+  })
+}
+
+function refineLocalIntelSourceFields(
+  source: AttackCaseIOCIntelSource,
+  fields: DetailField[],
+) {
+  if (!isLocalIntelSource(source)) return fields
+
+  return fields
+    .filter((field) => !isDuplicateLocalIntelSummary(field, fields))
+    .map((field) =>
+      detailFieldKey(field.column) === "comment"
+        ? { ...field, column: "intel_note" }
+        : field,
+    )
+}
+
 function compactSections(
   sections: DetailFieldSection[],
   locale?: IocDetailLocale,
@@ -422,22 +473,24 @@ function sourceOverviewFields(
   source: AttackCaseIOCIntelSource,
   detailView: AttackCaseIOCHitDetailView,
 ) {
+  const overviewFields = filterSourceOverviewFields(detailView, compactFields([
+    ...(source.max_confidence > 0
+      ? [field("confidence", source.max_confidence)]
+      : []),
+    ...(source.max_risk_score > 0
+      ? [field("risk_score", source.max_risk_score)]
+      : []),
+    listField("tags", source.tags),
+    listField("source_urls", source.source_urls, true, true),
+    ...sourceRecordOverviewFields(source.records),
+    ...source.facts.map(sourceFactField).filter(isDetailField),
+    ...source.key_fields.map(evidenceFieldToDetailField).filter(isDetailField),
+  ])).filter((item) => !isSourceHeaderDuplicateField(source, item))
+
   return sourceTwoColumnFields(
     moveLastSeenFieldToMiddle(
       coalesceLastSeenFields(
-        filterSourceOverviewFields(detailView, compactFields([
-          ...(source.max_confidence > 0
-            ? [field("confidence", source.max_confidence)]
-            : []),
-          ...(source.max_risk_score > 0
-            ? [field("risk_score", source.max_risk_score)]
-            : []),
-          listField("tags", source.tags),
-          listField("source_urls", source.source_urls, true, true),
-          ...sourceRecordOverviewFields(source.records),
-          ...source.facts.map(sourceFactField).filter(isDetailField),
-          ...source.key_fields.map(evidenceFieldToDetailField).filter(isDetailField),
-        ])).filter((item) => !isSourceHeaderDuplicateField(source, item)),
+        refineLocalIntelSourceFields(source, overviewFields),
       ),
     ),
   )
