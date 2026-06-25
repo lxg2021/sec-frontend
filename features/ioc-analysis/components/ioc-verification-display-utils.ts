@@ -92,7 +92,13 @@ export function verdictFromItem(item: IocVerificationItem): IocVerdict {
   const hitVerdict = verification?.hit_verdict
 
   if (item.status === "checking") return "checking"
-  if (finalStatus === "allowlisted" || finalVerdict === "allow" || hitVerdict === "allow") {
+  if (
+    hitStatusKey === "local_whitelist_hit" ||
+    verification?.hit_kind === "whitelist" ||
+    finalStatus === "allowlisted" ||
+    finalVerdict === "allow" ||
+    hitVerdict === "allow"
+  ) {
     return "allow"
   }
   if (

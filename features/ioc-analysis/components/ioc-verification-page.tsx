@@ -319,6 +319,8 @@ function statusFromVerificationDetail(
     }
 
     if (
+      verification.hit_status_key === "local_whitelist_hit" ||
+      verification.hit_kind === "whitelist" ||
       verification.final_status === "allowlisted" ||
       verification.final_verdict === "allow" ||
       verification.hit_verdict === "allow"
