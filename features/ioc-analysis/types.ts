@@ -405,6 +405,63 @@ export interface AttackCaseIOCIocRelation {
   peer_entry: AttackCaseIOCIocEntryRecord | null
 }
 
+export interface AttackCaseIOCWhitelistHashDetail {
+  hash_type: string
+  hash_value: string
+  hash_hash: string
+  file_name: string
+  file_size: number
+  product_name: string
+  publisher: string
+}
+
+export interface AttackCaseIOCWhitelistDomainDetail {
+  domain: string
+  domain_hash: string
+  registered_domain: string
+}
+
+export interface AttackCaseIOCWhitelistIPDetail {
+  ip_value: string
+  ip_hash: string
+  ip_version: number
+  cidr_prefix: number
+  range_start_ipv6: string
+  range_end_ipv6: string
+  cloud_provider: string
+  service_name: string
+  region: string
+}
+
+export interface AttackCaseIOCWhitelistCertificateDetail {
+  normalized_value: string
+  value_hash: string
+  certificate_thumbprint: string
+  subject: string
+  issuer: string
+  serial_number: string
+  cert_valid_from: string
+  cert_valid_to: string
+  publisher: string
+  product_name: string
+}
+
+export interface AttackCaseIOCWhitelistPopularityDetail {
+  domain: string
+  domain_hash: string
+  registered_domain: string
+  source_name: string
+  source_url: string
+  source_version: string
+  rank: number
+  popularity_score: number
+  category: string
+  list_date: string
+  expires_at: string
+  batch_id: string
+  updated_at: string
+}
+
 export interface AttackCaseIOCIocEntryHitDetail {
   source: AttackCaseIOCHitSourceRef | null
   entry: AttackCaseIOCIocEntryRecord | null
@@ -412,6 +469,36 @@ export interface AttackCaseIOCIocEntryHitDetail {
   observations_page: AttackCaseIOCDetailPage | null
   relations: AttackCaseIOCIocRelation[]
   relations_page: AttackCaseIOCDetailPage | null
+}
+
+export interface AttackCaseIOCWhitelistHitDetail {
+  source: AttackCaseIOCHitSourceRef | null
+  entry_key: string
+  tenant_id: string
+  scope: string
+  ioc_type: string
+  match_type: string
+  display_value: string
+  normalized_value: string
+  allow_level: string
+  action: string
+  source_name: string
+  source_url: string
+  source_version: string
+  confidence: number
+  reason: string
+  owner: string
+  enabled: boolean
+  valid_from: string
+  expires_at: string
+  batch_id: string
+  created_at: string
+  updated_at: string
+  hash: AttackCaseIOCWhitelistHashDetail | null
+  domain: AttackCaseIOCWhitelistDomainDetail | null
+  ip: AttackCaseIOCWhitelistIPDetail | null
+  certificate: AttackCaseIOCWhitelistCertificateDetail | null
+  popularity: AttackCaseIOCWhitelistPopularityDetail | null
 }
 
 export interface AttackCaseIOCBlacklistIndicatorHitDetail {
@@ -437,6 +524,10 @@ export interface AttackCaseIOCBlacklistIndicatorHitDetail {
 }
 
 export interface AttackCaseIOCVerificationHitSourceDetail {
+  role: string
+  category: string
+  source: AttackCaseIOCHitSourceRef | null
+  whitelist: AttackCaseIOCWhitelistHitDetail | null
   ioc_entry: AttackCaseIOCIocEntryHitDetail | null
   blacklist_indicator: AttackCaseIOCBlacklistIndicatorHitDetail | null
 }
@@ -453,5 +544,7 @@ export interface AttackCaseIOCVerificationDetail {
   local_eval_raw_json: string
   hit_source: AttackCaseIOCHitSourceRef | null
   hit_source_detail: AttackCaseIOCVerificationHitSourceDetail | null
+  final_hit_detail: AttackCaseIOCVerificationHitSourceDetail | null
+  annotation_details: AttackCaseIOCVerificationHitSourceDetail[]
   detail_view: AttackCaseIOCHitDetailView | null
 }

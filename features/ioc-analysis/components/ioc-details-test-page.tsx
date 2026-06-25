@@ -267,15 +267,21 @@ function verificationStatus(
 
 function sourceTableText(item: IocVerificationItem) {
   const detailRef = item.verification_detail?.hit_source
+  const finalDetailRef = item.verification_detail?.final_hit_detail?.source
   const detailViewRef = item.verification_detail?.detail_view?.source_ref
   const verification = item.verification
   const database =
     detailRef?.database ||
+    finalDetailRef?.database ||
     detailViewRef?.database ||
     verification?.hit_source_database ||
     ""
   const table =
-    detailRef?.table || detailViewRef?.table || verification?.hit_source_table || ""
+    detailRef?.table ||
+    finalDetailRef?.table ||
+    detailViewRef?.table ||
+    verification?.hit_source_table ||
+    ""
 
   if (!database && !table) return "-"
   return [database, table].filter(Boolean).join(".")
@@ -301,8 +307,13 @@ function typeGroupLabel(item: IocVerificationItem) {
 }
 
 function hasUsableDetail(item: IocVerificationItem) {
+  const finalDetail = item.verification_detail?.final_hit_detail
   return Boolean(
     item.verification_detail?.detail_view ||
+      finalDetail?.whitelist ||
+      finalDetail?.ioc_entry ||
+      finalDetail?.blacklist_indicator ||
+      item.verification_detail?.annotation_details.length ||
       item.verification_detail?.hit_source_detail?.ioc_entry ||
       item.verification_detail?.hit_source_detail?.blacklist_indicator,
   )
@@ -900,6 +911,8 @@ function whitelistMockSample(record: WhitelistMockRecord): DetailSample {
         local_eval_raw_json: "",
         hit_source: sourceRef,
         hit_source_detail: null,
+        final_hit_detail: null,
+        annotation_details: [],
         detail_view: whitelistDetailView(record),
       },
       status: "allowlisted",
@@ -1177,6 +1190,8 @@ function blacklistMockSample(record: BlacklistMockRecord): DetailSample {
         local_eval_raw_json: "",
         hit_source: sourceRef,
         hit_source_detail: null,
+        final_hit_detail: null,
+        annotation_details: [],
         detail_view: blacklistDetailView(record),
       },
       status: "hit",
@@ -1530,9 +1545,15 @@ function iocEntryMockSample(record: IocEntryMockRecord): DetailSample {
         local_eval_raw_json: "",
         hit_source: sourceRef,
         hit_source_detail: {
+          role: "final_hit",
+          category: "ioc",
+          source: sourceRef,
+          whitelist: null,
           ioc_entry: iocEntryHitDetail(record),
           blacklist_indicator: null,
         },
+        final_hit_detail: null,
+        annotation_details: [],
         detail_view: iocEntryDetailView(record),
       },
       status: "hit",

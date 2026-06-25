@@ -35,6 +35,12 @@ import type {
   AttackCaseIOCVerificationHitSourceDetail,
   AttackCaseIOCVerificationItem,
   AttackCaseIOCVerifyTask,
+  AttackCaseIOCWhitelistCertificateDetail,
+  AttackCaseIOCWhitelistDomainDetail,
+  AttackCaseIOCWhitelistHashDetail,
+  AttackCaseIOCWhitelistHitDetail,
+  AttackCaseIOCWhitelistIPDetail,
+  AttackCaseIOCWhitelistPopularityDetail,
   IocQueryEntry,
   IocQueryObservation,
   IocQueryPagination,
@@ -790,6 +796,163 @@ function normalizeIocRelation(raw: unknown): AttackCaseIOCIocRelation {
   }
 }
 
+function normalizeWhitelistHashDetail(
+  raw: unknown,
+): AttackCaseIOCWhitelistHashDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+  return {
+    hash_type: stringValue(fieldValue(item, "hash_type", "hashType", "HashType")),
+    hash_value: stringValue(fieldValue(item, "hash_value", "hashValue", "HashValue")),
+    hash_hash: stringValue(fieldValue(item, "hash_hash", "hashHash", "HashHash")),
+    file_name: stringValue(fieldValue(item, "file_name", "fileName", "FileName")),
+    file_size: numberValue(fieldValue(item, "file_size", "fileSize", "FileSize")),
+    product_name: stringValue(
+      fieldValue(item, "product_name", "productName", "ProductName"),
+    ),
+    publisher: stringValue(fieldValue(item, "publisher", "Publisher")),
+  }
+}
+
+function normalizeWhitelistDomainDetail(
+  raw: unknown,
+): AttackCaseIOCWhitelistDomainDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+  return {
+    domain: stringValue(fieldValue(item, "domain", "Domain")),
+    domain_hash: stringValue(fieldValue(item, "domain_hash", "domainHash", "DomainHash")),
+    registered_domain: stringValue(
+      fieldValue(item, "registered_domain", "registeredDomain", "RegisteredDomain"),
+    ),
+  }
+}
+
+function normalizeWhitelistIPDetail(raw: unknown): AttackCaseIOCWhitelistIPDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+  return {
+    ip_value: stringValue(fieldValue(item, "ip_value", "ipValue", "IpValue")),
+    ip_hash: stringValue(fieldValue(item, "ip_hash", "ipHash", "IpHash")),
+    ip_version: numberValue(fieldValue(item, "ip_version", "ipVersion", "IpVersion")),
+    cidr_prefix: numberValue(fieldValue(item, "cidr_prefix", "cidrPrefix", "CidrPrefix")),
+    range_start_ipv6: stringValue(
+      fieldValue(item, "range_start_ipv6", "rangeStartIpv6", "RangeStartIpv6"),
+    ),
+    range_end_ipv6: stringValue(
+      fieldValue(item, "range_end_ipv6", "rangeEndIpv6", "RangeEndIpv6"),
+    ),
+    cloud_provider: stringValue(
+      fieldValue(item, "cloud_provider", "cloudProvider", "CloudProvider"),
+    ),
+    service_name: stringValue(fieldValue(item, "service_name", "serviceName", "ServiceName")),
+    region: stringValue(fieldValue(item, "region", "Region")),
+  }
+}
+
+function normalizeWhitelistCertificateDetail(
+  raw: unknown,
+): AttackCaseIOCWhitelistCertificateDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+  return {
+    normalized_value: stringValue(
+      fieldValue(item, "normalized_value", "normalizedValue", "NormalizedValue"),
+    ),
+    value_hash: stringValue(fieldValue(item, "value_hash", "valueHash", "ValueHash")),
+    certificate_thumbprint: stringValue(
+      fieldValue(
+        item,
+        "certificate_thumbprint",
+        "certificateThumbprint",
+        "CertificateThumbprint",
+      ),
+    ),
+    subject: stringValue(fieldValue(item, "subject", "Subject")),
+    issuer: stringValue(fieldValue(item, "issuer", "Issuer")),
+    serial_number: stringValue(
+      fieldValue(item, "serial_number", "serialNumber", "SerialNumber"),
+    ),
+    cert_valid_from: stringValue(
+      fieldValue(item, "cert_valid_from", "certValidFrom", "CertValidFrom"),
+    ),
+    cert_valid_to: stringValue(fieldValue(item, "cert_valid_to", "certValidTo", "CertValidTo")),
+    publisher: stringValue(fieldValue(item, "publisher", "Publisher")),
+    product_name: stringValue(
+      fieldValue(item, "product_name", "productName", "ProductName"),
+    ),
+  }
+}
+
+function normalizeWhitelistPopularityDetail(
+  raw: unknown,
+): AttackCaseIOCWhitelistPopularityDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+  return {
+    domain: stringValue(fieldValue(item, "domain", "Domain")),
+    domain_hash: stringValue(fieldValue(item, "domain_hash", "domainHash", "DomainHash")),
+    registered_domain: stringValue(
+      fieldValue(item, "registered_domain", "registeredDomain", "RegisteredDomain"),
+    ),
+    source_name: stringValue(fieldValue(item, "source_name", "sourceName", "SourceName")),
+    source_url: stringValue(fieldValue(item, "source_url", "sourceUrl", "SourceUrl")),
+    source_version: stringValue(
+      fieldValue(item, "source_version", "sourceVersion", "SourceVersion"),
+    ),
+    rank: numberValue(fieldValue(item, "rank", "Rank")),
+    popularity_score: numberValue(
+      fieldValue(item, "popularity_score", "popularityScore", "PopularityScore"),
+    ),
+    category: stringValue(fieldValue(item, "category", "Category")),
+    list_date: stringValue(fieldValue(item, "list_date", "listDate", "ListDate")),
+    expires_at: stringValue(fieldValue(item, "expires_at", "expiresAt", "ExpiresAt")),
+    batch_id: stringValue(fieldValue(item, "batch_id", "batchId", "BatchId")),
+    updated_at: stringValue(fieldValue(item, "updated_at", "updatedAt", "UpdatedAt")),
+  }
+}
+
+function normalizeWhitelistHitDetail(
+  raw: unknown,
+): AttackCaseIOCWhitelistHitDetail | null {
+  const item = objectValue(raw)
+  if (!Object.keys(item).length) return null
+
+  return {
+    source: normalizeHitSourceRef(fieldValue(item, "source", "Source")),
+    entry_key: stringValue(fieldValue(item, "entry_key", "entryKey", "EntryKey")),
+    tenant_id: stringValue(fieldValue(item, "tenant_id", "tenantId", "TenantId")),
+    scope: stringValue(fieldValue(item, "scope", "Scope")),
+    ioc_type: stringValue(fieldValue(item, "ioc_type", "iocType", "IocType")),
+    match_type: stringValue(fieldValue(item, "match_type", "matchType", "MatchType")),
+    display_value: stringValue(fieldValue(item, "display_value", "displayValue", "DisplayValue")),
+    normalized_value: stringValue(
+      fieldValue(item, "normalized_value", "normalizedValue", "NormalizedValue"),
+    ),
+    allow_level: stringValue(fieldValue(item, "allow_level", "allowLevel", "AllowLevel")),
+    action: stringValue(fieldValue(item, "action", "Action")),
+    source_name: stringValue(fieldValue(item, "source_name", "sourceName", "SourceName")),
+    source_url: stringValue(fieldValue(item, "source_url", "sourceUrl", "SourceUrl")),
+    source_version: stringValue(
+      fieldValue(item, "source_version", "sourceVersion", "SourceVersion"),
+    ),
+    confidence: numberValue(fieldValue(item, "confidence", "Confidence")),
+    reason: stringValue(fieldValue(item, "reason", "Reason")),
+    owner: stringValue(fieldValue(item, "owner", "Owner")),
+    enabled: boolValue(fieldValue(item, "enabled", "Enabled")),
+    valid_from: stringValue(fieldValue(item, "valid_from", "validFrom", "ValidFrom")),
+    expires_at: stringValue(fieldValue(item, "expires_at", "expiresAt", "ExpiresAt")),
+    batch_id: stringValue(fieldValue(item, "batch_id", "batchId", "BatchId")),
+    created_at: stringValue(fieldValue(item, "created_at", "createdAt", "CreatedAt")),
+    updated_at: stringValue(fieldValue(item, "updated_at", "updatedAt", "UpdatedAt")),
+    hash: normalizeWhitelistHashDetail(fieldValue(item, "hash", "Hash")),
+    domain: normalizeWhitelistDomainDetail(fieldValue(item, "domain", "Domain")),
+    ip: normalizeWhitelistIPDetail(fieldValue(item, "ip", "Ip")),
+    certificate: normalizeWhitelistCertificateDetail(fieldValue(item, "certificate", "Certificate")),
+    popularity: normalizeWhitelistPopularityDetail(fieldValue(item, "popularity", "Popularity")),
+  }
+}
+
 function normalizeIocEntryHitDetail(
   raw: unknown,
 ): AttackCaseIOCIocEntryHitDetail | null {
@@ -849,22 +1012,34 @@ function normalizeBlacklistIndicatorHitDetail(
   }
 }
 
-function normalizeHitSourceDetail(
+function normalizeVerificationSourceDetail(
   raw: unknown,
 ): AttackCaseIOCVerificationHitSourceDetail | null {
   const item = objectValue(raw)
   if (!Object.keys(item).length) return null
 
+  const whitelist = normalizeWhitelistHitDetail(
+    fieldValue(item, "whitelist", "whitelistDetail", "Whitelist"),
+  )
   const blacklistIndicator = normalizeBlacklistIndicatorHitDetail(
     fieldValue(item, "blacklist_indicator", "blacklistIndicator", "BlacklistIndicator"),
   )
   const iocEntry = normalizeIocEntryHitDetail(
     fieldValue(item, "ioc_entry", "iocEntry", "IocEntry"),
   )
+  const source = normalizeHitSourceRef(fieldValue(item, "source", "Source"))
+  const role = stringValue(fieldValue(item, "role", "Role"))
+  const category = stringValue(fieldValue(item, "category", "Category"))
 
-  if (!blacklistIndicator && !iocEntry) return null
+  if (!whitelist && !blacklistIndicator && !iocEntry && !source && !role && !category) {
+    return null
+  }
 
   return {
+    role,
+    category,
+    source,
+    whitelist,
     ioc_entry: iocEntry,
     blacklist_indicator: blacklistIndicator,
   }
@@ -1036,9 +1211,16 @@ function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDet
   const detailView = normalizeHitDetailView(
     fieldValue(detail, "detail_view", "detailView", "DetailView"),
   )
+  const finalHitDetailRaw = fieldValue(
+    detail,
+    "final_hit_detail",
+    "finalHitDetail",
+    "FinalHitDetail",
+  )
   const hitSourceDetailRaw = objectValue(
     fieldValue(detail, "hit_source_detail", "hitSourceDetail", "HitSourceDetail"),
   )
+  const directWhitelist = fieldValue(detail, "whitelist", "whitelistDetail", "Whitelist")
   const directIocEntry = fieldValue(detail, "ioc_entry", "iocEntry", "IocEntry")
   const directBlacklistIndicator = fieldValue(
     detail,
@@ -1046,13 +1228,23 @@ function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDet
     "blacklistIndicator",
     "BlacklistIndicator",
   )
-  const hitSourceDetail = normalizeHitSourceDetail({
+  const legacyHitSourceDetail = normalizeVerificationSourceDetail({
     ...hitSourceDetailRaw,
+    ...(directWhitelist ? { whitelist: directWhitelist } : {}),
     ...(directIocEntry ? { ioc_entry: directIocEntry } : {}),
     ...(directBlacklistIndicator
       ? { blacklist_indicator: directBlacklistIndicator }
       : {}),
   })
+  const finalHitDetail = normalizeVerificationSourceDetail(finalHitDetailRaw) || legacyHitSourceDetail
+  const annotationDetails = Array.isArray(
+    fieldValue(detail, "annotation_details", "annotationDetails", "AnnotationDetails"),
+  )
+    ? (fieldValue(detail, "annotation_details", "annotationDetails", "AnnotationDetails") as unknown[])
+        .map(normalizeVerificationSourceDetail)
+        .filter((entry): entry is AttackCaseIOCVerificationHitSourceDetail => Boolean(entry))
+    : []
+  const hitSourceDetail = finalHitDetail || legacyHitSourceDetail
 
   if (item) {
     item.local_eval_raw_json = localEvalRawJson || item.local_eval_raw_json
@@ -1063,6 +1255,8 @@ function normalizeVerificationDetail(raw: unknown): AttackCaseIOCVerificationDet
     local_eval_raw_json: localEvalRawJson,
     hit_source: hitSource,
     hit_source_detail: hitSourceDetail,
+    final_hit_detail: finalHitDetail,
+    annotation_details: annotationDetails,
     detail_view: detailView,
   }
 }

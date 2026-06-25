@@ -32,9 +32,10 @@ export function IocVerificationDetailPanel({
 
   const detail = item?.verification_detail ?? null
   const detailView = detail?.detail_view ?? null
-  const iocEntry = detail?.hit_source_detail?.ioc_entry ?? null
+  const sourceDetail = detail?.final_hit_detail ?? detail?.hit_source_detail ?? null
+  const iocEntry = sourceDetail?.ioc_entry ?? null
   const iocEntryDetailView = iocEntryHitDetailView(iocEntry)
-  const blacklist = detail?.hit_source_detail?.blacklist_indicator ?? null
+  const blacklist = sourceDetail?.blacklist_indicator ?? null
   const queryResultFallbackView = queryResultDetailView(item)
   const normalizedDetailView =
     detailView || iocEntryDetailView || queryResultFallbackView
