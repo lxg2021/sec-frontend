@@ -7,8 +7,10 @@ import { defaultLocale, getPreferredLocale, isAppLocale } from "@/shared/i18n/lo
 const LOCALE_COOKIE = "watchpoint-locale"
 
 export default getRequestConfig(async () => {
-  const cookieLocale = cookies().get(LOCALE_COOKIE)?.value
-  const headerLocale = headers().get("accept-language")
+  const cookieStore = await cookies()
+  const headerStore = await headers()
+  const cookieLocale = cookieStore.get(LOCALE_COOKIE)?.value
+  const headerLocale = headerStore.get("accept-language")
 
   const locale = isAppLocale(cookieLocale)
     ? cookieLocale

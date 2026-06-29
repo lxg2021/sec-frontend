@@ -80,6 +80,15 @@ export const menuItems = [
     ],
   },
   {
+    id: "investigation",
+    icon: Search,
+    labelKey: "investigation",
+    submenu: [
+      { id: "investigationPlan", icon: FileText, labelKey: "investigationPlan", path: "/frame/investigation/plan" },
+      { id: "remoteForensics", icon: Terminal, labelKey: "remoteForensics", path: "/frame/investigation/collection" },
+    ],
+  },
+  {
     id: "response",
     icon: Shield,
     labelKey: "response",
@@ -107,7 +116,6 @@ export const menuItems = [
       { id: "dataInvestigation", icon: MapPin, labelKey: "dataInvestigation", path: "/frame/ioc-analysis/data-investigation" },
     ],
   },
-  { id: "evidence", icon: Terminal, labelKey: "evidence", path: "/frame/evidence" },
   { id: "reports", icon: FileText, labelKey: "reports", path: "/frame/reports" },
   {
     id: "control",
