@@ -10,7 +10,6 @@ import {
   Search,
   ShieldAlert,
   Target,
-  Zap,
 } from "lucide-react"
 
 import { HighlightIOC } from "@/features/investigation-assistant/components/highlight-ioc"
@@ -121,6 +120,76 @@ function SectionLabel({
 
 function actionKey(action: InvestigationNextAction, index: number) {
   return action.action_id ? `${action.action_id}:${index}` : `action:${index}`
+}
+
+function unique(items: string[]) {
+  return Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)))
+}
+
+function basename(value: string) {
+  const normalized = value.replace(/\\/g, "/")
+  return normalized.split("/").filter(Boolean).pop() || value
+}
+
+function targetFromNodeID(nodeID: string) {
+  const parts = nodeID.split(":")
+  const kind = parts[0]
+
+  if (kind === "file" && parts.length >= 4) {
+    return basename(parts.slice(3).join(":"))
+  }
+
+  if (kind === "net_endpoint" && parts.length >= 4) {
+    return `${parts[2]}:${parts[3]}`
+  }
+
+  if (kind === "net_address" && parts.length >= 3) {
+    return parts[2]
+  }
+
+  return ""
+}
+
+function targetsFromAction(action?: InvestigationNextAction) {
+  if (!action) return []
+
+  const nodeTargets = safeList(action.target_node_ids).map(targetFromNodeID)
+  const textTargets = `${action.label} ${action.reason}`.match(/\b[\w.\-\[\]]+\.(?:dll|exe|mso|sys|bat|ps1|vbs)\b/gi) || []
+  const merged = unique([...nodeTargets, ...textTargets])
+  const endpoints = merged.filter((item) => /^\d{1,3}(?:\.\d{1,3}){3}:\d{1,5}$/.test(item))
+
+  return merged.filter((item) => {
+    if (!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(item)) return true
+    return !endpoints.some((endpoint) => endpoint.startsWith(`${item}:`))
+  })
+}
+
+function actionButtonLabel() {
+  return "调查"
+}
+
+function targetText(targets: string[]) {
+  return targets.join("、")
+}
+
+function evidenceTitle(item: InvestigationMissingEvidence, action: InvestigationNextAction | undefined, targets: string[]) {
+  const actionID = action?.action_id || ""
+  const target = targetText(targets)
+  const primaryTarget = targets[0]
+
+  if (actionID.includes("file_load") && target) {
+    return `${target} 是否被加载或执行。`
+  }
+
+  if (actionID.includes("network") && primaryTarget) {
+    return `远程地址 ${primaryTarget} 的恶意性未确认。`
+  }
+
+  if (actionID.includes("children")) {
+    return primaryTarget ? `查询 ${primaryTarget} 子进程` : "查询子进程"
+  }
+
+  return cleanText(item.text)
 }
 
 export function InvestigationAssistant({
@@ -246,7 +315,7 @@ export function InvestigationAssistant({
             </div>
           </section>
 
-          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
+          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200 xl:col-span-2">
             <SectionLabel
               icon={<Search className="h-4 w-4" />}
               title="待补充证据"
@@ -255,80 +324,64 @@ export function InvestigationAssistant({
               accent="text-amber-500"
             />
             <div className="space-y-3">
-              {missingEvidence.map((item, index) => (
-                <div key={`${item.text}-${index}`} className="flex gap-2.5">
-                  <Circle className="mt-1 h-3 w-3 flex-shrink-0 text-amber-500" />
-                  <div>
-                    <p className="text-xs font-semibold leading-5 text-slate-700">
-                      <HighlightIOC text={cleanText(item.text)} />
-                    </p>
-                    {item.reason ? (
-                      <p className="mt-1 text-[11px] leading-5 text-slate-500">{cleanText(item.reason)}</p>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
-            <SectionLabel
-              icon={<Zap className="h-4 w-4" />}
-              title="下一步动作"
-              count={nextActions.length}
-              countColor="border-blue-200 text-blue-600"
-              accent="text-blue-600"
-            />
-            <div className="space-y-2.5">
-              {nextActions.map((action, index) => {
-                const key = actionKey(action, index)
-                const done = executed.has(key)
-                const busy = loading === key
+              {missingEvidence.map((item, index) => {
+                const action = nextActions[index]
+                const key = action ? actionKey(action, index) : `missing:${index}`
+                const done = action ? executed.has(key) : false
+                const busy = action ? loading === key : false
+                const targets = targetsFromAction(action)
 
                 return (
                   <div
-                    key={key}
+                    key={`${item.text}-${index}`}
                     className={cn(
                       "rounded-lg border px-3 py-2.5 transition-all",
                       done ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50/70 hover:border-blue-100 hover:bg-white",
                     )}
                   >
-                    <div className="mb-1.5 flex items-start justify-between gap-2">
-                      <span className="text-xs font-bold leading-5 text-slate-800">{action.label}</span>
-                      <button
-                        type="button"
-                        onClick={() => void handleExecute(action, index)}
-                        disabled={done || busy}
-                        className={cn(
-                          "inline-flex min-h-8 flex-shrink-0 items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-                          done
-                            ? "cursor-default border border-emerald-200 bg-emerald-50 text-emerald-700"
-                            : busy
-                              ? "cursor-wait border border-blue-200 bg-blue-50 text-blue-700"
-                              : "cursor-pointer bg-blue-600 text-white shadow-sm hover:bg-blue-700",
-                        )}
-                      >
-                        {done ? (
-                          <>
-                            <CheckCircle2 className="h-3 w-3" />
-                            已执行
-                          </>
-                        ) : busy ? (
-                          <>
-                            <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-blue-600 border-t-transparent" />
-                            执行中
-                          </>
-                        ) : (
-                          <>
-                            <ChevronRight className="h-3 w-3" />
-                            执行
-                          </>
-                        )}
-                      </button>
+                    <div className="flex items-start gap-2.5">
+                      <Circle className="mt-1 h-3 w-3 flex-shrink-0 text-amber-500" />
+                      <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold leading-5 text-slate-700">
+                            <HighlightIOC text={evidenceTitle(item, action, targets)} />
+                          </p>
+                        </div>
+
+                        {action ? (
+                          <button
+                            type="button"
+                            onClick={() => void handleExecute(action, index)}
+                            disabled={done || busy}
+                            className={cn(
+                              "inline-flex min-h-8 flex-shrink-0 cursor-pointer items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+                              done
+                                ? "cursor-default border border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : busy
+                                  ? "cursor-wait border border-blue-200 bg-blue-50 text-blue-700"
+                                  : "bg-blue-600 text-white shadow-sm hover:bg-blue-700",
+                            )}
+                          >
+                            {done ? (
+                              <>
+                                <CheckCircle2 className="h-3 w-3" />
+                                已执行
+                              </>
+                            ) : busy ? (
+                              <>
+                                <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-blue-600 border-t-transparent" />
+                                执行中
+                              </>
+                            ) : (
+                              <>
+                                <ChevronRight className="h-3 w-3" />
+                                {actionButtonLabel()}
+                              </>
+                            )}
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
-                    <p className="text-[11px] leading-5 text-slate-500">
-                      <HighlightIOC text={cleanText(action.reason)} />
-                    </p>
                   </div>
                 )
               })}
