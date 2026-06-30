@@ -69,7 +69,9 @@ function cleanText(value: string | undefined) {
     .replace(/\(\s*无\s*load\/execute\s*边\s*\)/gi, "")
     .replace(/load\/execute\s*边/gi, "加载或执行关系")
     .replace(/PROCESS_LOAD_DLL\s*边/gi, "DLL 加载关系")
-    .replace(/无直接边连接/gi, "图上还没有直接关系")
+    .replace(/当前图仅显示/gi, "当前只确认")
+    .replace(/图上还没有/gi, "目前还没有")
+    .replace(/无直接边连接/gi, "目前还没有直接关系")
     .replace(/边连接/gi, "关系连接")
     .replace(/\s+/g, " ")
     .trim()
@@ -333,7 +335,6 @@ export function InvestigationAssistant({
             </div>
           </section>
         </div>
-
       </div>
     </section>
   )
