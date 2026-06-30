@@ -63,6 +63,52 @@ export const MOCK_AI_INVESTIGATION_PREVIEW: AIInvestigationPreviewData = {
         evidence_refs: [`PROCESS_CREATE_PROCESS:${WINWORD_PROCESS}->${CALC_PROCESS}`],
       },
     ],
+    verification_items: [
+      {
+        id: "dll_load_execution",
+        title: "c5de36c1.dll、playoad[1].dll 是否被加载或执行。",
+        targets: [
+          { type: "file", name: "c5de36c1.dll", node_id: DLL_A },
+          { type: "file", name: "playoad[1].dll", node_id: DLL_B },
+        ],
+        action: {
+          action_id: "graph.expand_file_loads",
+          label: "调查",
+          target_node_ids: [DLL_A, DLL_B],
+          evidence_refs: [],
+        },
+        evidence_refs: [],
+      },
+      {
+        id: "remote_address_reputation",
+        title: "远程地址 20.0.40.208:8080 的恶意性未确认。",
+        targets: [
+          { type: "network", name: "20.0.40.208:8080", node_id: "net_endpoint:public:20.0.40.208:8080:ipproto_tcp:0" },
+        ],
+        action: {
+          action_id: "graph.expand_network_related_activity",
+          label: "调查",
+          target_node_ids: [
+            "net_address:public:20.0.40.208:0",
+            "net_endpoint:public:20.0.40.208:8080:ipproto_tcp:0",
+          ],
+          evidence_refs: [],
+        },
+        evidence_refs: [],
+      },
+      {
+        id: "calc_child_processes",
+        title: "查询 calc.exe 子进程",
+        targets: [{ type: "process", name: "calc.exe", node_id: CALC_PROCESS }],
+        action: {
+          action_id: "graph.expand_process_children",
+          label: "调查",
+          target_node_ids: [CALC_PROCESS],
+          evidence_refs: [],
+        },
+        evidence_refs: [],
+      },
+    ],
     missing_evidence: [
       {
         text: "DLL 文件是否被加载或执行。",

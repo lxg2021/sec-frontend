@@ -20,6 +20,7 @@ import type {
   InvestigationConfirmedFact,
   InvestigationMissingEvidence,
   InvestigationNextAction,
+  InvestigationVerificationItem,
 } from "@/features/investigation-assistant/types"
 import { cn } from "@/shared/lib/utils"
 
@@ -122,74 +123,40 @@ function actionKey(action: InvestigationNextAction, index: number) {
   return action.action_id ? `${action.action_id}:${index}` : `action:${index}`
 }
 
-function unique(items: string[]) {
-  return Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)))
-}
-
-function basename(value: string) {
-  const normalized = value.replace(/\\/g, "/")
-  return normalized.split("/").filter(Boolean).pop() || value
-}
-
-function targetFromNodeID(nodeID: string) {
-  const parts = nodeID.split(":")
-  const kind = parts[0]
-
-  if (kind === "file" && parts.length >= 4) {
-    return basename(parts.slice(3).join(":"))
-  }
-
-  if (kind === "net_endpoint" && parts.length >= 4) {
-    return `${parts[2]}:${parts[3]}`
-  }
-
-  if (kind === "net_address" && parts.length >= 3) {
-    return parts[2]
-  }
-
-  return ""
-}
-
-function targetsFromAction(action?: InvestigationNextAction) {
-  if (!action) return []
-
-  const nodeTargets = safeList(action.target_node_ids).map(targetFromNodeID)
-  const textTargets = `${action.label} ${action.reason}`.match(/\b[\w.\-\[\]]+\.(?:dll|exe|mso|sys|bat|ps1|vbs)\b/gi) || []
-  const merged = unique([...nodeTargets, ...textTargets])
-  const endpoints = merged.filter((item) => /^\d{1,3}(?:\.\d{1,3}){3}:\d{1,5}$/.test(item))
-
-  return merged.filter((item) => {
-    if (!/^\d{1,3}(?:\.\d{1,3}){3}$/.test(item)) return true
-    return !endpoints.some((endpoint) => endpoint.startsWith(`${item}:`))
-  })
-}
-
 function actionButtonLabel() {
   return "调查"
 }
 
-function targetText(targets: string[]) {
-  return targets.join("、")
+interface RenderVerificationItem {
+  id: string
+  title: string
+  action?: InvestigationNextAction
 }
 
-function evidenceTitle(item: InvestigationMissingEvidence, action: InvestigationNextAction | undefined, targets: string[]) {
-  const actionID = action?.action_id || ""
-  const target = targetText(targets)
-  const primaryTarget = targets[0]
+function buildLegacyVerificationItems(
+  missingEvidence: InvestigationMissingEvidence[],
+  nextActions: InvestigationNextAction[],
+): RenderVerificationItem[] {
+  return missingEvidence.map((item, index) => ({
+    id: `legacy:${index}`,
+    title: cleanText(item.text),
+    action: nextActions[index],
+  }))
+}
 
-  if (actionID.includes("file_load") && target) {
-    return `${target} 是否被加载或执行。`
+function buildVerificationItems(
+  verificationItems: InvestigationVerificationItem[],
+  missingEvidence: InvestigationMissingEvidence[],
+  nextActions: InvestigationNextAction[],
+): RenderVerificationItem[] {
+  if (verificationItems.length) {
+    return verificationItems.map((item, index) => ({
+      id: item.id || `verification:${index}`,
+      title: cleanText(item.title),
+      action: item.action,
+    }))
   }
-
-  if (actionID.includes("network") && primaryTarget) {
-    return `远程地址 ${primaryTarget} 的恶意性未确认。`
-  }
-
-  if (actionID.includes("children")) {
-    return primaryTarget ? `查询 ${primaryTarget} 子进程` : "查询子进程"
-  }
-
-  return cleanText(item.text)
+  return buildLegacyVerificationItems(missingEvidence, nextActions)
 }
 
 export function InvestigationAssistant({
@@ -203,8 +170,10 @@ export function InvestigationAssistant({
   const caseIdShort = caseId ? caseId.slice(0, 8).toUpperCase() : "UNKNOWN"
   const confirmedFacts = safeList<InvestigationConfirmedFact>(data.confirmed_facts)
   const attackObjectives = safeList<InvestigationAttackObjective>(data.attack_objectives)
+  const verificationItems = safeList<InvestigationVerificationItem>(data.verification_items)
   const missingEvidence = safeList<InvestigationMissingEvidence>(data.missing_evidence)
   const nextActions = safeList<InvestigationNextAction>(data.next_actions)
+  const renderedVerificationItems = buildVerificationItems(verificationItems, missingEvidence, nextActions)
   const objectiveKeywords = attackObjectives.map((objective) => objective.name).filter(Boolean)
   const confidence = confidenceLevel(data.confidence)
 
@@ -224,7 +193,7 @@ export function InvestigationAssistant({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.07)]",
+        "w-full overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.07)]",
         className,
       )}
       aria-label="AI 调查助手"
@@ -248,7 +217,7 @@ export function InvestigationAssistant({
       </header>
 
       <div className="bg-slate-50/70 px-5 py-5">
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
           <section className="flex min-h-[250px] flex-col rounded-xl border border-red-100 bg-white p-4 shadow-sm">
             <SectionLabel
               icon={<AlertTriangle className="h-4 w-4" />}
@@ -315,25 +284,24 @@ export function InvestigationAssistant({
             </div>
           </section>
 
-          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200 xl:col-span-2">
+          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
             <SectionLabel
               icon={<Search className="h-4 w-4" />}
               title="待补充证据"
-              count={missingEvidence.length}
+              count={renderedVerificationItems.length}
               countColor="border-amber-200 text-amber-600"
               accent="text-amber-500"
             />
             <div className="space-y-3">
-              {missingEvidence.map((item, index) => {
-                const action = nextActions[index]
+              {renderedVerificationItems.map((item, index) => {
+                const action = item.action
                 const key = action ? actionKey(action, index) : `missing:${index}`
                 const done = action ? executed.has(key) : false
                 const busy = action ? loading === key : false
-                const targets = targetsFromAction(action)
 
                 return (
                   <div
-                    key={`${item.text}-${index}`}
+                    key={item.id}
                     className={cn(
                       "rounded-lg border px-3 py-2.5 transition-all",
                       done ? "border-emerald-200 bg-emerald-50" : "border-slate-100 bg-slate-50/70 hover:border-blue-100 hover:bg-white",
@@ -344,7 +312,7 @@ export function InvestigationAssistant({
                       <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-semibold leading-5 text-slate-700">
-                            <HighlightIOC text={evidenceTitle(item, action, targets)} />
+                            <HighlightIOC text={item.title} />
                           </p>
                         </div>
 

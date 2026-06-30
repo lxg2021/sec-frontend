@@ -27,8 +27,22 @@ export interface InvestigationMissingEvidence {
 export interface InvestigationNextAction {
   action_id: string
   label: string
-  reason: string
+  reason?: string
   target_node_ids?: string[]
+  evidence_refs?: string[]
+}
+
+export interface InvestigationVerificationTarget {
+  type?: string
+  name: string
+  node_id?: string
+}
+
+export interface InvestigationVerificationItem {
+  id?: string
+  title: string
+  targets?: InvestigationVerificationTarget[]
+  action?: InvestigationNextAction
   evidence_refs?: string[]
 }
 
@@ -41,6 +55,7 @@ export interface AIInvestigationResult {
   confidence?: InvestigationAssistantConfidence
   confirmed_facts?: InvestigationConfirmedFact[]
   attack_objectives?: InvestigationAttackObjective[]
+  verification_items?: InvestigationVerificationItem[]
   missing_evidence?: InvestigationMissingEvidence[]
   next_actions?: InvestigationNextAction[]
   can_finalize?: boolean

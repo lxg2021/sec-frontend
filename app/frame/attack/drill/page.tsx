@@ -349,22 +349,25 @@ export default function App() {
       const targetKeys = (action.target_node_ids ?? [])
         .map((item) => item.trim())
         .filter(Boolean)
-      const targetNode = targetKeys.length
-        ? graphModel.nodes.find((node) => targetKeys.includes(node.key) || targetKeys.includes(node.id))
-        : null
+      const targetNodes = targetKeys
+        .map((targetKey) => graphModel.nodes.find((node) => node.key === targetKey || node.id === targetKey))
+        .filter((node): node is NonNullable<typeof node> => Boolean(node))
+        .filter((node, index, nodes) => nodes.findIndex((item) => item.key === node.key) === index)
 
-      if (!targetNode) {
+      if (!targetNodes.length) {
         toast.info("这条建议没有绑定到当前图上的可钻探节点。", {
           description: action.label,
         })
         return
       }
 
-      await handleGraphMenuAction({
-        kind: "node-drilldown",
-        graph: graphModel,
-        node: targetNode,
-      } as AttackGraphMenuAction)
+      for (const targetNode of targetNodes) {
+        await handleGraphMenuAction({
+          kind: "node-drilldown",
+          graph: graphModel,
+          node: targetNode,
+        } as AttackGraphMenuAction)
+      }
     },
     [graphResponse, handleGraphMenuAction],
   )
