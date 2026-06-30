@@ -1,15 +1,18 @@
 import { InvestigationNextReview } from "@/features/investigation-next-review/components/investigation-next-review"
-import { loadInvestigationBatch } from "@/features/investigation-next-review/load-investigation-batch"
+import { loadInvestigationCasePlan } from "@/features/investigation-next-review/load-investigation-batch"
 
 export const dynamic = "force-dynamic"
 
 export default async function InvestigationPlanPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ batch?: string | string[] }>
+  searchParams?: Promise<{ batch?: string | string[]; caseId?: string | string[]; case_id?: string | string[] }>
 }) {
   const params = await searchParams
-  const batch = await loadInvestigationBatch(params?.batch)
+  const { batch, casePlan } = await loadInvestigationCasePlan({
+    batch: params?.batch,
+    caseId: params?.caseId ?? params?.case_id,
+  })
 
-  return <InvestigationNextReview batch={batch} />
+  return <InvestigationNextReview batch={batch} casePlan={casePlan} />
 }

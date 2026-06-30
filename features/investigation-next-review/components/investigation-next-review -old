@@ -41,7 +41,6 @@ import {
   Play24Regular,
   Search24Regular,
   ShieldKeyhole24Regular,
-  ArrowClockwise24Regular,
   Target24Regular,
   Warning20Regular,
   WeatherMoon24Regular,
@@ -49,8 +48,6 @@ import {
 } from "@fluentui/react-icons"
 
 import {
-  buildInvestigationReviewFromPlan,
-  createCaseInvestigationPlanByCaseId,
   executeInvestigationQuestionQuery,
   refreshInvestigationQuestionContract,
   type InvestigationExecutionContextInput,
@@ -59,10 +56,8 @@ import {
 } from "@/features/investigation-next-review/api"
 import type {
   InvestigationBatchReview,
-  InvestigationCasePlan,
   InvestigationCollectionTarget,
   InvestigationLanguage,
-  InvestigationQuestion,
   InvestigationRuleReview,
   InvestigationTemplate,
 } from "@/features/investigation-next-review/types"
@@ -418,40 +413,6 @@ function duplicateTargetKeys(template?: InvestigationTemplate) {
   return duplicates
 }
 
-function triggeredRuleFor(casePlan: InvestigationCasePlan | undefined, rule: InvestigationRuleReview) {
-  return casePlan?.triggeredRules.find((item) => item.ruleKey === rule.key)
-}
-
-function contextFromCasePlan(
-  casePlan: InvestigationCasePlan | undefined,
-  rule: InvestigationRuleReview | undefined,
-): InvestigationExecutionContextInput {
-  if (!casePlan || !rule) {
-    return { plan_id: "", time_window_start: "", time_window_end: "" }
-  }
-
-  const triggeredRule = triggeredRuleFor(casePlan, rule)
-  const context = triggeredRule?.context
-  return {
-    tenant_id: context?.tenantId ?? "default",
-    plan_id: casePlan.planId,
-    agent_id: context?.agentId,
-    alert_time: triggeredRule?.firstSeen,
-    time_window_start: casePlan.timeWindowStart,
-    time_window_end: casePlan.timeWindowEnd,
-    source_table: context?.sourceTable,
-    unique_id: context?.uniqueId,
-    attack_mark: context?.attackMark,
-    process_guid: context?.processGuid,
-    file_name: context?.fileName,
-    file_md5: context?.fileMd5,
-    object_name: context?.objectName,
-    url: context?.url,
-    domain: context?.domain,
-    destination_ip: context?.destinationIp,
-  }
-}
-
 function onBatchChange(batchName: string) {
   const url = new URL(window.location.href)
   url.searchParams.set("batch", batchName)
@@ -478,13 +439,6 @@ function parseJSON<T>(raw?: string): T | null {
 
 function executionStateKey(questionIndex: number) {
   return String(questionIndex)
-}
-
-function newCasePlanId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID()
-  }
-  return `case-plan-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`
 }
 
 function normalizedConclusion(data?: InvestigationQuestionExecutionData | null) {
@@ -588,72 +542,6 @@ function CollectionTargets({
           </div>
         )
       })}
-    </div>
-  )
-}
-
-function QuestionTopicSources({ question }: { question: InvestigationQuestion }) {
-  const styles = useStyles()
-  const topic = question.topic
-  if (!topic) return null
-
-  const sourceRules = topic.source_rules ?? []
-  const sourceQuestions = topic.source_questions ?? []
-  const queryIds = topic.query_ids ?? question.query_ids ?? []
-
-  return (
-    <div className={styles.targetBlock}>
-      <span className={styles.accordionHeaderText}>
-        <Info20Regular className={styles.brandIcon} />
-        <Caption1 className={styles.metaLabel}>聚合来源</Caption1>
-        <Badge appearance="outline" color="informative" size="small">
-          {topic.merged_question_count ?? sourceQuestions.length} 个原始问题
-        </Badge>
-        {topic.stage ? (
-          <Badge appearance="tint" color="brand" size="small">
-            {topic.stage}
-          </Badge>
-        ) : null}
-      </span>
-
-      {sourceRules.length > 0 ? (
-        <div className={styles.targetItem}>
-          <Caption1 className={styles.metaLabel}>来源规则</Caption1>
-          <div className={styles.badgeRow}>
-            {sourceRules.map((rule, index) => (
-              <Badge key={`${rule.rule_id ?? rule.rule_file ?? index}`} appearance="outline" color="informative" size="small">
-                {rule.rule_file || rule.title || rule.rule_id || `rule-${index + 1}`}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {sourceQuestions.length > 0 ? (
-        <div className={styles.targetItem}>
-          <Caption1 className={styles.metaLabel}>原始问题</Caption1>
-          <div className={styles.badgeRow}>
-            {sourceQuestions.map((item, index) => (
-              <Badge key={`${item.rule_id ?? item.rule_file ?? index}:${item.question_id}`} appearance="tint" color="brand" size="small">
-                {item.question_id}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {queryIds.length > 0 ? (
-        <div className={styles.targetItem}>
-          <Caption1 className={styles.metaLabel}>后台查询能力</Caption1>
-          <div className={styles.badgeRow}>
-            {queryIds.map((queryId) => (
-              <Badge key={queryId} appearance="outline" color="success" size="small">
-                {queryId}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      ) : null}
     </div>
   )
 }
@@ -872,15 +760,10 @@ function QuestionExecutionResult({ state }: { state?: ExecutionState }) {
 
 function GuideContent({
   batch,
-  caseIdInput,
-  caseLoading,
-  casePlan,
   rule,
   template,
   language,
   mode,
-  onCaseIdInputChange,
-  onLoadCase,
   setMode,
   setRuleKey,
   setLanguage,
@@ -888,15 +771,10 @@ function GuideContent({
   setExecutionContext,
 }: {
   batch: InvestigationBatchReview
-  caseIdInput: string
-  caseLoading: boolean
-  casePlan?: InvestigationCasePlan
   rule: InvestigationRuleReview
   template?: InvestigationTemplate
   language: InvestigationLanguage
   mode: ThemeMode
-  onCaseIdInputChange: (value: string) => void
-  onLoadCase: (options?: { regenerate?: boolean }) => void | Promise<void>
   setMode: (mode: ThemeMode) => void
   setRuleKey: (key: string) => void
   setLanguage: (language: InvestigationLanguage) => void
@@ -978,74 +856,9 @@ function GuideContent({
       </header>
 
       <main className={styles.main}>
-        <section className={styles.selectorPanel} aria-label="Case 调查入口">
-          <div className={styles.sectionTitle}>
-            <DocumentSearch24Regular className={styles.brandIcon} />
-            <Title3 as="h2">Case 调查入口</Title3>
-          </div>
-          <Body1>
-            调查取证以 CaseID 为单元。当前页面先加载该 Case 触发的规则，再按选中的规则展示对应调查指南。
-          </Body1>
-          <div className={styles.selectorRow}>
-            <Field label="Case ID" style={{ flex: "1 1 360px", minWidth: "300px" }}>
-              <Input
-                value={caseIdInput}
-                onChange={(_, data) => onCaseIdInputChange(data.value)}
-                contentBefore={<Search24Regular />}
-              />
-            </Field>
-            <Button appearance="primary" icon={<Search24Regular />} onClick={onLoadCase} disabled={caseLoading}>
-              {caseLoading ? "加载中" : "加载 Case"}
-            </Button>
-            {casePlan ? (
-              <Button
-                appearance="secondary"
-                icon={<ArrowClockwise24Regular />}
-                onClick={() => onLoadCase({ regenerate: true })}
-                disabled={caseLoading}
-              >
-                {caseLoading ? "生成中" : "重新生成计划"}
-              </Button>
-            ) : null}
-          </div>
-          {casePlan ? (
-            <>
-              <div className={styles.metaRow}>
-                <div className={styles.metaItem}>
-                  <Caption1 className={styles.metaLabel}>Case ID</Caption1>
-                  <Caption1 className={styles.metaValue}>{casePlan.caseId}</Caption1>
-                </div>
-                <div className={styles.metaItem}>
-                  <Caption1 className={styles.metaLabel}>Plan ID</Caption1>
-                  <Caption1 className={styles.metaValue}>{casePlan.planId}</Caption1>
-                </div>
-                <div className={styles.metaItem}>
-                  <Caption1 className={styles.metaLabel}>时间窗口</Caption1>
-                  <Caption1 className={styles.metaValue}>{`${casePlan.timeWindowStart} ~ ${casePlan.timeWindowEnd}`}</Caption1>
-                </div>
-                <div className={styles.metaItem}>
-                  <Caption1 className={styles.metaLabel}>触发规则</Caption1>
-                  <Caption1 className={styles.metaValue}>{`${casePlan.triggeredRules.length} 条`}</Caption1>
-                </div>
-              </div>
-              <div className={styles.badgeRow}>
-                {casePlan.triggeredRules.map((item, index) => (
-                  <Badge
-                    key={`${item.ruleKey}:${item.ruleId ?? index}`}
-                    appearance={item.ruleKey === rule.key ? "filled" : "outline"}
-                    color={item.severity === "high" || item.severity === "critical" ? "danger" : "informative"}
-                  >
-                    {`${item.title ?? item.ruleKey} · ${item.triggerCount} 次`}
-                  </Badge>
-                ))}
-              </div>
-            </>
-          ) : null}
-        </section>
-
         <section className={styles.selectorPanel} aria-label="调查指南选择">
           <div className={styles.selectorRow}>
-            <Caption1 className={styles.selectorLabel}>调查计划</Caption1>
+            <Caption1 className={styles.selectorLabel}>规则</Caption1>
             {batch.rules.map((item) => {
               const itemTemplate = item.templates["zh-CN"] ?? item.templates.en
               return (
@@ -1214,10 +1027,10 @@ function GuideContent({
           <div className={styles.sectionTitle}>
             <ClipboardTask24Regular className={styles.brandIcon} />
             <Title3 as="h2" id="plan-heading">
-              调查主题计划
+              调查问题计划
             </Title3>
           </div>
-          <Caption1 className={styles.metaLabel}>{`共 ${questions.length} 个调查主题，按顺序展开执行`}</Caption1>
+          <Caption1 className={styles.metaLabel}>{`共 ${questions.length} 个调查问题，按顺序展开执行`}</Caption1>
           <Accordion multiple collapsible defaultOpenItems={[questions[0]?.id ?? ""]}>
             {questions.map((question, index) => {
               const state = executionStates[executionStateKey(index)]
@@ -1230,16 +1043,6 @@ function GuideContent({
                       <Badge appearance="tint" color="informative" size="small">
                         {categoryLabels[question.category ?? ""] ?? question.category ?? "unknown"}
                       </Badge>
-                      {(question.topic?.source_question_ids ?? []).length > 0 ? (
-                        <Badge appearance="outline" color="informative" size="small">
-                          {(question.topic?.source_question_ids ?? []).length} 个来源问题
-                        </Badge>
-                      ) : null}
-                      {(question.query_ids ?? []).length > 0 ? (
-                        <Badge appearance="outline" color="success" size="small">
-                          {(question.query_ids ?? []).length} 个查询
-                        </Badge>
-                      ) : null}
                       {(question.collection_targets ?? []).length > 0 ? (
                         <Badge appearance="outline" color="brand" size="small">
                           {(question.collection_targets ?? []).length} 个采集目标
@@ -1261,7 +1064,6 @@ function GuideContent({
                         </span>
                         <Body1>{question.gap_when_missing?.message ?? "-"}</Body1>
                       </div>
-                      <QuestionTopicSources question={question} />
                       <CollectionTargets targets={question.collection_targets} duplicateKeys={duplicateKeys} />
                       <div className={styles.questionActions}>
                         <Button
@@ -1296,181 +1098,17 @@ function GuideContent({
   )
 }
 
-function EmptyCaseEntry({
-  mode,
-  caseIdInput,
-  caseLoading,
-  caseError,
-  batchPath,
-  onCaseIdInputChange,
-  onLoadCase,
-  setMode,
-}: {
-  mode: ThemeMode
-  caseIdInput: string
-  caseLoading: boolean
-  caseError: string
-  batchPath: string
-  onCaseIdInputChange: (value: string) => void
-  onLoadCase: () => void | Promise<void>
-  setMode: (mode: ThemeMode) => void
-}) {
-  const styles = useStyles()
-
-  return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <div className={styles.headerBrand}>
-          <ShieldKeyhole24Regular />
-          <Subtitle1>安全调查指南</Subtitle1>
-        </div>
-        <div className={styles.headerControls}>
-          <Tooltip content={mode === "light" ? "切换到深色主题" : "切换到浅色主题"} relationship="label">
-            <ToggleButton
-              checked={mode === "dark"}
-              onClick={() => setMode(mode === "light" ? "dark" : "light")}
-              icon={mode === "light" ? <WeatherMoon24Regular /> : <WeatherSunny24Regular />}
-              appearance="subtle"
-              aria-label="切换主题"
-            />
-          </Tooltip>
-        </div>
-      </header>
-
-      <main className={styles.main}>
-        <section className={styles.selectorPanel} aria-label="Case 调查入口">
-          <div className={styles.sectionTitle}>
-            <DocumentSearch24Regular className={styles.brandIcon} />
-            <Title3 as="h2">Case 调查入口</Title3>
-          </div>
-          <Body1>
-            当前页面按 Case ID 从后台创建或加载调查计划。后台会根据该 Case 命中的规则加载对应调查指南。
-          </Body1>
-          <div className={styles.selectorRow}>
-            <Field label="Case ID" style={{ flex: "1 1 360px", minWidth: "300px" }}>
-              <Input
-                value={caseIdInput}
-                onChange={(_, data) => onCaseIdInputChange(data.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" && !caseLoading) {
-                    void onLoadCase()
-                  }
-                }}
-                contentBefore={<Search24Regular />}
-                placeholder="输入 Case ID"
-              />
-            </Field>
-            <Button appearance="primary" icon={<Search24Regular />} onClick={onLoadCase} disabled={caseLoading}>
-              {caseLoading ? "加载中" : "加载 Case"}
-            </Button>
-          </div>
-          {caseError ? (
-            <MessageBar intent="error">
-              <MessageBarBody>
-                <MessageBarTitle>加载失败</MessageBarTitle>
-                {caseError}
-              </MessageBarBody>
-            </MessageBar>
-          ) : null}
-          <MessageBar intent="info">
-            <MessageBarBody>
-              <MessageBarTitle>运行时配置目录</MessageBarTitle>
-              {batchPath}
-            </MessageBarBody>
-          </MessageBar>
-        </section>
-      </main>
-    </div>
-  )
-}
-
-export function InvestigationNextReview({
-  batch,
-  casePlan,
-}: {
-  batch: InvestigationBatchReview
-  casePlan?: InvestigationCasePlan
-}) {
+export function InvestigationNextReview({ batch }: { batch: InvestigationBatchReview }) {
   const [mode, setMode] = React.useState<ThemeMode>("light")
-  const [runtimeBatch, setRuntimeBatch] = React.useState<InvestigationBatchReview>(batch)
-  const [runtimeCasePlan, setRuntimeCasePlan] = React.useState<InvestigationCasePlan | undefined>(casePlan)
   const [selectedKey, setSelectedKey] = React.useState(batch.rules[0]?.key ?? "")
   const [language, setLanguage] = React.useState<InvestigationLanguage>("zh-CN")
-  const [caseIdInput, setCaseIdInput] = React.useState(casePlan?.caseId ?? "")
-  const [caseLoading, setCaseLoading] = React.useState(false)
-  const [caseError, setCaseError] = React.useState("")
-  const selectedRule = runtimeBatch.rules.find((rule) => rule.key === selectedKey) ?? runtimeBatch.rules[0]
-  const [executionContext, setExecutionContext] = React.useState<InvestigationExecutionContextInput>(() =>
-    contextFromCasePlan(runtimeCasePlan, selectedRule),
-  )
+  const [executionContext, setExecutionContext] = React.useState<InvestigationExecutionContextInput>({
+    plan_id: "",
+    time_window_start: "",
+    time_window_end: "",
+  })
+  const selectedRule = batch.rules.find((rule) => rule.key === selectedKey) ?? batch.rules[0]
   const template = selectedRule ? pickTemplate(selectedRule, language) : undefined
-
-  React.useEffect(() => {
-    if (!selectedRule) return
-    setExecutionContext(contextFromCasePlan(runtimeCasePlan, selectedRule))
-  }, [runtimeCasePlan, selectedRule])
-
-  React.useEffect(() => {
-    setRuntimeBatch(batch)
-    setSelectedKey(batch.rules[0]?.key ?? "")
-  }, [batch])
-
-  React.useEffect(() => {
-    setRuntimeCasePlan(casePlan)
-    setCaseIdInput(casePlan?.caseId ?? "")
-  }, [casePlan])
-
-  const handleLoadCase = React.useCallback(async (options?: { regenerate?: boolean }) => {
-    const normalized = caseIdInput.trim()
-    if (!normalized) {
-      setCaseError("请输入 Case ID")
-      return
-    }
-    setCaseLoading(true)
-    setCaseError("")
-    try {
-      const item = await createCaseInvestigationPlanByCaseId({
-        caseId: normalized,
-        planId: options?.regenerate ? newCasePlanId() : undefined,
-      })
-      if (!item) {
-        throw new Error("后台没有返回调查计划")
-      }
-      const next = buildInvestigationReviewFromPlan(item)
-      setRuntimeBatch(next.batch)
-      setRuntimeCasePlan(next.casePlan)
-      setSelectedKey(next.batch.rules[0]?.key ?? "")
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href)
-        url.searchParams.set("caseId", normalized)
-        window.history.replaceState(null, "", url.toString())
-      }
-    } catch (error) {
-      setCaseError(error instanceof Error ? error.message : "加载 Case 调查计划失败")
-    } finally {
-      setCaseLoading(false)
-    }
-  }, [caseIdInput])
-
-  if (!selectedRule) {
-    return (
-      <FluentProvider theme={mode === "light" ? webLightTheme : webDarkTheme}>
-        <EmptyCaseEntry
-          mode={mode}
-          caseIdInput={caseIdInput}
-          caseLoading={caseLoading}
-          caseError={caseError}
-          batchPath={batch.batchPath}
-          onCaseIdInputChange={(value) => {
-            setCaseIdInput(value)
-            setCaseError("")
-          }}
-          onLoadCase={handleLoadCase}
-          setMode={setMode}
-        />
-      </FluentProvider>
-    )
-  }
 
   if (!selectedRule) {
     return (
@@ -1492,35 +1130,17 @@ export function InvestigationNextReview({
   return (
     <FluentProvider theme={mode === "light" ? webLightTheme : webDarkTheme}>
       <GuideContent
-        batch={runtimeBatch}
-        caseIdInput={caseIdInput}
-        caseLoading={caseLoading}
-        casePlan={runtimeCasePlan}
+        batch={batch}
         rule={selectedRule}
         template={template}
         language={language}
         mode={mode}
-        onCaseIdInputChange={(value) => {
-          setCaseIdInput(value)
-          setCaseError("")
-        }}
-        onLoadCase={handleLoadCase}
         setMode={setMode}
         setRuleKey={setSelectedKey}
         setLanguage={setLanguage}
         executionContext={executionContext}
         setExecutionContext={setExecutionContext}
       />
-      {caseError ? (
-        <div style={{ position: "fixed", right: 24, bottom: 24, zIndex: 50 }}>
-          <MessageBar intent="error">
-            <MessageBarBody>
-              <MessageBarTitle>加载失败</MessageBarTitle>
-              {caseError}
-            </MessageBarBody>
-          </MessageBar>
-        </div>
-      ) : null}
     </FluentProvider>
   )
 }

@@ -11,13 +11,47 @@ export type InvestigationGap = {
   message?: string
 }
 
+export type InvestigationTopicSourceRule = {
+  rule_id?: string
+  rule_file?: string
+  title?: string
+}
+
+export type InvestigationTopicSourceQuestion = {
+  question_id?: string
+  title?: string
+  category?: string
+  priority?: number
+  rule_id?: string
+  rule_file?: string
+  query_ids?: string[]
+  collection_target_ids?: string[]
+  support?: string
+}
+
+export type InvestigationQuestionTopic = {
+  topic_id?: string
+  stage?: string
+  source_rule_ids?: string[]
+  source_rule_files?: string[]
+  source_rules?: InvestigationTopicSourceRule[]
+  source_question_ids?: string[]
+  source_questions?: InvestigationTopicSourceQuestion[]
+  query_ids?: string[]
+  collection_target_ids?: string[]
+  merged_question_count?: number
+}
+
 export type InvestigationQuestion = {
   id?: string
   category?: string
   title?: string
   objective?: string
+  support?: string
+  query_ids?: string[]
   collection_targets?: InvestigationCollectionTarget[]
   gap_when_missing?: InvestigationGap
+  topic?: InvestigationQuestionTopic
 }
 
 export type InvestigationTemplate = {
@@ -79,4 +113,37 @@ export type InvestigationBatchReview = {
   batchPath: string
   availableBatches: string[]
   rules: InvestigationRuleReview[]
+}
+
+export type InvestigationCaseTriggeredRule = {
+  ruleKey: string
+  ruleId?: string
+  title?: string
+  severity?: "critical" | "high" | "medium" | "low"
+  triggerCount: number
+  firstSeen: string
+  lastSeen: string
+  context: {
+    tenantId?: string
+    agentId?: string
+    sourceTable?: string
+    uniqueId?: string
+    attackMark?: string
+    processGuid?: string
+    fileName?: string
+    fileMd5?: string
+    objectName?: string
+    url?: string
+    domain?: string
+    destinationIp?: string
+  }
+}
+
+export type InvestigationCasePlan = {
+  caseId: string
+  planId: string
+  timeWindowStart: string
+  timeWindowEnd: string
+  timezone: string
+  triggeredRules: InvestigationCaseTriggeredRule[]
 }

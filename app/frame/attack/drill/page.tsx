@@ -36,6 +36,10 @@ import type {
   AttackGraphLayoutStrategyOption,
   GraphCaseResponseDto,
 } from "@/features/attack/dgraph"
+import {
+  InvestigationAssistantPanel,
+  type InvestigationNextAction,
+} from "@/features/investigation-assistant"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
@@ -333,6 +337,38 @@ export default function App() {
     [graphNodeDrillStateByKey, graphResponse, timelineCaseId],
   )
 
+  const handleInvestigationActionClick = useCallback(
+    async (action: InvestigationNextAction) => {
+      const currentGraph = graphResponseRef.current ?? graphResponse
+      if (!currentGraph) {
+        toast.warning("当前 CASE 图谱还没有加载完成。")
+        return
+      }
+
+      const graphModel = buildAttackGraphModel(currentGraph)
+      const targetKeys = (action.target_node_ids ?? [])
+        .map((item) => item.trim())
+        .filter(Boolean)
+      const targetNode = targetKeys.length
+        ? graphModel.nodes.find((node) => targetKeys.includes(node.key) || targetKeys.includes(node.id))
+        : null
+
+      if (!targetNode) {
+        toast.info("这条建议没有绑定到当前图上的可钻探节点。", {
+          description: action.label,
+        })
+        return
+      }
+
+      await handleGraphMenuAction({
+        kind: "node-drilldown",
+        graph: graphModel,
+        node: targetNode,
+      } as AttackGraphMenuAction)
+    },
+    [graphResponse, handleGraphMenuAction],
+  )
+
   useEffect(() => {
     const caseId = timelineCaseId.trim()
     if (!caseId) {
@@ -425,6 +461,12 @@ export default function App() {
           timezone={DRILL_TIMEZONE}
           noCaseDescription="No CaseID was provided for this investigation view."
           noCaseHint="Select a case in Attack Details and click Trace Attack to open this timeline."
+        />
+
+        <InvestigationAssistantPanel
+          caseId={timelineCaseId}
+          language="zh-CN"
+          onActionClick={handleInvestigationActionClick}
         />
 
         <AttackGraphCaseCard
