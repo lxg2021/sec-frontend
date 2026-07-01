@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { AlertTriangle, Bot, Loader2, RotateCcw } from "lucide-react"
+import { AlertTriangle, Bot, RotateCcw } from "lucide-react"
 
 import { previewAIInvestigation } from "@/features/investigation-assistant/api"
 import { InvestigationAssistant } from "@/features/investigation-assistant/components/investigation-assistant"
@@ -22,6 +22,8 @@ export interface InvestigationAssistantPanelProps {
 }
 
 type PreviewState = "idle" | "loading" | "ready" | "invalid" | "error"
+
+const aiInvestigationLoaderSrc = "/icons/ai-investigation-loader.svg"
 
 function normalizeFocusNodeIds(value: string[] | undefined) {
   return (value ?? []).map((item) => item.trim()).filter(Boolean)
