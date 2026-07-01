@@ -126,7 +126,13 @@ function cleanText(value: string | undefined, language: InvestigationAssistantLa
     .replace(/\s+/g, " ")
     .trim()
 
-  if (language === "en") return normalized
+  if (language === "en") {
+    return normalized
+      .replace(/无直接边连接/gi, "no direct edge connection")
+      .replace(/load\/execute\s*边/gi, "load/execute edge")
+      .replace(/PROCESS_LOAD_DLL\s*边/gi, "PROCESS_LOAD_DLL edge")
+      .replace(/边连接/gi, "edge connection")
+  }
 
   return normalized
     .replace(/（\s*无\s*load\/execute\s*边\s*）/gi, "")
