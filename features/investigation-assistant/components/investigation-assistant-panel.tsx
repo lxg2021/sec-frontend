@@ -75,61 +75,74 @@ function InvestigationAssistantStateCard({
     >
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white px-5">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
+          <Bot className="h-4 w-4" />
         </span>
         <span className="text-base font-bold tracking-tight text-slate-950">AI 调查助手</span>
       </header>
 
-      <div className="bg-slate-50/70 px-5 py-5">
-        <div
-          className={cn(
-            "rounded-xl border bg-white p-4 shadow-sm",
-            isWarning ? "border-amber-200" : state === "error" ? "border-red-200" : "border-slate-200",
-          )}
-        >
-          <div className="flex items-start gap-3">
-            <span
-              className={cn(
-                "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border",
-                isWarning
-                  ? "border-amber-200 bg-amber-50 text-amber-600"
-                  : state === "error"
-                    ? "border-red-200 bg-red-50 text-red-600"
-                    : "border-blue-100 bg-blue-50 text-blue-600",
-              )}
-            >
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <AlertTriangle className="h-4 w-4" />}
-            </span>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-slate-900">{stateTitle(state)}</h3>
-              <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
-                {stateDescription(state, message)}
-              </p>
-              {issues?.length ? (
-                <ul className="mt-3 space-y-1.5">
-                  {issues.slice(0, 3).map((issue, index) => (
-                    <li key={`${issue.code || "issue"}:${issue.field || index}`} className="text-xs leading-5 text-slate-600">
-                      <span className="font-semibold text-red-600">{issue.code || "校验失败"}</span>
-                      {issue.field ? <span className="text-slate-400"> / {issue.field}</span> : null}
-                      {issue.message ? <span>：{issue.message}</span> : null}
-                    </li>
-                  ))}
-                </ul>
+      {isLoading ? (
+        <div className="flex min-h-[320px] flex-col items-center justify-center bg-slate-50/70 px-5 py-8">
+          <img
+            src={aiInvestigationLoaderSrc}
+            alt=""
+            aria-hidden="true"
+            className="h-[220px] w-[320px] max-w-full select-none"
+            draggable={false}
+          />
+          <p className="sr-only">{stateDescription(state, message)}</p>
+        </div>
+      ) : (
+        <div className="bg-slate-50/70 px-5 py-5">
+          <div
+            className={cn(
+              "rounded-xl border bg-white p-4 shadow-sm",
+              isWarning ? "border-amber-200" : state === "error" ? "border-red-200" : "border-slate-200",
+            )}
+          >
+            <div className="flex items-start gap-3">
+              <span
+                className={cn(
+                  "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border",
+                  isWarning
+                    ? "border-amber-200 bg-amber-50 text-amber-600"
+                    : state === "error"
+                      ? "border-red-200 bg-red-50 text-red-600"
+                      : "border-blue-100 bg-blue-50 text-blue-600",
+                )}
+              >
+                <AlertTriangle className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-sm font-bold text-slate-900">{stateTitle(state)}</h3>
+                <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
+                  {stateDescription(state, message)}
+                </p>
+                {issues?.length ? (
+                  <ul className="mt-3 space-y-1.5">
+                    {issues.slice(0, 3).map((issue, index) => (
+                      <li key={`${issue.code || "issue"}:${issue.field || index}`} className="text-xs leading-5 text-slate-600">
+                        <span className="font-semibold text-red-600">{issue.code || "校验失败"}</span>
+                        {issue.field ? <span className="text-slate-400"> / {issue.field}</span> : null}
+                        {issue.message ? <span>：{issue.message}</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+              {!isLoading && onRetry ? (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="inline-flex min-h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  重试
+                </button>
               ) : null}
             </div>
-            {!isLoading && onRetry ? (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="inline-flex min-h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-              >
-                <RotateCcw className="h-3 w-3" />
-                重试
-              </button>
-            ) : null}
           </div>
         </div>
-      </div>
+      )}
     </section>
   )
 }
