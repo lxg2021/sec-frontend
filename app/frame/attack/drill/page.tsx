@@ -14,7 +14,7 @@ import {
   Search,
 } from "lucide-react"
 import { toast } from "sonner"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AttackCaseStoryTimelineRender } from "@/features/attack/detail/components/attack-case-story-timeline-render"
 import {
@@ -38,6 +38,7 @@ import type {
 } from "@/features/attack/dgraph"
 import {
   InvestigationAssistantPanel,
+  type InvestigationAssistantLanguage,
   type InvestigationNextAction,
 } from "@/features/investigation-assistant"
 import { Button } from "@/shared/ui/button"
@@ -102,8 +103,10 @@ function CaseIdSearchToolbar({
 
 export default function App() {
   const t = useTranslations("pages.attack.drill")
+  const locale = useLocale()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const investigationLanguage: InvestigationAssistantLanguage = locale === "zh-CN" ? "zh-CN" : "en"
 
   const routeParams = useMemo(() => ({
     caseId: getRouteParam(searchParams.get("caseId")) || getRouteParam(searchParams.get("case_id")),
@@ -468,7 +471,7 @@ export default function App() {
 
         <InvestigationAssistantPanel
           caseId={timelineCaseId}
-          language="zh-CN"
+          language={investigationLanguage}
           onActionClick={handleInvestigationActionClick}
         />
 

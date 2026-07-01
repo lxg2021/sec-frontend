@@ -23,28 +23,78 @@ export interface InvestigationAssistantPanelProps {
 
 type PreviewState = "idle" | "loading" | "ready" | "invalid" | "error"
 
-const aiInvestigationLoaderSrc = "/icons/ai-investigation-loader.svg"
+const aiInvestigationLoaderSrc: Record<InvestigationAssistantLanguage, string> = {
+  "zh-CN": "/icons/ai-investigation-loader.svg",
+  en: "/icons/ai-investigation-loader-en.svg",
+}
+
+const panelCopy = {
+  "zh-CN": {
+    title: "AI 调查助手",
+    loadingTitle: "正在生成调查建议",
+    invalidTitle: "调查建议未通过校验",
+    errorTitle: "调查建议生成失败",
+    loadingDescription: "正在基于当前 CASE 图谱生成待验证事项。",
+    invalidDescription: "后端已经拦截了不稳定的 AI 输出，请重试或查看校验问题。",
+    errorDescription: "请确认后端服务、网关权限映射和 AI provider 配置正常。",
+    defaultError: "调查建议生成失败。",
+    noResult: "后端没有返回可展示的调查建议。",
+    validationFailed: "校验失败",
+    retry: "重试",
+  },
+  en: {
+    title: "AI Investigation Assistant",
+    loadingTitle: "Generating investigation suggestions",
+    invalidTitle: "Investigation suggestions failed validation",
+    errorTitle: "Failed to generate investigation suggestions",
+    loadingDescription: "Generating verification items from the current CASE graph.",
+    invalidDescription: "The backend rejected unstable AI output. Retry or review the validation issues.",
+    errorDescription: "Check the backend service, gateway permissions, and AI provider configuration.",
+    defaultError: "Failed to generate investigation suggestions.",
+    noResult: "The backend did not return displayable investigation suggestions.",
+    validationFailed: "Validation failed",
+    retry: "Retry",
+  },
+} satisfies Record<InvestigationAssistantLanguage, {
+  title: string
+  loadingTitle: string
+  invalidTitle: string
+  errorTitle: string
+  loadingDescription: string
+  invalidDescription: string
+  errorDescription: string
+  defaultError: string
+  noResult: string
+  validationFailed: string
+  retry: string
+}>
+
+function normalizeAssistantLanguage(language?: InvestigationAssistantLanguage): InvestigationAssistantLanguage {
+  return language === "en" ? "en" : "zh-CN"
+}
+
+type PanelCopy = (typeof panelCopy)[InvestigationAssistantLanguage]
 
 function normalizeFocusNodeIds(value: string[] | undefined) {
   return (value ?? []).map((item) => item.trim()).filter(Boolean)
 }
 
-function errorMessage(error: unknown) {
+function errorMessage(error: unknown, copy: PanelCopy) {
   if (error instanceof Error && error.message.trim()) return error.message
-  return "调查建议生成失败。"
+  return copy.defaultError
 }
 
-function stateTitle(state: PreviewState) {
-  if (state === "loading") return "正在生成调查建议"
-  if (state === "invalid") return "调查建议未通过校验"
-  if (state === "error") return "调查建议生成失败"
-  return "AI 调查助手"
+function stateTitle(state: PreviewState, copy: PanelCopy) {
+  if (state === "loading") return copy.loadingTitle
+  if (state === "invalid") return copy.invalidTitle
+  if (state === "error") return copy.errorTitle
+  return copy.title
 }
 
-function stateDescription(state: PreviewState, message?: string) {
-  if (state === "loading") return "正在基于当前 CASE 图谱生成待验证事项。"
-  if (state === "invalid") return "后端已经拦截了不稳定的 AI 输出，请重试或查看校验问题。"
-  if (state === "error") return message || "请确认后端服务、网关权限映射和 AI provider 配置正常。"
+function stateDescription(state: PreviewState, copy: PanelCopy, message?: string) {
+  if (state === "loading") return copy.loadingDescription
+  if (state === "invalid") return copy.invalidDescription
+  if (state === "error") return message || copy.errorDescription
   return ""
 }
 
@@ -54,15 +104,18 @@ function InvestigationAssistantStateCard({
   message,
   onRetry,
   state,
+  language,
 }: {
   className?: string
   issues?: AIInvestigationValidationIssue[]
   message?: string
   onRetry?: () => void
   state: PreviewState
+  language: InvestigationAssistantLanguage
 }) {
   const isLoading = state === "loading"
   const isWarning = state === "invalid"
+  const copy = panelCopy[language]
 
   return (
     <section
@@ -71,25 +124,25 @@ function InvestigationAssistantStateCard({
         className,
       )}
       aria-busy={isLoading}
-      aria-label="AI 调查助手"
+      aria-label={copy.title}
     >
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white px-5">
         <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
           <Bot className="h-4 w-4" />
         </span>
-        <span className="text-base font-bold tracking-tight text-slate-950">AI 调查助手</span>
+        <span className="text-base font-bold tracking-tight text-slate-950">{copy.title}</span>
       </header>
 
       {isLoading ? (
         <div className="flex min-h-[320px] flex-col items-center justify-center bg-slate-50/70 px-5 py-8">
           <img
-            src={aiInvestigationLoaderSrc}
+            src={aiInvestigationLoaderSrc[language]}
             alt=""
             aria-hidden="true"
             className="h-[220px] w-[320px] max-w-full select-none"
             draggable={false}
           />
-          <p className="sr-only">{stateDescription(state, message)}</p>
+          <p className="sr-only">{stateDescription(state, copy, message)}</p>
         </div>
       ) : (
         <div className="bg-slate-50/70 px-5 py-5">
@@ -113,15 +166,15 @@ function InvestigationAssistantStateCard({
                 <AlertTriangle className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold text-slate-900">{stateTitle(state)}</h3>
+                <h3 className="text-sm font-bold text-slate-900">{stateTitle(state, copy)}</h3>
                 <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
-                  {stateDescription(state, message)}
+                  {stateDescription(state, copy, message)}
                 </p>
                 {issues?.length ? (
                   <ul className="mt-3 space-y-1.5">
                     {issues.slice(0, 3).map((issue, index) => (
                       <li key={`${issue.code || "issue"}:${issue.field || index}`} className="text-xs leading-5 text-slate-600">
-                        <span className="font-semibold text-red-600">{issue.code || "校验失败"}</span>
+                        <span className="font-semibold text-red-600">{issue.code || copy.validationFailed}</span>
                         {issue.field ? <span className="text-slate-400"> / {issue.field}</span> : null}
                         {issue.message ? <span>：{issue.message}</span> : null}
                       </li>
@@ -136,7 +189,7 @@ function InvestigationAssistantStateCard({
                   className="inline-flex min-h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   <RotateCcw className="h-3 w-3" />
-                  重试
+                  {copy.retry}
                 </button>
               ) : null}
             </div>
@@ -154,6 +207,8 @@ export function InvestigationAssistantPanel({
   language = "zh-CN",
   onActionClick,
 }: InvestigationAssistantPanelProps) {
+  const resolvedLanguage = normalizeAssistantLanguage(language)
+  const copy = panelCopy[resolvedLanguage]
   const normalizedCaseId = caseId.trim()
   const normalizedFocusNodeIds = useMemo(() => normalizeFocusNodeIds(focusNodeIds), [focusNodeIds])
   const focusKey = normalizedFocusNodeIds.join("|")
@@ -177,7 +232,7 @@ export function InvestigationAssistantPanel({
     previewAIInvestigation({
       caseId: normalizedCaseId,
       focusNodeIds: focusKey ? focusKey.split("|") : undefined,
-      language,
+      language: resolvedLanguage,
       signal: controller.signal,
     })
       .then((data) => {
@@ -185,7 +240,7 @@ export function InvestigationAssistantPanel({
         setPreview(data)
         if (!data?.assistant_result) {
           setState("error")
-          setMessage("后端没有返回可展示的调查建议。")
+          setMessage(copy.noResult)
           return
         }
         if (data.validation?.valid === false) {
@@ -199,13 +254,13 @@ export function InvestigationAssistantPanel({
         if (controller.signal.aborted) return
         setPreview(null)
         setState("error")
-        setMessage(errorMessage(error))
+        setMessage(errorMessage(error, copy))
       })
 
     return () => {
       controller.abort()
     }
-  }, [focusKey, language, normalizedCaseId, reloadKey])
+  }, [copy, focusKey, normalizedCaseId, reloadKey, resolvedLanguage])
 
   if (!normalizedCaseId) {
     return null
@@ -216,6 +271,7 @@ export function InvestigationAssistantPanel({
       <InvestigationAssistantStateCard
         className={className}
         issues={preview?.validation?.errors}
+        language={resolvedLanguage}
         message={message}
         onRetry={() => setReloadKey((key) => key + 1)}
         state={state}
@@ -233,6 +289,7 @@ export function InvestigationAssistantPanel({
         ...data,
         case_id: data.case_id || normalizedCaseId,
       }}
+      language={resolvedLanguage}
       onActionClick={onActionClick}
     />
   )

@@ -15,6 +15,7 @@ import {
 import { HighlightIOC } from "@/features/investigation-assistant/components/highlight-ioc"
 import type {
   AIInvestigationResult,
+  InvestigationAssistantLanguage,
   InvestigationAssistantConfidence,
   InvestigationAttackObjective,
   InvestigationConfirmedFact,
@@ -28,29 +29,86 @@ type Confidence = "high" | "medium" | "low"
 
 interface InvestigationAssistantProps {
   data: AIInvestigationResult
+  language?: InvestigationAssistantLanguage
   className?: string
   onActionClick?: (action: InvestigationNextAction) => void | Promise<void>
 }
 
-const confidenceConfig: Record<Confidence, { label: string; dot: string; text: string; badge: string }> = {
+const confidenceStyle: Record<Confidence, { dot: string; badge: string }> = {
   high: {
-    label: "高置信",
     dot: "bg-red-500",
-    text: "text-red-600",
     badge: "border-red-200 bg-red-50 text-red-700",
   },
   medium: {
-    label: "中置信",
     dot: "bg-amber-500",
-    text: "text-amber-600",
     badge: "border-amber-200 bg-amber-50 text-amber-700",
   },
   low: {
-    label: "低置信",
     dot: "bg-slate-400",
-    text: "text-slate-500",
     badge: "border-slate-200 bg-slate-50 text-slate-600",
   },
+}
+
+const assistantCopy = {
+  "zh-CN": {
+    title: "AI 调查助手",
+    caseLabel: "案例",
+    criticalEvent: "高危事件",
+    currentAssessment: "当前研判",
+    confirmedFacts: "已确认事实",
+    attackObjectives: "攻击目标",
+    evidenceToVerify: "待补充证据",
+    finalizable: "可结案",
+    investigating: "调查中",
+    executed: "已执行",
+    executing: "执行中",
+    investigate: "调查",
+    unknownCase: "UNKNOWN",
+    confidence: {
+      high: "高置信",
+      medium: "中置信",
+      low: "低置信",
+    },
+  },
+  en: {
+    title: "AI Investigation Assistant",
+    caseLabel: "Case",
+    criticalEvent: "Critical Event",
+    currentAssessment: "Current Assessment",
+    confirmedFacts: "Confirmed Facts",
+    attackObjectives: "Attack Objectives",
+    evidenceToVerify: "Evidence To Verify",
+    finalizable: "Ready to Close",
+    investigating: "Investigating",
+    executed: "Done",
+    executing: "Running",
+    investigate: "Investigate",
+    unknownCase: "UNKNOWN",
+    confidence: {
+      high: "High Confidence",
+      medium: "Medium Confidence",
+      low: "Low Confidence",
+    },
+  },
+} satisfies Record<InvestigationAssistantLanguage, {
+  title: string
+  caseLabel: string
+  criticalEvent: string
+  currentAssessment: string
+  confirmedFacts: string
+  attackObjectives: string
+  evidenceToVerify: string
+  finalizable: string
+  investigating: string
+  executed: string
+  executing: string
+  investigate: string
+  unknownCase: string
+  confidence: Record<Confidence, string>
+}>
+
+function normalizeAssistantLanguage(language?: InvestigationAssistantLanguage): InvestigationAssistantLanguage {
+  return language === "en" ? "en" : "zh-CN"
 }
 
 function safeList<T>(items: T[] | null | undefined): T[] {
@@ -63,8 +121,14 @@ function confidenceLevel(value?: InvestigationAssistantConfidence): Confidence {
   return "low"
 }
 
-function cleanText(value: string | undefined) {
-  return (value || "")
+function cleanText(value: string | undefined, language: InvestigationAssistantLanguage = "zh-CN") {
+  const normalized = (value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+
+  if (language === "en") return normalized
+
+  return normalized
     .replace(/（\s*无\s*load\/execute\s*边\s*）/gi, "")
     .replace(/\(\s*无\s*load\/execute\s*边\s*\)/gi, "")
     .replace(/load\/execute\s*边/gi, "加载或执行关系")
@@ -73,17 +137,21 @@ function cleanText(value: string | undefined) {
     .replace(/图上还没有/gi, "目前还没有")
     .replace(/无直接边连接/gi, "目前还没有直接关系")
     .replace(/边连接/gi, "关系连接")
-    .replace(/\s+/g, " ")
-    .trim()
 }
 
-function ConfidenceDot({ level }: { level: Confidence }) {
-  const config = confidenceConfig[level]
+function ConfidenceDot({
+  labels,
+  level,
+}: {
+  labels: Record<Confidence, string>
+  level: Confidence
+}) {
+  const config = confidenceStyle[level]
 
   return (
     <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5", config.badge)}>
       <span className={cn("inline-block h-1.5 w-1.5 rounded-full", config.dot)} />
-      <span className="text-[10px] font-semibold">{config.label}</span>
+      <span className="text-[10px] font-semibold">{labels[level]}</span>
     </span>
   )
 }
@@ -123,8 +191,8 @@ function actionKey(action: InvestigationNextAction, index: number) {
   return action.action_id ? `${action.action_id}:${index}` : `action:${index}`
 }
 
-function actionButtonLabel() {
-  return "调查"
+function actionButtonLabel(action: InvestigationNextAction, fallback: string) {
+  return action.label?.trim() || fallback
 }
 
 interface RenderVerificationItem {
@@ -136,10 +204,11 @@ interface RenderVerificationItem {
 function buildLegacyVerificationItems(
   missingEvidence: InvestigationMissingEvidence[],
   nextActions: InvestigationNextAction[],
+  language: InvestigationAssistantLanguage,
 ): RenderVerificationItem[] {
   return missingEvidence.map((item, index) => ({
     id: `legacy:${index}`,
-    title: cleanText(item.text),
+    title: cleanText(item.text, language),
     action: nextActions[index],
   }))
 }
@@ -148,32 +217,36 @@ function buildVerificationItems(
   verificationItems: InvestigationVerificationItem[],
   missingEvidence: InvestigationMissingEvidence[],
   nextActions: InvestigationNextAction[],
+  language: InvestigationAssistantLanguage,
 ): RenderVerificationItem[] {
   if (verificationItems.length) {
     return verificationItems.map((item, index) => ({
       id: item.id || `verification:${index}`,
-      title: cleanText(item.title),
+      title: cleanText(item.title, language),
       action: item.action,
     }))
   }
-  return buildLegacyVerificationItems(missingEvidence, nextActions)
+  return buildLegacyVerificationItems(missingEvidence, nextActions, language)
 }
 
 export function InvestigationAssistant({
   data,
+  language = "zh-CN",
   className,
   onActionClick,
 }: InvestigationAssistantProps) {
+  const resolvedLanguage = normalizeAssistantLanguage(language)
+  const copy = assistantCopy[resolvedLanguage]
   const [executed, setExecuted] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState<string | null>(null)
   const caseId = data.case_id || ""
-  const caseIdShort = caseId ? caseId.slice(0, 8).toUpperCase() : "UNKNOWN"
+  const caseIdShort = caseId ? caseId.slice(0, 8).toUpperCase() : copy.unknownCase
   const confirmedFacts = safeList<InvestigationConfirmedFact>(data.confirmed_facts)
   const attackObjectives = safeList<InvestigationAttackObjective>(data.attack_objectives)
   const verificationItems = safeList<InvestigationVerificationItem>(data.verification_items)
   const missingEvidence = safeList<InvestigationMissingEvidence>(data.missing_evidence)
   const nextActions = safeList<InvestigationNextAction>(data.next_actions)
-  const renderedVerificationItems = buildVerificationItems(verificationItems, missingEvidence, nextActions)
+  const renderedVerificationItems = buildVerificationItems(verificationItems, missingEvidence, nextActions, resolvedLanguage)
   const objectiveKeywords = attackObjectives.map((objective) => objective.name).filter(Boolean)
   const confidence = confidenceLevel(data.confidence)
 
@@ -196,22 +269,22 @@ export function InvestigationAssistant({
         "w-full overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.07)]",
         className,
       )}
-      aria-label="AI 调查助手"
+      aria-label={copy.title}
     >
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white px-5">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
             <Bot className="h-4 w-4" />
           </span>
-          <span className="text-base font-bold tracking-tight text-slate-950">AI 调查助手</span>
+          <span className="text-base font-bold tracking-tight text-slate-950">{copy.title}</span>
         </div>
         <div className="h-4 w-px bg-slate-200" />
         <span className="text-xs font-medium text-slate-500">
-          案例 <span className="font-mono font-semibold text-slate-700">{caseIdShort}</span>
+          {copy.caseLabel} <span className="font-mono font-semibold text-slate-700">{caseIdShort}</span>
         </span>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
           <ShieldAlert className="h-3.5 w-3.5" />
-          高危事件
+          {copy.criticalEvent}
         </span>
         <div className="ml-auto" />
       </header>
@@ -221,17 +294,17 @@ export function InvestigationAssistant({
           <section className="flex min-h-[250px] flex-col rounded-xl border border-red-100 bg-white p-4 shadow-sm">
             <SectionLabel
               icon={<AlertTriangle className="h-4 w-4" />}
-              title="当前研判"
+              title={copy.currentAssessment}
               accent="text-red-500"
             />
             <p className="flex-1 text-pretty text-sm font-semibold leading-7 text-slate-800">
-              <HighlightIOC text={cleanText(data.current_assessment)} keywords={objectiveKeywords} />
+              <HighlightIOC text={cleanText(data.current_assessment, resolvedLanguage)} keywords={objectiveKeywords} />
             </p>
             <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
-              <ConfidenceDot level={confidence} />
+              <ConfidenceDot labels={copy.confidence} level={confidence} />
               <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
-                {data.can_finalize ? "可结案" : "调查中"}
+                {data.can_finalize ? copy.finalizable : copy.investigating}
               </span>
             </div>
           </section>
@@ -239,7 +312,7 @@ export function InvestigationAssistant({
           <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
             <SectionLabel
               icon={<CheckCircle2 className="h-4 w-4" />}
-              title="已确认事实"
+              title={copy.confirmedFacts}
               count={confirmedFacts.length}
               countColor="border-emerald-200 text-emerald-600"
               accent="text-emerald-600"
@@ -251,7 +324,7 @@ export function InvestigationAssistant({
                     <span className="text-[10px] font-bold text-emerald-700">{index + 1}</span>
                   </span>
                   <p className="text-xs font-medium leading-6 text-slate-700">
-                    <HighlightIOC text={cleanText(fact.text)} />
+                    <HighlightIOC text={cleanText(fact.text, resolvedLanguage)} />
                   </p>
                 </li>
               ))}
@@ -261,7 +334,7 @@ export function InvestigationAssistant({
           <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
             <SectionLabel
               icon={<Target className="h-4 w-4" />}
-              title="攻击目标"
+              title={copy.attackObjectives}
               count={attackObjectives.length}
               countColor="border-red-200 text-red-600"
               accent="text-red-500"
@@ -274,10 +347,10 @@ export function InvestigationAssistant({
                 >
                   <div className="mb-1.5 flex items-center justify-between gap-2">
                     <span className="text-xs font-bold text-red-600">{objective.name}</span>
-                    <ConfidenceDot level={confidenceLevel(objective.confidence)} />
+                    <ConfidenceDot labels={copy.confidence} level={confidenceLevel(objective.confidence)} />
                   </div>
                   <p className="text-xs leading-5 text-slate-600">
-                    <HighlightIOC text={cleanText(objective.reason)} />
+                    <HighlightIOC text={cleanText(objective.reason, resolvedLanguage)} />
                   </p>
                 </div>
               ))}
@@ -287,7 +360,7 @@ export function InvestigationAssistant({
           <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
             <SectionLabel
               icon={<Search className="h-4 w-4" />}
-              title="待补充证据"
+              title={copy.evidenceToVerify}
               count={renderedVerificationItems.length}
               countColor="border-amber-200 text-amber-600"
               accent="text-amber-500"
@@ -333,17 +406,17 @@ export function InvestigationAssistant({
                             {done ? (
                               <>
                                 <CheckCircle2 className="h-3 w-3" />
-                                已执行
+                                {copy.executed}
                               </>
                             ) : busy ? (
                               <>
                                 <span className="inline-block h-2.5 w-2.5 animate-spin rounded-full border border-blue-600 border-t-transparent" />
-                                执行中
+                                {copy.executing}
                               </>
                             ) : (
                               <>
                                 <ChevronRight className="h-3 w-3" />
-                                {actionButtonLabel()}
+                                {actionButtonLabel(action, copy.investigate)}
                               </>
                             )}
                           </button>
