@@ -13,23 +13,23 @@ interface Props {
 function StatusRow({
   label,
   value,
-  accent = "default",
+  max,
+  bar,
 }: {
   label: string
-  value: string | number
-  accent?: "default" | "success" | "warning" | "error"
+  value: number
+  max: number
+  bar: string
 }) {
-  const valueClassName = {
-    default: "text-foreground",
-    success: "text-emerald-700 dark:text-emerald-300",
-    warning: "text-amber-700 dark:text-amber-300",
-    error: "text-red-700 dark:text-red-300",
-  }[accent]
+  const width = max > 0 ? `${(value / max) * 100}%` : "0%"
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-muted/30 px-3 py-1.5">
-      <span className="min-w-0 truncate text-xs text-muted-foreground">{label}</span>
-      <span className={cn("shrink-0 text-sm font-semibold tabular-nums", valueClassName)}>
+    <div className="flex items-center gap-3">
+      <span className="w-20 shrink-0 text-sm text-foreground">{label}</span>
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+        <span className={cn("block h-full rounded-full", bar)} style={{ width }} />
+      </div>
+      <span className="w-6 shrink-0 text-right text-sm font-semibold tabular-nums text-foreground">
         {value}
       </span>
     </div>
@@ -37,6 +37,13 @@ function StatusRow({
 }
 
 export function ForensicServiceStatusCard({ availability }: Props) {
+  const max = Math.max(
+    availability.available_endpoint_count,
+    availability.unbound_endpoint_count,
+    availability.enabled_artifact_count,
+    1
+  )
+
   return (
     <ForensicSummaryCard color="from-cyan-400 to-blue-600">
       <CardHeader className="p-5 pb-4">
@@ -46,19 +53,26 @@ export function ForensicServiceStatusCard({ availability }: Props) {
           title="取证状态"
         />
       </CardHeader>
-      <CardContent className="space-y-2 px-5 pb-5">
-        <div className="grid gap-1.5">
+      <CardContent className="space-y-3 px-5 pb-5">
+        <div className="grid gap-3">
           <StatusRow
             label="可下发终端"
             value={availability.available_endpoint_count}
-            accent="success"
+            max={max}
+            bar="bg-emerald-600"
           />
           <StatusRow
             label="未绑定终端"
             value={availability.unbound_endpoint_count}
-            accent={availability.unbound_endpoint_count > 0 ? "warning" : "default"}
+            max={max}
+            bar="bg-amber-500"
           />
-          <StatusRow label="可用工件" value={availability.enabled_artifact_count} />
+          <StatusRow
+            label="可用工件"
+            value={availability.enabled_artifact_count}
+            max={max}
+            bar="bg-cyan-600"
+          />
         </div>
       </CardContent>
     </ForensicSummaryCard>
