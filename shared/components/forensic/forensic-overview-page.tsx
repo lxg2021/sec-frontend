@@ -121,7 +121,6 @@ export function ForensicOverviewPage({ context }: Props) {
     <main className="min-h-screen bg-gray-50">
       <div className="space-y-6 p-6">
         <ForensicOverviewHeader
-          context={context}
           loading={loading}
           refreshedAt={refreshedAt}
           caseId={context.case_id}

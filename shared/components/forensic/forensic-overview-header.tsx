@@ -74,7 +74,7 @@ export function ForensicOverviewHeader({
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
           <div className="flex flex-wrap items-center gap-3 lg:justify-end">
             <form
-              className="flex h-12 w-full min-w-[320px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 pl-4 pr-1 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
+              className="flex h-12 w-full min-w-[320px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
               onSubmit={handleCaseSubmit}
             >
               <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
@@ -87,14 +87,6 @@ export function ForensicOverviewHeader({
                 disabled={loading}
                 className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
               />
-              <Button
-                type="submit"
-                disabled={loading}
-                className="h-10 shrink-0 rounded-full bg-blue-600 px-4 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700"
-              >
-                <Search aria-hidden className="h-4 w-4" />
-                查询
-              </Button>
             </form>
 
             <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
