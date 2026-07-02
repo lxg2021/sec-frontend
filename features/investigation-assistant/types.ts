@@ -78,11 +78,15 @@ export interface AIInvestigationValidation {
 
 export interface AIInvestigationPreviewData {
   assistant_result_json?: string
+  localized_results_json?: string
   validation_json?: string
   context_hash?: string
+  canonical_language?: InvestigationAssistantLanguage | string
+  display_language?: InvestigationAssistantLanguage | string
   provider_name?: string
   model_name?: string
   latency_ms?: number
   assistant_result?: AIInvestigationResult | null
+  localized_results?: Partial<Record<InvestigationAssistantLanguage, AIInvestigationResult>> | null
   validation?: AIInvestigationValidation | null
 }

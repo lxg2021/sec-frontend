@@ -17,6 +17,7 @@ export interface PreviewAIInvestigationParams {
   caseId: string
   language?: InvestigationAssistantLanguage
   focusNodeIds?: string[]
+  forceRefresh?: boolean
   includePrompt?: boolean
   maxDepth?: number
   signal?: AbortSignal
@@ -46,12 +47,21 @@ function parseMaybeJson<T>(raw: unknown): T | null {
 
 function normalizePreviewData(
   data: AIInvestigationPreviewData | null | undefined,
+  language: InvestigationAssistantLanguage,
 ): AIInvestigationPreviewData | null {
   if (!data) return null
+  const localizedResults =
+    data.localized_results ??
+    parseMaybeJson<Partial<Record<InvestigationAssistantLanguage, AIInvestigationResult>>>(
+      data.localized_results_json,
+    )
+  const localizedAssistantResult = localizedResults?.[language] ?? null
 
   return {
     ...data,
+    localized_results: localizedResults,
     assistant_result:
+      localizedAssistantResult ??
       data.assistant_result ??
       parseMaybeJson<AIInvestigationResult>(data.assistant_result_json),
     validation:
@@ -64,6 +74,7 @@ export async function previewAIInvestigation({
   caseId,
   language = "zh-CN",
   focusNodeIds,
+  forceRefresh = false,
   includePrompt = false,
   maxDepth = 3,
   signal,
@@ -78,6 +89,7 @@ export async function previewAIInvestigation({
       case_id: normalizedCaseId,
       language,
       include_prompt: includePrompt,
+      force_refresh: forceRefresh,
       max_depth: maxDepth,
       focus_node_ids: focusNodeIds?.map((item) => item.trim()).filter(Boolean),
     }),
@@ -87,6 +99,6 @@ export async function previewAIInvestigation({
     },
   )) as ApiResult<AIInvestigationPreviewData | null>
 
-  return normalizePreviewData(result.data)
+  return normalizePreviewData(result.data, language)
 }
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { AlertTriangle, Bot, RotateCcw } from "lucide-react"
 
 import { previewAIInvestigation } from "@/features/investigation-assistant/api"
@@ -17,6 +17,7 @@ export interface InvestigationAssistantPanelProps {
   caseId: string
   language?: InvestigationAssistantLanguage
   focusNodeIds?: string[]
+  graphContextVersion?: number
   className?: string
   onActionClick?: (action: InvestigationNextAction) => void | Promise<void>
 }
@@ -204,6 +205,7 @@ export function InvestigationAssistantPanel({
   caseId,
   className,
   focusNodeIds,
+  graphContextVersion = 0,
   language = "zh-CN",
   onActionClick,
 }: InvestigationAssistantPanelProps) {
@@ -216,6 +218,13 @@ export function InvestigationAssistantPanel({
   const [state, setState] = useState<PreviewState>("idle")
   const [message, setMessage] = useState("")
   const [reloadKey, setReloadKey] = useState(0)
+  const [lastAnalyzedGraphVersion, setLastAnalyzedGraphVersion] = useState(graphContextVersion)
+  const forceRefreshRef = useRef(false)
+  const graphContextVersionRef = useRef(graphContextVersion)
+
+  useEffect(() => {
+    graphContextVersionRef.current = graphContextVersion
+  }, [graphContextVersion])
 
   useEffect(() => {
     if (!normalizedCaseId) {
@@ -226,11 +235,14 @@ export function InvestigationAssistantPanel({
     }
 
     const controller = new AbortController()
+    const forceRefresh = forceRefreshRef.current
+    forceRefreshRef.current = false
     setState("loading")
     setMessage("")
 
     previewAIInvestigation({
       caseId: normalizedCaseId,
+      forceRefresh,
       focusNodeIds: focusKey ? focusKey.split("|") : undefined,
       language: resolvedLanguage,
       signal: controller.signal,
@@ -248,6 +260,7 @@ export function InvestigationAssistantPanel({
           setMessage("")
           return
         }
+        setLastAnalyzedGraphVersion(graphContextVersionRef.current)
         setState("ready")
       })
       .catch((error) => {
@@ -282,6 +295,14 @@ export function InvestigationAssistantPanel({
   const data = preview?.assistant_result
   if (!data) return null
 
+  const canContinueInvestigation = graphContextVersion > lastAnalyzedGraphVersion
+  function handleContinueInvestigation() {
+    if (!canContinueInvestigation) return
+    forceRefreshRef.current = true
+    setState("loading")
+    setReloadKey((key) => key + 1)
+  }
+
   return (
     <InvestigationAssistant
       className={className}
@@ -290,6 +311,8 @@ export function InvestigationAssistantPanel({
         case_id: data.case_id || normalizedCaseId,
       }}
       language={resolvedLanguage}
+      continueInvestigationDisabled={!canContinueInvestigation}
+      onContinueInvestigation={handleContinueInvestigation}
       onActionClick={onActionClick}
     />
   )

@@ -134,6 +134,7 @@ export default function App() {
   const [graphNodeDrillStateByKey, setGraphNodeDrillStateByKey] = useState(
     () => new Map<string, AttackGraphNodeDrillState>(),
   );
+  const [investigationGraphContextVersion, setInvestigationGraphContextVersion] = useState(0);
   const graphResponseRef = useRef<GraphCaseResponseDto | null>(null);
 
   useEffect(() => {
@@ -143,6 +144,7 @@ export default function App() {
     setReturnTo(routeParams.returnTo)
     setReturnWorkflowId(routeParams.workflowId)
     setReturnQueuePage(routeParams.queuePage)
+    setInvestigationGraphContextVersion(0)
   }, [routeParams])
 
   const graphVisibleStats = useMemo(() => {
@@ -188,6 +190,7 @@ export default function App() {
       )
       setTimelineCaseId(normalizedCaseId)
       setCaseIdInput(normalizedCaseId)
+      setInvestigationGraphContextVersion(0)
       setGraphPositionResetKey((key) => key + 1)
       setRefreshKey((key) => key + 1)
     },
@@ -320,6 +323,7 @@ export default function App() {
           next.set(nodeKey, "done")
           return next
         })
+        setInvestigationGraphContextVersion((version) => version + 1)
         toast.success("Drilldown data added to graph.", {
           id: toastId,
           description: `${mergeResult.visibleAddedNodeCount} nodes / ${mergeResult.visibleAddedEdgeCount} edges`,
@@ -383,6 +387,7 @@ export default function App() {
       setGraphNodeDrillStateByKey(new Map())
       setGraphError("")
       setGraphLoading(false)
+      setInvestigationGraphContextVersion(0)
       return
     }
 
@@ -390,6 +395,7 @@ export default function App() {
     setGraphLoading(true)
     setGraphError("")
     setGraphNodeDrillStateByKey(new Map())
+    setInvestigationGraphContextVersion(0)
 
     fetchGraphCase({
       caseId,
@@ -399,6 +405,7 @@ export default function App() {
         if (cancelled) return
         graphResponseRef.current = response
         setGraphResponse(response)
+        setInvestigationGraphContextVersion(0)
 
         if (!response) {
           toast.warning(t("statusEmpty"), {
@@ -427,6 +434,7 @@ export default function App() {
         if (cancelled) return
         graphResponseRef.current = null
         setGraphResponse(null)
+        setInvestigationGraphContextVersion(0)
         const message =
           error instanceof Error
             ? error.message
@@ -471,6 +479,7 @@ export default function App() {
 
         <InvestigationAssistantPanel
           caseId={timelineCaseId}
+          graphContextVersion={investigationGraphContextVersion}
           language={investigationLanguage}
           onActionClick={handleInvestigationActionClick}
         />

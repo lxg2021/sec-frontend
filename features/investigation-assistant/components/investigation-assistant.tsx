@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Circle,
+  RefreshCw,
   Search,
   ShieldAlert,
   Target,
@@ -32,6 +33,10 @@ interface InvestigationAssistantProps {
   language?: InvestigationAssistantLanguage
   className?: string
   onActionClick?: (action: InvestigationNextAction) => void | Promise<void>
+  onContinueInvestigation?: () => void
+  continueInvestigationDisabled?: boolean
+  continueInvestigationLoading?: boolean
+  continueInvestigationDisabledReason?: string
 }
 
 const confidenceStyle: Record<Confidence, { dot: string; badge: string }> = {
@@ -63,6 +68,9 @@ const assistantCopy = {
     executed: "已执行",
     executing: "执行中",
     investigate: "调查",
+    continueInvestigation: "继续研判",
+    continuingInvestigation: "研判中",
+    noNewGraphContext: "暂无新增图谱上下文",
     unknownCase: "UNKNOWN",
     confidence: {
       high: "高置信",
@@ -83,6 +91,9 @@ const assistantCopy = {
     executed: "Done",
     executing: "Running",
     investigate: "Investigate",
+    continueInvestigation: "Continue Analysis",
+    continuingInvestigation: "Analyzing",
+    noNewGraphContext: "No new graph context",
     unknownCase: "UNKNOWN",
     confidence: {
       high: "High Confidence",
@@ -103,6 +114,9 @@ const assistantCopy = {
   executed: string
   executing: string
   investigate: string
+  continueInvestigation: string
+  continuingInvestigation: string
+  noNewGraphContext: string
   unknownCase: string
   confidence: Record<Confidence, string>
 }>
@@ -198,7 +212,7 @@ function actionKey(action: InvestigationNextAction, index: number) {
 }
 
 function actionButtonLabel(action: InvestigationNextAction, fallback: string) {
-  return action.label?.trim() || fallback
+  return fallback || action.label?.trim()
 }
 
 interface RenderVerificationItem {
@@ -240,6 +254,10 @@ export function InvestigationAssistant({
   language = "zh-CN",
   className,
   onActionClick,
+  onContinueInvestigation,
+  continueInvestigationDisabled = false,
+  continueInvestigationLoading = false,
+  continueInvestigationDisabledReason,
 }: InvestigationAssistantProps) {
   const resolvedLanguage = normalizeAssistantLanguage(language)
   const copy = assistantCopy[resolvedLanguage]
@@ -292,6 +310,28 @@ export function InvestigationAssistant({
           <ShieldAlert className="h-3.5 w-3.5" />
           {copy.criticalEvent}
         </span>
+        {onContinueInvestigation ? (
+          <button
+            type="button"
+            onClick={onContinueInvestigation}
+            disabled={continueInvestigationDisabled || continueInvestigationLoading}
+            title={
+              continueInvestigationDisabled && !continueInvestigationLoading
+                ? continueInvestigationDisabledReason || copy.noNewGraphContext
+                : undefined
+            }
+            aria-busy={continueInvestigationLoading}
+            className={cn(
+              "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+              continueInvestigationDisabled || continueInvestigationLoading
+                ? "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400 shadow-none"
+                : "border border-blue-600 bg-blue-600 text-white hover:border-blue-700 hover:bg-blue-700",
+            )}
+          >
+            <RefreshCw className={cn("h-3.5 w-3.5", continueInvestigationLoading ? "animate-spin" : "")} />
+            {continueInvestigationLoading ? copy.continuingInvestigation : copy.continueInvestigation}
+          </button>
+        ) : null}
         <div className="ml-auto" />
       </header>
 
