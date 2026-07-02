@@ -38,7 +38,7 @@ export function ForensicRiskNoticePanel({ notices }: Props) {
     .slice(0, 5)
 
   return (
-    <Card className="min-h-[220px]">
+    <Card className="flex min-h-[220px] flex-1 flex-col">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={ShieldAlert}
@@ -47,7 +47,7 @@ export function ForensicRiskNoticePanel({ notices }: Props) {
           description="展示影响取证任务下发和结果回收的异常项"
         />
       </CardHeader>
-      <CardContent className="px-5 pb-5">
+      <CardContent className="flex flex-1 flex-col px-5 pb-5">
         {sorted.length === 0 ? (
           <div className="rounded-md bg-emerald-500/10 px-3 py-3 text-sm font-medium leading-6 text-foreground">
             当前没有需要处理的风险

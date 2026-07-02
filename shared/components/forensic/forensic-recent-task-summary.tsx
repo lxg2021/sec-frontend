@@ -17,7 +17,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
   const items = tasks.slice(0, 5)
 
   return (
-    <Card className="h-full">
+    <Card className="flex h-full flex-col">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={Clock3}
@@ -35,11 +35,13 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
           }
         />
       </CardHeader>
-      <CardContent className="px-5 pb-5">
+      <CardContent className="flex flex-1 px-5 pb-5">
         {items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">暂无任务记录</p>
+          <div className="flex min-h-32 flex-1 items-center justify-center text-sm text-muted-foreground">
+            暂无任务记录
+          </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">

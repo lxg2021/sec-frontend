@@ -118,8 +118,8 @@ export function ForensicOverviewPage({ context }: Props) {
   }, [refresh])
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <div className="space-y-6 p-6">
+    <main className="bg-gray-50">
+      <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
         <ForensicOverviewHeader
           loading={loading}
           refreshedAt={refreshedAt}
@@ -143,11 +143,11 @@ export function ForensicOverviewPage({ context }: Props) {
               <ForensicArtifactCategorySummary summary={data.artifact_summary} />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <div className="lg:col-span-2">
+            <div className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
+              <div className="min-h-[300px] lg:col-span-2">
                 <ForensicRecentTaskSummary tasks={data.recent_tasks} />
               </div>
-              <div className="flex flex-col gap-4">
+              <div className="flex min-h-[300px] flex-col gap-4">
                 <ForensicRiskNoticePanel notices={data.notices} />
                 <ForensicQuickLinks />
               </div>
