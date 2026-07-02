@@ -28,11 +28,6 @@ export function ForensicArtifactCategorySummary({ summary }: Props) {
           icon={Boxes}
           iconColor="from-yellow-400 to-amber-600"
           title="工件分类摘要"
-          action={
-            <span className="mt-1 inline-flex shrink-0 items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-400/20">
-              共 <span className="mx-1 font-semibold tabular-nums text-indigo-900 dark:text-indigo-100">{summary.total_enabled}</span> 个
-            </span>
-          }
         />
       </CardHeader>
       <CardContent className="px-5 pb-5">

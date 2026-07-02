@@ -1,6 +1,6 @@
 "use client"
 
-import { ScanSearch, ShieldCheck } from "lucide-react"
+import { ScanSearch } from "lucide-react"
 import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewAvailability } from "@/shared/lib/forensic/types"
@@ -8,18 +8,6 @@ import { ForensicPanelHeader, ForensicSummaryCard } from "./forensic-panel-chrom
 
 interface Props {
   availability: ForensicOverviewAvailability
-}
-
-const STATUS_LABEL: Record<ForensicOverviewAvailability["level"], string> = {
-  available: "可用",
-  partial: "部分可用",
-  unavailable: "不可用",
-}
-
-const STATUS_BADGE_CLASS: Record<ForensicOverviewAvailability["level"], string> = {
-  available: "bg-teal-50 text-teal-700 ring-teal-200 dark:bg-teal-500/10 dark:text-teal-300 dark:ring-teal-400/20",
-  partial: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20",
-  unavailable: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-400/20",
 }
 
 function StatusRow({
@@ -56,17 +44,6 @@ export function ForensicServiceStatusCard({ availability }: Props) {
           icon={ScanSearch}
           iconColor="from-cyan-400 to-blue-600"
           title="取证状态"
-          action={
-            <span
-              className={cn(
-                "mt-1 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1",
-                STATUS_BADGE_CLASS[availability.level]
-              )}
-            >
-              <ShieldCheck aria-hidden className="size-3.5" />
-              {STATUS_LABEL[availability.level]}
-            </span>
-          }
         />
       </CardHeader>
       <CardContent className="space-y-2 px-5 pb-5">

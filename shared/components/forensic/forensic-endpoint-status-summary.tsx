@@ -25,11 +25,6 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
           icon={Monitor}
           iconColor="from-green-400 to-emerald-600"
           title="终端状态摘要"
-          action={
-            <span className="mt-1 inline-flex shrink-0 items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
-              共 <span className="mx-1 font-semibold tabular-nums text-foreground">{summary.total}</span> 台
-            </span>
-          }
         />
       </CardHeader>
       <CardContent className="space-y-4 px-5 pb-5">

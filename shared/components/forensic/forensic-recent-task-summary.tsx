@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRight, Clock3 } from "lucide-react"
+import { Box, ChevronRight, Clock3 } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicRecentTaskView } from "@/shared/lib/forensic/types"
@@ -37,8 +37,10 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
       </CardHeader>
       <CardContent className="flex flex-1 px-5 pb-5">
         {items.length === 0 ? (
-          <div className="flex min-h-32 flex-1 items-center justify-center text-sm text-muted-foreground">
-            暂无任务记录
+          <div className="flex min-h-[220px] flex-1 flex-col items-center justify-center text-center">
+            <Box className="size-12 stroke-[1.8] text-slate-300" aria-hidden />
+            <div className="mt-3 text-sm font-medium text-slate-500">暂无取证任务</div>
+            <div className="mt-2 text-xs text-slate-500">请新建取证任务后查看执行记录</div>
           </div>
         ) : (
           <div className="w-full overflow-x-auto">
