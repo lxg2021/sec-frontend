@@ -50,6 +50,16 @@ export function ForensicOverviewHeader({
     onCaseIdSubmit?.(caseInput)
   }
 
+  function handleRefreshClick() {
+    const nextCaseId = caseInput.trim()
+    const currentCaseId = (caseId ?? "").trim()
+    if (onCaseIdSubmit && nextCaseId !== currentCaseId) {
+      onCaseIdSubmit(nextCaseId)
+      return
+    }
+    onRefresh?.()
+  }
+
   return (
     <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
@@ -109,7 +119,7 @@ export function ForensicOverviewHeader({
               type="button"
               variant="ghost"
               size="icon"
-              onClick={onRefresh}
+              onClick={handleRefreshClick}
               disabled={loading}
               aria-label="刷新取证概览"
               className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
