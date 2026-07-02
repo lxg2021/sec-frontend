@@ -1,8 +1,10 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Monitor } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicEndpointSummary } from "@/shared/lib/forensic/types"
+import { ForensicPanelHeader } from "./forensic-panel-chrome"
 
 interface Props {
   summary: ForensicEndpointSummary
@@ -18,13 +20,20 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
 
   return (
     <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">终端状态摘要</CardTitle>
-        <CardDescription className="text-xs">
-          agent_id 与 velociraptor_client_id 绑定后的可用性
-        </CardDescription>
+      <CardHeader className="p-5 pb-4">
+        <ForensicPanelHeader
+          icon={Monitor}
+          tone="sky"
+          title="终端状态摘要"
+          description="agent_id 与 velociraptor_client_id 绑定后的可用性"
+          action={
+            <span className="mt-1 inline-flex shrink-0 items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
+              共 <span className="mx-1 font-semibold tabular-nums text-foreground">{summary.total}</span> 台
+            </span>
+          }
+        />
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-5 pb-5">
         <ul className="space-y-3">
           {rows.map((row) => (
             <li key={row.key} className="flex items-center gap-3">
@@ -38,11 +47,10 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
             </li>
           ))}
         </ul>
-        <p className="rounded-md bg-muted/50 px-3 py-2 text-[11px] text-muted-foreground leading-relaxed">
+        <p className="rounded-md bg-muted/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
           说明：概览只提示绑定风险，绑定操作不做独立一级页面。
         </p>
       </CardContent>
     </Card>
   )
 }
-

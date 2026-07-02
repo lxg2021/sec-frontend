@@ -1,9 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Boxes } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicArtifactSummary } from "@/shared/lib/forensic/types"
+import { ForensicPanelHeader } from "./forensic-panel-chrome"
 
 interface Props {
   summary: ForensicArtifactSummary
@@ -21,13 +23,20 @@ const CATEGORIES = [
 export function ForensicArtifactCategorySummary({ summary }: Props) {
   return (
     <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">工件分类摘要</CardTitle>
-        <CardDescription className="text-xs">
-          展示已启用工件覆盖面，不展示底层执行细节
-        </CardDescription>
+      <CardHeader className="p-5 pb-4">
+        <ForensicPanelHeader
+          icon={Boxes}
+          tone="slate"
+          title="工件分类摘要"
+          description="展示已启用工件覆盖面，不展示底层执行细节"
+          action={
+            <span className="mt-1 inline-flex shrink-0 items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
+              共 <span className="mx-1 font-semibold tabular-nums text-foreground">{summary.total_enabled}</span> 个
+            </span>
+          }
+        />
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-5 pb-5">
         <div className="grid grid-cols-3 gap-2">
           {CATEGORIES.map((cat) => {
             const value = summary.by_category[cat.key] ?? 0
@@ -62,4 +71,3 @@ export function ForensicArtifactCategorySummary({ summary }: Props) {
     </Card>
   )
 }
-

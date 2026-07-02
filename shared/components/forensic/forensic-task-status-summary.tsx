@@ -1,9 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { ListChecks } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicTaskStatus, ForensicTaskSummary } from "@/shared/lib/forensic/types"
+import { ForensicPanelHeader } from "./forensic-panel-chrome"
 
 interface Props {
   summary: ForensicTaskSummary
@@ -23,13 +25,15 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
 
   return (
     <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">任务状态摘要</CardTitle>
-        <CardDescription className="text-xs">
-          按任务生命周期聚合，不展示任务创建表单
-        </CardDescription>
+      <CardHeader className="p-5 pb-4">
+        <ForensicPanelHeader
+          icon={ListChecks}
+          tone="teal"
+          title="任务状态摘要"
+          description="按任务生命周期聚合，不展示任务创建表单"
+        />
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-5 pb-5">
         <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
           {LEGEND.map((item) => {
             const value = summary[item.key]
@@ -59,11 +63,10 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
           })}
         </div>
 
-        <p className="rounded-md bg-muted/50 px-3 py-2 text-[11px] text-muted-foreground leading-relaxed">
+        <p className="rounded-md bg-muted/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
           失败任务建议进入任务中心查看远端 flow 错误和重试。
         </p>
       </CardContent>
     </Card>
   )
 }
-

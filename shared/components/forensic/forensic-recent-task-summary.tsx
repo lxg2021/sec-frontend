@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { ChevronRight, Clock3 } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicRecentTaskView } from "@/shared/lib/forensic/types"
 import { formatClock } from "@/shared/lib/forensic/utils"
+import { ForensicPanelHeader } from "./forensic-panel-chrome"
 import { TASK_STATUS_CONFIG } from "./status-config"
 
 interface Props {
@@ -16,13 +18,24 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
 
   return (
     <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">最近取证任务</CardTitle>
-        <CardDescription className="text-xs">
-          最多展示 5 条，详情进入任务中心
-        </CardDescription>
+      <CardHeader className="p-5 pb-4">
+        <ForensicPanelHeader
+          icon={Clock3}
+          tone="teal"
+          title="最近取证任务"
+          description="最多展示 5 条，详情进入任务中心"
+          action={
+            <Link
+              href="/frame/investigation/tasks"
+              className="mt-1 inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              查看更多
+              <ChevronRight className="size-3.5" />
+            </Link>
+          }
+        />
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-5 pb-5">
         {items.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">暂无任务记录</p>
         ) : (
@@ -30,7 +43,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="pb-2 pr-3 font-medium">任务ID</th>
+                  <th className="pb-2 pr-3 font-medium">任务 ID</th>
                   <th className="pb-2 pr-3 font-medium">状态</th>
                   <th className="pb-2 pr-3 font-medium">工件</th>
                   <th className="pb-2 pr-3 font-medium">目标终端</th>
@@ -69,4 +82,3 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
     </Card>
   )
 }
-

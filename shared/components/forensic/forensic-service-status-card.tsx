@@ -1,10 +1,11 @@
 "use client"
 
-import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
-import { Card, CardContent } from "@/shared/ui/card"
+import { AlertTriangle, CheckCircle2, ShieldCheck, XCircle } from "lucide-react"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewAvailability } from "@/shared/lib/forensic/types"
 import { formatTimestamp } from "@/shared/lib/forensic/utils"
+import { ForensicPanelHeader, type ForensicIconTone } from "./forensic-panel-chrome"
 import { AVAILABILITY_LEVEL_CONFIG } from "./status-config"
 
 interface Props {
@@ -12,7 +13,13 @@ interface Props {
   lastRefreshAt: number
 }
 
-function CountPill({
+const STATUS_LABEL: Record<ForensicOverviewAvailability["level"], string> = {
+  available: "可用",
+  partial: "部分可用",
+  unavailable: "不可用",
+}
+
+function StatusRow({
   label,
   value,
   accent = "default",
@@ -21,23 +28,20 @@ function CountPill({
   value: string | number
   accent?: "default" | "success" | "warning" | "error"
 }) {
-  const className = {
-    default: "bg-muted text-muted-foreground ring-border",
-    success: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    warning: "bg-amber-50 text-amber-700 ring-amber-200",
-    error: "bg-red-50 text-red-700 ring-red-200",
+  const valueClassName = {
+    default: "text-foreground",
+    success: "text-emerald-700 dark:text-emerald-300",
+    warning: "text-amber-700 dark:text-amber-300",
+    error: "text-red-700 dark:text-red-300",
   }[accent]
 
   return (
-    <span
-      className={cn(
-        "inline-flex w-full items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap ring-1",
-        className
-      )}
-    >
-      <span className="font-semibold tabular-nums">{value}</span>
-      {label}
-    </span>
+    <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-muted/30 px-3 py-2">
+      <span className="min-w-0 truncate text-xs text-muted-foreground">{label}</span>
+      <span className={cn("shrink-0 text-sm font-semibold tabular-nums", valueClassName)}>
+        {value}
+      </span>
+    </div>
   )
 }
 
@@ -49,46 +53,61 @@ export function ForensicServiceStatusCard({ availability, lastRefreshAt }: Props
       : availability.level === "unavailable"
         ? XCircle
         : AlertTriangle
+  const tone: ForensicIconTone =
+    availability.level === "available"
+      ? "emerald"
+      : availability.level === "unavailable"
+        ? "red"
+        : "amber"
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-4 py-5 lg:flex-row lg:items-start lg:justify-between">
-        <div className="flex items-start gap-3">
-          <span className={cn("inline-flex size-10 shrink-0 items-center justify-center rounded-lg", config.ring)}>
-            <LevelIcon className="size-5" />
-          </span>
-          <div className="space-y-1">
-            <h2 className="text-base font-semibold text-foreground">{availability.title}</h2>
-            <p className="max-w-2xl text-sm text-muted-foreground leading-relaxed text-pretty">
-              {availability.summary}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              最近刷新：{formatTimestamp(lastRefreshAt)}
-            </p>
-          </div>
+    <Card className="h-full">
+      <CardHeader className="p-5 pb-4">
+        <ForensicPanelHeader
+          icon={LevelIcon}
+          tone={tone}
+          title="取证状态"
+          description={availability.summary}
+          action={
+            <span className={cn("mt-1 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium", config.ring)}>
+              <ShieldCheck aria-hidden className="size-3.5" />
+              {STATUS_LABEL[availability.level]}
+            </span>
+          }
+        />
+      </CardHeader>
+      <CardContent className="space-y-3 px-5 pb-5">
+        <div className="grid gap-2">
+          <StatusRow
+            label="可下发终端"
+            value={availability.available_endpoint_count}
+            accent="success"
+          />
+          <StatusRow
+            label="未绑定终端"
+            value={availability.unbound_endpoint_count}
+            accent={availability.unbound_endpoint_count > 0 ? "warning" : "default"}
+          />
+          <StatusRow label="可用工件" value={availability.enabled_artifact_count} />
         </div>
 
-        <div className="shrink-0 lg:w-auto">
-          <p className="mb-2 text-xs font-medium text-muted-foreground lg:text-right">取证状态</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-            <CountPill label="台可下发" value={availability.available_endpoint_count} accent="success" />
-            <CountPill
-              label="台未绑定"
-              value={availability.unbound_endpoint_count}
-              accent={availability.unbound_endpoint_count > 0 ? "warning" : "default"}
-            />
-            <CountPill label="个可用工件" value={availability.enabled_artifact_count} />
-            <CountPill
-              label="个任务失败"
-              value={availability.failed_task_count}
-              accent={availability.failed_task_count > 0 ? "error" : "default"}
-            />
-            <CountPill
-              label="新建任务"
-              value={availability.can_create_task ? "可" : "不可"}
-              accent={availability.can_create_task ? "success" : "warning"}
-            />
+        <div className="rounded-md bg-muted/50 px-3 py-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">新建任务</span>
+            <span
+              className={cn(
+                "text-xs font-semibold",
+                availability.can_create_task
+                  ? "text-emerald-700 dark:text-emerald-300"
+                  : "text-amber-700 dark:text-amber-300"
+              )}
+            >
+              {availability.can_create_task ? "可创建" : "不可创建"}
+            </span>
           </div>
+          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+            最近刷新：{formatTimestamp(lastRefreshAt)}
+          </p>
         </div>
       </CardContent>
     </Card>

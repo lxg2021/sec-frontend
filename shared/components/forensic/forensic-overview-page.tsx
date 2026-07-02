@@ -1,14 +1,13 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { Card, CardContent, CardHeader } from "@/shared/ui/card"
+import { Card, CardContent } from "@/shared/ui/card"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Button } from "@/shared/ui/button"
 import type { ForensicOverviewContext, ForensicOverviewViewModel } from "@/shared/lib/forensic/types"
 import { getForensicOverview, syncForensicEndpoints } from "@/shared/lib/forensic/api"
 import { ForensicArtifactCategorySummary } from "./forensic-artifact-category-summary"
 import { ForensicEndpointStatusSummary } from "./forensic-endpoint-status-summary"
-import { ForensicMetricCards } from "./forensic-metric-cards"
 import { ForensicOverviewHeader } from "./forensic-overview-header"
 import { ForensicQuickLinks } from "./forensic-quick-links"
 import { ForensicRecentTaskSummary } from "./forensic-recent-task-summary"
@@ -23,22 +22,9 @@ interface Props {
 function OverviewSkeleton() {
   return (
     <div className="space-y-6" aria-hidden>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="h-4 w-64" />
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-11" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-        {Array.from({ length: 7 }).map((_, i) => (
-          <Skeleton key={i} className="h-24" />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-64 rounded-lg" />
         ))}
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -133,10 +119,8 @@ export function ForensicOverviewPage({ context }: Props) {
           loading ? <OverviewSkeleton /> : null
         ) : (
           <>
-            <ForensicServiceStatusCard availability={data.availability} lastRefreshAt={data.last_refresh_at} />
-            <ForensicMetricCards metrics={data.metrics} />
-
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+              <ForensicServiceStatusCard availability={data.availability} lastRefreshAt={data.last_refresh_at} />
               <ForensicEndpointStatusSummary summary={data.endpoint_summary} />
               <ForensicTaskStatusSummary summary={data.task_summary} />
               <ForensicArtifactCategorySummary summary={data.artifact_summary} />
