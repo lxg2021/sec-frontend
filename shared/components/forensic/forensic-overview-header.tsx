@@ -5,23 +5,13 @@ import { useEffect, useState } from "react"
 import { Clock3, RefreshCw, ScanSearch, Search } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/utils"
-import type { ForensicOverviewContext } from "@/shared/lib/forensic/types"
 
 interface Props {
-  context: ForensicOverviewContext
   loading?: boolean
   refreshedAt?: Date | null
   caseId?: string
   onCaseIdSubmit?: (caseId: string) => void
   onRefresh?: () => void
-}
-
-const CONTEXT_LABELS: Record<keyof ForensicOverviewContext, string> = {
-  case_id: "案件",
-  workflow_id: "工作流",
-  workflow_action_id: "工作流动作",
-  agent_id: "Agent",
-  endpoint_id: "终端",
 }
 
 function formatRefreshTime(value?: Date | null): string {
@@ -44,7 +34,6 @@ function formatRefreshTime(value?: Date | null): string {
 }
 
 export function ForensicOverviewHeader({
-  context,
   loading,
   refreshedAt,
   caseId,
@@ -52,13 +41,6 @@ export function ForensicOverviewHeader({
   onRefresh,
 }: Props) {
   const [caseInput, setCaseInput] = useState(caseId ?? "")
-  const contextEntries = (Object.keys(CONTEXT_LABELS) as (keyof ForensicOverviewContext)[])
-    .map((key) => ({ key, value: context[key] }))
-    .filter((item) => Boolean(item.value))
-  const scopeText = contextEntries.length
-    ? contextEntries.map((item) => `${CONTEXT_LABELS[item.key]}：${item.value}`).join(" / ")
-    : "全部终端"
-
   useEffect(() => {
     setCaseInput(caseId ?? "")
   }, [caseId])
@@ -84,10 +66,7 @@ export function ForensicOverviewHeader({
               <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
                 FORENSIC
               </span>
-              <span className="min-w-0 truncate text-slate-500">
-                远程取证 <span className="px-1 text-slate-200">/</span>
-                {scopeText}
-              </span>
+              <span className="min-w-0 truncate text-slate-500">远程取证</span>
             </div>
           </div>
         </div>
