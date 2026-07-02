@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/shared/ui/card"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Button } from "@/shared/ui/button"
 import type { ForensicOverviewContext, ForensicOverviewViewModel } from "@/shared/lib/forensic/types"
-import { getForensicOverview, syncForensicEndpoints } from "@/shared/lib/forensic/api"
+import { getForensicOverview } from "@/shared/lib/forensic/api"
 import { ForensicArtifactCategorySummary } from "./forensic-artifact-category-summary"
 import { ForensicEndpointStatusSummary } from "./forensic-endpoint-status-summary"
 import { ForensicOverviewHeader } from "./forensic-overview-header"
@@ -67,7 +67,6 @@ function errorMessage(error: unknown): string {
 export function ForensicOverviewPage({ context }: Props) {
   const [data, setData] = useState<ForensicOverviewViewModel | null>(null)
   const [loading, setLoading] = useState(false)
-  const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
@@ -87,32 +86,17 @@ export function ForensicOverviewPage({ context }: Props) {
     void refresh()
   }, [refresh])
 
-  const handleSync = useCallback(async () => {
-    setSyncing(true)
-    try {
-      setError(null)
-      await syncForensicEndpoints()
-      await refresh()
-    } catch (err) {
-      setError(errorMessage(err))
-    } finally {
-      setSyncing(false)
-    }
-  }, [refresh])
-
   return (
     <main className="w-full max-w-none px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
       <div className="space-y-6">
         <ForensicOverviewHeader
           context={context}
           loading={loading}
-          syncing={syncing}
           onRefresh={refresh}
-          onSync={handleSync}
         />
 
         {error && (
-          <OverviewError message={error} loading={loading || syncing} onRetry={refresh} />
+          <OverviewError message={error} loading={loading} onRetry={refresh} />
         )}
 
         {!data ? (
