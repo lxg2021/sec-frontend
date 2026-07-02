@@ -28,9 +28,8 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={ListChecks}
-          tone="teal"
+          iconColor="from-violet-400 to-purple-600"
           title="任务状态摘要"
-          description="按任务生命周期聚合，不展示任务创建表单"
         />
       </CardHeader>
       <CardContent className="space-y-4 px-5 pb-5">

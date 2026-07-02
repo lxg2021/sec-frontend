@@ -80,6 +80,7 @@ export function ForensicIconBadge({
 interface ForensicPanelHeaderProps {
   icon: LucideIcon
   tone?: ForensicIconTone
+  iconColor?: string
   title: string
   description?: string
   action?: ReactNode
@@ -88,10 +89,36 @@ interface ForensicPanelHeaderProps {
 export function ForensicPanelHeader({
   icon,
   tone = "cyan",
+  iconColor,
   title,
   description,
   action,
 }: ForensicPanelHeaderProps) {
+  const Icon = icon
+
+  if (iconColor) {
+    return (
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 pt-0.5">
+          <CardTitle className="text-sm font-medium leading-5 text-slate-600 dark:text-slate-300">
+            {title}
+          </CardTitle>
+          {description && (
+            <CardDescription className="mt-1 text-xs leading-5 text-muted-foreground">
+              {description}
+            </CardDescription>
+          )}
+        </div>
+        <div className="flex shrink-0 items-start gap-2">
+          {action}
+          <span className={cn("inline-flex size-8 items-center justify-center rounded-lg bg-gradient-to-br", iconColor)}>
+            <Icon className="size-4 text-white" aria-hidden />
+          </span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="flex min-w-0 items-start gap-3">

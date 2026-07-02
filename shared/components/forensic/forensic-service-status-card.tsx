@@ -54,9 +54,8 @@ export function ForensicServiceStatusCard({ availability }: Props) {
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={ScanSearch}
-          tone="cyan"
+          iconColor="from-cyan-400 to-blue-600"
           title="取证状态"
-          description={availability.summary}
           action={
             <span
               className={cn(
