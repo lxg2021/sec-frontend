@@ -87,8 +87,8 @@ export function ForensicOverviewPage({ context }: Props) {
   }, [refresh])
 
   return (
-    <main className="w-full max-w-none px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="space-y-6">
+    <main className="min-h-screen bg-gray-50">
+      <div className="space-y-6 p-6">
         <ForensicOverviewHeader
           context={context}
           loading={loading}
