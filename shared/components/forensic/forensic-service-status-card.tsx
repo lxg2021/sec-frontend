@@ -4,12 +4,10 @@ import { ScanSearch, ShieldCheck } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewAvailability } from "@/shared/lib/forensic/types"
-import { formatTimestamp } from "@/shared/lib/forensic/utils"
 import { ForensicPanelHeader } from "./forensic-panel-chrome"
 
 interface Props {
   availability: ForensicOverviewAvailability
-  lastRefreshAt: number
 }
 
 const STATUS_LABEL: Record<ForensicOverviewAvailability["level"], string> = {
@@ -41,7 +39,7 @@ function StatusRow({
   }[accent]
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-muted/30 px-3 py-2">
+    <div className="flex items-center justify-between gap-3 rounded-md border border-border/60 bg-muted/30 px-3 py-1.5">
       <span className="min-w-0 truncate text-xs text-muted-foreground">{label}</span>
       <span className={cn("shrink-0 text-sm font-semibold tabular-nums", valueClassName)}>
         {value}
@@ -50,7 +48,7 @@ function StatusRow({
   )
 }
 
-export function ForensicServiceStatusCard({ availability, lastRefreshAt }: Props) {
+export function ForensicServiceStatusCard({ availability }: Props) {
   return (
     <Card className="h-full">
       <CardHeader className="p-5 pb-4">
@@ -72,8 +70,8 @@ export function ForensicServiceStatusCard({ availability, lastRefreshAt }: Props
           }
         />
       </CardHeader>
-      <CardContent className="space-y-3 px-5 pb-5">
-        <div className="grid gap-2">
+      <CardContent className="space-y-2 px-5 pb-5">
+        <div className="grid gap-1.5">
           <StatusRow
             label="可下发终端"
             value={availability.available_endpoint_count}
@@ -87,7 +85,7 @@ export function ForensicServiceStatusCard({ availability, lastRefreshAt }: Props
           <StatusRow label="可用工件" value={availability.enabled_artifact_count} />
         </div>
 
-        <div className="rounded-md bg-muted/50 px-3 py-2">
+        <div className="rounded-md bg-muted/50 px-3 py-1.5">
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-muted-foreground">新建任务</span>
             <span
@@ -101,9 +99,6 @@ export function ForensicServiceStatusCard({ availability, lastRefreshAt }: Props
               {availability.can_create_task ? "可创建" : "不可创建"}
             </span>
           </div>
-          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-            最近刷新：{formatTimestamp(lastRefreshAt)}
-          </p>
         </div>
       </CardContent>
     </Card>

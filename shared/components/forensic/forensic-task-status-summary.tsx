@@ -63,9 +63,6 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
           })}
         </div>
 
-        <p className="rounded-md bg-muted/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
-          失败任务建议进入任务中心查看远端 flow 错误和重试。
-        </p>
       </CardContent>
     </Card>
   )

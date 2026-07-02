@@ -47,9 +47,6 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
             </li>
           ))}
         </ul>
-        <p className="rounded-md bg-muted/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
-          说明：概览只提示绑定风险，绑定操作不做独立一级页面。
-        </p>
       </CardContent>
     </Card>
   )

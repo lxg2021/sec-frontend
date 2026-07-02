@@ -120,7 +120,7 @@ export function ForensicOverviewPage({ context }: Props) {
         ) : (
           <>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-              <ForensicServiceStatusCard availability={data.availability} lastRefreshAt={data.last_refresh_at} />
+              <ForensicServiceStatusCard availability={data.availability} />
               <ForensicEndpointStatusSummary summary={data.endpoint_summary} />
               <ForensicTaskStatusSummary summary={data.task_summary} />
               <ForensicArtifactCategorySummary summary={data.artifact_summary} />
