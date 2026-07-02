@@ -38,7 +38,7 @@ export function ForensicRiskNoticePanel({ notices }: Props) {
     .slice(0, 5)
 
   return (
-    <Card>
+    <Card className="min-h-[220px]">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={ShieldAlert}

@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronRight, Hexagon, ListChecks, Plus, Zap } from "lucide-react"
+import { ChevronRight, Hexagon, ListChecks, Plus } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/shared/ui/card"
+import { Card, CardContent } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
-import { ForensicIconBadge, ForensicPanelHeader, type ForensicIconTone } from "./forensic-panel-chrome"
+import { ForensicIconBadge, type ForensicIconTone } from "./forensic-panel-chrome"
 
 interface QuickLink {
   name: string
@@ -44,10 +44,7 @@ const LINKS: QuickLink[] = [
 export function ForensicQuickLinks() {
   return (
     <Card>
-      <CardHeader className="p-5 pb-4">
-        <ForensicPanelHeader icon={Zap} tone="cyan" title="快捷入口" />
-      </CardHeader>
-      <CardContent className="px-5 pb-5">
+      <CardContent className="p-5">
         <div className="grid gap-2">
           {LINKS.map((link) => {
             const Icon = link.icon
