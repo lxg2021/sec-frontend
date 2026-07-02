@@ -62,7 +62,24 @@
       "createPatchInstallTask": "/sensor/control/patch/installtask",
       "patchImmediateScan": "/sensor/control/patch/immediatescan",
       "patchOneClickRepair": "/sensor/control/patch/oneclickrepair",
-      "baselineOneClickRepair": "/sensor/control/baseline/oneclickrepair"
+      "baselineOneClickRepair": "/sensor/control/baseline/oneclickrepair",
+      "getForensicOverview": "/sensor/analysis/forensic/overview/get",
+      "syncForensicEndpoints": "/sensor/analysis/forensic/endpoints/sync",
+      "listForensicEndpoints": "/sensor/analysis/forensic/endpoints/list",
+      "getForensicEndpoint": "/sensor/analysis/forensic/endpoints/get",
+      "bindForensicEndpoint": "/sensor/analysis/forensic/endpoints/bind",
+      "reportForensicEndpointIdentity": "/sensor/analysis/forensic/endpoints/report-identity",
+      "listForensicArtifacts": "/sensor/analysis/forensic/artifacts/list",
+      "getForensicArtifactDefinition": "/sensor/analysis/forensic/artifacts/get",
+      "createForensicTask": "/sensor/analysis/forensic/tasks/create",
+      "createCollectFileTask": "/sensor/analysis/forensic/tasks/collect-file",
+      "getForensicTask": "/sensor/analysis/forensic/tasks/get",
+      "syncForensicTaskResult": "/sensor/analysis/forensic/tasks/sync-result",
+      "listForensicTasks": "/sensor/analysis/forensic/tasks/list",
+      "cancelForensicTask": "/sensor/analysis/forensic/tasks/cancel",
+      "listForensicEvidence": "/sensor/analysis/forensic/evidence/list",
+      "getForensicEvidence": "/sensor/analysis/forensic/evidence/get",
+      "listForensicTaskEvents": "/sensor/analysis/forensic/task-events/list"
     }
   }
 }

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
 
 export default function EvidencePage() {
-  redirect("/frame/investigation/collection")
+  redirect("/frame/investigation/tasks")
 }

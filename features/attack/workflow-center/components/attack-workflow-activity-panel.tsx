@@ -70,7 +70,11 @@ export function AttackWorkflowActivityPanel({
           <AttackWorkflowEventsTable events={events} loading={loading} />
         </TabsContent>
         <TabsContent value="actions" className="m-0 min-w-0">
-          <AttackWorkflowActionsTable actions={actions} loading={loading} />
+          <AttackWorkflowActionsTable
+            actions={actions}
+            loading={loading}
+            workflow={workflow}
+          />
         </TabsContent>
       </div>
     </Tabs>

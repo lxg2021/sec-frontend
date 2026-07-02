@@ -2,6 +2,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart,
+  Box,
   Boxes,
   Bot,
   BrainCircuit,
@@ -10,6 +11,7 @@ import {
   FilePenLine,
   FileText,
   LayoutDashboard,
+  List,
   MapPin,
   Monitor,
   Package,
@@ -21,7 +23,6 @@ import {
   SlidersHorizontal,
   Sword,
   Target,
-  Terminal,
   Timer,
 } from "lucide-react"
 
@@ -84,8 +85,9 @@ export const menuItems = [
     icon: Search,
     labelKey: "investigation",
     submenu: [
-      { id: "investigationPlan", icon: FileText, labelKey: "investigationPlan", path: "/frame/investigation/plan" },
-      { id: "remoteForensics", icon: Terminal, labelKey: "remoteForensics", path: "/frame/investigation/collection" },
+      { id: "forensicWorkbench", icon: Monitor, labelKey: "forensicWorkbench", path: "/frame/investigation/collection" },
+      { id: "forensicTasks", icon: List, labelKey: "forensicTasks", path: "/frame/investigation/tasks" },
+      { id: "forensicArtifacts", icon: Box, labelKey: "forensicArtifacts", path: "/frame/investigation/artifacts" },
     ],
   },
   {

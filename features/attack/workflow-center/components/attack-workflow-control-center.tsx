@@ -81,6 +81,7 @@ interface WorkflowNavigationHrefs {
   traceHref: string
   aiHref: string
   iocHref: string
+  forensicHref: string
 }
 
 interface WorkflowIdentity {
@@ -101,6 +102,31 @@ const WORKFLOW_RANGE_TIMEZONE = "Asia/Shanghai"
 function normalizeQueuePage(value?: number) {
   const page = Math.trunc(value ?? 1)
   return Number.isFinite(page) && page > 0 ? page : 1
+}
+
+function buildForensicTaskHref({
+  action,
+  caseId,
+  workflow,
+}: {
+  action?: AttackWorkflowActionItem
+  caseId: string
+  workflow: AttackWorkflowItem | null
+}) {
+  const params = new URLSearchParams()
+  const workflowId = workflow?.workflow_id || ""
+  const workflowActionId = action?.workflow_action_id || ""
+  const agentId = action?.agent_id || workflow?.primary_agent_id || ""
+
+  if (caseId) params.set("case_id", caseId)
+  if (workflowId) params.set("workflow_id", workflowId)
+  if (workflowActionId) params.set("workflow_action_id", workflowActionId)
+  if (agentId) params.set("agent_id", agentId)
+
+  const query = params.toString()
+  return query
+    ? `/frame/investigation/tasks?${query}`
+    : "/frame/investigation/tasks"
 }
 
 const EMPTY_ATTACK_OVERVIEW: AttackOverview = {
@@ -528,11 +554,20 @@ export function AttackWorkflowControlCenter({
   const iocHref = canOpenDetails
     ? buildIOCVerificationHref(activeCaseId, normalizedSnapshotId, detailOptions)
     : "/frame/ioc-analysis/ioc-verification"
+  const forensicAction = actions.find(
+    (action) => action.action_phase.trim().toLowerCase() === "forensics",
+  )
+  const forensicHref = buildForensicTaskHref({
+    action: forensicAction,
+    caseId: activeCaseId,
+    workflow,
+  })
   const navigationHrefs: WorkflowNavigationHrefs = {
     attackDetailHref,
     traceHref,
     aiHref,
     iocHref,
+    forensicHref,
   }
 
   useEffect(() => {

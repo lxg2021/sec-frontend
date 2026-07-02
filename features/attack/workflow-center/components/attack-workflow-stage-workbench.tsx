@@ -54,6 +54,7 @@ interface WorkflowNavigationHrefs {
   traceHref: string
   aiHref: string
   iocHref: string
+  forensicHref: string
 }
 
 interface AttackWorkflowStageWorkbenchProps {
@@ -411,7 +412,7 @@ function stageTools({
     {
       title: t("tools.forensicOrchestration.title"),
       description: t("tools.forensicOrchestration.description"),
-      href: "/frame/evidence",
+      href: hrefs.forensicHref,
       iconName: "forensics",
       disabled: !canUseForensicOrchestration,
     },

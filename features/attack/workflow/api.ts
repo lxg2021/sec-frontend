@@ -4,7 +4,6 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 
 import type {
-  AttackWorkflowActionForensic,
   AttackWorkflowActionInvestigation,
   AttackWorkflowActionItem,
   AttackWorkflowActionRemediation,
@@ -120,25 +119,6 @@ function normalizeInvestigation(
   }
 }
 
-function normalizeForensic(raw: unknown): AttackWorkflowActionForensic | null {
-  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
-  const item = raw as BackendObject
-  if (!hasAnyStringValue(item)) return null
-
-  return {
-    forensic_plan_id: stringValue(item.forensic_plan_id),
-    forensic_execution_id: stringValue(item.forensic_execution_id),
-    forensic_task_id: stringValue(item.forensic_task_id),
-    forensic_trace_id: stringValue(item.forensic_trace_id),
-    artifact_uri: stringValue(item.artifact_uri),
-    artifact_hash: stringValue(item.artifact_hash),
-    artifact_meta_json: stringValue(item.artifact_meta_json),
-    payload_json: stringValue(item.payload_json),
-    created_at: stringValue(item.created_at),
-    updated_at: stringValue(item.updated_at),
-  }
-}
-
 function normalizeRemediation(raw: unknown): AttackWorkflowActionRemediation | null {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null
   const item = raw as BackendObject
@@ -179,7 +159,6 @@ function normalizeWorkflowAction(raw: BackendObject = {}): AttackWorkflowActionI
     created_at: stringValue(raw.created_at),
     updated_at: stringValue(raw.updated_at),
     investigation: normalizeInvestigation(raw.investigation),
-    forensic: normalizeForensic(raw.forensic),
     remediation: normalizeRemediation(raw.remediation),
   }
 }

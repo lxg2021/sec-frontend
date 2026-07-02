@@ -1,10 +1,16 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
 import { AlertTriangle, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import type { AttackWorkflowActionItem } from "@/features/attack/workflow/types"
+import type {
+  AttackWorkflowActionItem,
+  AttackWorkflowItem,
+} from "@/features/attack/workflow/types"
 import { formatWorkflowTime } from "@/features/attack/workflow/utils"
+import { listForensicTasks } from "@/shared/lib/forensic/api"
+import type { ForensicTaskItem } from "@/shared/lib/forensic/types"
 import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 import {
@@ -19,6 +25,7 @@ import {
 interface AttackWorkflowActionsTableProps {
   actions: AttackWorkflowActionItem[]
   loading?: boolean
+  workflow?: AttackWorkflowItem | null
 }
 
 interface ReferenceField {
@@ -112,6 +119,7 @@ function targetText(action: AttackWorkflowActionItem) {
 function actionReferences(
   t: WorkflowCenterT,
   action: AttackWorkflowActionItem,
+  forensicTasks: ForensicTaskItem[] = [],
 ): ReferenceField[] {
   const refs: ReferenceField[] = [
     { label: t("actions.refs.action"), value: action.workflow_action_id },
@@ -131,30 +139,13 @@ function actionReferences(
     )
   }
 
-  if (action.forensic) {
-    refs.push(
-      {
-        label: t("actions.refs.forensicPlan"),
-        value: action.forensic.forensic_plan_id,
-      },
-      {
-        label: t("actions.refs.forensicExecution"),
-        value: action.forensic.forensic_execution_id,
-      },
-      {
-        label: t("actions.refs.forensicTask"),
-        value: action.forensic.forensic_task_id,
-      },
-      {
-        label: t("actions.refs.forensicTrace"),
-        value: action.forensic.forensic_trace_id,
-      },
-      {
-        label: t("actions.refs.artifact"),
-        value: action.forensic.artifact_uri,
-      },
-    )
-  }
+  forensicTasks.forEach((task) => {
+    const flowRef = task.remote_flow_id ? `flow:${task.remote_flow_id}` : ""
+    refs.push({
+      label: t("actions.refs.forensicTask"),
+      value: [task.task_id, task.status, flowRef].filter(Boolean).join(" / "),
+    })
+  })
 
   if (action.remediation) {
     refs.push(
@@ -187,7 +178,6 @@ function actionReferences(
 function actionPayload(action: AttackWorkflowActionItem) {
   return (
     action.remediation?.payload_json ||
-    action.forensic?.payload_json ||
     action.investigation?.payload_json ||
     ""
   )
@@ -258,12 +248,14 @@ function ActionError({ action }: { action: AttackWorkflowActionItem }) {
 
 function ActionMobileCard({
   action,
+  forensicTasks,
   t,
 }: {
   action: AttackWorkflowActionItem
+  forensicTasks: ForensicTaskItem[]
   t: WorkflowCenterT
 }) {
-  const refs = actionReferences(t, action)
+  const refs = actionReferences(t, action, forensicTasks)
   const payload = actionPayload(action)
 
   return (
@@ -317,8 +309,46 @@ function ActionMobileCard({
 export function AttackWorkflowActionsTable({
   actions,
   loading = false,
+  workflow = null,
 }: AttackWorkflowActionsTableProps) {
   const t = useTranslations("pages.attack.workflowCenter")
+  const [forensicTasksByAction, setForensicTasksByAction] = useState<
+    Record<string, ForensicTaskItem[]>
+  >({})
+  const workflowId = useMemo(
+    () =>
+      workflow?.workflow_id ||
+      actions.find((action) => action.workflow_id)?.workflow_id ||
+      "",
+    [actions, workflow?.workflow_id],
+  )
+
+  useEffect(() => {
+    if (!workflowId) {
+      setForensicTasksByAction({})
+      return undefined
+    }
+
+    let cancelled = false
+    listForensicTasks({ workflow_id: workflowId, page: 1, page_size: 100 })
+      .then((data) => {
+        if (cancelled) return
+        const grouped: Record<string, ForensicTaskItem[]> = {}
+        for (const task of data.items) {
+          const actionId = task.workflow_action_id?.trim()
+          if (!actionId) continue
+          grouped[actionId] = [...(grouped[actionId] ?? []), task]
+        }
+        setForensicTasksByAction(grouped)
+      })
+      .catch(() => {
+        if (!cancelled) setForensicTasksByAction({})
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [workflowId])
 
   if (loading) return <LoadingState t={t} />
   if (actions.length === 0) return <EmptyState t={t} />
@@ -333,6 +363,9 @@ export function AttackWorkflowActionsTable({
               `${action.action_batch_id}:${action.created_at}`
             }
             action={action}
+            forensicTasks={
+              forensicTasksByAction[action.workflow_action_id] ?? []
+            }
             t={t}
           />
         ))}
@@ -361,7 +394,11 @@ export function AttackWorkflowActionsTable({
           </TableHeader>
           <TableBody>
             {actions.map((action) => {
-              const refs = actionReferences(t, action)
+              const refs = actionReferences(
+                t,
+                action,
+                forensicTasksByAction[action.workflow_action_id] ?? [],
+              )
               const payload = actionPayload(action)
 
               return (

@@ -64,19 +64,6 @@ export interface AttackWorkflowActionInvestigation {
   updated_at: string
 }
 
-export interface AttackWorkflowActionForensic {
-  forensic_plan_id: string
-  forensic_execution_id: string
-  forensic_task_id: string
-  forensic_trace_id: string
-  artifact_uri: string
-  artifact_hash: string
-  artifact_meta_json: string
-  payload_json: string
-  created_at: string
-  updated_at: string
-}
-
 export interface AttackWorkflowActionRemediation {
   preview_id: string
   execution_id: string
@@ -110,7 +97,6 @@ export interface AttackWorkflowActionItem {
   created_at: string
   updated_at: string
   investigation: AttackWorkflowActionInvestigation | null
-  forensic: AttackWorkflowActionForensic | null
   remediation: AttackWorkflowActionRemediation | null
 }
 
