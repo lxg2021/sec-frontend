@@ -83,22 +83,6 @@ export function ForensicServiceStatusCard({ availability }: Props) {
           />
           <StatusRow label="可用工件" value={availability.enabled_artifact_count} />
         </div>
-
-        <div className="rounded-md bg-muted/50 px-3 py-1.5">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">新建任务</span>
-            <span
-              className={cn(
-                "text-xs font-semibold",
-                availability.can_create_task
-                  ? "text-emerald-700 dark:text-emerald-300"
-                  : "text-amber-700 dark:text-amber-300"
-              )}
-            >
-              {availability.can_create_task ? "可创建" : "不可创建"}
-            </span>
-          </div>
-        </div>
       </CardContent>
     </ForensicSummaryCard>
   )
