@@ -57,7 +57,6 @@ const confidenceStyle: Record<Confidence, { dot: string; badge: string }> = {
 const assistantCopy = {
   "zh-CN": {
     title: "AI 调查助手",
-    caseLabel: "案例",
     criticalEvent: "高危事件",
     currentAssessment: "当前研判",
     confirmedFacts: "已确认事实",
@@ -71,7 +70,6 @@ const assistantCopy = {
     continueInvestigation: "继续研判",
     continuingInvestigation: "研判中",
     noNewGraphContext: "暂无新增图谱上下文",
-    unknownCase: "UNKNOWN",
     confidence: {
       high: "高置信",
       medium: "中置信",
@@ -80,7 +78,6 @@ const assistantCopy = {
   },
   en: {
     title: "AI Investigation Assistant",
-    caseLabel: "Case",
     criticalEvent: "Critical Event",
     currentAssessment: "Current Assessment",
     confirmedFacts: "Confirmed Facts",
@@ -94,7 +91,6 @@ const assistantCopy = {
     continueInvestigation: "Continue Analysis",
     continuingInvestigation: "Analyzing",
     noNewGraphContext: "No new graph context",
-    unknownCase: "UNKNOWN",
     confidence: {
       high: "High Confidence",
       medium: "Medium Confidence",
@@ -103,7 +99,6 @@ const assistantCopy = {
   },
 } satisfies Record<InvestigationAssistantLanguage, {
   title: string
-  caseLabel: string
   criticalEvent: string
   currentAssessment: string
   confirmedFacts: string
@@ -117,7 +112,6 @@ const assistantCopy = {
   continueInvestigation: string
   continuingInvestigation: string
   noNewGraphContext: string
-  unknownCase: string
   confidence: Record<Confidence, string>
 }>
 
@@ -263,8 +257,6 @@ export function InvestigationAssistant({
   const copy = assistantCopy[resolvedLanguage]
   const [executed, setExecuted] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState<string | null>(null)
-  const caseId = data.case_id || ""
-  const caseIdShort = caseId ? caseId.slice(0, 8).toUpperCase() : copy.unknownCase
   const confirmedFacts = safeList<InvestigationConfirmedFact>(data.confirmed_facts)
   const attackObjectives = safeList<InvestigationAttackObjective>(data.attack_objectives)
   const verificationItems = safeList<InvestigationVerificationItem>(data.verification_items)
@@ -302,14 +294,11 @@ export function InvestigationAssistant({
           </span>
           <span className="text-base font-bold tracking-tight text-slate-950">{copy.title}</span>
         </div>
-        <div className="h-4 w-px bg-slate-200" />
-        <span className="text-xs font-medium text-slate-500">
-          {copy.caseLabel} <span className="font-mono font-semibold text-slate-700">{caseIdShort}</span>
-        </span>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
           <ShieldAlert className="h-3.5 w-3.5" />
           {copy.criticalEvent}
         </span>
+        <div className="ml-auto" />
         {onContinueInvestigation ? (
           <button
             type="button"
@@ -332,7 +321,6 @@ export function InvestigationAssistant({
             {continueInvestigationLoading ? copy.continuingInvestigation : copy.continueInvestigation}
           </button>
         ) : null}
-        <div className="ml-auto" />
       </header>
 
       <div className="bg-slate-50/70 px-5 py-5">
