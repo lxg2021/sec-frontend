@@ -5,7 +5,7 @@ import { ChevronRight, Hexagon, ListChecks, Plus } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { Card, CardContent } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
-import { ForensicIconBadge, type ForensicIconTone } from "./forensic-panel-chrome"
+import type { ForensicIconTone } from "./forensic-panel-chrome"
 
 interface QuickLink {
   name: string
@@ -41,9 +41,20 @@ const LINKS: QuickLink[] = [
   },
 ]
 
+const ICON_CAPSULE_CLASS: Record<ForensicIconTone, string> = {
+  cyan: "bg-cyan-500/10 text-cyan-700 dark:bg-cyan-400/10 dark:text-cyan-200",
+  sky: "bg-sky-500/10 text-sky-700 dark:bg-sky-400/10 dark:text-sky-200",
+  teal: "bg-teal-500/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-200",
+  indigo: "bg-indigo-500/10 text-indigo-700 dark:bg-indigo-400/10 dark:text-indigo-200",
+  emerald: "bg-emerald-500/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200",
+  amber: "bg-amber-500/10 text-amber-700 dark:bg-amber-400/10 dark:text-amber-200",
+  red: "bg-red-500/10 text-red-700 dark:bg-red-400/10 dark:text-red-200",
+  slate: "bg-slate-500/10 text-slate-600 dark:bg-slate-400/10 dark:text-slate-200",
+}
+
 export function ForensicQuickLinks() {
   return (
-    <Card>
+    <Card className="border-0">
       <CardContent className="p-5">
         <div className="grid gap-2">
           {LINKS.map((link) => {
@@ -53,13 +64,20 @@ export function ForensicQuickLinks() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "group flex min-h-16 items-center gap-3 rounded-lg border px-3 py-3 transition-colors",
+                  "group flex min-h-16 items-center gap-3 rounded-lg px-3 py-3 transition-colors",
                   link.primary
-                    ? "border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/15"
-                    : "border-border bg-background/40 hover:bg-accent"
+                    ? "bg-cyan-500/10 hover:bg-cyan-500/15"
+                    : "bg-background/40 hover:bg-accent"
                 )}
               >
-                <ForensicIconBadge icon={Icon} tone={link.tone} className="size-10" />
+                <span
+                  className={cn(
+                    "inline-flex h-10 w-12 shrink-0 items-center justify-center rounded-full",
+                    ICON_CAPSULE_CLASS[link.tone]
+                  )}
+                >
+                  <Icon className="size-5" aria-hidden />
+                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-foreground">{link.name}</span>
                   <span className="mt-0.5 block truncate text-xs text-muted-foreground">{link.description}</span>
