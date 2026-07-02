@@ -2038,12 +2038,12 @@
           "title": "Task Status Summary"
         },
         "taskStatus": {
-          "pending": "Pending",
-          "running": "Running",
-          "success": "Success",
-          "failed": "Failed",
-          "timeout": "Timeout",
-          "canceled": "Canceled"
+            "pending": "pending",
+            "running": "running",
+            "success": "success",
+            "failed": "failed",
+            "timeout": "timeout",
+            "canceled": "canceled"
         },
         "artifactSummary": {
           "title": "Artifact Category Summary",
@@ -2068,8 +2068,20 @@
             "taskId": "Task ID",
             "status": "Status",
             "artifact": "Artifact",
-            "target": "Target Endpoint",
+            "target": "Target Host",
+            "hostId": "Host ID",
+            "hostname": "Hostname",
+            "ip": "IP",
+            "mac": "MAC",
+            "online": "Online",
             "updatedAt": "Updated At"
+          },
+          "noHostInfo": "Host info not synced",
+          "onlineStatus": {
+            "online": "online",
+            "offline": "offline",
+            "unknown": "unknown",
+            "unsynced": "not synced"
           }
         },
         "riskNotice": {

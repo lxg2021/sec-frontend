@@ -71,12 +71,26 @@ export type ForensicTaskStatus =
   | "canceled"
   | "timeout"
 
+export interface ForensicTaskTargetHost {
+  agent_id?: string
+  endpoint_id?: string
+  velociraptor_client_id?: string
+  hostname?: string
+  ip?: string[]
+  macs?: string[]
+  host_status?: string
+  forensic_status?: string
+  heartbeat_time?: number
+  last_seen_at?: number
+}
+
 export interface ForensicRecentTaskView {
   task_id: string
   status: ForensicTaskStatus
   artifact_key: string
   artifact_name: string
   target_label: string
+  target_host?: ForensicTaskTargetHost | null
   created_at?: number
   last_sync_at?: number
   error_msg?: string

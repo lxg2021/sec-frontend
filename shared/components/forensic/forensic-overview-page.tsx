@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
-import { Skeleton } from "@/shared/ui/skeleton"
 import type { ForensicOverviewContext, ForensicOverviewViewModel } from "@/shared/lib/forensic/types"
 import { getForensicOverview } from "@/shared/lib/forensic/api"
 import { ForensicArtifactCategorySummary } from "./forensic-artifact-category-summary"
@@ -20,21 +19,59 @@ interface Props {
   context: ForensicOverviewContext
 }
 
-function OverviewSkeleton() {
-  return (
-    <div className="space-y-6" aria-hidden>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-64 rounded-lg" />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-64" />
-        ))}
-      </div>
-    </div>
-  )
+const EMPTY_FORENSIC_OVERVIEW: ForensicOverviewViewModel = {
+  availability: {
+    level: "unavailable",
+    title: "",
+    summary: "",
+    can_create_task: false,
+    target_agent_count: 0,
+    available_endpoint_count: 0,
+    unbound_endpoint_count: 0,
+    offline_endpoint_count: 0,
+    blocked_endpoint_count: 0,
+    enabled_artifact_count: 0,
+    running_task_count: 0,
+    failed_task_count: 0,
+    blocking_reasons: [],
+  },
+  metrics: {
+    endpoint_total: 0,
+    endpoint_online: 0,
+    endpoint_unbound: 0,
+    artifact_enabled: 0,
+    task_running: 0,
+    task_failed: 0,
+    evidence_total: 0,
+  },
+  endpoint_summary: {
+    total: 0,
+    online: 0,
+    offline: 0,
+    unknown: 0,
+    unbound: 0,
+    latest_seen_at: 0,
+  },
+  task_summary: {
+    pending: 0,
+    running: 0,
+    success: 0,
+    failed: 0,
+    timeout: 0,
+    canceled: 0,
+  },
+  artifact_summary: {
+    total_enabled: 0,
+    by_category: {},
+    high_risk_count: 0,
+  },
+  evidence_summary: {
+    total: 0,
+    latest_created_at: 0,
+  },
+  recent_tasks: [],
+  notices: [],
+  last_refresh_at: 0,
 }
 
 export function ForensicOverviewPage({ context }: Props) {
@@ -43,6 +80,7 @@ export function ForensicOverviewPage({ context }: Props) {
   const [data, setData] = useState<ForensicOverviewViewModel | null>(null)
   const [loading, setLoading] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
+  const overview = data ?? EMPTY_FORENSIC_OVERVIEW
 
   const formatOverviewError = useCallback(
     (error: unknown, caseId?: string): { title: string; description: string } => {
@@ -75,6 +113,7 @@ export function ForensicOverviewPage({ context }: Props) {
       setRefreshedAt(new Date())
     } catch (err) {
       const nextError = formatOverviewError(err, context.case_id)
+      setData((current) => current ?? EMPTY_FORENSIC_OVERVIEW)
       toast.error(nextError.title, {
         description: nextError.description,
       })
@@ -120,28 +159,22 @@ export function ForensicOverviewPage({ context }: Props) {
           onRefresh={refresh}
         />
 
-        {!data ? (
-          loading ? <OverviewSkeleton /> : null
-        ) : (
-          <>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-              <ForensicServiceStatusCard availability={data.availability} />
-              <ForensicEndpointStatusSummary summary={data.endpoint_summary} />
-              <ForensicTaskStatusSummary summary={data.task_summary} />
-              <ForensicArtifactCategorySummary summary={data.artifact_summary} />
-            </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <ForensicServiceStatusCard availability={overview.availability} />
+          <ForensicEndpointStatusSummary summary={overview.endpoint_summary} />
+          <ForensicTaskStatusSummary summary={overview.task_summary} />
+          <ForensicArtifactCategorySummary summary={overview.artifact_summary} />
+        </div>
 
-            <div className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
-              <div className="min-h-[300px] lg:col-span-2">
-                <ForensicRecentTaskSummary tasks={data.recent_tasks} />
-              </div>
-              <div className="flex min-h-[300px] flex-col gap-4">
-                <ForensicRiskNoticePanel notices={data.notices} availability={data.availability} />
-                <ForensicQuickLinks />
-              </div>
-            </div>
-          </>
-        )}
+        <div className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
+          <div className="min-h-[300px] lg:col-span-2">
+            <ForensicRecentTaskSummary tasks={overview.recent_tasks} />
+          </div>
+          <div className="flex min-h-[300px] flex-col gap-4">
+            <ForensicRiskNoticePanel notices={overview.notices} availability={overview.availability} />
+            <ForensicQuickLinks />
+          </div>
+        </div>
       </div>
     </main>
   )

@@ -2,7 +2,6 @@
 
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
-import { mockForensicOverview } from "./mock"
 import type {
   ForensicAvailabilityLevel,
   ForensicNoticeLevel,
@@ -11,9 +10,6 @@ import type {
   ListForensicTasksData,
   ListForensicTasksRequest,
 } from "./types"
-
-const ENABLE_MOCK_FALLBACK =
-  process.env.NEXT_PUBLIC_FORENSIC_ENABLE_MOCK === "true"
 
 const AVAILABILITY_LEVELS = new Set<ForensicAvailabilityLevel>([
   "available",
@@ -160,36 +156,19 @@ export async function getForensicOverview(
   context: Pick<ForensicOverviewContext, "case_id"> = {},
 ): Promise<ForensicOverviewViewModel> {
   const caseId = context.case_id?.trim()
-  try {
-    const result = await http.post("getForensicOverview", {
-      request_id: createRequestId(),
-      ...(caseId ? { case_id: caseId } : {}),
-    })
-    return normalizeOverview(result.data as Partial<ForensicOverviewViewModel>)
-  } catch (error) {
-    if (!ENABLE_MOCK_FALLBACK) {
-      throw error
-    }
-    return {
-      ...mockForensicOverview,
-      last_refresh_at: Math.floor(Date.now() / 1000),
-    }
-  }
+  const result = await http.post("getForensicOverview", {
+    request_id: createRequestId(),
+    ...(caseId ? { case_id: caseId } : {}),
+  })
+  return normalizeOverview(result.data as Partial<ForensicOverviewViewModel>)
 }
 
 export async function syncForensicEndpoints(): Promise<{ synced_count: number }> {
-  try {
-    const result = await http.post("syncForensicEndpoints", {
-      request_id: createRequestId(),
-    })
-    const data = result.data as { synced_count?: number } | null
-    return { synced_count: numberValue(data?.synced_count) }
-  } catch (error) {
-    if (!ENABLE_MOCK_FALLBACK) {
-      throw error
-    }
-    return { synced_count: 0 }
-  }
+  const result = await http.post("syncForensicEndpoints", {
+    request_id: createRequestId(),
+  })
+  const data = result.data as { synced_count?: number } | null
+  return { synced_count: numberValue(data?.synced_count) }
 }
 
 export async function listForensicTasks(
@@ -197,40 +176,19 @@ export async function listForensicTasks(
 ): Promise<ListForensicTasksData> {
   const page = params.page || 1
   const pageSize = params.page_size || 20
-  try {
-    const result = await http.post("listForensicTasks", {
-      request_id: createRequestId(),
-      ...params,
-      page,
-      page_size: pageSize,
-    })
-    const data = result.data as Partial<ListForensicTasksData> | null
-    return {
-      items: Array.isArray(data?.items) ? data.items : [],
-      pagination: {
-        page: numberValue(data?.pagination?.page) || page,
-        page_size: numberValue(data?.pagination?.page_size) || pageSize,
-        total_count: numberValue(data?.pagination?.total_count),
-      },
-    }
-  } catch (error) {
-    if (!ENABLE_MOCK_FALLBACK) {
-      throw error
-    }
-    return {
-      items: mockForensicOverview.recent_tasks.map((task) => ({
-        ...task,
-        tenant_id: "",
-        case_id: params.case_id,
-        workflow_id: params.workflow_id,
-        workflow_action_id: params.workflow_action_id,
-        endpoint_id: params.endpoint_id,
-      })),
-      pagination: {
-        page,
-        page_size: pageSize,
-        total_count: mockForensicOverview.recent_tasks.length,
-      },
-    }
+  const result = await http.post("listForensicTasks", {
+    request_id: createRequestId(),
+    ...params,
+    page,
+    page_size: pageSize,
+  })
+  const data = result.data as Partial<ListForensicTasksData> | null
+  return {
+    items: Array.isArray(data?.items) ? data.items : [],
+    pagination: {
+      page: numberValue(data?.pagination?.page) || page,
+      page_size: numberValue(data?.pagination?.page_size) || pageSize,
+      total_count: numberValue(data?.pagination?.total_count),
+    },
   }
 }

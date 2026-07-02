@@ -13,7 +13,7 @@ interface Props {
   syncing: boolean
   refreshing: boolean
   onRefresh: () => void
-  onSync: () => Promise<{ synced_count: number; usedMock: boolean }>
+  onSync: () => Promise<{ synced_count: number }>
   onOpenTaskCenter: () => void
 }
 
@@ -38,11 +38,7 @@ export function ForensicOverviewToolbar({
     try {
       const res = await onSync()
       if (res.synced_count > 0) {
-        toast.success(`同步完成，共 ${res.synced_count} 个终端`, {
-          description: res.usedMock
-            ? "当前为演示数据，接入后端后展示真实同步结果。"
-            : undefined,
-        })
+        toast.success(`同步完成，共 ${res.synced_count} 个终端`)
       } else {
         toast.warning("没有同步到任何终端", {
           description: "请确认 Velociraptor 客户端是否已上线。",

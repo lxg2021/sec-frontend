@@ -2070,8 +2070,20 @@
             "taskId": "任务 ID",
             "status": "状态",
             "artifact": "工件",
-            "target": "目标终端",
+            "target": "目标主机",
+            "hostId": "主机ID",
+            "hostname": "主机名",
+            "ip": "IP",
+            "mac": "MAC",
+            "online": "在线状态",
             "updatedAt": "更新时间"
+          },
+          "noHostInfo": "未同步主机信息",
+          "onlineStatus": {
+            "online": "在线",
+            "offline": "离线",
+            "unknown": "未知",
+            "unsynced": "未同步"
           }
         },
         "riskNotice": {

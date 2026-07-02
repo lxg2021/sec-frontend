@@ -24,7 +24,6 @@ interface BlockState<T> {
   data: T
   loading: boolean
   error: string | null
-  usedMock: boolean
   selected?: T extends ForensicEndpointItem[] ? ForensicEndpointItem : never
 }
 
@@ -46,22 +45,19 @@ export function useForensicOverview(ctx: ForensicContext) {
     data: [],
     loading: true,
     error: null,
-    usedMock: false,
   })
   const [artifacts, setArtifacts] = useState<
     BlockState<ForensicArtifactDefinitionItem[]>
-  >({ data: [], loading: true, error: null, usedMock: false })
+  >({ data: [], loading: true, error: null })
   const [tasks, setTasks] = useState<BlockState<ForensicTaskItem[]>>({
     data: [],
     loading: true,
     error: null,
-    usedMock: false,
   })
   const [evidence, setEvidence] = useState<BlockState<ForensicEvidenceItem[]>>({
     data: [],
     loading: true,
     error: null,
-    usedMock: false,
   })
 
   const [endpointTotal, setEndpointTotal] = useState(0)
@@ -98,7 +94,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: res.items,
         loading: false,
         error: null,
-        usedMock: Boolean(res.__usedMock),
         selected,
       })
     } catch (e) {
@@ -107,7 +102,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: [],
         loading: false,
         error: (e as Error).message || "终端列表加载失败",
-        usedMock: false,
       })
     }
   }, [ctx.agent_id, ctx.endpoint_id])
@@ -121,7 +115,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: res.items,
         loading: false,
         error: null,
-        usedMock: Boolean(res.__usedMock),
       })
     } catch (e) {
       if (!mountedRef.current) return
@@ -129,7 +122,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: [],
         loading: false,
         error: (e as Error).message || "工件列表加载失败",
-        usedMock: false,
       })
     }
   }, [])
@@ -150,7 +142,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: res.items,
         loading: false,
         error: null,
-        usedMock: Boolean(res.__usedMock),
       })
     } catch (e) {
       if (!mountedRef.current) return
@@ -158,7 +149,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: [],
         loading: false,
         error: (e as Error).message || "任务列表加载失败",
-        usedMock: false,
       })
     }
   }, [ctx.case_id, ctx.endpoint_id, ctx.workflow_action_id, ctx.workflow_id])
@@ -177,7 +167,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: res.items,
         loading: false,
         error: null,
-        usedMock: Boolean(res.__usedMock),
       })
     } catch (e) {
       if (!mountedRef.current) return
@@ -185,7 +174,6 @@ export function useForensicOverview(ctx: ForensicContext) {
         data: [],
         loading: false,
         error: (e as Error).message || "证据列表加载失败",
-        usedMock: false,
       })
     }
   }, [ctx.case_id])
@@ -227,7 +215,6 @@ export function useForensicOverview(ctx: ForensicContext) {
       await loadEndpoints()
       return {
         synced_count: res.synced_count,
-        usedMock: Boolean(res.__usedMock),
       }
     } finally {
       if (mountedRef.current) setSyncing(false)
@@ -275,20 +262,6 @@ export function useForensicOverview(ctx: ForensicContext) {
   // 后端能力提示
   const notices: BackendNotice[] = useMemo(() => {
     const list: BackendNotice[] = []
-    const anyMock =
-      endpoints.usedMock ||
-      artifacts.usedMock ||
-      tasks.usedMock ||
-      evidence.usedMock
-    if (anyMock) {
-      list.push({
-        id: "mock",
-        level: "warning",
-        title: "当前展示为演示数据",
-        description:
-          "未检测到可用的取证后端接口（/sensor/analysis/forensic/*），页面回退到内置示例数据。接入真实网关后将自动展示线上数据。",
-      })
-    }
     if (artifacts.error) {
       list.push({
         id: "artifacts-error",
@@ -330,16 +303,12 @@ export function useForensicOverview(ctx: ForensicContext) {
     })
     return list
   }, [
-    endpoints.usedMock,
     endpoints.error,
     endpoints.loading,
     endpoints.data.length,
-    artifacts.usedMock,
     artifacts.error,
     artifacts.loading,
     artifacts.data.length,
-    tasks.usedMock,
-    evidence.usedMock,
   ])
 
   return {
