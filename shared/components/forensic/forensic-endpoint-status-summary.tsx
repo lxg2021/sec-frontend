@@ -1,10 +1,10 @@
 "use client"
 
 import { Monitor } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/shared/ui/card"
+import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicEndpointSummary } from "@/shared/lib/forensic/types"
-import { ForensicPanelHeader } from "./forensic-panel-chrome"
+import { ForensicPanelHeader, ForensicSummaryCard } from "./forensic-panel-chrome"
 
 interface Props {
   summary: ForensicEndpointSummary
@@ -19,7 +19,7 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
   const max = Math.max(summary.total, 1)
 
   return (
-    <Card className="h-full">
+    <ForensicSummaryCard color="from-green-400 to-emerald-600">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={Monitor}
@@ -48,6 +48,6 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
           ))}
         </ul>
       </CardContent>
-    </Card>
+    </ForensicSummaryCard>
   )
 }

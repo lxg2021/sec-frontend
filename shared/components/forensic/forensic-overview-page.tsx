@@ -23,7 +23,7 @@ interface Props {
 function OverviewSkeleton() {
   return (
     <div className="space-y-6" aria-hidden>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-64 rounded-lg" />
         ))}
@@ -136,7 +136,7 @@ export function ForensicOverviewPage({ context }: Props) {
           loading ? <OverviewSkeleton /> : null
         ) : (
           <>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
               <ForensicServiceStatusCard availability={data.availability} />
               <ForensicEndpointStatusSummary summary={data.endpoint_summary} />
               <ForensicTaskStatusSummary summary={data.task_summary} />

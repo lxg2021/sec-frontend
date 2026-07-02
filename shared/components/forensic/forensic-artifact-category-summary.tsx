@@ -2,10 +2,10 @@
 
 import Link from "next/link"
 import { Boxes } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/shared/ui/card"
+import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicArtifactSummary } from "@/shared/lib/forensic/types"
-import { ForensicPanelHeader } from "./forensic-panel-chrome"
+import { ForensicPanelHeader, ForensicSummaryCard } from "./forensic-panel-chrome"
 
 interface Props {
   summary: ForensicArtifactSummary
@@ -22,7 +22,7 @@ const CATEGORIES = [
 
 export function ForensicArtifactCategorySummary({ summary }: Props) {
   return (
-    <Card className="h-full">
+    <ForensicSummaryCard color="from-yellow-400 to-amber-600">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={Boxes}
@@ -68,6 +68,6 @@ export function ForensicArtifactCategorySummary({ summary }: Props) {
           })}
         </div>
       </CardContent>
-    </Card>
+    </ForensicSummaryCard>
   )
 }

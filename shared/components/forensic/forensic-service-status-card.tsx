@@ -1,10 +1,10 @@
 "use client"
 
 import { ScanSearch, ShieldCheck } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/shared/ui/card"
+import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewAvailability } from "@/shared/lib/forensic/types"
-import { ForensicPanelHeader } from "./forensic-panel-chrome"
+import { ForensicPanelHeader, ForensicSummaryCard } from "./forensic-panel-chrome"
 
 interface Props {
   availability: ForensicOverviewAvailability
@@ -50,7 +50,7 @@ function StatusRow({
 
 export function ForensicServiceStatusCard({ availability }: Props) {
   return (
-    <Card className="h-full">
+    <ForensicSummaryCard color="from-cyan-400 to-blue-600">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={ScanSearch}
@@ -101,6 +101,6 @@ export function ForensicServiceStatusCard({ availability }: Props) {
           </div>
         </div>
       </CardContent>
-    </Card>
+    </ForensicSummaryCard>
   )
 }

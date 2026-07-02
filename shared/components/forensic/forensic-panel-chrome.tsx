@@ -1,8 +1,8 @@
 "use client"
 
-import type { ReactNode } from "react"
+import type { HTMLAttributes, ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
-import { CardDescription, CardTitle } from "@/shared/ui/card"
+import { Card, CardDescription, CardTitle } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 
 export type ForensicIconTone =
@@ -24,6 +24,31 @@ const ICON_TONE_CLASS: Record<ForensicIconTone, string> = {
   amber: "bg-amber-500/12 text-amber-700 ring-amber-500/25 dark:text-amber-300 dark:ring-amber-400/20",
   red: "bg-red-500/10 text-red-600 ring-red-500/20 dark:text-red-300 dark:ring-red-400/15",
   slate: "bg-slate-500/10 text-slate-600 ring-slate-500/20 dark:text-slate-300 dark:ring-slate-400/15",
+}
+
+interface ForensicSummaryCardProps extends HTMLAttributes<HTMLDivElement> {
+  color?: string
+  children?: ReactNode
+}
+
+export function ForensicSummaryCard({
+  className,
+  color = "from-cyan-400 to-blue-600",
+  children,
+  ...props
+}: ForensicSummaryCardProps) {
+  return (
+    <Card
+      className={cn(
+        "group relative h-full overflow-hidden rounded-lg border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-slate-950",
+        className
+      )}
+      {...props}
+    >
+      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-5 transition-opacity group-hover:opacity-10", color)} />
+      <div className="relative h-full">{children}</div>
+    </Card>
+  )
 }
 
 interface ForensicIconBadgeProps {

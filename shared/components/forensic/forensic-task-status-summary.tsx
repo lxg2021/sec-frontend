@@ -2,10 +2,10 @@
 
 import Link from "next/link"
 import { ListChecks } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/shared/ui/card"
+import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicTaskStatus, ForensicTaskSummary } from "@/shared/lib/forensic/types"
-import { ForensicPanelHeader } from "./forensic-panel-chrome"
+import { ForensicPanelHeader, ForensicSummaryCard } from "./forensic-panel-chrome"
 
 interface Props {
   summary: ForensicTaskSummary
@@ -24,7 +24,7 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
   const total = LEGEND.reduce((sum, item) => sum + summary[item.key], 0)
 
   return (
-    <Card className="h-full">
+    <ForensicSummaryCard color="from-violet-400 to-purple-600">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={ListChecks}
@@ -64,6 +64,6 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
         </div>
 
       </CardContent>
-    </Card>
+    </ForensicSummaryCard>
   )
 }
