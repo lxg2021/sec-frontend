@@ -1,6 +1,6 @@
 "use client"
 
-import { RefreshCw, ScanSearch } from "lucide-react"
+import { Clock3, RefreshCw, ScanSearch } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewContext } from "@/shared/lib/forensic/types"
@@ -8,6 +8,7 @@ import type { ForensicOverviewContext } from "@/shared/lib/forensic/types"
 interface Props {
   context: ForensicOverviewContext
   loading?: boolean
+  refreshedAt?: Date | null
   onRefresh?: () => void
 }
 
@@ -19,9 +20,29 @@ const CONTEXT_LABELS: Record<keyof ForensicOverviewContext, string> = {
   endpoint_id: "终端",
 }
 
+function formatRefreshTime(value?: Date | null): string {
+  if (!value) return "--"
+
+  const parts = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(value)
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")} ${getPart("hour")}:${getPart("minute")}:${getPart("second")}`
+}
+
 export function ForensicOverviewHeader({
   context,
   loading,
+  refreshedAt,
   onRefresh,
 }: Props) {
   const contextEntries = (Object.keys(CONTEXT_LABELS) as (keyof ForensicOverviewContext)[])
@@ -56,7 +77,21 @@ export function ForensicOverviewHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
-          <div className="flex items-center lg:border-l lg:border-slate-200 lg:pl-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+                <Clock3 aria-hidden className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs text-slate-400">更新时间</div>
+                <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
+                  {formatRefreshTime(refreshedAt)}
+                </div>
+              </div>
+            </div>
+
+            <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
             <Button
               type="button"
               variant="ghost"
@@ -64,7 +99,7 @@ export function ForensicOverviewHeader({
               onClick={onRefresh}
               disabled={loading}
               aria-label="刷新取证概览"
-              className="h-10 w-10 shrink-0 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
             >
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
               <span className="sr-only">刷新取证概览</span>

@@ -68,6 +68,7 @@ export function ForensicOverviewPage({ context }: Props) {
   const [data, setData] = useState<ForensicOverviewViewModel | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -75,6 +76,7 @@ export function ForensicOverviewPage({ context }: Props) {
       setError(null)
       const next = await getForensicOverview({ case_id: context.case_id })
       setData(next)
+      setRefreshedAt(new Date())
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -92,6 +94,7 @@ export function ForensicOverviewPage({ context }: Props) {
         <ForensicOverviewHeader
           context={context}
           loading={loading}
+          refreshedAt={refreshedAt}
           onRefresh={refresh}
         />
 
