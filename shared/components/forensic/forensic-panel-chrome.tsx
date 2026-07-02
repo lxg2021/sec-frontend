@@ -9,6 +9,7 @@ export type ForensicIconTone =
   | "cyan"
   | "sky"
   | "teal"
+  | "indigo"
   | "emerald"
   | "amber"
   | "red"
@@ -18,6 +19,7 @@ const ICON_TONE_CLASS: Record<ForensicIconTone, string> = {
   cyan: "bg-cyan-500/10 text-cyan-600 ring-cyan-500/20 dark:text-cyan-300 dark:ring-cyan-400/15",
   sky: "bg-sky-500/10 text-sky-600 ring-sky-500/20 dark:text-sky-300 dark:ring-sky-400/15",
   teal: "bg-teal-500/10 text-teal-600 ring-teal-500/20 dark:text-teal-300 dark:ring-teal-400/15",
+  indigo: "bg-indigo-500/10 text-indigo-600 ring-indigo-500/20 dark:text-indigo-300 dark:ring-indigo-400/15",
   emerald: "bg-emerald-500/10 text-emerald-600 ring-emerald-500/20 dark:text-emerald-300 dark:ring-emerald-400/15",
   amber: "bg-amber-500/12 text-amber-700 ring-amber-500/25 dark:text-amber-300 dark:ring-amber-400/20",
   red: "bg-red-500/10 text-red-600 ring-red-500/20 dark:text-red-300 dark:ring-red-400/15",
@@ -84,4 +86,3 @@ export function ForensicPanelHeader({
     </div>
   )
 }
-

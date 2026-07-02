@@ -26,12 +26,12 @@ export function ForensicArtifactCategorySummary({ summary }: Props) {
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={Boxes}
-          tone="slate"
+          tone="indigo"
           title="工件分类摘要"
           description="展示已启用工件覆盖面，不展示底层执行细节"
           action={
-            <span className="mt-1 inline-flex shrink-0 items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border">
-              共 <span className="mx-1 font-semibold tabular-nums text-foreground">{summary.total_enabled}</span> 个
+            <span className="mt-1 inline-flex shrink-0 items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-400/20">
+              共 <span className="mx-1 font-semibold tabular-nums text-indigo-900 dark:text-indigo-100">{summary.total_enabled}</span> 个
             </span>
           }
         />

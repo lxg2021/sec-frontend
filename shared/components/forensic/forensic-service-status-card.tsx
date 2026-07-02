@@ -1,12 +1,11 @@
 "use client"
 
-import { AlertTriangle, CheckCircle2, ShieldCheck, XCircle } from "lucide-react"
+import { ScanSearch, ShieldCheck } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewAvailability } from "@/shared/lib/forensic/types"
 import { formatTimestamp } from "@/shared/lib/forensic/utils"
-import { ForensicPanelHeader, type ForensicIconTone } from "./forensic-panel-chrome"
-import { AVAILABILITY_LEVEL_CONFIG } from "./status-config"
+import { ForensicPanelHeader } from "./forensic-panel-chrome"
 
 interface Props {
   availability: ForensicOverviewAvailability
@@ -17,6 +16,12 @@ const STATUS_LABEL: Record<ForensicOverviewAvailability["level"], string> = {
   available: "可用",
   partial: "部分可用",
   unavailable: "不可用",
+}
+
+const STATUS_BADGE_CLASS: Record<ForensicOverviewAvailability["level"], string> = {
+  available: "bg-teal-50 text-teal-700 ring-teal-200 dark:bg-teal-500/10 dark:text-teal-300 dark:ring-teal-400/20",
+  partial: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-400/20",
+  unavailable: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-500/10 dark:text-slate-300 dark:ring-slate-400/20",
 }
 
 function StatusRow({
@@ -46,30 +51,21 @@ function StatusRow({
 }
 
 export function ForensicServiceStatusCard({ availability, lastRefreshAt }: Props) {
-  const config = AVAILABILITY_LEVEL_CONFIG[availability.level]
-  const LevelIcon =
-    availability.level === "available"
-      ? CheckCircle2
-      : availability.level === "unavailable"
-        ? XCircle
-        : AlertTriangle
-  const tone: ForensicIconTone =
-    availability.level === "available"
-      ? "emerald"
-      : availability.level === "unavailable"
-        ? "red"
-        : "amber"
-
   return (
     <Card className="h-full">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
-          icon={LevelIcon}
-          tone={tone}
+          icon={ScanSearch}
+          tone="cyan"
           title="取证状态"
           description={availability.summary}
           action={
-            <span className={cn("mt-1 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium", config.ring)}>
+            <span
+              className={cn(
+                "mt-1 inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1",
+                STATUS_BADGE_CLASS[availability.level]
+              )}
+            >
               <ShieldCheck aria-hidden className="size-3.5" />
               {STATUS_LABEL[availability.level]}
             </span>
