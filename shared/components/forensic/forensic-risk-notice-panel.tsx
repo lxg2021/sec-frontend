@@ -19,15 +19,15 @@ const LEVEL_WEIGHT: Record<ForensicNoticeLevel, number> = {
 
 const LEVEL_CONFIG: Record<ForensicNoticeLevel, { wrap: string; action: string }> = {
   error: {
-    wrap: "border-red-500/25 bg-red-500/10",
+    wrap: "bg-red-500/10",
     action: "text-red-700",
   },
   warning: {
-    wrap: "border-amber-500/25 bg-amber-500/10",
+    wrap: "bg-amber-500/10",
     action: "text-amber-700",
   },
   info: {
-    wrap: "border-sky-500/25 bg-sky-500/10",
+    wrap: "bg-sky-500/10",
     action: "text-blue-700",
   },
 }
@@ -49,7 +49,7 @@ export function ForensicRiskNoticePanel({ notices }: Props) {
       </CardHeader>
       <CardContent className="px-5 pb-5">
         {sorted.length === 0 ? (
-          <div className="rounded-md border border-emerald-500/25 bg-emerald-500/10 px-3 py-3 text-sm font-medium leading-6 text-foreground">
+          <div className="rounded-md bg-emerald-500/10 px-3 py-3 text-sm font-medium leading-6 text-foreground">
             当前没有需要处理的风险
           </div>
         ) : (
@@ -57,7 +57,7 @@ export function ForensicRiskNoticePanel({ notices }: Props) {
             {sorted.map((notice) => {
               const config = LEVEL_CONFIG[notice.level]
               return (
-                <li key={notice.id} className={cn("flex items-start gap-3 rounded-md border px-3 py-2.5", config.wrap)}>
+                <li key={notice.id} className={cn("flex items-start gap-3 rounded-md px-3 py-2.5", config.wrap)}>
                   <p className="min-w-0 flex-1 text-sm font-medium leading-6 text-foreground">{notice.title}</p>
                   {notice.action_label && notice.action_href && (
                     <Link href={notice.action_href} className={cn("mt-1 inline-flex shrink-0 items-center text-xs font-semibold hover:underline", config.action)}>
