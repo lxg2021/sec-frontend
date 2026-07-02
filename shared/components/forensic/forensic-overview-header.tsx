@@ -1,6 +1,8 @@
 "use client"
 
-import { Clock3, RefreshCw, ScanSearch } from "lucide-react"
+import type { FormEvent } from "react"
+import { useEffect, useState } from "react"
+import { Clock3, RefreshCw, ScanSearch, Search } from "lucide-react"
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewContext } from "@/shared/lib/forensic/types"
@@ -9,6 +11,8 @@ interface Props {
   context: ForensicOverviewContext
   loading?: boolean
   refreshedAt?: Date | null
+  caseId?: string
+  onCaseIdSubmit?: (caseId: string) => void
   onRefresh?: () => void
 }
 
@@ -43,14 +47,26 @@ export function ForensicOverviewHeader({
   context,
   loading,
   refreshedAt,
+  caseId,
+  onCaseIdSubmit,
   onRefresh,
 }: Props) {
+  const [caseInput, setCaseInput] = useState(caseId ?? "")
   const contextEntries = (Object.keys(CONTEXT_LABELS) as (keyof ForensicOverviewContext)[])
     .map((key) => ({ key, value: context[key] }))
     .filter((item) => Boolean(item.value))
   const scopeText = contextEntries.length
     ? contextEntries.map((item) => `${CONTEXT_LABELS[item.key]}：${item.value}`).join(" / ")
     : "全部终端"
+
+  useEffect(() => {
+    setCaseInput(caseId ?? "")
+  }, [caseId])
+
+  function handleCaseSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    onCaseIdSubmit?.(caseInput)
+  }
 
   return (
     <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
@@ -77,7 +93,33 @@ export function ForensicOverviewHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+            <form
+              className="flex h-12 w-full min-w-[320px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 pl-4 pr-1 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
+              onSubmit={handleCaseSubmit}
+            >
+              <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+              <input
+                type="search"
+                aria-label="输入 CaseID"
+                value={caseInput}
+                onChange={(event) => setCaseInput(event.target.value)}
+                placeholder="请输入 CaseID"
+                disabled={loading}
+                className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+              <Button
+                type="submit"
+                disabled={loading}
+                className="h-10 shrink-0 rounded-full bg-blue-600 px-4 text-white shadow-sm shadow-blue-600/20 hover:bg-blue-700"
+              >
+                <Search aria-hidden className="h-4 w-4" />
+                查询
+              </Button>
+            </form>
+
+            <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
                 <Clock3 aria-hidden className="h-4 w-4" />

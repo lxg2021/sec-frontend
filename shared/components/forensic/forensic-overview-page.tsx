@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/shared/ui/card"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Button } from "@/shared/ui/button"
@@ -65,6 +66,7 @@ function errorMessage(error: unknown): string {
 }
 
 export function ForensicOverviewPage({ context }: Props) {
+  const router = useRouter()
   const [data, setData] = useState<ForensicOverviewViewModel | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -84,6 +86,33 @@ export function ForensicOverviewPage({ context }: Props) {
     }
   }, [context.case_id])
 
+  const handleCaseIdSubmit = useCallback(
+    (caseId: string) => {
+      const nextCaseID = caseId.trim()
+      const currentCaseID = context.case_id?.trim() ?? ""
+      if (nextCaseID === currentCaseID) {
+        void refresh()
+        return
+      }
+
+      const params = new URLSearchParams(window.location.search)
+      if (nextCaseID) {
+        params.set("case_id", nextCaseID)
+      } else {
+        params.delete("case_id")
+      }
+
+      const query = params.toString()
+      router.push(`${window.location.pathname}${query ? `?${query}` : ""}`)
+    },
+    [context.case_id, refresh, router]
+  )
+
+  useEffect(() => {
+    setData(null)
+    setRefreshedAt(null)
+  }, [context.case_id])
+
   useEffect(() => {
     void refresh()
   }, [refresh])
@@ -95,6 +124,8 @@ export function ForensicOverviewPage({ context }: Props) {
           context={context}
           loading={loading}
           refreshedAt={refreshedAt}
+          caseId={context.case_id}
+          onCaseIdSubmit={handleCaseIdSubmit}
           onRefresh={refresh}
         />
 
