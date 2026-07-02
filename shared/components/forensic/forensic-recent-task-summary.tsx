@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Box, ChevronRight, Clock3 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicRecentTaskView } from "@/shared/lib/forensic/types"
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function ForensicRecentTaskSummary({ tasks }: Props) {
+  const t = useTranslations("pages.investigation.collection")
   const items = tasks.slice(0, 5)
 
   return (
@@ -22,14 +24,14 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
         <ForensicPanelHeader
           icon={Clock3}
           tone="teal"
-          title="最近取证任务"
-          description="最多展示 5 条，详情进入任务中心"
+          title={t("recentTasks.title")}
+          description={t("recentTasks.description")}
           action={
             <Link
               href="/frame/investigation/tasks"
               className="mt-1 inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              查看更多
+              {t("recentTasks.viewMore")}
               <ChevronRight className="size-3.5" />
             </Link>
           }
@@ -39,19 +41,19 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
         {items.length === 0 ? (
           <div className="flex min-h-[220px] flex-1 flex-col items-center justify-center text-center">
             <Box className="size-12 stroke-[1.8] text-slate-300" aria-hidden />
-            <div className="mt-3 text-sm font-medium text-slate-500">暂无取证任务</div>
-            <div className="mt-2 text-xs text-slate-500">请新建取证任务后查看执行记录</div>
+            <div className="mt-3 text-sm font-medium text-slate-500">{t("recentTasks.emptyTitle")}</div>
+            <div className="mt-2 text-xs text-slate-500">{t("recentTasks.emptyDescription")}</div>
           </div>
         ) : (
           <div className="w-full overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="pb-2 pr-3 font-medium">任务 ID</th>
-                  <th className="pb-2 pr-3 font-medium">状态</th>
-                  <th className="pb-2 pr-3 font-medium">工件</th>
-                  <th className="pb-2 pr-3 font-medium">目标终端</th>
-                  <th className="pb-2 font-medium">更新时间</th>
+                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.taskId")}</th>
+                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.status")}</th>
+                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.artifact")}</th>
+                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.target")}</th>
+                  <th className="pb-2 font-medium">{t("recentTasks.columns.updatedAt")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -67,7 +69,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                       <td className="py-3 pr-3">
                         <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium", config.className)}>
                           <span className={cn("size-1.5 rounded-full", config.dot)} />
-                          {config.label}
+                          {t(`taskStatus.${task.status}`)}
                         </span>
                       </td>
                       <td className="py-3 pr-3 font-mono text-xs text-muted-foreground">{task.artifact_key}</td>

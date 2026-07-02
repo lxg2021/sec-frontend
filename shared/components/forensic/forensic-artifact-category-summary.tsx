@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Boxes } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicArtifactSummary } from "@/shared/lib/forensic/types"
@@ -12,22 +13,23 @@ interface Props {
 }
 
 const CATEGORIES = [
-  { key: "file", label: "文件", source: "FileFinder", empty: "未启用" },
-  { key: "registry", label: "注册表", source: "Registry", empty: "未启用" },
-  { key: "eventlog", label: "日志", source: "EventLog", empty: "未启用" },
-  { key: "ntfs", label: "NTFS", source: "NTFS.MFT", empty: "未启用" },
-  { key: "application", label: "应用", source: "AppCompat", empty: "待扩展" },
-  { key: "forensic", label: "其他", source: "Forensic", empty: "待扩展" },
+  { key: "file", source: "FileFinder", emptyKey: "notEnabled" },
+  { key: "registry", source: "Registry", emptyKey: "notEnabled" },
+  { key: "eventlog", source: "EventLog", emptyKey: "notEnabled" },
+  { key: "ntfs", source: "NTFS.MFT", emptyKey: "notEnabled" },
+  { key: "application", source: "AppCompat", emptyKey: "pendingExtension" },
+  { key: "forensic", source: "Forensic", emptyKey: "pendingExtension" },
 ]
 
 export function ForensicArtifactCategorySummary({ summary }: Props) {
+  const t = useTranslations("pages.investigation.collection.artifactSummary")
   return (
     <ForensicSummaryCard color="from-yellow-400 to-amber-600">
       <CardHeader className="p-5 pb-4">
         <ForensicPanelHeader
           icon={Boxes}
           iconColor="from-yellow-400 to-amber-600"
-          title="工件分类摘要"
+          title={t("title")}
         />
       </CardHeader>
       <CardContent className="px-5 pb-5">
@@ -48,14 +50,14 @@ export function ForensicArtifactCategorySummary({ summary }: Props) {
               >
                 <div className="flex items-center justify-between gap-1">
                   <span className={cn("truncate text-xs font-medium", active ? "text-foreground" : "text-muted-foreground")}>
-                    {cat.label}
+                    {t(`categories.${cat.key}`)}
                   </span>
                   <span className={cn("text-sm font-semibold tabular-nums", active ? "text-foreground" : "text-muted-foreground")}>
                     {value}
                   </span>
                 </div>
                 <span className="truncate text-[10px] text-muted-foreground">
-                  {active ? cat.source : cat.empty}
+                  {active ? cat.source : t(cat.emptyKey)}
                 </span>
               </Link>
             )

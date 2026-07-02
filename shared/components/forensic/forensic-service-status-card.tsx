@@ -1,6 +1,7 @@
 "use client"
 
 import { ScanSearch } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicOverviewAvailability } from "@/shared/lib/forensic/types"
@@ -37,6 +38,7 @@ function StatusRow({
 }
 
 export function ForensicServiceStatusCard({ availability }: Props) {
+  const t = useTranslations("pages.investigation.collection.serviceStatus")
   const max = Math.max(
     availability.available_endpoint_count,
     availability.unbound_endpoint_count,
@@ -50,25 +52,25 @@ export function ForensicServiceStatusCard({ availability }: Props) {
         <ForensicPanelHeader
           icon={ScanSearch}
           iconColor="from-cyan-400 to-blue-600"
-          title="取证状态"
+          title={t("title")}
         />
       </CardHeader>
       <CardContent className="space-y-3 px-5 pb-5">
         <div className="grid gap-3">
           <StatusRow
-            label="可下发终端"
+            label={t("availableEndpoint")}
             value={availability.available_endpoint_count}
             max={max}
             bar="bg-emerald-600"
           />
           <StatusRow
-            label="未绑定终端"
+            label={t("unboundEndpoint")}
             value={availability.unbound_endpoint_count}
             max={max}
             bar="bg-amber-500"
           />
           <StatusRow
-            label="可用工件"
+            label={t("enabledArtifact")}
             value={availability.enabled_artifact_count}
             max={max}
             bar="bg-cyan-600"

@@ -2007,6 +2007,105 @@
         }
       }
     },
+    "investigation": {
+      "collection": {
+        "header": {
+          "title": "取证概览",
+          "subtitle": "远程取证",
+          "caseInputLabel": "输入 CaseID",
+          "casePlaceholder": "请输入 CaseID",
+          "updatedAt": "更新时间",
+          "refreshLabel": "刷新取证概览"
+        },
+        "errors": {
+          "caseNotFoundTitle": "未找到对应案件",
+          "caseNotFoundDescription": "CaseID {caseId} 不存在或当前租户不可访问",
+          "caseNotFoundDescriptionNoCase": "当前 CaseID 不存在或当前租户不可访问",
+          "loadFailedTitle": "取证概览加载失败",
+          "retryLater": "请稍后重试"
+        },
+        "serviceStatus": {
+          "title": "取证状态",
+          "availableEndpoint": "可下发终端",
+          "unboundEndpoint": "未绑定终端",
+          "enabledArtifact": "可用工件"
+        },
+        "endpointSummary": {
+          "title": "终端状态摘要",
+          "online": "在线",
+          "offline": "离线",
+          "unbound": "未绑定"
+        },
+        "taskSummary": {
+          "title": "任务状态摘要"
+        },
+        "taskStatus": {
+          "pending": "待下发",
+          "running": "运行中",
+          "success": "成功",
+          "failed": "失败",
+          "timeout": "超时",
+          "canceled": "取消"
+        },
+        "artifactSummary": {
+          "title": "工件分类摘要",
+          "notEnabled": "未启用",
+          "pendingExtension": "待扩展",
+          "categories": {
+            "file": "文件",
+            "registry": "注册表",
+            "eventlog": "日志",
+            "ntfs": "NTFS",
+            "application": "应用",
+            "forensic": "其他"
+          }
+        },
+        "recentTasks": {
+          "title": "最近取证任务",
+          "description": "最多展示 5 条，详情进入任务中心",
+          "viewMore": "查看更多",
+          "emptyTitle": "暂无取证任务",
+          "emptyDescription": "请新建取证任务后查看执行记录",
+          "columns": {
+            "taskId": "任务 ID",
+            "status": "状态",
+            "artifact": "工件",
+            "target": "目标终端",
+            "updatedAt": "更新时间"
+          }
+        },
+        "riskNotice": {
+          "title": "风险提醒",
+          "description": "展示影响取证任务下发和结果回收的异常项",
+          "empty": "当前没有需要处理的风险",
+          "actions": {
+            "view": "查看"
+          },
+          "notices": {
+            "artifactUnavailable": "当前没有启用取证工件，暂不能新建取证任务",
+            "noTargetAgent": "当前没有纳入取证范围的终端",
+            "noAvailableEndpoint": "当前没有可直接下发取证的在线终端",
+            "endpointUnbound": "{count} 台终端未绑定 Agent，暂不能直接下发取证",
+            "endpointOffline": "{count} 台终端离线或状态未知，暂不能直接下发取证",
+            "taskFailed": "{count} 个取证任务失败，需要进入任务中心查看原因"
+          }
+        },
+        "quickLinks": {
+          "createTask": {
+            "name": "新建任务",
+            "description": "选择终端与工件下发取证"
+          },
+          "taskCenter": {
+            "name": "任务中心",
+            "description": "查看任务详情与远端 flow"
+          },
+          "artifactConfig": {
+            "name": "工件配置",
+            "description": "管理启用的取证工件"
+          }
+        }
+      }
+    },
     "baseline": {
       "dashboard": {
         "title": "安全基线概览",

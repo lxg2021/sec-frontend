@@ -1,6 +1,7 @@
 "use client"
 
 import { Monitor } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicEndpointSummary } from "@/shared/lib/forensic/types"
@@ -11,10 +12,11 @@ interface Props {
 }
 
 export function ForensicEndpointStatusSummary({ summary }: Props) {
+  const t = useTranslations("pages.investigation.collection.endpointSummary")
   const rows = [
-    { key: "online", label: "在线", value: summary.online, bar: "bg-emerald-600" },
-    { key: "offline", label: "离线", value: summary.offline, bar: "bg-muted-foreground/60" },
-    { key: "unbound", label: "未绑定", value: summary.unbound, bar: "bg-amber-500" },
+    { key: "online", label: t("online"), value: summary.online, bar: "bg-emerald-600" },
+    { key: "offline", label: t("offline"), value: summary.offline, bar: "bg-muted-foreground/60" },
+    { key: "unbound", label: t("unbound"), value: summary.unbound, bar: "bg-amber-500" },
   ]
   const max = Math.max(summary.total, 1)
 
@@ -24,7 +26,7 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
         <ForensicPanelHeader
           icon={Monitor}
           iconColor="from-green-400 to-emerald-600"
-          title="终端状态摘要"
+          title={t("title")}
         />
       </CardHeader>
       <CardContent className="space-y-4 px-5 pb-5">

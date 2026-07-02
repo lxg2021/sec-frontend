@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent } from "@/shared/ui/card"
+import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 import { Skeleton } from "@/shared/ui/skeleton"
-import { Button } from "@/shared/ui/button"
 import type { ForensicOverviewContext, ForensicOverviewViewModel } from "@/shared/lib/forensic/types"
 import { getForensicOverview } from "@/shared/lib/forensic/api"
 import { ForensicArtifactCategorySummary } from "./forensic-artifact-category-summary"
@@ -37,54 +37,51 @@ function OverviewSkeleton() {
   )
 }
 
-function OverviewError({
-  message,
-  loading,
-  onRetry,
-}: {
-  message: string
-  loading: boolean
-  onRetry: () => void
-}) {
-  return (
-    <Card className="border-red-200 bg-red-50/70">
-      <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-medium text-red-800">取证概览加载失败</p>
-          <p className="mt-1 text-xs leading-relaxed text-red-700">{message}</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={onRetry} disabled={loading}>
-          重试
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "请稍后重试。"
-}
-
 export function ForensicOverviewPage({ context }: Props) {
+  const t = useTranslations("pages.investigation.collection")
   const router = useRouter()
   const [data, setData] = useState<ForensicOverviewViewModel | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
+
+  const formatOverviewError = useCallback(
+    (error: unknown, caseId?: string): { title: string; description: string } => {
+      const raw = error instanceof Error ? error.message : ""
+      const normalized = raw.toLowerCase()
+      const currentCaseId = caseId?.trim()
+
+      if (normalized.includes("forensic overview case not found")) {
+        return {
+          title: t("errors.caseNotFoundTitle"),
+          description: currentCaseId
+            ? t("errors.caseNotFoundDescription", { caseId: currentCaseId })
+            : t("errors.caseNotFoundDescriptionNoCase"),
+        }
+      }
+
+      return {
+        title: t("errors.loadFailedTitle"),
+        description: raw || t("errors.retryLater"),
+      }
+    },
+    [t]
+  )
 
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      setError(null)
       const next = await getForensicOverview({ case_id: context.case_id })
       setData(next)
       setRefreshedAt(new Date())
     } catch (err) {
-      setError(errorMessage(err))
+      const nextError = formatOverviewError(err, context.case_id)
+      toast.error(nextError.title, {
+        description: nextError.description,
+      })
     } finally {
       setLoading(false)
     }
-  }, [context.case_id])
+  }, [context.case_id, formatOverviewError])
 
   const handleCaseIdSubmit = useCallback(
     (caseId: string) => {
@@ -109,11 +106,6 @@ export function ForensicOverviewPage({ context }: Props) {
   )
 
   useEffect(() => {
-    setData(null)
-    setRefreshedAt(null)
-  }, [context.case_id])
-
-  useEffect(() => {
     void refresh()
   }, [refresh])
 
@@ -127,10 +119,6 @@ export function ForensicOverviewPage({ context }: Props) {
           onCaseIdSubmit={handleCaseIdSubmit}
           onRefresh={refresh}
         />
-
-        {error && (
-          <OverviewError message={error} loading={loading} onRetry={refresh} />
-        )}
 
         {!data ? (
           loading ? <OverviewSkeleton /> : null
@@ -148,7 +136,7 @@ export function ForensicOverviewPage({ context }: Props) {
                 <ForensicRecentTaskSummary tasks={data.recent_tasks} />
               </div>
               <div className="flex min-h-[300px] flex-col gap-4">
-                <ForensicRiskNoticePanel notices={data.notices} />
+                <ForensicRiskNoticePanel notices={data.notices} availability={data.availability} />
                 <ForensicQuickLinks />
               </div>
             </div>

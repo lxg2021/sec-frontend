@@ -3,6 +3,7 @@
 import type { FormEvent } from "react"
 import { useEffect, useState } from "react"
 import { Clock3, RefreshCw, ScanSearch, Search } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/utils"
 
@@ -40,6 +41,7 @@ export function ForensicOverviewHeader({
   onCaseIdSubmit,
   onRefresh,
 }: Props) {
+  const t = useTranslations("pages.investigation.collection.header")
   const [caseInput, setCaseInput] = useState(caseId ?? "")
   useEffect(() => {
     setCaseInput(caseId ?? "")
@@ -70,13 +72,13 @@ export function ForensicOverviewHeader({
 
           <div className="min-w-0 space-y-1.5">
             <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
-              取证概览
+              {t("title")}
             </h1>
             <div className="flex flex-wrap items-center gap-2.5 text-sm">
               <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
                 FORENSIC
               </span>
-              <span className="min-w-0 truncate text-slate-500">远程取证</span>
+              <span className="min-w-0 truncate text-slate-500">{t("subtitle")}</span>
             </div>
           </div>
         </div>
@@ -90,10 +92,10 @@ export function ForensicOverviewHeader({
               <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
               <input
                 type="search"
-                aria-label="输入 CaseID"
+                aria-label={t("caseInputLabel")}
                 value={caseInput}
                 onChange={(event) => setCaseInput(event.target.value)}
-                placeholder="请输入 CaseID"
+                placeholder={t("casePlaceholder")}
                 disabled={loading}
                 className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
               />
@@ -106,7 +108,7 @@ export function ForensicOverviewHeader({
                 <Clock3 aria-hidden className="h-4 w-4" />
               </div>
               <div className="min-w-0">
-                <div className="text-xs text-slate-400">更新时间</div>
+                <div className="text-xs text-slate-400">{t("updatedAt")}</div>
                 <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
                   {formatRefreshTime(refreshedAt)}
                 </div>
@@ -121,11 +123,11 @@ export function ForensicOverviewHeader({
               size="icon"
               onClick={handleRefreshClick}
               disabled={loading}
-              aria-label="刷新取证概览"
+              aria-label={t("refreshLabel")}
               className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
             >
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-              <span className="sr-only">刷新取证概览</span>
+              <span className="sr-only">{t("refreshLabel")}</span>
             </Button>
           </div>
         </div>

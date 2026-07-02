@@ -3,13 +3,13 @@
 import Link from "next/link"
 import { ChevronRight, Hexagon, ListChecks, Plus } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Card, CardContent } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicIconTone } from "./forensic-panel-chrome"
 
 interface QuickLink {
-  name: string
-  description: string
+  key: "createTask" | "taskCenter" | "artifactConfig"
   href: string
   icon: LucideIcon
   tone: ForensicIconTone
@@ -18,23 +18,20 @@ interface QuickLink {
 
 const LINKS: QuickLink[] = [
   {
-    name: "新建任务",
-    description: "选择终端与工件下发取证",
+    key: "createTask",
     href: "/frame/investigation/tasks?action=create",
     icon: Plus,
     tone: "cyan",
     primary: true,
   },
   {
-    name: "任务中心",
-    description: "查看任务详情与远端 flow",
+    key: "taskCenter",
     href: "/frame/investigation/tasks",
     icon: ListChecks,
     tone: "slate",
   },
   {
-    name: "工件配置",
-    description: "管理启用的取证工件",
+    key: "artifactConfig",
     href: "/frame/investigation/artifacts",
     icon: Hexagon,
     tone: "slate",
@@ -53,6 +50,7 @@ const ICON_CAPSULE_CLASS: Record<ForensicIconTone, string> = {
 }
 
 export function ForensicQuickLinks() {
+  const t = useTranslations("pages.investigation.collection.quickLinks")
   return (
     <Card className="border-0">
       <CardContent className="p-5">
@@ -79,8 +77,8 @@ export function ForensicQuickLinks() {
                   <Icon className="size-5" aria-hidden />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold text-foreground">{link.name}</span>
-                  <span className="mt-0.5 block truncate text-xs text-muted-foreground">{link.description}</span>
+                  <span className="block text-sm font-semibold text-foreground">{t(`${link.key}.name`)}</span>
+                  <span className="mt-0.5 block truncate text-xs text-muted-foreground">{t(`${link.key}.description`)}</span>
                 </span>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
               </Link>

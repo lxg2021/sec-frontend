@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { ListChecks } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicTaskStatus, ForensicTaskSummary } from "@/shared/lib/forensic/types"
@@ -11,16 +12,17 @@ interface Props {
   summary: ForensicTaskSummary
 }
 
-const LEGEND: { key: ForensicTaskStatus; label: string; dot: string; href?: string }[] = [
-  { key: "pending", label: "待下发", dot: "bg-muted-foreground/60", href: "/frame/investigation/tasks?status=pending" },
-  { key: "running", label: "运行中", dot: "bg-blue-600", href: "/frame/investigation/tasks?status=running" },
-  { key: "success", label: "成功", dot: "bg-emerald-600", href: "/frame/investigation/tasks?status=success" },
-  { key: "failed", label: "失败", dot: "bg-red-600", href: "/frame/investigation/tasks?status=failed" },
-  { key: "timeout", label: "超时", dot: "bg-amber-500" },
-  { key: "canceled", label: "取消", dot: "bg-border" },
+const LEGEND: { key: ForensicTaskStatus; dot: string; href?: string }[] = [
+  { key: "pending", dot: "bg-muted-foreground/60", href: "/frame/investigation/tasks?status=pending" },
+  { key: "running", dot: "bg-blue-600", href: "/frame/investigation/tasks?status=running" },
+  { key: "success", dot: "bg-emerald-600", href: "/frame/investigation/tasks?status=success" },
+  { key: "failed", dot: "bg-red-600", href: "/frame/investigation/tasks?status=failed" },
+  { key: "timeout", dot: "bg-amber-500" },
+  { key: "canceled", dot: "bg-border" },
 ]
 
 export function ForensicTaskStatusSummary({ summary }: Props) {
+  const t = useTranslations("pages.investigation.collection")
   const total = LEGEND.reduce((sum, item) => sum + summary[item.key], 0)
 
   return (
@@ -29,7 +31,7 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
         <ForensicPanelHeader
           icon={ListChecks}
           iconColor="from-violet-400 to-purple-600"
-          title="任务状态摘要"
+          title={t("taskSummary.title")}
         />
       </CardHeader>
       <CardContent className="space-y-4 px-5 pb-5">
@@ -48,7 +50,7 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
             const inner = (
               <span className="flex items-center gap-1.5 text-xs">
                 <span className={cn("size-2 shrink-0 rounded-full", item.dot)} />
-                <span className="text-muted-foreground">{item.label}</span>
+                <span className="text-muted-foreground">{t(`taskStatus.${item.key}`)}</span>
                 <span className="font-medium tabular-nums text-foreground">{summary[item.key]}</span>
               </span>
             )

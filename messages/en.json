@@ -2005,6 +2005,105 @@
         }
       }
     },
+    "investigation": {
+      "collection": {
+        "header": {
+          "title": "Forensic Overview",
+          "subtitle": "Remote Forensics",
+          "caseInputLabel": "Enter CaseID",
+          "casePlaceholder": "Enter CaseID",
+          "updatedAt": "Updated at",
+          "refreshLabel": "Refresh forensic overview"
+        },
+        "errors": {
+          "caseNotFoundTitle": "Case Not Found",
+          "caseNotFoundDescription": "CaseID {caseId} does not exist or is not accessible in the current tenant.",
+          "caseNotFoundDescriptionNoCase": "The current CaseID does not exist or is not accessible in the current tenant.",
+          "loadFailedTitle": "Failed to Load Forensic Overview",
+          "retryLater": "Please try again later."
+        },
+        "serviceStatus": {
+          "title": "Forensic Status",
+          "availableEndpoint": "Dispatchable Endpoints",
+          "unboundEndpoint": "Unbound Endpoints",
+          "enabledArtifact": "Available Artifacts"
+        },
+        "endpointSummary": {
+          "title": "Endpoint Status Summary",
+          "online": "Online",
+          "offline": "Offline",
+          "unbound": "Unbound"
+        },
+        "taskSummary": {
+          "title": "Task Status Summary"
+        },
+        "taskStatus": {
+          "pending": "Pending",
+          "running": "Running",
+          "success": "Success",
+          "failed": "Failed",
+          "timeout": "Timeout",
+          "canceled": "Canceled"
+        },
+        "artifactSummary": {
+          "title": "Artifact Category Summary",
+          "notEnabled": "Not enabled",
+          "pendingExtension": "Pending",
+          "categories": {
+            "file": "Files",
+            "registry": "Registry",
+            "eventlog": "Event Logs",
+            "ntfs": "NTFS",
+            "application": "Applications",
+            "forensic": "Other"
+          }
+        },
+        "recentTasks": {
+          "title": "Recent Forensic Tasks",
+          "description": "Shows the latest 5 tasks. Open Task Center for details.",
+          "viewMore": "View more",
+          "emptyTitle": "No forensic tasks",
+          "emptyDescription": "Create a forensic task to view execution records.",
+          "columns": {
+            "taskId": "Task ID",
+            "status": "Status",
+            "artifact": "Artifact",
+            "target": "Target Endpoint",
+            "updatedAt": "Updated At"
+          }
+        },
+        "riskNotice": {
+          "title": "Risk Alerts",
+          "description": "Shows issues that affect task dispatch and result collection.",
+          "empty": "No risks require attention.",
+          "actions": {
+            "view": "View"
+          },
+          "notices": {
+            "artifactUnavailable": "No forensic artifacts are enabled. New forensic tasks cannot be created.",
+            "noTargetAgent": "No target endpoints are in forensic scope.",
+            "noAvailableEndpoint": "No online endpoints are available for forensic dispatch.",
+            "endpointUnbound": "{count} endpoint(s) are not bound to an Agent and cannot be dispatched directly.",
+            "endpointOffline": "{count} endpoint(s) are offline or in an unknown state and cannot be dispatched directly.",
+            "taskFailed": "{count} forensic task(s) failed. Open Task Center to review the cause."
+          }
+        },
+        "quickLinks": {
+          "createTask": {
+            "name": "Create Task",
+            "description": "Select an endpoint and artifact to dispatch"
+          },
+          "taskCenter": {
+            "name": "Task Center",
+            "description": "View task details and remote flows"
+          },
+          "artifactConfig": {
+            "name": "Artifact Config",
+            "description": "Manage enabled forensic artifacts"
+          }
+        }
+      }
+    },
     "baseline": {
       "dashboard": {
         "title": "Security Baseline Dashboard",
