@@ -1,18 +1,14 @@
 "use client"
 
-import Link from "next/link"
-import { ListChecks, RadioTower, RefreshCw } from "lucide-react"
+import { RefreshCw } from "lucide-react"
 import { Badge } from "@/shared/ui/badge"
-import { Button, buttonVariants } from "@/shared/ui/button"
-import { cn } from "@/shared/lib/utils"
+import { Button } from "@/shared/ui/button"
 import type { ForensicOverviewContext } from "@/shared/lib/forensic/types"
 
 interface Props {
   context: ForensicOverviewContext
   loading?: boolean
-  syncing?: boolean
   onRefresh?: () => void
-  onSync?: () => void
 }
 
 const CONTEXT_LABELS: Record<keyof ForensicOverviewContext, string> = {
@@ -26,9 +22,7 @@ const CONTEXT_LABELS: Record<keyof ForensicOverviewContext, string> = {
 export function ForensicOverviewHeader({
   context,
   loading,
-  syncing,
   onRefresh,
-  onSync,
 }: Props) {
   const contextEntries = (Object.keys(CONTEXT_LABELS) as (keyof ForensicOverviewContext)[])
     .map((key) => ({ key, value: context[key] }))
@@ -59,16 +53,7 @@ export function ForensicOverviewHeader({
           <RefreshCw className={loading ? "animate-spin" : ""} />
           刷新
         </Button>
-        <Button variant="outline" size="sm" onClick={onSync} disabled={syncing}>
-          <RadioTower className={syncing ? "animate-pulse" : ""} />
-          同步终端
-        </Button>
-        <Link href="/frame/investigation/tasks" className={cn(buttonVariants({ size: "sm" }))}>
-          <ListChecks />
-          任务中心
-        </Link>
       </div>
     </header>
   )
 }
-
