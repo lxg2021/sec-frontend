@@ -7,6 +7,8 @@ import { useSearchParams } from "next/navigation"
 import {
   Archive,
   Boxes,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
   Clock3,
   Cpu,
@@ -86,6 +88,7 @@ interface ArtifactExample {
 
 const ALL_VALUE = "all"
 const DEFAULT_PLATFORM_VALUES = ["windows", "linux", "macos"]
+const ARTIFACT_PAGE_SIZE = 4
 
 function safeParseJson<T>(raw: string | undefined, fallback: T, context: string): JsonResult<T> {
   if (!raw) {
@@ -453,6 +456,7 @@ export function ForensicConfigPage() {
   const [category, setCategory] = useState(initialCategory)
   const [platform, setPlatform] = useState(ALL_VALUE)
   const [enabled, setEnabled] = useState<EnabledFilter>("all")
+  const [artifactPage, setArtifactPage] = useState(1)
   const [loadingList, setLoadingList] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
@@ -522,14 +526,38 @@ export function ForensicConfigPage() {
   }, [items, locale, query])
 
   useEffect(() => {
+    setArtifactPage(1)
+  }, [category, enabled, platform, query])
+
+  const totalArtifactPages = useMemo(
+    () => Math.max(1, Math.ceil(filteredItems.length / ARTIFACT_PAGE_SIZE)),
+    [filteredItems.length],
+  )
+
+  useEffect(() => {
+    setArtifactPage((current) => Math.min(Math.max(current, 1), totalArtifactPages))
+  }, [totalArtifactPages])
+
+  const pagedItems = useMemo(() => {
+    const start = (artifactPage - 1) * ARTIFACT_PAGE_SIZE
+    return filteredItems.slice(start, start + ARTIFACT_PAGE_SIZE)
+  }, [artifactPage, filteredItems])
+
+  const artifactPageStart = filteredItems.length === 0 ? 0 : (artifactPage - 1) * ARTIFACT_PAGE_SIZE + 1
+  const artifactPageEnd = Math.min(filteredItems.length, artifactPage * ARTIFACT_PAGE_SIZE)
+
+  useEffect(() => {
     if (filteredItems.length === 0) {
       setSelectedKey("")
       return
     }
-    if (!selectedKey || !filteredItems.some((item) => item.artifact_key === selectedKey)) {
-      setSelectedKey(filteredItems[0].artifact_key)
+    if (pagedItems.length === 0) {
+      return
     }
-  }, [filteredItems, selectedKey])
+    if (!selectedKey || !pagedItems.some((item) => item.artifact_key === selectedKey)) {
+      setSelectedKey(pagedItems[0].artifact_key)
+    }
+  }, [filteredItems.length, pagedItems, selectedKey])
 
   useEffect(() => {
     if (!selectedKey) {
@@ -955,10 +983,10 @@ export function ForensicConfigPage() {
               </div>
             </div>
 
-            <ScrollArea className="h-[calc(100vh-330px)] min-h-[520px]">
-              <div className="space-y-3 p-4">
+            <div className="flex h-[calc(100vh-330px)] min-h-[520px] flex-col">
+              <div className="flex-1 space-y-3 overflow-hidden p-4">
                 {loadingList && items.length === 0 ? (
-                  Array.from({ length: 6 }).map((_, index) => (
+                  Array.from({ length: ARTIFACT_PAGE_SIZE }).map((_, index) => (
                     <div key={index} className="rounded-xl border border-slate-100 p-4 dark:border-slate-800">
                       <Skeleton className="h-4 w-44" />
                       <Skeleton className="mt-3 h-3 w-64" />
@@ -977,7 +1005,7 @@ export function ForensicConfigPage() {
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("list.emptyDescription")}</p>
                   </div>
                 ) : (
-                  filteredItems.map((item) => {
+                  pagedItems.map((item) => {
                     const display = getArtifactDisplay(item, locale)
                     const active = item.artifact_key === selectedKey
                     return (
@@ -1022,7 +1050,39 @@ export function ForensicConfigPage() {
                   })
                 )}
               </div>
-            </ScrollArea>
+              <div className="flex h-12 shrink-0 items-center justify-between border-t border-slate-100 px-4 dark:border-slate-800">
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {artifactPageStart}-{artifactPageEnd} / {filteredItems.length}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8 rounded-full border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                    disabled={filteredItems.length === 0 || artifactPage <= 1}
+                    onClick={() => setArtifactPage((current) => Math.max(1, current - 1))}
+                    aria-label="Previous artifact page"
+                  >
+                    <ChevronLeft className="size-4" aria-hidden />
+                  </Button>
+                  <span className="min-w-16 text-center text-xs font-medium tabular-nums text-slate-600 dark:text-slate-300">
+                    {filteredItems.length === 0 ? "0 / 0" : `${artifactPage} / ${totalArtifactPages}`}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8 rounded-full border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                    disabled={filteredItems.length === 0 || artifactPage >= totalArtifactPages}
+                    onClick={() => setArtifactPage((current) => Math.min(totalArtifactPages, current + 1))}
+                    aria-label="Next artifact page"
+                  >
+                    <ChevronRight className="size-4" aria-hidden />
+                  </Button>
+                </div>
+              </div>
+            </div>
           </section>
 
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
