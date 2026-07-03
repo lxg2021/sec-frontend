@@ -1157,7 +1157,7 @@ export function ForensicConfigPage() {
               )}
             </div>
             <ScrollArea className="min-h-0 flex-1">
-              <div className="space-y-4 p-4">
+              <div className="min-h-full space-y-4 p-4">
                 {!selectedKey ? (
                   <div className="flex min-h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-center dark:border-slate-800">
                     <FileSearch className="size-10 text-slate-400" />
