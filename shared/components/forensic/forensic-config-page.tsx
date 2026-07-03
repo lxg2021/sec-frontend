@@ -85,6 +85,7 @@ interface ArtifactExample {
 }
 
 const ALL_VALUE = "all"
+const DEFAULT_PLATFORM_VALUES = ["windows", "linux", "macos"]
 
 function safeParseJson<T>(raw: string | undefined, fallback: T, context: string): JsonResult<T> {
   if (!raw) {
@@ -556,13 +557,16 @@ export function ForensicConfigPage() {
   }, [statsSource])
 
   const platforms = useMemo(() => {
-    const values = new Set<string>()
+    const values = new Map<string, string>()
+    for (const value of DEFAULT_PLATFORM_VALUES) {
+      values.set(value, value)
+    }
     for (const item of statsSource) {
       if (item.platform) {
-        values.add(item.platform)
+        values.set(item.platform.toLowerCase(), item.platform)
       }
     }
-    return [...values].sort()
+    return [...values.values()]
   }, [statsSource])
 
   const summary = useMemo(() => {
