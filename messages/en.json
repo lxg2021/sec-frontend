@@ -2150,6 +2150,101 @@
             "description": "Manage enabled forensic artifacts"
           }
         }
+      },
+      "artifacts": {
+        "header": {
+          "title": "Artifact Config",
+        "subtitle": "View loaded forensic artifacts, parameter docs, output fields, and upstream source metadata.",
+        "searchPlaceholder": "Search artifact name / artifact_key",
+        "refresh": "Refresh",
+        "createTask": "New Task"
+      },
+      "summary": {
+        "total": "Total Artifacts",
+        "enabled": "Enabled Artifacts",
+        "categories": "Categories",
+        "parameterized": "Parameterized",
+        "highRisk": "High-Risk Artifacts",
+        "platform": "Current Platform",
+        "enabledHint": "Config loaded",
+        "categoriesHint": "Files / Registry / Logs",
+        "highRiskHint": "Confirm scope before execution",
+        "platformHint": "Filtered by platform"
+      },
+      "filters": {
+        "title": "Filters",
+        "allArtifacts": "All Artifacts",
+        "platform": "Platform",
+        "allPlatforms": "All Platforms",
+        "enabledStatus": "Enabled Status",
+        "allStatus": "All Status",
+        "impactLegend": "Risk Level"
+      },
+        "categories": {
+          "file": "Files",
+          "registry": "Registry",
+          "eventlog": "Event Logs",
+          "forensic": "Forensic Traces",
+          "network": "Network",
+          "system": "System",
+          "ntfs": "NTFS",
+          "application": "Applications"
+        },
+        "status": {
+          "enabled": "enabled",
+          "disabled": "disabled"
+        },
+        "impact": {
+          "low": "low impact",
+          "medium": "medium impact",
+          "high": "high impact"
+        },
+        "list": {
+          "title": "Artifact List",
+          "count": "{count} artifact(s)",
+          "emptyTitle": "No artifacts",
+          "emptyDescription": "No artifacts match the current filters."
+        },
+        "detail": {
+          "emptyTitle": "Select an artifact",
+          "emptyDescription": "Select one artifact from the list to view details.",
+          "noContent": "No content",
+          "noDescription": "No description",
+          "useCases": "Use Cases",
+          "collects": "Collected Data",
+          "warnings": "Notes",
+          "required": "required",
+          "defaultValue": "Default Value",
+          "mapping": "Mapping",
+          "examples": "Examples",
+          "exampleTitle": "Example {index}",
+          "tips": "Tips",
+          "inputSchema": "Input Schema",
+          "defaultParams": "Default Params",
+          "sourceInfo": "Source Info",
+          "safeFields": "Exposed Fields",
+          "safeFieldsDescription": "The current API only returns fields required by the frontend and does not expose parameter mappings, VQL templates, or parser internals.",
+          "meta": {
+            "category": "Category",
+            "platform": "Platform",
+            "version": "Version",
+            "status": "Status"
+          }
+        },
+        "tabs": {
+          "overview": "Overview",
+          "params": "Params",
+          "output": "Output",
+          "examples": "Examples",
+          "source": "Source"
+        },
+        "errors": {
+          "loadFailedTitle": "Failed to Load Artifact List",
+          "loadFailedDescription": "Please try again later.",
+          "detailLoadFailedTitle": "Failed to Load Artifact Detail",
+          "detailLoadFailedDescription": "Please try again later.",
+          "jsonParseFailed": "Some configuration content could not be parsed. Please check the artifact config."
+        }
       }
     },
     "baseline": {

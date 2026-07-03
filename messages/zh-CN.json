@@ -2152,6 +2152,101 @@
             "description": "管理启用的取证工件"
           }
         }
+      },
+      "artifacts": {
+        "header": {
+          "title": "工件配置",
+        "subtitle": "查看平台当前加载的取证工件、参数说明和输出字段",
+        "searchPlaceholder": "搜索工件名称 / artifact_key",
+        "refresh": "刷新",
+        "createTask": "新建任务"
+      },
+      "summary": {
+        "total": "总工件数",
+        "enabled": "启用工件",
+        "categories": "工件分类",
+        "parameterized": "参数化工件",
+        "highRisk": "高风险工件",
+        "platform": "当前平台",
+        "enabledHint": "配置加载正常",
+        "categoriesHint": "文件 / 注册表 / 日志等",
+        "highRiskHint": "执行前需确认参数范围",
+        "platformHint": "按平台筛选展示"
+      },
+      "filters": {
+        "title": "筛选",
+        "allArtifacts": "全部工件",
+        "platform": "平台",
+        "allPlatforms": "全部平台",
+        "enabledStatus": "启用状态",
+        "allStatus": "全部状态",
+        "impactLegend": "风险等级"
+      },
+        "categories": {
+          "file": "文件",
+          "registry": "注册表",
+          "eventlog": "事件日志",
+          "forensic": "取证痕迹",
+          "network": "网络",
+          "system": "系统",
+          "ntfs": "NTFS",
+          "application": "应用"
+        },
+        "status": {
+          "enabled": "已启用",
+          "disabled": "未启用"
+        },
+        "impact": {
+          "low": "低影响",
+          "medium": "中影响",
+          "high": "高影响"
+        },
+        "list": {
+          "title": "工件列表",
+          "count": "{count} 个工件",
+          "emptyTitle": "暂无工件",
+          "emptyDescription": "当前筛选条件下没有可展示的工件"
+        },
+        "detail": {
+          "emptyTitle": "请选择工件",
+          "emptyDescription": "从左侧工件列表选择一项查看详情",
+          "noContent": "暂无内容",
+          "noDescription": "暂无说明",
+          "useCases": "使用场景",
+          "collects": "采集内容",
+          "warnings": "注意事项",
+          "required": "必填",
+          "defaultValue": "默认值",
+          "mapping": "参数映射",
+          "examples": "示例",
+          "exampleTitle": "示例 {index}",
+          "tips": "填写建议",
+          "inputSchema": "输入结构",
+          "defaultParams": "默认参数",
+          "sourceInfo": "来源信息",
+          "safeFields": "接口暴露范围",
+          "safeFieldsDescription": "当前接口只返回前端展示所需字段，不暴露参数映射、VQL 模板和结果解析内部配置",
+          "meta": {
+            "category": "分类",
+            "platform": "平台",
+            "version": "版本",
+            "status": "状态"
+          }
+        },
+        "tabs": {
+          "overview": "用途",
+          "params": "参数",
+          "output": "输出",
+          "examples": "示例",
+          "source": "来源"
+        },
+        "errors": {
+          "loadFailedTitle": "工件列表加载失败",
+          "loadFailedDescription": "请稍后重试",
+          "detailLoadFailedTitle": "工件详情加载失败",
+          "detailLoadFailedDescription": "请稍后重试",
+          "jsonParseFailed": "部分配置内容解析失败，请检查工件配置"
+        }
       }
     },
     "baseline": {
