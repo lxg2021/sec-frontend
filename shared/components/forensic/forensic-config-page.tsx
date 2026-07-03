@@ -860,7 +860,7 @@ export function ForensicConfigPage() {
 
         <section className="grid gap-6 xl:grid-cols-[312px_minmax(380px,1fr)_minmax(340px,0.68fr)]">
           <aside className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 dark:border-slate-800">
+            <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <ListFilter className="size-4 text-blue-600" />
                 <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("filters.title")}</h2>
@@ -932,7 +932,7 @@ export function ForensicConfigPage() {
           </aside>
 
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
-            <div className="flex min-h-[64px] items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+            <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="min-w-0">
                 <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("list.title")}</h2>
                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
@@ -1020,6 +1020,36 @@ export function ForensicConfigPage() {
           </section>
 
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
+              {selectedItem ? (
+                <>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <CategoryIcon category={selectedItem.category} size="sm" />
+                    <div className="min-w-0">
+                      <h2 className="truncate text-base font-semibold text-slate-950 dark:text-white">{selectedListDisplay.name}</h2>
+                      <p className="mt-0.5 truncate font-mono text-xs text-slate-500">{selectedItem.artifact_key}</p>
+                    </div>
+                  </div>
+                  {loadingDetail ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-slate-500" />
+                  ) : (
+                    <Badge variant="outline" className={cn("shrink-0 rounded-full px-3", impactClass(selectedItem.risk_level))}>
+                      {impactLabel(selectedItem.risk_level)}
+                    </Badge>
+                  )}
+                </>
+              ) : (
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                    <FileSearch className="size-5" aria-hidden />
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="truncate text-base font-semibold text-slate-950 dark:text-white">{t("detail.emptyTitle")}</h2>
+                    <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{t("detail.emptyDescription")}</p>
+                  </div>
+                </div>
+              )}
+            </div>
             <ScrollArea className="h-[calc(100vh-330px)] min-h-[520px]">
               <div className="space-y-4 p-4">
                 {!selectedKey ? (
@@ -1043,27 +1073,9 @@ export function ForensicConfigPage() {
                 ) : detail ? (
                   <>
                     <section className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                      <div className="flex items-start gap-4">
-                        <CategoryIcon category={detail.category} size="lg" />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <h2 className="line-clamp-2 text-base font-semibold leading-5 text-slate-950 dark:text-white">{selectedListDisplay.name}</h2>
-                              <p className="mt-1 truncate font-mono text-xs text-slate-500">{detail.artifact_key}</p>
-                            </div>
-                            {loadingDetail ? (
-                              <Loader2 className="size-4 shrink-0 animate-spin text-slate-500" />
-                            ) : (
-                              <Badge variant="outline" className={cn("shrink-0 rounded-full px-3", impactClass(detail.risk_level))}>
-                                {impactLabel(detail.risk_level)}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                            {selectedDisplay.summary || selectedDisplay.description || t("detail.noContent")}
-                          </p>
-                        </div>
-                      </div>
+                      <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                        {selectedDisplay.summary || selectedDisplay.description || t("detail.noContent")}
+                      </p>
 
                       <div className="mt-4 grid grid-cols-2 gap-2">
                         <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
