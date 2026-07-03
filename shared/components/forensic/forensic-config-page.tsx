@@ -986,31 +986,20 @@ export function ForensicConfigPage() {
                         type="button"
                         onClick={() => setSelectedKey(item.artifact_key)}
                         className={cn(
-                          "group flex w-full items-start gap-4 rounded-xl border p-4 text-left transition-all duration-200",
+                          "group grid w-full grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-3 rounded-xl border px-4 py-3.5 text-left transition-all duration-200",
                           active
                             ? "border-blue-300 bg-blue-50/80 shadow-[0_12px_24px_rgba(37,99,235,0.12)] dark:border-blue-900/60 dark:bg-blue-950/30"
                             : "border-slate-200/80 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900",
                         )}
                       >
-                        <CategoryIcon category={item.category} size="xs" />
+                        <CategoryIcon category={item.category} size="xs" className="mt-0.5" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-semibold leading-5 text-slate-950 dark:text-white">{display.name}</p>
-                              <p className="mt-0.5 truncate font-mono text-[11px] leading-4 text-slate-500">{item.artifact_key}</p>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                              <Badge variant="outline" className={cn("rounded-full px-2.5 py-0 text-[11px]", impactClass(item.risk_level))}>
-                                {impactLabel(item.risk_level)}
-                              </Badge>
-                              <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                                <span className={cn("size-2 rounded-full", item.enabled ? "bg-emerald-500" : "bg-slate-300")} />
-                                {item.enabled ? t("status.enabled") : t("status.disabled")}
-                              </span>
-                            </div>
+                          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                            <p className="truncate text-sm font-semibold leading-5 text-slate-950 dark:text-white">{display.name}</p>
+                            <p className="truncate font-mono text-[11px] leading-4 text-slate-500">{item.artifact_key}</p>
                           </div>
-                          <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{display.summary || item.description}</p>
-                          <div className="mt-3 flex flex-wrap gap-2">
+                          <p className="mt-1.5 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{display.summary || item.description}</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
                             <Badge variant="outline" className="rounded-full bg-white px-2.5 text-[11px] font-normal text-slate-600 dark:bg-slate-900">
                               {categoryLabel(item.category)}
                             </Badge>
@@ -1018,6 +1007,15 @@ export function ForensicConfigPage() {
                               {formatPlatformLabel(item.platform)}
                             </Badge>
                           </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2 pt-0.5">
+                          <Badge variant="outline" className={cn("rounded-full px-2.5 py-0 text-[11px]", impactClass(item.risk_level))}>
+                            {impactLabel(item.risk_level)}
+                          </Badge>
+                          <span className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                            <span className={cn("size-2 rounded-full", item.enabled ? "bg-emerald-500" : "bg-slate-300")} />
+                            {item.enabled ? t("status.enabled") : t("status.disabled")}
+                          </span>
                         </div>
                       </button>
                     )
