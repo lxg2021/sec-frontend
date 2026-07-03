@@ -206,3 +206,32 @@ export interface ForensicOverviewContext {
   agent_id?: string
   endpoint_id?: string
 }
+
+export interface ForensicArtifactDefinitionItem {
+  artifact_key: string
+  name: string
+  description?: string
+  category: string
+  platform: string
+  enabled: boolean
+  risk_level: string
+  sort_order?: number
+  input_schema_json?: string
+  default_params_json?: string
+  version?: string
+  display_json?: string
+  parameter_docs_json?: string
+  output_docs_json?: string
+  examples_json?: string
+  upstream_json?: string
+}
+
+export interface ListForensicArtifactsRequest {
+  category?: string
+  platform?: string
+  enabled?: boolean
+}
+
+export interface ListForensicArtifactsData {
+  items: ForensicArtifactDefinitionItem[]
+}
