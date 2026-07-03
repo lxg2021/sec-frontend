@@ -2157,7 +2157,7 @@
         "header": {
           "title": "工件配置",
         "subtitle": "查看平台当前加载的取证工件、参数说明和输出字段",
-        "searchPlaceholder": "搜索工件名称 / artifact_key",
+        "searchPlaceholder": "搜索工件名称",
         "refresh": "刷新",
         "updatedAt": "更新时间",
         "createTask": "新建任务"

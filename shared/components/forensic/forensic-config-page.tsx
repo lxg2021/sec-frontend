@@ -621,7 +621,7 @@ export function ForensicConfigPage() {
     <main className="bg-gray-50">
       <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
         <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+          <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
                 <FileSearch aria-hidden className="h-5 w-5" />
@@ -640,7 +640,7 @@ export function ForensicConfigPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 xl:ml-auto xl:justify-end">
+            <div className="flex flex-wrap items-center gap-3 2xl:ml-auto 2xl:justify-end">
               <div className="flex h-12 w-full min-w-[280px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[360px] 2xl:w-[460px]">
                 <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
                 <input

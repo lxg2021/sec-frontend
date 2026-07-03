@@ -2155,7 +2155,7 @@
         "header": {
           "title": "Artifact Config",
         "subtitle": "View loaded forensic artifacts, parameter docs, and output fields.",
-        "searchPlaceholder": "Search artifact name / artifact_key",
+        "searchPlaceholder": "Search artifact name",
         "refresh": "Refresh",
         "updatedAt": "Updated At",
         "createTask": "New Task"
