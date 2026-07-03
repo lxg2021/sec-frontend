@@ -764,7 +764,7 @@ export function ForensicConfigPage() {
 
   return (
     <main className="bg-gray-50">
-      <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
+      <div className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-6 overflow-hidden p-6">
         <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
           <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -926,8 +926,8 @@ export function ForensicConfigPage() {
           />
         </div>
 
-        <section className="grid gap-6 xl:grid-cols-[312px_minmax(380px,1fr)_minmax(340px,0.68fr)]">
-          <aside className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+        <section className="grid min-h-0 flex-1 gap-6 xl:grid-cols-[312px_minmax(380px,1fr)_minmax(340px,0.68fr)]">
+          <aside className="min-h-0 overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white shadow-sm shadow-blue-100 dark:bg-blue-500 dark:shadow-blue-950/40">
@@ -1001,7 +1001,7 @@ export function ForensicConfigPage() {
             </div>
           </aside>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-500 text-white shadow-sm shadow-sky-100 dark:bg-sky-500 dark:shadow-sky-950/40">
@@ -1022,7 +1022,7 @@ export function ForensicConfigPage() {
               </div>
             </div>
 
-            <div className="flex h-[calc(100vh-330px)] min-h-[520px] flex-col">
+            <div className="flex min-h-0 flex-1 flex-col">
               <div ref={artifactListBodyRef} className="flex-1 space-y-3 overflow-hidden p-4">
                 {loadingList && items.length === 0 ? (
                   Array.from({ length: artifactPageSize }).map((_, index) => (
@@ -1125,7 +1125,7 @@ export function ForensicConfigPage() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               {selectedItem ? (
                 <>
@@ -1156,16 +1156,16 @@ export function ForensicConfigPage() {
                 </div>
               )}
             </div>
-            <ScrollArea className="h-[calc(100vh-330px)] min-h-[520px]">
+            <ScrollArea className="min-h-0 flex-1">
               <div className="space-y-4 p-4">
                 {!selectedKey ? (
-                  <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-center dark:border-slate-800">
+                  <div className="flex min-h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-center dark:border-slate-800">
                     <FileSearch className="size-10 text-slate-400" />
                     <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("detail.emptyTitle")}</p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("detail.emptyDescription")}</p>
                   </div>
                 ) : detailError ? (
-                  <div className="flex min-h-[420px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
+                  <div className="flex min-h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
                     <TriangleAlert className="size-10 text-red-500" />
                     <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("errors.detailLoadFailedTitle")}</p>
                     <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">{detailError}</p>
