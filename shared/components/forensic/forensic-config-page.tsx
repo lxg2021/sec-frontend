@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useLocale, useTranslations } from "next-intl"
 import { useSearchParams } from "next/navigation"
@@ -88,7 +88,8 @@ interface ArtifactExample {
 
 const ALL_VALUE = "all"
 const DEFAULT_PLATFORM_VALUES = ["windows", "linux", "macos"]
-const ARTIFACT_PAGE_SIZE = 4
+const DEFAULT_ARTIFACT_PAGE_SIZE = 4
+const ARTIFACT_ITEM_GAP_PX = 12
 
 function safeParseJson<T>(raw: string | undefined, fallback: T, context: string): JsonResult<T> {
   if (!raw) {
@@ -457,11 +458,14 @@ export function ForensicConfigPage() {
   const [platform, setPlatform] = useState(ALL_VALUE)
   const [enabled, setEnabled] = useState<EnabledFilter>("all")
   const [artifactPage, setArtifactPage] = useState(1)
+  const [artifactPageSize, setArtifactPageSize] = useState(DEFAULT_ARTIFACT_PAGE_SIZE)
   const [loadingList, setLoadingList] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [listError, setListError] = useState<string | null>(null)
   const [detailError, setDetailError] = useState<string | null>(null)
+  const artifactListBodyRef = useRef<HTMLDivElement | null>(null)
+  const artifactListMeasureRef = useRef<HTMLButtonElement | null>(null)
 
   const loadCatalog = useCallback(async () => {
     try {
@@ -529,9 +533,44 @@ export function ForensicConfigPage() {
     setArtifactPage(1)
   }, [category, enabled, platform, query])
 
+  const calculateArtifactPageSize = useCallback(() => {
+    const body = artifactListBodyRef.current
+    const firstItem = artifactListMeasureRef.current
+    if (!body || !firstItem) {
+      return
+    }
+
+    const bodyHeight = body.clientHeight
+    const itemHeight = firstItem.getBoundingClientRect().height
+    if (bodyHeight <= 0 || itemHeight <= 0) {
+      return
+    }
+
+    const nextPageSize = Math.max(
+      1,
+      Math.floor((bodyHeight + ARTIFACT_ITEM_GAP_PX) / (itemHeight + ARTIFACT_ITEM_GAP_PX)),
+    )
+    setArtifactPageSize((current) => (current === nextPageSize ? current : nextPageSize))
+  }, [])
+
+  useEffect(() => {
+    calculateArtifactPageSize()
+  }, [calculateArtifactPageSize, filteredItems.length, locale])
+
+  useEffect(() => {
+    const body = artifactListBodyRef.current
+    if (!body || typeof ResizeObserver === "undefined") {
+      return
+    }
+
+    const observer = new ResizeObserver(() => calculateArtifactPageSize())
+    observer.observe(body)
+    return () => observer.disconnect()
+  }, [calculateArtifactPageSize])
+
   const totalArtifactPages = useMemo(
-    () => Math.max(1, Math.ceil(filteredItems.length / ARTIFACT_PAGE_SIZE)),
-    [filteredItems.length],
+    () => Math.max(1, Math.ceil(filteredItems.length / artifactPageSize)),
+    [artifactPageSize, filteredItems.length],
   )
 
   useEffect(() => {
@@ -539,12 +578,12 @@ export function ForensicConfigPage() {
   }, [totalArtifactPages])
 
   const pagedItems = useMemo(() => {
-    const start = (artifactPage - 1) * ARTIFACT_PAGE_SIZE
-    return filteredItems.slice(start, start + ARTIFACT_PAGE_SIZE)
-  }, [artifactPage, filteredItems])
+    const start = (artifactPage - 1) * artifactPageSize
+    return filteredItems.slice(start, start + artifactPageSize)
+  }, [artifactPage, artifactPageSize, filteredItems])
 
-  const artifactPageStart = filteredItems.length === 0 ? 0 : (artifactPage - 1) * ARTIFACT_PAGE_SIZE + 1
-  const artifactPageEnd = Math.min(filteredItems.length, artifactPage * ARTIFACT_PAGE_SIZE)
+  const artifactPageStart = filteredItems.length === 0 ? 0 : (artifactPage - 1) * artifactPageSize + 1
+  const artifactPageEnd = Math.min(filteredItems.length, artifactPage * artifactPageSize)
 
   useEffect(() => {
     if (filteredItems.length === 0) {
@@ -984,9 +1023,9 @@ export function ForensicConfigPage() {
             </div>
 
             <div className="flex h-[calc(100vh-330px)] min-h-[520px] flex-col">
-              <div className="flex-1 space-y-3 overflow-hidden p-4">
+              <div ref={artifactListBodyRef} className="flex-1 space-y-3 overflow-hidden p-4">
                 {loadingList && items.length === 0 ? (
-                  Array.from({ length: ARTIFACT_PAGE_SIZE }).map((_, index) => (
+                  Array.from({ length: artifactPageSize }).map((_, index) => (
                     <div key={index} className="rounded-xl border border-slate-100 p-4 dark:border-slate-800">
                       <Skeleton className="h-4 w-44" />
                       <Skeleton className="mt-3 h-3 w-64" />
@@ -1005,12 +1044,13 @@ export function ForensicConfigPage() {
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("list.emptyDescription")}</p>
                   </div>
                 ) : (
-                  pagedItems.map((item) => {
+                  pagedItems.map((item, index) => {
                     const display = getArtifactDisplay(item, locale)
                     const active = item.artifact_key === selectedKey
                     return (
                       <button
                         key={item.artifact_key}
+                        ref={index === 0 ? artifactListMeasureRef : undefined}
                         type="button"
                         onClick={() => setSelectedKey(item.artifact_key)}
                         className={cn(
