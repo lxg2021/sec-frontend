@@ -597,7 +597,7 @@ export function ForensicConfigPage() {
   return (
     <main className="w-full max-w-none px-4 py-4 sm:px-5 lg:px-6">
       <section className="min-h-[calc(100vh-2rem)] rounded-[22px] bg-slate-100/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] ring-1 ring-slate-200/70 dark:bg-slate-950 dark:ring-slate-800">
-        <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <header className="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-lg shadow-sky-200/60 dark:shadow-sky-950/40">
               <FileSearch className="size-6" aria-hidden />
@@ -608,8 +608,8 @@ export function ForensicConfigPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative min-w-0 sm:w-[320px]">
+          <div className="flex w-full flex-col gap-3 md:flex-row md:flex-wrap md:items-center 2xl:w-auto 2xl:justify-end">
+            <div className="relative min-w-0 md:w-[320px]">
               <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-500" />
               <Input
                 value={query}
@@ -617,6 +617,40 @@ export function ForensicConfigPage() {
                 placeholder={t("header.searchPlaceholder")}
                 className="h-11 rounded-xl border-slate-200 bg-white pl-11 text-sm shadow-sm shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-950 dark:shadow-none"
               />
+            </div>
+            <Select value={platform} onValueChange={setPlatform}>
+              <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white shadow-sm shadow-slate-200/50 md:w-[150px] dark:border-slate-800 dark:bg-slate-950 dark:shadow-none">
+                <SelectValue placeholder={t("filters.platform")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_VALUE}>{t("filters.allPlatforms")}</SelectItem>
+                {platforms.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {formatPlatformLabel(value)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="grid h-11 grid-cols-3 rounded-xl border border-slate-200 bg-white p-1 shadow-sm shadow-slate-200/50 md:w-[258px] dark:border-slate-800 dark:bg-slate-950 dark:shadow-none">
+              {([
+                ["all", t("filters.allStatus")],
+                ["enabled", t("status.enabled")],
+                ["disabled", t("status.disabled")],
+              ] as [EnabledFilter, string][]).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setEnabled(value)}
+                  className={cn(
+                    "rounded-lg px-2 text-xs transition-all duration-200",
+                    enabled === value
+                      ? "bg-blue-50 font-medium text-blue-700 shadow-sm dark:bg-blue-950/40 dark:text-blue-200"
+                      : "text-slate-500 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900",
+                  )}
+                >
+                  <span className="block truncate">{label}</span>
+                </button>
+              ))}
             </div>
             <Button
               variant="outline"
@@ -670,7 +704,7 @@ export function ForensicConfigPage() {
           />
         </div>
 
-        <section className="mt-6 grid gap-5 xl:grid-cols-[240px_minmax(480px,1fr)_minmax(360px,0.68fr)]">
+        <section className="mt-6 grid gap-5 xl:grid-cols-[272px_minmax(420px,1fr)_minmax(360px,0.68fr)]">
           <aside className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 dark:border-slate-800">
               <div className="flex items-center gap-2">
@@ -721,49 +755,6 @@ export function ForensicConfigPage() {
                   </button>
                 )
               })}
-            </div>
-
-            <div className="border-t border-slate-100 p-4 dark:border-slate-800">
-              <p className="text-sm font-semibold text-slate-950 dark:text-white">{t("filters.platform")}</p>
-              <Select value={platform} onValueChange={setPlatform}>
-                <SelectTrigger className="mt-3 h-10 rounded-lg border-slate-200 bg-slate-50 shadow-none dark:border-slate-800 dark:bg-slate-900">
-                  <SelectValue placeholder={t("filters.platform")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={ALL_VALUE}>{t("filters.allPlatforms")}</SelectItem>
-                  {platforms.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {formatPlatformLabel(value)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="border-t border-slate-100 p-4 dark:border-slate-800">
-              <p className="text-sm font-semibold text-slate-950 dark:text-white">{t("filters.enabledStatus")}</p>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {([
-                  ["all", t("filters.allStatus")],
-                  ["enabled", t("status.enabled")],
-                  ["disabled", t("status.disabled")],
-                ] as [EnabledFilter, string][]).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setEnabled(value)}
-                    className={cn(
-                      "h-9 rounded-full border px-2 text-xs transition-all duration-200",
-                      value === "all" && "col-span-2",
-                      enabled === value
-                        ? "border-blue-300 bg-blue-50 font-medium text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200"
-                        : "border-slate-200 bg-slate-100/70 text-slate-500 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300",
-                    )}
-                  >
-                    <span className="block truncate">{label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div className="border-t border-slate-100 p-4 dark:border-slate-800">
