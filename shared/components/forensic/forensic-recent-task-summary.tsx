@@ -142,9 +142,9 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                         </Link>
                       </td>
                       <td className="px-3 py-3 text-center">
-                        <span className={cn("inline-flex h-6 w-20 items-center gap-1.5 rounded-full px-2 text-xs font-medium", config.className)}>
-                          <span className={cn("size-1.5 shrink-0 rounded-full", config.dot)} />
-                          <span className="min-w-0 flex-1 text-center lowercase [text-align-last:justify] [text-justify:inter-character]">
+                        <span className={cn("relative inline-flex h-6 w-20 items-center justify-center rounded-full px-3 text-xs font-medium", config.className)}>
+                          <span className={cn("absolute left-2 size-1.5 rounded-full", config.dot)} />
+                          <span className="min-w-0 truncate text-center lowercase">
                             {t(`taskStatus.${task.status}`)}
                           </span>
                         </span>
