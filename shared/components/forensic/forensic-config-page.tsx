@@ -862,7 +862,9 @@ export function ForensicConfigPage() {
           <aside className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <ListFilter className="size-4 text-blue-600" />
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300">
+                  <ListFilter className="size-5" aria-hidden />
+                </span>
                 <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("filters.title")}</h2>
               </div>
               <span className="font-mono text-xs text-slate-500">{summary.total}</span>
@@ -933,11 +935,16 @@ export function ForensicConfigPage() {
 
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
-              <div className="min-w-0">
-                <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("list.title")}</h2>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                  {t("list.count", { count: filteredItems.length })}
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-300">
+                  <Boxes className="size-5" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("list.title")}</h2>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {t("list.count", { count: filteredItems.length })}
+                  </p>
+                </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Badge variant="outline" className="rounded-full bg-slate-50 px-3 text-xs font-normal text-slate-600 dark:bg-slate-900">
