@@ -386,19 +386,19 @@ function MetricCard({
         )}
         aria-hidden
       />
-      <div className="relative flex min-h-[112px] items-center justify-between gap-5 px-6 py-5">
-        <div className="flex min-w-0 items-center gap-5">
-          <span className={cn("inline-flex size-[52px] shrink-0 items-center justify-center rounded-xl text-white shadow-lg", tone)}>
-            <Icon className="size-5" strokeWidth={2} aria-hidden />
+      <div className="relative flex min-h-[112px] items-center justify-between gap-3 px-5 py-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className={cn("inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-white shadow-lg", tone)}>
+            <Icon className="size-[18px]" strokeWidth={2} aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[13px] font-medium leading-5 text-slate-500 dark:text-slate-400">{label}</p>
+            <p className="truncate text-[13px] font-medium leading-5 text-slate-700 dark:text-slate-300">{label}</p>
             <p className="mt-2 truncate text-xs leading-5 text-slate-400 dark:text-slate-500">{description}</p>
           </div>
         </div>
         <p
           className={cn(
-            "ml-auto max-w-[46%] shrink-0 truncate text-right text-[32px] font-bold leading-none tabular-nums text-slate-900 dark:text-white",
+            "ml-auto max-w-[50%] shrink-0 truncate text-right text-[32px] font-bold leading-none tabular-nums text-slate-900 dark:text-white",
             valueClassName,
           )}
         >
@@ -825,6 +825,7 @@ export function ForensicConfigPage() {
             description={t("summary.enabledHint")}
             tone="bg-gradient-to-br from-sky-500 to-cyan-600 shadow-sky-200/70"
             glow="bg-blue-500"
+            valueClassName="text-sky-600 dark:text-sky-400"
           />
           <MetricCard
             icon={Layers3}
@@ -833,6 +834,7 @@ export function ForensicConfigPage() {
             description={t("summary.categoriesHint")}
             tone="bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-200/70"
             glow="bg-emerald-500"
+            valueClassName="text-emerald-600 dark:text-emerald-400"
           />
           <MetricCard
             icon={TriangleAlert}
@@ -841,7 +843,7 @@ export function ForensicConfigPage() {
             description={t("summary.highRiskHint")}
             tone="bg-gradient-to-br from-orange-500 to-amber-500 shadow-orange-200/70"
             glow="bg-orange-500"
-            valueClassName={summary.highRisk === 0 ? "text-emerald-500" : undefined}
+            valueClassName="text-orange-500 dark:text-orange-400"
           />
           <MetricCard
             icon={Monitor}
@@ -850,7 +852,7 @@ export function ForensicConfigPage() {
             description={t("summary.platformHint")}
             tone="bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-200/70"
             glow="bg-purple-500"
-            valueClassName="text-2xl"
+            valueClassName="text-[25px] text-violet-600 dark:text-violet-400"
           />
         </div>
 
