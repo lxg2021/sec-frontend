@@ -18,11 +18,11 @@ import {
   Layers3,
   ListFilter,
   Loader2,
+  Monitor,
   Network,
   Plus,
   RefreshCw,
   Search,
-  ServerCog,
   ShieldCheck,
   TriangleAlert,
   type LucideIcon,
@@ -366,23 +366,41 @@ function MetricCard({
   value,
   description,
   tone,
+  glow,
+  valueClassName,
 }: {
   icon: LucideIcon
   label: string
   value: number | string
   description: string
   tone: string
+  glow: string
+  valueClassName?: string
 }) {
   return (
-    <div className="group flex min-h-[96px] min-w-0 items-center gap-4 rounded-xl border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(15,23,42,0.09)] dark:border-slate-800 dark:bg-slate-950">
-      <span className={cn("inline-flex size-12 shrink-0 items-center justify-center rounded-full text-white shadow-lg", tone)}>
-        <Icon className="size-6" aria-hidden />
-      </span>
-      <div className="min-w-0">
-        <p className="truncate text-sm leading-5 text-slate-500 dark:text-slate-400">{label}</p>
-        <div className="mt-1 flex min-w-0 flex-wrap items-end gap-x-3 gap-y-1">
-          <p className="max-w-full break-words text-3xl font-semibold leading-8 tabular-nums text-slate-950 dark:text-white">{value}</p>
-          <p className="pb-1 text-xs leading-4 text-slate-500 dark:text-slate-400">{description}</p>
+    <div className="group relative min-h-[112px] min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.07),0_1px_2px_-1px_rgba(0,0,0,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950">
+      <div
+        className={cn(
+          "absolute -left-10 -top-10 h-36 w-36 rounded-full opacity-[0.06] blur-3xl transition-opacity duration-500 group-hover:opacity-[0.12]",
+          glow,
+        )}
+        aria-hidden
+      />
+      <div className="relative flex min-h-[112px] items-center gap-5 px-6 py-5">
+        <span className={cn("inline-flex size-[52px] shrink-0 items-center justify-center rounded-xl text-white shadow-lg", tone)}>
+          <Icon className="size-5" strokeWidth={2} aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="mb-1.5 truncate text-[11px] font-semibold leading-4 text-slate-400 dark:text-slate-500">{label}</p>
+          <p
+            className={cn(
+              "truncate text-[28px] font-bold leading-none tabular-nums text-slate-800 dark:text-white",
+              valueClassName,
+            )}
+          >
+            {value}
+          </p>
+          <p className="mt-2 truncate text-xs leading-5 text-slate-400 dark:text-slate-500">{description}</p>
         </div>
       </div>
     </div>
@@ -797,13 +815,14 @@ export function ForensicConfigPage() {
           </div>
         </header>
 
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             icon={ClipboardCheck}
             label={t("summary.enabled")}
             value={summary.enabled}
             description={t("summary.enabledHint")}
             tone="bg-gradient-to-br from-sky-500 to-cyan-600 shadow-sky-200/70"
+            glow="bg-blue-500"
           />
           <MetricCard
             icon={Layers3}
@@ -811,6 +830,7 @@ export function ForensicConfigPage() {
             value={summary.categories}
             description={t("summary.categoriesHint")}
             tone="bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-200/70"
+            glow="bg-emerald-500"
           />
           <MetricCard
             icon={TriangleAlert}
@@ -818,13 +838,17 @@ export function ForensicConfigPage() {
             value={summary.highRisk}
             description={t("summary.highRiskHint")}
             tone="bg-gradient-to-br from-orange-500 to-amber-500 shadow-orange-200/70"
+            glow="bg-orange-500"
+            valueClassName={summary.highRisk === 0 ? "text-emerald-500" : undefined}
           />
           <MetricCard
-            icon={ServerCog}
+            icon={Monitor}
             label={t("summary.platform")}
             value={currentPlatformLabel}
             description={t("summary.platformHint")}
             tone="bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-200/70"
+            glow="bg-purple-500"
+            valueClassName="text-2xl"
           />
         </div>
 
