@@ -340,7 +340,7 @@ function CategoryIcon({
 }: {
   category?: string
   className?: string
-  size?: "sm" | "md" | "lg"
+  size?: "xs" | "sm" | "md" | "lg"
 }) {
   const visual = getCategoryVisual(category)
   const Icon = visual.icon
@@ -348,6 +348,7 @@ function CategoryIcon({
     <span
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-xl shadow-sm",
+        size === "xs" && "size-8 rounded-lg",
         size === "sm" && "size-10",
         size === "md" && "size-12",
         size === "lg" && "size-14",
@@ -355,7 +356,7 @@ function CategoryIcon({
         className,
       )}
     >
-      <Icon className={cn(size === "sm" ? "size-5" : "size-6")} aria-hidden />
+      <Icon className={cn(size === "xs" && "size-4", size === "sm" && "size-5", (size === "md" || size === "lg") && "size-6")} aria-hidden />
     </span>
   )
 }
@@ -861,8 +862,8 @@ export function ForensicConfigPage() {
         <section className="grid gap-6 xl:grid-cols-[312px_minmax(380px,1fr)_minmax(340px,0.68fr)]">
           <aside className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white shadow-sm shadow-blue-100 dark:bg-blue-500 dark:shadow-blue-950/40">
                   <ListFilter className="size-5" aria-hidden />
                 </span>
                 <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("filters.title")}</h2>
@@ -936,7 +937,7 @@ export function ForensicConfigPage() {
           <section className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-300">
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-500 text-white shadow-sm shadow-sky-100 dark:bg-sky-500 dark:shadow-sky-950/40">
                   <Boxes className="size-5" aria-hidden />
                 </span>
                 <div className="min-w-0">
@@ -991,7 +992,7 @@ export function ForensicConfigPage() {
                             : "border-slate-200/80 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900",
                         )}
                       >
-                        <CategoryIcon category={item.category} size="sm" />
+                        <CategoryIcon category={item.category} size="xs" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-3">
                             <div className="min-w-0">
