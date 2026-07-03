@@ -704,7 +704,7 @@ export function ForensicConfigPage() {
           />
         </div>
 
-        <section className="mt-6 grid gap-5 xl:grid-cols-[272px_minmax(420px,1fr)_minmax(360px,0.68fr)]">
+        <section className="mt-6 grid gap-5 xl:grid-cols-[312px_minmax(380px,1fr)_minmax(340px,0.68fr)]">
           <aside className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 dark:border-slate-800">
               <div className="flex items-center gap-2">
@@ -759,9 +759,9 @@ export function ForensicConfigPage() {
 
             <div className="border-t border-slate-100 p-4 dark:border-slate-800">
               <p className="text-sm font-semibold text-slate-950 dark:text-white">{t("filters.impactLegend")}</p>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-slate-500 dark:text-slate-400">
+              <div className="mt-3 flex flex-nowrap items-center gap-5 text-xs text-slate-500 dark:text-slate-400">
                 {(["low", "medium", "high"] as const).map((value) => (
-                  <span key={value} className="flex items-center gap-2">
+                  <span key={value} className="flex shrink-0 items-center gap-2 whitespace-nowrap">
                     <span
                       className={cn(
                         "size-3 rounded-full",
