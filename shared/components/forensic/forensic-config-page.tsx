@@ -386,22 +386,24 @@ function MetricCard({
         )}
         aria-hidden
       />
-      <div className="relative flex min-h-[112px] items-center gap-5 px-6 py-5">
-        <span className={cn("inline-flex size-[52px] shrink-0 items-center justify-center rounded-xl text-white shadow-lg", tone)}>
-          <Icon className="size-5" strokeWidth={2} aria-hidden />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="mb-1.5 truncate text-[11px] font-semibold leading-4 text-slate-400 dark:text-slate-500">{label}</p>
-          <p
-            className={cn(
-              "truncate text-[28px] font-bold leading-none tabular-nums text-slate-800 dark:text-white",
-              valueClassName,
-            )}
-          >
-            {value}
-          </p>
-          <p className="mt-2 truncate text-xs leading-5 text-slate-400 dark:text-slate-500">{description}</p>
+      <div className="relative flex min-h-[112px] items-center justify-between gap-5 px-6 py-5">
+        <div className="flex min-w-0 items-center gap-5">
+          <span className={cn("inline-flex size-[52px] shrink-0 items-center justify-center rounded-xl text-white shadow-lg", tone)}>
+            <Icon className="size-5" strokeWidth={2} aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-medium leading-5 text-slate-500 dark:text-slate-400">{label}</p>
+            <p className="mt-2 truncate text-xs leading-5 text-slate-400 dark:text-slate-500">{description}</p>
+          </div>
         </div>
+        <p
+          className={cn(
+            "ml-auto max-w-[46%] shrink-0 truncate text-right text-[32px] font-bold leading-none tabular-nums text-slate-900 dark:text-white",
+            valueClassName,
+          )}
+        >
+          {value}
+        </p>
       </div>
     </div>
   )
