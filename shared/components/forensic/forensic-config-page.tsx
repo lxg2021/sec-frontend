@@ -992,7 +992,7 @@ export function ForensicConfigPage() {
                             : "border-slate-200/80 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900",
                         )}
                       >
-                        <CategoryIcon category={item.category} size="xs" className="mt-0.5" />
+                        <CategoryIcon category={item.category} size="xs" className="mt-2.5" />
                         <div className="min-w-0 flex-1">
                           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
                             <p className="truncate text-sm font-semibold leading-5 text-slate-950 dark:text-white">{display.name}</p>
