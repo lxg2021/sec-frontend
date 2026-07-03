@@ -2157,6 +2157,7 @@
         "subtitle": "View loaded forensic artifacts, parameter docs, and output fields.",
         "searchPlaceholder": "Search artifact name / artifact_key",
         "refresh": "Refresh",
+        "updatedAt": "Updated At",
         "createTask": "New Task"
       },
       "summary": {

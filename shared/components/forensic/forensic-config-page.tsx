@@ -8,6 +8,7 @@ import {
   Archive,
   Boxes,
   ClipboardCheck,
+  Clock3,
   Cpu,
   Database,
   FileSearch,
@@ -30,7 +31,6 @@ import { toast } from "sonner"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
-import { Input } from "@/shared/ui/input"
 import { ScrollArea } from "@/shared/ui/scroll-area"
 import {
   Select,
@@ -182,6 +182,27 @@ function getSearchText(item: ForensicArtifactDefinitionItem, locale: string) {
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error || "")
+}
+
+function formatRefreshTime(value?: Date | null): string {
+  if (!value) {
+    return "--"
+  }
+
+  const parts = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(value)
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")} ${getPart("hour")}:${getPart("minute")}:${getPart("second")}`
 }
 
 type CategoryVisual = {
@@ -359,6 +380,7 @@ export function ForensicConfigPage() {
   const [enabled, setEnabled] = useState<EnabledFilter>("all")
   const [loadingList, setLoadingList] = useState(false)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [listError, setListError] = useState<string | null>(null)
   const [detailError, setDetailError] = useState<string | null>(null)
 
@@ -392,6 +414,7 @@ export function ForensicConfigPage() {
         }
         return nextItems[0]?.artifact_key || ""
       })
+      setRefreshedAt(new Date())
     } catch (error) {
       const message = getErrorMessage(error) || t("errors.loadFailedDescription")
       setListError(message)
@@ -595,85 +618,125 @@ export function ForensicConfigPage() {
   }
 
   return (
-    <main className="w-full max-w-none px-4 py-4 sm:px-5 lg:px-6">
-      <section className="min-h-[calc(100vh-2rem)] rounded-[22px] bg-slate-100/80 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] ring-1 ring-slate-200/70 dark:bg-slate-950 dark:ring-slate-800">
-        <header className="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
-          <div className="flex min-w-0 items-center gap-4">
-            <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-lg shadow-sky-200/60 dark:shadow-sky-950/40">
-              <FileSearch className="size-6" aria-hidden />
-            </span>
-            <div className="min-w-0">
-              <h1 className="truncate text-2xl font-semibold leading-8 text-slate-950 dark:text-white">{t("header.title")}</h1>
-              <p className="mt-0.5 truncate text-sm text-slate-500 dark:text-slate-400">{t("header.subtitle")}</p>
-            </div>
-          </div>
+    <main className="bg-gray-50">
+      <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
+        <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
+                <FileSearch aria-hidden className="h-5 w-5" />
+              </div>
 
-          <div className="flex w-full flex-col gap-3 md:flex-row md:flex-wrap md:items-center 2xl:w-auto 2xl:justify-end">
-            <div className="relative min-w-0 md:w-[320px]">
-              <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-slate-500" />
-              <Input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder={t("header.searchPlaceholder")}
-                className="h-11 rounded-xl border-slate-200 bg-white pl-11 text-sm shadow-sm shadow-slate-200/50 dark:border-slate-800 dark:bg-slate-950 dark:shadow-none"
-              />
+              <div className="min-w-0 space-y-1.5">
+                <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
+                  {t("header.title")}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2.5 text-sm">
+                  <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
+                    FORENSIC
+                  </span>
+                  <span className="min-w-0 truncate text-slate-500">{t("header.subtitle")}</span>
+                </div>
+              </div>
             </div>
-            <Select value={platform} onValueChange={setPlatform}>
-              <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white shadow-sm shadow-slate-200/50 md:w-[150px] dark:border-slate-800 dark:bg-slate-950 dark:shadow-none">
-                <SelectValue placeholder={t("filters.platform")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_VALUE}>{t("filters.allPlatforms")}</SelectItem>
-                {platforms.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {formatPlatformLabel(value)}
-                  </SelectItem>
+
+            <div className="flex flex-wrap items-center gap-3 xl:ml-auto xl:justify-end">
+              <div className="flex h-12 w-full min-w-[280px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[360px] 2xl:w-[460px]">
+                <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+                <input
+                  type="search"
+                  aria-label={t("header.searchPlaceholder")}
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={t("header.searchPlaceholder")}
+                  disabled={loadingList}
+                  className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+
+              <Select value={platform} onValueChange={setPlatform}>
+                <SelectTrigger className="h-12 w-[148px] rounded-full border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 shadow-inner shadow-slate-200/20">
+                  <SelectValue placeholder={t("filters.platform")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_VALUE}>{t("filters.allPlatforms")}</SelectItem>
+                  {platforms.map((value) => (
+                    <SelectItem key={value} value={value}>
+                      {formatPlatformLabel(value)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="grid h-12 w-[258px] grid-cols-3 rounded-full border border-slate-200 bg-slate-50 p-1 shadow-inner shadow-slate-200/20">
+                {([
+                  ["all", t("filters.allStatus")],
+                  ["enabled", t("status.enabled")],
+                  ["disabled", t("status.disabled")],
+                ] as [EnabledFilter, string][]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setEnabled(value)}
+                    disabled={loadingList}
+                    className={cn(
+                      "rounded-full px-2 text-xs transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60",
+                      enabled === value
+                        ? "bg-white font-medium text-teal-700 shadow-sm"
+                        : "text-slate-500 hover:bg-white/70 hover:text-slate-700",
+                    )}
+                  >
+                    <span className="block truncate">{label}</span>
+                  </button>
                 ))}
-              </SelectContent>
-            </Select>
-            <div className="grid h-11 grid-cols-3 rounded-xl border border-slate-200 bg-white p-1 shadow-sm shadow-slate-200/50 md:w-[258px] dark:border-slate-800 dark:bg-slate-950 dark:shadow-none">
-              {([
-                ["all", t("filters.allStatus")],
-                ["enabled", t("status.enabled")],
-                ["disabled", t("status.disabled")],
-              ] as [EnabledFilter, string][]).map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setEnabled(value)}
-                  className={cn(
-                    "rounded-lg px-2 text-xs transition-all duration-200",
-                    enabled === value
-                      ? "bg-blue-50 font-medium text-blue-700 shadow-sm dark:bg-blue-950/40 dark:text-blue-200"
-                      : "text-slate-500 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-900",
-                  )}
-                >
-                  <span className="block truncate">{label}</span>
-                </button>
-              ))}
+              </div>
+
+              <span className="hidden h-6 w-px bg-slate-200 2xl:block" aria-hidden="true" />
+
+              <div className="hidden items-center gap-3 2xl:flex">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+                  <Clock3 aria-hidden className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs text-slate-400">{t("header.updatedAt")}</div>
+                  <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
+                    {formatRefreshTime(refreshedAt)}
+                  </div>
+                </div>
+              </div>
+
+              <span className="hidden h-6 w-px bg-slate-200 2xl:block" aria-hidden="true" />
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  void loadCatalog()
+                  void loadList()
+                }}
+                disabled={loadingList}
+                aria-label={t("header.refresh")}
+                className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
+              >
+                <RefreshCw className={cn("h-4 w-4", loadingList && "animate-spin")} />
+                <span className="sr-only">{t("header.refresh")}</span>
+              </Button>
+
+              <Button
+                asChild
+                className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
+              >
+                <Link href={createTaskHref}>
+                  <Plus className="h-4 w-4" aria-hidden />
+                  <span>{t("header.createTask")}</span>
+                </Link>
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl border-slate-200 bg-white px-4 text-slate-700 shadow-sm shadow-slate-200/50 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:shadow-none"
-              onClick={() => {
-                void loadCatalog()
-                void loadList()
-              }}
-              disabled={loadingList}
-            >
-              <RefreshCw className={cn("size-4 text-blue-600", loadingList && "animate-spin")} />
-              {t("header.refresh")}
-            </Button>
-            <Button asChild className="h-11 rounded-xl bg-slate-950 px-4 text-white shadow-lg shadow-slate-300/70 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:shadow-none dark:hover:bg-slate-200">
-              <Link href={createTaskHref}>
-                <Plus className="size-4" aria-hidden />
-                {t("header.createTask")}
-              </Link>
-            </Button>
           </div>
         </header>
 
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             icon={ClipboardCheck}
             label={t("summary.enabled")}
@@ -1091,7 +1154,7 @@ export function ForensicConfigPage() {
             </ScrollArea>
           </section>
         </section>
-      </section>
+      </div>
     </main>
   )
 }
