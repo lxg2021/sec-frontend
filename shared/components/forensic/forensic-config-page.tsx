@@ -876,10 +876,10 @@ export function ForensicConfigPage() {
                 type="button"
                 onClick={() => setCategory(ALL_VALUE)}
                 className={cn(
-                  "flex h-10 w-full items-center justify-between rounded-lg border px-3 text-left text-sm transition-all duration-200",
+                  "flex h-10 w-full transform-gpu items-center justify-between rounded-lg border px-3 text-left text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
                   category === ALL_VALUE
-                    ? "border-blue-300 bg-blue-50 text-blue-800 shadow-sm dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200"
-                    : "border-transparent bg-slate-100/70 text-slate-600 hover:bg-slate-50 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-900",
+                    ? "border-blue-300 bg-blue-50 text-blue-800 shadow-[0_10px_20px_rgba(37,99,235,0.14)] dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200"
+                    : "border-transparent bg-slate-100/70 text-slate-600 hover:border-slate-200 hover:bg-white dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900",
                 )}
               >
                 <span className="flex min-w-0 items-center gap-2">
@@ -898,10 +898,10 @@ export function ForensicConfigPage() {
                     type="button"
                     onClick={() => setCategory(key)}
                     className={cn(
-                      "flex h-10 w-full items-center justify-between rounded-lg border px-3 text-left text-sm transition-all duration-200",
+                      "flex h-10 w-full transform-gpu items-center justify-between rounded-lg border px-3 text-left text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
                       category === key
-                        ? cn("shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-white", visual.activeClass)
-                        : "border-transparent bg-slate-100/70 text-slate-600 hover:bg-slate-50 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-900",
+                        ? cn("shadow-[0_10px_20px_rgba(15,23,42,0.10)] dark:border-slate-700 dark:bg-slate-900 dark:text-white", visual.activeClass)
+                        : "border-transparent bg-slate-100/70 text-slate-600 hover:border-slate-200 hover:bg-white dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900",
                     )}
                   >
                     <span className="flex min-w-0 items-center gap-2">
