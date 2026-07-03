@@ -348,7 +348,7 @@ function CategoryIcon({
     <span
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-xl shadow-sm",
-        size === "xs" && "size-8 rounded-lg",
+        size === "xs" && "size-7 rounded-lg",
         size === "sm" && "size-10",
         size === "md" && "size-12",
         size === "lg" && "size-14",
@@ -356,7 +356,7 @@ function CategoryIcon({
         className,
       )}
     >
-      <Icon className={cn(size === "xs" && "size-4", size === "sm" && "size-5", (size === "md" || size === "lg") && "size-6")} aria-hidden />
+      <Icon className={cn(size === "xs" && "size-3.5", size === "sm" && "size-5", (size === "md" || size === "lg") && "size-6")} aria-hidden />
     </span>
   )
 }
@@ -883,7 +883,7 @@ export function ForensicConfigPage() {
                 )}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-md bg-blue-600 text-white">
+                  <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
                     <Boxes className="size-3.5" aria-hidden />
                   </span>
                   <span className="truncate">{t("filters.allArtifacts")}</span>
@@ -905,7 +905,7 @@ export function ForensicConfigPage() {
                     )}
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className={cn("size-5 shrink-0 rounded-md", visual.dotClass)} />
+                      <span className={cn("size-7 shrink-0 rounded-lg", visual.dotClass)} />
                       <span className="truncate">{categoryLabel(key)}</span>
                     </span>
                     <span className="font-mono text-xs">{count}</span>
