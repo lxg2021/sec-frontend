@@ -2013,7 +2013,9 @@
           "caseInputLabel": "Enter CaseID",
           "casePlaceholder": "Enter CaseID",
           "updatedAt": "Updated at",
-          "refreshLabel": "Refresh forensic overview"
+          "refreshLabel": "Refresh forensic overview",
+          "artifactConfigLabel": "Artifact Config",
+          "createTaskLabel": "Create Task"
         },
         "errors": {
           "caseNotFoundTitle": "Case Not Found",

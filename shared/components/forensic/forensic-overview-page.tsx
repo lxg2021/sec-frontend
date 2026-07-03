@@ -14,7 +14,6 @@ import { ForensicArtifactCategorySummary } from "./forensic-artifact-category-su
 import { ForensicBackendStatusPanel } from "./forensic-backend-status-panel"
 import { ForensicEndpointStatusSummary } from "./forensic-endpoint-status-summary"
 import { ForensicOverviewHeader } from "./forensic-overview-header"
-import { ForensicQuickLinks } from "./forensic-quick-links"
 import { ForensicRecentTaskSummary } from "./forensic-recent-task-summary"
 import { ForensicServiceStatusCard } from "./forensic-service-status-card"
 import { ForensicTaskStatusSummary } from "./forensic-task-status-summary"
@@ -218,13 +217,8 @@ export function ForensicOverviewPage({ context }: Props) {
 
         <ForensicBackendStatusPanel data={backend} loading={loading} />
 
-        <div className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
-          <div className="min-h-[300px] lg:col-span-2">
-            <ForensicRecentTaskSummary tasks={overview.recent_tasks} />
-          </div>
-          <div className="flex flex-col gap-4">
-            <ForensicQuickLinks />
-          </div>
+        <div className="min-h-[300px] flex-1">
+          <ForensicRecentTaskSummary tasks={overview.recent_tasks} />
         </div>
       </div>
     </main>

@@ -2,7 +2,8 @@
 
 import type { FormEvent } from "react"
 import { useEffect, useState } from "react"
-import { Clock3, RefreshCw, ScanSearch, Search } from "lucide-react"
+import Link from "next/link"
+import { Clock3, Hexagon, Plus, RefreshCw, ScanSearch, Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/utils"
@@ -61,6 +62,13 @@ export function ForensicOverviewHeader({
     }
     onRefresh?.()
   }
+
+  const createTaskParams = new URLSearchParams({ action: "create" })
+  const nextCaseId = caseInput.trim()
+  if (nextCaseId) {
+    createTaskParams.set("case_id", nextCaseId)
+  }
+  const createTaskHref = `/frame/investigation/tasks?${createTaskParams.toString()}`
 
   return (
     <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
@@ -128,6 +136,27 @@ export function ForensicOverviewHeader({
             >
               <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
               <span className="sr-only">{t("refreshLabel")}</span>
+            </Button>
+
+            <Button
+              asChild
+              variant="ghost"
+              className="h-10 shrink-0 rounded-full px-3 text-slate-500 shadow-none hover:bg-slate-100 hover:text-slate-700"
+            >
+              <Link href="/frame/investigation/artifacts">
+                <Hexagon className="h-4 w-4" />
+                <span>{t("artifactConfigLabel")}</span>
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
+            >
+              <Link href={createTaskHref}>
+                <Plus className="h-4 w-4" />
+                <span>{t("createTaskLabel")}</span>
+              </Link>
             </Button>
           </div>
         </div>

@@ -2015,7 +2015,9 @@
           "caseInputLabel": "输入 CaseID",
           "casePlaceholder": "请输入 CaseID",
           "updatedAt": "更新时间",
-          "refreshLabel": "刷新取证概览"
+          "refreshLabel": "刷新取证概览",
+          "artifactConfigLabel": "工件配置",
+          "createTaskLabel": "新建任务"
         },
         "errors": {
           "caseNotFoundTitle": "未找到对应案件",
