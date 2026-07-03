@@ -189,7 +189,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                       <td className="px-3 py-3 text-center">
                         <span
                           className={cn(
-                            "inline-flex h-5 w-16 items-center gap-1 rounded-full px-1.5 text-[10px] font-medium ring-1",
+                            "inline-flex h-5 min-w-20 items-center gap-1 rounded-full px-2 text-[10px] font-medium ring-1",
                             TARGET_ONLINE_STATUS_CLASS[targetStatus]
                           )}
                         >
