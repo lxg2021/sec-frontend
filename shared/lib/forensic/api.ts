@@ -3,6 +3,8 @@
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 import type {
+  ForensicBackendHealthStatus,
+  ForensicBackendStatusData,
   ForensicAvailabilityLevel,
   ForensicNoticeLevel,
   ForensicOverviewContext,
@@ -18,6 +20,12 @@ const AVAILABILITY_LEVELS = new Set<ForensicAvailabilityLevel>([
 ])
 
 const NOTICE_LEVELS = new Set<ForensicNoticeLevel>(["info", "warning", "error"])
+
+const BACKEND_STATUS_LEVELS = new Set<ForensicBackendHealthStatus>([
+  "healthy",
+  "degraded",
+  "unavailable",
+])
 
 const emptyOverview: ForensicOverviewViewModel = {
   availability: {
@@ -74,12 +82,74 @@ const emptyOverview: ForensicOverviewViewModel = {
   last_refresh_at: 0,
 }
 
+const emptyBackendStatus: ForensicBackendStatusData = {
+  velociraptor: {
+    status: "unavailable",
+    cpu_percent: 0,
+    memory_bytes: 0,
+    total_frontends: 0,
+    current_connections: 0,
+    last_seen_at: 0,
+  },
+  storage: {
+    type: "velociraptor_datastore",
+    container_path: "",
+    filesystem: "",
+    total: "",
+    used: "",
+    available: "",
+    used_percent: 0,
+  },
+  endpoints: {
+    registered: 0,
+    connected: 0,
+  },
+  last_refresh_at: 0,
+}
+
 function numberValue(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0
 }
 
 function stringValue(value: unknown): string {
   return typeof value === "string" ? value : ""
+}
+
+function normalizeBackendStatus(raw: Partial<ForensicBackendStatusData> | null | undefined): ForensicBackendStatusData {
+  if (!raw) {
+    throw new Error("forensic backend status data is empty")
+  }
+
+  const status = raw.velociraptor?.status
+
+  return {
+    velociraptor: {
+      ...emptyBackendStatus.velociraptor,
+      ...raw.velociraptor,
+      status: status && BACKEND_STATUS_LEVELS.has(status) ? status : "unavailable",
+      cpu_percent: numberValue(raw.velociraptor?.cpu_percent),
+      memory_bytes: numberValue(raw.velociraptor?.memory_bytes),
+      total_frontends: numberValue(raw.velociraptor?.total_frontends),
+      current_connections: numberValue(raw.velociraptor?.current_connections),
+      last_seen_at: numberValue(raw.velociraptor?.last_seen_at),
+    },
+    storage: {
+      ...emptyBackendStatus.storage,
+      ...raw.storage,
+      type: stringValue(raw.storage?.type) || emptyBackendStatus.storage.type,
+      container_path: stringValue(raw.storage?.container_path),
+      filesystem: stringValue(raw.storage?.filesystem),
+      total: stringValue(raw.storage?.total),
+      used: stringValue(raw.storage?.used),
+      available: stringValue(raw.storage?.available),
+      used_percent: numberValue(raw.storage?.used_percent),
+    },
+    endpoints: {
+      registered: numberValue(raw.endpoints?.registered),
+      connected: numberValue(raw.endpoints?.connected),
+    },
+    last_refresh_at: numberValue(raw.last_refresh_at) || Math.floor(Date.now() / 1000),
+  }
 }
 
 function normalizeOverview(raw: Partial<ForensicOverviewViewModel> | null | undefined): ForensicOverviewViewModel {
@@ -161,6 +231,13 @@ export async function getForensicOverview(
     ...(caseId ? { case_id: caseId } : {}),
   })
   return normalizeOverview(result.data as Partial<ForensicOverviewViewModel>)
+}
+
+export async function getForensicBackendStatus(): Promise<ForensicBackendStatusData> {
+  const result = await http.post("getForensicBackendStatus", {
+    request_id: createRequestId(),
+  })
+  return normalizeBackendStatus(result.data as Partial<ForensicBackendStatusData>)
 }
 
 export async function syncForensicEndpoints(): Promise<{ synced_count: number }> {

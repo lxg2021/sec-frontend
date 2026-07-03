@@ -2020,7 +2020,41 @@
           "caseNotFoundDescription": "CaseID {caseId} does not exist or is not accessible in the current tenant.",
           "caseNotFoundDescriptionNoCase": "The current CaseID does not exist or is not accessible in the current tenant.",
           "loadFailedTitle": "Failed to Load Forensic Overview",
+          "backendStatusLoadFailedTitle": "Failed to Load Forensic Backend Status",
           "retryLater": "Please try again later."
+        },
+        "backendStatus": {
+          "title": "Forensic Backend Status",
+          "description": "Velociraptor runtime, datastore, and endpoint connection status",
+          "lastRefresh": "Last refresh {time}",
+          "loading": "Refreshing",
+          "status": {
+            "healthy": "healthy",
+            "degraded": "degraded",
+            "unavailable": "unavailable"
+          },
+          "metrics": {
+            "cpu": "CPU",
+            "memory": "Memory",
+            "frontends": "Frontends",
+            "connections": "Connections",
+            "lastSeen": "Last Seen"
+          },
+          "storage": {
+            "title": "Datastore",
+            "used": "Used {value}",
+            "available": "Available {value}",
+            "total": "Total {value}",
+            "type": "Storage Type",
+            "filesystem": "Filesystem",
+            "containerPath": "Container Path"
+          },
+          "endpoints": {
+            "title": "Endpoint Access",
+            "onlineRate": "Online Rate",
+            "connected": "Connected",
+            "registered": "Registered"
+          }
         },
         "serviceStatus": {
           "title": "Forensic Status",

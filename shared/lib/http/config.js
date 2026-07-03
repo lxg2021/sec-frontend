@@ -75,6 +75,7 @@ const FALLBACK_CONFIG = {
       baselineScanPolicy: "/sensor/control/baseline/scanpolicy",
       listBaselineScanPolicies: "/sensor/control/baseline/scanpolicy/list",
       getForensicOverview: "/sensor/analysis/forensic/overview/get",
+      getForensicBackendStatus: "/sensor/analysis/forensic/backend/status/get",
       syncForensicEndpoints: "/sensor/analysis/forensic/endpoints/sync",
       listForensicEndpoints: "/sensor/analysis/forensic/endpoints/list",
       getForensicEndpoint: "/sensor/analysis/forensic/endpoints/get",

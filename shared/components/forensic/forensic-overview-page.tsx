@@ -4,14 +4,18 @@ import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
-import type { ForensicOverviewContext, ForensicOverviewViewModel } from "@/shared/lib/forensic/types"
-import { getForensicOverview } from "@/shared/lib/forensic/api"
+import type {
+  ForensicBackendStatusData,
+  ForensicOverviewContext,
+  ForensicOverviewViewModel,
+} from "@/shared/lib/forensic/types"
+import { getForensicBackendStatus, getForensicOverview } from "@/shared/lib/forensic/api"
 import { ForensicArtifactCategorySummary } from "./forensic-artifact-category-summary"
+import { ForensicBackendStatusPanel } from "./forensic-backend-status-panel"
 import { ForensicEndpointStatusSummary } from "./forensic-endpoint-status-summary"
 import { ForensicOverviewHeader } from "./forensic-overview-header"
 import { ForensicQuickLinks } from "./forensic-quick-links"
 import { ForensicRecentTaskSummary } from "./forensic-recent-task-summary"
-import { ForensicRiskNoticePanel } from "./forensic-risk-notice-panel"
 import { ForensicServiceStatusCard } from "./forensic-service-status-card"
 import { ForensicTaskStatusSummary } from "./forensic-task-status-summary"
 
@@ -74,13 +78,40 @@ const EMPTY_FORENSIC_OVERVIEW: ForensicOverviewViewModel = {
   last_refresh_at: 0,
 }
 
+const EMPTY_FORENSIC_BACKEND_STATUS: ForensicBackendStatusData = {
+  velociraptor: {
+    status: "unavailable",
+    cpu_percent: 0,
+    memory_bytes: 0,
+    total_frontends: 0,
+    current_connections: 0,
+    last_seen_at: 0,
+  },
+  storage: {
+    type: "velociraptor_datastore",
+    container_path: "",
+    filesystem: "",
+    total: "",
+    used: "",
+    available: "",
+    used_percent: 0,
+  },
+  endpoints: {
+    registered: 0,
+    connected: 0,
+  },
+  last_refresh_at: 0,
+}
+
 export function ForensicOverviewPage({ context }: Props) {
   const t = useTranslations("pages.investigation.collection")
   const router = useRouter()
   const [data, setData] = useState<ForensicOverviewViewModel | null>(null)
+  const [backendStatus, setBackendStatus] = useState<ForensicBackendStatusData | null>(null)
   const [loading, setLoading] = useState(false)
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const overview = data ?? EMPTY_FORENSIC_OVERVIEW
+  const backend = backendStatus ?? EMPTY_FORENSIC_BACKEND_STATUS
 
   const formatOverviewError = useCallback(
     (error: unknown, caseId?: string): { title: string; description: string } => {
@@ -108,19 +139,38 @@ export function ForensicOverviewPage({ context }: Props) {
   const refresh = useCallback(async () => {
     setLoading(true)
     try {
-      const next = await getForensicOverview({ case_id: context.case_id })
-      setData(next)
-      setRefreshedAt(new Date())
-    } catch (err) {
-      const nextError = formatOverviewError(err, context.case_id)
-      setData((current) => current ?? EMPTY_FORENSIC_OVERVIEW)
-      toast.error(nextError.title, {
-        description: nextError.description,
-      })
+      const [overviewResult, backendResult] = await Promise.allSettled([
+        getForensicOverview({ case_id: context.case_id }),
+        getForensicBackendStatus(),
+      ])
+
+      if (overviewResult.status === "fulfilled") {
+        setData(overviewResult.value)
+      } else {
+        const nextError = formatOverviewError(overviewResult.reason, context.case_id)
+        setData((current) => current ?? EMPTY_FORENSIC_OVERVIEW)
+        toast.error(nextError.title, {
+          description: nextError.description,
+        })
+      }
+
+      if (backendResult.status === "fulfilled") {
+        setBackendStatus(backendResult.value)
+      } else {
+        setBackendStatus((current) => current ?? EMPTY_FORENSIC_BACKEND_STATUS)
+        const raw = backendResult.reason instanceof Error ? backendResult.reason.message : ""
+        toast.error(t("errors.backendStatusLoadFailedTitle"), {
+          description: raw || t("errors.retryLater"),
+        })
+      }
+
+      if (overviewResult.status === "fulfilled" || backendResult.status === "fulfilled") {
+        setRefreshedAt(new Date())
+      }
     } finally {
       setLoading(false)
     }
-  }, [context.case_id, formatOverviewError])
+  }, [context.case_id, formatOverviewError, t])
 
   const handleCaseIdSubmit = useCallback(
     (caseId: string) => {
@@ -166,12 +216,13 @@ export function ForensicOverviewPage({ context }: Props) {
           <ForensicArtifactCategorySummary summary={overview.artifact_summary} />
         </div>
 
+        <ForensicBackendStatusPanel data={backend} loading={loading} />
+
         <div className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="min-h-[300px] lg:col-span-2">
             <ForensicRecentTaskSummary tasks={overview.recent_tasks} />
           </div>
-          <div className="flex min-h-[300px] flex-col gap-4">
-            <ForensicRiskNoticePanel notices={overview.notices} availability={overview.availability} />
+          <div className="flex flex-col gap-4">
             <ForensicQuickLinks />
           </div>
         </div>

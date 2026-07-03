@@ -2022,7 +2022,41 @@
           "caseNotFoundDescription": "CaseID {caseId} 不存在或当前租户不可访问",
           "caseNotFoundDescriptionNoCase": "当前 CaseID 不存在或当前租户不可访问",
           "loadFailedTitle": "取证概览加载失败",
+          "backendStatusLoadFailedTitle": "取证后端状态加载失败",
           "retryLater": "请稍后重试"
+        },
+        "backendStatus": {
+          "title": "取证后端状态",
+          "description": "Velociraptor 运行态、数据存储和终端连接状态",
+          "lastRefresh": "最后刷新 {time}",
+          "loading": "刷新中",
+          "status": {
+            "healthy": "正常",
+            "degraded": "降级",
+            "unavailable": "不可用"
+          },
+          "metrics": {
+            "cpu": "CPU",
+            "memory": "内存",
+            "frontends": "前端节点",
+            "connections": "当前连接",
+            "lastSeen": "最近活跃"
+          },
+          "storage": {
+            "title": "数据存储",
+            "used": "已用 {value}",
+            "available": "可用 {value}",
+            "total": "总计 {value}",
+            "type": "存储类型",
+            "filesystem": "文件系统",
+            "containerPath": "容器路径"
+          },
+          "endpoints": {
+            "title": "终端接入",
+            "onlineRate": "在线率",
+            "connected": "已连接",
+            "registered": "已注册"
+          }
         },
         "serviceStatus": {
           "title": "取证状态",

@@ -172,6 +172,33 @@ export interface ForensicOverviewViewModel {
   last_refresh_at: number
 }
 
+export type ForensicBackendHealthStatus = "healthy" | "degraded" | "unavailable"
+
+export interface ForensicBackendStatusData {
+  velociraptor: {
+    status: ForensicBackendHealthStatus
+    cpu_percent: number
+    memory_bytes: number
+    total_frontends: number
+    current_connections: number
+    last_seen_at: number
+  }
+  storage: {
+    type: string
+    container_path: string
+    filesystem: string
+    total: string
+    used: string
+    available: string
+    used_percent: number
+  }
+  endpoints: {
+    registered: number
+    connected: number
+  }
+  last_refresh_at: number
+}
+
 export interface ForensicOverviewContext {
   case_id?: string
   workflow_id?: string
