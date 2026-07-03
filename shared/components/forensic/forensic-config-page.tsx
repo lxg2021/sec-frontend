@@ -37,7 +37,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/shared/ui/select"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
@@ -279,6 +278,58 @@ function formatPlatformLabel(value: string) {
     return "-"
   }
   return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+function getPlatformIconSrc(value: string) {
+  const normalized = value.toLowerCase()
+  if (normalized.includes("windows")) {
+    return "/icons/system/windows.svg"
+  }
+  if (normalized.includes("linux")) {
+    return "/icons/system/linux.svg"
+  }
+  if (normalized.includes("mac") || normalized.includes("darwin")) {
+    return "/icons/system/macos.svg"
+  }
+  return "/icons/system/patchcategory.svg"
+}
+
+function PlatformOptionLabel({
+  value,
+  label,
+  className,
+  block,
+}: {
+  value: string
+  label: string
+  className?: string
+  block?: boolean
+}) {
+  const content = (
+    <>
+      <img
+        src={getPlatformIconSrc(value)}
+        alt=""
+        aria-hidden="true"
+        className="h-4 w-4 shrink-0 object-contain"
+      />
+      <span className="min-w-0 truncate">{label}</span>
+    </>
+  )
+
+  if (block) {
+    return (
+      <div className={cn("flex min-w-0 items-center gap-2 whitespace-nowrap", className)}>
+        {content}
+      </div>
+    )
+  }
+
+  return (
+    <span className={cn("inline-flex min-w-0 items-center gap-2 whitespace-nowrap", className)}>
+      {content}
+    </span>
+  )
 }
 
 function CategoryIcon({
@@ -655,14 +706,20 @@ export function ForensicConfigPage() {
               </div>
 
               <Select value={platform} onValueChange={setPlatform}>
-                <SelectTrigger className="h-12 w-[148px] rounded-full border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 shadow-inner shadow-slate-200/20">
-                  <SelectValue placeholder={t("filters.platform")} />
+                <SelectTrigger className="h-12 w-[176px] rounded-full border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-700 shadow-inner shadow-slate-200/20">
+                  <PlatformOptionLabel
+                    value={platform}
+                    label={platform === ALL_VALUE ? t("filters.allPlatforms") : formatPlatformLabel(platform)}
+                    block
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={ALL_VALUE}>{t("filters.allPlatforms")}</SelectItem>
+                  <SelectItem value={ALL_VALUE}>
+                    <PlatformOptionLabel value={ALL_VALUE} label={t("filters.allPlatforms")} />
+                  </SelectItem>
                   {platforms.map((value) => (
                     <SelectItem key={value} value={value}>
-                      {formatPlatformLabel(value)}
+                      <PlatformOptionLabel value={value} label={formatPlatformLabel(value)} />
                     </SelectItem>
                   ))}
                 </SelectContent>
