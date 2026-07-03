@@ -378,7 +378,9 @@ function MetricCard({
   valueClassName?: string
 }) {
   return (
-    <div className="group relative min-h-[112px] min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.07),0_1px_2px_-1px_rgba(0,0,0,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950">
+    <div className="group relative isolate min-h-[112px] min-w-0 transform-gpu overflow-hidden rounded-2xl border border-white/80 bg-[linear-gradient(145deg,#ffffff_0%,#ffffff_58%,#f8fafc_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.96),0_18px_34px_rgba(15,23,42,0.10),0_4px_10px_rgba(15,23,42,0.06)] ring-1 ring-slate-950/[0.03] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.98),0_24px_44px_rgba(15,23,42,0.13),0_8px_16px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-[linear-gradient(145deg,#0f172a_0%,#020617_100%)] dark:ring-white/[0.04] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_rgba(0,0,0,0.34)] dark:hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_24px_44px_rgba(0,0,0,0.42)]">
+      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.92),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.68),rgba(255,255,255,0)_48%)] opacity-90 dark:bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.08),transparent_38%)] dark:opacity-100" aria-hidden />
+      <div className="pointer-events-none absolute inset-x-5 bottom-0 -z-10 h-px bg-slate-200/70 dark:bg-white/10" aria-hidden />
       <div
         className={cn(
           "absolute -left-10 -top-10 h-36 w-36 rounded-full opacity-[0.06] blur-3xl transition-opacity duration-500 group-hover:opacity-[0.12]",
@@ -388,7 +390,7 @@ function MetricCard({
       />
       <div className="relative flex min-h-[112px] items-center justify-between gap-3 px-5 py-5">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={cn("inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-white shadow-lg", tone)}>
+          <span className={cn("inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.32),0_12px_18px_rgba(15,23,42,0.18)] ring-1 ring-white/30 transition-transform duration-300 group-hover:scale-[1.03]", tone)}>
             <Icon className="size-[18px]" strokeWidth={2} aria-hidden />
           </span>
           <div className="min-w-0">
