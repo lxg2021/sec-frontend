@@ -817,7 +817,7 @@ export function ForensicConfigPage() {
           </div>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             icon={ClipboardCheck}
             label={t("summary.enabled")}
@@ -856,7 +856,7 @@ export function ForensicConfigPage() {
           />
         </div>
 
-        <section className="mt-6 grid gap-5 xl:grid-cols-[312px_minmax(380px,1fr)_minmax(340px,0.68fr)]">
+        <section className="grid gap-6 xl:grid-cols-[312px_minmax(380px,1fr)_minmax(340px,0.68fr)]">
           <aside className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4 dark:border-slate-800">
               <div className="flex items-center gap-2">
