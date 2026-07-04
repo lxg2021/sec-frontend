@@ -113,9 +113,11 @@ interface ArtifactUpstream {
 }
 
 const ALL_VALUE = "all"
-const DEFAULT_PLATFORM_VALUES = ["windows", "linux", "macos"]
+const DEFAULT_PLATFORM_VALUES = ["windows", "linux", "macos", "generic"]
 const DEFAULT_ARTIFACT_PAGE_SIZE = 4
 const ARTIFACT_ITEM_GAP_PX = 12
+const DEFAULT_CATEGORY_PAGE_SIZE = 8
+const CATEGORY_ITEM_GAP_PX = 8
 
 function safeParseJson<T>(raw: string | undefined, fallback: T, context: string): JsonResult<T> {
   if (!raw) {
@@ -195,8 +197,6 @@ function getArtifactNativeDescription(item: ForensicArtifactDefinitionItem | nul
   )
   return nativeDescriptionFromUpstream(parsed.value, locale)
 }
-
-const IMPACT_BADGE_CLASS = "inline-flex w-[72px] justify-center text-center"
 
 function sortArtifacts(items: ForensicArtifactDefinitionItem[]) {
   return [...items].sort((a, b) => {
@@ -302,17 +302,41 @@ const CATEGORY_VISUALS: Record<string, CategoryVisual> = {
     dotClass: "bg-orange-500",
     activeClass: "border-orange-300 bg-orange-50 text-orange-800",
   },
+  eventlogs: {
+    icon: FileText,
+    iconClass: "bg-amber-500 text-white shadow-amber-100",
+    dotClass: "bg-amber-500",
+    activeClass: "border-amber-300 bg-amber-50 text-amber-800",
+  },
+  events: {
+    icon: Clock3,
+    iconClass: "bg-yellow-500 text-white shadow-yellow-100",
+    dotClass: "bg-yellow-500",
+    activeClass: "border-yellow-300 bg-yellow-50 text-yellow-800",
+  },
   forensic: {
     icon: ShieldCheck,
     iconClass: "bg-emerald-500 text-white shadow-emerald-100",
     dotClass: "bg-emerald-500",
     activeClass: "border-emerald-300 bg-emerald-50 text-emerald-800",
   },
+  forensics: {
+    icon: ShieldCheck,
+    iconClass: "bg-green-600 text-white shadow-green-100",
+    dotClass: "bg-green-600",
+    activeClass: "border-green-300 bg-green-50 text-green-800",
+  },
+  timeline: {
+    icon: Clock3,
+    iconClass: "bg-cyan-500 text-white shadow-cyan-100",
+    dotClass: "bg-cyan-500",
+    activeClass: "border-cyan-300 bg-cyan-50 text-cyan-800",
+  },
   network: {
     icon: Network,
-    iconClass: "bg-slate-600 text-white shadow-slate-100",
-    dotClass: "bg-slate-500",
-    activeClass: "border-slate-300 bg-slate-50 text-slate-800",
+    iconClass: "bg-blue-700 text-white shadow-blue-100",
+    dotClass: "bg-blue-700",
+    activeClass: "border-blue-300 bg-blue-50 text-blue-800",
   },
   system: {
     icon: Cpu,
@@ -332,6 +356,138 @@ const CATEGORY_VISUALS: Record<string, CategoryVisual> = {
     dotClass: "bg-rose-500",
     activeClass: "border-rose-300 bg-rose-50 text-rose-800",
   },
+  applications: {
+    icon: Archive,
+    iconClass: "bg-pink-500 text-white shadow-pink-100",
+    dotClass: "bg-pink-500",
+    activeClass: "border-pink-300 bg-pink-50 text-pink-800",
+  },
+  search: {
+    icon: FileSearch,
+    iconClass: "bg-blue-500 text-white shadow-blue-100",
+    dotClass: "bg-blue-500",
+    activeClass: "border-blue-300 bg-blue-50 text-blue-800",
+  },
+  collectors: {
+    icon: ClipboardCheck,
+    iconClass: "bg-lime-600 text-white shadow-lime-100",
+    dotClass: "bg-lime-600",
+    activeClass: "border-lime-300 bg-lime-50 text-lime-800",
+  },
+  detection: {
+    icon: Search,
+    iconClass: "bg-red-500 text-white shadow-red-100",
+    dotClass: "bg-red-500",
+    activeClass: "border-red-300 bg-red-50 text-red-800",
+  },
+  attack: {
+    icon: TriangleAlert,
+    iconClass: "bg-red-700 text-white shadow-red-100",
+    dotClass: "bg-red-700",
+    activeClass: "border-red-300 bg-red-50 text-red-800",
+  },
+  persistence: {
+    icon: Layers3,
+    iconClass: "bg-purple-500 text-white shadow-purple-100",
+    dotClass: "bg-purple-500",
+    activeClass: "border-purple-300 bg-purple-50 text-purple-800",
+  },
+  memory: {
+    icon: Cpu,
+    iconClass: "bg-fuchsia-500 text-white shadow-fuchsia-100",
+    dotClass: "bg-fuchsia-500",
+    activeClass: "border-fuchsia-300 bg-fuchsia-50 text-fuchsia-800",
+  },
+  activedirectory: {
+    icon: Network,
+    iconClass: "bg-indigo-700 text-white shadow-indigo-100",
+    dotClass: "bg-indigo-700",
+    activeClass: "border-indigo-300 bg-indigo-50 text-indigo-800",
+  },
+  etw: {
+    icon: Network,
+    iconClass: "bg-cyan-700 text-white shadow-cyan-100",
+    dotClass: "bg-cyan-700",
+    activeClass: "border-cyan-300 bg-cyan-50 text-cyan-800",
+  },
+  sysinternals: {
+    icon: Monitor,
+    iconClass: "bg-slate-700 text-white shadow-slate-100",
+    dotClass: "bg-slate-700",
+    activeClass: "border-slate-300 bg-slate-50 text-slate-800",
+  },
+  sigma: {
+    icon: ShieldCheck,
+    iconClass: "bg-teal-700 text-white shadow-teal-100",
+    dotClass: "bg-teal-700",
+    activeClass: "border-teal-300 bg-teal-50 text-teal-800",
+  },
+  osquery: {
+    icon: Database,
+    iconClass: "bg-sky-700 text-white shadow-sky-100",
+    dotClass: "bg-sky-700",
+    activeClass: "border-sky-300 bg-sky-50 text-sky-800",
+  },
+  kapefiles: {
+    icon: Archive,
+    iconClass: "bg-yellow-700 text-white shadow-yellow-100",
+    dotClass: "bg-yellow-700",
+    activeClass: "border-yellow-300 bg-yellow-50 text-yellow-800",
+  },
+  carving: {
+    icon: FolderSearch,
+    iconClass: "bg-orange-700 text-white shadow-orange-100",
+    dotClass: "bg-orange-700",
+    activeClass: "border-orange-300 bg-orange-50 text-orange-800",
+  },
+  packs: {
+    icon: Boxes,
+    iconClass: "bg-violet-700 text-white shadow-violet-100",
+    dotClass: "bg-violet-700",
+    activeClass: "border-violet-300 bg-violet-50 text-violet-800",
+  },
+  remediation: {
+    icon: ShieldCheck,
+    iconClass: "bg-emerald-700 text-white shadow-emerald-100",
+    dotClass: "bg-emerald-700",
+    activeClass: "border-emerald-300 bg-emerald-50 text-emerald-800",
+  },
+  triage: {
+    icon: FileSearch,
+    iconClass: "bg-blue-600 text-white shadow-blue-100",
+    dotClass: "bg-blue-600",
+    activeClass: "border-blue-300 bg-blue-50 text-blue-800",
+  },
+  analysis: {
+    icon: FileSearch,
+    iconClass: "bg-teal-800 text-white shadow-teal-100",
+    dotClass: "bg-teal-800",
+    activeClass: "border-teal-300 bg-teal-50 text-teal-800",
+  },
+  client: {
+    icon: Monitor,
+    iconClass: "bg-slate-500 text-white shadow-slate-100",
+    dotClass: "bg-slate-500",
+    activeClass: "border-slate-300 bg-slate-50 text-slate-800",
+  },
+  utils: {
+    icon: HardDrive,
+    iconClass: "bg-zinc-600 text-white shadow-zinc-100",
+    dotClass: "bg-zinc-600",
+    activeClass: "border-zinc-300 bg-zinc-50 text-zinc-800",
+  },
+  manual_review: {
+    icon: TriangleAlert,
+    iconClass: "bg-amber-600 text-white shadow-amber-100",
+    dotClass: "bg-amber-600",
+    activeClass: "border-amber-300 bg-amber-50 text-amber-800",
+  },
+  sys: {
+    icon: Cpu,
+    iconClass: "bg-stone-600 text-white shadow-stone-100",
+    dotClass: "bg-stone-600",
+    activeClass: "border-stone-300 bg-stone-50 text-stone-800",
+  },
 }
 
 function getCategoryVisual(category?: string) {
@@ -341,6 +497,13 @@ function getCategoryVisual(category?: string) {
 function formatPlatformLabel(value: string) {
   if (!value) {
     return "-"
+  }
+  const normalized = value.toLowerCase()
+  if (normalized === "macos" || normalized === "darwin") {
+    return "macOS"
+  }
+  if (normalized === "generic") {
+    return "Generic"
   }
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
@@ -355,6 +518,9 @@ function getPlatformIconSrc(value: string) {
   }
   if (normalized.includes("mac") || normalized.includes("darwin")) {
     return "/icons/system/macos.svg"
+  }
+  if (normalized.includes("generic")) {
+    return "/icons/system/patchcategory.svg"
   }
   return "/icons/system/patchcategory.svg"
 }
@@ -502,6 +668,8 @@ export function ForensicConfigPage() {
   const [category, setCategory] = useState(initialCategory)
   const [platform, setPlatform] = useState(ALL_VALUE)
   const [enabled, setEnabled] = useState<EnabledFilter>("all")
+  const [categoryPage, setCategoryPage] = useState(1)
+  const [categoryPageSize, setCategoryPageSize] = useState(DEFAULT_CATEGORY_PAGE_SIZE)
   const [artifactPage, setArtifactPage] = useState(1)
   const [artifactPageSize, setArtifactPageSize] = useState(DEFAULT_ARTIFACT_PAGE_SIZE)
   const [loadingList, setLoadingList] = useState(false)
@@ -511,6 +679,8 @@ export function ForensicConfigPage() {
   const [detailError, setDetailError] = useState<string | null>(null)
   const artifactListBodyRef = useRef<HTMLDivElement | null>(null)
   const artifactListMeasureRef = useRef<HTMLButtonElement | null>(null)
+  const categoryListBodyRef = useRef<HTMLDivElement | null>(null)
+  const categoryItemMeasureRef = useRef<HTMLButtonElement | null>(null)
 
   const loadCatalog = useCallback(async () => {
     try {
@@ -691,6 +861,70 @@ export function ForensicConfigPage() {
     return [...counts.entries()]
   }, [statsSource])
 
+  const calculateCategoryPageSize = useCallback(() => {
+    const body = categoryListBodyRef.current
+    const firstItem = categoryItemMeasureRef.current
+    if (!body || !firstItem) {
+      return
+    }
+
+    const bodyHeight = body.clientHeight
+    const itemHeight = firstItem.getBoundingClientRect().height
+    if (bodyHeight <= 0 || itemHeight <= 0) {
+      return
+    }
+
+    const availableHeight = Math.max(0, bodyHeight - itemHeight - CATEGORY_ITEM_GAP_PX)
+    const nextPageSize = Math.max(
+      1,
+      Math.floor((availableHeight + CATEGORY_ITEM_GAP_PX) / (itemHeight + CATEGORY_ITEM_GAP_PX)),
+    )
+    setCategoryPageSize((current) => (current === nextPageSize ? current : nextPageSize))
+  }, [])
+
+  useEffect(() => {
+    calculateCategoryPageSize()
+  }, [calculateCategoryPageSize, categories.length, locale])
+
+  useEffect(() => {
+    const body = categoryListBodyRef.current
+    if (!body || typeof ResizeObserver === "undefined") {
+      return
+    }
+
+    const observer = new ResizeObserver(() => calculateCategoryPageSize())
+    observer.observe(body)
+    return () => observer.disconnect()
+  }, [calculateCategoryPageSize])
+
+  const totalCategoryPages = useMemo(
+    () => Math.max(1, Math.ceil(categories.length / categoryPageSize)),
+    [categoryPageSize, categories.length],
+  )
+
+  useEffect(() => {
+    setCategoryPage((current) => Math.min(Math.max(current, 1), totalCategoryPages))
+  }, [totalCategoryPages])
+
+  useEffect(() => {
+    if (category === ALL_VALUE) {
+      setCategoryPage(1)
+      return
+    }
+    const index = categories.findIndex(([key]) => key === category)
+    if (index >= 0) {
+      setCategoryPage(Math.floor(index / categoryPageSize) + 1)
+    }
+  }, [category, categoryPageSize, categories])
+
+  const pagedCategories = useMemo(() => {
+    const start = (categoryPage - 1) * categoryPageSize
+    return categories.slice(start, start + categoryPageSize)
+  }, [categoryPage, categoryPageSize, categories])
+
+  const categoryPageStart = categories.length === 0 ? 0 : (categoryPage - 1) * categoryPageSize + 1
+  const categoryPageEnd = Math.min(categories.length, categoryPage * categoryPageSize)
+
   const platforms = useMemo(() => {
     const values = new Map<string, string>()
     for (const value of DEFAULT_PLATFORM_VALUES) {
@@ -706,12 +940,10 @@ export function ForensicConfigPage() {
 
   const summary = useMemo(() => {
     const enabledItems = statsSource.filter((item) => item.enabled)
-    const highRiskItems = statsSource.filter((item) => item.risk_level === "high")
     return {
       total: statsSource.length,
       enabled: enabledItems.length,
       categories: categories.length,
-      highRisk: highRiskItems.length,
     }
   }, [categories.length, statsSource])
 
@@ -794,35 +1026,41 @@ export function ForensicConfigPage() {
   function categoryLabel(key: string) {
     const labels: Record<string, string> = {
       file: t("categories.file"),
+      search: t("categories.search"),
+      collectors: t("categories.collectors"),
       registry: t("categories.registry"),
       eventlog: t("categories.eventlog"),
+      eventlogs: t("categories.eventlogs"),
+      events: t("categories.events"),
       forensic: t("categories.forensic"),
+      forensics: t("categories.forensics"),
+      timeline: t("categories.timeline"),
       network: t("categories.network"),
       system: t("categories.system"),
+      sys: t("categories.system"),
       ntfs: t("categories.ntfs"),
       application: t("categories.application"),
+      applications: t("categories.applications"),
+      detection: t("categories.detection"),
+      attack: t("categories.attack"),
+      persistence: t("categories.persistence"),
+      memory: t("categories.memory"),
+      activedirectory: t("categories.activedirectory"),
+      etw: t("categories.etw"),
+      sysinternals: t("categories.sysinternals"),
+      sigma: t("categories.sigma"),
+      osquery: t("categories.osquery"),
+      kapefiles: t("categories.kapefiles"),
+      carving: t("categories.carving"),
+      packs: t("categories.packs"),
+      remediation: t("categories.remediation"),
+      triage: t("categories.triage"),
+      analysis: t("categories.analysis"),
+      client: t("categories.client"),
+      utils: t("categories.utils"),
+      manual_review: t("categories.manualReview"),
     }
     return labels[key] || key
-  }
-
-  function impactLabel(value?: string) {
-    if (value === "medium") {
-      return t("impact.medium")
-    }
-    if (value === "high") {
-      return t("impact.high")
-    }
-    return t("impact.low")
-  }
-
-  function impactClass(value?: string) {
-    if (value === "high") {
-      return "border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
-    }
-    if (value === "medium") {
-      return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300"
-    }
-    return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300"
   }
 
   return (
@@ -952,28 +1190,28 @@ export function ForensicConfigPage() {
 
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
+            icon={Boxes}
+            label={t("summary.total")}
+            value={summary.total}
+            description={t("summary.totalHint")}
+            tone="bg-gradient-to-br from-sky-500 to-cyan-600 shadow-sky-200/70"
+            glow="bg-blue-500"
+            valueClassName="text-sky-600 dark:text-sky-400"
+          />
+          <MetricCard
             icon={ClipboardCheck}
             label={t("summary.enabled")}
             value={summary.enabled}
             description={t("summary.enabledHint")}
-            tone="bg-gradient-to-br from-sky-500 to-cyan-600 shadow-sky-200/70"
-            glow="bg-blue-500"
-            valueClassName="text-sky-600 dark:text-sky-400"
+            tone="bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-200/70"
+            glow="bg-emerald-500"
+            valueClassName="text-emerald-600 dark:text-emerald-400"
           />
           <MetricCard
             icon={Layers3}
             label={t("summary.categories")}
             value={summary.categories}
             description={t("summary.categoriesHint")}
-            tone="bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-200/70"
-            glow="bg-emerald-500"
-            valueClassName="text-emerald-600 dark:text-emerald-400"
-          />
-          <MetricCard
-            icon={TriangleAlert}
-            label={t("summary.highRisk")}
-            value={summary.highRisk}
-            description={t("summary.highRiskHint")}
             tone="bg-gradient-to-br from-orange-500 to-amber-500 shadow-orange-200/70"
             glow="bg-orange-500"
             valueClassName="text-orange-500 dark:text-orange-400"
@@ -985,12 +1223,12 @@ export function ForensicConfigPage() {
             description={t("summary.platformHint")}
             tone="bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-200/70"
             glow="bg-purple-500"
-            valueClassName="text-[25px] text-violet-600 dark:text-violet-400"
+            valueClassName="max-w-[38%] text-[21px] text-violet-600 dark:text-violet-400"
           />
         </div>
 
         <section className="grid min-h-0 flex-1 gap-6 xl:grid-cols-[312px_minmax(360px,0.8fr)_minmax(420px,1.2fr)]">
-          <aside className="min-h-0 overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+          <aside className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white shadow-sm shadow-blue-100 dark:bg-blue-500 dark:shadow-blue-950/40">
@@ -1001,8 +1239,9 @@ export function ForensicConfigPage() {
               <span className="font-mono text-xs text-slate-500">{summary.total}</span>
             </div>
 
-            <div className="space-y-2 p-4">
+            <div ref={categoryListBodyRef} className="min-h-0 flex-1 space-y-2 overflow-hidden p-4">
               <button
+                ref={categoryItemMeasureRef}
                 type="button"
                 onClick={() => setCategory(ALL_VALUE)}
                 className={cn(
@@ -1020,7 +1259,7 @@ export function ForensicConfigPage() {
                 </span>
                 <span className="font-mono text-xs">{statsSource.length}</span>
               </button>
-              {categories.map(([key, count]) => {
+              {pagedCategories.map(([key, count]) => {
                 const visual = getCategoryVisual(key)
                 return (
                   <button
@@ -1043,23 +1282,36 @@ export function ForensicConfigPage() {
                 )
               })}
             </div>
-
-            <div className="border-t border-slate-100 p-4 dark:border-slate-800">
-              <p className="text-sm font-semibold text-slate-950 dark:text-white">{t("filters.impactLegend")}</p>
-              <div className="mt-3 flex flex-nowrap items-center gap-5 text-xs text-slate-500 dark:text-slate-400">
-                {(["low", "medium", "high"] as const).map((value) => (
-                  <span key={value} className="flex shrink-0 items-center gap-2 whitespace-nowrap">
-                    <span
-                      className={cn(
-                        "size-3 rounded-full",
-                        value === "high" && "bg-red-500",
-                        value === "medium" && "bg-amber-500",
-                        value === "low" && "bg-emerald-500",
-                      )}
-                    />
-                    {impactLabel(value)}
-                  </span>
-                ))}
+            <div className="flex h-12 shrink-0 items-center justify-between border-t border-slate-100 px-4 dark:border-slate-800">
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                {categoryPageStart}-{categoryPageEnd} / {categories.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-8 rounded-full border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                  disabled={categories.length === 0 || categoryPage <= 1}
+                  onClick={() => setCategoryPage((current) => Math.max(1, current - 1))}
+                  aria-label="Previous category page"
+                >
+                  <ChevronLeft className="size-4" aria-hidden />
+                </Button>
+                <span className="min-w-16 text-center text-xs font-medium tabular-nums text-slate-600 dark:text-slate-300">
+                  {categories.length === 0 ? "0 / 0" : `${categoryPage} / ${totalCategoryPages}`}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="size-8 rounded-full border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
+                  disabled={categories.length === 0 || categoryPage >= totalCategoryPages}
+                  onClick={() => setCategoryPage((current) => Math.min(totalCategoryPages, current + 1))}
+                  aria-label="Next category page"
+                >
+                  <ChevronRight className="size-4" aria-hidden />
+                </Button>
               </div>
             </div>
           </aside>
@@ -1143,9 +1395,6 @@ export function ForensicConfigPage() {
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2 pt-0.5">
-                          <Badge variant="outline" className={cn(IMPACT_BADGE_CLASS, "rounded-full px-0 py-0 text-[11px]", impactClass(item.risk_level))}>
-                            {impactLabel(item.risk_level)}
-                          </Badge>
                           <span className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-emerald-700 dark:text-emerald-300">
                             <span className={cn("size-2 rounded-full", item.enabled ? "bg-emerald-500" : "bg-slate-300")} />
                             {item.enabled ? t("status.enabled") : t("status.disabled")}
@@ -1201,12 +1450,8 @@ export function ForensicConfigPage() {
                       <h2 className="truncate text-base font-semibold text-slate-950 dark:text-white">{selectedListDisplay.name}</h2>
                     </div>
                   </div>
-                  {loadingDetail ? (
+                  {loadingDetail && (
                     <Loader2 className="size-4 shrink-0 animate-spin text-slate-500" />
-                  ) : (
-                    <Badge variant="outline" className={cn(IMPACT_BADGE_CLASS, "shrink-0 rounded-full px-0", impactClass(selectedItem.risk_level))}>
-                      {impactLabel(selectedItem.risk_level)}
-                    </Badge>
                   )}
                 </>
               ) : (
@@ -1284,11 +1529,6 @@ export function ForensicConfigPage() {
 
                       <TabsContent value="native" className="space-y-3 pt-3">
                         <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-                          {upstream.value.raw_file && (
-                            <p className="mb-3 overflow-x-auto whitespace-nowrap rounded-lg bg-slate-50 px-3 py-2 font-mono text-[11px] text-slate-500 dark:bg-slate-900 dark:text-slate-400">
-                              {t("detail.rawSourceFile")} {upstream.value.raw_file}
-                            </p>
-                          )}
                           {nativeDescription && (
                             <section className="mb-3 rounded-xl border border-transparent bg-slate-50/70 p-4 dark:border-transparent dark:bg-slate-900/40">
                               <ArtifactDescriptionText text={nativeDescription} />
