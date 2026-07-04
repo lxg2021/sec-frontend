@@ -2074,12 +2074,12 @@
           "title": "Task Status Summary"
         },
         "taskStatus": {
-            "pending": "pending",
-            "running": "running",
-            "success": "success",
-            "failed": "failed",
-            "timeout": "timeout",
-            "canceled": "canceled"
+          "pending": "pending",
+          "running": "running",
+          "success": "success",
+          "failed": "failed",
+          "timeout": "timeout",
+          "canceled": "canceled"
         },
         "artifactSummary": {
           "title": "Artifact Category Summary",
@@ -2154,33 +2154,33 @@
       "artifacts": {
         "header": {
           "title": "Artifact Config",
-        "subtitle": "View loaded forensic artifacts, parameter docs, and output fields.",
-        "searchPlaceholder": "Search artifact name",
-        "refresh": "Refresh",
-        "updatedAt": "Updated At",
-        "createTask": "New Task"
-      },
-      "summary": {
-        "total": "Total Artifacts",
-        "enabled": "Enabled Artifacts",
-        "categories": "Categories",
-        "parameterized": "Parameterized",
-        "highRisk": "High-Risk Artifacts",
-        "platform": "Current Platform",
-        "enabledHint": "Config loaded",
-        "categoriesHint": "Files / Registry / Logs",
-        "highRiskHint": "Confirm scope before execution",
-        "platformHint": "Filtered by platform"
-      },
-      "filters": {
-        "title": "Filters",
-        "allArtifacts": "All Artifacts",
-        "platform": "Platform",
-        "allPlatforms": "All Platforms",
-        "enabledStatus": "Enabled Status",
-        "allStatus": "All Status",
-        "impactLegend": "Risk Level"
-      },
+          "subtitle": "View loaded forensic artifacts, parameter docs, and output fields.",
+          "searchPlaceholder": "Search artifact name",
+          "refresh": "Refresh",
+          "updatedAt": "Updated At",
+          "createTask": "New Task"
+        },
+        "summary": {
+          "total": "Total Artifacts",
+          "enabled": "Enabled Artifacts",
+          "categories": "Categories",
+          "parameterized": "Parameterized",
+          "highRisk": "High-Risk Artifacts",
+          "platform": "Current Platform",
+          "enabledHint": "Config loaded",
+          "categoriesHint": "Files / Registry / Logs",
+          "highRiskHint": "Confirm scope before execution",
+          "platformHint": "Filtered by platform"
+        },
+        "filters": {
+          "title": "Filters",
+          "allArtifacts": "All Artifacts",
+          "platform": "Platform",
+          "allPlatforms": "All Platforms",
+          "enabledStatus": "Enabled Status",
+          "allStatus": "All Status",
+          "impactLegend": "Risk Level"
+        },
         "categories": {
           "file": "Files",
           "registry": "Registry",
@@ -2211,9 +2211,6 @@
           "emptyDescription": "Select one artifact from the list to view details.",
           "noContent": "No content",
           "noDescription": "No description",
-          "useCases": "Use Cases",
-          "collects": "Collected Data",
-          "warnings": "Notes",
           "required": "required",
           "defaultValue": "Default Value",
           "mapping": "Mapping",
@@ -2254,7 +2251,6 @@
         },
         "tabs": {
           "native": "Description",
-          "overview": "Overview",
           "params": "Params",
           "output": "Output",
           "examples": "Examples",

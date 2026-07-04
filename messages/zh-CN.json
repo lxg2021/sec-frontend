@@ -2156,33 +2156,33 @@
       "artifacts": {
         "header": {
           "title": "工件配置",
-        "subtitle": "查看平台当前加载的取证工件、参数说明和输出字段",
-        "searchPlaceholder": "搜索工件名称",
-        "refresh": "刷新",
-        "updatedAt": "更新时间",
-        "createTask": "新建任务"
-      },
-      "summary": {
-        "total": "总工件数",
-        "enabled": "启用工件",
-        "categories": "工件分类",
-        "parameterized": "参数化工件",
-        "highRisk": "高风险工件",
-        "platform": "当前平台",
-        "enabledHint": "配置加载正常",
-        "categoriesHint": "文件 / 注册表 / 日志等",
-        "highRiskHint": "执行前需确认参数范围",
-        "platformHint": "按平台筛选展示"
-      },
-      "filters": {
-        "title": "筛选",
-        "allArtifacts": "全部工件",
-        "platform": "平台",
-        "allPlatforms": "全部平台",
-        "enabledStatus": "启用状态",
-        "allStatus": "全部状态",
-        "impactLegend": "风险等级"
-      },
+          "subtitle": "查看平台当前加载的取证工件、参数说明和输出字段",
+          "searchPlaceholder": "搜索工件名称",
+          "refresh": "刷新",
+          "updatedAt": "更新时间",
+          "createTask": "新建任务"
+        },
+        "summary": {
+          "total": "总工件数",
+          "enabled": "启用工件",
+          "categories": "工件分类",
+          "parameterized": "参数化工件",
+          "highRisk": "高风险工件",
+          "platform": "当前平台",
+          "enabledHint": "配置加载正常",
+          "categoriesHint": "文件 / 注册表 / 日志等",
+          "highRiskHint": "执行前需确认参数范围",
+          "platformHint": "按平台筛选展示"
+        },
+        "filters": {
+          "title": "筛选",
+          "allArtifacts": "全部工件",
+          "platform": "平台",
+          "allPlatforms": "全部平台",
+          "enabledStatus": "启用状态",
+          "allStatus": "全部状态",
+          "impactLegend": "风险等级"
+        },
         "categories": {
           "file": "文件",
           "registry": "注册表",
@@ -2213,9 +2213,6 @@
           "emptyDescription": "从左侧工件列表选择一项查看详情",
           "noContent": "暂无内容",
           "noDescription": "暂无说明",
-          "useCases": "使用场景",
-          "collects": "采集内容",
-          "warnings": "注意事项",
           "required": "必填",
           "defaultValue": "默认值",
           "mapping": "参数映射",
@@ -2256,7 +2253,6 @@
         },
         "tabs": {
           "native": "描述",
-          "overview": "用途",
           "params": "参数",
           "output": "输出",
           "examples": "示例",

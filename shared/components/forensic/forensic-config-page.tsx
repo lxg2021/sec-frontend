@@ -60,11 +60,6 @@ type LocalizedText = string | Record<string, string> | undefined
 
 interface ArtifactDisplay {
   name?: string
-  summary?: string
-  description?: string
-  use_cases?: string[]
-  collects?: string[]
-  warnings?: string[]
 }
 
 interface ArtifactDocItem {
@@ -185,6 +180,23 @@ function formatNativeDefault(value: unknown) {
   return toPrettyJson(value)
 }
 
+function nativeDescriptionFromUpstream(upstream: ArtifactUpstream, locale: string) {
+  const native = upstream.native || {}
+  if (localeKey(locale) === "zh-CN") {
+    return upstream.native_translation?.["zh-CN"]?.description || native.description || ""
+  }
+  return native.description || ""
+}
+
+function getArtifactNativeDescription(item: ForensicArtifactDefinitionItem | null | undefined, locale: string) {
+  const parsed = safeParseJson<ArtifactUpstream>(
+    item?.upstream_json,
+    {},
+    `${item?.artifact_key || "artifact"}.upstream_json`,
+  )
+  return nativeDescriptionFromUpstream(parsed.value, locale)
+}
+
 const IMPACT_BADGE_CLASS = "inline-flex w-[72px] justify-center text-center"
 
 function sortArtifacts(items: ForensicArtifactDefinitionItem[]) {
@@ -207,16 +219,12 @@ function getArtifactDisplay(item: ForensicArtifactDefinitionItem | null | undefi
   return {
     parseOk: parsed.ok,
     name: display.name || item?.name || item?.artifact_key || "",
-    summary: display.summary || item?.description || "",
-    description: display.description || item?.description || "",
-    useCases: Array.isArray(display.use_cases) ? display.use_cases : [],
-    collects: Array.isArray(display.collects) ? display.collects : [],
-    warnings: Array.isArray(display.warnings) ? display.warnings : [],
   }
 }
 
 function getSearchText(item: ForensicArtifactDefinitionItem, locale: string) {
   const display = getArtifactDisplay(item, locale)
+  const nativeDescription = getArtifactNativeDescription(item, locale)
   return [
     item.artifact_key,
     item.name,
@@ -224,7 +232,7 @@ function getSearchText(item: ForensicArtifactDefinitionItem, locale: string) {
     item.category,
     item.platform,
     display.name,
-    display.summary,
+    nativeDescription,
   ]
     .filter(Boolean)
     .join(" ")
@@ -472,21 +480,6 @@ function JsonBlock({ value, emptyText }: { value: unknown; emptyText: string }) 
     <pre className="max-h-64 overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-3 text-xs leading-5 text-slate-100 shadow-inner">
       {text}
     </pre>
-  )
-}
-
-function InfoList({ items }: { items: string[] }) {
-  if (items.length === 0) {
-    return null
-  }
-  return (
-    <ul className="space-y-2">
-      {items.map((item, index) => (
-        <li key={`${item}-${index}`} className="rounded-lg border border-slate-100 bg-slate-50/70 px-3 py-2 text-sm leading-5 text-foreground dark:border-slate-800 dark:bg-slate-900/60">
-          {item}
-        </li>
-      ))}
-    </ul>
   )
 }
 
@@ -774,9 +767,7 @@ export function ForensicConfigPage() {
   const nativeParams = Array.isArray(nativeArtifact.parameters) ? nativeArtifact.parameters : []
   const isChineseLocale = localeKey(locale) === "zh-CN"
   const nativeTranslation = upstream.value.native_translation?.["zh-CN"] || {}
-  const nativeDescription = isChineseLocale
-    ? nativeTranslation.description || nativeArtifact.description || ""
-    : nativeArtifact.description || ""
+  const nativeDescription = nativeDescriptionFromUpstream(upstream.value, locale)
 
   function nativeParamDescription(param: NativeArtifactParameter) {
     if (!isChineseLocale) {
@@ -1113,6 +1104,7 @@ export function ForensicConfigPage() {
                 ) : (
                   pagedItems.map((item, index) => {
                     const display = getArtifactDisplay(item, locale)
+                    const nativeDescription = getArtifactNativeDescription(item, locale) || item.description || t("detail.noContent")
                     const active = item.artifact_key === selectedKey
                     return (
                       <button
@@ -1133,7 +1125,7 @@ export function ForensicConfigPage() {
                             <p className="truncate text-sm font-semibold leading-5 text-slate-950 dark:text-white">{display.name}</p>
                             <p className="truncate font-mono text-[11px] leading-4 text-slate-500">{item.artifact_key}</p>
                           </div>
-                          <p className="mt-1.5 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{display.summary || item.description}</p>
+                          <p className="mt-1.5 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{nativeDescription}</p>
                           <div className="mt-2 flex flex-wrap gap-2">
                             <Badge variant="outline" className="rounded-full bg-white px-2.5 text-[11px] font-normal text-slate-600 dark:bg-slate-900">
                               {categoryLabel(item.category)}
@@ -1251,11 +1243,7 @@ export function ForensicConfigPage() {
                   ) : detail ? (
                     <>
                       <section className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                        <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                          {selectedDisplay.summary || selectedDisplay.description || t("detail.noContent")}
-                        </p>
-
-                        <div className="mt-4 grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-4 gap-2">
                           <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
                             <p className="text-[11px] text-slate-500">{t("detail.meta.category")}</p>
                             <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{categoryLabel(detail.category)}</p>
@@ -1281,9 +1269,8 @@ export function ForensicConfigPage() {
                     )}
 
                     <Tabs key={detail.artifact_key} defaultValue="native" className="w-full">
-                      <TabsList className="grid h-10 w-full grid-cols-5 rounded-xl bg-slate-100 p-1 dark:bg-slate-900">
+                      <TabsList className="grid h-10 w-full grid-cols-4 rounded-xl bg-slate-100 p-1 dark:bg-slate-900">
                         <TabsTrigger value="native" className="rounded-lg text-xs">{t("tabs.native")}</TabsTrigger>
-                        <TabsTrigger value="overview" className="rounded-lg text-xs">{t("tabs.overview")}</TabsTrigger>
                         <TabsTrigger value="params" className="rounded-lg text-xs">{t("tabs.params")}</TabsTrigger>
                         <TabsTrigger value="output" className="rounded-lg text-xs">{t("tabs.output")}</TabsTrigger>
                         <TabsTrigger value="examples" className="rounded-lg text-xs">{t("tabs.examples")}</TabsTrigger>
@@ -1323,31 +1310,6 @@ export function ForensicConfigPage() {
                             </p>
                           )}
                         </section>
-                      </TabsContent>
-
-                      <TabsContent value="overview" className="space-y-3 pt-3">
-                        <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-                          <p className="text-sm font-medium text-slate-950 dark:text-white">{selectedDisplay.summary || t("detail.noContent")}</p>
-                          {selectedDisplay.description && (
-                            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-500 dark:text-slate-400">
-                              {selectedDisplay.description}
-                            </p>
-                          )}
-                        </section>
-                        <div className="grid gap-3">
-                          <section className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-                            <h3 className="mb-2 text-xs font-semibold text-slate-500">{t("detail.useCases")}</h3>
-                            <InfoList items={selectedDisplay.useCases} />
-                          </section>
-                          <section className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-                            <h3 className="mb-2 text-xs font-semibold text-slate-500">{t("detail.collects")}</h3>
-                            <InfoList items={selectedDisplay.collects} />
-                          </section>
-                          <section className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
-                            <h3 className="mb-2 text-xs font-semibold text-slate-500">{t("detail.warnings")}</h3>
-                            <InfoList items={selectedDisplay.warnings} />
-                          </section>
-                        </div>
                       </TabsContent>
 
                       <TabsContent value="params" className="space-y-3 pt-3">
