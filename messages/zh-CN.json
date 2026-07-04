@@ -2239,6 +2239,11 @@
             "default": "Default",
             "description": "Description"
           },
+          "outputColumns": {
+            "field": "字段",
+            "name": "名称",
+            "description": "说明"
+          },
           "sourceInfo": "来源信息",
           "safeFields": "接口暴露范围",
           "safeFieldsDescription": "当前接口只返回前端展示所需字段，不暴露参数映射、VQL 模板和结果解析内部配置",

@@ -1407,19 +1407,36 @@ export function ForensicConfigPage() {
                             {t("detail.noContent")}
                           </p>
                         ) : (
-                          outputDocs.value.map((item, index) => (
-                            <div key={`${item.name || index}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
-                                  {localizedText(item.label, locale) || item.name || "-"}
-                                </h3>
-                                {item.name && <Badge variant="outline" className="rounded-full font-mono text-[11px]">{item.name}</Badge>}
-                              </div>
-                              <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                                {localizedText(item.description, locale) || t("detail.noDescription")}
-                              </p>
+                          <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+                            <h3 className="mb-3 font-mono text-base font-semibold text-slate-950 dark:text-white">{t("tabs.output")}</h3>
+                            <div className="overflow-x-auto">
+                              <table className="w-full min-w-[680px] border-separate border-spacing-0 font-mono text-xs text-slate-950 dark:text-slate-100">
+                                <colgroup>
+                                  <col className="w-[28%]" />
+                                  <col className="w-[24%]" />
+                                  <col className="w-[48%]" />
+                                </colgroup>
+                                <thead>
+                                  <tr className="bg-slate-200 dark:bg-slate-800">
+                                    <th className="px-3 py-2 text-left font-semibold">{t("detail.outputColumns.field")}</th>
+                                    <th className="px-3 py-2 text-left font-semibold">{t("detail.outputColumns.name")}</th>
+                                    <th className="px-3 py-2 text-left font-semibold">{t("detail.outputColumns.description")}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {outputDocs.value.map((item, index) => (
+                                    <tr key={`${item.name || index}`} className={cn(index % 2 === 0 ? "bg-slate-100 dark:bg-slate-900/70" : "bg-white dark:bg-slate-950")}>
+                                      <td className="px-3 py-3 align-top font-mono leading-6">{item.name || "-"}</td>
+                                      <td className="px-3 py-3 align-top leading-6">{localizedText(item.label, locale) || item.name || "-"}</td>
+                                      <td className="px-3 py-3 align-top leading-6">
+                                        <p className="whitespace-pre-wrap">{localizedText(item.description, locale) || t("detail.noDescription")}</p>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
                             </div>
-                          ))
+                          </section>
                         )}
                       </TabsContent>
 

@@ -2237,6 +2237,11 @@
             "default": "Default",
             "description": "Description"
           },
+          "outputColumns": {
+            "field": "Field",
+            "name": "Name",
+            "description": "Description"
+          },
           "sourceInfo": "Source Info",
           "safeFields": "Exposed Fields",
           "safeFieldsDescription": "The current API only returns fields required by the frontend and does not expose parameter mappings, VQL templates, or parser internals.",
