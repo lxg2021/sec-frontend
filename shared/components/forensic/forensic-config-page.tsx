@@ -868,16 +868,21 @@ export function ForensicConfigPage() {
       return
     }
 
-    const bodyHeight = body.clientHeight
+    const styles = window.getComputedStyle(body)
+    const verticalPadding =
+      (Number.parseFloat(styles.paddingTop) || 0) + (Number.parseFloat(styles.paddingBottom) || 0)
+    const gap = Number.parseFloat(styles.rowGap || styles.gap) || CATEGORY_ITEM_GAP_PX
+    const bodyHeight = Math.max(0, body.clientHeight - verticalPadding)
     const itemHeight = firstItem.getBoundingClientRect().height
     if (bodyHeight <= 0 || itemHeight <= 0) {
       return
     }
 
-    const availableHeight = Math.max(0, bodyHeight - itemHeight - CATEGORY_ITEM_GAP_PX)
+    const bottomSafeHeight = Math.min(32, itemHeight)
+    const availableHeight = Math.max(0, bodyHeight - itemHeight - bottomSafeHeight)
     const nextPageSize = Math.max(
       1,
-      Math.floor((availableHeight + CATEGORY_ITEM_GAP_PX) / (itemHeight + CATEGORY_ITEM_GAP_PX)),
+      Math.floor(availableHeight / (itemHeight + gap)),
     )
     setCategoryPageSize((current) => (current === nextPageSize ? current : nextPageSize))
   }, [])
@@ -1239,7 +1244,7 @@ export function ForensicConfigPage() {
               <span className="font-mono text-xs text-slate-500">{summary.total}</span>
             </div>
 
-            <div ref={categoryListBodyRef} className="min-h-0 flex-1 space-y-2 overflow-hidden p-4">
+            <div ref={categoryListBodyRef} className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-4">
               <button
                 ref={categoryItemMeasureRef}
                 type="button"
