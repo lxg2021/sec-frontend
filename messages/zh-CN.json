@@ -2198,9 +2198,9 @@
           "disabled": "未启用"
         },
         "impact": {
-          "low": "低影响",
-          "medium": "中影响",
-          "high": "高影响"
+          "low": "低",
+          "medium": "中",
+          "high": "高"
         },
         "list": {
           "title": "工件列表",

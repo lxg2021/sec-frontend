@@ -2196,9 +2196,9 @@
           "disabled": "disabled"
         },
         "impact": {
-          "low": "low impact",
-          "medium": "medium impact",
-          "high": "high impact"
+          "low": "low",
+          "medium": "medium",
+          "high": "high"
         },
         "list": {
           "title": "Artifact List",

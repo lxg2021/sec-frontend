@@ -185,6 +185,8 @@ function formatNativeDefault(value: unknown) {
   return toPrettyJson(value)
 }
 
+const IMPACT_BADGE_CLASS = "inline-flex w-[72px] justify-center text-center"
+
 function sortArtifacts(items: ForensicArtifactDefinitionItem[]) {
   return [...items].sort((a, b) => {
     const order = (a.sort_order ?? 0) - (b.sort_order ?? 0)
@@ -1142,7 +1144,7 @@ export function ForensicConfigPage() {
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2 pt-0.5">
-                          <Badge variant="outline" className={cn("rounded-full px-2.5 py-0 text-[11px]", impactClass(item.risk_level))}>
+                          <Badge variant="outline" className={cn(IMPACT_BADGE_CLASS, "rounded-full px-0 py-0 text-[11px]", impactClass(item.risk_level))}>
                             {impactLabel(item.risk_level)}
                           </Badge>
                           <span className="flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-emerald-700 dark:text-emerald-300">
@@ -1204,7 +1206,7 @@ export function ForensicConfigPage() {
                   {loadingDetail ? (
                     <Loader2 className="size-4 shrink-0 animate-spin text-slate-500" />
                   ) : (
-                    <Badge variant="outline" className={cn("shrink-0 rounded-full px-3", impactClass(selectedItem.risk_level))}>
+                    <Badge variant="outline" className={cn(IMPACT_BADGE_CLASS, "shrink-0 rounded-full px-0", impactClass(selectedItem.risk_level))}>
                       {impactLabel(selectedItem.risk_level)}
                     </Badge>
                   )}
