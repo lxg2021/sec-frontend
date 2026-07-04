@@ -1032,13 +1032,13 @@ export function ForensicConfigPage() {
                     </div>
                   ))
                 ) : listError ? (
-                  <div className="flex min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
+                  <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
                     <TriangleAlert className="size-9 text-red-500" />
                     <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("errors.loadFailedTitle")}</p>
                     <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">{listError}</p>
                   </div>
                 ) : filteredItems.length === 0 ? (
-                  <div className="flex min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
+                  <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
                     <Database className="size-9 text-slate-400" />
                     <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("list.emptyTitle")}</p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("list.emptyDescription")}</p>
@@ -1156,53 +1156,57 @@ export function ForensicConfigPage() {
                 </div>
               )}
             </div>
-            <ScrollArea className="min-h-0 flex-1">
-              <div className="min-h-full space-y-4 p-4">
-                {!selectedKey ? (
-                  <div className="flex min-h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-center dark:border-slate-800">
-                    <FileSearch className="size-10 text-slate-400" />
-                    <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("detail.emptyTitle")}</p>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("detail.emptyDescription")}</p>
-                  </div>
-                ) : detailError ? (
-                  <div className="flex min-h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
-                    <TriangleAlert className="size-10 text-red-500" />
-                    <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("errors.detailLoadFailedTitle")}</p>
-                    <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">{detailError}</p>
-                  </div>
-                ) : loadingDetail && !detail ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-24 w-full rounded-xl" />
-                    <Skeleton className="h-32 w-full rounded-xl" />
-                    <Skeleton className="h-48 w-full rounded-xl" />
-                  </div>
-                ) : detail ? (
-                  <>
-                    <section className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                      <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-                        {selectedDisplay.summary || selectedDisplay.description || t("detail.noContent")}
-                      </p>
+            {!selectedKey ? (
+              <div className="min-h-0 flex-1 p-4">
+                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-center dark:border-slate-800">
+                  <FileSearch className="size-10 text-slate-400" />
+                  <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("detail.emptyTitle")}</p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("detail.emptyDescription")}</p>
+                </div>
+              </div>
+            ) : detailError ? (
+              <div className="min-h-0 flex-1 p-4">
+                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
+                  <TriangleAlert className="size-10 text-red-500" />
+                  <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("errors.detailLoadFailedTitle")}</p>
+                  <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">{detailError}</p>
+                </div>
+              </div>
+            ) : (
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="space-y-4 p-4">
+                  {loadingDetail && !detail ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-24 w-full rounded-xl" />
+                      <Skeleton className="h-32 w-full rounded-xl" />
+                      <Skeleton className="h-48 w-full rounded-xl" />
+                    </div>
+                  ) : detail ? (
+                    <>
+                      <section className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                        <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
+                          {selectedDisplay.summary || selectedDisplay.description || t("detail.noContent")}
+                        </p>
 
-                      <div className="mt-4 grid grid-cols-2 gap-2">
-                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
-                          <p className="text-[11px] text-slate-500">{t("detail.meta.category")}</p>
-                          <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{categoryLabel(detail.category)}</p>
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
+                            <p className="text-[11px] text-slate-500">{t("detail.meta.category")}</p>
+                            <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{categoryLabel(detail.category)}</p>
+                          </div>
+                          <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
+                            <p className="text-[11px] text-slate-500">{t("detail.meta.platform")}</p>
+                            <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{formatPlatformLabel(detail.platform)}</p>
+                          </div>
+                          <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
+                            <p className="text-[11px] text-slate-500">{t("detail.meta.version")}</p>
+                            <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{detail.version || "-"}</p>
+                          </div>
+                          <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
+                            <p className="text-[11px] text-slate-500">{t("detail.meta.status")}</p>
+                            <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{detail.enabled ? t("status.enabled") : t("status.disabled")}</p>
+                          </div>
                         </div>
-                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
-                          <p className="text-[11px] text-slate-500">{t("detail.meta.platform")}</p>
-                          <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{formatPlatformLabel(detail.platform)}</p>
-                        </div>
-                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
-                          <p className="text-[11px] text-slate-500">{t("detail.meta.version")}</p>
-                          <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{detail.version || "-"}</p>
-                        </div>
-                        <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
-                          <p className="text-[11px] text-slate-500">{t("detail.meta.status")}</p>
-                          <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{detail.enabled ? t("status.enabled") : t("status.disabled")}</p>
-                        </div>
-                      </div>
-                    </section>
-
+                      </section>
                     {jsonParseFailed && (
                       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
                         {t("errors.jsonParseFailed")}
@@ -1361,6 +1365,7 @@ export function ForensicConfigPage() {
                 ) : null}
               </div>
             </ScrollArea>
+            )}
           </section>
         </section>
       </div>
