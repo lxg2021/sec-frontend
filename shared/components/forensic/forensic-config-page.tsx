@@ -48,6 +48,7 @@ import {
   listForensicArtifacts,
 } from "@/shared/lib/forensic/api"
 import type { ForensicArtifactDefinitionItem } from "@/shared/lib/forensic/types"
+import { ArtifactDescriptionText } from "./forensic-artifact-description"
 
 type EnabledFilter = "all" | "enabled" | "disabled"
 
@@ -1289,8 +1290,8 @@ export function ForensicConfigPage() {
                             </p>
                           )}
                           {nativeDescription && (
-                            <section className="mb-3 rounded-xl border border-transparent bg-slate-50/70 p-3 dark:border-transparent dark:bg-slate-900/40">
-                              <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-300">{nativeDescription}</p>
+                            <section className="mb-3 rounded-xl border border-transparent bg-slate-50/70 p-4 dark:border-transparent dark:bg-slate-900/40">
+                              <ArtifactDescriptionText text={nativeDescription} />
                             </section>
                           )}
                           {!nativeDescription && (
