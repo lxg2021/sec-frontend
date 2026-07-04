@@ -1289,7 +1289,7 @@ export function ForensicConfigPage() {
                             </p>
                           )}
                           {nativeDescription && (
-                            <section className="mb-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/40">
+                            <section className="mb-3 rounded-xl border border-transparent bg-slate-50/70 p-3 dark:border-transparent dark:bg-slate-900/40">
                               <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-300">{nativeDescription}</p>
                             </section>
                           )}
