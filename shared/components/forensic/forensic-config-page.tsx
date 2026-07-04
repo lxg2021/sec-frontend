@@ -172,6 +172,19 @@ function toPrettyJson(value: unknown) {
   }
 }
 
+function formatNativeDefault(value: unknown) {
+  if (value === undefined || value === null) {
+    return ""
+  }
+  if (typeof value === "string") {
+    return value
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value)
+  }
+  return toPrettyJson(value)
+}
+
 function sortArtifacts(items: ForensicArtifactDefinitionItem[]) {
   return [...items].sort((a, b) => {
     const order = (a.sort_order ?? 0) - (b.sort_order ?? 0)
@@ -755,7 +768,6 @@ export function ForensicConfigPage() {
     {},
     `${detail?.artifact_key || "artifact"}.upstream_json`,
   )
-  const nativeDefinitionYaml = upstream.value.raw_yaml || ""
   const nativeArtifact = upstream.value.native || {}
   const nativeParams = Array.isArray(nativeArtifact.parameters) ? nativeArtifact.parameters : []
   const isChineseLocale = localeKey(locale) === "zh-CN"
@@ -1303,7 +1315,7 @@ export function ForensicConfigPage() {
                               <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-300">{nativeDescription}</p>
                             </section>
                           )}
-                          {!nativeDescription && !nativeDefinitionYaml && (
+                          {!nativeDescription && (
                             <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
                               {upstream.value.raw_yaml_error || t("detail.noNativeDefinition")}
                             </p>
@@ -1337,73 +1349,56 @@ export function ForensicConfigPage() {
                       </TabsContent>
 
                       <TabsContent value="params" className="space-y-3 pt-3">
-                        {parameterDocs.value.length === 0 ? (
+                        {nativeParams.length > 0 ? (
+                          <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+                            <h3 className="mb-3 font-mono text-base font-semibold text-slate-950 dark:text-white">{t("detail.nativeParameters")}</h3>
+                            <div className="overflow-x-auto">
+                              <table className="w-full min-w-[760px] border-separate border-spacing-0 font-mono text-xs text-slate-950 dark:text-slate-100">
+                                <colgroup>
+                                  <col className="w-[28%]" />
+                                  <col className="w-[14%]" />
+                                  <col className="w-[28%]" />
+                                  <col className="w-[30%]" />
+                                </colgroup>
+                                <thead>
+                                  <tr className="bg-slate-200 dark:bg-slate-800">
+                                    <th className="px-3 py-2 text-left font-semibold">{t("detail.paramColumns.name")}</th>
+                                    <th className="px-3 py-2 text-left font-semibold">{t("detail.paramColumns.type")}</th>
+                                    <th className="px-3 py-2 text-left font-semibold">{t("detail.paramColumns.default")}</th>
+                                    <th className="px-3 py-2 text-left font-semibold">{t("detail.paramColumns.description")}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {nativeParams.map((param, index) => {
+                                    const description = nativeParamDescription(param)
+                                    const defaultText = formatNativeDefault(param.default)
+                                    return (
+                                      <tr key={`${param.name || index}`} className={cn(index % 2 === 0 ? "bg-slate-100 dark:bg-slate-900/70" : "bg-white dark:bg-slate-950")}>
+                                        <td className="px-3 py-3 align-top leading-6">{param.name || "-"}</td>
+                                        <td className="px-3 py-3 align-top leading-6">{param.type || ""}</td>
+                                        <td className="px-3 py-2 align-top">
+                                          <pre className="min-h-6 whitespace-pre-wrap rounded bg-slate-200/80 px-2 py-1 leading-5 text-green-700 dark:bg-slate-800 dark:text-green-300">{defaultText}</pre>
+                                        </td>
+                                        <td className="px-3 py-3 align-top leading-6">
+                                          <p className="whitespace-pre-wrap">{description}</p>
+                                          {Array.isArray(param.choices) && param.choices.length > 0 && (
+                                            <p className="mt-1 whitespace-pre-wrap text-slate-500 dark:text-slate-400">
+                                              {t("detail.nativeChoices")} {param.choices.join(", ")}
+                                            </p>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    )
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </section>
+                        ) : (
                           <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
                             {t("detail.noContent")}
                           </p>
-                        ) : (
-                          <div className="space-y-3">
-                            {parameterDocs.value.map((item, index) => (
-                              <div key={`${item.name || index}`} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
-                                    {localizedText(item.label, locale) || item.name || "-"}
-                                  </h3>
-                                  {item.name && <Badge variant="outline" className="rounded-full font-mono text-[11px]">{item.name}</Badge>}
-                                  {item.type && <Badge variant="secondary" className="rounded-full text-[11px]">{item.type}</Badge>}
-                                  {item.required && <Badge className="rounded-full bg-red-600 text-[11px]">{t("detail.required")}</Badge>}
-                                </div>
-                                <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                                  {localizedText(item.description, locale) || t("detail.noDescription")}
-                                </p>
-                                <div className="mt-3 grid gap-3">
-                                  {item.default !== undefined && (
-                                    <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
-                                      <p className="text-xs text-slate-500">{t("detail.defaultValue")}</p>
-                                      <p className="mt-1 overflow-x-auto whitespace-nowrap font-mono text-xs text-slate-800 dark:text-slate-200">{toPrettyJson(item.default)}</p>
-                                    </div>
-                                  )}
-                                  {(item.maps_to || item.transform) && (
-                                    <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
-                                      <p className="text-xs text-slate-500">{t("detail.mapping")}</p>
-                                      <p className="mt-1 overflow-x-auto whitespace-nowrap font-mono text-xs text-slate-800 dark:text-slate-200">
-                                        {[item.maps_to, item.transform].filter(Boolean).join(" / ")}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                                {Array.isArray(item.examples) && item.examples.length > 0 && (
-                                  <div className="mt-3">
-                                    <p className="mb-2 text-xs text-slate-500">{t("detail.examples")}</p>
-                                    <div className="space-y-1">
-                                      {item.examples.map((example, exampleIndex) => (
-                                        <p key={exampleIndex} className="overflow-x-auto whitespace-nowrap rounded-lg bg-slate-50 px-3 py-2 font-mono text-xs text-slate-800 dark:bg-slate-900 dark:text-slate-200">
-                                          {String(example)}
-                                        </p>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
-                                {localizedArray(item.tips, locale).length > 0 && (
-                                  <div className="mt-3">
-                                    <p className="mb-2 text-xs text-slate-500">{t("detail.tips")}</p>
-                                    <InfoList items={localizedArray(item.tips, locale)} />
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
                         )}
-                        <div className="grid gap-3">
-                          <section className="space-y-2">
-                            <h3 className="text-xs font-semibold text-slate-500">{t("detail.inputSchema")}</h3>
-                            <JsonBlock value={inputSchema.value} emptyText={t("detail.noContent")} />
-                          </section>
-                          <section className="space-y-2">
-                            <h3 className="text-xs font-semibold text-slate-500">{t("detail.defaultParams")}</h3>
-                            <JsonBlock value={defaultParams.value} emptyText={t("detail.noContent")} />
-                          </section>
-                        </div>
                       </TabsContent>
 
                       <TabsContent value="output" className="space-y-3 pt-3">

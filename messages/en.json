@@ -2231,6 +2231,12 @@
           "chineseTranslation": "Chinese Translation",
           "rawSourceFile": "Source file:",
           "noNativeDefinition": "Native definition is unavailable.",
+          "paramColumns": {
+            "name": "Name",
+            "type": "Type",
+            "default": "Default",
+            "description": "Description"
+          },
           "sourceInfo": "Source Info",
           "safeFields": "Exposed Fields",
           "safeFieldsDescription": "The current API only returns fields required by the frontend and does not expose parameter mappings, VQL templates, or parser internals.",
