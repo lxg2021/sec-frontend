@@ -2222,7 +2222,7 @@
           "inputSchema": "输入结构",
           "defaultParams": "默认参数",
           "nativeDefinition": "原生 Velociraptor 定义",
-          "nativeDescription": "原生 Description",
+          "nativeDescription": "描述",
           "nativeParameters": "原生 Parameters",
           "nativeFullYaml": "完整原生 YAML",
           "nativeDefault": "默认值:",

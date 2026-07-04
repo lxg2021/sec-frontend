@@ -1283,21 +1283,6 @@ export function ForensicConfigPage() {
 
                       <TabsContent value="native" className="space-y-3 pt-3">
                         <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-                          <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <h3 className="text-sm font-semibold text-slate-950 dark:text-white">{t("detail.nativeDefinition")}</h3>
-                              {(nativeArtifact.name || upstream.value.velociraptor_artifact) && (
-                                <p className="mt-1 font-mono text-xs text-slate-500 dark:text-slate-400">
-                                  {nativeArtifact.name || upstream.value.velociraptor_artifact}
-                                </p>
-                              )}
-                            </div>
-                            {upstream.value.source && (
-                              <Badge variant="outline" className="shrink-0 rounded-full px-3 text-[11px]">
-                                {upstream.value.source}
-                              </Badge>
-                            )}
-                          </div>
                           {upstream.value.raw_file && (
                             <p className="mb-3 overflow-x-auto whitespace-nowrap rounded-lg bg-slate-50 px-3 py-2 font-mono text-[11px] text-slate-500 dark:bg-slate-900 dark:text-slate-400">
                               {t("detail.rawSourceFile")} {upstream.value.raw_file}
@@ -1305,8 +1290,7 @@ export function ForensicConfigPage() {
                           )}
                           {nativeDescription && (
                             <section className="mb-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/40">
-                              <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t("detail.nativeDescription")}</h4>
-                              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-300">{nativeDescription}</p>
+                              <p className="whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-300">{nativeDescription}</p>
                             </section>
                           )}
                           {!nativeDescription && (
@@ -1320,7 +1304,6 @@ export function ForensicConfigPage() {
                       <TabsContent value="params" className="space-y-3 pt-3">
                         {nativeParams.length > 0 ? (
                           <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-                            <h3 className="mb-3 font-mono text-base font-semibold text-slate-950 dark:text-white">{t("detail.nativeParameters")}</h3>
                             <div className="overflow-x-auto">
                               <table className="w-full min-w-[760px] border-separate border-spacing-0 font-mono text-xs text-slate-950 dark:text-slate-100">
                                 <colgroup>
@@ -1377,7 +1360,6 @@ export function ForensicConfigPage() {
                           </p>
                         ) : (
                           <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
-                            <h3 className="mb-3 font-mono text-base font-semibold text-slate-950 dark:text-white">{t("tabs.output")}</h3>
                             <div className="overflow-x-auto">
                               <table className="w-full min-w-[680px] border-separate border-spacing-0 font-mono text-xs text-slate-950 dark:text-slate-100">
                                 <colgroup>

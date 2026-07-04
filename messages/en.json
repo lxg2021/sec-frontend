@@ -2220,7 +2220,7 @@
           "inputSchema": "Input Schema",
           "defaultParams": "Default Params",
           "nativeDefinition": "Native Velociraptor Definition",
-          "nativeDescription": "Native Description",
+          "nativeDescription": "Description",
           "nativeParameters": "Native Parameters",
           "nativeFullYaml": "Full Native YAML",
           "nativeDefault": "default:",
