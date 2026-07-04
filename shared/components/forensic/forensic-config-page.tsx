@@ -109,8 +109,6 @@ interface ArtifactUpstream {
   velociraptor_artifact?: string
   native?: NativeArtifactDefinition
   native_translation?: Record<string, NativeArtifactTranslation>
-  raw_yaml?: string
-  raw_yaml_error?: string
 }
 
 const ALL_VALUE = "all"
@@ -215,10 +213,16 @@ function getArtifactDisplay(item: ForensicArtifactDefinitionItem | null | undefi
     {},
     `${item?.artifact_key || "artifact"}.display_json`,
   )
+  const upstream = safeParseJson<ArtifactUpstream>(
+    item?.upstream_json,
+    {},
+    `${item?.artifact_key || "artifact"}.upstream_json`,
+  )
   const display = parsed.value[localeKey(locale)] || parsed.value.en || parsed.value["zh-CN"] || {}
+  const nativeName = upstream.value.native?.name || upstream.value.velociraptor_artifact || ""
   return {
-    parseOk: parsed.ok,
-    name: display.name || item?.name || item?.artifact_key || "",
+    parseOk: parsed.ok && upstream.ok,
+    name: nativeName || display.name || item?.name || item?.artifact_key || "",
   }
 }
 
@@ -1104,7 +1108,10 @@ export function ForensicConfigPage() {
                 ) : (
                   pagedItems.map((item, index) => {
                     const display = getArtifactDisplay(item, locale)
-                    const nativeDescription = getArtifactNativeDescription(item, locale) || item.description || t("detail.noContent")
+                    const nativeDescription =
+                      getArtifactNativeDescription(item, locale) ||
+                      (isChineseLocale ? item.description : "") ||
+                      t("detail.noContent")
                     const active = item.artifact_key === selectedKey
                     return (
                       <button
@@ -1121,9 +1128,8 @@ export function ForensicConfigPage() {
                       >
                         <CategoryIcon category={item.category} size="xs" className="mt-2.5" />
                         <div className="min-w-0 flex-1">
-                          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <div className="flex min-w-0 items-baseline">
                             <p className="truncate text-sm font-semibold leading-5 text-slate-950 dark:text-white">{display.name}</p>
-                            <p className="truncate font-mono text-[11px] leading-4 text-slate-500">{item.artifact_key}</p>
                           </div>
                           <p className="mt-1.5 line-clamp-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{nativeDescription}</p>
                           <div className="mt-2 flex flex-wrap gap-2">
@@ -1306,7 +1312,7 @@ export function ForensicConfigPage() {
                           )}
                           {!nativeDescription && (
                             <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
-                              {upstream.value.raw_yaml_error || t("detail.noNativeDefinition")}
+                              {t("detail.noNativeDefinition")}
                             </p>
                           )}
                         </section>
