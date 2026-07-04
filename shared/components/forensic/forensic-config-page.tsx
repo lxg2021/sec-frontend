@@ -1198,7 +1198,6 @@ export function ForensicConfigPage() {
                     <CategoryIcon category={selectedItem.category} size="sm" />
                     <div className="min-w-0">
                       <h2 className="truncate text-base font-semibold text-slate-950 dark:text-white">{selectedListDisplay.name}</h2>
-                      <p className="mt-0.5 truncate font-mono text-xs text-slate-500">{selectedItem.artifact_key}</p>
                     </div>
                   </div>
                   {loadingDetail ? (
