@@ -2224,6 +2224,15 @@
           "tips": "填写建议",
           "inputSchema": "输入结构",
           "defaultParams": "默认参数",
+          "nativeDefinition": "原生 Velociraptor 定义",
+          "nativeDescription": "原生 Description",
+          "nativeParameters": "原生 Parameters",
+          "nativeFullYaml": "完整原生 YAML",
+          "nativeDefault": "默认值:",
+          "nativeChoices": "可选值:",
+          "chineseTranslation": "中文翻译",
+          "rawSourceFile": "源文件:",
+          "noNativeDefinition": "暂无原生定义",
           "sourceInfo": "来源信息",
           "safeFields": "接口暴露范围",
           "safeFieldsDescription": "当前接口只返回前端展示所需字段，不暴露参数映射、VQL 模板和结果解析内部配置",
@@ -2235,6 +2244,7 @@
           }
         },
         "tabs": {
+          "native": "描述",
           "overview": "用途",
           "params": "参数",
           "output": "输出",

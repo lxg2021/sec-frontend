@@ -2222,6 +2222,15 @@
           "tips": "Tips",
           "inputSchema": "Input Schema",
           "defaultParams": "Default Params",
+          "nativeDefinition": "Native Velociraptor Definition",
+          "nativeDescription": "Native Description",
+          "nativeParameters": "Native Parameters",
+          "nativeFullYaml": "Full Native YAML",
+          "nativeDefault": "default:",
+          "nativeChoices": "choices:",
+          "chineseTranslation": "Chinese Translation",
+          "rawSourceFile": "Source file:",
+          "noNativeDefinition": "Native definition is unavailable.",
           "sourceInfo": "Source Info",
           "safeFields": "Exposed Fields",
           "safeFieldsDescription": "The current API only returns fields required by the frontend and does not expose parameter mappings, VQL templates, or parser internals.",
@@ -2233,6 +2242,7 @@
           }
         },
         "tabs": {
+          "native": "Description",
           "overview": "Overview",
           "params": "Params",
           "output": "Output",

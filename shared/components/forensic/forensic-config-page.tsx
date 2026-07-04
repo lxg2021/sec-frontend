@@ -86,6 +86,38 @@ interface ArtifactExample {
   params?: unknown
 }
 
+interface NativeArtifactParameter {
+  name?: string
+  type?: string
+  default?: unknown
+  description?: string
+  choices?: string[]
+}
+
+interface NativeArtifactDefinition {
+  name?: string
+  type?: string
+  description?: string
+  parameters?: NativeArtifactParameter[]
+}
+
+interface NativeArtifactTranslation {
+  description?: string
+  parameters?: Record<string, { description?: string }>
+}
+
+interface ArtifactUpstream {
+  source?: string
+  raw_file?: string
+  exported_at?: string
+  sha256?: string
+  velociraptor_artifact?: string
+  native?: NativeArtifactDefinition
+  native_translation?: Record<string, NativeArtifactTranslation>
+  raw_yaml?: string
+  raw_yaml_error?: string
+}
+
 const ALL_VALUE = "all"
 const DEFAULT_PLATFORM_VALUES = ["windows", "linux", "macos"]
 const DEFAULT_ARTIFACT_PAGE_SIZE = 4
@@ -718,6 +750,26 @@ export function ForensicConfigPage() {
     {},
     `${detail?.artifact_key || "artifact"}.default_params_json`,
   )
+  const upstream = safeParseJson<ArtifactUpstream>(
+    detail?.upstream_json,
+    {},
+    `${detail?.artifact_key || "artifact"}.upstream_json`,
+  )
+  const nativeDefinitionYaml = upstream.value.raw_yaml || ""
+  const nativeArtifact = upstream.value.native || {}
+  const nativeParams = Array.isArray(nativeArtifact.parameters) ? nativeArtifact.parameters : []
+  const isChineseLocale = localeKey(locale) === "zh-CN"
+  const nativeTranslation = upstream.value.native_translation?.["zh-CN"] || {}
+  const nativeDescription = isChineseLocale
+    ? nativeTranslation.description || nativeArtifact.description || ""
+    : nativeArtifact.description || ""
+
+  function nativeParamDescription(param: NativeArtifactParameter) {
+    if (!isChineseLocale) {
+      return param.description || ""
+    }
+    return param.name ? nativeTranslation.parameters?.[param.name]?.description || param.description || "" : param.description || ""
+  }
 
   const jsonParseFailed =
     Boolean(detail) &&
@@ -726,7 +778,8 @@ export function ForensicConfigPage() {
       !outputDocs.ok ||
       !examples.ok ||
       !inputSchema.ok ||
-      !defaultParams.ok)
+      !defaultParams.ok ||
+      !upstream.ok)
 
   function categoryLabel(key: string) {
     const labels: Record<string, string> = {
@@ -1188,7 +1241,7 @@ export function ForensicConfigPage() {
                           {selectedDisplay.summary || selectedDisplay.description || t("detail.noContent")}
                         </p>
 
-                        <div className="mt-4 grid grid-cols-2 gap-2">
+                        <div className="mt-4 grid grid-cols-4 gap-2">
                           <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
                             <p className="text-[11px] text-slate-500">{t("detail.meta.category")}</p>
                             <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{categoryLabel(detail.category)}</p>
@@ -1213,13 +1266,50 @@ export function ForensicConfigPage() {
                       </div>
                     )}
 
-                    <Tabs defaultValue="params" className="w-full">
-                      <TabsList className="grid h-10 w-full grid-cols-4 rounded-xl bg-slate-100 p-1 dark:bg-slate-900">
+                    <Tabs key={detail.artifact_key} defaultValue="native" className="w-full">
+                      <TabsList className="grid h-10 w-full grid-cols-5 rounded-xl bg-slate-100 p-1 dark:bg-slate-900">
+                        <TabsTrigger value="native" className="rounded-lg text-xs">{t("tabs.native")}</TabsTrigger>
                         <TabsTrigger value="overview" className="rounded-lg text-xs">{t("tabs.overview")}</TabsTrigger>
                         <TabsTrigger value="params" className="rounded-lg text-xs">{t("tabs.params")}</TabsTrigger>
                         <TabsTrigger value="output" className="rounded-lg text-xs">{t("tabs.output")}</TabsTrigger>
                         <TabsTrigger value="examples" className="rounded-lg text-xs">{t("tabs.examples")}</TabsTrigger>
                       </TabsList>
+
+                      <TabsContent value="native" className="space-y-3 pt-3">
+                        <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+                          <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <h3 className="text-sm font-semibold text-slate-950 dark:text-white">{t("detail.nativeDefinition")}</h3>
+                              {(nativeArtifact.name || upstream.value.velociraptor_artifact) && (
+                                <p className="mt-1 font-mono text-xs text-slate-500 dark:text-slate-400">
+                                  {nativeArtifact.name || upstream.value.velociraptor_artifact}
+                                </p>
+                              )}
+                            </div>
+                            {upstream.value.source && (
+                              <Badge variant="outline" className="shrink-0 rounded-full px-3 text-[11px]">
+                                {upstream.value.source}
+                              </Badge>
+                            )}
+                          </div>
+                          {upstream.value.raw_file && (
+                            <p className="mb-3 overflow-x-auto whitespace-nowrap rounded-lg bg-slate-50 px-3 py-2 font-mono text-[11px] text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+                              {t("detail.rawSourceFile")} {upstream.value.raw_file}
+                            </p>
+                          )}
+                          {nativeDescription && (
+                            <section className="mb-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/40">
+                              <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t("detail.nativeDescription")}</h4>
+                              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-300">{nativeDescription}</p>
+                            </section>
+                          )}
+                          {!nativeDescription && !nativeDefinitionYaml && (
+                            <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
+                              {upstream.value.raw_yaml_error || t("detail.noNativeDefinition")}
+                            </p>
+                          )}
+                        </section>
+                      </TabsContent>
 
                       <TabsContent value="overview" className="space-y-3 pt-3">
                         <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
