@@ -55,6 +55,7 @@ interface ForensicCreateTaskFormProps {
   context: ForensicOverviewContext
   initialArtifactKey?: string
   active?: boolean
+  layout?: "stacked" | "workspace"
   className?: string
   footerClassName?: string
   onCancel?: () => void
@@ -373,6 +374,7 @@ export function ForensicCreateTaskForm({
   context,
   initialArtifactKey,
   active = true,
+  layout = "stacked",
   className,
   footerClassName,
   onCancel,
@@ -573,184 +575,228 @@ export function ForensicCreateTaskForm({
     values,
   ])
 
+  const endpointSection = (
+    <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <Label className="text-sm font-semibold text-slate-800">{t("endpoint.title")}</Label>
+        {loadingOptions ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
+      </div>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Input
+          value={endpointKeyword}
+          onChange={(event) => setEndpointKeyword(event.target.value)}
+          placeholder={t("endpoint.search")}
+          className="h-9 bg-white pl-9"
+        />
+      </div>
+      <div className="max-h-56 space-y-2 overflow-auto pr-1">
+        {filteredEndpoints.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-sm text-slate-500">
+            {t("endpoint.empty")}
+          </div>
+        ) : (
+          filteredEndpoints.map((endpoint) => {
+            const value = endpointValue(endpoint)
+            const selected = value === endpointId
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setEndpointId(value)}
+                className={cn(
+                  "flex w-full items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2.5 text-left transition-all hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md",
+                  selected ? "border-sky-300 ring-2 ring-sky-100" : "border-slate-200",
+                )}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-slate-800">
+                    {endpointLabel(endpoint)}
+                  </span>
+                  <span className="mt-0.5 block truncate font-mono text-[11px] text-slate-500">
+                    {endpoint.agent_id || endpoint.endpoint_id || "-"} / {endpoint.velociraptor_client_id || "-"}
+                  </span>
+                </span>
+                <span className="flex shrink-0 items-center gap-2">
+                  <span
+                    className={cn(
+                      "h-2 w-2 rounded-full",
+                      endpoint.status === "online" && "bg-emerald-500",
+                      endpoint.status === "offline" && "bg-slate-400",
+                      endpoint.status === "unknown" && "bg-amber-500",
+                    )}
+                  />
+                  {selected ? (
+                    <Check className="h-4 w-4 text-sky-600" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-slate-300" />
+                  )}
+                </span>
+              </button>
+            )
+          })
+        )}
+      </div>
+    </section>
+  )
+
+  const artifactSection = (
+    <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <Label className="text-sm font-semibold text-slate-800">{t("artifact.title")}</Label>
+        {loadingArtifact ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
+      </div>
+      <Select value={artifactKey} onValueChange={(value) => void handleArtifactChange(value)}>
+        <SelectTrigger className="h-9 bg-white">
+          <SelectValue placeholder={t("artifact.placeholder")} />
+        </SelectTrigger>
+        <SelectContent>
+          {artifacts.map((artifact) => (
+            <SelectItem key={artifact.artifact_key} value={artifact.artifact_key}>
+              {artifact.name || artifact.artifact_key}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {artifactDef ? (
+        <div className="rounded-lg border border-slate-200 bg-white p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="truncate font-mono text-xs font-semibold text-slate-800">
+                {artifactDef.artifact_key}
+              </div>
+              <p className="mt-1 line-clamp-3 text-xs leading-5 text-slate-500">
+                {artifactDef.description || t("artifact.noDescription")}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase text-slate-600">
+              {artifactDef.platform}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-sm text-slate-500">
+          {t("artifact.empty")}
+        </div>
+      )}
+    </section>
+  )
+
+  const paramsContent = !artifactDef ? (
+    <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
+      {t("params.selectArtifactFirst")}
+    </div>
+  ) : fields.length === 0 ? (
+    <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
+      {t("params.empty")}
+    </div>
+  ) : (
+    <div className="grid gap-4 lg:grid-cols-2">
+      {fields.map((field) => (
+        <div key={field.key} className="space-y-1.5">
+          {field.type !== "boolean" ? (
+            <Label htmlFor={`forensic-param-${field.key}`} className="text-xs font-medium text-slate-700">
+              {field.label}
+              {field.required ? <span className="text-red-500"> *</span> : null}
+            </Label>
+          ) : null}
+          <FieldInput
+            field={field}
+            value={values[field.key]}
+            error={errors[field.key]}
+            onChange={(value) => {
+              setValues((current) => ({ ...current, [field.key]: value }))
+              setErrors((current) => {
+                if (!current[field.key]) return current
+                const next = { ...current }
+                delete next[field.key]
+                return next
+              })
+            }}
+          />
+          {errors[field.key] ? (
+            <p className="text-[11px] text-red-600">{errors[field.key]}</p>
+          ) : field.description ? (
+            <p className="line-clamp-2 text-[11px] leading-5 text-slate-500">{field.description}</p>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  )
+
+  const highRiskConfirm = artifactDef?.risk_level === "high" ? (
+    <label className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+      <Checkbox checked={confirmHighRisk} onCheckedChange={(checked) => setConfirmHighRisk(checked === true)} />
+      <AlertTriangle className="h-3.5 w-3.5" />
+      {t("params.confirmHighRisk")}
+    </label>
+  ) : null
+
+  const footer = (
+    <div className={cn("flex items-center justify-end gap-2 pt-4", footerClassName)}>
+      {onCancel ? (
+        <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
+          {t("actions.cancel")}
+        </Button>
+      ) : null}
+      <Button
+        type="button"
+        onClick={() => void handleSubmit()}
+        disabled={submitting || !selectedEndpoint || !artifactDef}
+        className="bg-slate-950 text-white hover:bg-slate-800"
+      >
+        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        {submitting ? t("actions.submitting") : t("actions.submit")}
+      </Button>
+    </div>
+  )
+
+  if (layout === "workspace") {
+    return (
+      <div className={cn("space-y-0", className)}>
+        <div className="grid gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
+          <aside className="space-y-4">
+            {endpointSection}
+            {artifactSection}
+          </aside>
+
+          <section className="flex h-[416px] min-h-0 flex-col rounded-xl border border-slate-200 bg-white">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+              <Label className="text-sm font-semibold text-slate-800">{t("params.title")}</Label>
+              <span className="text-xs text-slate-500">{t("params.nativeHint")}</span>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 pr-3">
+              <div className="space-y-4">
+                {paramsContent}
+                {highRiskConfirm}
+              </div>
+            </div>
+          </section>
+        </div>
+        {footer}
+      </div>
+    )
+  }
+
   return (
     <div className={cn("space-y-5", className)}>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <Label className="text-sm font-semibold text-slate-800">{t("endpoint.title")}</Label>
-                  {loadingOptions ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
-                </div>
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    value={endpointKeyword}
-                    onChange={(event) => setEndpointKeyword(event.target.value)}
-                    placeholder={t("endpoint.search")}
-                    className="h-9 bg-white pl-9"
-                  />
-                </div>
-                <div className="max-h-56 space-y-2 overflow-auto pr-1">
-                  {filteredEndpoints.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-sm text-slate-500">
-                      {t("endpoint.empty")}
-                    </div>
-                  ) : (
-                    filteredEndpoints.map((endpoint) => {
-                      const value = endpointValue(endpoint)
-                      const selected = value === endpointId
-                      return (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => setEndpointId(value)}
-                          className={cn(
-                            "flex w-full items-center justify-between gap-3 rounded-lg border bg-white px-3 py-2.5 text-left transition-all hover:-translate-y-0.5 hover:border-sky-200 hover:shadow-md",
-                            selected ? "border-sky-300 ring-2 ring-sky-100" : "border-slate-200",
-                          )}
-                        >
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-semibold text-slate-800">
-                              {endpointLabel(endpoint)}
-                            </span>
-                            <span className="mt-0.5 block truncate font-mono text-[11px] text-slate-500">
-                              {endpoint.agent_id || endpoint.endpoint_id || "-"} / {endpoint.velociraptor_client_id || "-"}
-                            </span>
-                          </span>
-                          <span className="flex shrink-0 items-center gap-2">
-                            <span
-                              className={cn(
-                                "h-2 w-2 rounded-full",
-                                endpoint.status === "online" && "bg-emerald-500",
-                                endpoint.status === "offline" && "bg-slate-400",
-                                endpoint.status === "unknown" && "bg-amber-500",
-                              )}
-                            />
-                            {selected ? <Check className="h-4 w-4 text-sky-600" /> : <ChevronRight className="h-4 w-4 text-slate-300" />}
-                          </span>
-                        </button>
-                      )
-                    })
-                  )}
-                </div>
-              </section>
-
-              <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <Label className="text-sm font-semibold text-slate-800">{t("artifact.title")}</Label>
-                  {loadingArtifact ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
-                </div>
-                <Select value={artifactKey} onValueChange={(value) => void handleArtifactChange(value)}>
-                  <SelectTrigger className="h-9 bg-white">
-                    <SelectValue placeholder={t("artifact.placeholder")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {artifacts.map((artifact) => (
-                      <SelectItem key={artifact.artifact_key} value={artifact.artifact_key}>
-                        {artifact.name || artifact.artifact_key}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {artifactDef ? (
-                  <div className="rounded-lg border border-slate-200 bg-white p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="truncate font-mono text-xs font-semibold text-slate-800">
-                          {artifactDef.artifact_key}
-                        </div>
-                        <p className="mt-1 line-clamp-3 text-xs leading-5 text-slate-500">
-                          {artifactDef.description || t("artifact.noDescription")}
-                        </p>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase text-slate-600">
-                        {artifactDef.platform}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-sm text-slate-500">
-                    {t("artifact.empty")}
-                  </div>
-                )}
-              </section>
-            </div>
-
-            <Separator />
-
-            <section className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <Label className="text-sm font-semibold text-slate-800">{t("params.title")}</Label>
-                <span className="text-xs text-slate-500">{t("params.nativeHint")}</span>
-              </div>
-
-              {!artifactDef ? (
-                <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-                  {t("params.selectArtifactFirst")}
-                </div>
-              ) : fields.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-                  {t("params.empty")}
-                </div>
-              ) : (
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {fields.map((field) => (
-                    <div key={field.key} className="space-y-1.5">
-                      {field.type !== "boolean" ? (
-                        <Label htmlFor={`forensic-param-${field.key}`} className="text-xs font-medium text-slate-700">
-                          {field.label}
-                          {field.required ? <span className="text-red-500"> *</span> : null}
-                        </Label>
-                      ) : null}
-                      <FieldInput
-                        field={field}
-                        value={values[field.key]}
-                        error={errors[field.key]}
-                        onChange={(value) => {
-                          setValues((current) => ({ ...current, [field.key]: value }))
-                          setErrors((current) => {
-                            if (!current[field.key]) return current
-                            const next = { ...current }
-                            delete next[field.key]
-                            return next
-                          })
-                        }}
-                      />
-                      {errors[field.key] ? (
-                        <p className="text-[11px] text-red-600">{errors[field.key]}</p>
-                      ) : field.description ? (
-                        <p className="line-clamp-2 text-[11px] leading-5 text-slate-500">{field.description}</p>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {artifactDef?.risk_level === "high" ? (
-                <label className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                  <Checkbox checked={confirmHighRisk} onCheckedChange={(checked) => setConfirmHighRisk(checked === true)} />
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  {t("params.confirmHighRisk")}
-                </label>
-              ) : null}
-            </section>
-      <div className={cn("flex items-center justify-end gap-2 pt-4", footerClassName)}>
-          {onCancel ? (
-          <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
-            {t("actions.cancel")}
-          </Button>
-        ) : null}
-          <Button
-            type="button"
-            onClick={() => void handleSubmit()}
-            disabled={submitting || !selectedEndpoint || !artifactDef}
-            className="bg-slate-950 text-white hover:bg-slate-800"
-          >
-            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            {submitting ? t("actions.submitting") : t("actions.submit")}
-          </Button>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {endpointSection}
+        {artifactSection}
       </div>
+
+      <Separator />
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <Label className="text-sm font-semibold text-slate-800">{t("params.title")}</Label>
+          <span className="text-xs text-slate-500">{t("params.nativeHint")}</span>
+        </div>
+        {paramsContent}
+        {highRiskConfirm}
+      </section>
+      {footer}
     </div>
   )
 }

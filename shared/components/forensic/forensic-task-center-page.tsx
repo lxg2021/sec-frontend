@@ -619,6 +619,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
             <ForensicCreateTaskForm
               context={createDialogContext}
               initialArtifactKey={artifactKey.trim()}
+              layout="workspace"
               className="px-6 py-5"
               footerClassName="-mx-6 -mb-5 border-t border-slate-200 bg-white px-6 py-4"
               onCreated={(task) => {
