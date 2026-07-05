@@ -767,13 +767,13 @@ export function ForensicCreateTaskForm({
   if (layout === "workspace") {
     return (
       <form id={formId} onSubmit={handleFormSubmit} className={cn("space-y-0", className)}>
-        <div className="grid gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
-          <aside className="space-y-4">
+        <div className="grid items-stretch gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
+          <aside className="flex flex-col gap-4">
             {endpointSection}
             {artifactSection}
           </aside>
 
-          <section className="flex h-[416px] min-h-0 flex-col rounded-xl border border-slate-200 bg-white">
+          <section className="flex min-h-[416px] self-stretch flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
               <Label className="text-sm font-semibold text-slate-800">{t("params.title")}</Label>
               <span className="text-xs text-slate-500">{t("params.nativeHint")}</span>
