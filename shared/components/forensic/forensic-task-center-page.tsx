@@ -15,11 +15,13 @@ import {
   FileArchive,
   FileText,
   Hexagon,
+  ListChecks,
   Loader2,
   MoreHorizontal,
   Plus,
   RefreshCw,
   Search,
+  ScrollText,
   Trash2,
   XCircle,
 } from "lucide-react"
@@ -703,11 +705,16 @@ export function ForensicTaskCenterPage({ context }: Props) {
         <section className="grid min-h-[500px] flex-1 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_460px]">
           <Card className="overflow-hidden rounded-[18px] border-0 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
             <CardHeader className="flex-row items-center justify-between border-b border-slate-200 px-6 py-4">
-              <div>
-                <CardTitle className="text-base font-semibold text-slate-950">
-                  {t("list.title")}
-                  <span className="ml-2 text-xs font-normal text-slate-500">{t("list.count", { count: total })}</span>
-                </CardTitle>
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-500/20">
+                  <ListChecks aria-hidden className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <CardTitle className="text-base font-semibold text-slate-950">
+                    {t("list.title")}
+                    <span className="ml-2 text-xs font-normal text-slate-500">{t("list.count", { count: total })}</span>
+                  </CardTitle>
+                </div>
               </div>
               <Button
                 type="button"
@@ -816,7 +823,12 @@ export function ForensicTaskCenterPage({ context }: Props) {
 
           <Card className="overflow-hidden rounded-[18px] border-0 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
             <CardHeader className="flex-row items-center justify-between border-b border-slate-200 px-6 py-4">
-              <CardTitle className="text-base font-semibold text-slate-950">{t("detail.title")}</CardTitle>
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/20">
+                  <ScrollText aria-hidden className="h-5 w-5" />
+                </div>
+                <CardTitle className="truncate text-base font-semibold text-slate-950">{t("detail.title")}</CardTitle>
+              </div>
               {selectedTask ? (
                 <div className="flex gap-2">
                   <Button
