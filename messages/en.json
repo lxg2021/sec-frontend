@@ -2310,6 +2310,16 @@
           "needHandle": "Needs attention",
           "normal": "Normal"
         },
+        "quickCreate": {
+          "title": "Quick Create Forensic Task",
+          "description": "Open the creation dialog with the current case, target, and artifact filters, then fill artifact parameters and dispatch.",
+          "caseId": "Case ID",
+          "target": "Target Endpoint",
+          "artifact": "Forensic Artifact",
+          "notSet": "Not set",
+          "selectInDialog": "Select in dialog",
+          "action": "Create Task"
+        },
         "filters": {
           "title": "Filter Tasks",
           "keyword": "Search task ID / Flow ID",

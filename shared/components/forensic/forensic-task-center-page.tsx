@@ -23,7 +23,6 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Button } from "@/shared/ui/button"
@@ -37,7 +36,6 @@ import {
   deleteForensicTask,
   downloadForensicEvidence,
   downloadForensicTaskFlowZip,
-  getForensicOverview,
   listForensicEvidence,
   listForensicTasks,
   syncForensicTaskResult,
@@ -45,15 +43,11 @@ import {
 import type {
   ForensicEvidenceItem,
   ForensicOverviewContext,
-  ForensicOverviewViewModel,
   ForensicTaskItem,
   ForensicTaskStatus,
   ListForensicTasksRequest,
 } from "@/shared/lib/forensic/types"
-import { ForensicCreateTaskDialog } from "./forensic-create-task-dialog"
-import { ForensicEndpointStatusSummary } from "./forensic-endpoint-status-summary"
-import { ForensicIconBadge, ForensicSummaryCard } from "./forensic-panel-chrome"
-import { ForensicTaskStatusSummary } from "./forensic-task-status-summary"
+import { ForensicCreateTaskForm } from "./forensic-create-task-dialog"
 
 interface ForensicTaskCenterContext extends ForensicOverviewContext {
   artifact_key?: string
@@ -65,61 +59,6 @@ interface ForensicTaskCenterContext extends ForensicOverviewContext {
 
 interface Props {
   context: ForensicTaskCenterContext
-}
-
-const EMPTY_OVERVIEW: ForensicOverviewViewModel = {
-  availability: {
-    level: "unavailable",
-    title: "",
-    summary: "",
-    can_create_task: false,
-    target_agent_count: 0,
-    available_endpoint_count: 0,
-    unbound_endpoint_count: 0,
-    offline_endpoint_count: 0,
-    blocked_endpoint_count: 0,
-    enabled_artifact_count: 0,
-    running_task_count: 0,
-    failed_task_count: 0,
-    blocking_reasons: [],
-  },
-  metrics: {
-    endpoint_total: 0,
-    endpoint_online: 0,
-    endpoint_unbound: 0,
-    artifact_enabled: 0,
-    task_running: 0,
-    task_failed: 0,
-    evidence_total: 0,
-  },
-  endpoint_summary: {
-    total: 0,
-    online: 0,
-    offline: 0,
-    unknown: 0,
-    unbound: 0,
-    latest_seen_at: 0,
-  },
-  task_summary: {
-    pending: 0,
-    running: 0,
-    success: 0,
-    failed: 0,
-    timeout: 0,
-    canceled: 0,
-  },
-  artifact_summary: {
-    total_enabled: 0,
-    by_category: {},
-    high_risk_count: 0,
-  },
-  evidence_summary: {
-    total: 0,
-    latest_created_at: 0,
-  },
-  recent_tasks: [],
-  notices: [],
-  last_refresh_at: 0,
 }
 
 const TASK_STATUSES: ForensicTaskStatus[] = [
@@ -257,35 +196,6 @@ function flowInfo(task: ForensicTaskItem): { state: string; uploads: number; log
   return { state, uploads, logs }
 }
 
-function MetricCard({
-  icon,
-  label,
-  value,
-  hint,
-  tone,
-}: {
-  icon: LucideIcon
-  label: string
-  value: number
-  hint: string
-  tone: "sky" | "emerald" | "red" | "amber" | "indigo"
-}) {
-  return (
-    <ForensicSummaryCard>
-      <CardContent className="flex h-full items-center gap-4 p-5">
-        <ForensicIconBadge icon={icon} tone={tone} className="size-12 rounded-2xl" iconClassName="size-6" />
-        <div className="min-w-0 flex-1">
-          <div className="text-sm text-slate-500">{label}</div>
-          <div className="mt-1 flex items-baseline gap-3">
-            <span className="text-3xl font-semibold tabular-nums text-slate-950">{value}</span>
-            <span className="truncate text-xs font-semibold text-slate-500">{hint}</span>
-          </div>
-        </div>
-      </CardContent>
-    </ForensicSummaryCard>
-  )
-}
-
 function JsonBlock({ value }: { value?: string }) {
   const parsed = parseJson(value)
   const content = parsed ? JSON.stringify(parsed, null, 2) : value || "-"
@@ -298,7 +208,6 @@ function JsonBlock({ value }: { value?: string }) {
 
 export function ForensicTaskCenterPage({ context }: Props) {
   const t = useTranslations("pages.investigation.tasks")
-  const [overview, setOverview] = useState<ForensicOverviewViewModel>(EMPTY_OVERVIEW)
   const [tasks, setTasks] = useState<ForensicTaskItem[]>([])
   const [selectedTask, setSelectedTask] = useState<ForensicTaskItem | null>(null)
   const [evidence, setEvidence] = useState<ForensicEvidenceItem[]>([])
@@ -313,10 +222,10 @@ export function ForensicTaskCenterPage({ context }: Props) {
   const [loading, setLoading] = useState(false)
   const [evidenceLoading, setEvidenceLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState("")
-  const [createOpen, setCreateOpen] = useState(context.action === "create")
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id || "")
   const selectedTaskIdRef = useRef<string>("")
+  const createPanelRef = useRef<HTMLDivElement | null>(null)
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const filteredTasks = useMemo(() => {
@@ -338,6 +247,14 @@ export function ForensicTaskCenterPage({ context }: Props) {
   }, [keyword, tasks])
 
   const selectedFlow = selectedTask ? flowInfo(selectedTask) : null
+  const createDialogContext = useMemo(
+    () => ({
+      ...context,
+      case_id: caseId.trim() || context.case_id,
+      endpoint_id: endpointId.trim() || context.endpoint_id,
+    }),
+    [caseId, context, endpointId],
+  )
 
   useEffect(() => {
     selectedTaskIdRef.current = selectedTask?.task_id || ""
@@ -346,6 +263,13 @@ export function ForensicTaskCenterPage({ context }: Props) {
   useEffect(() => {
     setHeaderCaseInput(caseId)
   }, [caseId])
+
+  useEffect(() => {
+    if (context.action !== "create") return
+    window.requestAnimationFrame(() => {
+      createPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+    })
+  }, [context.action])
 
   const loadEvidence = useCallback(
     async (taskId: string) => {
@@ -388,46 +312,29 @@ export function ForensicTaskCenterPage({ context }: Props) {
     })
 
     try {
-      const [overviewResult, tasksResult] = await Promise.allSettled([
-        getForensicOverview({ case_id: caseId.trim() || undefined }),
-        listForensicTasks(taskParams),
-      ])
-
-      if (overviewResult.status === "fulfilled") {
-        setOverview(overviewResult.value)
+      const result = await listForensicTasks(taskParams)
+      setTasks(result.items)
+      setTotal(result.pagination.total_count)
+      const nextSelected =
+        (context.task_id
+          ? result.items.find((item) => item.task_id === context.task_id)
+          : undefined) ||
+        (selectedTaskIdRef.current
+          ? result.items.find((item) => item.task_id === selectedTaskIdRef.current)
+          : undefined) ||
+        result.items[0] ||
+        null
+      setSelectedTask(nextSelected)
+      if (nextSelected) {
+        void loadEvidence(nextSelected.task_id)
       } else {
-        toast.error(t("toast.overviewLoadFailed"), {
-          description: overviewResult.reason instanceof Error ? overviewResult.reason.message : t("toast.retry"),
-        })
+        setEvidence([])
       }
-
-      if (tasksResult.status === "fulfilled") {
-        setTasks(tasksResult.value.items)
-        setTotal(tasksResult.value.pagination.total_count)
-        const nextSelected =
-          (context.task_id
-            ? tasksResult.value.items.find((item) => item.task_id === context.task_id)
-            : undefined) ||
-          (selectedTaskIdRef.current
-            ? tasksResult.value.items.find((item) => item.task_id === selectedTaskIdRef.current)
-            : undefined) ||
-          tasksResult.value.items[0] ||
-          null
-        setSelectedTask(nextSelected)
-        if (nextSelected) {
-          void loadEvidence(nextSelected.task_id)
-        } else {
-          setEvidence([])
-        }
-      } else {
-        toast.error(t("toast.tasksLoadFailed"), {
-          description: tasksResult.reason instanceof Error ? tasksResult.reason.message : t("toast.retry"),
-        })
-      }
-
-      if (overviewResult.status === "fulfilled" || tasksResult.status === "fulfilled") {
-        setRefreshedAt(new Date())
-      }
+      setRefreshedAt(new Date())
+    } catch (error) {
+      toast.error(t("toast.tasksLoadFailed"), {
+        description: error instanceof Error ? error.message : t("toast.retry"),
+      })
     } finally {
       setLoading(false)
     }
@@ -682,7 +589,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
 
                 <Button
                   type="button"
-                  onClick={() => setCreateOpen(true)}
+                  onClick={() => createPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
                   className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
                 >
                   <Plus className="h-4 w-4" />
@@ -693,24 +600,34 @@ export function ForensicTaskCenterPage({ context }: Props) {
           </div>
         </header>
 
-        <section className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
-          <ForensicEndpointStatusSummary summary={overview.endpoint_summary} />
-          <ForensicTaskStatusSummary summary={overview.task_summary} />
-          <MetricCard
-            icon={CheckCircle2}
-            label={t("metrics.success")}
-            value={overview.task_summary.success}
-            hint={t("metrics.evidence", { count: overview.evidence_summary.total })}
-            tone="emerald"
-          />
-          <MetricCard
-            icon={XCircle}
-            label={t("metrics.failed")}
-            value={overview.task_summary.failed + overview.task_summary.timeout}
-            hint={overview.task_summary.failed + overview.task_summary.timeout > 0 ? t("metrics.needHandle") : t("metrics.normal")}
-            tone={overview.task_summary.failed + overview.task_summary.timeout > 0 ? "red" : "indigo"}
-          />
-        </section>
+        <Card
+          ref={createPanelRef}
+          className="overflow-hidden rounded-[18px] border-0 bg-white shadow-[0_12px_34px_rgba(15,23,42,0.08)]"
+        >
+          <CardHeader className="border-b border-slate-200 px-6 py-5">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-500/20">
+                <Plus aria-hidden className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <CardTitle className="text-base font-semibold text-slate-950">{t("create.title")}</CardTitle>
+                <p className="mt-1 text-sm leading-6 text-slate-500">{t("create.description")}</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <ForensicCreateTaskForm
+              context={createDialogContext}
+              initialArtifactKey={artifactKey.trim()}
+              className="px-6 py-5"
+              footerClassName="-mx-6 -mb-5 border-t border-slate-200 bg-white px-6 py-4"
+              onCreated={(task) => {
+                setSelectedTask(task)
+                void refresh()
+              }}
+            />
+          </CardContent>
+        </Card>
 
         <Card className="rounded-[18px] border-0 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
           <CardHeader className="pb-3">
@@ -1079,16 +996,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
           </Card>
         </section>
       </div>
-
-      <ForensicCreateTaskDialog
-        open={createOpen}
-        context={context}
-        onOpenChange={setCreateOpen}
-        onCreated={(task) => {
-          setSelectedTask(task)
-          void refresh()
-        }}
-      />
     </main>
   )
 }

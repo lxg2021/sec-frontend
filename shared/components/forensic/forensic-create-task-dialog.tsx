@@ -43,10 +43,21 @@ import type {
 
 type ParamValues = Record<string, unknown>
 
-interface Props {
+interface ForensicCreateTaskDialogProps {
   open: boolean
   context: ForensicOverviewContext
+  initialArtifactKey?: string
   onOpenChange: (open: boolean) => void
+  onCreated?: (task: ForensicTaskItem) => void
+}
+
+interface ForensicCreateTaskFormProps {
+  context: ForensicOverviewContext
+  initialArtifactKey?: string
+  active?: boolean
+  className?: string
+  footerClassName?: string
+  onCancel?: () => void
   onCreated?: (task: ForensicTaskItem) => void
 }
 
@@ -358,12 +369,15 @@ function FieldInput({
   )
 }
 
-export function ForensicCreateTaskDialog({
-  open,
+export function ForensicCreateTaskForm({
   context,
-  onOpenChange,
+  initialArtifactKey,
+  active = true,
+  className,
+  footerClassName,
+  onCancel,
   onCreated,
-}: Props) {
+}: ForensicCreateTaskFormProps) {
   const t = useTranslations("pages.investigation.tasks.create")
   const locale = useLocale()
   const [endpoints, setEndpoints] = useState<ForensicEndpointItem[]>([])
@@ -378,6 +392,7 @@ export function ForensicCreateTaskDialog({
   const [submitting, setSubmitting] = useState(false)
   const [endpointKeyword, setEndpointKeyword] = useState("")
   const [confirmHighRisk, setConfirmHighRisk] = useState(false)
+  const [initialArtifactApplied, setInitialArtifactApplied] = useState(false)
 
   const fields = useMemo(
     () => (artifactDef ? parseParamFields(artifactDef, locale) : []),
@@ -402,6 +417,30 @@ export function ForensicCreateTaskDialog({
         .some((value) => String(value).toLowerCase().includes(keyword)),
     )
   }, [endpointKeyword, endpoints])
+
+  const handleArtifactChange = useCallback(
+    async (nextKey: string) => {
+      setArtifactKey(nextKey)
+      setArtifactDef(null)
+      setValues({})
+      setErrors({})
+      setConfirmHighRisk(false)
+      setLoadingArtifact(true)
+      try {
+        const definition = await getForensicArtifactDefinition(nextKey)
+        const nextFields = parseParamFields(definition, locale)
+        setArtifactDef(definition)
+        setValues(buildInitialValues(definition, nextFields))
+      } catch (error) {
+        toast.error(t("toast.artifactFailed"), {
+          description: error instanceof Error ? error.message : t("toast.retry"),
+        })
+      } finally {
+        setLoadingArtifact(false)
+      }
+    },
+    [locale, t],
+  )
 
   const loadOptions = useCallback(async () => {
     setLoadingOptions(true)
@@ -429,42 +468,39 @@ export function ForensicCreateTaskDialog({
   }, [context.agent_id, context.endpoint_id, t])
 
   useEffect(() => {
-    if (open) void loadOptions()
-  }, [loadOptions, open])
+    if (active) void loadOptions()
+  }, [active, loadOptions])
 
   useEffect(() => {
-    if (!open) {
+    if (!active) {
       setArtifactKey("")
       setArtifactDef(null)
       setValues({})
       setErrors({})
       setConfirmHighRisk(false)
+      setInitialArtifactApplied(false)
     }
-  }, [open])
+  }, [active])
 
-  const handleArtifactChange = useCallback(
-    async (nextKey: string) => {
-      setArtifactKey(nextKey)
-      setArtifactDef(null)
-      setValues({})
-      setErrors({})
-      setConfirmHighRisk(false)
-      setLoadingArtifact(true)
-      try {
-        const definition = await getForensicArtifactDefinition(nextKey)
-        const nextFields = parseParamFields(definition, locale)
-        setArtifactDef(definition)
-        setValues(buildInitialValues(definition, nextFields))
-      } catch (error) {
-        toast.error(t("toast.artifactFailed"), {
-          description: error instanceof Error ? error.message : t("toast.retry"),
-        })
-      } finally {
-        setLoadingArtifact(false)
-      }
-    },
-    [locale, t],
-  )
+  useEffect(() => {
+    const nextKey = initialArtifactKey?.trim()
+    if (!active || !nextKey || initialArtifactApplied || loadingArtifact) return
+    if (artifactKey === nextKey) {
+      setInitialArtifactApplied(true)
+      return
+    }
+    if (artifacts.length > 0 && !artifacts.some((item) => item.artifact_key === nextKey)) return
+    setInitialArtifactApplied(true)
+    void handleArtifactChange(nextKey)
+  }, [
+    artifactKey,
+    artifacts,
+    handleArtifactChange,
+    initialArtifactApplied,
+    initialArtifactKey,
+    loadingArtifact,
+    active,
+  ])
 
   const handleSubmit = useCallback(async () => {
     if (!selectedEndpoint) {
@@ -515,7 +551,7 @@ export function ForensicCreateTaskDialog({
           : t("toast.createdNoFlow"),
       })
       onCreated?.(result.task)
-      onOpenChange(false)
+      onCancel?.()
     } catch (error) {
       toast.error(t("toast.createFailed"), {
         description: error instanceof Error ? error.message : t("toast.retry"),
@@ -530,23 +566,15 @@ export function ForensicCreateTaskDialog({
     context.workflow_action_id,
     context.workflow_id,
     fields,
+    onCancel,
     onCreated,
-    onOpenChange,
     selectedEndpoint,
     t,
     values,
   ])
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] max-w-4xl overflow-hidden p-0">
-        <DialogHeader className="border-b border-slate-200 px-6 py-5">
-          <DialogTitle className="text-lg font-semibold text-slate-950">{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
-        </DialogHeader>
-
-        <ScrollArea className="max-h-[calc(88vh-9rem)]">
-          <div className="space-y-5 px-6 py-5">
+    <div className={cn("space-y-5", className)}>
             <div className="grid gap-4 lg:grid-cols-2">
               <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
                 <div className="flex items-center justify-between gap-3">
@@ -707,13 +735,12 @@ export function ForensicCreateTaskDialog({
                 </label>
               ) : null}
             </section>
-          </div>
-        </ScrollArea>
-
-        <div className="flex items-center justify-end gap-2 border-t border-slate-200 bg-white px-6 py-4">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+      <div className={cn("flex items-center justify-end gap-2 pt-4", footerClassName)}>
+          {onCancel ? (
+          <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
             {t("actions.cancel")}
           </Button>
+        ) : null}
           <Button
             type="button"
             onClick={() => void handleSubmit()}
@@ -723,7 +750,39 @@ export function ForensicCreateTaskDialog({
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             {submitting ? t("actions.submitting") : t("actions.submit")}
           </Button>
-        </div>
+      </div>
+    </div>
+  )
+}
+
+export function ForensicCreateTaskDialog({
+  open,
+  context,
+  initialArtifactKey,
+  onOpenChange,
+  onCreated,
+}: ForensicCreateTaskDialogProps) {
+  const t = useTranslations("pages.investigation.tasks.create")
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[88vh] max-w-4xl overflow-hidden p-0">
+        <DialogHeader className="border-b border-slate-200 px-6 py-5">
+          <DialogTitle className="text-lg font-semibold text-slate-950">{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
+        </DialogHeader>
+
+        <ScrollArea className="max-h-[calc(88vh-6.5rem)]">
+          <ForensicCreateTaskForm
+            active={open}
+            context={context}
+            initialArtifactKey={initialArtifactKey}
+            onCancel={() => onOpenChange(false)}
+            onCreated={onCreated}
+            className="px-6 py-5"
+            footerClassName="-mx-6 -mb-5 border-t border-slate-200 bg-white px-6 py-4"
+          />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )

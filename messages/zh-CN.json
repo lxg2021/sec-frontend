@@ -2312,6 +2312,16 @@
           "needHandle": "需处理",
           "normal": "正常"
         },
+        "quickCreate": {
+          "title": "快速创建取证任务",
+          "description": "基于当前 Case、目标终端和工件筛选打开创建弹窗，继续填写工件参数后下发任务",
+          "caseId": "Case ID",
+          "target": "目标终端",
+          "artifact": "取证工件",
+          "notSet": "未设置",
+          "selectInDialog": "在弹窗选择",
+          "action": "创建任务"
+        },
         "filters": {
           "title": "筛选任务",
           "keyword": "搜索任务 ID / Flow ID",
