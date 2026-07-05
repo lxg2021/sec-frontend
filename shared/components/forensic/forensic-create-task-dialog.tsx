@@ -1,5 +1,6 @@
 "use client"
 
+import type { FormEvent } from "react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { AlertTriangle, Check, ChevronRight, Loader2, Search, Send } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
@@ -56,6 +57,8 @@ interface ForensicCreateTaskFormProps {
   initialArtifactKey?: string
   active?: boolean
   layout?: "stacked" | "workspace"
+  formId?: string
+  showFooter?: boolean
   className?: string
   footerClassName?: string
   onCancel?: () => void
@@ -375,6 +378,8 @@ export function ForensicCreateTaskForm({
   initialArtifactKey,
   active = true,
   layout = "stacked",
+  formId,
+  showFooter = true,
   className,
   footerClassName,
   onCancel,
@@ -575,6 +580,14 @@ export function ForensicCreateTaskForm({
     values,
   ])
 
+  const handleFormSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      void handleSubmit()
+    },
+    [handleSubmit],
+  )
+
   const endpointSection = (
     <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
       <div className="flex items-center justify-between gap-3">
@@ -741,8 +754,7 @@ export function ForensicCreateTaskForm({
         </Button>
       ) : null}
       <Button
-        type="button"
-        onClick={() => void handleSubmit()}
+        type="submit"
         disabled={submitting || !selectedEndpoint || !artifactDef}
         className="bg-slate-950 text-white hover:bg-slate-800"
       >
@@ -754,7 +766,7 @@ export function ForensicCreateTaskForm({
 
   if (layout === "workspace") {
     return (
-      <div className={cn("space-y-0", className)}>
+      <form id={formId} onSubmit={handleFormSubmit} className={cn("space-y-0", className)}>
         <div className="grid gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
           <aside className="space-y-4">
             {endpointSection}
@@ -774,13 +786,13 @@ export function ForensicCreateTaskForm({
             </div>
           </section>
         </div>
-        {footer}
-      </div>
+        {showFooter ? footer : null}
+      </form>
     )
   }
 
   return (
-    <div className={cn("space-y-5", className)}>
+    <form id={formId} onSubmit={handleFormSubmit} className={cn("space-y-5", className)}>
       <div className="grid gap-4 lg:grid-cols-2">
         {endpointSection}
         {artifactSection}
@@ -796,8 +808,8 @@ export function ForensicCreateTaskForm({
         {paramsContent}
         {highRiskConfirm}
       </section>
-      {footer}
-    </div>
+      {showFooter ? footer : null}
+    </form>
   )
 }
 

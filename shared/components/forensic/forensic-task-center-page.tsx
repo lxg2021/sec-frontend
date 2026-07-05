@@ -70,6 +70,8 @@ const TASK_STATUSES: ForensicTaskStatus[] = [
   "canceled",
 ]
 
+const CREATE_TASK_FORM_ID = "forensic-task-center-create-form"
+
 function formatUnixTime(value?: number): string {
   if (!value) return "-"
   const date = new Date(value * 1000)
@@ -587,14 +589,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   </Link>
                 </Button>
 
-                <Button
-                  type="button"
-                  onClick={() => createPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                  className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>{t("header.createTask")}</span>
-                </Button>
               </div>
             </div>
           </div>
@@ -604,7 +598,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
           ref={createPanelRef}
           className="overflow-hidden rounded-[18px] border-0 bg-white shadow-[0_12px_34px_rgba(15,23,42,0.08)]"
         >
-          <CardHeader className="border-b border-slate-200 px-6 py-5">
+          <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 border-b border-slate-200 px-6 py-5">
             <div className="flex min-w-0 items-center gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-500/20">
                 <Plus aria-hidden className="h-5 w-5" />
@@ -614,14 +608,23 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 <p className="mt-1 text-sm leading-6 text-slate-500">{t("create.description")}</p>
               </div>
             </div>
+            <Button
+              type="submit"
+              form={CREATE_TASK_FORM_ID}
+              className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
+            >
+              <Plus className="h-4 w-4" />
+              <span>{t("header.createTask")}</span>
+            </Button>
           </CardHeader>
           <CardContent className="p-0">
             <ForensicCreateTaskForm
               context={createDialogContext}
               initialArtifactKey={artifactKey.trim()}
               layout="workspace"
+              formId={CREATE_TASK_FORM_ID}
+              showFooter={false}
               className="px-6 py-5"
-              footerClassName="-mx-6 -mb-5 border-t border-slate-200 bg-white px-6 py-4"
               onCreated={(task) => {
                 setSelectedTask(task)
                 void refresh()
