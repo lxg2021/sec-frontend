@@ -2297,6 +2297,11 @@
           "title": "任务中心",
           "subtitle": "创建取证任务、同步 Flow 状态、查看证据并下载结果",
           "updatedAt": "刷新时间 {time}",
+          "updatedAtLabel": "更新时间",
+          "caseInputLabel": "按 Case ID 筛选取证任务",
+          "casePlaceholder": "输入 Case ID 筛选任务",
+          "refreshLabel": "刷新任务",
+          "artifactConfigLabel": "工件配置",
           "refresh": "刷新",
           "createTask": "新建任务"
         },

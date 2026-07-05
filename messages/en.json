@@ -2295,6 +2295,11 @@
           "title": "Task Center",
           "subtitle": "Create forensic tasks, sync Flow status, review evidence, and download results.",
           "updatedAt": "Refreshed at {time}",
+          "updatedAtLabel": "Updated At",
+          "caseInputLabel": "Filter forensic tasks by Case ID",
+          "casePlaceholder": "Enter Case ID to filter tasks",
+          "refreshLabel": "Refresh tasks",
+          "artifactConfigLabel": "Artifact Config",
           "refresh": "Refresh",
           "createTask": "New Task"
         },

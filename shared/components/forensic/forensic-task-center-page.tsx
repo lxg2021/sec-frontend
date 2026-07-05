@@ -1,6 +1,8 @@
 "use client"
 
+import type { FormEvent } from "react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
 import {
   Activity,
   AlertTriangle,
@@ -8,9 +10,11 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   Download,
   FileArchive,
   FileText,
+  Hexagon,
   Loader2,
   MoreHorizontal,
   Plus,
@@ -147,8 +151,20 @@ function formatClock(value?: number): string {
 
 function formatRefreshTime(value?: Date | null): string {
   if (!value) return "--"
-  const pad = (num: number) => String(num).padStart(2, "0")
-  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())} ${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`
+  const parts = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(value)
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")} ${getPart("hour")}:${getPart("minute")}:${getPart("second")}`
 }
 
 function formatRelative(value?: number): string {
@@ -299,6 +315,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
   const [actionLoading, setActionLoading] = useState("")
   const [createOpen, setCreateOpen] = useState(context.action === "create")
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
+  const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id || "")
   const selectedTaskIdRef = useRef<string>("")
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
@@ -325,6 +342,10 @@ export function ForensicTaskCenterPage({ context }: Props) {
   useEffect(() => {
     selectedTaskIdRef.current = selectedTask?.task_id || ""
   }, [selectedTask?.task_id])
+
+  useEffect(() => {
+    setHeaderCaseInput(caseId)
+  }, [caseId])
 
   const loadEvidence = useCallback(
     async (taskId: string) => {
@@ -428,6 +449,30 @@ export function ForensicTaskCenterPage({ context }: Props) {
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  const handleHeaderCaseSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      const nextCaseId = headerCaseInput.trim()
+      if (nextCaseId !== caseId.trim() || page !== 1) {
+        setCaseId(nextCaseId)
+        setPage(1)
+        return
+      }
+      void refresh()
+    },
+    [caseId, headerCaseInput, page, refresh],
+  )
+
+  const handleHeaderRefreshClick = useCallback(() => {
+    const nextCaseId = headerCaseInput.trim()
+    if (nextCaseId !== caseId.trim()) {
+      setCaseId(nextCaseId)
+      setPage(1)
+      return
+    }
+    void refresh()
+  }, [caseId, headerCaseInput, refresh])
 
   const handleSync = useCallback(
     async (task: ForensicTaskItem) => {
@@ -560,42 +605,90 @@ export function ForensicTaskCenterPage({ context }: Props) {
         <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white">
-                <Archive className="h-5 w-5" />
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
+                <Archive aria-hidden className="h-5 w-5" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-lg font-semibold leading-tight text-slate-950">{t("header.title")}</h1>
-                <div className="mt-1 flex flex-wrap items-center gap-2.5 text-sm text-slate-500">
-                  <span>{t("header.subtitle")}</span>
-                  <span className="h-4 w-px bg-slate-200" />
-                  <span>{t("header.updatedAt", { time: formatRefreshTime(refreshedAt) })}</span>
+
+              <div className="min-w-0 space-y-1.5">
+                <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
+                  {t("header.title")}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2.5 text-sm">
+                  <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
+                    FORENSIC
+                  </span>
+                  <span className="min-w-0 truncate text-slate-500">{t("header.subtitle")}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex h-11 items-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-600">
-                {t("filters.caseId")}：
-                <span className="ml-2 font-mono text-xs text-slate-700">{caseId || "-"}</span>
+            <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
+              <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                <form
+                  className="flex h-12 w-full min-w-[320px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
+                  onSubmit={handleHeaderCaseSubmit}
+                >
+                  <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+                  <input
+                    type="search"
+                    aria-label={t("header.caseInputLabel")}
+                    value={headerCaseInput}
+                    onChange={(event) => setHeaderCaseInput(event.target.value)}
+                    placeholder={t("header.casePlaceholder")}
+                    disabled={loading}
+                    className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </form>
+
+                <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+                    <Clock3 aria-hidden className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-slate-400">{t("header.updatedAtLabel")}</div>
+                    <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
+                      {formatRefreshTime(refreshedAt)}
+                    </div>
+                  </div>
+                </div>
+
+                <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleHeaderRefreshClick}
+                  disabled={loading}
+                  aria-label={t("header.refreshLabel")}
+                  className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+                  <span className="sr-only">{t("header.refreshLabel")}</span>
+                </Button>
+
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="h-10 shrink-0 rounded-full px-3 text-slate-500 shadow-none hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <Link href="/frame/investigation/artifacts">
+                    <Hexagon className="h-4 w-4" />
+                    <span>{t("header.artifactConfigLabel")}</span>
+                  </Link>
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => setCreateOpen(true)}
+                  className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>{t("header.createTask")}</span>
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => void refresh()}
-                disabled={loading}
-                className="h-11 rounded-xl px-4 text-slate-700 hover:bg-slate-100"
-              >
-                <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-                {t("header.refresh")}
-              </Button>
-              <Button
-                type="button"
-                onClick={() => setCreateOpen(true)}
-                className="h-11 rounded-xl bg-slate-950 px-5 text-white hover:bg-slate-800"
-              >
-                <Plus className="h-4 w-4" />
-                {t("header.createTask")}
-              </Button>
             </div>
           </div>
         </header>
