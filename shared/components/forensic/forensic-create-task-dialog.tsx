@@ -588,8 +588,15 @@ export function ForensicCreateTaskForm({
     [handleSubmit],
   )
 
+  const isWorkspace = layout === "workspace"
+
   const endpointSection = (
-    <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+    <section
+      className={cn(
+        "rounded-xl border border-slate-200 bg-slate-50/70 p-4",
+        isWorkspace ? "flex h-[280px] shrink-0 flex-col gap-3 overflow-hidden" : "shrink-0 space-y-3",
+      )}
+    >
       <div className="flex items-center justify-between gap-3">
         <Label className="text-sm font-semibold text-slate-800">{t("endpoint.title")}</Label>
         {loadingOptions ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
@@ -603,7 +610,7 @@ export function ForensicCreateTaskForm({
           className="h-9 bg-white pl-9"
         />
       </div>
-      <div className="max-h-56 space-y-2 overflow-auto pr-1">
+      <div className={cn("space-y-2 pr-1", isWorkspace ? "min-h-0 flex-1 overflow-y-auto" : "max-h-56 overflow-auto")}>
         {filteredEndpoints.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-sm text-slate-500">
             {t("endpoint.empty")}
@@ -654,7 +661,12 @@ export function ForensicCreateTaskForm({
   )
 
   const artifactSection = (
-    <section className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+    <section
+      className={cn(
+        "rounded-xl border border-slate-200 bg-slate-50/70 p-4",
+        isWorkspace ? "h-[204px] shrink-0 space-y-3 overflow-hidden" : "space-y-3",
+      )}
+    >
       <div className="flex items-center justify-between gap-3">
         <Label className="text-sm font-semibold text-slate-800">{t("artifact.title")}</Label>
         {loadingArtifact ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
@@ -689,7 +701,12 @@ export function ForensicCreateTaskForm({
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-sm text-slate-500">
+        <div
+          className={cn(
+            "rounded-lg border border-dashed border-slate-200 bg-white px-3 py-8 text-center text-sm text-slate-500",
+            isWorkspace && "flex h-[86px] items-center justify-center py-0",
+          )}
+        >
           {t("artifact.empty")}
         </div>
       )}
@@ -767,13 +784,13 @@ export function ForensicCreateTaskForm({
   if (layout === "workspace") {
     return (
       <form id={formId} onSubmit={handleFormSubmit} className={cn("space-y-0", className)}>
-        <div className="grid items-stretch gap-5 xl:grid-cols-[390px_minmax(0,1fr)]">
-          <aside className="flex flex-col gap-4">
+        <div className="grid items-stretch gap-5 xl:h-[500px] xl:grid-cols-[390px_minmax(0,1fr)]">
+          <aside className="flex min-h-0 flex-col gap-4">
             {endpointSection}
             {artifactSection}
           </aside>
 
-          <section className="flex min-h-[416px] self-stretch flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <section className="flex h-full min-h-0 self-stretch flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
               <Label className="text-sm font-semibold text-slate-800">{t("params.title")}</Label>
               <span className="text-xs text-slate-500">{t("params.nativeHint")}</span>
