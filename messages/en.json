@@ -2289,6 +2289,156 @@
           "detailLoadFailedDescription": "Please try again later.",
           "jsonParseFailed": "Some configuration content could not be parsed. Please check the artifact config."
         }
+      },
+      "tasks": {
+        "header": {
+          "title": "Task Center",
+          "subtitle": "Create forensic tasks, sync Flow status, review evidence, and download results.",
+          "updatedAt": "Refreshed at {time}",
+          "refresh": "Refresh",
+          "createTask": "New Task"
+        },
+        "metrics": {
+          "success": "Completed",
+          "failed": "Failed / Timeout",
+          "evidence": "Evidence {count}",
+          "needHandle": "Needs attention",
+          "normal": "Normal"
+        },
+        "filters": {
+          "title": "Filter Tasks",
+          "keyword": "Search task ID / Flow ID",
+          "caseId": "Case ID",
+          "endpoint": "Endpoint ID",
+          "artifact": "Artifact name",
+          "allStatus": "All Status",
+          "apply": "Refresh"
+        },
+        "status": {
+          "pending": "Pending",
+          "running": "Running",
+          "success": "Success",
+          "failed": "Failed",
+          "canceled": "Canceled",
+          "timeout": "Timeout"
+        },
+        "list": {
+          "title": "Forensic Task List",
+          "count": "{count} total",
+          "loading": "Loading tasks",
+          "emptyTitle": "No forensic tasks",
+          "emptyDescription": "Create a task or adjust filters and refresh.",
+          "noCase": "No case",
+          "notDispatched": "Not dispatched",
+          "synced": "Synced",
+          "notSynced": "Not synced",
+          "page": "Page {page} / {total}",
+          "columns": {
+            "status": "Status",
+            "task": "Task ID",
+            "host": "Host",
+            "artifact": "Artifact",
+            "flow": "Flow",
+            "created": "Created",
+            "actions": "Actions"
+          }
+        },
+        "detail": {
+          "title": "Task Detail",
+          "emptyTitle": "Select a task",
+          "emptyDescription": "Select a task from the left list to view details.",
+          "currentTask": "Current task",
+          "basic": "Basic Info",
+          "caseId": "Case ID",
+          "agentId": "Agent ID",
+          "clientId": "Client ID",
+          "artifact": "Artifact",
+          "createdAt": "Created At",
+          "flowStatus": "Flow Status",
+          "uploads": "Uploads {count}",
+          "logs": "Logs {count}",
+          "evidence": "Evidence",
+          "evidenceLoading": "Loading evidence",
+          "noEvidence": "No evidence yet. Completed and synced tasks will show returned data here.",
+          "params": "Task Parameters",
+          "error": "Error"
+        },
+        "actions": {
+          "sync": "Sync",
+          "cancel": "Cancel Task",
+          "delete": "Delete",
+          "downloadZip": "Download Flow Zip",
+          "zip": "ZIP"
+        },
+        "confirm": {
+          "cancel": "Cancel this forensic task?",
+          "deleteTask": "Delete this forensic task? The default mode will delete the remote Velociraptor Flow first.",
+          "deleteEvidence": "Delete this evidence record? This only deletes the local record for now."
+        },
+        "toast": {
+          "retry": "Please try again later.",
+          "overviewLoadFailed": "Failed to load forensic overview",
+          "tasksLoadFailed": "Failed to load forensic tasks",
+          "evidenceLoadFailed": "Failed to load evidence",
+          "synced": "Task result synced",
+          "syncFailed": "Failed to sync task",
+          "canceled": "Task canceled",
+          "cancelFailed": "Failed to cancel task",
+          "deleted": "Task deleted",
+          "deleteFailed": "Failed to delete task",
+          "remoteDeleteFailed": "Remote delete failed. Local task was kept.",
+          "downloadFailed": "Download failed",
+          "evidenceDeleted": "Evidence record deleted",
+          "evidenceDeleteFailed": "Failed to delete evidence"
+        },
+        "create": {
+          "title": "New Forensic Task",
+          "description": "Select a target endpoint and artifact, then submit Velociraptor-native parameters.",
+          "endpoint": {
+            "title": "Target Endpoint",
+            "search": "Search hostname / agent_id / client_id",
+            "empty": "No matching endpoints"
+          },
+          "artifact": {
+            "title": "Forensic Artifact",
+            "placeholder": "Select forensic artifact",
+            "empty": "Select an artifact",
+            "noDescription": "No description"
+          },
+          "params": {
+            "title": "Artifact Parameters",
+            "nativeHint": "Parameter names keep Velociraptor native definitions.",
+            "selectArtifactFirst": "Select an artifact before editing parameters.",
+            "empty": "This artifact has no configurable parameters. Default parameters will be used.",
+            "confirmHighRisk": "I understand this is a high-risk artifact and still want to dispatch it."
+          },
+          "validation": {
+            "required": "This field is required",
+            "number": "A number is required",
+            "maxItems": "At most {count} items",
+            "maxLength": "At most {count} characters"
+          },
+          "actions": {
+            "cancel": "Cancel",
+            "submit": "Create Task",
+            "submitting": "Submitting"
+          },
+          "toast": {
+            "retry": "Please try again later.",
+            "optionsFailed": "Failed to load endpoints or artifacts",
+            "artifactFailed": "Failed to load artifact definition",
+            "endpointRequired": "Select a target endpoint",
+            "clientRequired": "This endpoint has no velociraptor_client_id and cannot be dispatched.",
+            "artifactRequired": "Select a forensic artifact",
+            "validationFailed": "Parameter validation failed",
+            "highRiskTitle": "High-risk artifact",
+            "highRiskDescription": "Confirm the risk before submitting.",
+            "created": "Task created",
+            "createdFlow": "Flow: {flowId}",
+            "createdNoFlow": "Task was saved, but remote_flow_id is empty.",
+            "createFailed": "Failed to create task"
+          }
+        }
       }
     },
     "baseline": {

@@ -71,6 +71,37 @@ export type ForensicTaskStatus =
   | "canceled"
   | "timeout"
 
+export type ForensicEndpointStatus = "online" | "offline" | "unknown"
+export type ForensicArtifactPlatform = "windows" | "linux" | "darwin" | "all" | string
+export type ForensicRiskLevel = "low" | "medium" | "high" | string
+export type ForensicEvidenceType =
+  | "collection_zip"
+  | "file"
+  | "file_metadata"
+  | "registry_json"
+  | "eventlog_json"
+  | "csv"
+  | "json"
+  | "tool_output"
+  | string
+
+export type ForensicParamFieldType = "string" | "string_array" | "boolean" | "number"
+
+export interface ForensicArtifactParamField {
+  key: string
+  label: string
+  type: ForensicParamFieldType
+  required?: boolean
+  description?: string
+  default?: unknown
+  maxItems?: number
+  maxLength?: number
+  min?: number
+  max?: number
+  placeholder?: string
+  enum?: string[]
+}
+
 export interface ForensicTaskTargetHost {
   agent_id?: string
   endpoint_id?: string
@@ -110,6 +141,8 @@ export interface ForensicTaskItem {
   task_type?: string
   params_json?: string
   velociraptor_artifact?: string
+  vql_template_key?: string
+  result_parser_key?: string
   velociraptor_args_json?: string
   status: ForensicTaskStatus
   remote_flow_id?: string
@@ -124,6 +157,10 @@ export interface ForensicTaskItem {
   finished_at?: number
   updated_at?: number
   last_sync_at?: number
+  remote_delete_status?: string
+  remote_deleted_at?: number
+  remote_delete_error?: string
+  remote_delete_payload_json?: string
 }
 
 export interface ForensicPagination {
@@ -142,11 +179,155 @@ export interface ListForensicTasksRequest {
   velociraptor_client_id?: string
   artifact_key?: string
   status?: ForensicTaskStatus
+  created_after?: number
+  created_before?: number
 }
 
 export interface ListForensicTasksData {
   items: ForensicTaskItem[]
   pagination: ForensicPagination
+}
+
+export interface ForensicEndpointItem {
+  endpoint_id: string
+  tenant_id?: string
+  velociraptor_client_id?: string
+  hostname?: string
+  fqdn?: string
+  os?: string
+  arch?: string
+  agent_id?: string
+  status: ForensicEndpointStatus
+  last_seen_at?: number
+  raw_json?: string
+  created_at?: number
+  updated_at?: number
+}
+
+export interface ListForensicEndpointsRequest {
+  page?: number
+  page_size?: number
+  keyword?: string
+  status?: ForensicEndpointStatus
+  os?: string
+  agent_id?: string
+}
+
+export interface ListForensicEndpointsData {
+  items: ForensicEndpointItem[]
+  pagination: ForensicPagination
+}
+
+export interface CreateForensicTaskRequest {
+  request_id?: string
+  tenant_id?: string
+  case_id?: string
+  workflow_id?: string
+  workflow_action_id?: string
+  endpoint_id?: string
+  velociraptor_client_id?: string
+  artifact_key: string
+  params_json: string
+  created_by?: string
+  agent_id?: string
+}
+
+export interface CreateForensicTaskData {
+  task_id: string
+  status: ForensicTaskStatus
+  task: ForensicTaskItem
+}
+
+export interface GetForensicTaskData {
+  task: ForensicTaskItem
+}
+
+export interface SyncForensicTaskResultData {
+  task: ForensicTaskItem
+}
+
+export interface CancelForensicTaskRequest {
+  task_id: string
+  reason?: string
+}
+
+export interface CancelForensicTaskData {
+  task: ForensicTaskItem
+}
+
+export interface DeleteForensicTaskRequest {
+  task_id: string
+  deleted_by?: string
+  reason?: string
+  delete_mode?: "local_only" | "remote_sync"
+}
+
+export interface DeleteForensicTaskData {
+  task_id: string
+  deleted_evidence_count: number
+  delete_mode: string
+  remote_delete_status: string
+  remote_delete_error?: string
+  remote_delete_payload_json?: string
+  remote_deleted_at?: number
+}
+
+export interface ForensicEvidenceItem {
+  artifact_id: string
+  tenant_id?: string
+  task_id: string
+  case_id?: string
+  workflow_id?: string
+  workflow_action_id?: string
+  endpoint_id?: string
+  agent_id?: string
+  velociraptor_client_id?: string
+  artifact_key?: string
+  artifact_type?: ForensicEvidenceType
+  source_path?: string
+  file_name?: string
+  storage_uri?: string
+  sha256?: string
+  sha1?: string
+  md5?: string
+  size?: number
+  content_type?: string
+  meta_json?: string
+  created_at?: number
+}
+
+export interface ListForensicEvidenceRequest {
+  page?: number
+  page_size?: number
+  task_id?: string
+  case_id?: string
+  endpoint_id?: string
+  sha256?: string
+}
+
+export interface ListForensicEvidenceData {
+  items: ForensicEvidenceItem[]
+  pagination: ForensicPagination
+}
+
+export interface GetForensicEvidenceData {
+  evidence: ForensicEvidenceItem
+}
+
+export interface DeleteForensicEvidenceRequest {
+  artifact_id: string
+  deleted_by?: string
+  reason?: string
+}
+
+export interface DeleteForensicEvidenceData {
+  artifact_id: string
+}
+
+export interface ForensicDownloadData {
+  blob: Blob
+  fileName: string
+  contentType: string
 }
 
 export type ForensicNoticeLevel = "info" | "warning" | "error"
@@ -212,9 +393,9 @@ export interface ForensicArtifactDefinitionItem {
   name: string
   description?: string
   category: string
-  platform: string
+  platform: ForensicArtifactPlatform
   enabled: boolean
-  risk_level: string
+  risk_level: ForensicRiskLevel
   sort_order?: number
   input_schema_json?: string
   default_params_json?: string

@@ -2291,6 +2291,156 @@
           "detailLoadFailedDescription": "请稍后重试",
           "jsonParseFailed": "部分配置内容解析失败，请检查工件配置"
         }
+      },
+      "tasks": {
+        "header": {
+          "title": "任务中心",
+          "subtitle": "创建取证任务、同步 Flow 状态、查看证据并下载结果",
+          "updatedAt": "刷新时间 {time}",
+          "refresh": "刷新",
+          "createTask": "新建任务"
+        },
+        "metrics": {
+          "success": "成功完成",
+          "failed": "失败 / 超时",
+          "evidence": "证据 {count}",
+          "needHandle": "需处理",
+          "normal": "正常"
+        },
+        "filters": {
+          "title": "筛选任务",
+          "keyword": "搜索任务 ID / Flow ID",
+          "caseId": "Case ID",
+          "endpoint": "终端 ID",
+          "artifact": "工件名称",
+          "allStatus": "全部状态",
+          "apply": "刷新"
+        },
+        "status": {
+          "pending": "等待",
+          "running": "运行",
+          "success": "成功",
+          "failed": "失败",
+          "canceled": "取消",
+          "timeout": "超时"
+        },
+        "list": {
+          "title": "取证任务列表",
+          "count": "共 {count} 条",
+          "loading": "正在加载任务",
+          "emptyTitle": "暂无取证任务",
+          "emptyDescription": "可以新建任务，或调整筛选条件后刷新",
+          "noCase": "未关联案件",
+          "notDispatched": "未下发",
+          "synced": "已同步",
+          "notSynced": "未同步",
+          "page": "第 {page} 页 / 共 {total} 页",
+          "columns": {
+            "status": "状态",
+            "task": "任务 ID",
+            "host": "主机",
+            "artifact": "工件",
+            "flow": "Flow",
+            "created": "创建时间",
+            "actions": "操作"
+          }
+        },
+        "detail": {
+          "title": "任务详情",
+          "emptyTitle": "请选择任务",
+          "emptyDescription": "从左侧任务列表选择一项查看详情",
+          "currentTask": "当前任务",
+          "basic": "基础信息",
+          "caseId": "Case ID",
+          "agentId": "Agent ID",
+          "clientId": "Client ID",
+          "artifact": "工件",
+          "createdAt": "创建时间",
+          "flowStatus": "Flow 状态",
+          "uploads": "上传 {count}",
+          "logs": "日志 {count}",
+          "evidence": "证据",
+          "evidenceLoading": "正在加载证据",
+          "noEvidence": "暂无证据，任务完成并同步结果后会在这里展示",
+          "params": "任务参数",
+          "error": "错误"
+        },
+        "actions": {
+          "sync": "同步",
+          "cancel": "取消任务",
+          "delete": "删除",
+          "downloadZip": "下载 Flow Zip",
+          "zip": "ZIP"
+        },
+        "confirm": {
+          "cancel": "确认取消该取证任务？",
+          "deleteTask": "确认删除该取证任务？默认会先同步删除 Velociraptor 远端 Flow。",
+          "deleteEvidence": "确认删除该证据记录？当前只删除本地记录。"
+        },
+        "toast": {
+          "retry": "请稍后重试",
+          "overviewLoadFailed": "取证概览加载失败",
+          "tasksLoadFailed": "取证任务加载失败",
+          "evidenceLoadFailed": "证据加载失败",
+          "synced": "任务结果已同步",
+          "syncFailed": "同步任务失败",
+          "canceled": "任务已取消",
+          "cancelFailed": "取消任务失败",
+          "deleted": "任务已删除",
+          "deleteFailed": "删除任务失败",
+          "remoteDeleteFailed": "远端删除失败，本地任务已保留",
+          "downloadFailed": "下载失败",
+          "evidenceDeleted": "证据记录已删除",
+          "evidenceDeleteFailed": "删除证据失败"
+        },
+        "create": {
+          "title": "新建取证任务",
+          "description": "选择目标终端和取证工件，填写 Velociraptor 原生参数后下发任务",
+          "endpoint": {
+            "title": "目标终端",
+            "search": "搜索 hostname / agent_id / client_id",
+            "empty": "没有匹配的终端"
+          },
+          "artifact": {
+            "title": "取证工件",
+            "placeholder": "选择取证工件",
+            "empty": "请选择一个工件",
+            "noDescription": "暂无说明"
+          },
+          "params": {
+            "title": "工件参数",
+            "nativeHint": "参数名保持 Velociraptor 原生定义",
+            "selectArtifactFirst": "请选择工件后填写参数",
+            "empty": "该工件没有可配置参数，将使用默认参数创建任务",
+            "confirmHighRisk": "我确认这是高风险取证工件，仍要继续下发"
+          },
+          "validation": {
+            "required": "该字段必填",
+            "number": "需要数字",
+            "maxItems": "最多 {count} 项",
+            "maxLength": "最大 {count} 字符"
+          },
+          "actions": {
+            "cancel": "取消",
+            "submit": "创建任务",
+            "submitting": "提交中"
+          },
+          "toast": {
+            "retry": "请稍后重试",
+            "optionsFailed": "加载终端或工件失败",
+            "artifactFailed": "加载工件定义失败",
+            "endpointRequired": "请选择目标终端",
+            "clientRequired": "该终端没有 velociraptor_client_id，无法下发",
+            "artifactRequired": "请选择取证工件",
+            "validationFailed": "参数校验未通过",
+            "highRiskTitle": "这是高风险工件",
+            "highRiskDescription": "请勾选风险确认后再提交",
+            "created": "任务已创建",
+            "createdFlow": "Flow：{flowId}",
+            "createdNoFlow": "任务已落库，但 remote_flow_id 为空",
+            "createFailed": "创建任务失败"
+          }
+        }
       }
     },
     "baseline": {

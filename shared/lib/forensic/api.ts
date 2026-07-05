@@ -1,19 +1,40 @@
 "use client"
 
 import { http } from "@/shared/lib/http/client"
+import { getAuthHeaders } from "@/shared/lib/http/auth"
+import { getApiConfig, resolveApiUrl } from "@/shared/lib/http/config"
 import { createRequestId } from "@/shared/lib/utils"
 import type {
+  CancelForensicTaskData,
+  CancelForensicTaskRequest,
+  CreateForensicTaskData,
+  CreateForensicTaskRequest,
+  DeleteForensicEvidenceData,
+  DeleteForensicEvidenceRequest,
+  DeleteForensicTaskData,
+  DeleteForensicTaskRequest,
   ForensicBackendHealthStatus,
   ForensicBackendStatusData,
   ForensicArtifactDefinitionItem,
   ForensicAvailabilityLevel,
+  ForensicDownloadData,
+  ForensicEvidenceItem,
+  ForensicEndpointItem,
   ForensicNoticeLevel,
+  ForensicTaskItem,
+  GetForensicEvidenceData,
+  GetForensicTaskData,
   ListForensicArtifactsData,
   ListForensicArtifactsRequest,
+  ListForensicEndpointsData,
+  ListForensicEndpointsRequest,
+  ListForensicEvidenceData,
+  ListForensicEvidenceRequest,
   ForensicOverviewContext,
   ForensicOverviewViewModel,
   ListForensicTasksData,
   ListForensicTasksRequest,
+  SyncForensicTaskResultData,
 } from "./types"
 
 const AVAILABILITY_LEVELS = new Set<ForensicAvailabilityLevel>([
@@ -116,6 +137,85 @@ function numberValue(value: unknown): number {
 
 function stringValue(value: unknown): string {
   return typeof value === "string" ? value : ""
+}
+
+function paginationValue(
+  value: Partial<{ page: number; page_size: number; total_count: number }> | undefined,
+  page: number,
+  pageSize: number,
+) {
+  return {
+    page: numberValue(value?.page) || page,
+    page_size: numberValue(value?.page_size) || pageSize,
+    total_count: numberValue(value?.total_count),
+  }
+}
+
+function fileNameFromDisposition(value: string | null): string {
+  if (!value) return ""
+  const utf8Match = value.match(/filename\*=UTF-8''([^;]+)/i)
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1])
+    } catch {
+      return utf8Match[1]
+    }
+  }
+  const plainMatch = value.match(/filename="?([^";]+)"?/i)
+  return plainMatch?.[1] ?? ""
+}
+
+async function downloadForensicFile(
+  endpoint: string,
+  payload: Record<string, unknown>,
+  fallbackFileName: string,
+): Promise<ForensicDownloadData> {
+  const apiConfig = await getApiConfig()
+  const controller = apiConfig.timeout ? new AbortController() : null
+  const timeoutId = controller
+    ? window.setTimeout(() => controller.abort(), apiConfig.timeout)
+    : null
+
+  try {
+    const headers: Record<string, string> = {
+      Accept: "*/*",
+      "Content-Type": "application/json",
+    }
+    Object.assign(headers, getAuthHeaders())
+
+    const response = await fetch(await resolveApiUrl(endpoint), {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        request_id: createRequestId(),
+        ...payload,
+      }),
+      signal: controller?.signal,
+    })
+
+    if (!response.ok) {
+      let message = `download failed: ${response.status}`
+      try {
+        const data = await response.json()
+        message = data?.msg || data?.message || message
+      } catch {
+        // Binary endpoints may not return JSON on error.
+      }
+      throw new Error(message)
+    }
+
+    const blob = await response.blob()
+    const fileName =
+      fileNameFromDisposition(response.headers.get("content-disposition")) ||
+      fallbackFileName
+    return {
+      blob,
+      fileName,
+      contentType: response.headers.get("content-type") || blob.type || "application/octet-stream",
+    }
+  } finally {
+    if (timeoutId) window.clearTimeout(timeoutId)
+  }
 }
 
 function normalizeBackendStatus(raw: Partial<ForensicBackendStatusData> | null | undefined): ForensicBackendStatusData {
@@ -251,6 +351,24 @@ export async function syncForensicEndpoints(): Promise<{ synced_count: number }>
   return { synced_count: numberValue(data?.synced_count) }
 }
 
+export async function listForensicEndpoints(
+  params: ListForensicEndpointsRequest = {},
+): Promise<ListForensicEndpointsData> {
+  const page = params.page || 1
+  const pageSize = params.page_size || 100
+  const result = await http.post("listForensicEndpoints", {
+    request_id: createRequestId(),
+    ...params,
+    page,
+    page_size: pageSize,
+  })
+  const data = result.data as Partial<ListForensicEndpointsData> | null
+  return {
+    items: Array.isArray(data?.items) ? (data.items as ForensicEndpointItem[]) : [],
+    pagination: paginationValue(data?.pagination, page, pageSize),
+  }
+}
+
 export async function listForensicArtifacts(
   params: ListForensicArtifactsRequest = {},
 ): Promise<ListForensicArtifactsData> {
@@ -292,10 +410,125 @@ export async function listForensicTasks(
   const data = result.data as Partial<ListForensicTasksData> | null
   return {
     items: Array.isArray(data?.items) ? data.items : [],
-    pagination: {
-      page: numberValue(data?.pagination?.page) || page,
-      page_size: numberValue(data?.pagination?.page_size) || pageSize,
-      total_count: numberValue(data?.pagination?.total_count),
-    },
+    pagination: paginationValue(data?.pagination, page, pageSize),
   }
+}
+
+export async function createForensicTask(
+  payload: CreateForensicTaskRequest,
+): Promise<CreateForensicTaskData> {
+  const result = await http.post("createForensicTask", {
+    request_id: payload.request_id || createRequestId(),
+    ...payload,
+  })
+  const data = result.data as Partial<CreateForensicTaskData> | null
+  if (!data?.task_id || !data?.task) {
+    throw new Error("forensic task create response is empty")
+  }
+  return data as CreateForensicTaskData
+}
+
+export async function getForensicTask(taskId: string): Promise<ForensicTaskItem> {
+  const result = await http.post("getForensicTask", {
+    request_id: createRequestId(),
+    task_id: taskId,
+  })
+  const data = result.data as Partial<GetForensicTaskData> | null
+  if (!data?.task) {
+    throw new Error("forensic task detail is empty")
+  }
+  return data.task
+}
+
+export async function syncForensicTaskResult(taskId: string): Promise<ForensicTaskItem> {
+  const result = await http.post("syncForensicTaskResult", {
+    request_id: createRequestId(),
+    task_id: taskId,
+  })
+  const data = result.data as Partial<SyncForensicTaskResultData> | null
+  if (!data?.task) {
+    throw new Error("forensic task sync result is empty")
+  }
+  return data.task
+}
+
+export async function cancelForensicTask(
+  payload: CancelForensicTaskRequest,
+): Promise<ForensicTaskItem> {
+  const result = await http.post("cancelForensicTask", {
+    request_id: createRequestId(),
+    ...payload,
+  })
+  const data = result.data as Partial<CancelForensicTaskData> | null
+  if (!data?.task) {
+    throw new Error("forensic task cancel response is empty")
+  }
+  return data.task
+}
+
+export async function deleteForensicTask(
+  payload: DeleteForensicTaskRequest,
+): Promise<DeleteForensicTaskData> {
+  const result = await http.post("deleteForensicTask", {
+    request_id: createRequestId(),
+    delete_mode: "remote_sync",
+    ...payload,
+  })
+  return result.data as DeleteForensicTaskData
+}
+
+export async function listForensicEvidence(
+  params: ListForensicEvidenceRequest = {},
+): Promise<ListForensicEvidenceData> {
+  const page = params.page || 1
+  const pageSize = params.page_size || 10
+  const result = await http.post("listForensicEvidence", {
+    request_id: createRequestId(),
+    ...params,
+    page,
+    page_size: pageSize,
+  })
+  const data = result.data as Partial<ListForensicEvidenceData> | null
+  return {
+    items: Array.isArray(data?.items) ? (data.items as ForensicEvidenceItem[]) : [],
+    pagination: paginationValue(data?.pagination, page, pageSize),
+  }
+}
+
+export async function getForensicEvidence(artifactId: string): Promise<ForensicEvidenceItem> {
+  const result = await http.post("getForensicEvidence", {
+    request_id: createRequestId(),
+    artifact_id: artifactId,
+  })
+  const data = result.data as Partial<GetForensicEvidenceData> | null
+  if (!data?.evidence) {
+    throw new Error("forensic evidence detail is empty")
+  }
+  return data.evidence
+}
+
+export async function deleteForensicEvidence(
+  payload: DeleteForensicEvidenceRequest,
+): Promise<DeleteForensicEvidenceData> {
+  const result = await http.post("deleteForensicEvidence", {
+    request_id: createRequestId(),
+    ...payload,
+  })
+  return result.data as DeleteForensicEvidenceData
+}
+
+export function downloadForensicEvidence(artifactId: string): Promise<ForensicDownloadData> {
+  return downloadForensicFile(
+    "downloadForensicEvidence",
+    { artifact_id: artifactId },
+    `${artifactId || "evidence"}.bin`,
+  )
+}
+
+export function downloadForensicTaskFlowZip(taskId: string): Promise<ForensicDownloadData> {
+  return downloadForensicFile(
+    "downloadForensicTaskFlowZip",
+    { task_id: taskId },
+    `${taskId || "forensic-flow"}.zip`,
+  )
 }
