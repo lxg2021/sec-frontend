@@ -621,27 +621,31 @@ function RequestsTab({ requests }: { requests?: ForensicTaskFlowRequests | null 
 
   return (
     <div className={cn("overflow-hidden rounded-xl border border-slate-200 bg-white", tableHeightClass)}>
-      <div className="h-full overflow-auto">
-        <table className="min-w-full table-fixed border-separate border-spacing-0 text-left text-xs">
-          <thead className="sticky top-0 z-10 bg-slate-50 text-slate-500">
-            <tr>
-              <th className="w-[220px] border-b border-slate-200 px-4 py-3 font-semibold">{t("table.source")}</th>
-              <th className="border-b border-slate-200 px-4 py-3 font-semibold">{t("table.value")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {rows.map((row) => (
-              <tr key={row.source} className="bg-white align-top hover:bg-slate-50/70">
-                <td className="whitespace-nowrap px-4 py-3 font-medium text-slate-600">{row.source}</td>
-                <td className="px-4 py-3">
-                  <pre className="max-h-[360px] overflow-auto rounded-lg bg-slate-950 p-3.5 font-mono text-[11px] leading-5 text-slate-100">
+      <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] text-left text-xs">
+        <div className="grid grid-cols-[220px_minmax(0,1fr)] border-b border-slate-200 bg-slate-50 text-slate-500">
+          <div className="px-4 py-3 font-semibold">{t("table.source")}</div>
+          <div className="px-4 py-3 font-semibold">{t("table.value")}</div>
+        </div>
+        <div className="flex min-h-0 flex-col divide-y divide-slate-100 overflow-hidden">
+          {rows.map((row, index) => {
+            const isLast = index === rows.length - 1
+            return (
+              <div key={row.source} className={cn("grid grid-cols-[220px_minmax(0,1fr)] bg-white hover:bg-slate-50/70", isLast ? "min-h-0 flex-1" : "shrink-0")}>
+                <div className="whitespace-nowrap px-4 py-3 font-medium text-slate-600">{row.source}</div>
+                <div className="min-h-0 px-4 py-3">
+                  <pre
+                    className={cn(
+                      "rounded-lg bg-slate-950 p-3.5 font-mono text-[11px] leading-5 text-slate-100",
+                      isLast ? "h-full min-h-0 overflow-auto" : "overflow-visible",
+                    )}
+                  >
                     {parseJsonPretty(row.value)}
                   </pre>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
