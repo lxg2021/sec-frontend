@@ -702,7 +702,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
           </CardContent>
         </Card>
 
-        <section className="grid min-h-[500px] flex-1 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_460px]">
+        <section className="grid min-h-[500px] flex-1 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_640px]">
           <Card className="overflow-hidden rounded-[18px] border-0 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
             <CardHeader className="flex-row items-center justify-between border-b border-slate-200 px-6 py-4">
               <div className="flex min-w-0 items-center gap-3">
