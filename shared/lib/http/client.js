@@ -1,6 +1,6 @@
 "use client"
 
-import { getAuthHeaders } from "@/shared/lib/http/auth"
+import { clearAuthTokens, getAuthHeaders } from "@/shared/lib/http/auth"
 import { getApiConfig, resolveApiUrl } from "@/shared/lib/http/config"
 import { isSuccessResponse, normalizeApiResponse, parseResponseBody } from "@/shared/lib/http/response"
 
@@ -38,6 +38,14 @@ function normalizeHeaders(headers = {}) {
   }
 
   return { ...headers }
+}
+
+function redirectToLogin() {
+  if (typeof window === "undefined") return
+  clearAuthTokens()
+  const current = `${window.location.pathname}${window.location.search}`
+  const next = current && current !== "/login" ? `/login?redirect=${encodeURIComponent(current)}` : "/login"
+  window.location.href = next
 }
 
 export async function request(path, options = {}) {
@@ -125,6 +133,7 @@ export async function request(path, options = {}) {
 
       const refreshed = await authRefreshHandler()
       if (!refreshed) {
+        redirectToLogin()
         throw error
       }
 

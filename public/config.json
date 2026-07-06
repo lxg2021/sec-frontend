@@ -75,11 +75,12 @@
       "createForensicTask": "/sensor/analysis/forensic/tasks/create",
       "createCollectFileTask": "/sensor/analysis/forensic/tasks/collect-file",
       "getForensicTask": "/sensor/analysis/forensic/tasks/get",
+      "getForensicTaskFlowDetail": "/sensor/analysis/forensic/tasks/flow-detail",
       "syncForensicTaskResult": "/sensor/analysis/forensic/tasks/sync-result",
       "listForensicTasks": "/sensor/analysis/forensic/tasks/list",
       "cancelForensicTask": "/sensor/analysis/forensic/tasks/cancel",
-      "listForensicEvidence": "/sensor/analysis/forensic/evidence/list",
-      "getForensicEvidence": "/sensor/analysis/forensic/evidence/get",
+      "deleteForensicTask": "/sensor/analysis/forensic/tasks/delete",
+      "downloadForensicTaskFlowZip": "/sensor/analysis/forensic/tasks/download-flow-zip",
       "listForensicTaskEvents": "/sensor/analysis/forensic/task-events/list"
     }
   }

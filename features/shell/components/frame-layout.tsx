@@ -1,6 +1,8 @@
 ﻿"use client"
 
+import "@/features/auth/api"
 import { useState, useEffect } from "react"
+import type { ReactNode } from "react"
 import {
   ChevronRight,
   Bell,
@@ -38,7 +40,7 @@ const ANIMATION_DELAYS = {
 
 const VISUAL_STYLE_STORAGE_KEY = "watchpoint-visual-style"
 
-export function FrameLayout({ children }) {
+export function FrameLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const tShell = useTranslations("shell")
@@ -49,7 +51,7 @@ export function FrameLayout({ children }) {
   const { toggleLocale } = useLocaleSwitch()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [expandedMenu, setExpandedMenu] = useState(null)
+  const [expandedMenu, setExpandedMenu] = useState<string | null>(null)
   const [visualStyle, setVisualStyle] = useState("cyber")
   const isClassicStyle = visualStyle === "classic"
 
@@ -113,7 +115,7 @@ export function FrameLayout({ children }) {
     })
   }
 
-  const handleMenuItemClick = (item) => {
+  const handleMenuItemClick = (item: any) => {
     if (item.submenu) {
       setExpandedMenu(expandedMenu === item.id ? null : item.id)
     } else if (item.path) {
@@ -121,13 +123,13 @@ export function FrameLayout({ children }) {
     }
   }
 
-  const handleSubMenuItemClick = (subItem) => {
+  const handleSubMenuItemClick = (subItem: any) => {
     if (subItem.path) {
       router.push(subItem.path)
     }
   }
 
-  const getMenuItemClassName = (isActive) => {
+  const getMenuItemClassName = (isActive: boolean) => {
     const baseClasses =
       "w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group relative overflow-hidden border"
     const activeClasses = isClassicStyle
@@ -140,7 +142,7 @@ export function FrameLayout({ children }) {
     return `${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${collapsedClasses}`
   }
 
-  const getSubMenuItemClassName = (isActive) => {
+  const getSubMenuItemClassName = (isActive: boolean) => {
     const baseClasses =
       "w-full flex items-center gap-2 p-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden border"
     const activeClasses = isClassicStyle

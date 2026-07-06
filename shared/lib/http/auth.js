@@ -9,16 +9,23 @@ function canUseStorage() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined"
 }
 
+function normalizeToken(token) {
+  const normalized = typeof token === "string" ? token.trim() : ""
+  if (!normalized || normalized === "null" || normalized === "undefined") return null
+  return normalized
+}
+
 export function getAccessToken() {
   if (!canUseStorage()) return null
-  return window.localStorage.getItem(AUTH_TOKEN_KEY)
+  return normalizeToken(window.localStorage.getItem(AUTH_TOKEN_KEY))
 }
 
 export function setAccessToken(token) {
   if (!canUseStorage()) return
 
-  if (token) {
-    window.localStorage.setItem(AUTH_TOKEN_KEY, token)
+  const normalized = normalizeToken(token)
+  if (normalized) {
+    window.localStorage.setItem(AUTH_TOKEN_KEY, normalized)
     return
   }
 
@@ -28,14 +35,15 @@ export function setAccessToken(token) {
 
 export function getRefreshToken() {
   if (!canUseStorage()) return null
-  return window.localStorage.getItem(REFRESH_TOKEN_KEY)
+  return normalizeToken(window.localStorage.getItem(REFRESH_TOKEN_KEY))
 }
 
 export function setRefreshToken(token) {
   if (!canUseStorage()) return
 
-  if (token) {
-    window.localStorage.setItem(REFRESH_TOKEN_KEY, token)
+  const normalized = normalizeToken(token)
+  if (normalized) {
+    window.localStorage.setItem(REFRESH_TOKEN_KEY, normalized)
     return
   }
 
@@ -51,9 +59,10 @@ export function clearAuthTokens() {
 }
 
 export function getAuthHeaders(token = getAccessToken()) {
-  if (!token) return {}
+  const normalized = normalizeToken(token)
+  if (!normalized) return {}
   return {
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer ${normalized}`,
   }
 }
 

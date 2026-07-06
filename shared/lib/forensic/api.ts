@@ -9,8 +9,6 @@ import type {
   CancelForensicTaskRequest,
   CreateForensicTaskData,
   CreateForensicTaskRequest,
-  DeleteForensicEvidenceData,
-  DeleteForensicEvidenceRequest,
   DeleteForensicTaskData,
   DeleteForensicTaskRequest,
   ForensicBackendHealthStatus,
@@ -18,18 +16,16 @@ import type {
   ForensicArtifactDefinitionItem,
   ForensicAvailabilityLevel,
   ForensicDownloadData,
-  ForensicEvidenceItem,
   ForensicEndpointItem,
   ForensicNoticeLevel,
   ForensicTaskItem,
-  GetForensicEvidenceData,
   GetForensicTaskData,
+  GetForensicTaskFlowDetailData,
+  GetForensicTaskFlowDetailRequest,
   ListForensicArtifactsData,
   ListForensicArtifactsRequest,
   ListForensicEndpointsData,
   ListForensicEndpointsRequest,
-  ListForensicEvidenceData,
-  ListForensicEvidenceRequest,
   ForensicOverviewContext,
   ForensicOverviewViewModel,
   ListForensicTasksData,
@@ -448,6 +444,57 @@ export async function getForensicTask(taskId: string): Promise<ForensicTaskItem>
   return data.task
 }
 
+export async function getForensicTaskFlowDetail(
+  params: GetForensicTaskFlowDetailRequest,
+): Promise<GetForensicTaskFlowDetailData> {
+  const resultPage = params.result_page || 1
+  const resultPageSize = params.result_page_size || 100
+  const logPage = params.log_page || 1
+  const logPageSize = params.log_page_size || 200
+  const result = await http.post(
+    "getForensicTaskFlowDetail",
+    {
+      request_id: createRequestId(),
+      ...params,
+      result_page: resultPage,
+      result_page_size: resultPageSize,
+      log_page: logPage,
+      log_page_size: logPageSize,
+    },
+    { timeout: 60000 },
+  )
+  const data = result.data as Partial<GetForensicTaskFlowDetailData> | null
+  if (!data?.task) {
+    throw new Error("forensic task flow detail is empty")
+  }
+  return {
+    task: data.task,
+    artifact_collection: data.artifact_collection ?? null,
+    results: data.results ?? {
+      columns: [],
+      rows_json: "[]",
+      raw_json: "[]",
+      row_count: 0,
+      pagination: paginationValue(undefined, resultPage, resultPageSize),
+    },
+    uploaded_files: data.uploaded_files ?? {
+      columns: [],
+      rows_json: "[]",
+      raw_json: "[]",
+      row_count: 0,
+      pagination: paginationValue(undefined, 1, 0),
+    },
+    requests: data.requests ?? null,
+    logs: data.logs ?? {
+      columns: [],
+      rows_json: "[]",
+      raw_json: "[]",
+      row_count: 0,
+      pagination: paginationValue(undefined, logPage, logPageSize),
+    },
+  }
+}
+
 export async function syncForensicTaskResult(taskId: string): Promise<ForensicTaskItem> {
   const result = await http.post("syncForensicTaskResult", {
     request_id: createRequestId(),
@@ -483,54 +530,6 @@ export async function deleteForensicTask(
     ...payload,
   })
   return result.data as DeleteForensicTaskData
-}
-
-export async function listForensicEvidence(
-  params: ListForensicEvidenceRequest = {},
-): Promise<ListForensicEvidenceData> {
-  const page = params.page || 1
-  const pageSize = params.page_size || 10
-  const result = await http.post("listForensicEvidence", {
-    request_id: createRequestId(),
-    ...params,
-    page,
-    page_size: pageSize,
-  })
-  const data = result.data as Partial<ListForensicEvidenceData> | null
-  return {
-    items: Array.isArray(data?.items) ? (data.items as ForensicEvidenceItem[]) : [],
-    pagination: paginationValue(data?.pagination, page, pageSize),
-  }
-}
-
-export async function getForensicEvidence(artifactId: string): Promise<ForensicEvidenceItem> {
-  const result = await http.post("getForensicEvidence", {
-    request_id: createRequestId(),
-    artifact_id: artifactId,
-  })
-  const data = result.data as Partial<GetForensicEvidenceData> | null
-  if (!data?.evidence) {
-    throw new Error("forensic evidence detail is empty")
-  }
-  return data.evidence
-}
-
-export async function deleteForensicEvidence(
-  payload: DeleteForensicEvidenceRequest,
-): Promise<DeleteForensicEvidenceData> {
-  const result = await http.post("deleteForensicEvidence", {
-    request_id: createRequestId(),
-    ...payload,
-  })
-  return result.data as DeleteForensicEvidenceData
-}
-
-export function downloadForensicEvidence(artifactId: string): Promise<ForensicDownloadData> {
-  return downloadForensicFile(
-    "downloadForensicEvidence",
-    { artifact_id: artifactId },
-    `${artifactId || "evidence"}.bin`,
-  )
 }
 
 export function downloadForensicTaskFlowZip(taskId: string): Promise<ForensicDownloadData> {

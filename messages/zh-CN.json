@@ -2294,7 +2294,7 @@
       "tasks": {
         "header": {
           "title": "任务中心",
-          "subtitle": "创建取证任务、同步 Flow 状态、查看证据并下载结果",
+          "subtitle": "创建取证任务、查看 Velociraptor Flow 详情并下载结果",
           "updatedAt": "刷新时间 {time}",
           "updatedAtLabel": "更新时间",
           "caseInputLabel": "按 Case ID 筛选取证任务",
@@ -2323,7 +2323,7 @@
         },
         "filters": {
           "title": "筛选任务",
-          "keyword": "搜索任务 ID / Flow ID",
+          "keyword": "搜索主机名 / hostid",
           "caseId": "Case ID",
           "endpoint": "终端 ID",
           "artifact": "工件名称",
@@ -2371,26 +2371,83 @@
           }
         },
         "detail": {
-          "title": "任务详情",
-          "emptyTitle": "请选择任务",
-          "emptyDescription": "从左侧任务列表选择一项查看详情",
-          "basic": "基础信息",
-          "caseId": "Case ID",
-          "agentId": "Agent ID",
-          "artifact": "工件",
-          "createdAt": "创建时间",
-          "flowStatus": "Flow 状态",
-          "uploads": "上传 {count}",
-          "logs": "日志 {count}",
-          "evidence": "证据",
-          "evidenceLoading": "正在加载证据",
-          "noEvidence": "暂无证据，任务完成并同步结果后会在这里展示",
-          "params": "任务参数",
-          "error": "错误"
+          "title": "取证详情",
+          "back": "返回任务中心",
+          "loading": "正在加载任务详情",
+          "missingTaskTitle": "缺少任务 ID",
+          "emptyTitle": "暂无 Flow 详情",
+          "emptyDescription": "Velociraptor Flow 创建后刷新任务详情",
+          "lastRefresh": "刷新时间 {time}",
+          "rawJson": "原始 JSON",
+          "emptyResults": "暂无结果数据",
+          "emptyUploads": "暂无上传文件",
+          "emptyLogs": "暂无日志",
+          "table": {
+            "source": "来源",
+            "field": "字段",
+            "value": "值"
+          },
+          "tabs": {
+            "collection": "Artifact Collection",
+            "results": "Results",
+            "uploads": "Uploaded Files",
+            "requests": "Requests",
+            "logs": "Logs"
+          },
+          "fields": {
+            "status": "状态",
+            "host": "主机",
+            "hostId": "hostid",
+            "network": "网络",
+            "created": "创建时间",
+            "clientId": "Client ID",
+            "flowId": "Flow ID",
+            "artifact": "工件",
+            "flowState": "Flow State",
+            "flowStatus": "Flow 状态",
+            "createTime": "创建时间",
+            "startTime": "开始时间",
+            "activeTime": "活跃时间"
+          },
+          "requestPanels": {
+            "params": "任务参数",
+            "args": "Velociraptor 参数",
+            "velociraptor": "Velociraptor Request"
+          },
+          "collection": {
+            "overview": "Overview",
+            "results": "Results",
+            "artifactNames": "Artifact Names",
+            "flowId": "Flow ID",
+            "creator": "Creator",
+            "createTime": "Create Time",
+            "startTime": "Start Time",
+            "lastActive": "Last Active",
+            "duration": "Duration",
+            "state": "State",
+            "opsSec": "Ops/Sec",
+            "cpuLimit": "CPU Limit",
+            "iopsLimit": "IOPS Limit",
+            "timeout": "Timeout",
+            "maxRows": "Max Rows",
+            "maxMb": "Max Mb",
+            "parameters": "Parameters",
+            "noParameters": "无参数",
+            "artifactsWithResults": "Artifacts with Results",
+            "totalRows": "Total Rows",
+            "uploadedBytes": "Uploaded Bytes",
+            "filesUploaded": "Files uploaded",
+            "downloadResults": "Download Results",
+            "flowZip": "Flow ZIP",
+            "downloadHint": "Select a download method",
+            "unlimited": "Unlimited",
+            "seconds": "{value} seconds",
+            "secondUnit": "seconds",
+            "rows": "rows"
+          }
         },
         "actions": {
           "viewDetail": "查看详情",
-          "sync": "同步",
           "cancel": "取消任务",
           "delete": "删除",
           "deleteTask": "删除任务",
@@ -2399,24 +2456,19 @@
         },
         "confirm": {
           "cancel": "确认取消该取证任务？",
-          "deleteTask": "确认删除该取证任务？默认会先同步删除 Velociraptor 远端 Flow。",
-          "deleteEvidence": "确认删除该证据记录？当前只删除本地记录。"
+          "deleteTask": "确认删除该取证任务？默认会先同步删除 Velociraptor 远端 Flow。"
         },
         "toast": {
           "retry": "请稍后重试",
           "overviewLoadFailed": "取证概览加载失败",
           "tasksLoadFailed": "取证任务加载失败",
-          "evidenceLoadFailed": "证据加载失败",
-          "synced": "任务结果已同步",
-          "syncFailed": "同步任务失败",
+          "detailLoadFailed": "任务详情加载失败",
           "canceled": "任务已取消",
           "cancelFailed": "取消任务失败",
           "deleted": "任务已删除",
           "deleteFailed": "删除任务失败",
           "remoteDeleteFailed": "远端删除失败，本地任务已保留",
-          "downloadFailed": "下载失败",
-          "evidenceDeleted": "证据记录已删除",
-          "evidenceDeleteFailed": "删除证据失败"
+          "downloadFailed": "下载失败"
         },
         "create": {
           "title": "新建取证任务",
