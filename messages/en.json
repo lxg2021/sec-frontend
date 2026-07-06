@@ -2352,10 +2352,20 @@
             "status": "Status",
             "task": "Task ID",
             "host": "Host",
+            "hostname": "Hostname",
+            "ip": "IP",
+            "mac": "MAC",
+            "online": "Online",
             "artifact": "Artifact",
             "flow": "Flow",
             "created": "Created",
             "actions": "Actions"
+          },
+          "onlineStatus": {
+            "online": "online",
+            "offline": "offline",
+            "unknown": "unknown",
+            "unsynced": "unsynced"
           }
         },
         "detail": {

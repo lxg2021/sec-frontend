@@ -163,9 +163,66 @@ function statusClass(status: ForensicTaskStatus): string {
   return classes[status]
 }
 
-function taskTarget(task: ForensicTaskItem): string {
-  return task.agent_id || task.endpoint_id || task.velociraptor_client_id || "-"
+function firstText(values: Array<string | undefined | null>): string {
+  for (const value of values) {
+    const next = value?.trim()
+    if (next) return next
+  }
+  return ""
 }
+
+function cleanList(values?: string[]): string[] {
+  return (values ?? []).map((item) => item.trim()).filter(Boolean)
+}
+
+function normalizedOnlineStatus(status?: string): "online" | "offline" | undefined {
+  const normalized = status?.trim().toLowerCase()
+  if (normalized === "online" || normalized === "offline") {
+    return normalized
+  }
+  return undefined
+}
+
+function taskOnlineStatus(task: ForensicTaskItem): "online" | "offline" | "unknown" | "unsynced" {
+  const target = task.target_host
+  const hostStatus = normalizedOnlineStatus(target?.host_status)
+  if (hostStatus) return hostStatus
+  const forensicStatus = normalizedOnlineStatus(target?.forensic_status)
+  if (forensicStatus) return forensicStatus
+  return target?.agent_id || target?.hostname || task.agent_id || task.endpoint_id ? "unknown" : "unsynced"
+}
+
+function taskHostAgentID(task: ForensicTaskItem): string {
+  return firstText([task.target_host?.agent_id, task.agent_id, task.endpoint_id])
+}
+
+function taskHostname(task: ForensicTaskItem): string {
+  return firstText([task.target_host?.hostname])
+}
+
+function keepTaskTargetHost(next: ForensicTaskItem, previous: ForensicTaskItem): ForensicTaskItem {
+  if (next.target_host) {
+    return next
+  }
+  return {
+    ...next,
+    target_host: previous.target_host,
+  }
+}
+
+const TARGET_ONLINE_STATUS_CLASS = {
+  online: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  offline: "bg-slate-100 text-slate-600 ring-slate-200",
+  unknown: "bg-amber-50 text-amber-700 ring-amber-200",
+  unsynced: "bg-rose-50 text-rose-700 ring-rose-200",
+} as const
+
+const TARGET_ONLINE_STATUS_DOT = {
+  online: "bg-emerald-600",
+  offline: "bg-slate-500",
+  unknown: "bg-amber-500",
+  unsynced: "bg-rose-500",
+} as const
 
 function evidenceName(evidence: ForensicEvidenceItem): string {
   if (evidence.file_name) return evidence.file_name
@@ -390,9 +447,10 @@ export function ForensicTaskCenterPage({ context }: Props) {
       setActionLoading(`sync:${task.task_id}`)
       try {
         const next = await syncForensicTaskResult(task.task_id)
-        setTasks((current) => current.map((item) => (item.task_id === next.task_id ? next : item)))
-        setSelectedTask(next)
-        await loadEvidence(next.task_id)
+        const merged = keepTaskTargetHost(next, task)
+        setTasks((current) => current.map((item) => (item.task_id === merged.task_id ? keepTaskTargetHost(merged, item) : item)))
+        setSelectedTask(merged)
+        await loadEvidence(merged.task_id)
         toast.success(t("toast.synced"))
       } catch (error) {
         toast.error(t("toast.syncFailed"), {
@@ -411,8 +469,9 @@ export function ForensicTaskCenterPage({ context }: Props) {
       setActionLoading(`cancel:${task.task_id}`)
       try {
         const next = await cancelForensicTask({ task_id: task.task_id, reason: "operator canceled from task center" })
-        setTasks((current) => current.map((item) => (item.task_id === next.task_id ? next : item)))
-        setSelectedTask(next)
+        const merged = keepTaskTargetHost(next, task)
+        setTasks((current) => current.map((item) => (item.task_id === merged.task_id ? keepTaskTargetHost(merged, item) : item)))
+        setSelectedTask(merged)
         toast.success(t("toast.canceled"))
       } catch (error) {
         toast.error(t("toast.cancelFailed"), {
@@ -728,68 +787,116 @@ export function ForensicTaskCenterPage({ context }: Props) {
               </Button>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="grid grid-cols-[86px_minmax(140px,1.1fr)_minmax(130px,1fr)_minmax(170px,1.25fr)_minmax(130px,0.9fr)_100px_76px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
-                <span>{t("list.columns.status")}</span>
-                <span>{t("list.columns.task")}</span>
-                <span>{t("list.columns.host")}</span>
-                <span>{t("list.columns.artifact")}</span>
-                <span>{t("list.columns.flow")}</span>
-                <span>{t("list.columns.created")}</span>
-                <span className="text-right">{t("list.columns.actions")}</span>
-              </div>
+              <div className="overflow-x-auto">
+                <div className="min-w-[1380px]">
+                  <div className="grid grid-cols-[82px_minmax(150px,1.05fr)_minmax(150px,1fr)_minmax(145px,0.9fr)_minmax(180px,1.05fr)_96px_minmax(180px,1.15fr)_minmax(150px,0.9fr)_96px_60px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
+                    <span>{t("list.columns.status")}</span>
+                    <span>{t("list.columns.task")}</span>
+                    <span>{t("list.columns.hostname")}</span>
+                    <span>{t("list.columns.ip")}</span>
+                    <span>{t("list.columns.mac")}</span>
+                    <span className="text-center">{t("list.columns.online")}</span>
+                    <span>{t("list.columns.artifact")}</span>
+                    <span>{t("list.columns.flow")}</span>
+                    <span>{t("list.columns.created")}</span>
+                    <span className="text-right">{t("list.columns.actions")}</span>
+                  </div>
 
-              <div className="min-h-[300px]">
-                {loading && tasks.length === 0 ? (
-                  <div className="flex h-72 items-center justify-center text-sm text-slate-500">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("list.loading")}
+                  <div className="min-h-[300px]">
+                    {loading && tasks.length === 0 ? (
+                      <div className="flex h-72 items-center justify-center text-sm text-slate-500">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {t("list.loading")}
+                      </div>
+                    ) : filteredTasks.length === 0 ? (
+                      <div className="flex h-72 flex-col items-center justify-center text-center">
+                        <FileText className="h-10 w-10 text-slate-300" />
+                        <div className="mt-3 text-sm font-semibold text-slate-700">{t("list.emptyTitle")}</div>
+                        <div className="mt-1 text-xs text-slate-500">{t("list.emptyDescription")}</div>
+                      </div>
+                    ) : (
+                      filteredTasks.map((task) => {
+                        const hostname = taskHostname(task)
+                        const agentID = taskHostAgentID(task)
+                        const ipList = cleanList(task.target_host?.ip)
+                        const macList = cleanList(task.target_host?.macs)
+                        const ipTitle = ipList.join(", ")
+                        const macTitle = macList.join(", ")
+                        const targetStatus = taskOnlineStatus(task)
+                        return (
+                          <button
+                            key={task.task_id}
+                            type="button"
+                            onClick={() => selectTask(task)}
+                            className={cn(
+                              "grid w-full grid-cols-[82px_minmax(150px,1.05fr)_minmax(150px,1fr)_minmax(145px,0.9fr)_minmax(180px,1.05fr)_96px_minmax(180px,1.15fr)_minmax(150px,0.9fr)_96px_60px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50",
+                              selectedTask?.task_id === task.task_id && "bg-blue-50/70 hover:bg-blue-50",
+                            )}
+                          >
+                            <span className={cn("inline-flex h-6 w-16 items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
+                              {t(`status.${task.status}`)}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate font-mono text-xs font-semibold text-slate-800">{task.task_id}</span>
+                              <span className="mt-1 block truncate font-mono text-[11px] text-slate-400">{task.case_id || t("list.noCase")}</span>
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-xs font-medium text-slate-800" title={hostname}>
+                                {hostname || "-"}
+                              </span>
+                              <span className="mt-1 block truncate font-mono text-[11px] text-slate-400" title={agentID}>
+                                {agentID || "-"}
+                              </span>
+                            </span>
+                            <span className="min-w-0 font-mono text-xs text-slate-700" title={ipTitle}>
+                              {ipList.length > 0 ? (
+                                ipList.map((item) => (
+                                  <span key={item} className="block truncate leading-5">
+                                    {item}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="block">-</span>
+                              )}
+                            </span>
+                            <span className="min-w-0 font-mono text-xs text-slate-700" title={macTitle}>
+                              {macList.length > 0 ? (
+                                macList.map((item) => (
+                                  <span key={item} className="block truncate leading-5">
+                                    {item}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="block">-</span>
+                              )}
+                            </span>
+                            <span className="flex justify-center">
+                              <span className={cn("inline-flex h-5 min-w-20 items-center gap-1 rounded-full px-2 text-[10px] font-medium ring-1", TARGET_ONLINE_STATUS_CLASS[targetStatus])}>
+                                <span className={cn("size-1.5 shrink-0 rounded-full", TARGET_ONLINE_STATUS_DOT[targetStatus])} />
+                                <span className="min-w-0 flex-1 truncate text-center">{t(`list.onlineStatus.${targetStatus}`)}</span>
+                              </span>
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate font-mono text-xs text-slate-700">{task.artifact_name || task.artifact_key}</span>
+                              <span className="mt-1 block truncate text-[11px] text-slate-400">{task.task_type || "collect_artifact"}</span>
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate font-mono text-xs text-slate-700">{task.remote_flow_id || t("list.notDispatched")}</span>
+                              <span className="mt-1 block truncate text-[11px] text-slate-400">{task.last_sync_at ? t("list.synced") : t("list.notSynced")}</span>
+                            </span>
+                            <span>
+                              <span className="block text-xs text-slate-700">{formatClock(task.created_at)}</span>
+                              <span className="mt-1 block text-[11px] text-slate-400">{formatRelative(task.created_at)}</span>
+                            </span>
+                            <span className="flex justify-end">
+                              <MoreHorizontal className="h-5 w-5 text-slate-500" />
+                            </span>
+                          </button>
+                        )
+                      })
+                    )}
                   </div>
-                ) : filteredTasks.length === 0 ? (
-                  <div className="flex h-72 flex-col items-center justify-center text-center">
-                    <FileText className="h-10 w-10 text-slate-300" />
-                    <div className="mt-3 text-sm font-semibold text-slate-700">{t("list.emptyTitle")}</div>
-                    <div className="mt-1 text-xs text-slate-500">{t("list.emptyDescription")}</div>
-                  </div>
-                ) : (
-                  filteredTasks.map((task) => (
-                    <button
-                      key={task.task_id}
-                      type="button"
-                      onClick={() => selectTask(task)}
-                      className={cn(
-                        "grid w-full grid-cols-[86px_minmax(140px,1.1fr)_minmax(130px,1fr)_minmax(170px,1.25fr)_minmax(130px,0.9fr)_100px_76px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50",
-                        selectedTask?.task_id === task.task_id && "bg-blue-50/70 hover:bg-blue-50",
-                      )}
-                    >
-                      <span className={cn("inline-flex h-6 w-16 items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
-                        {t(`status.${task.status}`)}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate font-mono text-xs font-semibold text-slate-800">{task.task_id}</span>
-                        <span className="mt-1 block truncate font-mono text-[11px] text-slate-400">{task.case_id || t("list.noCase")}</span>
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate font-mono text-xs text-slate-700">{taskTarget(task)}</span>
-                        <span className="mt-1 block truncate font-mono text-[11px] text-slate-400">{task.velociraptor_client_id || "-"}</span>
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate font-mono text-xs text-slate-700">{task.artifact_name || task.artifact_key}</span>
-                        <span className="mt-1 block truncate text-[11px] text-slate-400">{task.task_type || "collect_artifact"}</span>
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate font-mono text-xs text-slate-700">{task.remote_flow_id || t("list.notDispatched")}</span>
-                        <span className="mt-1 block truncate text-[11px] text-slate-400">{task.last_sync_at ? t("list.synced") : t("list.notSynced")}</span>
-                      </span>
-                      <span>
-                        <span className="block text-xs text-slate-700">{formatClock(task.created_at)}</span>
-                        <span className="mt-1 block text-[11px] text-slate-400">{formatRelative(task.created_at)}</span>
-                      </span>
-                      <span className="flex justify-end">
-                        <MoreHorizontal className="h-5 w-5 text-slate-500" />
-                      </span>
-                    </button>
-                  ))
-                )}
+                </div>
               </div>
 
               <div className="flex items-center justify-between border-t border-slate-200 px-6 py-4">

@@ -161,6 +161,7 @@ export interface ForensicTaskItem {
   remote_deleted_at?: number
   remote_delete_error?: string
   remote_delete_payload_json?: string
+  target_host?: ForensicTaskTargetHost | null
 }
 
 export interface ForensicPagination {

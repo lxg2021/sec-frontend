@@ -2354,10 +2354,20 @@
             "status": "状态",
             "task": "任务 ID",
             "host": "主机",
+            "hostname": "主机名",
+            "ip": "IP",
+            "mac": "MAC",
+            "online": "在线",
             "artifact": "工件",
             "flow": "Flow",
             "created": "创建时间",
             "actions": "操作"
+          },
+          "onlineStatus": {
+            "online": "在线",
+            "offline": "离线",
+            "unknown": "未知",
+            "unsynced": "未同步"
           }
         },
         "detail": {
