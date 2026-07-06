@@ -80,6 +80,28 @@ function parseJsonObject(value?: string): Record<string, unknown> {
   }
 }
 
+function artifactDescriptionForLocale(
+  artifact: ForensicArtifactDefinitionItem,
+  locale: string,
+): string {
+  if (!artifact.upstream_json) return artifact.description || ""
+
+  try {
+    const upstream = JSON.parse(artifact.upstream_json)
+    const native = upstream?.native && typeof upstream.native === "object" ? upstream.native : upstream
+    const nativeDescription = typeof native?.description === "string" ? native.description : ""
+    if (locale === "zh-CN") {
+      const translated = upstream?.native_translation?.["zh-CN"]?.description
+      return typeof translated === "string" && translated.trim()
+        ? translated
+        : nativeDescription || artifact.description || ""
+    }
+    return nativeDescription || artifact.description || ""
+  } catch {
+    return artifact.description || ""
+  }
+}
+
 function normalizeSchemaType(schema: Record<string, unknown>): ForensicArtifactParamField["type"] {
   if (schema.type === "array") return "string_array"
   if (schema.type === "boolean") return "boolean"
@@ -391,6 +413,9 @@ export function ForensicCreateTaskForm({
     () => (artifactDef ? parseParamFields(artifactDef, locale) : []),
     [artifactDef, locale],
   )
+  const artifactDescription = artifactDef
+    ? artifactDescriptionForLocale(artifactDef, locale)
+    : ""
 
   const selectedEndpoint = endpoints.find((item) => endpointValue(item) === endpointId)
 
@@ -689,7 +714,7 @@ export function ForensicCreateTaskForm({
                 {artifactDef.artifact_key}
               </div>
               <p className="mt-1 line-clamp-3 text-xs leading-5 text-slate-500">
-                {artifactDef.description || t("artifact.noDescription")}
+                {artifactDescription || t("artifact.noDescription")}
               </p>
             </div>
             <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase text-slate-600">
