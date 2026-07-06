@@ -2364,6 +2364,7 @@
             "synced": "同步时间",
             "duration": "耗时",
             "error": "错误摘要",
+            "download": "下载",
             "detail": "详情",
             "actions": "操作"
           },

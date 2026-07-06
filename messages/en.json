@@ -2362,6 +2362,7 @@
             "synced": "Synced",
             "duration": "Duration",
             "error": "Error Summary",
+            "download": "Download",
             "detail": "Detail",
             "actions": "Actions"
           },

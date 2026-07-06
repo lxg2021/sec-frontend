@@ -8,7 +8,7 @@ import {
   Archive,
   ChevronLeft,
   ChevronRight,
-  FileArchive,
+  Download,
   FileText,
   Hexagon,
   ListChecks,
@@ -596,8 +596,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
 
           <CardContent className="flex flex-1 flex-col p-0">
             <div className="flex-1 overflow-x-auto">
-              <div className="flex h-full min-w-[2120px] flex-col">
-                <div className="grid grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
+              <div className="flex h-full min-w-[2200px] flex-col">
+                <div className="grid grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px_76px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
                   <span>{t("list.columns.status")}</span>
                   <span>{t("list.columns.task")}</span>
                   <span>{t("list.columns.case")}</span>
@@ -611,6 +611,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   <span>{t("list.columns.synced")}</span>
                   <span>{t("list.columns.duration")}</span>
                   <span>{t("list.columns.error")}</span>
+                  <span className="text-center">{t("list.columns.download")}</span>
                   <span className="text-center">{t("list.columns.detail")}</span>
                   <span className="text-right">{t("list.columns.actions")}</span>
                 </div>
@@ -654,7 +655,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               router.push(taskDetailHref(task))
                             }
                           }}
-                          className="grid w-full cursor-pointer grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                          className="grid w-full cursor-pointer grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px_76px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
                         >
                           <span className={cn("inline-flex h-6 w-16 items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
                             {t(`status.${task.status}`)}
@@ -733,6 +734,25 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             onKeyDown={(event) => event.stopPropagation()}
                           >
                             <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-lg text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 disabled:text-slate-300"
+                              aria-label={t("actions.downloadZip")}
+                              title={t("actions.downloadZip")}
+                              disabled={!task.remote_flow_id || downloadingFlow}
+                              onClick={() => void handleDownloadFlow(task)}
+                            >
+                              {downloadingFlow ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            </Button>
+                          </span>
+                          <span
+                            className="flex justify-center"
+                            onClick={(event) => event.stopPropagation()}
+                            onDoubleClick={(event) => event.stopPropagation()}
+                            onKeyDown={(event) => event.stopPropagation()}
+                          >
+                            <Button
                               asChild
                               type="button"
                               variant="ghost"
@@ -759,7 +779,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                                   className="h-8 w-8 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800"
                                   aria-label={t("list.columns.actions")}
                                 >
-                                  {downloadingFlow || canceling || deleting ? (
+                                  {canceling || deleting ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                   ) : (
                                     <MoreHorizontal className="h-5 w-5" />
@@ -767,13 +787,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-44 rounded-xl">
-                                <DropdownMenuItem
-                                  disabled={!task.remote_flow_id || downloadingFlow}
-                                  onSelect={() => void handleDownloadFlow(task)}
-                                >
-                                  {downloadingFlow ? <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> : <FileArchive className="h-4 w-4 text-indigo-600" />}
-                                  {t("actions.downloadZip")}
-                                </DropdownMenuItem>
                                 {canCancelTask(task.status) ? (
                                   <DropdownMenuItem disabled={canceling} onSelect={() => void handleCancel(task)}>
                                     {canceling ? <Loader2 className="h-4 w-4 animate-spin text-amber-600" /> : <XCircle className="h-4 w-4 text-amber-600" />}
