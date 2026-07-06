@@ -8,7 +8,6 @@ import {
   Activity,
   AlertTriangle,
   ArrowLeft,
-  CheckCircle2,
   Clock3,
   Database,
   FileArchive,
@@ -23,7 +22,6 @@ import {
   Server,
   Trash2,
   UploadCloud,
-  XCircle,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
@@ -71,15 +69,6 @@ function statusClass(status?: string): string {
     timeout: "bg-amber-100 text-amber-700",
   }
   return classes[normalized] || "bg-slate-100 text-slate-600"
-}
-
-function statusIcon(status?: string) {
-  const normalized = (status || "").trim().toLowerCase()
-  if (normalized === "success") return <CheckCircle2 className="h-5 w-5" />
-  if (normalized === "failed" || normalized === "timeout") return <AlertTriangle className="h-5 w-5" />
-  if (normalized === "canceled") return <XCircle className="h-5 w-5" />
-  if (normalized === "running") return <Activity className="h-5 w-5" />
-  return <Clock3 className="h-5 w-5" />
 }
 
 function cleanList(values?: string[]): string[] {
@@ -803,7 +792,7 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
     <main className="h-full overflow-hidden bg-slate-100/70">
       <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-hidden p-4 xl:p-5">
         <header className="w-full shrink-0 rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-          <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_auto] xl:items-center">
+          <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)] xl:items-center">
             <div className="flex min-w-0 items-center gap-4">
               <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full border border-slate-200 bg-slate-50 text-slate-500 shadow-inner shadow-white/70 hover:bg-slate-100 hover:text-slate-700">
                 <Link href="/frame/investigation/tasks">
@@ -815,7 +804,10 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
                 <ScrollText aria-hidden className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5">
-                <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">{detailT("title")}</h1>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">{detailT("title")}</h1>
+                  {displayStatus ? <Badge className={cn("shrink-0 border-0", statusClass(displayStatus))}>{displayStatus}</Badge> : null}
+                </div>
                 <div className="flex min-w-0 flex-wrap items-center gap-2.5 text-sm">
                   <span className="min-w-0 flex-1 truncate font-mono text-xs text-slate-500">{task?.task_id || taskId}</span>
                   {task?.case_id ? (
@@ -828,28 +820,14 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
               </div>
             </div>
 
-            {task ? (
-              <div className="flex min-h-[76px] min-w-0 items-center overflow-hidden px-1 py-3">
-                <div className="flex min-w-0 items-center gap-3 pr-4">
-                  <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", statusClass(displayStatus))}>
-                    {statusIcon(displayStatus)}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="truncate text-xs font-medium text-slate-500">{detailT("fields.status")}</div>
-                    <Badge className={cn("mt-1 border-0", statusClass(displayStatus))}>{displayStatus || "-"}</Badge>
-                  </div>
-                </div>
-              </div>
-            ) : loading ? (
-              <div className="flex min-h-[76px] min-w-0 items-center justify-center rounded-[22px] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+            {loading && !task ? (
+              <div className="flex min-h-[76px] min-w-0 items-center justify-center rounded-[22px] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500 xl:col-start-2 xl:row-start-1">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {detailT("loading")}
               </div>
-            ) : (
-              <div className="hidden min-w-0 xl:block" />
-            )}
+            ) : null}
 
-            <div className="flex flex-wrap items-center gap-2 xl:justify-end xl:gap-3">
+            <div className="flex flex-wrap items-center gap-2 xl:col-start-2 xl:row-start-1 xl:justify-end xl:gap-3">
               <HeaderClockItem label={detailT("fields.host")} value={target?.hostname || "-"} icon={<Monitor aria-hidden className="h-4 w-4" />} />
 
               <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
