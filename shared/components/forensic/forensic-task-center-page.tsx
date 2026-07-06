@@ -606,7 +606,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
           <CardContent className="flex flex-1 flex-col p-0">
             <div className="min-w-0 flex-1 overflow-hidden">
               <div className="flex h-full min-w-0 flex-col">
-                <div className={cn("grid min-w-0 border-b border-slate-200 px-4 py-3 text-xs text-slate-500", TASK_TABLE_GRID_CLASS)}>
+                <div className={cn("grid min-w-0 border-b border-slate-200 px-4 py-3 text-center text-xs text-slate-500", TASK_TABLE_GRID_CLASS)}>
                   <span className="min-w-0 truncate">{t("list.columns.status")}</span>
                   <span className="min-w-0 truncate">{t("list.columns.task")}</span>
                   <span className="min-w-0 truncate">{t("list.columns.case")}</span>
@@ -665,11 +665,11 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             }
                           }}
                           className={cn(
-                            "grid min-w-0 w-full cursor-pointer items-center border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
+                            "grid min-w-0 w-full cursor-pointer items-center border-b border-slate-100 px-4 py-3 text-center transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
                             TASK_TABLE_GRID_CLASS
                           )}
                         >
-                          <span className={cn("inline-flex h-6 w-14 items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
+                          <span className={cn("inline-flex h-6 w-14 justify-self-center items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
                             {t(`status.${task.status}`)}
                           </span>
                           <span className="min-w-0">
