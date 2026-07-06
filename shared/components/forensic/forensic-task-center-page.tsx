@@ -78,6 +78,13 @@ function formatUnixTime(value?: number): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
+function formatUnixClockTime(value?: number): string {
+  if (!value) return "-"
+  const date = new Date(value * 1000)
+  const pad = (num: number) => String(num).padStart(2, "0")
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
 function formatTaskDuration(task: ForensicTaskItem): string {
   const start = task.started_at || task.created_at
   if (!start) return "-"
@@ -595,25 +602,25 @@ export function ForensicTaskCenterPage({ context }: Props) {
           </CardHeader>
 
           <CardContent className="flex flex-1 flex-col p-0">
-            <div className="flex-1 overflow-x-auto">
-              <div className="flex h-full min-w-[2200px] flex-col">
-                <div className="grid grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px_76px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
-                  <span>{t("list.columns.status")}</span>
-                  <span>{t("list.columns.task")}</span>
-                  <span>{t("list.columns.case")}</span>
-                  <span>{t("list.columns.flow")}</span>
-                  <span>{t("list.columns.hostname")}</span>
-                  <span>{t("list.columns.ip")}</span>
-                  <span>{t("list.columns.mac")}</span>
-                  <span className="text-center">{t("list.columns.online")}</span>
-                  <span>{t("list.columns.artifact")}</span>
-                  <span>{t("list.columns.created")}</span>
-                  <span>{t("list.columns.synced")}</span>
-                  <span>{t("list.columns.duration")}</span>
-                  <span>{t("list.columns.error")}</span>
-                  <span className="text-center">{t("list.columns.download")}</span>
-                  <span className="text-center">{t("list.columns.detail")}</span>
-                  <span className="text-right">{t("list.columns.actions")}</span>
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <div className="flex h-full min-w-0 flex-col">
+                <div className="grid min-w-0 grid-cols-[64px_minmax(0,1.42fr)_minmax(0,0.82fr)_minmax(0,0.9fr)_minmax(0,1.55fr)_minmax(0,0.82fr)_minmax(0,1fr)_68px_minmax(0,1.3fr)_72px_72px_48px_minmax(0,0.78fr)_44px_44px_40px] border-b border-slate-200 px-4 py-3 text-xs text-slate-500">
+                  <span className="min-w-0 truncate">{t("list.columns.status")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.task")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.case")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.flow")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.hostname")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.ip")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.mac")}</span>
+                  <span className="min-w-0 truncate text-center">{t("list.columns.online")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.artifact")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.created")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.synced")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.duration")}</span>
+                  <span className="min-w-0 truncate">{t("list.columns.error")}</span>
+                  <span className="min-w-0 truncate text-center">{t("list.columns.download")}</span>
+                  <span className="min-w-0 truncate text-center">{t("list.columns.detail")}</span>
+                  <span className="min-w-0 truncate text-center">{t("list.columns.actions")}</span>
                 </div>
 
                 <div className="flex-1">
@@ -655,7 +662,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               router.push(taskDetailHref(task))
                             }
                           }}
-                          className="grid w-full cursor-pointer grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px_76px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                          className="grid min-w-0 w-full cursor-pointer grid-cols-[64px_minmax(0,1.42fr)_minmax(0,0.82fr)_minmax(0,0.9fr)_minmax(0,1.55fr)_minmax(0,0.82fr)_minmax(0,1fr)_68px_minmax(0,1.3fr)_72px_72px_48px_minmax(0,0.78fr)_44px_44px_40px] items-center border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
                         >
                           <span className={cn("inline-flex h-6 w-16 items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
                             {t(`status.${task.status}`)}
@@ -703,8 +710,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               <span className="block">-</span>
                             )}
                           </span>
-                          <span className="flex justify-center">
-                            <span className={cn("inline-flex h-5 min-w-20 items-center gap-1 rounded-full px-2 text-[10px] font-medium ring-1", TARGET_ONLINE_STATUS_CLASS[targetStatus])}>
+                          <span className="flex min-w-0 justify-center">
+                            <span className={cn("inline-flex h-5 w-16 min-w-0 items-center gap-1 rounded-full px-2 text-[10px] font-medium ring-1", TARGET_ONLINE_STATUS_CLASS[targetStatus])}>
                               <span className={cn("size-1.5 shrink-0 rounded-full", TARGET_ONLINE_STATUS_DOT[targetStatus])} />
                               <span className="min-w-0 flex-1 truncate text-center">{t(`list.onlineStatus.${targetStatus}`)}</span>
                             </span>
@@ -712,13 +719,13 @@ export function ForensicTaskCenterPage({ context }: Props) {
                           <span className="min-w-0">
                             <span className="block truncate font-mono text-xs text-slate-700">{task.artifact_name || task.artifact_key}</span>
                           </span>
-                          <span>
-                            <span className="block font-mono text-xs text-slate-700">{formatUnixTime(task.created_at)}</span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-mono text-xs text-slate-700" title={formatUnixTime(task.created_at)}>{formatUnixClockTime(task.created_at)}</span>
                           </span>
-                          <span>
-                            <span className="block font-mono text-xs text-slate-700">{formatUnixTime(task.last_sync_at)}</span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-mono text-xs text-slate-700" title={formatUnixTime(task.last_sync_at)}>{formatUnixClockTime(task.last_sync_at)}</span>
                           </span>
-                          <span className="font-mono text-xs text-slate-700">{duration}</span>
+                          <span className="min-w-0 truncate font-mono text-xs text-slate-700" title={duration}>{duration}</span>
                           <span className="min-w-0">
                             <span
                               className={cn("block truncate text-xs", errorSummary ? "text-red-600" : "text-slate-400")}
@@ -765,7 +772,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             </Button>
                           </span>
                           <span
-                            className="flex items-center justify-end gap-1"
+                            className="flex items-center justify-center gap-1"
                             onClick={(event) => event.stopPropagation()}
                             onDoubleClick={(event) => event.stopPropagation()}
                             onKeyDown={(event) => event.stopPropagation()}
