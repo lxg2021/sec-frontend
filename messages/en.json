@@ -2386,7 +2386,14 @@
           "table": {
             "source": "Source",
             "field": "Field",
-            "value": "Value"
+            "value": "Value",
+            "rows": "Rows",
+            "page": "Page",
+            "prev": "Prev",
+            "next": "Next",
+            "rowTitle": "Click to view full row",
+            "rowDetail": "Row Detail",
+            "rowDetailDescription": "Full Velociraptor result row"
           },
           "tabs": {
             "collection": "Artifact Collection",

@@ -510,6 +510,7 @@ function FlowTable({
   page?: number
   onPageChange?: (page: number) => void
 }) {
+  const t = useTranslations("pages.investigation.tasks.detail.table")
   const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null)
   const rows = useMemo(() => parseRows(table?.rows_json), [table?.rows_json])
   const columns = useMemo(() => inferColumns(table, rows), [rows, table])
@@ -546,7 +547,7 @@ function FlowTable({
                 key={index}
                 className="cursor-pointer bg-white hover:bg-slate-50"
                 onClick={() => setSelectedRow(row)}
-                title="Click to view full row"
+                title={t("rowTitle")}
               >
                 {columns.map((column) => (
                   <td key={`${index}:${column}`} className="max-w-[520px] whitespace-nowrap px-4 py-2.5 font-mono text-[11px] text-slate-700">
@@ -562,11 +563,11 @@ function FlowTable({
         </div>
         <div className="flex h-10 shrink-0 items-center justify-between border-t border-slate-200 bg-white px-4 text-xs text-slate-500">
           <span>
-            Rows {startRow}-{endRow}
+            {t("rows")} {startRow}-{endRow}
             {expectedRows > 0 ? ` / ${expectedRows}` : ""}
           </span>
           <div className="flex items-center gap-2">
-            <span className="text-slate-400">Page {currentPage} / {totalPages}</span>
+            <span className="text-slate-400">{t("page")} {currentPage} / {totalPages}</span>
             <Button
               type="button"
               variant="ghost"
@@ -575,7 +576,7 @@ function FlowTable({
               disabled={!onPageChange || currentPage <= 1}
               onClick={() => onPageChange?.(currentPage - 1)}
             >
-              Prev
+              {t("prev")}
             </Button>
             <Button
               type="button"
@@ -585,7 +586,7 @@ function FlowTable({
               disabled={!onPageChange || currentPage >= totalPages}
               onClick={() => onPageChange?.(currentPage + 1)}
             >
-              Next
+              {t("next")}
             </Button>
           </div>
         </div>
@@ -593,8 +594,8 @@ function FlowTable({
       <Dialog open={selectedRow !== null} onOpenChange={(open) => !open && setSelectedRow(null)}>
         <DialogContent className="max-h-[82vh] max-w-5xl overflow-hidden rounded-2xl border-slate-200 p-0">
           <DialogHeader className="border-b border-slate-200 px-5 py-4">
-            <DialogTitle className="text-base">Row Detail</DialogTitle>
-            <DialogDescription>Full Velociraptor result row</DialogDescription>
+            <DialogTitle className="text-base">{t("rowDetail")}</DialogTitle>
+            <DialogDescription>{t("rowDetailDescription")}</DialogDescription>
           </DialogHeader>
           <pre className="max-h-[68vh] overflow-auto bg-slate-950 p-5 font-mono text-[11px] leading-5 text-slate-100">
             {selectedRow ? JSON.stringify(selectedRow, null, 2) : ""}
