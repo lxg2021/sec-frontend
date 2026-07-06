@@ -2423,7 +2423,7 @@
           "description": "选择目标终端和取证工件，填写 Velociraptor 原生参数后下发任务",
           "endpoint": {
             "title": "目标终端",
-            "search": "搜索 hostname / agent_id / client_id",
+            "search": "搜索主机名 / hostid",
             "empty": "没有匹配的终端"
           },
           "artifact": {

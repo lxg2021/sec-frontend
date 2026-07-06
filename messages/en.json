@@ -2421,7 +2421,7 @@
           "description": "Select a target endpoint and artifact, then submit Velociraptor-native parameters.",
           "endpoint": {
             "title": "Target Endpoint",
-            "search": "Search hostname / agent_id / client_id",
+            "search": "Search hostname / hostid",
             "empty": "No matching endpoints"
           },
           "artifact": {
