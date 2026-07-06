@@ -14,7 +14,10 @@ import {
   FileArchive,
   FileJson,
   FileText,
+  Fingerprint,
   Loader2,
+  Monitor,
+  Network,
   RefreshCw,
   ScrollText,
   Server,
@@ -182,23 +185,17 @@ interface KeyValueRow {
   mono?: boolean
 }
 
-function HeaderMetaItem({ label, value, mono = false, className }: { label: string; value?: string; mono?: boolean; className?: string }) {
+function HeaderClockItem({ label, value, className, icon }: { label: string; value?: string; className?: string; icon?: ReactNode }) {
   return (
-    <div className={cn("min-w-0 border-l border-slate-200 px-4", className)}>
-      <div className="truncate text-xs font-medium text-slate-500">{label}</div>
-      <div className={cn("mt-1.5 truncate text-sm font-semibold text-slate-950", mono && "font-mono text-xs")} title={value || "-"}>
-        {value || "-"}
+    <div className={cn("flex items-center gap-3", className)}>
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+        {icon || <Clock3 aria-hidden className="h-4 w-4" />}
       </div>
-    </div>
-  )
-}
-
-function HeaderTimeItem({ label, value, className }: { label: string; value?: string; className?: string }) {
-  return (
-    <div className={cn("min-w-0 border-l border-slate-200 px-4", className)}>
-      <div className="truncate text-xs text-slate-400">{label}</div>
-      <div className="mt-1 whitespace-nowrap text-sm font-medium tabular-nums text-slate-700" title={value || "-"}>
-        {value || "-"}
+      <div className="min-w-0">
+        <div className="truncate text-xs text-slate-400">{label}</div>
+        <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700" title={value || "-"}>
+          {value || "-"}
+        </div>
       </div>
     </div>
   )
@@ -820,9 +817,6 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
               <div className="min-w-0 flex-1 space-y-1.5">
                 <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">{detailT("title")}</h1>
                 <div className="flex min-w-0 flex-wrap items-center gap-2.5 text-sm">
-                  <span className="inline-flex h-7 items-center rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-sky-600">
-                    FORENSIC
-                  </span>
                   <span className="min-w-0 flex-1 truncate font-mono text-xs text-slate-500">{task?.task_id || taskId}</span>
                   {task?.case_id ? (
                     <>
@@ -835,7 +829,7 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
             </div>
 
             {task ? (
-              <div className="grid min-h-[76px] min-w-0 grid-cols-[118px_minmax(150px,1.05fr)_minmax(260px,1.45fr)_minmax(130px,0.85fr)_180px] items-center overflow-hidden px-1 py-3">
+              <div className="flex min-h-[76px] min-w-0 items-center overflow-hidden px-1 py-3">
                 <div className="flex min-w-0 items-center gap-3 pr-4">
                   <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", statusClass(displayStatus))}>
                     {statusIcon(displayStatus)}
@@ -845,10 +839,6 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
                     <Badge className={cn("mt-1 border-0", statusClass(displayStatus))}>{displayStatus || "-"}</Badge>
                   </div>
                 </div>
-                <HeaderMetaItem label={detailT("fields.host")} value={target?.hostname || "-"} />
-                <HeaderMetaItem label={detailT("fields.hostId")} value={target?.agent_id || task.agent_id || "-"} mono />
-                <HeaderMetaItem label={detailT("fields.network")} value={ip || "-"} mono />
-                <HeaderTimeItem label={detailT("fields.created")} value={formatUnixTime(task.created_at)} />
               </div>
             ) : loading ? (
               <div className="flex min-h-[76px] min-w-0 items-center justify-center rounded-[22px] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
@@ -860,15 +850,23 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
             )}
 
             <div className="flex flex-wrap items-center gap-2 xl:justify-end xl:gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
-                  <Clock3 aria-hidden className="h-4 w-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs text-slate-400">{detailT("lastRefresh", { time: "" }).trim()}</div>
-                  <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">{formatUnixTime(collection?.last_refresh_at)}</div>
-                </div>
-              </div>
+              <HeaderClockItem label={detailT("fields.host")} value={target?.hostname || "-"} icon={<Monitor aria-hidden className="h-4 w-4" />} />
+
+              <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+              <HeaderClockItem label={detailT("fields.hostId")} value={target?.agent_id || task?.agent_id || "-"} icon={<Fingerprint aria-hidden className="h-4 w-4" />} />
+
+              <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+              <HeaderClockItem label={detailT("fields.network")} value={ip || "-"} icon={<Network aria-hidden className="h-4 w-4" />} />
+
+              <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+              <HeaderClockItem label={detailT("fields.created")} value={formatUnixTime(task?.created_at)} />
+
+              <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+              <HeaderClockItem label={detailT("lastRefresh", { time: "" }).trim()} value={formatUnixTime(collection?.last_refresh_at)} />
 
               <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
 
