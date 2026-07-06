@@ -830,7 +830,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 <CardTitle className="truncate text-base font-semibold text-slate-950">{t("detail.title")}</CardTitle>
               </div>
               {selectedTask ? (
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -852,6 +852,17 @@ export function ForensicTaskCenterPage({ context }: Props) {
                     title={t("actions.downloadZip")}
                   >
                     {actionLoading === `flow:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileArchive className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 shrink-0 whitespace-nowrap border-red-200 px-3 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => void handleDeleteTask(selectedTask)}
+                    disabled={actionLoading === `delete:${selectedTask.task_id}`}
+                    title={t("actions.deleteTask")}
+                  >
+                    {actionLoading === `delete:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                    {t("actions.deleteTask")}
                   </Button>
                 </div>
               ) : null}
@@ -986,8 +997,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
                     </section>
                   ) : null}
 
-                  <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-                    {selectedTask.status === "pending" || selectedTask.status === "running" ? (
+                  {selectedTask.status === "pending" || selectedTask.status === "running" ? (
+                    <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
                       <Button
                         type="button"
                         variant="outline"
@@ -997,18 +1008,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
                         {actionLoading === `cancel:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
                         {t("actions.cancel")}
                       </Button>
-                    ) : null}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                      onClick={() => void handleDeleteTask(selectedTask)}
-                      disabled={actionLoading === `delete:${selectedTask.task_id}`}
-                    >
-                      {actionLoading === `delete:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                      {t("actions.delete")}
-                    </Button>
-                  </div>
+                    </div>
+                  ) : null}
                 </>
               )}
             </CardContent>

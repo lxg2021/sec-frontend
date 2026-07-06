@@ -2380,6 +2380,7 @@
           "sync": "Sync",
           "cancel": "Cancel Task",
           "delete": "Delete",
+          "deleteTask": "Delete Task",
           "downloadZip": "Download Flow Zip",
           "zip": "ZIP"
         },
