@@ -873,8 +873,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               <span className="block truncate font-mono text-xs text-slate-700">{task.remote_flow_id || "-"}</span>
                             </span>
                             <span>
-                              <span className="block text-xs text-slate-700">{formatClock(task.created_at)}</span>
-                              <span className="mt-1 block text-[11px] text-slate-400">{formatRelative(task.created_at)}</span>
+                              <span className="block font-mono text-xs text-slate-700">{formatUnixTime(task.created_at)}</span>
                             </span>
                             <span className="flex justify-end">
                               <MoreHorizontal className="h-5 w-5 text-slate-500" />
