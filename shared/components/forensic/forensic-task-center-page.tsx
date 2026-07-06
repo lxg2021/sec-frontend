@@ -252,6 +252,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
   const [actionLoading, setActionLoading] = useState("")
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id || "")
+  const [selectedTaskId, setSelectedTaskId] = useState(context.task_id || "")
   const createPanelRef = useRef<HTMLDivElement | null>(null)
   const initialCreateArtifactKey = context.artifact_key?.trim() || ""
 
@@ -278,13 +279,27 @@ export function ForensicTaskCenterPage({ context }: Props) {
     )
   }, [keyword, tasks])
 
+  const selectedTask = useMemo(
+    () => tasks.find((task) => task.task_id === selectedTaskId),
+    [selectedTaskId, tasks],
+  )
+  const selectedTaskTarget = selectedTask?.target_host
+  const selectedCreateEndpointId =
+    selectedTaskTarget?.endpoint_id || selectedTask?.endpoint_id || endpointId.trim() || context.endpoint_id || ""
+  const selectedCreateAgentId =
+    selectedTaskTarget?.agent_id || selectedTask?.agent_id || context.agent_id || ""
+  const selectedCreateClientId =
+    selectedTaskTarget?.velociraptor_client_id || selectedTask?.velociraptor_client_id || context.velociraptor_client_id || ""
+  const selectedCreateArtifactKey = selectedTask?.artifact_key || initialCreateArtifactKey
+
   const createDialogContext = useMemo(
     () => ({
       ...context,
       case_id: caseId.trim() || context.case_id,
-      endpoint_id: endpointId.trim() || context.endpoint_id,
+      endpoint_id: selectedCreateEndpointId,
+      agent_id: selectedCreateAgentId,
     }),
-    [caseId, context, endpointId],
+    [caseId, context, selectedCreateAgentId, selectedCreateEndpointId],
   )
 
   useEffect(() => {
@@ -302,6 +317,13 @@ export function ForensicTaskCenterPage({ context }: Props) {
     if (!context.task_id || context.action === "create") return
     router.replace(`/frame/investigation/tasks/detail?task_id=${encodeURIComponent(context.task_id)}`)
   }, [context.action, context.task_id, router])
+
+  useEffect(() => {
+    if (!selectedTaskId || tasks.length === 0) return
+    if (!tasks.some((task) => task.task_id === selectedTaskId)) {
+      setSelectedTaskId("")
+    }
+  }, [selectedTaskId, tasks])
 
   const refresh = useCallback(async () => {
     setLoading(true)
@@ -524,7 +546,10 @@ export function ForensicTaskCenterPage({ context }: Props) {
           <CardContent className="p-0">
             <ForensicCreateTaskForm
               context={createDialogContext}
-              initialArtifactKey={initialCreateArtifactKey}
+              initialArtifactKey={selectedCreateArtifactKey}
+              initialEndpointId={selectedCreateEndpointId}
+              initialAgentId={selectedCreateAgentId}
+              initialVelociraptorClientId={selectedCreateClientId}
               layout="workspace"
               formId={CREATE_TASK_FORM_ID}
               showFooter={false}
@@ -652,11 +677,14 @@ export function ForensicTaskCenterPage({ context }: Props) {
                       const flowID = task.remote_flow_id || ""
                       const duration = formatTaskDuration(task)
                       const errorSummary = taskErrorSummary(task)
+                      const selected = task.task_id === selectedTaskId
                       return (
                         <div
                           key={task.task_id}
                           role="button"
+                          aria-selected={selected}
                           tabIndex={0}
+                          onClick={() => setSelectedTaskId(task.task_id)}
                           onDoubleClick={() => router.push(taskDetailHref(task))}
                           onKeyDown={(event) => {
                             if (event.key === "Enter" || event.key === " ") {
@@ -665,8 +693,9 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             }
                           }}
                           className={cn(
-                            "grid min-w-0 w-full cursor-pointer items-center border-b border-slate-100 px-4 py-3 text-center transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
-                            TASK_TABLE_GRID_CLASS
+                            "relative grid min-w-0 w-full cursor-pointer items-center border-b border-slate-100 px-4 py-3 text-center transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
+                            selected && "bg-sky-50/70 shadow-[inset_4px_0_0_#0284c7] hover:bg-sky-50",
+                            TASK_TABLE_GRID_CLASS,
                           )}
                         >
                           <span className={cn("inline-flex h-6 w-14 justify-self-center items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>

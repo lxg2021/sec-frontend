@@ -39,6 +39,9 @@ type ParamValues = Record<string, unknown>
 interface ForensicCreateTaskFormProps {
   context: ForensicOverviewContext
   initialArtifactKey?: string
+  initialEndpointId?: string
+  initialAgentId?: string
+  initialVelociraptorClientId?: string
   active?: boolean
   layout?: "stacked" | "workspace"
   formId?: string
@@ -326,6 +329,25 @@ function endpointValue(endpoint: ForensicEndpointItem): string {
   return endpoint.endpoint_id || endpoint.velociraptor_client_id || endpoint.agent_id || endpointLabel(endpoint)
 }
 
+function findEndpointByIdentity(
+  endpoints: ForensicEndpointItem[],
+  endpointId?: string,
+  agentId?: string,
+  velociraptorClientId?: string,
+): ForensicEndpointItem | undefined {
+  const targetEndpointId = endpointId?.trim()
+  const targetAgentId = agentId?.trim()
+  const targetClientId = velociraptorClientId?.trim()
+  if (!targetEndpointId && !targetAgentId && !targetClientId) return undefined
+
+  return endpoints.find(
+    (item) =>
+      (targetEndpointId && item.endpoint_id === targetEndpointId) ||
+      (targetAgentId && item.agent_id === targetAgentId) ||
+      (targetClientId && item.velociraptor_client_id === targetClientId),
+  )
+}
+
 function FieldInput({
   field,
   value,
@@ -422,6 +444,9 @@ function FieldInput({
 export function ForensicCreateTaskForm({
   context,
   initialArtifactKey,
+  initialEndpointId,
+  initialAgentId,
+  initialVelociraptorClientId,
   active = true,
   layout = "stacked",
   formId,
@@ -449,6 +474,9 @@ export function ForensicCreateTaskForm({
   const [initialArtifactApplied, setInitialArtifactApplied] = useState(false)
   const artifactRequestSeqRef = useRef(0)
   const normalizedInitialArtifactKey = initialArtifactKey?.trim() || ""
+  const normalizedInitialEndpointId = initialEndpointId?.trim() || ""
+  const normalizedInitialAgentId = initialAgentId?.trim() || ""
+  const normalizedInitialClientId = initialVelociraptorClientId?.trim() || ""
 
   const fields = useMemo(
     () => (artifactDef ? parseParamFields(artifactDef, locale) : []),
@@ -518,10 +546,10 @@ export function ForensicCreateTaskForm({
       setEndpoints(endpointResult.items)
       setArtifacts(artifactResult.items.filter((item) => item.enabled))
 
-      const contextEndpoint = endpointResult.items.find(
-        (item) =>
-          (context.endpoint_id && item.endpoint_id === context.endpoint_id) ||
-          (context.agent_id && item.agent_id === context.agent_id),
+      const contextEndpoint = findEndpointByIdentity(
+        endpointResult.items,
+        context.endpoint_id,
+        context.agent_id,
       )
       if (contextEndpoint) setEndpointId(endpointValue(contextEndpoint))
     } catch (error) {
@@ -555,6 +583,30 @@ export function ForensicCreateTaskForm({
   useEffect(() => {
     setInitialArtifactApplied(false)
   }, [normalizedInitialArtifactKey])
+
+  useEffect(() => {
+    if (!active || !optionsLoaded) return
+    const nextEndpoint = findEndpointByIdentity(
+      endpoints,
+      normalizedInitialEndpointId,
+      normalizedInitialAgentId,
+      normalizedInitialClientId,
+    )
+    if (!nextEndpoint) return
+    const nextValue = endpointValue(nextEndpoint)
+    if (endpointId !== nextValue) {
+      setEndpointId(nextValue)
+    }
+    setEndpointKeyword("")
+  }, [
+    active,
+    endpointId,
+    endpoints,
+    normalizedInitialAgentId,
+    normalizedInitialClientId,
+    normalizedInitialEndpointId,
+    optionsLoaded,
+  ])
 
   useEffect(() => {
     const nextKey = normalizedInitialArtifactKey
