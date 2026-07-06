@@ -429,16 +429,18 @@ function KeyValueTable({
   emptyText,
   fieldHeader,
   valueHeader,
+  className,
 }: {
   rows: KeyValueRow[]
   emptyText: string
   fieldHeader: string
   valueHeader: string
+  className?: string
 }) {
   if (rows.length === 0) return <EmptyTableState text={emptyText} />
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className={cn("min-h-0 overflow-auto rounded-xl border border-slate-200 bg-white", className)}>
       <table className="w-full table-fixed border-separate border-spacing-0 text-left text-xs">
         <thead className="bg-slate-50 text-slate-500">
           <tr>
@@ -464,7 +466,7 @@ function KeyValueTable({
 function FlowTable({ table, emptyText }: { table?: ForensicTaskFlowTable | null; emptyText: string }) {
   const rows = useMemo(() => parseRows(table?.rows_json), [table?.rows_json])
   const columns = useMemo(() => inferColumns(table, rows), [rows, table])
-  const tableHeightClass = "h-[calc(100vh-270px)] min-h-[360px] max-h-[720px]"
+  const tableHeightClass = "h-full min-h-0"
 
   if (rows.length === 0 || columns.length === 0) {
     return <EmptyTableState text={emptyText} className={tableHeightClass} />
@@ -600,13 +602,13 @@ function CollectionTab({
   })
 
   return (
-    <KeyValueTable rows={rows} emptyText={t("emptyTitle")} fieldHeader={t("table.field")} valueHeader={t("table.value")} />
+    <KeyValueTable rows={rows} emptyText={t("emptyTitle")} fieldHeader={t("table.field")} valueHeader={t("table.value")} className="h-full" />
   )
 }
 
 function RequestsTab({ requests }: { requests?: ForensicTaskFlowRequests | null }) {
   const t = useTranslations("pages.investigation.tasks.detail")
-  const tableHeightClass = "h-[calc(100vh-270px)] min-h-[360px] max-h-[720px]"
+  const tableHeightClass = "h-full min-h-0"
   const rows = [
     { source: t("requestPanels.params"), value: requests?.params_json },
     { source: t("requestPanels.args"), value: requests?.velociraptor_args_json },
@@ -759,8 +761,8 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
   }
 
   return (
-    <main className="h-fit bg-slate-100/70">
-      <div className="flex h-fit w-full flex-col gap-4 p-4 xl:p-5">
+    <main className="bg-slate-100/70">
+      <div className="flex w-full flex-col gap-4 p-4 xl:p-5">
         <header className="w-full rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -869,9 +871,9 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
           </Card>
         ) : null}
 
-        <Card className="h-fit w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-          <Tabs defaultValue="collection" className="h-fit w-full">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3">
+        <Card className="flex h-[calc(100vh-32px)] min-h-[640px] w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+          <Tabs defaultValue="collection" className="flex min-h-0 w-full flex-1 flex-col">
+            <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3">
               <TabsList className="h-9 rounded-full bg-slate-50 p-1 shadow-sm ring-1 ring-slate-200">
                 <TabsTrigger value="collection" className="rounded-full px-3.5 text-xs data-[state=active]:bg-sky-100 data-[state=active]:text-sky-700">
                   <Server className="mr-2 h-4 w-4" />
@@ -899,16 +901,16 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
               </div>
             </div>
 
-            <div className="h-fit w-full bg-slate-50/60 p-3.5">
+            <div className="min-h-0 flex-1 overflow-hidden bg-slate-50/60 p-3.5">
               {!task ? (
-                <div className="flex min-h-[160px] flex-col items-center justify-center text-center">
+                <div className="flex h-full min-h-[160px] flex-col items-center justify-center text-center">
                   <FileText className="h-10 w-10 text-slate-300" />
                   <div className="mt-3 text-sm font-semibold text-slate-700">{detailT("emptyTitle")}</div>
                   <div className="mt-1 text-xs text-slate-500">{detailT("emptyDescription")}</div>
                 </div>
               ) : (
                 <>
-                  <TabsContent value="collection" className="m-0 h-fit data-[state=inactive]:hidden">
+                  <TabsContent value="collection" className="m-0 h-full data-[state=inactive]:hidden">
                     <CollectionTab
                       task={task}
                       collection={collection}
@@ -919,16 +921,16 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
                       downloading={actionLoading === "download"}
                     />
                   </TabsContent>
-                  <TabsContent value="results" className="m-0 h-fit data-[state=inactive]:hidden">
+                  <TabsContent value="results" className="m-0 h-full data-[state=inactive]:hidden">
                     <FlowTable table={detail?.results} emptyText={detailT("emptyResults")} />
                   </TabsContent>
-                  <TabsContent value="uploads" className="m-0 h-fit data-[state=inactive]:hidden">
+                  <TabsContent value="uploads" className="m-0 h-full data-[state=inactive]:hidden">
                     <FlowTable table={detail?.uploaded_files} emptyText={detailT("emptyUploads")} />
                   </TabsContent>
-                  <TabsContent value="requests" className="m-0 h-fit data-[state=inactive]:hidden">
+                  <TabsContent value="requests" className="m-0 h-full data-[state=inactive]:hidden">
                     <RequestsTab requests={detail?.requests} />
                   </TabsContent>
-                  <TabsContent value="logs" className="m-0 h-fit data-[state=inactive]:hidden">
+                  <TabsContent value="logs" className="m-0 h-full data-[state=inactive]:hidden">
                     <FlowTable table={detail?.logs} emptyText={detailT("emptyLogs")} />
                   </TabsContent>
                 </>
