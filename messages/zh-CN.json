@@ -2355,7 +2355,7 @@
             "task": "任务 ID",
             "case": "Case ID",
             "host": "主机",
-            "hostname": "主机 / Agent",
+            "hostname": "Host",
             "ip": "IP",
             "mac": "MAC",
             "online": "在线",

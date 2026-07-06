@@ -773,8 +773,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
             </CardHeader>
             <CardContent className="flex flex-1 flex-col p-0">
               <div className="flex-1 overflow-x-auto">
-                <div className="flex h-full min-w-[1520px] flex-col">
-                  <div className="grid grid-cols-[82px_minmax(150px,1fr)_minmax(150px,0.95fr)_minmax(150px,1fr)_minmax(140px,0.85fr)_minmax(180px,1fr)_96px_minmax(180px,1.1fr)_minmax(150px,0.9fr)_96px_60px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
+                <div className="flex h-full min-w-[1360px] flex-col">
+                  <div className="grid grid-cols-[82px_minmax(150px,1fr)_minmax(150px,0.95fr)_minmax(150px,1fr)_minmax(140px,0.85fr)_minmax(180px,1fr)_96px_minmax(180px,1.1fr)_minmax(170px,1fr)_60px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
                     <span>{t("list.columns.status")}</span>
                     <span>{t("list.columns.task")}</span>
                     <span>{t("list.columns.case")}</span>
@@ -783,7 +783,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                     <span>{t("list.columns.mac")}</span>
                     <span className="text-center">{t("list.columns.online")}</span>
                     <span>{t("list.columns.artifact")}</span>
-                    <span>{t("list.columns.flow")}</span>
                     <span>{t("list.columns.created")}</span>
                     <span className="text-right">{t("list.columns.actions")}</span>
                   </div>
@@ -815,7 +814,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             type="button"
                             onClick={() => selectTask(task)}
                             className={cn(
-                              "grid w-full grid-cols-[82px_minmax(150px,1fr)_minmax(150px,0.95fr)_minmax(150px,1fr)_minmax(140px,0.85fr)_minmax(180px,1fr)_96px_minmax(180px,1.1fr)_minmax(150px,0.9fr)_96px_60px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50",
+                              "grid w-full grid-cols-[82px_minmax(150px,1fr)_minmax(150px,0.95fr)_minmax(150px,1fr)_minmax(140px,0.85fr)_minmax(180px,1fr)_96px_minmax(180px,1.1fr)_minmax(170px,1fr)_60px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50",
                               selectedTask?.task_id === task.task_id && "bg-blue-50/70 hover:bg-blue-50",
                             )}
                           >
@@ -868,9 +867,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             </span>
                             <span className="min-w-0">
                               <span className="block truncate font-mono text-xs text-slate-700">{task.artifact_name || task.artifact_key}</span>
-                            </span>
-                            <span className="min-w-0">
-                              <span className="block truncate font-mono text-xs text-slate-700">{task.remote_flow_id || "-"}</span>
                             </span>
                             <span>
                               <span className="block font-mono text-xs text-slate-700">{formatUnixTime(task.created_at)}</span>
