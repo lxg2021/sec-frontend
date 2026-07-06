@@ -6,9 +6,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Archive,
+  ArrowUpRight,
   ChevronLeft,
   ChevronRight,
-  Eye,
   FileArchive,
   FileText,
   Hexagon,
@@ -77,6 +77,22 @@ function formatUnixTime(value?: number): string {
   const date = new Date(value * 1000)
   const pad = (num: number) => String(num).padStart(2, "0")
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+
+function formatTaskDuration(task: ForensicTaskItem): string {
+  const start = task.started_at || task.created_at
+  if (!start) return "-"
+  const terminalEnd = task.finished_at || task.last_sync_at || task.updated_at
+  const end = terminalEnd || (canCancelTask(task.status) ? Math.floor(Date.now() / 1000) : 0)
+  if (!end || end < start) return "-"
+  const seconds = Math.max(0, end - start)
+  if (seconds < 60) return `${seconds}s`
+  const minutes = Math.floor(seconds / 60)
+  const remainSeconds = seconds % 60
+  if (minutes < 60) return `${minutes}m ${String(remainSeconds).padStart(2, "0")}s`
+  const hours = Math.floor(minutes / 60)
+  const remainMinutes = minutes % 60
+  return `${hours}h ${String(remainMinutes).padStart(2, "0")}m`
 }
 
 function formatRefreshTime(value?: Date | null): string {
@@ -154,6 +170,10 @@ function taskHostAgentID(task: ForensicTaskItem): string {
 
 function taskHostname(task: ForensicTaskItem): string {
   return firstText([task.target_host?.hostname])
+}
+
+function taskErrorSummary(task: ForensicTaskItem): string {
+  return firstText([task.error_msg, task.error_code])
 }
 
 function keepTaskTargetHost(next: ForensicTaskItem, previous: ForensicTaskItem): ForensicTaskItem {
@@ -577,17 +597,21 @@ export function ForensicTaskCenterPage({ context }: Props) {
 
           <CardContent className="flex flex-1 flex-col p-0">
             <div className="flex-1 overflow-x-auto">
-              <div className="flex h-full min-w-[1440px] flex-col">
-                <div className="grid grid-cols-[82px_180px_165px_240px_140px_190px_96px_minmax(220px,1fr)_170px_72px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
+              <div className="flex h-full min-w-[2050px] flex-col">
+                <div className="grid grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_92px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
                   <span>{t("list.columns.status")}</span>
                   <span>{t("list.columns.task")}</span>
                   <span>{t("list.columns.case")}</span>
+                  <span>{t("list.columns.flow")}</span>
                   <span>{t("list.columns.hostname")}</span>
                   <span>{t("list.columns.ip")}</span>
                   <span>{t("list.columns.mac")}</span>
                   <span className="text-center">{t("list.columns.online")}</span>
                   <span>{t("list.columns.artifact")}</span>
                   <span>{t("list.columns.created")}</span>
+                  <span>{t("list.columns.synced")}</span>
+                  <span>{t("list.columns.duration")}</span>
+                  <span>{t("list.columns.error")}</span>
                   <span className="text-right">{t("list.columns.actions")}</span>
                 </div>
 
@@ -615,19 +639,22 @@ export function ForensicTaskCenterPage({ context }: Props) {
                       const downloadingFlow = actionLoading === `flow:${task.task_id}`
                       const canceling = actionLoading === `cancel:${task.task_id}`
                       const deleting = actionLoading === `delete:${task.task_id}`
+                      const flowID = task.remote_flow_id || ""
+                      const duration = formatTaskDuration(task)
+                      const errorSummary = taskErrorSummary(task)
                       return (
                         <div
                           key={task.task_id}
                           role="button"
                           tabIndex={0}
-                          onClick={() => router.push(taskDetailHref(task))}
+                          onDoubleClick={() => router.push(taskDetailHref(task))}
                           onKeyDown={(event) => {
                             if (event.key === "Enter" || event.key === " ") {
                               event.preventDefault()
                               router.push(taskDetailHref(task))
                             }
                           }}
-                          className="grid w-full cursor-pointer grid-cols-[82px_180px_165px_240px_140px_190px_96px_minmax(220px,1fr)_170px_72px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                          className="grid w-full cursor-pointer grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_92px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
                         >
                           <span className={cn("inline-flex h-6 w-16 items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
                             {t(`status.${task.status}`)}
@@ -638,6 +665,11 @@ export function ForensicTaskCenterPage({ context }: Props) {
                           <span className="min-w-0">
                             <span className="block truncate font-mono text-xs text-slate-700" title={task.case_id || t("list.noCase")}>
                               {task.case_id || t("list.noCase")}
+                            </span>
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-mono text-xs text-slate-700" title={flowID || t("list.notDispatched")}>
+                              {flowID || t("list.notDispatched")}
                             </span>
                           </span>
                           <span className="min-w-0">
@@ -682,11 +714,35 @@ export function ForensicTaskCenterPage({ context }: Props) {
                           <span>
                             <span className="block font-mono text-xs text-slate-700">{formatUnixTime(task.created_at)}</span>
                           </span>
+                          <span>
+                            <span className="block font-mono text-xs text-slate-700">{formatUnixTime(task.last_sync_at)}</span>
+                          </span>
+                          <span className="font-mono text-xs text-slate-700">{duration}</span>
+                          <span className="min-w-0">
+                            <span
+                              className={cn("block truncate text-xs", errorSummary ? "text-red-600" : "text-slate-400")}
+                              title={errorSummary || "-"}
+                            >
+                              {errorSummary || "-"}
+                            </span>
+                          </span>
                           <span
-                            className="flex justify-end"
+                            className="flex items-center justify-end gap-1"
                             onClick={(event) => event.stopPropagation()}
+                            onDoubleClick={(event) => event.stopPropagation()}
                             onKeyDown={(event) => event.stopPropagation()}
                           >
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              aria-label={t("actions.viewDetail")}
+                              title={t("actions.viewDetail")}
+                              onClick={() => router.push(taskDetailHref(task))}
+                            >
+                              <ArrowUpRight className="h-4 w-4" />
+                            </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -705,7 +761,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-44 rounded-xl">
                                 <DropdownMenuItem onSelect={() => router.push(taskDetailHref(task))}>
-                                  <Eye className="h-4 w-4 text-slate-500" />
+                                  <ArrowUpRight className="h-4 w-4 text-slate-500" />
                                   {t("actions.viewDetail")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem

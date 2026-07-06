@@ -2361,6 +2361,9 @@
             "artifact": "工件",
             "flow": "Flow ID",
             "created": "创建时间",
+            "synced": "同步时间",
+            "duration": "耗时",
+            "error": "错误摘要",
             "actions": "操作"
           },
           "onlineStatus": {

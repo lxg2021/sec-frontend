@@ -448,9 +448,9 @@ export async function getForensicTaskFlowDetail(
   params: GetForensicTaskFlowDetailRequest,
 ): Promise<GetForensicTaskFlowDetailData> {
   const resultPage = params.result_page || 1
-  const resultPageSize = params.result_page_size || 100
+  const resultPageSize = params.result_page_size || 50
   const logPage = params.log_page || 1
-  const logPageSize = params.log_page_size || 200
+  const logPageSize = params.log_page_size || 100
   const result = await http.post(
     "getForensicTaskFlowDetail",
     {

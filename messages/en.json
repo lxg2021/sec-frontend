@@ -2359,6 +2359,9 @@
             "artifact": "Artifact",
             "flow": "Flow ID",
             "created": "Created",
+            "synced": "Synced",
+            "duration": "Duration",
+            "error": "Error Summary",
             "actions": "Actions"
           },
           "onlineStatus": {

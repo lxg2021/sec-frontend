@@ -27,6 +27,13 @@ import { toast } from "sonner"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
@@ -50,6 +57,9 @@ interface Props {
   taskId?: string
   fallbackTargetHost?: ForensicTaskTargetHost | null
 }
+
+const FLOW_RESULT_PAGE_SIZE = 50
+const FLOW_LOG_PAGE_SIZE = 100
 
 function formatUnixTime(value?: number): string {
   if (!value) return "-"
@@ -487,10 +497,30 @@ function KeyValueTable({
   )
 }
 
-function FlowTable({ table, emptyText }: { table?: ForensicTaskFlowTable | null; emptyText: string }) {
+function FlowTable({
+  table,
+  emptyText,
+  totalRows,
+  page,
+  onPageChange,
+}: {
+  table?: ForensicTaskFlowTable | null
+  emptyText: string
+  totalRows?: number
+  page?: number
+  onPageChange?: (page: number) => void
+}) {
+  const [selectedRow, setSelectedRow] = useState<Record<string, unknown> | null>(null)
   const rows = useMemo(() => parseRows(table?.rows_json), [table?.rows_json])
   const columns = useMemo(() => inferColumns(table, rows), [rows, table])
   const tableHeightClass = "h-full min-h-0"
+  const shownRows = rows.length
+  const currentPage = Math.max(1, page || table?.pagination?.page || 1)
+  const pageSize = table?.pagination?.page_size || shownRows || 1
+  const expectedRows = totalRows && totalRows > shownRows ? totalRows : table?.pagination?.total_count || table?.row_count || shownRows
+  const totalPages = Math.max(1, Math.ceil(expectedRows / pageSize))
+  const startRow = shownRows > 0 ? (currentPage - 1) * pageSize + 1 : 0
+  const endRow = shownRows > 0 ? Math.min(startRow + shownRows - 1, expectedRows) : 0
 
   if (rows.length === 0 || columns.length === 0) {
     return <EmptyTableState text={emptyText} className={tableHeightClass} />
@@ -498,12 +528,13 @@ function FlowTable({ table, emptyText }: { table?: ForensicTaskFlowTable | null;
 
   return (
     <div className={cn("overflow-hidden rounded-xl border border-slate-200 bg-white", tableHeightClass)}>
-      <div className="h-full overflow-auto">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="min-h-0 flex-1 overflow-auto">
         <table className="min-w-full border-separate border-spacing-0 text-left text-xs">
           <thead className="sticky top-0 z-10 bg-slate-50 text-slate-500">
             <tr>
               {columns.map((column) => (
-                <th key={column} className="whitespace-nowrap border-b border-slate-200 px-4 py-3 font-semibold">
+                <th key={column} className="min-w-[150px] whitespace-nowrap border-b border-slate-200 px-4 py-3 font-semibold first:min-w-[320px]">
                   {column}
                 </th>
               ))}
@@ -511,9 +542,14 @@ function FlowTable({ table, emptyText }: { table?: ForensicTaskFlowTable | null;
           </thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map((row, index) => (
-              <tr key={index} className="bg-white hover:bg-slate-50">
+              <tr
+                key={index}
+                className="cursor-pointer bg-white hover:bg-slate-50"
+                onClick={() => setSelectedRow(row)}
+                title="Click to view full row"
+              >
                 {columns.map((column) => (
-                  <td key={`${index}:${column}`} className="max-w-[360px] whitespace-nowrap px-4 py-2.5 font-mono text-[11px] text-slate-700">
+                  <td key={`${index}:${column}`} className="max-w-[520px] whitespace-nowrap px-4 py-2.5 font-mono text-[11px] text-slate-700">
                     <span className="block truncate" title={cellValue(row[column])}>
                       {cellValue(row[column])}
                     </span>
@@ -523,7 +559,48 @@ function FlowTable({ table, emptyText }: { table?: ForensicTaskFlowTable | null;
             ))}
           </tbody>
         </table>
+        </div>
+        <div className="flex h-10 shrink-0 items-center justify-between border-t border-slate-200 bg-white px-4 text-xs text-slate-500">
+          <span>
+            Rows {startRow}-{endRow}
+            {expectedRows > 0 ? ` / ${expectedRows}` : ""}
+          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400">Page {currentPage} / {totalPages}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 rounded-full px-3 text-xs"
+              disabled={!onPageChange || currentPage <= 1}
+              onClick={() => onPageChange?.(currentPage - 1)}
+            >
+              Prev
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 rounded-full px-3 text-xs"
+              disabled={!onPageChange || currentPage >= totalPages}
+              onClick={() => onPageChange?.(currentPage + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
       </div>
+      <Dialog open={selectedRow !== null} onOpenChange={(open) => !open && setSelectedRow(null)}>
+        <DialogContent className="max-h-[82vh] max-w-5xl overflow-hidden rounded-2xl border-slate-200 p-0">
+          <DialogHeader className="border-b border-slate-200 px-5 py-4">
+            <DialogTitle className="text-base">Row Detail</DialogTitle>
+            <DialogDescription>Full Velociraptor result row</DialogDescription>
+          </DialogHeader>
+          <pre className="max-h-[68vh] overflow-auto bg-slate-950 p-5 font-mono text-[11px] leading-5 text-slate-100">
+            {selectedRow ? JSON.stringify(selectedRow, null, 2) : ""}
+          </pre>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -682,10 +759,13 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
   const [detail, setDetail] = useState<GetForensicTaskFlowDetailData | null>(null)
   const [loading, setLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState("")
+  const [resultPage, setResultPage] = useState(1)
 
   const task = detail?.task
   const collection = detail?.artifact_collection
   const displayStatus = collection?.status || task?.status
+  const collectionFlow = useMemo(() => extractFlow(collection?.raw_json), [collection?.raw_json])
+  const resultTotalRows = numberValue(firstPath(collectionFlow, [["total_collected_rows"], ["TotalCollectedRows"]]))
   const target = useMemo(() => mergeTargetHost(task, fallbackTargetHost), [fallbackTargetHost, task])
   const ip = cleanList(target?.ip).join(", ")
   const mac = cleanList(target?.macs).join(", ")
@@ -696,10 +776,10 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
     try {
       const next = await getForensicTaskFlowDetail({
         task_id: taskId.trim(),
-        result_page: 1,
-        result_page_size: 200,
+        result_page: resultPage,
+        result_page_size: FLOW_RESULT_PAGE_SIZE,
         log_page: 1,
-        log_page_size: 300,
+        log_page_size: FLOW_LOG_PAGE_SIZE,
       })
       setDetail(next)
     } catch (error) {
@@ -709,11 +789,15 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
     } finally {
       setLoading(false)
     }
-  }, [taskId, t])
+  }, [resultPage, taskId, t])
 
   useEffect(() => {
     void load()
   }, [load])
+
+  useEffect(() => {
+    setResultPage(1)
+  }, [taskId])
 
   const handleDownloadFlow = useCallback(async () => {
     if (!task) return
@@ -966,7 +1050,13 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
                     />
                   </TabsContent>
                   <TabsContent value="results" className="m-0 h-full min-h-0 data-[state=inactive]:hidden">
-                    <FlowTable table={detail?.results} emptyText={detailT("emptyResults")} />
+                    <FlowTable
+                      table={detail?.results}
+                      emptyText={detailT("emptyResults")}
+                      totalRows={resultTotalRows}
+                      page={resultPage}
+                      onPageChange={setResultPage}
+                    />
                   </TabsContent>
                   <TabsContent value="uploads" className="m-0 h-full min-h-0 data-[state=inactive]:hidden">
                     <FlowTable table={detail?.uploaded_files} emptyText={detailT("emptyUploads")} />
