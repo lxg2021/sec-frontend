@@ -2389,6 +2389,7 @@
           "error": "错误"
         },
         "actions": {
+          "viewDetail": "查看详情",
           "sync": "同步",
           "cancel": "取消任务",
           "delete": "删除",

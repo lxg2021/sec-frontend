@@ -2387,6 +2387,7 @@
           "error": "Error"
         },
         "actions": {
+          "viewDetail": "View Detail",
           "sync": "Sync",
           "cancel": "Cancel Task",
           "delete": "Delete",

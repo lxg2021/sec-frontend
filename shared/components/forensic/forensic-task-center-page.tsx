@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Clock3,
   Download,
+  Eye,
   FileArchive,
   FileText,
   Hexagon,
@@ -29,6 +30,13 @@ import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu"
 import { Input } from "@/shared/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { cn } from "@/shared/lib/utils"
@@ -262,6 +270,10 @@ function JsonBlock({ value, className }: { value?: string; className?: string })
       {content}
     </pre>
   )
+}
+
+function canCancelTask(status: ForensicTaskStatus): boolean {
+  return status === "pending" || status === "running"
 }
 
 export function ForensicTaskCenterPage({ context }: Props) {
@@ -790,13 +802,24 @@ export function ForensicTaskCenterPage({ context }: Props) {
                         const ipTitle = ipList.join(", ")
                         const macTitle = macList.join(", ")
                         const targetStatus = taskOnlineStatus(task)
+                        const syncing = actionLoading === `sync:${task.task_id}`
+                        const downloadingFlow = actionLoading === `flow:${task.task_id}`
+                        const canceling = actionLoading === `cancel:${task.task_id}`
+                        const deleting = actionLoading === `delete:${task.task_id}`
                         return (
-                          <button
+                          <div
                             key={task.task_id}
-                            type="button"
+                            role="button"
+                            tabIndex={0}
                             onClick={() => selectTask(task)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                event.preventDefault()
+                                selectTask(task)
+                              }
+                            }}
                             className={cn(
-                              "grid w-full grid-cols-[82px_170px_165px_220px_120px_180px_96px_minmax(180px,1fr)_170px_60px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50",
+                              "grid w-full cursor-pointer grid-cols-[82px_170px_165px_220px_120px_180px_96px_minmax(180px,1fr)_170px_60px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200",
                               selectedTask?.task_id === task.task_id && "bg-blue-50/70 hover:bg-blue-50",
                             )}
                           >
@@ -853,10 +876,62 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             <span>
                               <span className="block font-mono text-xs text-slate-700">{formatUnixTime(task.created_at)}</span>
                             </span>
-                            <span className="flex justify-end">
-                              <MoreHorizontal className="h-5 w-5 text-slate-500" />
+                            <span
+                              className="flex justify-end"
+                              onClick={(event) => event.stopPropagation()}
+                              onKeyDown={(event) => event.stopPropagation()}
+                            >
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800"
+                                    aria-label={t("list.columns.actions")}
+                                  >
+                                    {syncing || downloadingFlow || canceling || deleting ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <MoreHorizontal className="h-5 w-5" />
+                                    )}
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-44 rounded-xl">
+                                  <DropdownMenuItem onSelect={() => selectTask(task)}>
+                                    <Eye className="h-4 w-4 text-slate-500" />
+                                    {t("actions.viewDetail")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem disabled={syncing} onSelect={() => void handleSync(task)}>
+                                    {syncing ? <Loader2 className="h-4 w-4 animate-spin text-blue-600" /> : <RefreshCw className="h-4 w-4 text-blue-600" />}
+                                    {t("actions.sync")}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    disabled={!task.remote_flow_id || downloadingFlow}
+                                    onSelect={() => void handleDownloadFlow(task)}
+                                  >
+                                    {downloadingFlow ? <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> : <FileArchive className="h-4 w-4 text-indigo-600" />}
+                                    {t("actions.downloadZip")}
+                                  </DropdownMenuItem>
+                                  {canCancelTask(task.status) ? (
+                                    <DropdownMenuItem disabled={canceling} onSelect={() => void handleCancel(task)}>
+                                      {canceling ? <Loader2 className="h-4 w-4 animate-spin text-amber-600" /> : <XCircle className="h-4 w-4 text-amber-600" />}
+                                      {t("actions.cancel")}
+                                    </DropdownMenuItem>
+                                  ) : null}
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    disabled={deleting}
+                                    onSelect={() => void handleDeleteTask(task)}
+                                    className="text-red-600 focus:bg-red-50 focus:text-red-700"
+                                  >
+                                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                                    {t("actions.deleteTask")}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </span>
-                          </button>
+                          </div>
                         )
                       })
                     )}
@@ -901,43 +976,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 </div>
                 <CardTitle className="truncate text-base font-semibold text-slate-950">{t("detail.title")}</CardTitle>
               </div>
-              {selectedTask ? (
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={actionLoading === `sync:${selectedTask.task_id}`}
-                    onClick={() => void handleSync(selectedTask)}
-                    title={t("actions.sync")}
-                  >
-                    {actionLoading === `sync:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    disabled={!selectedTask.remote_flow_id || actionLoading === `flow:${selectedTask.task_id}`}
-                    onClick={() => void handleDownloadFlow(selectedTask)}
-                    title={t("actions.downloadZip")}
-                  >
-                    {actionLoading === `flow:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileArchive className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-8 shrink-0 whitespace-nowrap border-red-200 px-3 text-red-600 hover:bg-red-50 hover:text-red-700"
-                    onClick={() => void handleDeleteTask(selectedTask)}
-                    disabled={actionLoading === `delete:${selectedTask.task_id}`}
-                    title={t("actions.deleteTask")}
-                  >
-                    {actionLoading === `delete:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                    {t("actions.deleteTask")}
-                  </Button>
-                </div>
-              ) : null}
             </CardHeader>
             <CardContent className="min-h-0 flex-1 overflow-hidden p-5">
               {!selectedTask ? (
@@ -967,16 +1005,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                     <section className="flex shrink-0 flex-col space-y-3">
                       <div className="flex items-center justify-between gap-3">
                         <h3 className="text-sm font-semibold text-slate-950">{t("detail.evidence")}</h3>
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={!selectedTask.remote_flow_id || actionLoading === `flow:${selectedTask.task_id}`}
-                          onClick={() => void handleDownloadFlow(selectedTask)}
-                          className="h-8 rounded-lg bg-slate-950 text-white hover:bg-slate-800"
-                        >
-                          <Download className="h-4 w-4" />
-                          {t("actions.zip")}
-                        </Button>
                       </div>
 
                       {evidenceLoading ? (
@@ -1035,20 +1063,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                           <div className="font-semibold">{selectedTask.error_code || t("detail.error")}</div>
                           <div className="mt-1 text-xs leading-5">{selectedTask.error_msg}</div>
                         </section>
-                      ) : null}
-
-                      {selectedTask.status === "pending" || selectedTask.status === "running" ? (
-                        <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => void handleCancel(selectedTask)}
-                            disabled={actionLoading === `cancel:${selectedTask.task_id}`}
-                          >
-                            {actionLoading === `cancel:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                            {t("actions.cancel")}
-                          </Button>
-                        </div>
                       ) : null}
                     </div>
                   </div>
