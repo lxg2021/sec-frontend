@@ -197,6 +197,15 @@ function canCancelTask(status: ForensicTaskStatus): boolean {
 
 function taskDetailHref(task: ForensicTaskItem): string {
   const params = new URLSearchParams({ task_id: task.task_id })
+  const target = task.target_host
+  const hostname = taskHostname(task)
+  const agentID = taskHostAgentID(task)
+  const ip = cleanList(target?.ip).join(",")
+  const macs = cleanList(target?.macs).join(",")
+  if (hostname) params.set("hostname", hostname)
+  if (agentID) params.set("agent_id", agentID)
+  if (ip) params.set("ip", ip)
+  if (macs) params.set("macs", macs)
   return `/frame/investigation/tasks/detail?${params.toString()}`
 }
 

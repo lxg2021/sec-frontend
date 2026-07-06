@@ -2394,7 +2394,7 @@
           },
           "fields": {
             "status": "Status",
-            "host": "Host",
+            "host": "Hostname",
             "hostId": "hostid",
             "network": "Network",
             "created": "Created",

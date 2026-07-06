@@ -40,12 +40,14 @@ import type {
   ForensicTaskFlowRequests,
   ForensicTaskFlowTable,
   ForensicTaskItem,
+  ForensicTaskTargetHost,
   ForensicTaskStatus,
   GetForensicTaskFlowDetailData,
 } from "@/shared/lib/forensic/types"
 
 interface Props {
   taskId?: string
+  fallbackTargetHost?: ForensicTaskTargetHost | null
 }
 
 function formatUnixTime(value?: number): string {
@@ -79,6 +81,31 @@ function statusIcon(status?: string) {
 
 function cleanList(values?: string[]): string[] {
   return (values ?? []).map((item) => item.trim()).filter(Boolean)
+}
+
+function mergeTargetHost(task?: ForensicTaskItem, fallback?: ForensicTaskTargetHost | null): ForensicTaskTargetHost | undefined {
+  const current = task?.target_host ?? undefined
+  const merged: ForensicTaskTargetHost = {
+    ...fallback,
+    ...current,
+    agent_id: current?.agent_id || fallback?.agent_id || task?.agent_id,
+    endpoint_id: current?.endpoint_id || fallback?.endpoint_id || task?.endpoint_id,
+    velociraptor_client_id: current?.velociraptor_client_id || fallback?.velociraptor_client_id || task?.velociraptor_client_id,
+    hostname: current?.hostname || fallback?.hostname,
+    ip: cleanList(current?.ip).length > 0 ? current?.ip : fallback?.ip,
+    macs: cleanList(current?.macs).length > 0 ? current?.macs : fallback?.macs,
+  }
+  if (
+    !merged.agent_id &&
+    !merged.endpoint_id &&
+    !merged.velociraptor_client_id &&
+    !merged.hostname &&
+    cleanList(merged.ip).length === 0 &&
+    cleanList(merged.macs).length === 0
+  ) {
+    return undefined
+  }
+  return merged
 }
 
 function saveDownload(blob: Blob, fileName: string) {
@@ -157,9 +184,20 @@ interface KeyValueRow {
 
 function HeaderMetaItem({ label, value, mono = false, className }: { label: string; value?: string; mono?: boolean; className?: string }) {
   return (
-    <div className={cn("min-w-0 px-4", className)}>
+    <div className={cn("min-w-0 border-l border-slate-200 px-4", className)}>
       <div className="truncate text-xs font-medium text-slate-500">{label}</div>
       <div className={cn("mt-1.5 truncate text-sm font-semibold text-slate-950", mono && "font-mono text-xs")} title={value || "-"}>
+        {value || "-"}
+      </div>
+    </div>
+  )
+}
+
+function HeaderTimeItem({ label, value, className }: { label: string; value?: string; className?: string }) {
+  return (
+    <div className={cn("min-w-0 border-l border-slate-200 px-4", className)}>
+      <div className="truncate text-xs text-slate-400">{label}</div>
+      <div className="mt-1 whitespace-nowrap text-sm font-medium tabular-nums text-slate-700" title={value || "-"}>
         {value || "-"}
       </div>
     </div>
@@ -651,7 +689,7 @@ function RequestsTab({ requests }: { requests?: ForensicTaskFlowRequests | null 
   )
 }
 
-export function ForensicTaskFlowDetailPage({ taskId }: Props) {
+export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props) {
   const t = useTranslations("pages.investigation.tasks")
   const detailT = useTranslations("pages.investigation.tasks.detail")
   const router = useRouter()
@@ -662,7 +700,7 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
   const task = detail?.task
   const collection = detail?.artifact_collection
   const displayStatus = collection?.status || task?.status
-  const target = task?.target_host
+  const target = useMemo(() => mergeTargetHost(task, fallbackTargetHost), [fallbackTargetHost, task])
   const ip = cleanList(target?.ip).join(", ")
   const mac = cleanList(target?.macs).join(", ")
 
@@ -797,8 +835,8 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
             </div>
 
             {task ? (
-              <div className="flex min-h-[76px] min-w-0 items-center overflow-hidden rounded-[22px] border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-slate-50 px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_8px_22px_rgba(15,23,42,0.045)]">
-                <div className="flex min-w-[118px] shrink-0 items-center gap-3 pr-4">
+              <div className="grid min-h-[76px] min-w-0 grid-cols-[118px_minmax(150px,1.05fr)_minmax(260px,1.45fr)_minmax(130px,0.85fr)_180px] items-center overflow-hidden px-1 py-3">
+                <div className="flex min-w-0 items-center gap-3 pr-4">
                   <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", statusClass(displayStatus))}>
                     {statusIcon(displayStatus)}
                   </span>
@@ -807,14 +845,10 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
                     <Badge className={cn("mt-1 border-0", statusClass(displayStatus))}>{displayStatus || "-"}</Badge>
                   </div>
                 </div>
-                <span className="h-12 w-px shrink-0 bg-slate-200" aria-hidden="true" />
-                <HeaderMetaItem className="flex-[1.1]" label={detailT("fields.host")} value={target?.hostname || task.agent_id || task.endpoint_id} />
-                <span className="h-12 w-px shrink-0 bg-slate-200" aria-hidden="true" />
-                <HeaderMetaItem className="flex-[1.45]" label={detailT("fields.hostId")} value={target?.agent_id || task.agent_id || "-"} mono />
-                <span className="h-12 w-px shrink-0 bg-slate-200" aria-hidden="true" />
-                <HeaderMetaItem className="flex-1" label={detailT("fields.network")} value={[ip, mac].filter(Boolean).join(" / ")} mono />
-                <span className="h-12 w-px shrink-0 bg-slate-200" aria-hidden="true" />
-                <HeaderMetaItem className="flex-1" label={detailT("fields.created")} value={formatUnixTime(task.created_at)} mono />
+                <HeaderMetaItem label={detailT("fields.host")} value={target?.hostname || "-"} />
+                <HeaderMetaItem label={detailT("fields.hostId")} value={target?.agent_id || task.agent_id || "-"} mono />
+                <HeaderMetaItem label={detailT("fields.network")} value={ip || "-"} mono />
+                <HeaderTimeItem label={detailT("fields.created")} value={formatUnixTime(task.created_at)} />
               </div>
             ) : loading ? (
               <div className="flex min-h-[76px] min-w-0 items-center justify-center rounded-[22px] border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
