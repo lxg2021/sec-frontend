@@ -5,8 +5,6 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
-  Activity,
-  AlertTriangle,
   ArrowLeft,
   Clock3,
   Database,
@@ -22,6 +20,7 @@ import {
   Server,
   Trash2,
   UploadCloud,
+  XCircle,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
@@ -29,6 +28,7 @@ import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card } from "@/shared/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
 import {
   cancelForensicTask,
@@ -861,17 +861,7 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
                 <span className="sr-only">{t("header.refresh")}</span>
               </Button>
               {task ? (
-                <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 rounded-full border-indigo-200 bg-indigo-50 px-3 text-indigo-700 hover:bg-indigo-100"
-                    onClick={() => void handleDownloadFlow()}
-                    disabled={!task.remote_flow_id || actionLoading === "download"}
-                  >
-                    {actionLoading === "download" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileArchive className="h-4 w-4" />}
-                    <span>{t("actions.downloadZip")}</span>
-                  </Button>
+                <TooltipProvider delayDuration={200}>
                   {canCancelTask(task.status) ? (
                     <Button
                       type="button"
@@ -884,17 +874,45 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
                       <span>{t("actions.cancel")}</span>
                     </Button>
                   ) : null}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-10 rounded-full border-red-200 bg-red-50 px-3 text-red-700 hover:bg-red-100"
-                    onClick={() => void handleDelete()}
-                    disabled={actionLoading === "delete"}
-                  >
-                    {actionLoading === "delete" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                    <span>{t("actions.deleteTask")}</span>
-                  </Button>
-                </>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 shrink-0 rounded-full border-0 text-indigo-500 shadow-none hover:bg-indigo-50 hover:text-indigo-700 disabled:pointer-events-none disabled:opacity-50"
+                          onClick={() => void handleDownloadFlow()}
+                          disabled={!task.remote_flow_id || actionLoading === "download"}
+                          aria-label={t("actions.downloadZip")}
+                        >
+                          {actionLoading === "download" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileArchive className="h-4 w-4" />}
+                          <span className="sr-only">{t("actions.downloadZip")}</span>
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">{t("actions.downloadZip")}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="inline-flex">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 shrink-0 rounded-full border-0 text-red-500 shadow-none hover:bg-red-50 hover:text-red-700 disabled:pointer-events-none disabled:opacity-50"
+                          onClick={() => void handleDelete()}
+                          disabled={actionLoading === "delete"}
+                          aria-label={t("actions.deleteTask")}
+                        >
+                          {actionLoading === "delete" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          <span className="sr-only">{t("actions.deleteTask")}</span>
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">{t("actions.deleteTask")}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               ) : null}
             </div>
           </div>
