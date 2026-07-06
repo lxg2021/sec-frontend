@@ -2101,16 +2101,15 @@
           "emptyTitle": "No forensic tasks",
           "emptyDescription": "Create a forensic task to view execution records.",
           "columns": {
-            "taskId": "Task ID",
             "status": "Status",
-            "artifact": "Artifact",
-            "target": "Target Host",
-            "hostId": "Host ID",
-            "hostname": "Hostname",
+            "taskId": "Task ID",
+            "caseId": "Case ID",
+            "host": "Host",
             "ip": "IP",
             "mac": "MAC",
             "online": "Online",
-            "updatedAt": "Updated At"
+            "artifact": "Artifact",
+            "created": "Created"
           },
           "noHostInfo": "Host info not synced",
           "onlineStatus": {

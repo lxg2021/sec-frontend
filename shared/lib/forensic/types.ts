@@ -117,6 +117,7 @@ export interface ForensicTaskTargetHost {
 
 export interface ForensicRecentTaskView {
   task_id: string
+  case_id?: string
   status: ForensicTaskStatus
   artifact_key: string
   artifact_name: string

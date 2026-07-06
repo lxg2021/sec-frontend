@@ -2103,16 +2103,15 @@
           "emptyTitle": "暂无取证任务",
           "emptyDescription": "请新建取证任务后查看执行记录",
           "columns": {
-            "taskId": "任务 ID",
             "status": "状态",
-            "artifact": "工件",
-            "target": "目标主机",
-            "hostId": "主机ID",
-            "hostname": "主机名",
+            "taskId": "任务 ID",
+            "caseId": "Case ID",
+            "host": "Host",
             "ip": "IP",
             "mac": "MAC",
-            "online": "在线状态",
-            "updatedAt": "更新时间"
+            "online": "在线",
+            "artifact": "工件",
+            "created": "创建时间"
           },
           "noHostInfo": "未同步主机信息",
           "onlineStatus": {

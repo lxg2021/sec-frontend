@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { cn } from "@/shared/lib/utils"
 import type { ForensicRecentTaskView, ForensicTaskTargetHost } from "@/shared/lib/forensic/types"
-import { formatClock } from "@/shared/lib/forensic/utils"
 import { ForensicPanelHeader } from "./forensic-panel-chrome"
 import { TASK_STATUS_CONFIG } from "./status-config"
 
@@ -24,12 +23,15 @@ function firstText(values: Array<string | undefined | null>): string {
   return ""
 }
 
-function listText(values?: string[]): string {
-  return (values ?? []).map((item) => item.trim()).filter(Boolean).join(", ")
-}
-
 function cleanList(values?: string[]): string[] {
   return (values ?? []).map((item) => item.trim()).filter(Boolean)
+}
+
+function formatUnixTime(value?: number): string {
+  if (!value) return "-"
+  const date = new Date(value * 1000)
+  const pad = (num: number) => String(num).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
 function onlineStatusKey(target?: ForensicTaskTargetHost | null): "online" | "offline" | "unknown" | "unsynced" {
@@ -98,29 +100,29 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
           </div>
         ) : (
           <div className="w-full overflow-x-auto">
-            <table className="w-full min-w-[1380px] table-fixed text-sm">
+            <table className="w-full min-w-[1208px] table-fixed text-sm">
               <colgroup>
-                <col className="w-[170px]" />
-                <col className="w-[110px]" />
-                <col className="w-[185px]" />
-                <col className="w-[245px]" />
-                <col className="w-[155px]" />
+                <col className="w-[82px]" />
                 <col className="w-[150px]" />
-                <col className="w-[180px]" />
-                <col className="w-[95px]" />
-                <col className="w-[90px]" />
+                <col className="w-[135px]" />
+                <col className="w-[165px]" />
+                <col className="w-[105px]" />
+                <col className="w-[145px]" />
+                <col className="w-[96px]" />
+                <col className="w-[170px]" />
+                <col className="w-[160px]" />
               </colgroup>
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
+                  <th className="px-2 pb-2 text-center font-medium">{t("recentTasks.columns.status")}</th>
                   <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.taskId")}</th>
-                  <th className="px-3 pb-2 text-center font-medium">{t("recentTasks.columns.status")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.artifact")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.hostId")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.hostname")}</th>
+                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.caseId")}</th>
+                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.host")}</th>
                   <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.ip")}</th>
                   <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.mac")}</th>
-                  <th className="px-3 pb-2 text-center font-medium">{t("recentTasks.columns.online")}</th>
-                  <th className="px-3 pb-2 text-center font-medium">{t("recentTasks.columns.updatedAt")}</th>
+                  <th className="px-2 pb-2 text-center font-medium">{t("recentTasks.columns.online")}</th>
+                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.artifact")}</th>
+                  <th className="px-3 pb-2 text-center font-medium">{t("recentTasks.columns.created")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -132,37 +134,41 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                   const agentID = firstText([target?.agent_id, task.target_label])
                   const ipList = cleanList(target?.ip)
                   const macList = cleanList(target?.macs)
-                  const ip = listText(ipList)
-                  const mac = listText(macList)
+                  const ipTitle = ipList.join(", ")
+                  const macTitle = macList.join(", ")
                   return (
                     <tr key={task.task_id} className="border-b border-border/60 last:border-0 transition-colors hover:bg-accent/40">
-                      <td className="py-3 pr-3">
-                        <Link href={`/frame/investigation/tasks?task_id=${task.task_id}`} className="block truncate font-mono text-xs text-foreground hover:underline">
-                          {task.task_id}
-                        </Link>
-                      </td>
-                      <td className="px-3 py-3 text-center">
-                        <span className={cn("relative inline-flex h-6 w-20 items-center justify-center rounded-full px-3 text-xs font-medium", config.className)}>
+                      <td className="px-2 py-3 text-center">
+                        <span className={cn("relative inline-flex h-6 w-16 items-center justify-center rounded-full px-2 text-xs font-medium", config.className)}>
                           <span className={cn("absolute left-2 size-1.5 rounded-full", config.dot)} />
                           <span className="min-w-0 truncate text-center lowercase">
                             {t(`taskStatus.${task.status}`)}
                           </span>
                         </span>
                       </td>
-                      <td className="truncate py-3 pr-3 font-mono text-xs text-muted-foreground">{task.artifact_key}</td>
                       <td className="py-3 pr-3">
-                        <span className="block truncate font-mono text-xs text-muted-foreground" title={agentID}>
-                          {agentID || "-"}
+                        <Link href={`/frame/investigation/tasks?task_id=${task.task_id}`} className="block truncate font-mono text-xs font-semibold text-foreground hover:underline">
+                          {task.task_id}
+                        </Link>
+                      </td>
+                      <td className="py-3 pr-3">
+                        <span className="block truncate font-mono text-xs text-foreground" title={task.case_id || "-"}>
+                          {task.case_id || "-"}
                         </span>
                       </td>
                       <td className="py-3 pr-3">
-                        <span className="block truncate text-xs font-medium text-foreground" title={hostname}>
-                          {hostname || "-"}
-                        </span>
+                        <div className="min-w-0">
+                          <span className="block truncate text-xs font-medium text-foreground" title={hostname}>
+                            {hostname || "-"}
+                          </span>
+                          <span className="mt-1 block truncate font-mono text-[11px] text-muted-foreground" title={agentID}>
+                            {agentID || "-"}
+                          </span>
+                        </div>
                       </td>
                       <td className="py-3 pr-3">
                         {ipList.length > 0 ? (
-                          <div className="flex flex-col gap-0.5 font-mono text-xs leading-5 text-muted-foreground" title={ip}>
+                          <div className="flex flex-col gap-0.5 font-mono text-xs leading-5 text-muted-foreground" title={ipTitle}>
                             {ipList.map((item) => (
                               <span key={item} className="block whitespace-nowrap">
                                 {item}
@@ -175,7 +181,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                       </td>
                       <td className="py-3 pr-3">
                         {macList.length > 0 ? (
-                          <div className="flex flex-col gap-0.5 font-mono text-xs leading-5 text-muted-foreground" title={mac}>
+                          <div className="flex flex-col gap-0.5 font-mono text-xs leading-5 text-muted-foreground" title={macTitle}>
                             {macList.map((item) => (
                               <span key={item} className="block whitespace-nowrap">
                                 {item}
@@ -186,7 +192,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                           <span className="block font-mono text-xs text-muted-foreground">-</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-center">
+                      <td className="px-2 py-3 text-center">
                         <span
                           className={cn(
                             "inline-flex h-5 min-w-20 items-center gap-1 rounded-full px-2 text-[10px] font-medium ring-1",
@@ -197,8 +203,9 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                           <span className="min-w-0 flex-1 truncate text-center">{t(`recentTasks.onlineStatus.${targetStatus}`)}</span>
                         </span>
                       </td>
+                      <td className="truncate py-3 pr-3 font-mono text-xs text-muted-foreground">{task.artifact_name || task.artifact_key}</td>
                       <td className="px-3 py-3 text-center text-xs text-muted-foreground tabular-nums">
-                        {formatClock(task.last_sync_at ?? task.created_at)}
+                        {formatUnixTime(task.created_at)}
                       </td>
                     </tr>
                   )
