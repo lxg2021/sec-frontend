@@ -253,6 +253,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id || "")
   const [selectedTaskId, setSelectedTaskId] = useState(context.task_id || "")
+  const [detailAttentionTaskId, setDetailAttentionTaskId] = useState("")
   const createPanelRef = useRef<HTMLDivElement | null>(null)
   const initialCreateArtifactKey = context.artifact_key?.trim() || ""
 
@@ -556,8 +557,16 @@ export function ForensicTaskCenterPage({ context }: Props) {
               className="px-6 py-5"
               onCreated={(task) => {
                 setPage(1)
+                setSelectedTaskId(task.task_id)
+                setDetailAttentionTaskId(task.task_id)
+                setTasks((current) => {
+                  const exists = current.some((item) => item.task_id === task.task_id)
+                  if (exists) {
+                    return current.map((item) => (item.task_id === task.task_id ? keepTaskTargetHost(task, item) : item))
+                  }
+                  return [task, ...current].slice(0, pageSize)
+                })
                 void refresh()
-                router.push(taskDetailHref(task))
               }}
             />
           </CardContent>
@@ -678,6 +687,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                       const duration = formatTaskDuration(task)
                       const errorSummary = taskErrorSummary(task)
                       const selected = task.task_id === selectedTaskId
+                      const detailAttention = detailAttentionTaskId === task.task_id && Boolean(task.remote_flow_id)
                       return (
                         <div
                           key={task.task_id}
@@ -798,11 +808,16 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               type="button"
                               variant="ghost"
                               size="sm"
-                              className="h-7 min-w-9 rounded-lg px-2 font-mono text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              className={cn(
+                                "h-7 min-w-9 rounded-lg px-2 font-mono text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700",
+                                detailAttention && "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-200 motion-safe:animate-pulse"
+                              )}
                               aria-label={t("actions.viewDetail")}
                               title={t("actions.viewDetail")}
                             >
-                              <Link href={taskDetailHref(task)}>-&gt;</Link>
+                              <Link href={taskDetailHref(task)} onClick={() => setDetailAttentionTaskId("")}>
+                                -&gt;
+                              </Link>
                             </Button>
                           </span>
                           <span
