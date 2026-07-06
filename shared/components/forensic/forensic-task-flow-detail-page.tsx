@@ -761,9 +761,9 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
   }
 
   return (
-    <main className="bg-slate-100/70">
-      <div className="flex w-full flex-col gap-4 p-4 xl:p-5">
-        <header className="w-full rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+    <main className="h-full overflow-hidden bg-slate-100/70">
+      <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-hidden p-4 xl:p-5">
+        <header className="w-full shrink-0 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
               <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full text-slate-500 hover:bg-slate-100">
@@ -841,7 +841,7 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
         </header>
 
         {loading && !task ? (
-          <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+          <Card className="shrink-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
             <CardContent className="p-5">
               <div className="flex min-h-[160px] items-center justify-center text-sm text-slate-500">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -850,7 +850,7 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
             </CardContent>
           </Card>
         ) : task ? (
-          <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+          <Card className="shrink-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
             <CardContent className="p-3.5">
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[150px_minmax(0,1fr)_210px_240px_200px]">
                 <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/80 px-3 py-3">
@@ -871,8 +871,8 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
           </Card>
         ) : null}
 
-        <Card className="flex h-[calc(100vh-32px)] min-h-[640px] w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-          <Tabs defaultValue="collection" className="flex min-h-0 w-full flex-1 flex-col">
+        <Card className="flex min-h-0 w-full flex-1 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
+          <Tabs defaultValue="collection" className="flex h-full min-h-0 w-full flex-col">
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-white px-5 py-3">
               <TabsList className="h-9 rounded-full bg-slate-50 p-1 shadow-sm ring-1 ring-slate-200">
                 <TabsTrigger value="collection" className="rounded-full px-3.5 text-xs data-[state=active]:bg-sky-100 data-[state=active]:text-sky-700">
@@ -910,7 +910,7 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
                 </div>
               ) : (
                 <>
-                  <TabsContent value="collection" className="m-0 h-full data-[state=inactive]:hidden">
+                  <TabsContent value="collection" className="m-0 h-full min-h-0 data-[state=inactive]:hidden">
                     <CollectionTab
                       task={task}
                       collection={collection}
@@ -921,16 +921,16 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
                       downloading={actionLoading === "download"}
                     />
                   </TabsContent>
-                  <TabsContent value="results" className="m-0 h-full data-[state=inactive]:hidden">
+                  <TabsContent value="results" className="m-0 h-full min-h-0 data-[state=inactive]:hidden">
                     <FlowTable table={detail?.results} emptyText={detailT("emptyResults")} />
                   </TabsContent>
-                  <TabsContent value="uploads" className="m-0 h-full data-[state=inactive]:hidden">
+                  <TabsContent value="uploads" className="m-0 h-full min-h-0 data-[state=inactive]:hidden">
                     <FlowTable table={detail?.uploaded_files} emptyText={detailT("emptyUploads")} />
                   </TabsContent>
-                  <TabsContent value="requests" className="m-0 h-full data-[state=inactive]:hidden">
+                  <TabsContent value="requests" className="m-0 h-full min-h-0 data-[state=inactive]:hidden">
                     <RequestsTab requests={detail?.requests} />
                   </TabsContent>
-                  <TabsContent value="logs" className="m-0 h-full data-[state=inactive]:hidden">
+                  <TabsContent value="logs" className="m-0 h-full min-h-0 data-[state=inactive]:hidden">
                     <FlowTable table={detail?.logs} emptyText={detailT("emptyLogs")} />
                   </TabsContent>
                 </>
