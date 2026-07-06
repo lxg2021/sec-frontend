@@ -2364,7 +2364,6 @@
           "title": "任务详情",
           "emptyTitle": "请选择任务",
           "emptyDescription": "从左侧任务列表选择一项查看详情",
-          "currentTask": "当前任务",
           "basic": "基础信息",
           "caseId": "Case ID",
           "agentId": "Agent ID",

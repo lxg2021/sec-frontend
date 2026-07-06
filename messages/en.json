@@ -2362,7 +2362,6 @@
           "title": "Task Detail",
           "emptyTitle": "Select a task",
           "emptyDescription": "Select a task from the left list to view details.",
-          "currentTask": "Current task",
           "basic": "Basic Info",
           "caseId": "Case ID",
           "agentId": "Agent ID",

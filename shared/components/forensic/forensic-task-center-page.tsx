@@ -871,7 +871,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                         {selectedTask.status === "success" ? <CheckCircle2 className="h-5 w-5" /> : selectedTask.status === "failed" ? <AlertTriangle className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <div className="text-xs text-slate-500">{t("detail.currentTask")}</div>
                         <div className="truncate font-mono text-sm font-semibold text-slate-900">{selectedTask.task_id}</div>
                         <div className="mt-0.5 truncate font-mono text-[11px] text-slate-400">Flow {selectedTask.remote_flow_id || "-"}</div>
                       </div>
