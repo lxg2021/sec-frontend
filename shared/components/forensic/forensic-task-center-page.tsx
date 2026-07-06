@@ -303,6 +303,9 @@ export function ForensicTaskCenterPage({ context }: Props) {
         task.agent_id,
         task.endpoint_id,
         task.velociraptor_client_id,
+        task.target_host?.hostname,
+        ...(task.target_host?.ip ?? []),
+        ...(task.target_host?.macs ?? []),
         task.artifact_key,
         task.artifact_name,
       ]
@@ -700,76 +703,9 @@ export function ForensicTaskCenterPage({ context }: Props) {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[18px] border-0 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-slate-950">{t("filters.title")}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1.2fr_1fr_1fr_1.2fr_0.8fr_auto]">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                placeholder={t("filters.keyword")}
-                className="h-10 pl-9"
-              />
-            </div>
-            <Input
-              value={caseId}
-              onChange={(event) => {
-                setCaseId(event.target.value)
-                setPage(1)
-              }}
-              placeholder={t("filters.caseId")}
-              className="h-10"
-            />
-            <Input
-              value={endpointId}
-              onChange={(event) => {
-                setEndpointId(event.target.value)
-                setPage(1)
-              }}
-              placeholder={t("filters.endpoint")}
-              className="h-10"
-            />
-            <Input
-              value={artifactKey}
-              onChange={(event) => {
-                setArtifactKey(event.target.value)
-                setPage(1)
-              }}
-              placeholder={t("filters.artifact")}
-              className="h-10"
-            />
-            <Select
-              value={status}
-              onValueChange={(value) => {
-                setStatus(value as ForensicTaskStatus | "all")
-                setPage(1)
-              }}
-            >
-              <SelectTrigger className="h-10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t("filters.allStatus")}</SelectItem>
-                {TASK_STATUSES.map((item) => (
-                  <SelectItem key={item} value={item}>
-                    {t(`status.${item}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="button" variant="outline" onClick={() => void refresh()} disabled={loading} className="h-10">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-              {t("filters.apply")}
-            </Button>
-          </CardContent>
-        </Card>
-
         <section className="grid flex-1 grid-cols-1 items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_640px]">
           <Card className="flex h-full flex-col overflow-hidden rounded-[18px] border-0 shadow-[0_12px_34px_rgba(15,23,42,0.08)]" style={{ height: taskPanelHeight }}>
-            <CardHeader className="flex-row items-center justify-between border-b border-slate-200 px-6 py-4">
+            <CardHeader className="flex-row items-center justify-between gap-4 border-b border-slate-200 px-6 py-4">
               <div className="flex min-w-0 items-center gap-3">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-500/20">
                   <ListChecks aria-hidden className="h-5 w-5" />
@@ -781,12 +717,54 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   </CardTitle>
                 </div>
               </div>
+              <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+                <div className="relative w-full max-w-[240px]">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    value={keyword}
+                    onChange={(event) => setKeyword(event.target.value)}
+                    placeholder={t("filters.keyword")}
+                    className="h-9 rounded-lg border-slate-200 bg-slate-50 pl-9 text-xs"
+                  />
+                </div>
+                <Input
+                  value={caseId}
+                  onChange={(event) => {
+                    setCaseId(event.target.value)
+                    setPage(1)
+                  }}
+                  placeholder={t("filters.caseId")}
+                  className="h-9 w-[130px] rounded-lg border-slate-200 bg-slate-50 text-xs"
+                />
+                <Select
+                  value={status}
+                  onValueChange={(value) => {
+                    setStatus(value as ForensicTaskStatus | "all")
+                    setPage(1)
+                  }}
+                >
+                  <SelectTrigger className="h-9 w-[120px] rounded-lg border-slate-200 bg-slate-50 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("filters.allStatus")}</SelectItem>
+                    {TASK_STATUSES.map((item) => (
+                      <SelectItem key={item} value={item}>
+                        {t(`status.${item}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="icon" onClick={() => void refresh()} disabled={loading} className="h-9 w-9 shrink-0 rounded-lg" title={t("filters.apply")}>
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                </Button>
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 disabled={!selectedTask || loading || actionLoading.startsWith("sync:")}
                 onClick={() => selectedTask && void handleSync(selectedTask)}
-                className="h-9 rounded-lg bg-blue-50 px-3 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                className="h-9 shrink-0 rounded-lg bg-blue-50 px-3 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
               >
                 {actionLoading.startsWith("sync:") ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 {t("actions.sync")}
