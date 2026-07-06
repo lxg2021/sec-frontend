@@ -395,11 +395,13 @@ export function ForensicCreateTaskForm({
   const [values, setValues] = useState<ParamValues>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loadingOptions, setLoadingOptions] = useState(false)
+  const [optionsLoaded, setOptionsLoaded] = useState(false)
   const [loadingArtifact, setLoadingArtifact] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [endpointKeyword, setEndpointKeyword] = useState("")
   const [confirmHighRisk, setConfirmHighRisk] = useState(false)
   const [initialArtifactApplied, setInitialArtifactApplied] = useState(false)
+  const normalizedInitialArtifactKey = initialArtifactKey?.trim() || ""
 
   const fields = useMemo(
     () => (artifactDef ? parseParamFields(artifactDef, locale) : []),
@@ -451,6 +453,7 @@ export function ForensicCreateTaskForm({
 
   const loadOptions = useCallback(async () => {
     setLoadingOptions(true)
+    setOptionsLoaded(false)
     try {
       const [endpointResult, artifactResult] = await Promise.all([
         listForensicEndpoints({ page: 1, page_size: 200 }),
@@ -471,6 +474,7 @@ export function ForensicCreateTaskForm({
       })
     } finally {
       setLoadingOptions(false)
+      setOptionsLoaded(true)
     }
   }, [context.agent_id, context.endpoint_id, t])
 
@@ -486,17 +490,25 @@ export function ForensicCreateTaskForm({
       setErrors({})
       setConfirmHighRisk(false)
       setInitialArtifactApplied(false)
+      setOptionsLoaded(false)
     }
   }, [active])
 
   useEffect(() => {
-    const nextKey = initialArtifactKey?.trim()
-    if (!active || !nextKey || initialArtifactApplied || loadingArtifact) return
+    setInitialArtifactApplied(false)
+  }, [normalizedInitialArtifactKey])
+
+  useEffect(() => {
+    const nextKey = normalizedInitialArtifactKey
+    if (!active || !nextKey || initialArtifactApplied || loadingArtifact || !optionsLoaded) return
     if (artifactKey === nextKey) {
       setInitialArtifactApplied(true)
       return
     }
-    if (artifacts.length > 0 && !artifacts.some((item) => item.artifact_key === nextKey)) return
+    if (!artifacts.some((item) => item.artifact_key === nextKey)) {
+      setInitialArtifactApplied(true)
+      return
+    }
     setInitialArtifactApplied(true)
     void handleArtifactChange(nextKey)
   }, [
@@ -504,8 +516,9 @@ export function ForensicCreateTaskForm({
     artifacts,
     handleArtifactChange,
     initialArtifactApplied,
-    initialArtifactKey,
     loadingArtifact,
+    normalizedInitialArtifactKey,
+    optionsLoaded,
     active,
   ])
 

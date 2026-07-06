@@ -287,7 +287,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
   const [keyword, setKeyword] = useState("")
   const [caseId, setCaseId] = useState(context.case_id || "")
   const [endpointId, setEndpointId] = useState(context.endpoint_id || "")
-  const [artifactKey, setArtifactKey] = useState(context.artifact_key || "")
   const [status, setStatus] = useState<ForensicTaskStatus | "all">(context.status || "all")
   const [loading, setLoading] = useState(false)
   const [evidenceLoading, setEvidenceLoading] = useState(false)
@@ -296,6 +295,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
   const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id || "")
   const selectedTaskIdRef = useRef<string>("")
   const createPanelRef = useRef<HTMLDivElement | null>(null)
+  const initialCreateArtifactKey = context.artifact_key?.trim() || ""
 
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const filteredTasks = useMemo(() => {
@@ -380,7 +380,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
       case_id: caseId.trim(),
       endpoint_id: endpointId.trim(),
       velociraptor_client_id: context.velociraptor_client_id,
-      artifact_key: artifactKey.trim(),
       status: status === "all" ? undefined : status,
       workflow_id: context.workflow_id,
       workflow_action_id: context.workflow_action_id,
@@ -414,7 +413,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
       setLoading(false)
     }
   }, [
-    artifactKey,
     caseId,
     context.task_id,
     context.velociraptor_client_id,
@@ -695,7 +693,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
           <CardContent className="p-0">
             <ForensicCreateTaskForm
               context={createDialogContext}
-              initialArtifactKey={artifactKey.trim()}
+              initialArtifactKey={initialCreateArtifactKey}
               layout="workspace"
               formId={CREATE_TASK_FORM_ID}
               showFooter={false}
