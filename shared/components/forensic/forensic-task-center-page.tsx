@@ -856,7 +856,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 </div>
               ) : null}
             </CardHeader>
-            <CardContent className="space-y-5 p-6">
+            <CardContent className="space-y-4 p-5">
               {!selectedTask ? (
                 <div className="flex h-96 flex-col items-center justify-center text-center">
                   <FileText className="h-10 w-10 text-slate-300" />
@@ -865,7 +865,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 </div>
               ) : (
                 <>
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                  <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
                       <span className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl", statusClass(selectedTask.status))}>
                         {selectedTask.status === "success" ? <CheckCircle2 className="h-5 w-5" /> : selectedTask.status === "failed" ? <AlertTriangle className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
@@ -879,35 +879,43 @@ export function ForensicTaskCenterPage({ context }: Props) {
                         {t(`status.${selectedTask.status}`)}
                       </span>
                     </div>
-                  </div>
 
-                  <section className="space-y-3">
-                    <h3 className="text-sm font-semibold text-slate-950">{t("detail.basic")}</h3>
-                    <div className="grid grid-cols-[110px_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
-                      <span className="text-slate-500">{t("detail.caseId")}</span>
-                      <span className="truncate font-mono text-xs text-slate-800">{selectedTask.case_id || "-"}</span>
-                      <span className="text-slate-500">{t("detail.agentId")}</span>
-                      <span className="truncate font-mono text-xs text-slate-800">{selectedTask.agent_id || "-"}</span>
-                      <span className="text-slate-500">{t("detail.clientId")}</span>
-                      <span className="truncate font-mono text-xs text-slate-800">{selectedTask.velociraptor_client_id || "-"}</span>
-                      <span className="text-slate-500">{t("detail.artifact")}</span>
-                      <span className="truncate font-mono text-xs text-slate-800">{selectedTask.artifact_name || selectedTask.artifact_key}</span>
-                      <span className="text-slate-500">{t("detail.createdAt")}</span>
-                      <span className="font-mono text-xs text-slate-800">{formatUnixTime(selectedTask.created_at)}</span>
+                    <div className="mt-3 grid gap-x-4 gap-y-2 border-t border-slate-200 pt-3 sm:grid-cols-2">
+                      <div className="min-w-0">
+                        <div className="text-xs text-slate-500">{t("detail.caseId")}</div>
+                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.case_id || "-"}</div>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-slate-500">{t("detail.agentId")}</div>
+                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.agent_id || "-"}</div>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-slate-500">{t("detail.clientId")}</div>
+                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.velociraptor_client_id || "-"}</div>
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-slate-500">{t("detail.artifact")}</div>
+                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.artifact_name || selectedTask.artifact_key}</div>
+                      </div>
+                      <div className="min-w-0 sm:col-span-2">
+                        <div className="text-xs text-slate-500">{t("detail.createdAt")}</div>
+                        <div className="mt-1 font-mono text-xs text-slate-800">{formatUnixTime(selectedTask.created_at)}</div>
+                      </div>
                     </div>
                   </section>
 
-                  <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <h3 className="text-sm font-semibold text-slate-950">{t("detail.flowStatus")}</h3>
-                    <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+                  <section className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <h3 className="text-sm font-semibold text-slate-950">{t("detail.flowStatus")}</h3>
                       <span className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-emerald-500" />
                         <span className="font-mono text-xs text-slate-800">{selectedFlow?.state || "-"}</span>
                       </span>
-                      <span className="text-slate-300">|</span>
-                      <span className="text-slate-600">{t("detail.uploads", { count: selectedFlow?.uploads ?? 0 })}</span>
-                      <span className="text-slate-300">|</span>
-                      <span className="text-slate-600">{t("detail.logs", { count: selectedFlow?.logs ?? 0 })}</span>
+                      <div className="flex items-center gap-3 text-sm">
+                        <span className="text-slate-600">{t("detail.uploads", { count: selectedFlow?.uploads ?? 0 })}</span>
+                        <span className="text-slate-300">|</span>
+                        <span className="text-slate-600">{t("detail.logs", { count: selectedFlow?.logs ?? 0 })}</span>
+                      </div>
                     </div>
                   </section>
 
