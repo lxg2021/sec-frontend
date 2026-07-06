@@ -2351,13 +2351,14 @@
           "columns": {
             "status": "Status",
             "task": "Task ID",
+            "case": "Case ID",
             "host": "Host",
-            "hostname": "Hostname",
+            "hostname": "Host / Agent",
             "ip": "IP",
             "mac": "MAC",
             "online": "Online",
             "artifact": "Artifact",
-            "flow": "Flow",
+            "flow": "Flow / Sync",
             "created": "Created",
             "actions": "Actions"
           },

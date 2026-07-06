@@ -2353,13 +2353,14 @@
           "columns": {
             "status": "状态",
             "task": "任务 ID",
+            "case": "Case ID",
             "host": "主机",
-            "hostname": "主机名",
+            "hostname": "主机 / Agent",
             "ip": "IP",
             "mac": "MAC",
             "online": "在线",
             "artifact": "工件",
-            "flow": "Flow",
+            "flow": "Flow / 同步",
             "created": "创建时间",
             "actions": "操作"
           },
