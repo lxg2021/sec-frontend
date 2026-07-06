@@ -372,10 +372,14 @@ export async function listForensicEndpoints(
 export async function listForensicArtifacts(
   params: ListForensicArtifactsRequest = {},
 ): Promise<ListForensicArtifactsData> {
-  const result = await http.post("listForensicArtifacts", {
-    request_id: createRequestId(),
-    ...params,
-  })
+  const result = await http.post(
+    "listForensicArtifacts",
+    {
+      request_id: createRequestId(),
+      ...params,
+    },
+    { timeout: 60000 },
+  )
   const data = result.data as Partial<ListForensicArtifactsData> | null
   return {
     items: Array.isArray(data?.items) ? data.items : [],
@@ -385,10 +389,14 @@ export async function listForensicArtifacts(
 export async function getForensicArtifactDefinition(
   artifactKey: string,
 ): Promise<ForensicArtifactDefinitionItem> {
-  const result = await http.post("getForensicArtifactDefinition", {
-    request_id: createRequestId(),
-    artifact_key: artifactKey,
-  })
+  const result = await http.post(
+    "getForensicArtifactDefinition",
+    {
+      request_id: createRequestId(),
+      artifact_key: artifactKey,
+    },
+    { timeout: 60000 },
+  )
   const data = result.data as { artifact?: ForensicArtifactDefinitionItem } | null
   if (!data?.artifact) {
     throw new Error("forensic artifact definition is empty")

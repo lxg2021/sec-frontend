@@ -17,6 +17,13 @@ export class HttpError extends Error {
   }
 }
 
+function isAbortLikeError(error) {
+  if (!error) return false
+  if (error.name === "AbortError" || error.name === "TimeoutError") return true
+  const message = String(error.message || error).toLowerCase()
+  return message.includes("aborted") || message.includes("abort") || message.includes("timeout")
+}
+
 export function setAuthRefreshHandler(handler) {
   authRefreshHandler = handler
 }
@@ -48,8 +55,16 @@ export async function request(path, options = {}) {
   const apiConfig = await getApiConfig()
   const requestTimeout = timeout ?? apiConfig.timeout
   const controller = !signal && requestTimeout ? new AbortController() : null
+  let didTimeout = false
   const timeoutId = controller
-    ? window.setTimeout(() => controller.abort(), requestTimeout)
+    ? window.setTimeout(() => {
+        didTimeout = true
+        if (typeof DOMException !== "undefined") {
+          controller.abort(new DOMException(`request timeout after ${requestTimeout}ms`, "TimeoutError"))
+          return
+        }
+        controller.abort()
+      }, requestTimeout)
     : null
 
   const requestHeaders = {
@@ -97,6 +112,13 @@ export async function request(path, options = {}) {
     try {
       return await send()
     } catch (error) {
+      if (didTimeout && isAbortLikeError(error)) {
+        throw new HttpError(`request timeout after ${requestTimeout}ms`, {
+          status: 0,
+          code: -1,
+        })
+      }
+
       if (!auth || !retryOnAuthFailure || !authRefreshHandler || !isAuthError(error)) {
         throw error
       }

@@ -1,7 +1,7 @@
 "use client"
 
 import type { FormEvent } from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { AlertTriangle, Check, ChevronRight, Loader2, Search, Send } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
@@ -78,6 +78,18 @@ function parseJsonObject(value?: string): Record<string, unknown> {
   } catch {
     return {}
   }
+}
+
+function isAbortError(error: unknown): boolean {
+  if (!error) return false
+  if (typeof DOMException !== "undefined" && error instanceof DOMException) {
+    return error.name === "AbortError"
+  }
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase()
+    return error.name === "AbortError" || message.includes("aborted") || message.includes("abort")
+  }
+  return String(error).toLowerCase().includes("aborted")
 }
 
 function parseParameterDescriptions(
@@ -435,6 +447,7 @@ export function ForensicCreateTaskForm({
   const [endpointKeyword, setEndpointKeyword] = useState("")
   const [confirmHighRisk, setConfirmHighRisk] = useState(false)
   const [initialArtifactApplied, setInitialArtifactApplied] = useState(false)
+  const artifactRequestSeqRef = useRef(0)
   const normalizedInitialArtifactKey = initialArtifactKey?.trim() || ""
 
   const fields = useMemo(
@@ -466,6 +479,8 @@ export function ForensicCreateTaskForm({
 
   const handleArtifactChange = useCallback(
     async (nextKey: string) => {
+      const requestSeq = artifactRequestSeqRef.current + 1
+      artifactRequestSeqRef.current = requestSeq
       setArtifactKey(nextKey)
       setArtifactDef(null)
       setValues({})
@@ -474,15 +489,19 @@ export function ForensicCreateTaskForm({
       setLoadingArtifact(true)
       try {
         const definition = await getForensicArtifactDefinition(nextKey)
+        if (artifactRequestSeqRef.current !== requestSeq) return
         const nextFields = parseParamFields(definition, locale)
         setArtifactDef(definition)
         setValues(buildInitialValues(definition, nextFields))
       } catch (error) {
+        if (artifactRequestSeqRef.current !== requestSeq || isAbortError(error)) return
         toast.error(t("toast.artifactFailed"), {
           description: error instanceof Error ? error.message : t("toast.retry"),
         })
       } finally {
-        setLoadingArtifact(false)
+        if (artifactRequestSeqRef.current === requestSeq) {
+          setLoadingArtifact(false)
+        }
       }
     },
     [locale, t],
@@ -521,6 +540,7 @@ export function ForensicCreateTaskForm({
 
   useEffect(() => {
     if (!active) {
+      artifactRequestSeqRef.current += 1
       setArtifactKey("")
       setArtifactDef(null)
       setValues({})
@@ -528,6 +548,7 @@ export function ForensicCreateTaskForm({
       setConfirmHighRisk(false)
       setInitialArtifactApplied(false)
       setOptionsLoaded(false)
+      setLoadingArtifact(false)
     }
   }, [active])
 
