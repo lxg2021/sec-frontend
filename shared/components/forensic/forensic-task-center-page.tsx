@@ -73,10 +73,15 @@ const TASK_STATUSES: ForensicTaskStatus[] = [
 ]
 
 const CREATE_TASK_FORM_ID = "forensic-task-center-create-form"
-const TASK_PANEL_MIN_HEIGHT = 680
+const TASK_PANEL_MIN_HEIGHT = 820
 const TASK_PANEL_FIXED_HEIGHT = 173
 const TASK_LIST_ROW_HEIGHT = 58
 const TASK_LIST_EMPTY_ROWS = 5
+const EVIDENCE_VISIBLE_ROWS = 5
+const EVIDENCE_ROW_HEIGHT = 52
+const EVIDENCE_ROW_GAP = 8
+const EVIDENCE_LIST_HEIGHT =
+  EVIDENCE_VISIBLE_ROWS * EVIDENCE_ROW_HEIGHT + (EVIDENCE_VISIBLE_ROWS - 1) * EVIDENCE_ROW_GAP
 
 function formatUnixTime(value?: number): string {
   if (!value) return "-"
@@ -248,19 +253,6 @@ function saveDownload(blob: Blob, fileName: string) {
   window.URL.revokeObjectURL(url)
 }
 
-function flowInfo(task: ForensicTaskItem): { state: string; uploads: number; logs: number } {
-  const parsed = parseJson(task.flow_status_json)
-  if (!parsed || typeof parsed !== "object") return { state: task.status.toUpperCase(), uploads: 0, logs: 0 }
-  const obj = parsed as Record<string, unknown>
-  const getFlow = Array.isArray(obj.get_flow) ? obj.get_flow : []
-  const first = getFlow[0] as Record<string, unknown> | undefined
-  const flow = first?.Flow as Record<string, unknown> | undefined
-  const state = typeof flow?.state === "string" ? flow.state : task.status.toUpperCase()
-  const uploads = Array.isArray(obj.uploads) ? obj.uploads.length : 0
-  const logs = Array.isArray(obj.flow_logs) ? obj.flow_logs.length : 0
-  return { state, uploads, logs }
-}
-
 function JsonBlock({ value }: { value?: string }) {
   const parsed = parseJson(value)
   const content = parsed ? JSON.stringify(parsed, null, 2) : value || "-"
@@ -315,7 +307,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
     )
   }, [keyword, tasks])
 
-  const selectedFlow = selectedTask ? flowInfo(selectedTask) : null
   const taskPanelRows = filteredTasks.length === 0 ? TASK_LIST_EMPTY_ROWS : Math.min(filteredTasks.length, pageSize)
   const taskPanelHeight = Math.max(TASK_PANEL_MIN_HEIGHT, TASK_PANEL_FIXED_HEIGHT + taskPanelRows * TASK_LIST_ROW_HEIGHT)
   const createDialogContext = useMemo(
@@ -346,7 +337,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
     async (taskId: string) => {
       setEvidenceLoading(true)
       try {
-        const result = await listForensicEvidence({ task_id: taskId, page: 1, page_size: 10 })
+        const result = await listForensicEvidence({ task_id: taskId, page: 1, page_size: 100 })
         setEvidence(result.items)
       } catch (error) {
         setEvidence([])
@@ -947,7 +938,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 </div>
               ) : null}
             </CardHeader>
-            <CardContent className="min-h-0 flex-1 overflow-hidden p-5">
+            <CardContent className="min-h-0 flex-1 overflow-y-auto p-5">
               {!selectedTask ? (
                 <div className="flex h-full min-h-72 flex-col items-center justify-center text-center">
                   <FileText className="h-10 w-10 text-slate-300" />
@@ -955,7 +946,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   <div className="mt-1 text-xs text-slate-500">{t("detail.emptyDescription")}</div>
                 </div>
               ) : (
-                <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
+                <div className="flex min-h-full flex-col gap-4">
                   <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
                       <span className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl", statusClass(selectedTask.status))}>
@@ -969,45 +960,10 @@ export function ForensicTaskCenterPage({ context }: Props) {
                         {t(`status.${selectedTask.status}`)}
                       </span>
                     </div>
-
-                    <div className="mt-3 grid gap-x-6 gap-y-3 border-t border-slate-200 pt-3 sm:grid-cols-2">
-                      <div className="min-w-0">
-                        <div className="text-xs text-slate-500">{t("detail.caseId")}</div>
-                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.case_id || "-"}</div>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs text-slate-500">{t("detail.agentId")}</div>
-                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.agent_id || "-"}</div>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs text-slate-500">{t("detail.artifact")}</div>
-                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.artifact_name || selectedTask.artifact_key}</div>
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs text-slate-500">{t("detail.createdAt")}</div>
-                        <div className="mt-1 font-mono text-xs text-slate-800">{formatUnixTime(selectedTask.created_at)}</div>
-                      </div>
-                    </div>
                   </section>
 
-                  <section className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <h3 className="text-sm font-semibold text-slate-950">{t("detail.flowStatus")}</h3>
-                      <span className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        <span className="font-mono text-xs text-slate-800">{selectedFlow?.state || "-"}</span>
-                      </span>
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className="text-slate-600">{t("detail.uploads", { count: selectedFlow?.uploads ?? 0 })}</span>
-                        <span className="text-slate-300">|</span>
-                        <span className="text-slate-600">{t("detail.logs", { count: selectedFlow?.logs ?? 0 })}</span>
-                      </div>
-                    </div>
-                  </section>
-
-                  <div className="min-h-0 flex-1 overflow-hidden">
-                    <div className="grid h-full min-h-0 grid-rows-[minmax(96px,0.9fr)_minmax(128px,1fr)_auto] gap-4">
-                      <section className="flex min-h-0 flex-col space-y-3 overflow-hidden">
+                  <div className="flex min-h-0 flex-1 flex-col gap-4">
+                    <section className="flex shrink-0 flex-col space-y-3">
                       <div className="flex items-center justify-between gap-3">
                         <h3 className="text-sm font-semibold text-slate-950">{t("detail.evidence")}</h3>
                         <Button
@@ -1023,18 +979,18 @@ export function ForensicTaskCenterPage({ context }: Props) {
                       </div>
 
                       {evidenceLoading ? (
-                        <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-slate-500">
+                        <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 text-sm text-slate-500" style={{ height: EVIDENCE_LIST_HEIGHT }}>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           {t("detail.evidenceLoading")}
                         </div>
                       ) : evidence.length === 0 ? (
-                        <div className="flex min-h-0 flex-1 items-center justify-center rounded-xl border border-dashed border-slate-200 px-4 py-4 text-center text-sm text-slate-500">
+                        <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 px-4 py-4 text-center text-sm text-slate-500" style={{ height: EVIDENCE_LIST_HEIGHT }}>
                           {t("detail.noEvidence")}
                         </div>
                       ) : (
-                        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                        <div className="space-y-2 overflow-y-auto pr-1" style={{ height: EVIDENCE_LIST_HEIGHT }}>
                           {evidence.map((item) => (
-                            <div key={item.artifact_id} className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                            <div key={item.artifact_id} className="flex min-h-[52px] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                               <FileText className="h-5 w-5 shrink-0 text-slate-500" />
                               <div className="min-w-0 flex-1">
                                 <div className="truncate font-mono text-xs text-slate-800">{evidenceName(item)}</div>
@@ -1065,35 +1021,34 @@ export function ForensicTaskCenterPage({ context }: Props) {
                           ))}
                         </div>
                       )}
-                      </section>
+                    </section>
 
-                      <section className="flex min-h-0 flex-col space-y-3 overflow-hidden">
-                        <h3 className="shrink-0 text-sm font-semibold text-slate-950">{t("detail.params")}</h3>
-                        <JsonBlock value={selectedTask.params_json} />
-                      </section>
+                    <section className="flex min-h-[168px] flex-1 flex-col space-y-3 overflow-hidden">
+                      <h3 className="shrink-0 text-sm font-semibold text-slate-950">{t("detail.params")}</h3>
+                      <JsonBlock value={selectedTask.params_json} />
+                    </section>
 
-                      <div className="space-y-4 overflow-hidden">
-                        {selectedTask.error_msg ? (
-                          <section className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                            <div className="font-semibold">{selectedTask.error_code || t("detail.error")}</div>
-                            <div className="mt-1 text-xs leading-5">{selectedTask.error_msg}</div>
-                          </section>
-                        ) : null}
+                    <div className="shrink-0 space-y-4">
+                      {selectedTask.error_msg ? (
+                        <section className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                          <div className="font-semibold">{selectedTask.error_code || t("detail.error")}</div>
+                          <div className="mt-1 text-xs leading-5">{selectedTask.error_msg}</div>
+                        </section>
+                      ) : null}
 
-                        {selectedTask.status === "pending" || selectedTask.status === "running" ? (
-                          <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => void handleCancel(selectedTask)}
-                              disabled={actionLoading === `cancel:${selectedTask.task_id}`}
-                            >
-                              {actionLoading === `cancel:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                              {t("actions.cancel")}
-                            </Button>
-                          </div>
-                        ) : null}
-                      </div>
+                      {selectedTask.status === "pending" || selectedTask.status === "running" ? (
+                        <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void handleCancel(selectedTask)}
+                            disabled={actionLoading === `cancel:${selectedTask.task_id}`}
+                          >
+                            {actionLoading === `cancel:${selectedTask.task_id}` ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                            {t("actions.cancel")}
+                          </Button>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </div>
