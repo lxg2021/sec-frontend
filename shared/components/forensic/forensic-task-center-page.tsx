@@ -80,8 +80,9 @@ const TASK_LIST_EMPTY_ROWS = 5
 const EVIDENCE_VISIBLE_ROWS = 5
 const EVIDENCE_ROW_HEIGHT = 52
 const EVIDENCE_ROW_GAP = 8
-const EVIDENCE_LIST_HEIGHT =
+const EVIDENCE_LIST_MAX_HEIGHT =
   EVIDENCE_VISIBLE_ROWS * EVIDENCE_ROW_HEIGHT + (EVIDENCE_VISIBLE_ROWS - 1) * EVIDENCE_ROW_GAP
+const EVIDENCE_EMPTY_HEIGHT = 96
 
 function formatUnixTime(value?: number): string {
   if (!value) return "-"
@@ -253,11 +254,11 @@ function saveDownload(blob: Blob, fileName: string) {
   window.URL.revokeObjectURL(url)
 }
 
-function JsonBlock({ value }: { value?: string }) {
+function JsonBlock({ value, className }: { value?: string; className?: string }) {
   const parsed = parseJson(value)
   const content = parsed ? JSON.stringify(parsed, null, 2) : value || "-"
   return (
-    <pre className="max-h-48 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-slate-100">
+    <pre className={cn("min-h-0 overflow-auto rounded-lg bg-slate-950 p-3 text-xs leading-5 text-slate-100", className)}>
       {content}
     </pre>
   )
@@ -938,7 +939,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 </div>
               ) : null}
             </CardHeader>
-            <CardContent className="min-h-0 flex-1 overflow-y-auto p-5">
+            <CardContent className="min-h-0 flex-1 overflow-hidden p-5">
               {!selectedTask ? (
                 <div className="flex h-full min-h-72 flex-col items-center justify-center text-center">
                   <FileText className="h-10 w-10 text-slate-300" />
@@ -946,8 +947,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   <div className="mt-1 text-xs text-slate-500">{t("detail.emptyDescription")}</div>
                 </div>
               ) : (
-                <div className="flex min-h-full flex-col gap-4">
-                  <section className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex h-full min-h-0 flex-col gap-4">
+                  <section className="shrink-0 rounded-xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center gap-3">
                       <span className={cn("inline-flex h-10 w-10 items-center justify-center rounded-xl", statusClass(selectedTask.status))}>
                         {selectedTask.status === "success" ? <CheckCircle2 className="h-5 w-5" /> : selectedTask.status === "failed" ? <AlertTriangle className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
@@ -979,16 +980,16 @@ export function ForensicTaskCenterPage({ context }: Props) {
                       </div>
 
                       {evidenceLoading ? (
-                        <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 text-sm text-slate-500" style={{ height: EVIDENCE_LIST_HEIGHT }}>
+                        <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 text-sm text-slate-500" style={{ height: EVIDENCE_EMPTY_HEIGHT }}>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           {t("detail.evidenceLoading")}
                         </div>
                       ) : evidence.length === 0 ? (
-                        <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 px-4 py-4 text-center text-sm text-slate-500" style={{ height: EVIDENCE_LIST_HEIGHT }}>
+                        <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 px-4 py-4 text-center text-sm text-slate-500" style={{ height: EVIDENCE_EMPTY_HEIGHT }}>
                           {t("detail.noEvidence")}
                         </div>
                       ) : (
-                        <div className="space-y-2 overflow-y-auto pr-1" style={{ height: EVIDENCE_LIST_HEIGHT }}>
+                        <div className="space-y-2 overflow-y-auto pr-1" style={{ maxHeight: EVIDENCE_LIST_MAX_HEIGHT }}>
                           {evidence.map((item) => (
                             <div key={item.artifact_id} className="flex min-h-[52px] items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
                               <FileText className="h-5 w-5 shrink-0 text-slate-500" />
@@ -1023,9 +1024,9 @@ export function ForensicTaskCenterPage({ context }: Props) {
                       )}
                     </section>
 
-                    <section className="flex min-h-[168px] flex-1 flex-col space-y-3 overflow-hidden">
+                    <section className="flex min-h-0 flex-1 flex-col space-y-3 overflow-hidden">
                       <h3 className="shrink-0 text-sm font-semibold text-slate-950">{t("detail.params")}</h3>
-                      <JsonBlock value={selectedTask.params_json} />
+                      <JsonBlock value={selectedTask.params_json} className="flex-1" />
                     </section>
 
                     <div className="shrink-0 space-y-4">
