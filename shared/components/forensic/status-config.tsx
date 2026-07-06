@@ -1,19 +1,4 @@
-import type { ForensicAvailabilityLevel, ForensicTaskStatus } from "@/shared/lib/forensic/types"
-
-export const AVAILABILITY_LEVEL_CONFIG: Record<
-  ForensicAvailabilityLevel,
-  { ring: string }
-> = {
-  available: {
-    ring: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  },
-  partial: {
-    ring: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  },
-  unavailable: {
-    ring: "bg-red-50 text-red-700 ring-1 ring-red-200",
-  },
-}
+import type { ForensicTaskStatus } from "@/shared/lib/forensic/types"
 
 export const TASK_STATUS_CONFIG: Record<
   ForensicTaskStatus,

@@ -7,16 +7,8 @@ import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Button } from "@/shared/ui/button"
 import { Checkbox } from "@/shared/ui/checkbox"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
-import { ScrollArea } from "@/shared/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -43,14 +35,6 @@ import type {
 } from "@/shared/lib/forensic/types"
 
 type ParamValues = Record<string, unknown>
-
-interface ForensicCreateTaskDialogProps {
-  open: boolean
-  context: ForensicOverviewContext
-  initialArtifactKey?: string
-  onOpenChange: (open: boolean) => void
-  onCreated?: (task: ForensicTaskItem) => void
-}
 
 interface ForensicCreateTaskFormProps {
   context: ForensicOverviewContext
@@ -840,38 +824,5 @@ export function ForensicCreateTaskForm({
       </section>
       {showFooter ? footer : null}
     </form>
-  )
-}
-
-export function ForensicCreateTaskDialog({
-  open,
-  context,
-  initialArtifactKey,
-  onOpenChange,
-  onCreated,
-}: ForensicCreateTaskDialogProps) {
-  const t = useTranslations("pages.investigation.tasks.create")
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] max-w-4xl overflow-hidden p-0">
-        <DialogHeader className="border-b border-slate-200 px-6 py-5">
-          <DialogTitle className="text-lg font-semibold text-slate-950">{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
-        </DialogHeader>
-
-        <ScrollArea className="max-h-[calc(88vh-6.5rem)]">
-          <ForensicCreateTaskForm
-            active={open}
-            context={context}
-            initialArtifactKey={initialArtifactKey}
-            onCancel={() => onOpenChange(false)}
-            onCreated={onCreated}
-            className="px-6 py-5"
-            footerClassName="-mx-6 -mb-5 border-t border-slate-200 bg-white px-6 py-4"
-          />
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
   )
 }
