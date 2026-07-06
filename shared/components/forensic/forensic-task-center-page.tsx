@@ -760,16 +760,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 </Button>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={!selectedTask || loading || actionLoading.startsWith("sync:")}
-                onClick={() => selectedTask && void handleSync(selectedTask)}
-                className="h-9 shrink-0 rounded-lg bg-blue-50 px-3 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
-              >
-                {actionLoading.startsWith("sync:") ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                {t("actions.sync")}
-              </Button>
             </CardHeader>
             <CardContent className="flex flex-1 flex-col p-0">
               <div className="flex-1 overflow-x-auto">
