@@ -26,7 +26,7 @@ import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent } from "@/shared/ui/card"
+import { Card } from "@/shared/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 import { cn } from "@/shared/lib/utils"
 import {
@@ -138,7 +138,7 @@ function canCancelTask(status?: string): boolean {
 
 function InfoItem({ label, value, mono = false, className }: { label: string; value?: string; mono?: boolean; className?: string }) {
   return (
-    <div className={cn("min-w-0 rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)]", className)}>
+    <div className={cn("min-w-0 rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_6px_18px_rgba(15,23,42,0.04)]", className)}>
       <div className="text-xs font-medium text-slate-500">{label}</div>
       <div className={cn("mt-1.5 truncate text-sm font-semibold text-slate-900", mono && "font-mono text-xs")} title={value || "-"}>
         {value || "-"}
@@ -767,42 +767,59 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
   return (
     <main className="h-full overflow-hidden bg-slate-100/70">
       <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-hidden p-4 xl:p-5">
-        <header className="w-full shrink-0 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+        <header className="w-full shrink-0 rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
-              <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full text-slate-500 hover:bg-slate-100">
+              <Button asChild variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full border border-slate-200 bg-slate-50 text-slate-500 shadow-inner shadow-white/70 hover:bg-slate-100 hover:text-slate-700">
                 <Link href="/frame/investigation/tasks">
                   <ArrowLeft className="h-5 w-5" />
                   <span className="sr-only">{detailT("back")}</span>
                 </Link>
               </Button>
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100 text-sky-600">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100 text-sky-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_8px_20px_rgba(2,132,199,0.12)]">
                 <ScrollText aria-hidden className="h-5 w-5" />
               </div>
-              <div className="min-w-0">
-                <h1 className="truncate text-lg font-semibold text-slate-950">{detailT("title")}</h1>
-                <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 text-sm text-slate-500">
-                  <span className="truncate font-mono text-xs">{task?.task_id || taskId}</span>
+              <div className="min-w-0 space-y-1.5">
+                <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">{detailT("title")}</h1>
+                <div className="flex min-w-0 flex-wrap items-center gap-2.5 text-sm">
+                  <span className="inline-flex h-7 items-center rounded-full border border-sky-500/20 bg-sky-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-sky-600">
+                    FORENSIC
+                  </span>
+                  <span className="min-w-0 truncate font-mono text-xs text-slate-500">{task?.task_id || taskId}</span>
                   {task?.case_id ? (
                     <>
                       <span className="h-4 w-px bg-slate-200" />
-                      <span className="truncate font-mono text-xs">{task.case_id}</span>
+                      <span className="truncate font-mono text-xs text-slate-500">{task.case_id}</span>
                     </>
                   ) : null}
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+                  <Clock3 aria-hidden className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs text-slate-400">{detailT("lastRefresh", { time: "" }).trim()}</div>
+                  <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">{formatUnixTime(collection?.last_refresh_at)}</div>
+                </div>
+              </div>
+
+              <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
               <Button
                 type="button"
                 variant="ghost"
-                className="h-10 rounded-full px-3 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                size="icon"
+                aria-label={t("header.refresh")}
+                className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
                 onClick={() => void load()}
                 disabled={loading}
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                <span>{t("header.refresh")}</span>
+                <span className="sr-only">{t("header.refresh")}</span>
               </Button>
               {task ? (
                 <>
@@ -842,38 +859,30 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
               ) : null}
             </div>
           </div>
-        </header>
 
-        {loading && !task ? (
-          <Card className="shrink-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-            <CardContent className="p-5">
-              <div className="flex min-h-[160px] items-center justify-center text-sm text-slate-500">
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {detailT("loading")}
-              </div>
-            </CardContent>
-          </Card>
-        ) : task ? (
-          <Card className="shrink-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
-            <CardContent className="p-3.5">
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[150px_minmax(0,1fr)_210px_240px_200px]">
-                <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/80 px-3 py-3">
-                  <span className={cn("inline-flex h-9 w-9 items-center justify-center rounded-xl", statusClass(displayStatus))}>
-                    {statusIcon(displayStatus)}
-                  </span>
-                  <div>
-                    <div className="text-xs font-medium text-slate-500">{detailT("fields.status")}</div>
-                    <Badge className={cn("mt-1 border-0", statusClass(displayStatus))}>{displayStatus || "-"}</Badge>
-                  </div>
+          {task ? (
+            <div className="mt-4 grid gap-3 border-t border-slate-100 pt-4 md:grid-cols-2 xl:grid-cols-[150px_minmax(0,1fr)_210px_240px_200px]">
+              <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.82),0_6px_18px_rgba(15,23,42,0.04)]">
+                <span className={cn("inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", statusClass(displayStatus))}>
+                  {statusIcon(displayStatus)}
+                </span>
+                <div className="min-w-0">
+                  <div className="text-xs font-medium text-slate-500">{detailT("fields.status")}</div>
+                  <Badge className={cn("mt-1 border-0", statusClass(displayStatus))}>{displayStatus || "-"}</Badge>
                 </div>
-                <InfoItem label={detailT("fields.host")} value={target?.hostname || task.agent_id || task.endpoint_id} />
-                <InfoItem label={detailT("fields.hostId")} value={target?.agent_id || task.agent_id || "-"} mono />
-                <InfoItem label={detailT("fields.network")} value={[ip, mac].filter(Boolean).join(" / ")} mono />
-                <InfoItem label={detailT("fields.created")} value={formatUnixTime(task.created_at)} mono />
               </div>
-            </CardContent>
-          </Card>
-        ) : null}
+              <InfoItem label={detailT("fields.host")} value={target?.hostname || task.agent_id || task.endpoint_id} />
+              <InfoItem label={detailT("fields.hostId")} value={target?.agent_id || task.agent_id || "-"} mono />
+              <InfoItem label={detailT("fields.network")} value={[ip, mac].filter(Boolean).join(" / ")} mono />
+              <InfoItem label={detailT("fields.created")} value={formatUnixTime(task.created_at)} mono />
+            </div>
+          ) : loading ? (
+            <div className="mt-4 flex h-14 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {detailT("loading")}
+            </div>
+          ) : null}
+        </header>
 
         <Card className="flex min-h-0 w-full flex-1 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]">
           <Tabs defaultValue="collection" className="flex h-full min-h-0 w-full flex-col">
@@ -900,9 +909,6 @@ export function ForensicTaskFlowDetailPage({ taskId }: Props) {
                   {detailT("tabs.logs")}
                 </TabsTrigger>
               </TabsList>
-              <div className="text-xs text-slate-500">
-                {detailT("lastRefresh", { time: formatUnixTime(collection?.last_refresh_at) })}
-              </div>
             </div>
 
             <div className="min-h-0 flex-1 overflow-hidden bg-slate-50/60 p-3.5">
