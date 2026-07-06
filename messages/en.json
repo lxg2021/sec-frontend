@@ -2365,7 +2365,6 @@
           "basic": "Basic Info",
           "caseId": "Case ID",
           "agentId": "Agent ID",
-          "clientId": "Client ID",
           "artifact": "Artifact",
           "createdAt": "Created At",
           "flowStatus": "Flow Status",

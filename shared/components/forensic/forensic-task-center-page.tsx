@@ -879,7 +879,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                       </span>
                     </div>
 
-                    <div className="mt-3 grid gap-x-4 gap-y-2 border-t border-slate-200 pt-3 sm:grid-cols-2">
+                    <div className="mt-3 grid gap-x-6 gap-y-3 border-t border-slate-200 pt-3 sm:grid-cols-2">
                       <div className="min-w-0">
                         <div className="text-xs text-slate-500">{t("detail.caseId")}</div>
                         <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.case_id || "-"}</div>
@@ -889,14 +889,10 @@ export function ForensicTaskCenterPage({ context }: Props) {
                         <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.agent_id || "-"}</div>
                       </div>
                       <div className="min-w-0">
-                        <div className="text-xs text-slate-500">{t("detail.clientId")}</div>
-                        <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.velociraptor_client_id || "-"}</div>
-                      </div>
-                      <div className="min-w-0">
                         <div className="text-xs text-slate-500">{t("detail.artifact")}</div>
                         <div className="mt-1 truncate font-mono text-xs text-slate-800">{selectedTask.artifact_name || selectedTask.artifact_key}</div>
                       </div>
-                      <div className="min-w-0 sm:col-span-2">
+                      <div className="min-w-0">
                         <div className="text-xs text-slate-500">{t("detail.createdAt")}</div>
                         <div className="mt-1 font-mono text-xs text-slate-800">{formatUnixTime(selectedTask.created_at)}</div>
                       </div>

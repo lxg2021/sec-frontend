@@ -2367,7 +2367,6 @@
           "basic": "基础信息",
           "caseId": "Case ID",
           "agentId": "Agent ID",
-          "clientId": "Client ID",
           "artifact": "工件",
           "createdAt": "创建时间",
           "flowStatus": "Flow 状态",
