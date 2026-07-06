@@ -773,8 +773,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
             </CardHeader>
             <CardContent className="flex flex-1 flex-col p-0">
               <div className="flex-1 overflow-x-auto">
-                <div className="flex h-full min-w-[1360px] flex-col">
-                  <div className="grid grid-cols-[82px_minmax(150px,1fr)_minmax(150px,0.95fr)_minmax(150px,1fr)_minmax(140px,0.85fr)_minmax(180px,1fr)_96px_minmax(180px,1.1fr)_minmax(170px,1fr)_60px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
+                <div className="flex h-full min-w-[1440px] flex-col">
+                  <div className="grid grid-cols-[82px_170px_165px_220px_120px_180px_96px_minmax(180px,1fr)_170px_60px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
                     <span>{t("list.columns.status")}</span>
                     <span>{t("list.columns.task")}</span>
                     <span>{t("list.columns.case")}</span>
@@ -814,7 +814,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             type="button"
                             onClick={() => selectTask(task)}
                             className={cn(
-                              "grid w-full grid-cols-[82px_minmax(150px,1fr)_minmax(150px,0.95fr)_minmax(150px,1fr)_minmax(140px,0.85fr)_minmax(180px,1fr)_96px_minmax(180px,1.1fr)_minmax(170px,1fr)_60px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50",
+                              "grid w-full grid-cols-[82px_170px_165px_220px_120px_180px_96px_minmax(180px,1fr)_170px_60px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50",
                               selectedTask?.task_id === task.task_id && "bg-blue-50/70 hover:bg-blue-50",
                             )}
                           >
