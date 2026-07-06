@@ -2360,7 +2360,7 @@
             "mac": "MAC",
             "online": "在线",
             "artifact": "工件",
-            "flow": "Flow / 同步",
+            "flow": "Flow ID",
             "created": "创建时间",
             "actions": "操作"
           },

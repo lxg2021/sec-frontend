@@ -868,11 +868,9 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             </span>
                             <span className="min-w-0">
                               <span className="block truncate font-mono text-xs text-slate-700">{task.artifact_name || task.artifact_key}</span>
-                              <span className="mt-1 block truncate text-[11px] text-slate-400">{task.task_type || "collect_artifact"}</span>
                             </span>
                             <span className="min-w-0">
-                              <span className="block truncate font-mono text-xs text-slate-700">{task.remote_flow_id || t("list.notDispatched")}</span>
-                              <span className="mt-1 block truncate text-[11px] text-slate-400">{task.last_sync_at ? t("list.synced") : t("list.notSynced")}</span>
+                              <span className="block truncate font-mono text-xs text-slate-700">{task.remote_flow_id || "-"}</span>
                             </span>
                             <span>
                               <span className="block text-xs text-slate-700">{formatClock(task.created_at)}</span>

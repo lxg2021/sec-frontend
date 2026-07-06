@@ -2358,7 +2358,7 @@
             "mac": "MAC",
             "online": "Online",
             "artifact": "Artifact",
-            "flow": "Flow / Sync",
+            "flow": "Flow ID",
             "created": "Created",
             "actions": "Actions"
           },
