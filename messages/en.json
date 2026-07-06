@@ -2362,6 +2362,7 @@
             "synced": "Synced",
             "duration": "Duration",
             "error": "Error Summary",
+            "detail": "Detail",
             "actions": "Actions"
           },
           "onlineStatus": {

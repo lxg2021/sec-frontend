@@ -6,7 +6,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Archive,
-  ArrowUpRight,
   ChevronLeft,
   ChevronRight,
   FileArchive,
@@ -597,8 +596,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
 
           <CardContent className="flex flex-1 flex-col p-0">
             <div className="flex-1 overflow-x-auto">
-              <div className="flex h-full min-w-[2050px] flex-col">
-                <div className="grid grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_92px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
+              <div className="flex h-full min-w-[2120px] flex-col">
+                <div className="grid grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px] border-b border-slate-200 px-6 py-3 text-xs text-slate-500">
                   <span>{t("list.columns.status")}</span>
                   <span>{t("list.columns.task")}</span>
                   <span>{t("list.columns.case")}</span>
@@ -612,6 +611,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   <span>{t("list.columns.synced")}</span>
                   <span>{t("list.columns.duration")}</span>
                   <span>{t("list.columns.error")}</span>
+                  <span className="text-center">{t("list.columns.detail")}</span>
                   <span className="text-right">{t("list.columns.actions")}</span>
                 </div>
 
@@ -654,7 +654,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               router.push(taskDetailHref(task))
                             }
                           }}
-                          className="grid w-full cursor-pointer grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_92px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
+                          className="grid w-full cursor-pointer grid-cols-[82px_150px_135px_150px_220px_132px_164px_88px_minmax(190px,1fr)_165px_165px_100px_220px_76px_76px] items-center border-b border-slate-100 px-6 py-3 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
                         >
                           <span className={cn("inline-flex h-6 w-16 items-center justify-center rounded-full text-xs font-semibold", statusClass(task.status))}>
                             {t(`status.${task.status}`)}
@@ -727,22 +727,29 @@ export function ForensicTaskCenterPage({ context }: Props) {
                             </span>
                           </span>
                           <span
-                            className="flex items-center justify-end gap-1"
+                            className="flex justify-center"
                             onClick={(event) => event.stopPropagation()}
                             onDoubleClick={(event) => event.stopPropagation()}
                             onKeyDown={(event) => event.stopPropagation()}
                           >
                             <Button
+                              asChild
                               type="button"
                               variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                              size="sm"
+                              className="h-7 min-w-9 rounded-lg px-2 font-mono text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                               aria-label={t("actions.viewDetail")}
                               title={t("actions.viewDetail")}
-                              onClick={() => router.push(taskDetailHref(task))}
                             >
-                              <ArrowUpRight className="h-4 w-4" />
+                              <Link href={taskDetailHref(task)}>-&gt;</Link>
                             </Button>
+                          </span>
+                          <span
+                            className="flex items-center justify-end gap-1"
+                            onClick={(event) => event.stopPropagation()}
+                            onDoubleClick={(event) => event.stopPropagation()}
+                            onKeyDown={(event) => event.stopPropagation()}
+                          >
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
@@ -760,10 +767,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-44 rounded-xl">
-                                <DropdownMenuItem onSelect={() => router.push(taskDetailHref(task))}>
-                                  <ArrowUpRight className="h-4 w-4 text-slate-500" />
-                                  {t("actions.viewDetail")}
-                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                   disabled={!task.remote_flow_id || downloadingFlow}
                                   onSelect={() => void handleDownloadFlow(task)}
