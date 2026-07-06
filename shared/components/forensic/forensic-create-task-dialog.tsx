@@ -80,6 +80,30 @@ function parseJsonObject(value?: string): Record<string, unknown> {
   }
 }
 
+function parseParameterDescriptions(
+  artifact: ForensicArtifactDefinitionItem,
+  locale: string,
+): Record<string, string> {
+  if (!artifact.parameter_docs_json) return {}
+
+  try {
+    const docs = JSON.parse(artifact.parameter_docs_json)
+    if (!Array.isArray(docs)) return {}
+
+    return docs.reduce<Record<string, string>>((result, doc: Record<string, unknown>) => {
+      const name = String(doc.name ?? "").trim()
+      const mapsTo = String(doc.maps_to ?? "").trim()
+      const description = stringValue(doc.description, locale)
+      if (!description) return result
+      if (name) result[name] = description
+      if (mapsTo) result[mapsTo] = description
+      return result
+    }, {})
+  } catch {
+    return {}
+  }
+}
+
 function artifactDescriptionForLocale(
   artifact: ForensicArtifactDefinitionItem,
   locale: string,
@@ -197,9 +221,13 @@ function parseParamFields(
   artifact: ForensicArtifactDefinitionItem,
   locale: string,
 ): ForensicArtifactParamField[] {
+  const parameterDescriptions = parseParameterDescriptions(artifact, locale)
   const schemaFields = parseInputSchemaFields(artifact, locale)
-  if (schemaFields.length > 0) return schemaFields
-  return parseNativeFields(artifact, locale)
+  const fields = schemaFields.length > 0 ? schemaFields : parseNativeFields(artifact, locale)
+  return fields.map((field) => ({
+    ...field,
+    description: parameterDescriptions[field.key] || field.description,
+  }))
 }
 
 function buildInitialValues(
