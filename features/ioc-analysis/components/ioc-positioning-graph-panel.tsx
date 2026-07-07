@@ -53,7 +53,7 @@ export function IocPositioningGraphPanel({
 
   return (
     <section className={className}>
-      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-700">
