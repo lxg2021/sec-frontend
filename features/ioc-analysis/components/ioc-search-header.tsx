@@ -26,7 +26,7 @@ interface IocSearchHeaderProps {
   canSearch: boolean
   onQueryTypeChange: (value: IocVerificationType) => void
   onQueryValueChange: (value: string) => void
-  onSearch: (event?: FormEvent<HTMLFormElement>) => void
+  onSearch: () => void | Promise<void>
 }
 
 export function IocSearchHeader({
@@ -42,6 +42,19 @@ export function IocSearchHeader({
   const t = useTranslations("pages.iocAnalysis.search")
   const typeText = useTranslations("pages.iocAnalysis.verification.types")
   const loading = status === "loading"
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    try {
+      const result = onSearch()
+      if (result && typeof result.catch === "function") {
+        void result.catch(() => undefined)
+      }
+    } catch {
+      // The page-level handler owns user-facing error feedback.
+    }
+  }
 
   return (
     <header className="w-full shrink-0 rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
@@ -64,7 +77,7 @@ export function IocSearchHeader({
         </div>
 
         <form
-          onSubmit={onSearch}
+          onSubmit={handleSubmit}
           className={cn(
             "flex h-14 w-full min-w-0 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 transition-[border-color,background-color,box-shadow] duration-200 ease-out lg:justify-self-center",
             "hover:border-slate-300 hover:bg-white hover:shadow-sm",

@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useCallback, useMemo, useRef, useState, type FormEvent } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { AlertTriangle, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -282,6 +282,15 @@ function formatLocalDateTime(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
+function errorMessageFromUnknown(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message
+  if (typeof error === "string" && error.trim()) return error.trim()
+  if (typeof Event !== "undefined" && error instanceof Event) {
+    return error.type ? `${fallback} (${error.type})` : fallback
+  }
+  return fallback
+}
+
 function defaultTimeRange() {
   const end = new Date()
   const start = new Date(end.getTime() - DEFAULT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
@@ -514,30 +523,29 @@ export function IocSearchPage() {
     }
   }, [tenantId, t])
 
-  async function handleSearch(event?: FormEvent<HTMLFormElement>) {
-    event?.preventDefault()
-    const type = resolveSearchType(queryType, queryValue)
-    const value = queryValue.trim()
-
-    if (!type || !value) {
-      toast({
-        title: t("feedback.invalidTitle"),
-        description: t("feedback.invalidDescription"),
-        variant: "warning",
-      })
-      return
-    }
-
-    const normalizedValue = normalizeIocValue(type, value)
-    setStatus("loading")
-    setError("")
-    setItem(null)
-    setActiveTab("detail")
-    resetGraphState()
-
-    void runLocalLocate(type, normalizedValue)
-
+  async function handleSearch() {
     try {
+      const type = resolveSearchType(queryType, queryValue)
+      const value = queryValue.trim()
+
+      if (!type || !value) {
+        toast({
+          title: t("feedback.invalidTitle"),
+          description: t("feedback.invalidDescription"),
+          variant: "warning",
+        })
+        return
+      }
+
+      const normalizedValue = normalizeIocValue(type, value)
+      setStatus("loading")
+      setError("")
+      setItem(null)
+      setActiveTab("detail")
+      resetGraphState()
+
+      void runLocalLocate(type, normalizedValue)
+
       const detail = await getIocHitDetail({
         tenantId,
         type,
@@ -547,7 +555,7 @@ export function IocSearchPage() {
       setItem(nextItem)
       setStatus("success")
     } catch (searchError) {
-      const message = searchError instanceof Error && searchError.message ? searchError.message : t("feedback.searchFailedDescription")
+      const message = errorMessageFromUnknown(searchError, t("feedback.searchFailedDescription"))
       setStatus("error")
       setError(message)
       toast({
@@ -559,11 +567,18 @@ export function IocSearchPage() {
   }
 
   function copyValue(value: string) {
-    void navigator.clipboard.writeText(value)
-    toast({
-      title: t("feedback.copiedTitle"),
-      description: value,
-      variant: "success",
+    void navigator.clipboard.writeText(value).then(() => {
+      toast({
+        title: t("feedback.copiedTitle"),
+        description: value,
+        variant: "success",
+      })
+    }).catch((copyError) => {
+      toast({
+        title: t("feedback.searchFailedTitle"),
+        description: errorMessageFromUnknown(copyError, t("feedback.searchFailedDescription")),
+        variant: "destructive",
+      })
     })
   }
 
@@ -648,9 +663,7 @@ export function IocSearchPage() {
         })
       }
     } catch (graphLocateError) {
-      const message = graphLocateError instanceof Error && graphLocateError.message
-        ? graphLocateError.message
-        : t("feedback.graphFailedDescription")
+      const message = errorMessageFromUnknown(graphLocateError, t("feedback.graphFailedDescription"))
       setGraphStatus("error")
       setGraphError(message)
       toast({
@@ -742,7 +755,7 @@ export function IocSearchPage() {
       })
       toast({
         title: t("feedback.drillFailedTitle"),
-        description: drillError instanceof Error && drillError.message ? drillError.message : t("feedback.drillFailedDescription"),
+        description: errorMessageFromUnknown(drillError, t("feedback.drillFailedDescription")),
         variant: "destructive",
       })
     }
