@@ -14,6 +14,7 @@ import type {
   AttackGraphMenuAction,
   AttackGraphNodeDrillStateByKey,
 } from "@/features/attack/dgraph/model/menu/attack-graph-menu-types"
+import { IocPanelEmptyState } from "@/features/ioc-analysis/components/ioc-panel-empty-state"
 import { localEventSummary, localEventUniqueId, type IocLocalEventSource } from "@/features/ioc-analysis/components/ioc-search-event-utils"
 import { Button } from "@/shared/ui/button"
 
@@ -155,14 +156,10 @@ function GraphStateMessage({
   title: string
 }) {
   return (
-    <div className="flex h-full min-h-0 items-center justify-center px-6 text-center">
-      <div className="max-w-md">
-        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100">
-          {icon || <Shield className="h-5 w-5 text-slate-500" />}
-        </div>
-        <div className="text-sm font-semibold text-slate-800">{title}</div>
-        <p className="mt-1 text-sm leading-6 text-slate-500">{description}</p>
-      </div>
-    </div>
+    <IocPanelEmptyState
+      title={title}
+      description={description}
+      icon={icon}
+    />
   )
 }

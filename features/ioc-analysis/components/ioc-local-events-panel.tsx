@@ -10,6 +10,7 @@ import {
   localEventUniqueId,
   type IocLocalEventSource,
 } from "@/features/ioc-analysis/components/ioc-search-event-utils"
+import { IocPanelEmptyState } from "@/features/ioc-analysis/components/ioc-panel-empty-state"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 
@@ -91,9 +92,10 @@ export function IocLocalEventsPanel({
         ) : null}
 
         {result.status === "success" && !hasEvents ? (
-          <div className="flex min-h-[180px] items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 text-center text-sm text-slate-500">
-            {t("empty", { days: defaultLookbackDays })}
-          </div>
+          <IocPanelEmptyState
+            title={t("emptyTitle")}
+            description={t("emptyDescription", { days: defaultLookbackDays })}
+          />
         ) : null}
 
         {hasEvents ? (

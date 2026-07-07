@@ -3,6 +3,7 @@
 import { Loader2, Table2 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
+import { IocPanelEmptyState } from "@/features/ioc-analysis/components/ioc-panel-empty-state"
 import type { IocVerificationItem } from "@/features/ioc-analysis/types"
 import { cn } from "@/shared/lib/utils"
 
@@ -70,9 +71,10 @@ export function IocVerificationDetailPanel({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {!item ? (
-          <div className="flex min-h-[156px] items-center justify-center px-4 py-8 text-sm text-slate-500">
-            {t("detail.noSelection")}
-          </div>
+          <IocPanelEmptyState
+            title={t("detail.noSelectionTitle")}
+            description={t("detail.noSelection")}
+          />
         ) : normalizedDetailView ? (
           <DetailFieldSections
             sections={detailViewSections(normalizedDetailView, detailLocale)}
@@ -99,11 +101,10 @@ export function IocVerificationDetailPanel({
             {t("detail.loading")}
           </div>
         ) : (
-          <div className="min-h-[156px] px-4 py-5">
-            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-500">
-              {t("detail.unavailable")}
-            </div>
-          </div>
+          <IocPanelEmptyState
+            title={t("detail.unavailableTitle")}
+            description={t("detail.unavailable")}
+          />
         )}
       </div>
     </section>

@@ -4325,6 +4325,8 @@
           "unsupportedMessage": "This type does not support local positioning yet. SHA1/SHA256 can still show IOC intelligence results.",
           "foundMessage": "Found {count} local event(s) in the last {days} days.",
           "empty": "No local events found in the last {days} days.",
+          "emptyTitle": "No local events found",
+          "emptyDescription": "No matching event data was located in the last {days} days.",
           "noUniqueId": "No unique id",
           "graphAction": "Graph",
           "loadMore": "Load more"
@@ -4339,8 +4341,8 @@
           "loadingDescription": "GraphLocateResult is building the positioning scope from the local event source_key.",
           "errorTitle": "Positioning graph failed",
           "errorDescription": "Check the event UniqueID, time range, and graph service status.",
-          "emptyTitle": "No positioning graph",
-          "emptyDescription": "Select a local hit event on the left to generate a positioning graph from event_type, event_name, and unique_id."
+          "emptyTitle": "No positioning graph found",
+          "emptyDescription": "Select a local event to generate the graph. If it remains empty, no related nodes were found."
         }
       },
       "verification": {
@@ -4510,6 +4512,7 @@
         "detail": {
           "title": "IOC Details",
           "description": "Source table row for the selected IOC.",
+          "noSelectionTitle": "No IOC selected",
           "noSelection": "Select an IOC to view source table details.",
           "decision": "Decision",
           "verificationPath": "Verification Path",
@@ -4545,7 +4548,8 @@
           "relationType": "Relation type",
           "peerEntryId": "Peer entry ID",
           "loading": "Loading source table details...",
-          "unavailable": "No source table detail is returned for this IOC yet."
+          "unavailableTitle": "No IOC details found",
+          "unavailable": "No threat intelligence source-table details were returned for this IOC."
         },
         "toasts": {
           "caseRequired": "Enter CaseID first.",

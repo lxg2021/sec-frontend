@@ -20,6 +20,7 @@ import {
 } from "@/features/ioc-analysis/components/ioc-search-event-utils"
 import { IocSearchHeader } from "@/features/ioc-analysis/components/ioc-search-header"
 import { IocSearchResultSummary } from "@/features/ioc-analysis/components/ioc-search-result-summary"
+import { IocPanelEmptyState } from "@/features/ioc-analysis/components/ioc-panel-empty-state"
 import { IocVerificationDetailPanel } from "@/features/ioc-analysis/components/ioc-verification-detail-panel"
 import type {
   AttackCaseIOCVerificationDetail,
@@ -393,10 +394,10 @@ function IocSearchEmptyState() {
 
   return (
     <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
-      <div className="mx-auto max-w-xl">
-        <h2 className="text-base font-semibold text-slate-950">{t("title")}</h2>
-        <p className="mt-2 text-sm leading-6 text-slate-500">{t("description")}</p>
-      </div>
+      <IocPanelEmptyState
+        title={t("title")}
+        description={t("description")}
+      />
     </section>
   )
 }

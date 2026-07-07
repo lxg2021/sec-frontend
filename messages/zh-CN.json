@@ -4327,6 +4327,8 @@
           "unsupportedMessage": "当前类型暂不支持本地定位。SHA1/SHA256 仍可查看 IOC 情报结果。",
           "foundMessage": "最近 {days} 天发现 {count} 条本地事件。",
           "empty": "最近 {days} 天没有发现本地事件。",
+          "emptyTitle": "未查到本地事件",
+          "emptyDescription": "最近 {days} 天内未定位到相关事件数据",
           "noUniqueId": "无 unique id",
           "graphAction": "图谱",
           "loadMore": "加载更多"
@@ -4341,8 +4343,8 @@
           "loadingDescription": "GraphLocateResult 正在根据本地事件 source_key 构建 positioning scope。",
           "errorTitle": "定位图谱生成失败",
           "errorDescription": "请检查事件 UniqueID、时间范围和 graph 服务状态。",
-          "emptyTitle": "暂无定位图谱",
-          "emptyDescription": "先在左侧本地命中事件中选择一条记录，使用 event_type、event_name、unique_id 生成定位图谱。"
+          "emptyTitle": "未查到定位图谱",
+          "emptyDescription": "请选择本地事件生成定位图谱；如果仍为空，表示未发现关联节点。"
         }
       },
       "verification": {
@@ -4512,6 +4514,7 @@
         "detail": {
           "title": "IOC 详情",
           "description": "当前选中 IOC 的源表记录详情",
+          "noSelectionTitle": "未选择 IOC",
           "noSelection": "选择一个 IOC 查看源表详情",
           "decision": "判断结论",
           "verificationPath": "验证路径",
@@ -4547,7 +4550,8 @@
           "relationType": "关联类型",
           "peerEntryId": "关联条目ID",
           "loading": "正在加载源表详情...",
-          "unavailable": "当前 IOC 暂未返回源表详情"
+          "unavailableTitle": "未查到 IOC 详情",
+          "unavailable": "当前 IOC 未返回威胁情报源表详情"
         },
         "toasts": {
           "caseRequired": "请先输入 CaseID",
