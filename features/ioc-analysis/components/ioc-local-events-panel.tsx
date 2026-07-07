@@ -56,7 +56,7 @@ type LocalEventRowMeta = {
 }
 
 const tableActionButtonBaseClass =
-  "h-10 gap-2 rounded-full px-3 transition-colors duration-150 disabled:pointer-events-none"
+  "h-9 gap-2 rounded-full px-3 transition-colors duration-150 disabled:pointer-events-none"
 const rawDataActionButtonClass =
   "text-slate-600 hover:bg-slate-900 hover:text-white active:bg-slate-950"
 const graphActionButtonClass =
