@@ -392,7 +392,7 @@ function IocSearchEmptyState() {
   const t = useTranslations("pages.iocAnalysis.search.emptyState")
 
   return (
-    <section className="flex min-h-0 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+    <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
       <div className="mx-auto max-w-xl">
         <h2 className="text-base font-semibold text-slate-950">{t("title")}</h2>
         <p className="mt-2 text-sm leading-6 text-slate-500">{t("description")}</p>
@@ -748,7 +748,7 @@ export function IocSearchPage() {
   }, [graphNodeDrillStateByKey, graphResponse, graphScope, t])
 
   return (
-    <main className="h-[calc(100vh-3rem)] overflow-hidden bg-gray-50 text-slate-950">
+    <main className="h-full overflow-hidden bg-gray-50 text-slate-950">
       <div className="flex h-full min-h-0 flex-col gap-4 p-6">
         <IocSearchHeader
           queryType={queryType}

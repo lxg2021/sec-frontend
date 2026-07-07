@@ -319,7 +319,7 @@ export function FrameLayout({ children }: { children: ReactNode }) {
       )}
 
       {/* 主内容区 */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         {/* 头部栏 */}
         <header className={isClassicStyle ? "h-12 bg-white border-b border-slate-200 flex items-center justify-between px-6 shadow-sm" : "h-12 bg-gradient-to-r from-slate-800/90 to-neutral-800/90 backdrop-blur-xl border-b border-slate-700/50 flex items-center justify-between px-6 shadow-lg"}>
           <div className="flex items-center gap-4">
@@ -378,7 +378,7 @@ export function FrameLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* 内容区 */}
-        <main className={isClassicStyle ? "min-w-0 flex-1 overflow-auto bg-slate-50" : "min-w-0 flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-gray-50 to-neutral-100 dark:from-slate-900 dark:via-gray-900 dark:to-neutral-900"}>
+        <main className={isClassicStyle ? "min-h-0 min-w-0 flex-1 overflow-auto bg-slate-50" : "min-h-0 min-w-0 flex-1 overflow-auto bg-gradient-to-br from-slate-50 via-gray-50 to-neutral-100 dark:from-slate-900 dark:via-gray-900 dark:to-neutral-900"}>
           {children}
         </main>
 
