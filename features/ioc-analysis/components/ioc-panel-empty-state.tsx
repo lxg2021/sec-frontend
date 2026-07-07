@@ -18,7 +18,7 @@ export function IocPanelEmptyState({
 }) {
   return (
     <div className={cn("flex h-full min-h-0 items-center justify-center px-6 py-8 text-center", className)}>
-      <div className="max-w-[320px]">
+      <div className="max-w-[560px]">
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center text-slate-400">
           {icon || <Box className="h-11 w-11 stroke-[1.7]" aria-hidden="true" />}
         </div>

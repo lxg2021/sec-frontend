@@ -393,7 +393,7 @@ function IocSearchEmptyState() {
   const t = useTranslations("pages.iocAnalysis.search.emptyState")
 
   return (
-    <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+    <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
       <IocPanelEmptyState
         title={t("title")}
         description={t("description")}
@@ -419,7 +419,7 @@ export function IocSearchPage() {
     nextPageToken: "",
     hasNext: false,
   })
-  const [activeTab, setActiveTab] = useState("overview")
+  const [activeTab, setActiveTab] = useState("detail")
   const [selectedEvent, setSelectedEvent] = useState<IocLocalEventSource | null>(null)
   const [selectedEventKey, setSelectedEventKey] = useState("")
   const [graphLoadingEventKey, setGraphLoadingEventKey] = useState("")
@@ -532,7 +532,7 @@ export function IocSearchPage() {
     setStatus("loading")
     setError("")
     setItem(null)
-    setActiveTab("overview")
+    setActiveTab("detail")
     resetGraphState()
 
     void runLocalLocate(type, normalizedValue)
@@ -790,9 +790,6 @@ export function IocSearchPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
               <div className="shrink-0 border-b border-slate-100 px-4 py-3">
                 <TabsList className="h-10 rounded-md bg-slate-100 p-1">
-                  <TabsTrigger value="overview" className="rounded px-4 data-[state=active]:bg-white">
-                    {t("tabs.overview")}
-                  </TabsTrigger>
                   <TabsTrigger value="detail" className="rounded px-4 data-[state=active]:bg-white">
                     {t("tabs.detail")}
                   </TabsTrigger>
@@ -804,50 +801,6 @@ export function IocSearchPage() {
                   </TabsTrigger>
                 </TabsList>
               </div>
-
-              <TabsContent value="overview" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
-                <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
-                  <IocLocalEventsPanel
-                    className="h-full"
-                    currentValue={currentValue}
-                    defaultLookbackDays={DEFAULT_LOOKBACK_DAYS}
-                    graphLoadingEventKey={graphLoadingEventKey}
-                    onLoadMore={item ? handleLoadMoreLocal : undefined}
-                    onLocateGraph={handleLocateGraph}
-                    onRefresh={item ? handleRefreshLocal : undefined}
-                    result={localResult}
-                    selectedEventKey={selectedEventKey}
-                  />
-
-                  <IocPositioningGraphPanel
-                    className="h-full min-w-0"
-                    edgeCount={graphVisibleStats.edgeCount}
-                    error={graphError}
-                    graphScopeId={graphScope?.scopeId}
-                    graphScopeType={graphScope?.scopeType}
-                    layoutOptions={graphLayoutOptions}
-                    layoutStrategy={graphLayoutStrategy}
-                    loadingEvent={selectedEvent}
-                    nodeCount={graphVisibleStats.nodeCount}
-                    nodeDrillStateByKey={graphNodeDrillStateByKey}
-                    onLayoutStrategyChange={setGraphLayoutStrategy}
-                    onMenuAction={item ? handleGraphMenuAction : undefined}
-                    onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
-                    positionResetKey={graphPositionResetKey}
-                    response={graphResponse}
-                    selectedEvent={selectedEvent}
-                    status={graphStatus}
-                  />
-
-                  <IocVerificationDetailPanel
-                    className="h-full rounded-lg"
-                    detailLayout="single"
-                    item={displayItemForPage}
-                    loading={status === "loading"}
-                    onCopy={copyValue}
-                  />
-                </div>
-              </TabsContent>
 
               <TabsContent value="detail" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
                 <IocVerificationDetailPanel
