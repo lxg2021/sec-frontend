@@ -132,7 +132,7 @@
     "attack": "攻击溯源",
     "attdash": "攻击概览",
     "attdetail": "攻击详情",
-    "attworkflow": "Attack工作流",
+    "attworkflow": "工作流",
     "attdrill": "溯源详情",
     "investigation": "调查取证",
     "forensicWorkbench": "取证概览",
@@ -1555,7 +1555,7 @@
         "selectedRange": "已选择范围"
       },
       "workflowCenter": {
-        "title": "Attacks工作流中心",
+        "title": "工作流中心",
         "loading": "加载中",
         "unknown": "未知",
         "statuses": {
@@ -1731,11 +1731,11 @@
             "description": "查看攻击链路、溯源图谱和关键节点详情"
           },
           "aiAnalysis": {
-            "title": "AI智能分析",
+            "title": "智能分析",
             "description": "阅读 AI 结论、证据引用、假设和响应建议"
           },
           "iocInvestigation": {
-            "title": "IOC调查",
+            "title": "情报调查",
             "description": "定位 IOC 命中、威胁指标和关联证据"
           },
           "forensicOrchestration": {

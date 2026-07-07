@@ -132,7 +132,7 @@
     "attack": "Attack Trace",
     "attdash": "Attack Overview",
     "attdetail": "Attack Details",
-    "attworkflow": "AttackWorkflow",
+    "attworkflow": "Workflow",
     "attdrill": "Trace Details",
     "investigation": "Investigation",
     "forensicWorkbench": "Forensic Overview",
@@ -1553,7 +1553,7 @@
         "selectedRange": "Selected range"
       },
       "workflowCenter": {
-        "title": "Attacks Workflow Center",
+        "title": "Workflow Center",
         "loading": "Loading",
         "unknown": "Unknown",
         "statuses": {
@@ -1729,11 +1729,11 @@
             "description": "Inspect the attack path, trace graph, and key node details."
           },
           "aiAnalysis": {
-            "title": "AI Analysis",
+            "title": "Intelligent Analysis",
             "description": "Review AI conclusions, evidence references, hypotheses, and response suggestions."
           },
           "iocInvestigation": {
-            "title": "IOC Investigation",
+            "title": "Intelligence Investigation",
             "description": "Investigate IOC hits, threat indicators, and related evidence."
           },
           "forensicOrchestration": {
