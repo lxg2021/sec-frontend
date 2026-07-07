@@ -4328,7 +4328,7 @@
         "local": {
           "title": "本地命中事件",
           "rangeLabel": "{range} · 定位值：",
-          "refresh": "Search",
+          "refresh": "查询",
           "loading": "正在定位本地事件...",
           "unsupportedMessage": "当前类型暂不支持本地定位。SHA1/SHA256 仍可查看 IOC 情报结果。",
           "foundMessage": "{range} 内发现 {count} 条本地事件。",
