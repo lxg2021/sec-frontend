@@ -54,7 +54,7 @@ function IocGraphPanelLoading() {
 }
 
 const DEFAULT_TENANT_ID = "public"
-const DEFAULT_LOOKBACK_DAYS = 7
+const DEFAULT_LOOKBACK_DAYS = 30
 const DRILL_TIMEZONE = "Asia/Shanghai"
 const TYPE_OPTIONS: IocVerificationType[] = [
   "auto",
@@ -69,6 +69,21 @@ const TYPE_OPTIONS: IocVerificationType[] = [
 
 type SearchStatus = "idle" | "loading" | "success" | "error"
 type GraphLocateStatus = "idle" | "loading" | "success" | "error"
+type LocalTimeRangeMode = "30d" | "90d" | "custom"
+
+type LocalTimeRangeState = {
+  customEnd: string
+  customStart: string
+  mode: LocalTimeRangeMode
+}
+
+type LocalLocateTimeRange = {
+  endTime: string
+  label: string
+  mode: LocalTimeRangeMode
+  startTime: string
+  timezone: string
+}
 
 type ApiResult<T> = {
   data: T
@@ -282,6 +297,11 @@ function formatLocalDateTime(date: Date) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
 }
 
+function formatDateTimeInput(date: Date) {
+  const pad = (value: number) => String(value).padStart(2, "0")
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 function errorMessageFromUnknown(error: unknown, fallback: string) {
   if (error instanceof Error && error.message) return error.message
   if (typeof error === "string" && error.trim()) return error.trim()
@@ -291,13 +311,65 @@ function errorMessageFromUnknown(error: unknown, fallback: string) {
   return fallback
 }
 
-function defaultTimeRange() {
+function defaultTimeRange(days = DEFAULT_LOOKBACK_DAYS) {
   const end = new Date()
-  const start = new Date(end.getTime() - DEFAULT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000)
   return {
     startTime: formatLocalDateTime(start),
     endTime: formatLocalDateTime(end),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || DRILL_TIMEZONE,
+  }
+}
+
+function defaultLocalTimeRangeState(): LocalTimeRangeState {
+  const end = new Date()
+  const start = new Date(end.getTime() - DEFAULT_LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+  return {
+    customEnd: formatDateTimeInput(end),
+    customStart: formatDateTimeInput(start),
+    mode: "30d",
+  }
+}
+
+function normalizeDateTimeInput(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ""
+  const normalized = trimmed.replace("T", " ")
+  return normalized.length === 16 ? `${normalized}:00` : normalized
+}
+
+function buildLocalLocateTimeRange(state: LocalTimeRangeState): LocalLocateTimeRange | null {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || DRILL_TIMEZONE
+
+  if (state.mode === "custom") {
+    const startTime = normalizeDateTimeInput(state.customStart)
+    const endTime = normalizeDateTimeInput(state.customEnd)
+    const startDate = new Date(state.customStart)
+    const endDate = new Date(state.customEnd)
+
+    if (!startTime || !endTime || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return null
+    }
+    if (startDate.getTime() > endDate.getTime()) {
+      return null
+    }
+
+    return {
+      endTime,
+      label: `${startTime} - ${endTime}`,
+      mode: "custom",
+      startTime,
+      timezone,
+    }
+  }
+
+  const days = state.mode === "90d" ? 90 : 30
+  const range = defaultTimeRange(days)
+  return {
+    ...range,
+    label: `${days}d`,
+    mode: state.mode,
+    timezone,
   }
 }
 
@@ -319,11 +391,13 @@ function localLocateInput(type: IocVerificationType, value: string): { positionT
 async function locateLocalData({
   pageToken = "",
   tenantId,
+  timeRange,
   type,
   value,
 }: {
   pageToken?: string
   tenantId: string
+  timeRange: LocalLocateTimeRange
   type: IocVerificationType
   value: string
 }): Promise<LocalLocateResult> {
@@ -335,21 +409,21 @@ async function locateLocalData({
       source: value,
       positionType: null,
       items: [],
+      rangeLabel: timeRange.label,
       pageToken,
       nextPageToken: "",
       hasNext: false,
     }
   }
 
-  const { startTime, endTime, timezone } = defaultTimeRange()
   const result = (await http.post("/sensor/analysis/characteristicposition/page", {
     request_id: createRequestId(),
     tenant_id: tenantId.trim() || DEFAULT_TENANT_ID,
     type: input.positionType,
     source: input.source,
-    start_time: startTime,
-    end_time: endTime,
-    timezone,
+    start_time: timeRange.startTime,
+    end_time: timeRange.endTime,
+    timezone: timeRange.timezone,
     page_size: 20,
     page_token: pageToken,
     dns_match_mode: 0,
@@ -365,6 +439,7 @@ async function locateLocalData({
     source: input.source,
     positionType: input.positionType,
     items,
+    rangeLabel: timeRange.label,
     pageToken,
     nextPageToken: pagination.next_page_token || "",
     hasNext: Boolean(pagination.has_next),
@@ -418,12 +493,14 @@ export function IocSearchPage() {
   const [status, setStatus] = useState<SearchStatus>("idle")
   const [error, setError] = useState("")
   const [item, setItem] = useState<IocVerificationItem | null>(null)
+  const [localTimeRange, setLocalTimeRange] = useState<LocalTimeRangeState>(() => defaultLocalTimeRangeState())
   const [localResult, setLocalResult] = useState<LocalLocateResult>({
     status: "idle",
     message: "",
     source: "",
     positionType: null,
     items: [],
+    rangeLabel: `${DEFAULT_LOOKBACK_DAYS}d`,
     pageToken: "",
     nextPageToken: "",
     hasNext: false,
@@ -442,6 +519,7 @@ export function IocSearchPage() {
     () => new Map<string, AttackGraphNodeDrillState>(),
   )
   const graphResponseRef = useRef<GraphCaseResponseDto | null>(null)
+  const appliedLocalTimeRangeRef = useRef<LocalLocateTimeRange | null>(null)
 
   const tenantId = DEFAULT_TENANT_ID
   const resolvedType = useMemo(() => resolveSearchType(queryType, queryValue), [queryType, queryValue])
@@ -488,25 +566,62 @@ export function IocSearchPage() {
     setGraphPositionResetKey((key) => key + 1)
   }, [])
 
+  const currentLocalTimeRange = useMemo(
+    () => buildLocalLocateTimeRange(localTimeRange) ?? buildLocalLocateTimeRange(defaultLocalTimeRangeState()),
+    [localTimeRange],
+  )
+  const localTimeRangeLabel = localTimeRange.mode === "custom"
+    ? currentLocalTimeRange?.label ?? `${DEFAULT_LOOKBACK_DAYS}d`
+    : t(`local.range.${localTimeRange.mode}`)
+
   const runLocalLocate = useCallback(async (type: IocVerificationType, value: string, pageToken = "") => {
+    const timeRange = pageToken
+      ? appliedLocalTimeRangeRef.current
+      : buildLocalLocateTimeRange(localTimeRange)
+
+    if (!timeRange) {
+      setLocalResult((current) => ({
+        ...current,
+        status: "error",
+        message: t("local.invalidTimeRange"),
+        source: value,
+        items: pageToken ? current.items : [],
+        pageToken,
+      }))
+      toast({
+        title: t("local.invalidTimeRangeTitle"),
+        description: t("local.invalidTimeRange"),
+        variant: "warning",
+      })
+      return
+    }
+
+    if (!pageToken) {
+      appliedLocalTimeRangeRef.current = timeRange
+    }
+
+    const rangeText = timeRange.mode === "custom" ? timeRange.label : t(`local.range.${timeRange.mode}`)
+
     setLocalResult((current) => ({
       ...current,
       status: "loading",
       message: t("local.loading"),
       items: pageToken ? current.items : [],
+      rangeLabel: rangeText,
       pageToken,
     }))
 
     try {
-      const next = await locateLocalData({ tenantId, type, value, pageToken })
+      const next = await locateLocalData({ tenantId, timeRange, type, value, pageToken })
       setLocalResult((current) => ({
         ...next,
+        rangeLabel: rangeText,
         message:
           next.status === "unsupported"
             ? t("local.unsupportedMessage")
             : next.items.length
-              ? t("local.foundMessage", { days: DEFAULT_LOOKBACK_DAYS, count: next.items.length })
-              : t("local.empty", { days: DEFAULT_LOOKBACK_DAYS }),
+              ? t("local.foundMessage", { count: next.items.length, range: rangeText })
+              : t("local.empty", { range: rangeText }),
         items: pageToken ? [...current.items, ...next.items] : next.items,
       }))
     } catch (localError) {
@@ -516,12 +631,13 @@ export function IocSearchPage() {
         source: value,
         positionType: null,
         items: [],
+        rangeLabel: rangeText,
         pageToken,
         nextPageToken: "",
         hasNext: false,
       })
     }
-  }, [tenantId, t])
+  }, [localTimeRange, tenantId, t])
 
   async function handleSearch() {
     try {
@@ -586,6 +702,29 @@ export function IocSearchPage() {
     if (!item) return
     void runLocalLocate(item.type, item.value)
   }, [item, runLocalLocate])
+
+  const handleLocalTimeRangeModeChange = useCallback((mode: LocalTimeRangeMode) => {
+    setLocalTimeRange((current) => ({
+      ...current,
+      mode,
+    }))
+  }, [])
+
+  const handleLocalCustomStartChange = useCallback((value: string) => {
+    setLocalTimeRange((current) => ({
+      ...current,
+      customStart: value,
+      mode: "custom",
+    }))
+  }, [])
+
+  const handleLocalCustomEndChange = useCallback((value: string) => {
+    setLocalTimeRange((current) => ({
+      ...current,
+      customEnd: value,
+      mode: "custom",
+    }))
+  }, [])
 
   const handleLoadMoreLocal = useCallback(() => {
     if (!item || !localResult.nextPageToken) return
@@ -827,14 +966,20 @@ export function IocSearchPage() {
               <TabsContent value="local" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
                 <IocLocalEventsPanel
                   className="h-full"
+                  customEnd={localTimeRange.customEnd}
+                  customStart={localTimeRange.customStart}
                   currentValue={currentValue}
-                  defaultLookbackDays={DEFAULT_LOOKBACK_DAYS}
                   graphLoadingEventKey={graphLoadingEventKey}
                   onLoadMore={item ? handleLoadMoreLocal : undefined}
+                  onCustomEndChange={handleLocalCustomEndChange}
+                  onCustomStartChange={handleLocalCustomStartChange}
                   onLocateGraph={handleLocateGraph}
                   onRefresh={item ? handleRefreshLocal : undefined}
+                  onTimeRangeModeChange={handleLocalTimeRangeModeChange}
                   result={localResult}
                   selectedEventKey={selectedEventKey}
+                  timeRangeLabel={localTimeRangeLabel}
+                  timeRangeMode={localTimeRange.mode}
                 />
               </TabsContent>
 
