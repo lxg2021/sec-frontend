@@ -525,9 +525,6 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   </Button>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5 text-sm">
-                  <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
-                    FORENSIC
-                  </span>
                   <span className="min-w-0 truncate text-slate-500">{t("header.subtitle")}</span>
                 </div>
               </div>
