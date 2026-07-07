@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { format } from "date-fns"
+import { enUS, zhCN } from "date-fns/locale"
 import { CalendarClock, ChevronLeft, ChevronRight, ExternalLink, FileJson, Loader2, Search } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import type {
   BatchDescribeEventSourceItem,
@@ -23,8 +25,9 @@ import {
 import { IocPanelEmptyState } from "@/features/ioc-analysis/components/ioc-panel-empty-state"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
+import { Calendar } from "@/shared/ui/calendar"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
-import { Input } from "@/shared/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
 
 type LocalLocateStatus = "idle" | "loading" | "success" | "unsupported" | "error"
@@ -73,6 +76,30 @@ function valueOrDash(value?: string | null) {
 function lowerDisplayValue(value?: string | null) {
   const text = valueOrDash(value)
   return text === "-" ? text : text.toLocaleLowerCase()
+}
+
+function twoDigits(value: number) {
+  return String(value).padStart(2, "0")
+}
+
+function formatDateTimeInputValue(date: Date) {
+  return `${date.getFullYear()}-${twoDigits(date.getMonth() + 1)}-${twoDigits(date.getDate())}T${twoDigits(date.getHours())}:${twoDigits(date.getMinutes())}`
+}
+
+function parseDateTimeInputValue(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/)
+  if (!match) return null
+
+  const [, year, month, day, hour, minute] = match
+  const date = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute), 0, 0)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function mergeDateTime(date: Date, timeSource: Date | null) {
+  const next = new Date(date)
+  const source = timeSource ?? new Date()
+  next.setHours(source.getHours(), source.getMinutes(), 0, 0)
+  return next
 }
 
 function sameDisplayValue(left?: string | null, right?: string | null) {
@@ -620,17 +647,138 @@ function TimeInputField({
   onChange: (value: string) => void
   value: string
 }) {
+  const locale = useLocale()
+  const isChinese = locale.toLowerCase().startsWith("zh")
+  const dateLocale = isChinese ? zhCN : enUS
+  const selectedDate = parseDateTimeInputValue(value)
+  const displayValue = selectedDate
+    ? format(selectedDate, isChinese ? "yyyy/MM/dd HH:mm" : "MMM dd, yyyy HH:mm", { locale: dateLocale })
+    : "--"
+  const selectedHour = selectedDate?.getHours() ?? 0
+  const selectedMinute = selectedDate?.getMinutes() ?? 0
+  const currentYear = new Date().getFullYear()
+  const todayLabel = isChinese ? "今天" : "Today"
+  const hourLabel = isChinese ? "时" : "HH"
+  const minuteLabel = isChinese ? "分" : "MM"
+
+  function commitDateTime(date: Date) {
+    onChange(formatDateTimeInputValue(date))
+  }
+
+  function handleDateSelect(date?: Date) {
+    if (!date) return
+    commitDateTime(mergeDateTime(date, selectedDate))
+  }
+
+  function handleHourSelect(hour: number) {
+    const next = selectedDate ? new Date(selectedDate) : new Date()
+    next.setHours(hour, selectedMinute, 0, 0)
+    commitDateTime(next)
+  }
+
+  function handleMinuteSelect(minute: number) {
+    const next = selectedDate ? new Date(selectedDate) : new Date()
+    next.setHours(selectedHour, minute, 0, 0)
+    commitDateTime(next)
+  }
+
+  function handleToday() {
+    commitDateTime(new Date())
+  }
+
   return (
-    <label className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-      <span className="shrink-0 text-xs font-semibold text-slate-500">{label}</span>
-      <Input
-        aria-label={ariaLabel}
-        className="h-7 min-w-0 flex-1 rounded-none border-0 bg-transparent px-0 font-mono text-xs text-slate-800 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
-        disabled={disabled}
-        type="datetime-local"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
-    </label>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={ariaLabel}
+          disabled={disabled}
+          className="flex min-w-[220px] flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50/40 disabled:pointer-events-none disabled:opacity-60"
+        >
+          <span className="shrink-0 text-xs font-semibold text-slate-500">{label}</span>
+          <span className="min-w-0 flex-1 truncate font-mono text-xs text-slate-800">{displayValue}</span>
+          <CalendarClock className="h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="start"
+        sideOffset={8}
+        className="z-[80] w-auto rounded-2xl border-slate-200 bg-white p-0 shadow-[0_18px_50px_rgba(15,23,42,0.16)]"
+      >
+        <div className="flex gap-3 p-3">
+          <Calendar
+            mode="single"
+            selected={selectedDate ?? undefined}
+            onSelect={handleDateSelect}
+            locale={dateLocale}
+            captionLayout="dropdown"
+            startMonth={new Date(currentYear - 20, 0)}
+            endMonth={new Date(currentYear + 1, 11)}
+            initialFocus
+            className="p-0"
+          />
+          <div className="flex gap-2 border-l border-slate-100 pl-3">
+            <TimeValueColumn
+              label={hourLabel}
+              max={23}
+              selected={selectedHour}
+              onSelect={handleHourSelect}
+            />
+            <TimeValueColumn
+              label={minuteLabel}
+              max={59}
+              selected={selectedMinute}
+              onSelect={handleMinuteSelect}
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-end border-t border-slate-100 px-3 py-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 rounded-full px-3 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+            onClick={handleToday}
+          >
+            {todayLabel}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function TimeValueColumn({
+  label,
+  max,
+  onSelect,
+  selected,
+}: {
+  label: string
+  max: number
+  onSelect: (value: number) => void
+  selected: number
+}) {
+  return (
+    <div className="w-12">
+      <div className="mb-1 text-center text-[11px] font-semibold uppercase text-slate-400">{label}</div>
+      <div className="max-h-[252px] overflow-y-auto pr-1">
+        {Array.from({ length: max + 1 }, (_, value) => (
+          <button
+            key={value}
+            type="button"
+            className={cn(
+              "mb-1 flex h-7 w-full items-center justify-center rounded-lg font-mono text-xs transition-colors",
+              selected === value
+                ? "bg-blue-600 text-white"
+                : "text-slate-600 hover:bg-blue-50 hover:text-blue-700",
+            )}
+            onClick={() => onSelect(value)}
+          >
+            {twoDigits(value)}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
