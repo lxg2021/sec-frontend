@@ -1,7 +1,7 @@
 "use client"
 
-import { IocVerificationPage } from "@/features/ioc-analysis/components/ioc-verification-page"
+import { IocSearchPage } from "@/features/ioc-analysis/components/ioc-search-page"
 
 export default function Page() {
-  return <IocVerificationPage />
+  return <IocSearchPage />
 }
