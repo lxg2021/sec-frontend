@@ -2,8 +2,8 @@
 
 import { useState, type ReactNode } from "react"
 import {
-  AlertTriangle,
   BadgeCheck,
+  Bug,
   Check,
   Cloud,
   Copy,
@@ -11,7 +11,6 @@ import {
   Network,
   Share2,
   ShieldAlert,
-  ShieldCheck,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -48,30 +47,36 @@ function verdictTone(item: IocVerificationItem) {
       return {
         accent: "bg-emerald-500",
         badge: "bg-emerald-50 text-emerald-700",
-        icon: <ShieldCheck className="h-6 w-6" aria-hidden="true" />,
-        iconBox: "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200",
       }
     case "error":
       return {
         accent: "bg-rose-500",
         badge: "bg-rose-50 text-rose-700",
-        icon: <AlertTriangle className="h-6 w-6" aria-hidden="true" />,
-        iconBox: "bg-rose-50 text-rose-600 ring-1 ring-rose-200",
       }
     case "malicious":
       return {
         accent: "bg-red-500",
         badge: "bg-red-50 text-red-700",
-        icon: <ShieldAlert className="h-6 w-6" aria-hidden="true" />,
-        iconBox: "bg-red-50 text-red-600 ring-1 ring-red-200",
       }
     default:
       return {
         accent: "bg-slate-300",
         badge: "bg-slate-100 text-slate-600",
-        icon: <ShieldAlert className="h-6 w-6" aria-hidden="true" />,
-        iconBox: "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
       }
+  }
+}
+
+function bugIconTone(item: IocVerificationItem) {
+  const hasIssue =
+    item.status === "hit" ||
+    verdictFromItem(item) === "malicious" ||
+    verdictFromItem(item) === "error"
+
+  return {
+    icon: <Bug className="h-5 w-5" aria-hidden="true" />,
+    iconBox: hasIssue
+      ? "bg-red-50 text-red-600 ring-1 ring-red-100"
+      : "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
   }
 }
 
@@ -136,6 +141,7 @@ export function IocSearchResultSummary({
   const t = useTranslations("pages.iocAnalysis.search.summary")
   const remoteHit = isRemoteHit(item)
   const tone = verdictTone(item)
+  const bugTone = bugIconTone(item)
   const riskScore = numericRisk(item)
   const confidenceScore = numericConfidence(item)
   const checkedAt = item.verification?.checked_at || "-"
@@ -153,12 +159,13 @@ export function IocSearchResultSummary({
   }
 
   return (
-    <article className="mx-auto w-full shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-sm">
+    <article className="relative mx-auto w-full shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-sm">
+      <span className={cn("absolute inset-y-4 left-0 z-10 w-1 rounded-full", tone.accent)} aria-hidden="true" />
+      <span className={cn("absolute inset-y-4 right-0 z-10 w-1 rounded-full", tone.accent)} aria-hidden="true" />
       <div className="flex flex-col items-stretch 2xl:flex-row 2xl:items-center">
         <div className="relative flex min-w-0 flex-1 items-center gap-4 p-5 pl-6">
-          <span className={cn("absolute inset-y-4 left-0 w-1 rounded-full", tone.accent)} aria-hidden="true" />
-          <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-sm", tone.iconBox)}>
-            {tone.icon}
+          <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl", bugTone.iconBox)}>
+            {bugTone.icon}
           </div>
 
           <div className="min-w-0">
