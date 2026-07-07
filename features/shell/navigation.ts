@@ -73,8 +73,8 @@ export const menuItems = [
     path: "/frame/attack",
     submenu: [
       { id: "attdash", icon: Sword, labelKey: "attdash", path: "/frame/attack/dashboard" },
-      { id: "attdetail", icon: BarChart, labelKey: "attdetail", path: "/frame/attack/detail" },
       { id: "attworkflow", icon: ShieldCheck, labelKey: "attworkflow", path: "/frame/attack/workflow" },
+      { id: "attdetail", icon: BarChart, labelKey: "attdetail", path: "/frame/attack/detail" },
       { id: "attdrill", icon: Activity, labelKey: "attdrill", path: "/frame/attack/drill" },
     ],
   },
