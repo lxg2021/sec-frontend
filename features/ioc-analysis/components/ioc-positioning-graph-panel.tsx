@@ -15,7 +15,6 @@ import type {
   AttackGraphNodeDrillStateByKey,
 } from "@/features/attack/dgraph/model/menu/attack-graph-menu-types"
 import { IocPanelEmptyState } from "@/features/ioc-analysis/components/ioc-panel-empty-state"
-import { localEventSummary, localEventUniqueId, type IocLocalEventSource } from "@/features/ioc-analysis/components/ioc-search-event-utils"
 import { Button } from "@/shared/ui/button"
 
 type PositioningGraphStatus = "idle" | "loading" | "success" | "error"
@@ -24,11 +23,8 @@ export function IocPositioningGraphPanel({
   className,
   edgeCount,
   error,
-  graphScopeId,
-  graphScopeType,
   layoutOptions,
   layoutStrategy,
-  loadingEvent,
   nodeCount,
   nodeDrillStateByKey,
   onLayoutStrategyChange,
@@ -36,17 +32,13 @@ export function IocPositioningGraphPanel({
   onResetPositions,
   positionResetKey,
   response,
-  selectedEvent,
   status,
 }: {
   className?: string
   edgeCount: number
   error: string
-  graphScopeId?: string
-  graphScopeType?: string
   layoutOptions?: AttackGraphLayoutOptions
   layoutStrategy: AttackGraphLayoutStrategyOption
-  loadingEvent?: IocLocalEventSource | null
   nodeCount: number
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey
   onLayoutStrategyChange: (strategy: AttackGraphLayoutStrategyOption) => void
@@ -54,11 +46,9 @@ export function IocPositioningGraphPanel({
   onResetPositions: () => void
   positionResetKey: number | string
   response: GraphCaseResponseDto | null
-  selectedEvent?: IocLocalEventSource | null
   status: PositioningGraphStatus
 }) {
   const hasGraph = Boolean(response && nodeCount > 0)
-  const sourceEvent = selectedEvent || loadingEvent || null
   const t = useTranslations("pages.iocAnalysis.search.graph")
 
   return (
@@ -70,21 +60,9 @@ export function IocPositioningGraphPanel({
               <Shield className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-sm font-semibold text-slate-950">{t("title")}</h2>
-                {graphScopeId ? (
-                  <span className="rounded bg-blue-50 px-2 py-1 font-mono text-[11px] text-blue-700">
-                    {graphScopeType || "positioning"}:{graphScopeId}
-                  </span>
-                ) : null}
-                {hasGraph ? (
-                  <span className="rounded bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">
-                    {nodeCount} nodes / {edgeCount} edges
-                  </span>
-                ) : null}
-              </div>
+              <h2 className="text-sm font-semibold text-slate-950">{t("title")}</h2>
               <p className="mt-1 truncate text-xs text-slate-500">
-                {sourceEvent ? `${sourceEvent.event_name || t("eventFallback")} · ${localEventUniqueId(sourceEvent) || localEventSummary(sourceEvent)}` : t("description")}
+                {hasGraph ? t("stats", { nodeCount, edgeCount }) : t("description")}
               </p>
             </div>
           </div>

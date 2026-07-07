@@ -4358,7 +4358,8 @@
             "time": "Time",
             "endpoint": "Endpoint",
             "type": "Type",
-            "event": "Event ID",
+            "event": "Event No.",
+            "uniqueId": "Event ID",
             "actor": "Actor",
             "target": "Matched Object",
             "context": "Context",
@@ -4375,6 +4376,7 @@
         "graph": {
           "title": "Positioning Graph",
           "description": "Select a local event to generate the positioning graph",
+          "stats": "{nodeCount} nodes · {edgeCount} edges",
           "eventFallback": "event",
           "reset": "Reset",
           "componentLoading": "Loading positioning graph component...",

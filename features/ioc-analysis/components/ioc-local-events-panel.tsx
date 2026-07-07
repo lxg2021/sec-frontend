@@ -49,6 +49,7 @@ type LocalEventRowMeta = {
   context: string
   endpoint: string
   event: string
+  uniqueId: string
   target: string
   time: string
   type: string
@@ -256,6 +257,7 @@ function buildLocalEventRowMeta({
     context: lowerDisplayValue(context),
     endpoint: lowerDisplayValue(localEventAgent(event)),
     event: valueOrDash(event.event_type ? String(event.event_type) : ""),
+    uniqueId: lowerDisplayValue(localEventUniqueId(event)),
     target: lowerDisplayValue(target),
     time: valueOrDash(localEventTime(event)),
     type: lowerDisplayValue(event.event_name || description?.source_table || (event.event_type ? String(event.event_type) : "")),
@@ -329,10 +331,6 @@ export function IocLocalEventsPanel({
               <h2 className="text-sm font-semibold text-slate-950">{t("title")}</h2>
               <p className="mt-1 truncate text-xs text-slate-500">
                 <span className="font-medium text-slate-600">{activeRangeLabel}</span>
-                <span className="mx-1.5 text-slate-300">/</span>
-                <code className="rounded-md bg-slate-50 px-1.5 py-0.5 font-mono text-[11px] text-slate-700 ring-1 ring-slate-200">
-                  {result.source || currentValue || "-"}
-                </code>
               </p>
             </div>
           </div>
@@ -416,19 +414,32 @@ export function IocLocalEventsPanel({
 
         {hasEvents ? (
           <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-100">
-            <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
-              <Table className="min-w-[1420px] table-fixed">
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <Table className="w-full table-fixed">
+                <colgroup>
+                  <col className="w-[8%]" />
+                  <col className="w-[8%]" />
+                  <col className="w-[8%]" />
+                  <col className="w-[4%]" />
+                  <col className="w-[11%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[15%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[6%]" />
+                  <col className="w-[6%]" />
+                </colgroup>
                 <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur">
                   <TableRow className="border-slate-200 hover:bg-transparent">
-                    <TableHead className="h-10 w-[170px] px-4 text-xs font-semibold text-slate-500">{t("columns.time")}</TableHead>
-                    <TableHead className="h-10 w-[150px] px-4 text-xs font-semibold text-slate-500">{t("columns.endpoint")}</TableHead>
-                    <TableHead className="h-10 w-[150px] px-4 text-xs font-semibold text-slate-500">{t("columns.type")}</TableHead>
-                    <TableHead className="h-10 w-[170px] px-4 text-xs font-semibold text-slate-500">{t("columns.event")}</TableHead>
-                    <TableHead className="h-10 w-[190px] px-4 text-xs font-semibold text-slate-500">{t("columns.actor")}</TableHead>
-                    <TableHead className="h-10 w-[250px] px-4 text-xs font-semibold text-slate-500">{t("columns.target")}</TableHead>
-                    <TableHead className="h-10 px-4 text-xs font-semibold text-slate-500">{t("columns.context")}</TableHead>
-                    <TableHead className="h-10 w-[96px] px-4 text-right text-xs font-semibold text-slate-500">{t("columns.rawData")}</TableHead>
-                    <TableHead className="h-10 w-[96px] px-4 text-right text-xs font-semibold text-slate-500">{t("columns.action")}</TableHead>
+                    <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.time")}</TableHead>
+                    <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.endpoint")}</TableHead>
+                    <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.type")}</TableHead>
+                    <TableHead className="h-10 px-3 text-center text-xs font-semibold text-slate-500">{t("columns.event")}</TableHead>
+                    <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.uniqueId")}</TableHead>
+                    <TableHead className="h-10 px-3 text-center text-xs font-semibold text-slate-500">{t("columns.actor")}</TableHead>
+                    <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.target")}</TableHead>
+                    <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.context")}</TableHead>
+                    <TableHead className="h-10 px-3 text-center text-xs font-semibold text-slate-500">{t("columns.rawData")}</TableHead>
+                    <TableHead className="h-10 px-3 text-center text-xs font-semibold text-slate-500">{t("columns.action")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -453,7 +464,7 @@ export function IocLocalEventsPanel({
                           selected && "bg-blue-50/70 hover:bg-blue-50/80"
                         )}
                       >
-                        <TableCell className="px-4 py-2.5">
+                        <TableCell className="px-3 py-2.5">
                           <div className="flex min-w-0 items-center gap-2">
                             <span className={cn("h-2 w-2 shrink-0 rounded-full", selected ? "bg-blue-600" : "bg-slate-300 group-hover:bg-blue-400")} />
                             <span className="truncate font-mono text-xs text-slate-500 tabular-nums" title={row.time}>
@@ -461,37 +472,42 @@ export function IocLocalEventsPanel({
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5">
-                          <div className="truncate text-sm font-normal text-slate-700" title={row.endpoint}>
+                        <TableCell className="px-3 py-2.5">
+                          <div className="truncate text-xs font-normal text-slate-700" title={row.endpoint}>
                             {row.endpoint}
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5">
+                        <TableCell className="px-3 py-2.5">
                           <div className="truncate font-mono text-xs font-normal text-slate-600" title={row.type}>
                             {row.type}
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5">
-                          <div className="truncate text-sm font-normal text-slate-800" title={row.event}>
+                        <TableCell className="px-3 py-2.5 text-center">
+                          <div className="truncate font-mono text-xs font-normal text-slate-800 tabular-nums" title={row.event}>
                             {row.event}
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5">
-                          <div className="truncate text-sm font-normal text-slate-700" title={row.actor}>
+                        <TableCell className="px-3 py-2.5">
+                          <div className="truncate font-mono text-xs font-normal text-slate-600" title={row.uniqueId}>
+                            {row.uniqueId}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-3 py-2.5 text-center">
+                          <div className="truncate text-xs font-normal text-slate-700" title={row.actor}>
                             {row.actor}
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5">
-                          <div className="truncate text-sm font-normal text-slate-700" title={row.target}>
+                        <TableCell className="px-3 py-2.5">
+                          <div className="truncate text-xs font-normal text-slate-700" title={row.target}>
                             {row.target}
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5">
-                          <div className="truncate text-sm font-normal text-slate-600" title={row.context}>
+                        <TableCell className="px-3 py-2.5">
+                          <div className="truncate text-xs font-normal text-slate-600" title={row.context}>
                             {row.context}
                           </div>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5 text-right">
+                        <TableCell className="px-3 py-2.5 text-center">
                           <Button
                             type="button"
                             variant="outline"
@@ -503,7 +519,7 @@ export function IocLocalEventsPanel({
                             {t("rawDataAction")}
                           </Button>
                         </TableCell>
-                        <TableCell className="px-4 py-2.5 text-right">
+                        <TableCell className="px-3 py-2.5 text-center">
                           <Button
                             type="button"
                             variant={selected ? "default" : "outline"}

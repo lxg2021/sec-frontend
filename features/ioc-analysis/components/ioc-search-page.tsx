@@ -1119,11 +1119,8 @@ export function IocSearchPage() {
                   className="h-full"
                   edgeCount={graphVisibleStats.edgeCount}
                   error={graphError}
-                  graphScopeId={graphScope?.scopeId}
-                  graphScopeType={graphScope?.scopeType}
                   layoutOptions={graphLayoutOptions}
                   layoutStrategy={graphLayoutStrategy}
-                  loadingEvent={selectedEvent}
                   nodeCount={graphVisibleStats.nodeCount}
                   nodeDrillStateByKey={graphNodeDrillStateByKey}
                   onLayoutStrategyChange={setGraphLayoutStrategy}
@@ -1131,7 +1128,6 @@ export function IocSearchPage() {
                   onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
                   positionResetKey={graphPositionResetKey}
                   response={graphResponse}
-                  selectedEvent={selectedEvent}
                   status={graphStatus}
                 />
               </TabsContent>

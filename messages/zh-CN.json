@@ -4361,6 +4361,7 @@
             "endpoint": "终端",
             "type": "类型",
             "event": "事件号",
+            "uniqueId": "事件ID",
             "actor": "主体",
             "target": "命中对象",
             "context": "关联信息",
@@ -4377,6 +4378,7 @@
         "graph": {
           "title": "定位图谱",
           "description": "选择本地事件后生成 positioning 图谱",
+          "stats": "{nodeCount} 个节点 · {edgeCount} 条关系",
           "eventFallback": "event",
           "reset": "Reset",
           "componentLoading": "正在加载定位图谱组件...",
