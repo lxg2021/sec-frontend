@@ -4241,6 +4241,13 @@
       }
     },
     "iocAnalysis": {
+      "search": {
+        "title": "Intelligence Search",
+        "description": "Query threat intelligence and locate event data",
+        "typeLabel": "IOC type",
+        "placeholder": "Enter IP, domain, URL, or hash",
+        "submit": "Search"
+      },
       "verification": {
         "title": "Verification",
         "description": "Extract and verify case IOCs.",

@@ -4243,6 +4243,13 @@
       }
     },
     "iocAnalysis": {
+      "search": {
+        "title": "情报检索",
+        "description": "查询威胁情报，同步定位事件数据",
+        "typeLabel": "IOC 类型",
+        "placeholder": "输入 IP、域名、URL 或 Hash 查询",
+        "submit": "查询"
+      },
       "verification": {
         "title": "情报验证",
         "description": "提取并验证案件 IOC",
