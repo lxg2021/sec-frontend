@@ -343,13 +343,13 @@ export function IocLocalEventsPanel({
           </div>
 
           <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-            <div className="flex h-9 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-100/80 p-1 shadow-inner shadow-slate-200/60">
+            <div className="flex h-9 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-100/80 p-0.5 shadow-inner shadow-slate-200/60">
               {(["30d", "90d", "custom"] as LocalTimeRangeMode[]).map((mode) => (
                 <button
                   key={mode}
                   type="button"
                   className={cn(
-                    "h-7 rounded-full px-3 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200",
+                    "h-8 rounded-full px-3 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200",
                     timeRangeMode === mode
                       ? "bg-slate-950 text-white shadow-sm shadow-slate-300"
                       : "text-slate-500 hover:bg-white hover:text-slate-900",

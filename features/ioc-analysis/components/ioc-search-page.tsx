@@ -756,6 +756,9 @@ export function IocSearchPage() {
       }
 
       const normalizedValue = normalizeIocValue(type, value)
+      if (queryType === "auto") {
+        setQueryType(type)
+      }
       setStatus("loading")
       setError("")
       setItem(null)
