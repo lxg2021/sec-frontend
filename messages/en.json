@@ -4312,8 +4312,9 @@
             "graph": "Positioning graph"
           },
           "risk": {
-            "high": "High",
-            "low": "Low"
+            "high": "High risk",
+            "medium": "Medium risk",
+            "low": "Low risk"
           },
           "graph": {
             "generated": "Generated",

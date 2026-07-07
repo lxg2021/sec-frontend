@@ -4314,8 +4314,9 @@
             "graph": "定位图谱"
           },
           "risk": {
-            "high": "高",
-            "low": "低"
+            "high": "高风险",
+            "medium": "中风险",
+            "low": "低风险"
           },
           "graph": {
             "generated": "已生成",
