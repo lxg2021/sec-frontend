@@ -561,7 +561,12 @@ export function IocSearchPage() {
 
             <form
               onSubmit={handleSearch}
-              className="flex h-14 w-full min-w-0 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 lg:justify-self-center"
+              className={cn(
+                "flex h-14 w-full min-w-0 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 transition-[border-color,background-color,box-shadow] duration-200 ease-out lg:justify-self-center",
+                "hover:border-slate-300 hover:bg-white hover:shadow-sm",
+                "focus-within:border-blue-400 focus-within:bg-white focus-within:shadow-sm",
+                status === "loading" && "animate-pulse"
+              )}
             >
               <div className="relative h-10 w-[108px] shrink-0">
                 <select
@@ -586,7 +591,7 @@ export function IocSearchPage() {
                 value={queryValue}
                 onChange={(event) => setQueryValue(event.target.value)}
                 placeholder="输入 IP、域名、URL 或 Hash 查询"
-                className="h-11 min-w-0 flex-1 border-0 bg-transparent px-3 font-mono text-sm shadow-none focus-visible:ring-0"
+                className="h-11 min-w-0 flex-1 rounded-none border-0 bg-transparent px-3 font-mono text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
                 disabled={status === "loading"}
               />
               <Button
