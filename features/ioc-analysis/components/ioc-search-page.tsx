@@ -540,7 +540,7 @@ export function IocSearchPage() {
     <main className="bg-gray-50 text-slate-950">
       <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
         <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+          <div className="grid gap-4 lg:grid-cols-[minmax(180px,1fr)_minmax(560px,760px)_minmax(140px,1fr)] lg:items-center xl:grid-cols-[minmax(190px,1fr)_minmax(860px,1040px)_minmax(150px,1fr)] 2xl:grid-cols-[minmax(220px,1fr)_minmax(980px,1180px)_minmax(170px,1fr)]">
             <div className="flex min-w-0 flex-1 items-center gap-4">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
                 <Globe2 className="h-5 w-5" aria-hidden="true" />
@@ -558,72 +558,70 @@ export function IocSearchPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
-              <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                <form
-                  onSubmit={handleSearch}
-                  className="flex h-12 w-full min-w-[320px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
-                >
-                  <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-                  <select
-                    value={queryType}
-                    onChange={(event) => setQueryType(event.target.value as IocVerificationType)}
-                    className="ml-3 h-8 w-[92px] shrink-0 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none focus:border-blue-300 disabled:cursor-not-allowed disabled:opacity-60"
-                    aria-label="IOC 类型"
-                    disabled={status === "loading"}
-                  >
-                    {TYPE_OPTIONS.map((type) => (
-                      <option key={type} value={type}>
-                        {type.toUpperCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <Input
-                    value={queryValue}
-                    onChange={(event) => setQueryValue(event.target.value)}
-                    placeholder="输入 IP、域名、URL 或 Hash 查询"
-                    className="h-10 min-w-0 flex-1 border-0 bg-transparent px-3 font-mono text-sm shadow-none focus-visible:ring-0"
-                    disabled={status === "loading"}
-                  />
-                  <Button
-                    type="submit"
-                    className="h-9 shrink-0 rounded-full bg-blue-600 px-4 text-white hover:bg-blue-700"
-                    disabled={status === "loading" || !canSearch}
-                  >
-                    {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                    查询
-                  </Button>
-                </form>
+            <form
+              onSubmit={handleSearch}
+              className="flex h-14 w-full min-w-0 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 lg:justify-self-center"
+            >
+              <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <select
+                value={queryType}
+                onChange={(event) => setQueryType(event.target.value as IocVerificationType)}
+                className="ml-3 h-10 w-[96px] shrink-0 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none focus:border-blue-300 disabled:cursor-not-allowed disabled:opacity-60"
+                aria-label="IOC 类型"
+                disabled={status === "loading"}
+              >
+                {TYPE_OPTIONS.map((type) => (
+                  <option key={type} value={type}>
+                    {type.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+              <Input
+                value={queryValue}
+                onChange={(event) => setQueryValue(event.target.value)}
+                placeholder="输入 IP、域名、URL 或 Hash 查询"
+                className="h-11 min-w-0 flex-1 border-0 bg-transparent px-3 font-mono text-sm shadow-none focus-visible:ring-0"
+                disabled={status === "loading"}
+              />
+              <Button
+                type="submit"
+                className="h-10 shrink-0 rounded-full bg-blue-600 px-5 text-white hover:bg-blue-700"
+                disabled={status === "loading" || !canSearch}
+              >
+                {status === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                查询
+              </Button>
+            </form>
 
-                <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+            <div className="flex flex-wrap items-center gap-3 lg:justify-self-end">
+              <span className="hidden h-6 w-px bg-slate-200 lg:block" aria-hidden="true" />
 
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
-                    <Clock3 className="h-4 w-4" aria-hidden="true" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-xs text-slate-400">更新时间</div>
-                    <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
-                      {item?.verification?.checked_at || (status === "loading" ? "查询中" : "--")}
-                    </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+                  <Clock3 className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs text-slate-400">更新时间</div>
+                  <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
+                    {item?.verification?.checked_at || (status === "loading" ? "查询中" : "--")}
                   </div>
                 </div>
-
-                <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
-                  disabled={status === "loading" || !queryValue.trim()}
-                  onClick={() => void handleSearch()}
-                  aria-label="刷新查询"
-                >
-                  <RefreshCw className={cn("h-4 w-4", status === "loading" && "animate-spin")} />
-                  <span className="sr-only">刷新查询</span>
-                </Button>
               </div>
+
+              <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
+                disabled={status === "loading" || !queryValue.trim()}
+                onClick={() => void handleSearch()}
+                aria-label="刷新查询"
+              >
+                <RefreshCw className={cn("h-4 w-4", status === "loading" && "animate-spin")} />
+                <span className="sr-only">刷新查询</span>
+              </Button>
             </div>
           </div>
         </header>
