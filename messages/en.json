@@ -145,7 +145,7 @@
     "aithreat": "Threat Analysis",
     "aioperations": "Operations Management",
     "iocAnalysis": "Intelligence Center",
-    "iocSearch": "Intelligence Search",
+    "iocSearch": "Intelligence Lookup",
     "iocVerification": "Verification",
     "reports": "Audit Center",
     "control": "Control Center",
@@ -4242,7 +4242,7 @@
     },
     "iocAnalysis": {
       "search": {
-        "title": "Intelligence Search",
+        "title": "Intelligence Lookup",
         "description": "Query threat intelligence and locate event data",
         "typeLabel": "IOC type",
         "placeholder": "Enter IP, domain, URL, or hash",

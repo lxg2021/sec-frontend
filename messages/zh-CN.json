@@ -145,7 +145,7 @@
     "aithreat": "威胁分析",
     "aioperations": "运营管理",
     "iocAnalysis": "情报中心",
-    "iocSearch": "情报检索",
+    "iocSearch": "情报定位",
     "iocVerification": "情报验证",
     "reports": "审计中心",
     "control": "控制中心",
@@ -4244,7 +4244,7 @@
     },
     "iocAnalysis": {
       "search": {
-        "title": "情报检索",
+        "title": "情报定位",
         "description": "查询威胁情报，同步定位事件数据",
         "typeLabel": "IOC 类型",
         "placeholder": "输入 IP、域名、URL 或 Hash 查询",
