@@ -103,6 +103,11 @@ export function IocSearchHeader({
           <Input
             value={queryValue}
             onChange={(event) => onQueryValueChange(event.target.value)}
+            onFocus={(event) => {
+              if (status === "success" || status === "error") {
+                event.currentTarget.select()
+              }
+            }}
             placeholder={t("placeholder")}
             className="h-11 min-w-0 flex-1 rounded-none border-0 bg-transparent px-3 font-mono text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
             disabled={loading}

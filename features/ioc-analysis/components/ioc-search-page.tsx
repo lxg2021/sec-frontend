@@ -436,7 +436,7 @@ export function IocSearchPage() {
 
   const tenantId = DEFAULT_TENANT_ID
   const resolvedType = useMemo(() => resolveSearchType(queryType, queryValue), [queryType, queryValue])
-  const canSearch = Boolean(queryValue.trim() && resolvedType)
+  const canSearch = Boolean(queryValue.trim())
   const queryDisplayItem = useMemo(() => {
     const value = queryValue.trim()
     const type = resolvedType
