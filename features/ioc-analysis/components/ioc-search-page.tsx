@@ -15,7 +15,6 @@ import {
   Hash,
   Loader2,
   Network,
-  RefreshCw,
   Search,
   ShieldAlert,
   ShieldCheck,
@@ -604,36 +603,7 @@ export function IocSearchPage() {
               </Button>
             </form>
 
-            <div className="flex flex-wrap items-center gap-3 lg:justify-self-end">
-              <span className="hidden h-6 w-px bg-slate-200 lg:block" aria-hidden="true" />
-
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
-                  <Clock3 className="h-4 w-4" aria-hidden="true" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs text-slate-400">更新时间</div>
-                  <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
-                    {item?.verification?.checked_at || (status === "loading" ? "查询中" : "--")}
-                  </div>
-                </div>
-              </div>
-
-              <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
-                disabled={status === "loading" || !queryValue.trim()}
-                onClick={() => void handleSearch()}
-                aria-label="刷新查询"
-              >
-                <RefreshCw className={cn("h-4 w-4", status === "loading" && "animate-spin")} />
-                <span className="sr-only">刷新查询</span>
-              </Button>
-            </div>
+            <div className="hidden lg:block" aria-hidden="true" />
           </div>
         </header>
 
