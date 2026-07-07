@@ -13,8 +13,10 @@ function pick(value: string | string[] | undefined): string | undefined {
 export default async function ForensicTasksPage({ searchParams }: PageProps) {
   const params = searchParams ? await searchParams : {}
   const rawStatus = pick(params.status)
+  const caseId =
+    pick(params.case_id) || pick(params.caseId) || pick(params.caseid)
   const ctx = {
-    case_id: pick(params.case_id),
+    case_id: caseId,
     workflow_id: pick(params.workflow_id),
     workflow_action_id: pick(params.workflow_action_id),
     agent_id: pick(params.agent_id),

@@ -375,17 +375,23 @@ function getToolActionStyle(iconName?: string) {
 }
 
 function stageTools({
+  canOpenDetails,
   canInvestigateIoc,
   currentStatus,
   hrefs,
+  selectedStatus,
   t,
 }: {
+  canOpenDetails: boolean
   canInvestigateIoc: boolean
   currentStatus: AttackWorkflowStatus | ""
   hrefs: WorkflowNavigationHrefs
+  selectedStatus: AttackWorkflowStatus
   t: WorkflowCenterT
 }): StageTool[] {
-  const canUseForensicOrchestration = currentStatus === "forensics"
+  const canUseForensicOrchestration =
+    canOpenDetails &&
+    (currentStatus === "forensics" || selectedStatus === "forensics")
   const canUseResponseOrchestration =
     currentStatus !== "" && RESPONSE_ORCHESTRATION_STATUSES.has(currentStatus)
 
@@ -789,6 +795,7 @@ function ToolRow({
 export function AttackWorkflowStageWorkbench({
   actions,
   allowedStatuses,
+  canOpenDetails,
   currentStatus,
   hrefs,
   loading = false,
@@ -803,11 +810,13 @@ export function AttackWorkflowStageWorkbench({
   const isChinese = isChineseLocale(locale)
   const normalizedCurrentStatus = normalizeWorkflowStatus(currentStatus)
   const config = getStageConfig(t, selectedStatus)
-  const canInvestigateIoc = Boolean(workflow?.case_id)
+  const canInvestigateIoc = canOpenDetails || Boolean(workflow?.case_id)
   const tools = stageTools({
+    canOpenDetails,
     canInvestigateIoc,
     currentStatus: normalizedCurrentStatus,
     hrefs,
+    selectedStatus,
     t,
   })
   const selectedStyle = getStatusStyle(selectedStatus)
