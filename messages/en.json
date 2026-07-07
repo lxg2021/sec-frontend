@@ -134,7 +134,6 @@
     "attdetail": "Attack Details",
     "attworkflow": "AttackWorkflow",
     "attdrill": "Trace Details",
-    "attpositioning": "Data Positioning",
     "investigation": "Investigation",
     "forensicWorkbench": "Forensic Overview",
     "forensicTasks": "Forensic Center",
@@ -146,7 +145,6 @@
     "aithreat": "Threat Analysis",
     "aioperations": "Operations Management",
     "iocAnalysis": "Intelligence Center",
-    "dataInvestigation": "Data Investigation",
     "iocVerification": "Verification",
     "reports": "Audit Center",
     "control": "Control Center",
@@ -1172,14 +1170,6 @@
         "statusEmptyDescription": "Timeline may still load",
         "statusError": "Error",
         "statusErrorDescription": "Load failed"
-      },
-      "positioning": {
-        "title": "Data Positioning",
-        "subtitle": "Pinpoint Data Source",
-        "searchTitle": "Search Query",
-        "searchDescription": "Search by IP, DNS, MD5, or port.",
-        "graph": "Data Graph",
-        "sheetTitle": "Node Details Panel"
       },
       "graph": {
         "edges": {

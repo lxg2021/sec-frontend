@@ -134,7 +134,6 @@
     "attdetail": "攻击详情",
     "attworkflow": "Attack工作流",
     "attdrill": "溯源详情",
-    "attpositioning": "数据定位",
     "investigation": "调查取证",
     "forensicWorkbench": "取证概览",
     "forensicTasks": "取证中心",
@@ -146,7 +145,6 @@
     "aithreat": "威胁分析",
     "aioperations": "运营管理",
     "iocAnalysis": "情报中心",
-    "dataInvestigation": "数据定位",
     "iocVerification": "情报验证",
     "reports": "审计中心",
     "control": "控制中心",
@@ -1174,14 +1172,6 @@
         "statusEmptyDescription": "时间线可能仍可加载",
         "statusError": "加载失败",
         "statusErrorDescription": "请求失败"
-      },
-      "positioning": {
-        "title": "数据定位",
-        "subtitle": "定位数据源",
-        "searchTitle": "搜索查询",
-        "searchDescription": "输入 IP、DNS、MD5 或端口进行查询",
-        "graph": "数据图谱",
-        "sheetTitle": "节点详情面板"
       },
       "graph": {
         "edges": {

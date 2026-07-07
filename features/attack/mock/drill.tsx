@@ -132,21 +132,6 @@ import {
   testReverseProcessCreateGroupShip,
   testReverseProcessDeleteGroupShip,
 } from "@/features/attack/mock/graph-edge";
-
-
-/* 初始化数据定位节点 */
-export const initPositionNodes: GraphNode<any>[] = [
-  { id: "1", type: "ProcessNode", data: testProcessNode1, },
-  { id: "n1", type: "NetNode", data: testNetNode, },
-  { id: "d1", type: "DnsNode", data: testDnsNode, },
-]
-
-/* 初始边数据（使用注册的边类型）*/
-export const initPositionLinks: GraphLink<{}>[] = [
-  { id: "e11", source: "1", target: "n1", type: "PROCESS_NET", data: testProcessNetShip },
-  { id: "e12", source: "1", target: "d1", type: "PROCESS_DNS", data: testProcessDnsShip1 },
-]
-
 // 初始节点数据
 export const initialNodes: GraphNode<any>[] = [
   { id: "1", type: "ProcessNode", data: testProcessNode1, },

@@ -12,7 +12,6 @@ import {
   FileText,
   LayoutDashboard,
   List,
-  MapPin,
   Monitor,
   Package,
   Settings,
@@ -77,7 +76,6 @@ export const menuItems = [
       { id: "attdetail", icon: BarChart, labelKey: "attdetail", path: "/frame/attack/detail" },
       { id: "attworkflow", icon: ShieldCheck, labelKey: "attworkflow", path: "/frame/attack/workflow" },
       { id: "attdrill", icon: Activity, labelKey: "attdrill", path: "/frame/attack/drill" },
-      { id: "attpositioning", icon: MapPin, labelKey: "attpositioning", path: "/frame/attack/positioning" },
     ],
   },
   {
@@ -115,7 +113,6 @@ export const menuItems = [
     labelKey: "iocAnalysis",
     submenu: [
       { id: "iocVerification", icon: ShieldCheck, labelKey: "iocVerification", path: "/frame/ioc-analysis/ioc-verification" },
-      { id: "dataInvestigation", icon: MapPin, labelKey: "dataInvestigation", path: "/frame/ioc-analysis/data-investigation" },
     ],
   },
   { id: "reports", icon: FileText, labelKey: "reports", path: "/frame/reports" },
