@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react"
 import {
   AlertTriangle,
-  ChevronDown,
   CheckCircle2,
   Clock3,
   Cloud,
@@ -43,6 +42,13 @@ import { cn, createRequestId } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
 
 const DEFAULT_TENANT_ID = "public"
@@ -567,25 +573,33 @@ export function IocSearchPage() {
                 status === "loading" && "animate-pulse"
               )}
             >
-              <div className="relative h-10 w-[108px] shrink-0">
-                <select
-                  value={queryType}
-                  onChange={(event) => setQueryType(event.target.value as IocVerificationType)}
-                  className="h-full w-full appearance-none rounded-full border border-slate-200 bg-white pl-4 pr-9 text-xs font-semibold text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-blue-300 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+              <Select
+                value={queryType}
+                onValueChange={(value) => setQueryType(value as IocVerificationType)}
+                disabled={status === "loading"}
+              >
+                <SelectTrigger
                   aria-label="IOC 类型"
-                  disabled={status === "loading"}
+                  className="h-10 w-[112px] shrink-0 rounded-full border-slate-200 bg-white pl-4 pr-3 text-xs font-semibold text-slate-800 shadow-none transition-colors hover:border-slate-300 hover:bg-white focus:ring-0 focus:ring-offset-0 data-[placeholder]:text-slate-500 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-slate-500 [&>svg]:opacity-100"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent
+                  align="start"
+                  sideOffset={8}
+                  className="z-[80] min-w-[132px] rounded-xl border-slate-200 bg-white p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.14)]"
                 >
                   {TYPE_OPTIONS.map((type) => (
-                    <option key={type} value={type}>
+                    <SelectItem
+                      key={type}
+                      value={type}
+                      className="h-9 cursor-pointer rounded-lg pl-8 pr-3 text-xs font-semibold uppercase text-slate-700 focus:bg-blue-50 focus:text-blue-700 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white [&_svg]:h-3.5 [&_svg]:w-3.5"
+                    >
                       {type.toUpperCase()}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-                <ChevronDown
-                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
-                  aria-hidden="true"
-                />
-              </div>
+                </SelectContent>
+              </Select>
               <Input
                 value={queryValue}
                 onChange={(event) => setQueryValue(event.target.value)}
