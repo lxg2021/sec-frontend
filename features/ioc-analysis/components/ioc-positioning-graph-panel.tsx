@@ -110,7 +110,6 @@ export function IocPositioningGraphPanel({
               nodeDrillStateByKey={nodeDrillStateByKey}
               onMenuAction={onMenuAction}
               positionResetKey={positionResetKey}
-              showMiniMap
             />
           ) : (
             <GraphStateMessage
