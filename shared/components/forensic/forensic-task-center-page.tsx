@@ -8,6 +8,7 @@ import {
   Archive,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   Download,
   FileText,
   Hexagon,
@@ -480,29 +481,51 @@ export function ForensicTaskCenterPage({ context }: Props) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 lg:items-end">
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <span className="text-xs text-slate-400">{t("header.updatedAt", { time: formatRefreshTime(refreshedAt) })}</span>
-                <span className="h-4 w-px bg-slate-200" />
-                <form className="flex items-center gap-2" onSubmit={handleHeaderCaseSubmit}>
-                  <Input
+            <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
+              <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                <form
+                  className="flex h-12 w-full min-w-[320px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
+                  onSubmit={handleHeaderCaseSubmit}
+                >
+                  <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+                  <input
+                    type="search"
                     aria-label={t("header.caseInputLabel")}
                     value={headerCaseInput}
                     onChange={(event) => setHeaderCaseInput(event.target.value)}
                     placeholder={t("header.casePlaceholder")}
-                    className="h-10 w-[220px] rounded-full border-slate-200 bg-slate-50 px-4 text-sm shadow-none"
+                    disabled={loading}
+                    className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </form>
+
+                <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+                    <Clock3 aria-hidden className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-slate-400">{t("header.updatedAtLabel")}</div>
+                    <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
+                      {formatRefreshTime(refreshedAt)}
+                    </div>
+                  </div>
+                </div>
+
+                <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 rounded-full text-slate-500 shadow-none hover:bg-slate-100 hover:text-slate-700"
+                  className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
                   onClick={handleHeaderRefreshClick}
                   disabled={loading}
                   title={t("header.refreshLabel")}
+                  aria-label={t("header.refreshLabel")}
                 >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                  <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
                   <span className="sr-only">{t("header.refreshLabel")}</span>
                 </Button>
 

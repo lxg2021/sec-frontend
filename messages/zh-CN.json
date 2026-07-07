@@ -137,7 +137,7 @@
     "attpositioning": "数据定位",
     "investigation": "调查取证",
     "forensicWorkbench": "取证概览",
-    "forensicTasks": "任务中心",
+    "forensicTasks": "取证中心",
     "forensicArtifacts": "工件配置",
     "response": "处置响应",
     "orchestration": "处置编排",
@@ -2098,7 +2098,7 @@
         },
         "recentTasks": {
           "title": "最近取证任务",
-          "description": "最多展示 5 条，详情进入任务中心",
+          "description": "最多展示 5 条，详情进入取证中心",
           "viewMore": "查看更多",
           "emptyTitle": "暂无取证任务",
           "emptyDescription": "请新建取证任务后查看执行记录",
@@ -2134,7 +2134,7 @@
             "noAvailableEndpoint": "当前没有可直接下发取证的在线终端",
             "endpointUnbound": "{count} 台终端未绑定 Agent，暂不能直接下发取证",
             "endpointOffline": "{count} 台终端离线或状态未知，暂不能直接下发取证",
-            "taskFailed": "{count} 个取证任务失败，需要进入任务中心查看原因"
+            "taskFailed": "{count} 个取证任务失败，需要进入取证中心查看原因"
           }
         },
         "quickLinks": {
@@ -2143,7 +2143,7 @@
             "description": "选择终端与工件下发取证"
           },
           "taskCenter": {
-            "name": "任务中心",
+            "name": "取证中心",
             "description": "查看任务详情与远端 flow"
           },
           "artifactConfig": {
@@ -2293,7 +2293,7 @@
       },
       "tasks": {
         "header": {
-          "title": "任务中心",
+          "title": "取证中心",
           "subtitle": "创建取证任务、查看 Velociraptor Flow 详情并下载结果",
           "updatedAt": "刷新时间 {time}",
           "updatedAtLabel": "更新时间",
@@ -2377,7 +2377,7 @@
         },
         "detail": {
           "title": "取证详情",
-          "back": "返回任务中心",
+          "back": "返回取证中心",
           "loading": "正在加载任务详情",
           "missingTaskTitle": "缺少任务 ID",
           "emptyTitle": "暂无 Flow 详情",

@@ -137,7 +137,7 @@
     "attpositioning": "Data Positioning",
     "investigation": "Investigation",
     "forensicWorkbench": "Forensic Overview",
-    "forensicTasks": "Task Center",
+    "forensicTasks": "Forensic Center",
     "forensicArtifacts": "Artifact Config",
     "response": "Response",
     "orchestration": "Orchestration",
@@ -2096,7 +2096,7 @@
         },
         "recentTasks": {
           "title": "Recent Forensic Tasks",
-          "description": "Shows the latest 5 tasks. Open Task Center for details.",
+          "description": "Shows the latest 5 tasks. Open Forensic Center for details.",
           "viewMore": "View more",
           "emptyTitle": "No forensic tasks",
           "emptyDescription": "Create a forensic task to view execution records.",
@@ -2132,7 +2132,7 @@
             "noAvailableEndpoint": "No online endpoints are available for forensic dispatch.",
             "endpointUnbound": "{count} endpoint(s) are not bound to an Agent and cannot be dispatched directly.",
             "endpointOffline": "{count} endpoint(s) are offline or in an unknown state and cannot be dispatched directly.",
-            "taskFailed": "{count} forensic task(s) failed. Open Task Center to review the cause."
+            "taskFailed": "{count} forensic task(s) failed. Open Forensic Center to review the cause."
           }
         },
         "quickLinks": {
@@ -2141,7 +2141,7 @@
             "description": "Select an endpoint and artifact to dispatch"
           },
           "taskCenter": {
-            "name": "Task Center",
+            "name": "Forensic Center",
             "description": "View task details and remote flows"
           },
           "artifactConfig": {
@@ -2291,7 +2291,7 @@
       },
       "tasks": {
         "header": {
-          "title": "Task Center",
+          "title": "Forensic Center",
           "subtitle": "Create forensic tasks, review Velociraptor Flow detail, and download results.",
           "updatedAt": "Refreshed at {time}",
           "updatedAtLabel": "Updated At",
@@ -2375,7 +2375,7 @@
         },
         "detail": {
           "title": "Forensic Detail",
-          "back": "Back to Task Center",
+          "back": "Back to Forensic Center",
           "loading": "Loading task detail",
           "missingTaskTitle": "Task ID is required",
           "emptyTitle": "No Flow detail",
