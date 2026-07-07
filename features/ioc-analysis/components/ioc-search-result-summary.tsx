@@ -214,11 +214,6 @@ export function IocSearchResultSummary({
               <span className="text-xs text-slate-500">
                 {t("checkedAt")}<span className="font-mono text-slate-600">{checkedAt}</span>
               </span>
-              {graphScopeId ? (
-                <span className="rounded-md bg-blue-50 px-2 py-0.5 font-mono text-[11px] font-semibold text-blue-700">
-                  positioning:{graphScopeId}
-                </span>
-              ) : null}
             </div>
           </div>
         </div>

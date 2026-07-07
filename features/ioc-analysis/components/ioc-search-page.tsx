@@ -1067,7 +1067,7 @@ export function IocSearchPage() {
 
         {displayItemForPage ? (
           <section className="min-h-0 flex-1 overflow-hidden">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
               <div className="shrink-0 border-b border-slate-100 px-4 py-3">
                 <TabsList className="h-10 rounded-md bg-slate-100 p-1">
                   <TabsTrigger value="detail" className="rounded px-4 data-[state=active]:bg-white">
