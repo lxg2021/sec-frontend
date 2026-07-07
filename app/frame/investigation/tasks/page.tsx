@@ -25,6 +25,10 @@ export default async function ForensicTasksPage({ searchParams }: PageProps) {
     velociraptor_client_id: pick(params.velociraptor_client_id),
     task_id: pick(params.task_id),
     action: pick(params.action),
+    return_to: pick(params.return_to) || pick(params.returnTo),
+    snapshot_id: pick(params.snapshot_id) || pick(params.snapshotId),
+    queue_page: pick(params.queue_page) || pick(params.queuePage),
+    tenant_id: pick(params.tenant_id) || pick(params.tenantId),
     status: ["pending", "running", "success", "failed", "canceled", "timeout"].includes(rawStatus || "")
       ? (rawStatus as ForensicTaskStatus)
       : undefined,

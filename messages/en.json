@@ -2282,6 +2282,7 @@
       "tasks": {
         "header": {
           "title": "Forensic Center",
+          "back": "Back",
           "subtitle": "Create forensic tasks, review Velociraptor Flow detail, and download results.",
           "updatedAt": "Refreshed at {time}",
           "updatedAtLabel": "Updated At",

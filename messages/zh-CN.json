@@ -2284,6 +2284,7 @@
       "tasks": {
         "header": {
           "title": "取证中心",
+          "back": "返回",
           "subtitle": "创建取证任务、查看 Velociraptor Flow 详情并下载结果",
           "updatedAt": "刷新时间 {time}",
           "updatedAtLabel": "更新时间",

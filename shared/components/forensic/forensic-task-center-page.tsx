@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
   Archive,
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -55,6 +56,14 @@ interface ForensicTaskCenterContext extends ForensicOverviewContext {
   task_id?: string
   action?: string
   velociraptor_client_id?: string
+  return_to?: string
+  returnTo?: string
+  snapshot_id?: string
+  snapshotId?: string
+  queue_page?: string
+  queuePage?: string
+  tenant_id?: string
+  tenantId?: string
 }
 
 interface Props {
@@ -236,6 +245,24 @@ function taskDetailHref(task: ForensicTaskItem): string {
   if (ip) params.set("ip", ip)
   if (macs) params.set("macs", macs)
   return `/frame/investigation/tasks/detail?${params.toString()}`
+}
+
+function buildAttackWorkflowReturnHref(context: ForensicTaskCenterContext, fallbackCaseId: string): string {
+  const params = new URLSearchParams()
+  const caseId = firstText([context.case_id, fallbackCaseId])
+  const workflowId = context.workflow_id?.trim()
+  const snapshotId = firstText([context.snapshot_id, context.snapshotId])
+  const queuePage = firstText([context.queue_page, context.queuePage])
+  const tenantId = firstText([context.tenant_id, context.tenantId])
+
+  if (caseId) params.set("caseId", caseId)
+  if (workflowId) params.set("workflowId", workflowId)
+  if (snapshotId) params.set("snapshotId", snapshotId)
+  if (queuePage) params.set("queuePage", queuePage)
+  if (tenantId) params.set("tenantId", tenantId)
+
+  const query = params.toString()
+  return `/frame/attack/workflow${query ? `?${query}` : ""}`
 }
 
 export function ForensicTaskCenterPage({ context }: Props) {
@@ -458,6 +485,17 @@ export function ForensicTaskCenterPage({ context }: Props) {
     [t],
   )
 
+  const handleBack = useCallback(() => {
+    const returnTo = firstText([context.return_to, context.returnTo]).toLowerCase()
+
+    if (returnTo === "workflow" || context.workflow_id?.trim()) {
+      router.push(buildAttackWorkflowReturnHref(context, caseId.trim()))
+      return
+    }
+
+    router.back()
+  }, [caseId, context, router])
+
   return (
     <main className="bg-gray-50">
       <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
@@ -469,9 +507,23 @@ export function ForensicTaskCenterPage({ context }: Props) {
               </div>
 
               <div className="min-w-0 space-y-1.5">
-                <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
-                  {t("header.title")}
-                </h1>
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
+                  <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
+                    {t("header.title")}
+                  </h1>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 shrink-0 rounded-full border-slate-200 bg-white px-3 text-slate-800 shadow-none"
+                    onClick={handleBack}
+                    title={t("header.back")}
+                    aria-label={t("header.back")}
+                  >
+                    <ArrowLeft className="size-4" />
+                    <span className="whitespace-nowrap">{t("header.back")}</span>
+                  </Button>
+                </div>
                 <div className="flex flex-wrap items-center gap-2.5 text-sm">
                   <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
                     FORENSIC

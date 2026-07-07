@@ -107,10 +107,16 @@ function normalizeQueuePage(value?: number) {
 function buildForensicTaskHref({
   action,
   caseId,
+  queuePage,
+  snapshotId,
+  tenantId,
   workflow,
 }: {
   action?: AttackWorkflowActionItem
   caseId: string
+  queuePage?: number
+  snapshotId?: string
+  tenantId?: string
   workflow: AttackWorkflowItem | null
 }) {
   const params = new URLSearchParams()
@@ -122,6 +128,10 @@ function buildForensicTaskHref({
   if (workflowId) params.set("workflow_id", workflowId)
   if (workflowActionId) params.set("workflow_action_id", workflowActionId)
   if (agentId) params.set("agent_id", agentId)
+  params.set("returnTo", "workflow")
+  if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
+  if (queuePage && queuePage > 0) params.set("queuePage", String(Math.trunc(queuePage)))
+  if (tenantId?.trim()) params.set("tenantId", tenantId.trim())
 
   const query = params.toString()
   return query
@@ -560,6 +570,9 @@ export function AttackWorkflowControlCenter({
   const forensicHref = buildForensicTaskHref({
     action: forensicAction,
     caseId: activeCaseId,
+    queuePage,
+    snapshotId: normalizedSnapshotId,
+    tenantId,
     workflow,
   })
   const navigationHrefs: WorkflowNavigationHrefs = {
