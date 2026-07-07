@@ -145,9 +145,9 @@
     "aiops": "AI Ops",
     "aithreat": "威胁分析",
     "aioperations": "运营管理",
-    "iocAnalysis": "IOC情报分析",
+    "iocAnalysis": "情报中心",
     "dataInvestigation": "数据定位",
-    "iocVerification": "IOC验证",
+    "iocVerification": "情报验证",
     "reports": "审计中心",
     "control": "控制中心",
     "sensorconfig": "传感器配置",
@@ -4252,7 +4252,7 @@
     },
     "iocAnalysis": {
       "verification": {
-        "title": "IOC验证",
+        "title": "情报验证",
         "description": "提取并验证案件 IOC",
         "onlineBadge": "联网验证",
         "summary": {

@@ -145,9 +145,9 @@
     "aiops": "AI Ops",
     "aithreat": "Threat Analysis",
     "aioperations": "Operations Management",
-    "iocAnalysis": "IOC Analysis",
+    "iocAnalysis": "Intelligence Center",
     "dataInvestigation": "Data Investigation",
-    "iocVerification": "IOC Verification",
+    "iocVerification": "Verification",
     "reports": "Audit Center",
     "control": "Control Center",
     "sensorconfig": "Sensor Config",
@@ -4250,7 +4250,7 @@
     },
     "iocAnalysis": {
       "verification": {
-        "title": "IOC Verification",
+        "title": "Verification",
         "description": "Extract and verify case IOCs.",
         "onlineBadge": "Online",
         "summary": {
