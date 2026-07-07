@@ -49,7 +49,7 @@ export function IocVerificationDetailPanel({
   return (
     <section
       className={cn(
-        "flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white",
+        "flex min-h-0 flex-col overflow-hidden bg-white",
         className,
       )}
     >
