@@ -145,6 +145,7 @@
     "aithreat": "Threat Analysis",
     "aioperations": "Operations Management",
     "iocAnalysis": "Intelligence Center",
+    "iocSearch": "Intelligence Search",
     "iocVerification": "Verification",
     "reports": "Audit Center",
     "control": "Control Center",

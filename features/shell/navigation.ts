@@ -112,6 +112,7 @@ export const menuItems = [
     icon: Search,
     labelKey: "iocAnalysis",
     submenu: [
+      { id: "iocSearch", icon: Search, labelKey: "iocSearch", path: "/frame/ioc-analysis/ioc-search" },
       { id: "iocVerification", icon: ShieldCheck, labelKey: "iocVerification", path: "/frame/ioc-analysis/ioc-verification" },
     ],
   },
