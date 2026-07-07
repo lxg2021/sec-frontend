@@ -55,6 +55,13 @@ type LocalEventRowMeta = {
   type: string
 }
 
+const tableActionButtonBaseClass =
+  "h-10 gap-2 rounded-full px-3 transition-colors duration-150 disabled:pointer-events-none"
+const rawDataActionButtonClass =
+  "text-slate-600 hover:bg-slate-900 hover:text-white active:bg-slate-950"
+const graphActionButtonClass =
+  "text-cyan-600 hover:bg-cyan-600 hover:text-white active:bg-cyan-700"
+
 function cleanText(value?: string | null) {
   return (value || "").trim()
 }
@@ -510,29 +517,31 @@ export function IocLocalEventsPanel({
                         <TableCell className="px-3 py-2.5 text-center">
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            className="h-8 rounded-full border-slate-200 bg-white px-3 text-xs hover:bg-slate-50"
+                            className={cn(tableActionButtonBaseClass, rawDataActionButtonClass, "text-xs")}
                             onClick={() => setRawEvent(event)}
                           >
-                            <FileJson className="h-3.5 w-3.5" />
-                            {t("rawDataAction")}
+                            <FileJson className="h-4 w-4" />
+                            <span className="font-medium">{t("rawDataAction")}</span>
                           </Button>
                         </TableCell>
                         <TableCell className="px-3 py-2.5 text-center">
                           <Button
                             type="button"
-                            variant={selected ? "default" : "outline"}
+                            variant="ghost"
                             size="sm"
                             className={cn(
-                              "h-8 rounded-full px-3 text-xs",
-                              selected ? "bg-blue-600 text-white hover:bg-blue-700" : "border-slate-200 bg-white hover:bg-slate-50"
+                              tableActionButtonBaseClass,
+                              graphActionButtonClass,
+                              "text-xs",
+                              selected && "bg-cyan-50 text-cyan-700 shadow-sm shadow-cyan-100"
                             )}
                             disabled={!uniqueId || locating}
                             onClick={() => onLocateGraph(event, index)}
                           >
-                            {locating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ExternalLink className="h-3.5 w-3.5" />}
-                            {t("graphAction")}
+                            {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                            <span className="font-medium">{t("graphAction")}</span>
                           </Button>
                         </TableCell>
                       </TableRow>
