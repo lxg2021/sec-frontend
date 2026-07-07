@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react"
 import {
   AlertTriangle,
+  ChevronDown,
   CheckCircle2,
   Clock3,
   Cloud,
@@ -562,20 +563,25 @@ export function IocSearchPage() {
               onSubmit={handleSearch}
               className="flex h-14 w-full min-w-0 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 lg:justify-self-center"
             >
-              <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-              <select
-                value={queryType}
-                onChange={(event) => setQueryType(event.target.value as IocVerificationType)}
-                className="ml-3 h-10 w-[96px] shrink-0 rounded-full border border-slate-200 bg-white px-2 text-xs font-semibold text-slate-700 outline-none focus:border-blue-300 disabled:cursor-not-allowed disabled:opacity-60"
-                aria-label="IOC 类型"
-                disabled={status === "loading"}
-              >
-                {TYPE_OPTIONS.map((type) => (
-                  <option key={type} value={type}>
-                    {type.toUpperCase()}
-                  </option>
-                ))}
-              </select>
+              <div className="relative h-10 w-[108px] shrink-0">
+                <select
+                  value={queryType}
+                  onChange={(event) => setQueryType(event.target.value as IocVerificationType)}
+                  className="h-full w-full appearance-none rounded-full border border-slate-200 bg-white pl-4 pr-9 text-xs font-semibold text-slate-800 outline-none transition-colors hover:border-slate-300 focus:border-blue-300 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="IOC 类型"
+                  disabled={status === "loading"}
+                >
+                  {TYPE_OPTIONS.map((type) => (
+                    <option key={type} value={type}>
+                      {type.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                  aria-hidden="true"
+                />
+              </div>
               <Input
                 value={queryValue}
                 onChange={(event) => setQueryValue(event.target.value)}
