@@ -9,6 +9,7 @@ import {
   ChartNoAxesCombined,
   Computer,
   Crosshair,
+  Fingerprint,
   FilePenLine,
   FileText,
   LayoutDashboard,
@@ -81,7 +82,7 @@ export const menuItems = [
   },
   {
     id: "investigation",
-    icon: Search,
+    icon: Fingerprint,
     labelKey: "investigation",
     submenu: [
       { id: "forensicWorkbench", icon: Monitor, labelKey: "forensicWorkbench", path: "/frame/investigation/collection" },
