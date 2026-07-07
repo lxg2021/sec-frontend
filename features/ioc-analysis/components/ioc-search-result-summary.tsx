@@ -126,6 +126,22 @@ function riskBadgeKey(value: number) {
   return "risk.low"
 }
 
+function intelStatusLabelKey(status: string | undefined, hit: boolean) {
+  const normalized = status?.trim().toLowerCase() || ""
+  if (hit || normalized.includes("hit")) return "intelStatus.hit"
+  if (normalized.includes("error") || normalized.includes("failed")) return "intelStatus.queryError"
+  if (
+    !normalized ||
+    normalized.includes("skip") ||
+    normalized.includes("pending") ||
+    normalized.includes("checking") ||
+    normalized.includes("unknown")
+  ) {
+    return "intelStatus.notQueried"
+  }
+  return "intelStatus.noHit"
+}
+
 export function IocSearchResultSummary({
   graphScopeId,
   item,
@@ -149,8 +165,8 @@ export function IocSearchResultSummary({
     item.verification?.local_status === "hit" ||
     item.verification?.hit_status_key === "local_ioc_hit" ||
     (item.verification?.hit_scope === "local" && item.verification?.hit === true)
-  const localIntelText = item.verification?.local_status || (localHit ? t("hit") : t("miss"))
-  const remoteIntelText = remoteHit ? t("hit") : item.verification?.remote_status || t("miss")
+  const localIntelText = t(intelStatusLabelKey(item.verification?.local_status, localHit))
+  const remoteIntelText = t(intelStatusLabelKey(item.verification?.remote_status, remoteHit))
 
   function handleCopy() {
     onCopy(item.value)
