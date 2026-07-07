@@ -153,7 +153,7 @@ export function IocSearchResultSummary({
   }
 
   return (
-    <article className="mx-auto w-full overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-sm">
+    <article className="mx-auto w-full shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-sm">
       <div className="flex flex-col items-stretch 2xl:flex-row 2xl:items-center">
         <div className="relative flex min-w-0 flex-1 items-center gap-4 p-5 pl-6">
           <span className={cn("absolute inset-y-4 left-0 w-1 rounded-full", tone.accent)} aria-hidden="true" />

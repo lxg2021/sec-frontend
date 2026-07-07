@@ -1,8 +1,8 @@
-"use client"
+﻿"use client"
 
-import { useCallback, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
+import { useCallback, useMemo, useRef, useState, type FormEvent } from "react"
 import dynamic from "next/dynamic"
-import { AlertTriangle, Database, FileSearch, Loader2, Network, Search, Shield } from "lucide-react"
+import { AlertTriangle, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { fetchGraphDrill, fetchGraphLocateResult, type GraphLocateResultResponseDto } from "@/features/attack/dgraph/api"
@@ -45,7 +45,7 @@ function IocGraphPanelLoading() {
   const t = useTranslations("pages.iocAnalysis.search.graph")
 
   return (
-    <div className="flex h-full min-h-[360px] items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
+    <div className="flex h-full min-h-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
       <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-600" />
       {t("componentLoading")}
     </div>
@@ -219,6 +219,63 @@ function buildManualItem(type: IocVerificationType, value: string, detail: Attac
   }
 }
 
+function buildTransientItem({
+  errorMessage = "",
+  status,
+  type,
+  value,
+}: {
+  errorMessage?: string
+  status: "checking" | "error"
+  type: IocVerificationType
+  value: string
+}): IocVerificationItem {
+  const checkedAt = formatLocalDateTime(new Date())
+  const verification = {
+    verification_id: `manual:${type}:${value}`,
+    candidate_id: `manual:${type}:${value}`,
+    tenant_id: DEFAULT_TENANT_ID,
+    case_id: "",
+    local_decision: "",
+    whitelist_status: "",
+    local_status: status === "checking" ? "checking" : "error",
+    local_hit_source: "",
+    remote_status: status === "checking" ? "checking" : "error",
+    final_status: status === "checking" ? "checking" : "error",
+    final_verdict: status === "checking" ? "unknown" : "error",
+    risk_score: 0,
+    confidence: 0,
+    checked_at: checkedAt,
+    error_message: errorMessage,
+    created_at: checkedAt,
+    updated_at: checkedAt,
+    hit: false,
+    hit_scope: "",
+    hit_kind: "",
+    hit_category: "",
+    hit_status_key: status === "checking" ? "checking" : "error",
+    hit_verdict: status === "checking" ? "unknown" : "error",
+    hit_source_database: "",
+    hit_source_table: "",
+    hit_source_record_id: "",
+    local_eval_raw_json: "",
+  }
+
+  return {
+    id: `manual:${type}:${value}`,
+    type,
+    value,
+    source: "manual",
+    evidence_refs: [],
+    origin: "manual",
+    verification,
+    verification_detail: null,
+    status,
+    result: null,
+    error: errorMessage,
+  }
+}
+
 function formatLocalDateTime(date: Date) {
   const pad = (value: number) => String(value).padStart(2, "0")
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
@@ -331,137 +388,17 @@ function graphLocateToGraphResponse({
   }
 }
 
-function EmptySearchState() {
+function IocSearchEmptyState() {
   const t = useTranslations("pages.iocAnalysis.search.emptyState")
 
   return (
-    <section className="space-y-4">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-start gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-              <Search className="h-6 w-6" aria-hidden="true" />
-            </span>
-            <div className="min-w-0">
-              <h2 className="text-base font-semibold text-slate-950">{t("title")}</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{t("description")}</p>
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 md:grid-cols-4">
-            <EmptyMetric icon={Shield} label={t("intelPanelTitle")} />
-            <EmptyMetric icon={Database} label={t("localPanelTitle")} />
-            <EmptyMetric icon={Network} label={t("graphPanelTitle")} />
-            <EmptyMetric icon={FileSearch} label={t("detailPanelTitle")} />
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-sm font-semibold text-slate-950">{t("pendingTitle")}</div>
-              <div className="mt-1 text-xs text-slate-500">{t("pendingDescription")}</div>
-            </div>
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-mono text-xs text-slate-500">
-              {t("pendingBadge")}
-            </span>
-          </div>
-          <div className="mt-5 space-y-3">
-            <SkeletonLine className="h-3 w-2/3" />
-            <SkeletonLine className="h-3 w-full" />
-            <SkeletonLine className="h-3 w-5/6" />
-            <SkeletonLine className="h-3 w-1/2" />
-          </div>
-        </div>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
-        <EmptyPanel icon={Database} title={t("localPanelTitle")}>
-          <div className="space-y-2">
-            {[0, 1, 2].map((item) => (
-              <div key={item} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
-                <SkeletonLine className="h-3 w-1/2" />
-                <SkeletonLine className="mt-3 h-3 w-full" />
-                <SkeletonLine className="mt-2 h-3 w-2/3" />
-              </div>
-            ))}
-          </div>
-        </EmptyPanel>
-
-        <EmptyPanel icon={Network} title={t("graphPanelTitle")}>
-          <div className="relative h-[360px] overflow-hidden rounded-lg border border-dashed border-slate-200 bg-slate-50">
-            <div className="absolute left-[18%] top-[28%] h-12 w-12 rounded-full border border-blue-200 bg-white shadow-sm" />
-            <div className="absolute left-[47%] top-[42%] h-14 w-14 rounded-full border border-emerald-200 bg-white shadow-sm" />
-            <div className="absolute right-[18%] top-[24%] h-10 w-10 rounded-full border border-amber-200 bg-white shadow-sm" />
-            <div className="absolute bottom-[22%] left-[34%] h-10 w-10 rounded-full border border-slate-200 bg-white shadow-sm" />
-            <div className="absolute left-[25%] top-[40%] h-px w-[28%] rotate-12 bg-slate-200" />
-            <div className="absolute right-[24%] top-[37%] h-px w-[22%] -rotate-12 bg-slate-200" />
-            <div className="absolute bottom-[34%] left-[40%] h-px w-[22%] -rotate-45 bg-slate-200" />
-            <div className="absolute inset-x-8 bottom-8 rounded-lg border border-slate-200 bg-white/80 p-3">
-              <SkeletonLine className="h-3 w-1/3" />
-              <SkeletonLine className="mt-2 h-3 w-2/3" />
-            </div>
-          </div>
-        </EmptyPanel>
-
-        <EmptyPanel icon={FileSearch} title={t("detailPanelTitle")}>
-          <div className="space-y-4">
-            {[0, 1, 2, 3].map((item) => (
-              <div key={item}>
-                <SkeletonLine className="h-3 w-1/3" />
-                <SkeletonLine className="mt-2 h-3 w-full" />
-                <SkeletonLine className="mt-2 h-3 w-4/5" />
-              </div>
-            ))}
-          </div>
-        </EmptyPanel>
+    <section className="flex min-h-0 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+      <div className="mx-auto max-w-xl">
+        <h2 className="text-base font-semibold text-slate-950">{t("title")}</h2>
+        <p className="mt-2 text-sm leading-6 text-slate-500">{t("description")}</p>
       </div>
     </section>
   )
-}
-
-function EmptyMetric({
-  icon: Icon,
-  label,
-}: {
-  icon: typeof Shield
-  label: string
-}) {
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-50 text-slate-600">
-          <Icon className="h-4 w-4" aria-hidden="true" />
-        </span>
-        <span className="truncate">{label}</span>
-      </div>
-      <SkeletonLine className="mt-3 h-4 w-2/3" />
-    </div>
-  )
-}
-
-function EmptyPanel({
-  children,
-  icon: Icon,
-  title,
-}: {
-  children: ReactNode
-  icon: typeof Shield
-  title: string
-}) {
-  return (
-    <section className="min-h-[460px] rounded-lg border border-slate-200 bg-white shadow-sm">
-      <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-950">
-        <Icon className="h-4 w-4 text-slate-500" aria-hidden="true" />
-        {title}
-      </div>
-      <div className="p-4">{children}</div>
-    </section>
-  )
-}
-
-function SkeletonLine({ className }: { className?: string }) {
-  return <div className={`rounded-full bg-slate-100 ${className ?? ""}`} />
 }
 
 export function IocSearchPage() {
@@ -499,7 +436,20 @@ export function IocSearchPage() {
   const tenantId = DEFAULT_TENANT_ID
   const resolvedType = useMemo(() => resolveSearchType(queryType, queryValue), [queryType, queryValue])
   const canSearch = Boolean(queryValue.trim() && resolvedType)
-  const currentValue = item?.value || queryValue.trim()
+  const queryDisplayItem = useMemo(() => {
+    const value = queryValue.trim()
+    const type = resolvedType
+    if (!value || !type || (status !== "loading" && status !== "error")) return null
+
+    return buildTransientItem({
+      errorMessage: status === "error" ? error : "",
+      status: status === "loading" ? "checking" : "error",
+      type,
+      value: normalizeIocValue(type, value),
+    })
+  }, [error, queryValue, resolvedType, status])
+  const displayItemForPage = item ?? queryDisplayItem
+  const currentValue = displayItemForPage?.value || queryValue.trim()
 
   const graphVisibleStats = useMemo(() => {
     if (!graphResponse) return { edgeCount: 0, nodeCount: 0 }
@@ -798,8 +748,8 @@ export function IocSearchPage() {
   }, [graphNodeDrillStateByKey, graphResponse, graphScope, t])
 
   return (
-    <main className="bg-gray-50 text-slate-950">
-      <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
+    <main className="h-[calc(100vh-3rem)] overflow-hidden bg-gray-50 text-slate-950">
+      <div className="flex h-full min-h-0 flex-col gap-4 p-6">
         <IocSearchHeader
           queryType={queryType}
           queryValue={queryValue}
@@ -811,10 +761,19 @@ export function IocSearchPage() {
           onSearch={handleSearch}
         />
 
-        {status === "idle" ? <EmptySearchState /> : null}
+        {displayItemForPage ? (
+          <IocSearchResultSummary
+            graphScopeId={graphScope?.scopeId}
+            item={displayItemForPage}
+            localEventCount={localResult.items.length}
+            onCopy={copyValue}
+          />
+        ) : (
+          <IocSearchEmptyState />
+        )}
 
         {status === "error" ? (
-          <section className="mx-auto max-w-5xl rounded-lg border border-rose-200 bg-rose-50 p-5 text-rose-700">
+          <section className="mx-auto max-w-5xl shrink-0 rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-700">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
               <div>
@@ -825,17 +784,10 @@ export function IocSearchPage() {
           </section>
         ) : null}
 
-        {item ? (
-          <section className="space-y-5">
-            <IocSearchResultSummary
-              graphScopeId={graphScope?.scopeId}
-              item={item}
-              localEventCount={localResult.items.length}
-              onCopy={copyValue}
-            />
-
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="rounded-lg border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 px-4 py-3">
+        {displayItemForPage ? (
+          <section className="min-h-0 flex-1 overflow-hidden">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+              <div className="shrink-0 border-b border-slate-100 px-4 py-3">
                 <TabsList className="h-10 rounded-md bg-slate-100 p-1">
                   <TabsTrigger value="overview" className="rounded px-4 data-[state=active]:bg-white">
                     {t("tabs.overview")}
@@ -852,22 +804,22 @@ export function IocSearchPage() {
                 </TabsList>
               </div>
 
-              <TabsContent value="overview" className="m-0 p-4">
-                <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+              <TabsContent value="overview" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
+                <div className="grid h-full min-h-0 gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
                   <IocLocalEventsPanel
-                    className="h-[620px]"
+                    className="h-full"
                     currentValue={currentValue}
                     defaultLookbackDays={DEFAULT_LOOKBACK_DAYS}
                     graphLoadingEventKey={graphLoadingEventKey}
-                    onLoadMore={handleLoadMoreLocal}
+                    onLoadMore={item ? handleLoadMoreLocal : undefined}
                     onLocateGraph={handleLocateGraph}
-                    onRefresh={handleRefreshLocal}
+                    onRefresh={item ? handleRefreshLocal : undefined}
                     result={localResult}
                     selectedEventKey={selectedEventKey}
                   />
 
                   <IocPositioningGraphPanel
-                    className="h-[620px] min-w-0"
+                    className="h-full min-w-0"
                     edgeCount={graphVisibleStats.edgeCount}
                     error={graphError}
                     graphScopeId={graphScope?.scopeId}
@@ -878,7 +830,7 @@ export function IocSearchPage() {
                     nodeCount={graphVisibleStats.nodeCount}
                     nodeDrillStateByKey={graphNodeDrillStateByKey}
                     onLayoutStrategyChange={setGraphLayoutStrategy}
-                    onMenuAction={handleGraphMenuAction}
+                    onMenuAction={item ? handleGraphMenuAction : undefined}
                     onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
                     positionResetKey={graphPositionResetKey}
                     response={graphResponse}
@@ -887,40 +839,41 @@ export function IocSearchPage() {
                   />
 
                   <IocVerificationDetailPanel
-                    className="h-[620px] rounded-lg"
-                    item={item}
+                    className="h-full rounded-lg"
+                    detailLayout="single"
+                    item={displayItemForPage}
                     loading={status === "loading"}
                     onCopy={copyValue}
                   />
                 </div>
               </TabsContent>
 
-              <TabsContent value="detail" className="m-0 p-4">
+              <TabsContent value="detail" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
                 <IocVerificationDetailPanel
-                  className="min-h-[640px] rounded-lg"
-                  item={item}
+                  className="h-full rounded-lg"
+                  item={displayItemForPage}
                   loading={status === "loading"}
                   onCopy={copyValue}
                 />
               </TabsContent>
 
-              <TabsContent value="local" className="m-0 p-4">
+              <TabsContent value="local" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
                 <IocLocalEventsPanel
-                  className="min-h-[640px]"
+                  className="h-full"
                   currentValue={currentValue}
                   defaultLookbackDays={DEFAULT_LOOKBACK_DAYS}
                   graphLoadingEventKey={graphLoadingEventKey}
-                  onLoadMore={handleLoadMoreLocal}
+                  onLoadMore={item ? handleLoadMoreLocal : undefined}
                   onLocateGraph={handleLocateGraph}
-                  onRefresh={handleRefreshLocal}
+                  onRefresh={item ? handleRefreshLocal : undefined}
                   result={localResult}
                   selectedEventKey={selectedEventKey}
                 />
               </TabsContent>
 
-              <TabsContent value="graph" className="m-0 p-4">
+              <TabsContent value="graph" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
                 <IocPositioningGraphPanel
-                  className="h-[720px]"
+                  className="h-full"
                   edgeCount={graphVisibleStats.edgeCount}
                   error={graphError}
                   graphScopeId={graphScope?.scopeId}
@@ -931,7 +884,7 @@ export function IocSearchPage() {
                   nodeCount={graphVisibleStats.nodeCount}
                   nodeDrillStateByKey={graphNodeDrillStateByKey}
                   onLayoutStrategyChange={setGraphLayoutStrategy}
-                  onMenuAction={handleGraphMenuAction}
+                  onMenuAction={item ? handleGraphMenuAction : undefined}
                   onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
                   positionResetKey={graphPositionResetKey}
                   response={graphResponse}
@@ -946,3 +899,4 @@ export function IocSearchPage() {
     </main>
   )
 }
+

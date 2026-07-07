@@ -4256,15 +4256,11 @@
           "graph": "定位图谱"
         },
         "emptyState": {
-          "title": "输入一个 IOC 开始检索",
-          "description": "支持 IP、域名、URL、MD5、SHA1、SHA256。查询会复用现有手动 IOC 验证逻辑，并在结果中补充本地事件定位和 positioning 图谱。",
-          "intelPanelTitle": "情报结论",
+          "title": "请输入 IOC 开始查询",
+          "description": "查询后展示威胁情报结果，并同步定位本地事件和图谱。",
           "localPanelTitle": "本地事件",
           "graphPanelTitle": "定位图谱",
-          "detailPanelTitle": "IOC 详情",
-          "pendingTitle": "等待查询",
-          "pendingDescription": "输入 IOC 后展示情报、本地事件和定位图谱。",
-          "pendingBadge": "READY"
+          "detailPanelTitle": "IOC 详情"
         },
         "feedback": {
           "invalidTitle": "无法识别 IOC",

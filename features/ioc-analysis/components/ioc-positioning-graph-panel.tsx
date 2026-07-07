@@ -123,7 +123,7 @@ export function IocPositioningGraphPanel({
           ) : hasGraph && response ? (
             <AttackGraphFlow
               response={response}
-              className="h-full min-h-[520px]"
+              className="h-full min-h-0"
               fitView
               maxZoom={1.2}
               minZoom={0.4}
@@ -155,7 +155,7 @@ function GraphStateMessage({
   title: string
 }) {
   return (
-    <div className="flex h-full min-h-[360px] items-center justify-center px-6 text-center">
+    <div className="flex h-full min-h-0 items-center justify-center px-6 text-center">
       <div className="max-w-md">
         <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100">
           {icon || <Shield className="h-5 w-5 text-slate-500" />}

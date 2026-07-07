@@ -17,11 +17,13 @@ import { detailViewSections } from "./ioc-detail/detail-sections"
 
 export function IocVerificationDetailPanel({
   className,
+  detailLayout = "paired",
   item,
   loading = false,
   onCopy,
 }: {
   className?: string
+  detailLayout?: "paired" | "single"
   item: IocVerificationItem | null
   loading?: boolean
   onCopy: (value: string) => void
@@ -75,6 +77,7 @@ export function IocVerificationDetailPanel({
           <DetailFieldSections
             sections={detailViewSections(normalizedDetailView, detailLocale)}
             columnLabel={detailColumnLabel}
+            layout={detailLayout}
             valueLabel={detailValueLabel}
             locale={detailLocale}
             copyLabel={copyFieldValueLabel}
@@ -84,6 +87,7 @@ export function IocVerificationDetailPanel({
           <DetailFieldTable
             fields={blacklistFields(blacklist)}
             columnLabel={detailColumnLabel}
+            layout={detailLayout}
             valueLabel={detailValueLabel}
             locale={detailLocale}
             copyLabel={copyFieldValueLabel}

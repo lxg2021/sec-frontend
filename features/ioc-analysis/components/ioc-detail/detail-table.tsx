@@ -19,6 +19,8 @@ import {
 } from "./detail-fields"
 import { compactSections } from "./detail-sections"
 
+type DetailTableLayout = "paired" | "single"
+
 function CopyValueButton({
   value,
   onCopy,
@@ -162,6 +164,7 @@ function DetailValueCell({
 export function DetailFieldTable({
   fields,
   columnLabel,
+  layout = "paired",
   valueLabel,
   locale,
   copyLabel,
@@ -169,6 +172,7 @@ export function DetailFieldTable({
 }: {
   fields: DetailField[]
   columnLabel: string
+  layout?: DetailTableLayout
   valueLabel: string
   locale: IocDetailLocale
   copyLabel: string
@@ -186,22 +190,28 @@ export function DetailFieldTable({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 grid grid-cols-[144px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]">
+      <div className={cn(
+        "sticky top-0 z-10 grid grid-cols-[144px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400",
+        layout === "paired" && "md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]",
+      )}>
         <div className="px-4 py-2">{columnLabel}</div>
         <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
-        <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
-          {columnLabel}
-        </div>
-        <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
-          {valueLabel}
-        </div>
+        {layout === "paired" ? (
+          <>
+            <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
+              {columnLabel}
+            </div>
+            <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
+              {valueLabel}
+            </div>
+          </>
+        ) : null}
       </div>
-      <PairedFieldRows
-        fields={visibleFields}
-        locale={locale}
-        copyLabel={copyLabel}
-        onCopy={onCopy}
-      />
+      {layout === "single" ? (
+        <SingleFieldRows fields={visibleFields} locale={locale} copyLabel={copyLabel} onCopy={onCopy} />
+      ) : (
+        <PairedFieldRows fields={visibleFields} locale={locale} copyLabel={copyLabel} onCopy={onCopy} />
+      )}
     </div>
   )
 }
@@ -209,6 +219,7 @@ export function DetailFieldTable({
 export function DetailFieldSections({
   sections,
   columnLabel,
+  layout = "paired",
   valueLabel,
   locale,
   copyLabel,
@@ -216,6 +227,7 @@ export function DetailFieldSections({
 }: {
   sections: DetailFieldSection[]
   columnLabel: string
+  layout?: DetailTableLayout
   valueLabel: string
   locale: IocDetailLocale
   copyLabel: string
@@ -233,15 +245,22 @@ export function DetailFieldSections({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 grid grid-cols-[144px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400 md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]">
+      <div className={cn(
+        "sticky top-0 z-10 grid grid-cols-[144px_minmax(0,1fr)] bg-white text-xs font-medium text-slate-400",
+        layout === "paired" && "md:grid-cols-[144px_minmax(0,1fr)_144px_minmax(0,1fr)]",
+      )}>
         <div className="px-4 py-2">{columnLabel}</div>
         <div className="border-l border-slate-100 px-4 py-2">{valueLabel}</div>
-        <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
-          {columnLabel}
-        </div>
-        <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
-          {valueLabel}
-        </div>
+        {layout === "paired" ? (
+          <>
+            <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
+              {columnLabel}
+            </div>
+            <div className="hidden border-l border-slate-100 px-4 py-2 md:block">
+              {valueLabel}
+            </div>
+          </>
+        ) : null}
       </div>
       {visibleSections.map((section) => {
         const title = detailSectionTitle(section.title, locale)
@@ -267,16 +286,41 @@ export function DetailFieldSections({
                 </div>
               ) : null}
             </div>
-            <PairedFieldRows
-              fields={section.fields}
-              locale={locale}
-              copyLabel={copyLabel}
-              onCopy={onCopy}
-            />
+            {layout === "single" ? (
+              <SingleFieldRows fields={section.fields} locale={locale} copyLabel={copyLabel} onCopy={onCopy} />
+            ) : (
+              <PairedFieldRows fields={section.fields} locale={locale} copyLabel={copyLabel} onCopy={onCopy} />
+            )}
           </div>
         )
       })}
     </div>
+  )
+}
+
+function SingleFieldRows({
+  fields,
+  locale,
+  copyLabel,
+  onCopy,
+}: {
+  fields: DetailField[]
+  locale: IocDetailLocale
+  copyLabel: string
+  onCopy: (value: string) => void
+}) {
+  return (
+    <>
+      {fields.map((field, index) => (
+        <FieldRow
+          key={`single-${index}-${field.column}`}
+          field={{ ...field, wide: true }}
+          locale={locale}
+          copyLabel={copyLabel}
+          onCopy={onCopy}
+        />
+      ))}
+    </>
   )
 }
 

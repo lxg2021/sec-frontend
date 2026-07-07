@@ -4254,15 +4254,11 @@
           "graph": "Positioning Graph"
         },
         "emptyState": {
-          "title": "Enter an IOC to start",
-          "description": "Supports IP, domain, URL, MD5, SHA1, and SHA256. The query reuses the existing manual IOC verification logic and adds local event positioning plus a positioning graph.",
-          "intelPanelTitle": "Intel verdict",
+          "title": "Enter an IOC to search",
+          "description": "After a query, threat intelligence results, local events, and the positioning graph will be shown.",
           "localPanelTitle": "Local events",
           "graphPanelTitle": "Positioning graph",
-          "detailPanelTitle": "IOC details",
-          "pendingTitle": "Waiting for query",
-          "pendingDescription": "Enter an IOC to show intelligence, local events, and the positioning graph.",
-          "pendingBadge": "READY"
+          "detailPanelTitle": "IOC details"
         },
         "feedback": {
           "invalidTitle": "IOC not recognized",

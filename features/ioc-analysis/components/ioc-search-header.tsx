@@ -44,7 +44,7 @@ export function IocSearchHeader({
   const loading = status === "loading"
 
   return (
-    <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+    <header className="w-full shrink-0 rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
       <div className="grid gap-4 lg:grid-cols-[minmax(180px,1fr)_minmax(560px,760px)_minmax(140px,1fr)] lg:items-center xl:grid-cols-[minmax(190px,1fr)_minmax(860px,1040px)_minmax(150px,1fr)] 2xl:grid-cols-[minmax(220px,1fr)_minmax(980px,1180px)_minmax(170px,1fr)]">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
