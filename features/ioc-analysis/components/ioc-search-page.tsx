@@ -416,7 +416,7 @@ function MetricCard({
 
 function EmptySearchState() {
   return (
-    <section className="mx-auto mt-8 max-w-5xl rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
+    <section className="mx-auto max-w-5xl rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
       <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
         <Search className="size-6" aria-hidden="true" />
       </div>
@@ -551,11 +551,8 @@ export function IocSearchPage() {
                   情报检索
                 </h1>
                 <div className="flex flex-wrap items-center gap-2.5 text-sm">
-                  <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
-                    IOC SEARCH
-                  </span>
                   <span className="min-w-0 truncate text-slate-500">
-                    输入 IOC 查询威胁情报，并同步定位本地事件数据。
+                    查询威胁情报，同步定位事件数据
                   </span>
                 </div>
               </div>
@@ -634,7 +631,7 @@ export function IocSearchPage() {
         {status === "idle" ? <EmptySearchState /> : null}
 
         {status === "error" ? (
-          <section className="mx-auto mt-8 max-w-5xl rounded-lg border border-rose-200 bg-rose-50 p-5 text-rose-700">
+          <section className="mx-auto max-w-5xl rounded-lg border border-rose-200 bg-rose-50 p-5 text-rose-700">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
               <div>
@@ -646,7 +643,7 @@ export function IocSearchPage() {
         ) : null}
 
         {item ? (
-          <section className="mt-8 space-y-5">
+          <section className="space-y-5">
             <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex min-w-0 items-start gap-4">
