@@ -8,6 +8,7 @@ import {
   BrainCircuit,
   ChartNoAxesCombined,
   Computer,
+  Crosshair,
   FilePenLine,
   FileText,
   LayoutDashboard,
@@ -109,7 +110,7 @@ export const menuItems = [
   },
   {
     id: "iocAnalysis",
-    icon: Search,
+    icon: Crosshair,
     labelKey: "iocAnalysis",
     submenu: [
       { id: "iocSearch", icon: Search, labelKey: "iocSearch", path: "/frame/ioc-analysis/ioc-search" },
