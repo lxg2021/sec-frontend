@@ -4257,7 +4257,7 @@
         },
         "emptyState": {
           "title": "请输入 IOC 开始查询",
-          "description": "查询后展示威胁情报结果，并同步定位本地事件和图谱。",
+          "description": "查询后展示威胁情报结果，并同步定位本地事件和图谱",
           "localPanelTitle": "本地事件",
           "graphPanelTitle": "定位图谱",
           "detailPanelTitle": "IOC 详情"
@@ -4291,7 +4291,7 @@
           "checkedAt": "检查时间：",
           "verdict": {
             "unchecked": "未查询",
-            "malicious": "恶意命中",
+            "malicious": "恶意",
             "allow": "白名单",
             "error": "查询异常",
             "checking": "查询中",
@@ -4300,6 +4300,12 @@
           },
           "actions": {
             "copyIoc": "复制 IOC"
+          },
+          "intelStatus": {
+            "hit": "已命中",
+            "noHit": "未命中",
+            "notQueried": "未查询",
+            "queryError": "查询异常"
           },
           "metrics": {
             "localIntel": "本地情报",

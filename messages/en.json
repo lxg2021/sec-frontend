@@ -4255,7 +4255,7 @@
         },
         "emptyState": {
           "title": "Enter an IOC to search",
-          "description": "After a query, threat intelligence results, local events, and the positioning graph will be shown.",
+          "description": "Query threat intel and locate local events with graph context",
           "localPanelTitle": "Local events",
           "graphPanelTitle": "Positioning graph",
           "detailPanelTitle": "IOC details"
@@ -4289,7 +4289,7 @@
           "checkedAt": "Checked at: ",
           "verdict": {
             "unchecked": "Not queried",
-            "malicious": "Malicious hit",
+            "malicious": "Malicious",
             "allow": "Allowlisted",
             "error": "Query error",
             "checking": "Checking",
@@ -4298,6 +4298,12 @@
           },
           "actions": {
             "copyIoc": "Copy IOC"
+          },
+          "intelStatus": {
+            "hit": "Hit",
+            "noHit": "No hit",
+            "notQueried": "Not queried",
+            "queryError": "Query error"
           },
           "metrics": {
             "localIntel": "Local intel",
