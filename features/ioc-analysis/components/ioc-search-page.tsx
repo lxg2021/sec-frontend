@@ -1,34 +1,26 @@
 "use client"
 
-import { useCallback, useMemo, useState, type FormEvent } from "react"
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock3,
-  Cloud,
-  Copy,
-  Database,
-  ExternalLink,
-  FileSearch,
-  Hash,
-  Loader2,
-  Network,
-  Search,
-  ShieldAlert,
-  ShieldCheck,
-} from "lucide-react"
+import { useCallback, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react"
+import dynamic from "next/dynamic"
+import { AlertTriangle, Database, FileSearch, Loader2, Network, Search, Shield } from "lucide-react"
+import { useTranslations } from "next-intl"
 
-import { IocSearchHeader } from "@/features/ioc-analysis/components/ioc-search-header"
-import { IocVerificationDetailPanel } from "@/features/ioc-analysis/components/ioc-verification-detail-panel"
-import {
-  confidenceText,
-  isAllowlisted,
-  isRemoteHit,
-  riskText,
-  typeClass,
-  verdictFromItem,
-} from "@/features/ioc-analysis/components/ioc-verification-display-utils"
+import { fetchGraphDrill, fetchGraphLocateResult, type GraphLocateResultResponseDto } from "@/features/attack/dgraph/api"
+import { buildAttackGraphModel } from "@/features/attack/dgraph/model/core/attack-graph-adapter"
+import type { AttackGraphLayoutOptions, GraphCaseResponseDto } from "@/features/attack/dgraph/model/core/attack-graph-data"
+import { buildGraphDrillTimeRange, mergeGraphCaseDrillResult } from "@/features/attack/dgraph/model/core/attack-graph-drill-utils"
+import type { AttackGraphLayoutStrategyOption } from "@/features/attack/dgraph/components/attack-graph-layout-strategy-toggle"
+import type { AttackGraphMenuAction, AttackGraphNodeDrillState } from "@/features/attack/dgraph/model/menu/attack-graph-menu-types"
 import { getIocHitDetail } from "@/features/ioc-analysis/api"
+import { IocLocalEventsPanel, type IocLocalLocatePanelResult } from "@/features/ioc-analysis/components/ioc-local-events-panel"
+import {
+  localEventKey,
+  localEventUniqueId,
+  type IocLocalEventSource,
+} from "@/features/ioc-analysis/components/ioc-search-event-utils"
+import { IocSearchHeader } from "@/features/ioc-analysis/components/ioc-search-header"
+import { IocSearchResultSummary } from "@/features/ioc-analysis/components/ioc-search-result-summary"
+import { IocVerificationDetailPanel } from "@/features/ioc-analysis/components/ioc-verification-detail-panel"
 import type {
   AttackCaseIOCVerificationDetail,
   IocCandidate,
@@ -38,13 +30,31 @@ import type {
 } from "@/features/ioc-analysis/types"
 import { toast } from "@/shared/hooks/use-toast"
 import { http } from "@/shared/lib/http/client"
-import { cn, createRequestId } from "@/shared/lib/utils"
-import { Badge } from "@/shared/ui/badge"
-import { Button } from "@/shared/ui/button"
+import { createRequestId } from "@/shared/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
+
+const IocPositioningGraphPanel = dynamic(
+  () => import("@/features/ioc-analysis/components/ioc-positioning-graph-panel").then((mod) => mod.IocPositioningGraphPanel),
+  {
+    ssr: false,
+    loading: () => <IocGraphPanelLoading />,
+  },
+)
+
+function IocGraphPanelLoading() {
+  const t = useTranslations("pages.iocAnalysis.search.graph")
+
+  return (
+    <div className="flex h-full min-h-[360px] items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
+      <Loader2 className="mr-2 h-4 w-4 animate-spin text-blue-600" />
+      {t("componentLoading")}
+    </div>
+  )
+}
 
 const DEFAULT_TENANT_ID = "public"
 const DEFAULT_LOOKBACK_DAYS = 7
+const DRILL_TIMEZONE = "Asia/Shanghai"
 const TYPE_OPTIONS: IocVerificationType[] = [
   "auto",
   "md5",
@@ -57,14 +67,14 @@ const TYPE_OPTIONS: IocVerificationType[] = [
 ]
 
 type SearchStatus = "idle" | "loading" | "success" | "error"
-type LocalLocateStatus = "idle" | "loading" | "success" | "unsupported" | "error"
+type GraphLocateStatus = "idle" | "loading" | "success" | "error"
 
 type ApiResult<T> = {
   data: T
 }
 
 type PositionPageData = {
-  items?: LocalEventSource[]
+  items?: IocLocalEventSource[]
   pagination?: {
     page_size?: number
     returned_count?: number
@@ -73,21 +83,14 @@ type PositionPageData = {
   }
 }
 
-type LocalEventSource = {
-  event_type?: number
-  event_name?: string
-  content?: string
-}
+type LocalLocateResult = IocLocalLocatePanelResult
 
-type LocalLocateResult = {
-  status: LocalLocateStatus
-  message: string
-  source: string
-  positionType: number | null
-  items: LocalEventSource[]
-  pageToken: string
-  nextPageToken: string
-  hasNext: boolean
+type GraphScopeState = {
+  alreadyInGraph: boolean
+  focusNodeKeys: string[]
+  scopeId: string
+  scopeType: string
+  diagnostics?: GraphLocateResultResponseDto["diagnostics"]
 }
 
 function isValidIPv4(value: string) {
@@ -227,7 +230,7 @@ function defaultTimeRange() {
   return {
     startTime: formatLocalDateTime(start),
     endTime: formatLocalDateTime(end),
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Shanghai",
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || DRILL_TIMEZONE,
   }
 }
 
@@ -247,21 +250,21 @@ function localLocateInput(type: IocVerificationType, value: string): { positionT
 }
 
 async function locateLocalData({
+  pageToken = "",
   tenantId,
   type,
   value,
-  pageToken = "",
 }: {
+  pageToken?: string
   tenantId: string
   type: IocVerificationType
   value: string
-  pageToken?: string
 }): Promise<LocalLocateResult> {
   const input = localLocateInput(type, value)
   if (!input) {
     return {
       status: "unsupported",
-      message: "当前类型暂不支持本地定位。SHA1/SHA256 仍可查看 IOC 情报结果。",
+      message: "",
       source: value,
       positionType: null,
       items: [],
@@ -288,9 +291,10 @@ async function locateLocalData({
   const data = result.data || {}
   const pagination = data.pagination || {}
   const items = Array.isArray(data.items) ? data.items : []
+
   return {
     status: "success",
-    message: items.length ? `最近 ${DEFAULT_LOOKBACK_DAYS} 天发现 ${items.length} 条本地事件。` : `最近 ${DEFAULT_LOOKBACK_DAYS} 天未发现本地事件。`,
+    message: "",
     source: input.source,
     positionType: input.positionType,
     items,
@@ -300,133 +304,168 @@ async function locateLocalData({
   }
 }
 
-function parseEventContent(content?: string): Record<string, unknown> {
-  if (!content) return {}
-  try {
-    const parsed = JSON.parse(content)
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {}
-  } catch {
-    return {}
-  }
-}
-
-function stringField(object: Record<string, unknown>, ...keys: string[]) {
-  for (const key of keys) {
-    const value = object[key]
-    if (typeof value === "string" && value.trim()) return value.trim()
-    if (typeof value === "number" && Number.isFinite(value)) return String(value)
-  }
-  return ""
-}
-
-function eventSummary(event: LocalEventSource) {
-  const content = parseEventContent(event.content)
-  const process = stringField(content, "ProcessName", "ProcessImage", "Image", "FileName")
-  const ip = stringField(content, "DestinationIp", "DestinationIP", "RemoteIP", "Ip", "QueryIP")
-  const domain = stringField(content, "Domain", "QueryName", "DnsName", "Host", "Hostname")
-  const target = stringField(content, "TargetFilename", "FilePath", "Path", "CommandLine")
-  const agent = stringField(content, "AgentID", "AgentId", "Computer", "Hostname")
-  const action = [process, ip || domain || target].filter(Boolean).join(" -> ")
-  return action || agent || event.event_name || "本地事件命中"
-}
-
-function eventUniqueId(event: LocalEventSource) {
-  const content = parseEventContent(event.content)
-  return stringField(content, "UniqueID", "UniqueId", "unique_id")
-}
-
-function eventTime(event: LocalEventSource) {
-  const content = parseEventContent(event.content)
-  return stringField(content, "Time", "EventTime", "Timestamp", "UtcTime")
-}
-
-function verdictLabel(item: IocVerificationItem | null) {
-  if (!item) return "未查询"
-  switch (verdictFromItem(item)) {
-    case "malicious":
-      return "恶意命中"
-    case "allow":
-      return "白名单"
-    case "error":
-      return "查询异常"
-    case "checking":
-      return "查询中"
-    case "ready":
-      return "待查询"
-    default:
-      return "未知"
-  }
-}
-
-function verdictToneClass(item: IocVerificationItem | null) {
-  if (!item) return "border-slate-200 bg-slate-50 text-slate-600"
-  switch (verdictFromItem(item)) {
-    case "malicious":
-      return "border-red-200 bg-red-50 text-red-700"
-    case "allow":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
-    case "error":
-      return "border-rose-200 bg-rose-50 text-rose-700"
-    default:
-      return "border-slate-200 bg-slate-50 text-slate-600"
-  }
-}
-
-function VerdictIcon({ item }: { item: IocVerificationItem | null }) {
-  const verdict = item ? verdictFromItem(item) : "ready"
-  if (verdict === "malicious") return <ShieldAlert className="size-8 text-red-600" aria-hidden="true" />
-  if (verdict === "allow") return <ShieldCheck className="size-8 text-emerald-600" aria-hidden="true" />
-  if (verdict === "error") return <AlertTriangle className="size-8 text-rose-600" aria-hidden="true" />
-  return <FileSearch className="size-8 text-slate-500" aria-hidden="true" />
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  tone = "slate",
+function graphLocateToGraphResponse({
+  response,
+  tenantId,
+  timeRange,
 }: {
-  icon: typeof Database
-  label: string
-  value: string
-  tone?: "slate" | "blue" | "green" | "red" | "amber"
-}) {
-  const toneClass = {
-    slate: "bg-slate-50 text-slate-700",
-    blue: "bg-blue-50 text-blue-700",
-    green: "bg-emerald-50 text-emerald-700",
-    red: "bg-red-50 text-red-700",
-    amber: "bg-amber-50 text-amber-700",
-  }[tone]
+  response: GraphLocateResultResponseDto
+  tenantId: string
+  timeRange: ReturnType<typeof defaultTimeRange>
+}): GraphCaseResponseDto {
+  const nodes = response.nodes ?? []
+  const edges = response.edges ?? []
 
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-        <span className={cn("flex size-7 items-center justify-center rounded-md", toneClass)}>
-          <Icon className="size-4" aria-hidden="true" />
-        </span>
-        {label}
-      </div>
-      <div className="mt-3 truncate text-xl font-semibold text-slate-950">{value}</div>
-    </div>
-  )
+  return {
+    request_id: response.request_id,
+    tenant_id: tenantId,
+    case_id: response.scope_id || "positioning",
+    start_time: timeRange.startTime,
+    end_time: timeRange.endTime,
+    nodes,
+    edges,
+    diagnostics: {
+      node_count: response.diagnostics?.returned_node_count ?? nodes.length,
+      edge_count: response.diagnostics?.returned_edge_count ?? edges.length,
+    },
+  }
 }
 
 function EmptySearchState() {
+  const t = useTranslations("pages.iocAnalysis.search.emptyState")
+
   return (
-    <section className="mx-auto max-w-5xl rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center">
-      <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
-        <Search className="size-6" aria-hidden="true" />
+    <section className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-start gap-4">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+              <Search className="h-6 w-6" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-slate-950">{t("title")}</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{t("description")}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-4">
+            <EmptyMetric icon={Shield} label={t("intelPanelTitle")} />
+            <EmptyMetric icon={Database} label={t("localPanelTitle")} />
+            <EmptyMetric icon={Network} label={t("graphPanelTitle")} />
+            <EmptyMetric icon={FileSearch} label={t("detailPanelTitle")} />
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-slate-950">{t("pendingTitle")}</div>
+              <div className="mt-1 text-xs text-slate-500">{t("pendingDescription")}</div>
+            </div>
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-mono text-xs text-slate-500">
+              {t("pendingBadge")}
+            </span>
+          </div>
+          <div className="mt-5 space-y-3">
+            <SkeletonLine className="h-3 w-2/3" />
+            <SkeletonLine className="h-3 w-full" />
+            <SkeletonLine className="h-3 w-5/6" />
+            <SkeletonLine className="h-3 w-1/2" />
+          </div>
+        </div>
       </div>
-      <h2 className="mt-5 text-base font-semibold text-slate-950">输入一个 IOC 开始检索</h2>
-      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
-        支持 IP、域名、URL、MD5、SHA1、SHA256。查询会复用现有手动 IOC 验证逻辑，并在结果中补充本地数据定位。
-      </p>
+
+      <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+        <EmptyPanel icon={Database} title={t("localPanelTitle")}>
+          <div className="space-y-2">
+            {[0, 1, 2].map((item) => (
+              <div key={item} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                <SkeletonLine className="h-3 w-1/2" />
+                <SkeletonLine className="mt-3 h-3 w-full" />
+                <SkeletonLine className="mt-2 h-3 w-2/3" />
+              </div>
+            ))}
+          </div>
+        </EmptyPanel>
+
+        <EmptyPanel icon={Network} title={t("graphPanelTitle")}>
+          <div className="relative h-[360px] overflow-hidden rounded-lg border border-dashed border-slate-200 bg-slate-50">
+            <div className="absolute left-[18%] top-[28%] h-12 w-12 rounded-full border border-blue-200 bg-white shadow-sm" />
+            <div className="absolute left-[47%] top-[42%] h-14 w-14 rounded-full border border-emerald-200 bg-white shadow-sm" />
+            <div className="absolute right-[18%] top-[24%] h-10 w-10 rounded-full border border-amber-200 bg-white shadow-sm" />
+            <div className="absolute bottom-[22%] left-[34%] h-10 w-10 rounded-full border border-slate-200 bg-white shadow-sm" />
+            <div className="absolute left-[25%] top-[40%] h-px w-[28%] rotate-12 bg-slate-200" />
+            <div className="absolute right-[24%] top-[37%] h-px w-[22%] -rotate-12 bg-slate-200" />
+            <div className="absolute bottom-[34%] left-[40%] h-px w-[22%] -rotate-45 bg-slate-200" />
+            <div className="absolute inset-x-8 bottom-8 rounded-lg border border-slate-200 bg-white/80 p-3">
+              <SkeletonLine className="h-3 w-1/3" />
+              <SkeletonLine className="mt-2 h-3 w-2/3" />
+            </div>
+          </div>
+        </EmptyPanel>
+
+        <EmptyPanel icon={FileSearch} title={t("detailPanelTitle")}>
+          <div className="space-y-4">
+            {[0, 1, 2, 3].map((item) => (
+              <div key={item}>
+                <SkeletonLine className="h-3 w-1/3" />
+                <SkeletonLine className="mt-2 h-3 w-full" />
+                <SkeletonLine className="mt-2 h-3 w-4/5" />
+              </div>
+            ))}
+          </div>
+        </EmptyPanel>
+      </div>
     </section>
   )
 }
 
+function EmptyMetric({
+  icon: Icon,
+  label,
+}: {
+  icon: typeof Shield
+  label: string
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-50 text-slate-600">
+          <Icon className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <span className="truncate">{label}</span>
+      </div>
+      <SkeletonLine className="mt-3 h-4 w-2/3" />
+    </div>
+  )
+}
+
+function EmptyPanel({
+  children,
+  icon: Icon,
+  title,
+}: {
+  children: ReactNode
+  icon: typeof Shield
+  title: string
+}) {
+  return (
+    <section className="min-h-[460px] rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-950">
+        <Icon className="h-4 w-4 text-slate-500" aria-hidden="true" />
+        {title}
+      </div>
+      <div className="p-4">{children}</div>
+    </section>
+  )
+}
+
+function SkeletonLine({ className }: { className?: string }) {
+  return <div className={`rounded-full bg-slate-100 ${className ?? ""}`} />
+}
+
 export function IocSearchPage() {
+  const t = useTranslations("pages.iocAnalysis.search")
   const [queryType, setQueryType] = useState<IocVerificationType>("auto")
   const [queryValue, setQueryValue] = useState("")
   const [status, setStatus] = useState<SearchStatus>("idle")
@@ -443,17 +482,57 @@ export function IocSearchPage() {
     hasNext: false,
   })
   const [activeTab, setActiveTab] = useState("overview")
+  const [selectedEvent, setSelectedEvent] = useState<IocLocalEventSource | null>(null)
+  const [selectedEventKey, setSelectedEventKey] = useState("")
+  const [graphLoadingEventKey, setGraphLoadingEventKey] = useState("")
+  const [graphStatus, setGraphStatus] = useState<GraphLocateStatus>("idle")
+  const [graphError, setGraphError] = useState("")
+  const [graphScope, setGraphScope] = useState<GraphScopeState | null>(null)
+  const [graphResponse, setGraphResponse] = useState<GraphCaseResponseDto | null>(null)
+  const [graphLayoutStrategy, setGraphLayoutStrategy] = useState<AttackGraphLayoutStrategyOption>("auto")
+  const [graphPositionResetKey, setGraphPositionResetKey] = useState(0)
+  const [graphNodeDrillStateByKey, setGraphNodeDrillStateByKey] = useState(
+    () => new Map<string, AttackGraphNodeDrillState>(),
+  )
+  const graphResponseRef = useRef<GraphCaseResponseDto | null>(null)
 
   const tenantId = DEFAULT_TENANT_ID
   const resolvedType = useMemo(() => resolveSearchType(queryType, queryValue), [queryType, queryValue])
   const canSearch = Boolean(queryValue.trim() && resolvedType)
   const currentValue = item?.value || queryValue.trim()
 
+  const graphVisibleStats = useMemo(() => {
+    if (!graphResponse) return { edgeCount: 0, nodeCount: 0 }
+    const graph = buildAttackGraphModel(graphResponse)
+    return {
+      edgeCount: graph.edges.length,
+      nodeCount: graph.nodes.length,
+    }
+  }, [graphResponse])
+
+  const graphLayoutOptions = useMemo<AttackGraphLayoutOptions | undefined>(
+    () => graphLayoutStrategy === "auto" ? undefined : { strategy: graphLayoutStrategy },
+    [graphLayoutStrategy],
+  )
+
+  const resetGraphState = useCallback(() => {
+    graphResponseRef.current = null
+    setSelectedEvent(null)
+    setSelectedEventKey("")
+    setGraphLoadingEventKey("")
+    setGraphStatus("idle")
+    setGraphError("")
+    setGraphScope(null)
+    setGraphResponse(null)
+    setGraphNodeDrillStateByKey(new Map())
+    setGraphPositionResetKey((key) => key + 1)
+  }, [])
+
   const runLocalLocate = useCallback(async (type: IocVerificationType, value: string, pageToken = "") => {
     setLocalResult((current) => ({
       ...current,
       status: "loading",
-      message: "正在定位本地事件...",
+      message: t("local.loading"),
       items: pageToken ? current.items : [],
       pageToken,
     }))
@@ -462,12 +541,18 @@ export function IocSearchPage() {
       const next = await locateLocalData({ tenantId, type, value, pageToken })
       setLocalResult((current) => ({
         ...next,
+        message:
+          next.status === "unsupported"
+            ? t("local.unsupportedMessage")
+            : next.items.length
+              ? t("local.foundMessage", { days: DEFAULT_LOOKBACK_DAYS, count: next.items.length })
+              : t("local.empty", { days: DEFAULT_LOOKBACK_DAYS }),
         items: pageToken ? [...current.items, ...next.items] : next.items,
       }))
     } catch (localError) {
       setLocalResult({
         status: "error",
-        message: localError instanceof Error && localError.message ? localError.message : "本地定位失败。",
+        message: localError instanceof Error && localError.message ? localError.message : t("feedback.localLocateFailed"),
         source: value,
         positionType: null,
         items: [],
@@ -476,7 +561,7 @@ export function IocSearchPage() {
         hasNext: false,
       })
     }
-  }, [tenantId])
+  }, [tenantId, t])
 
   async function handleSearch(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault()
@@ -485,8 +570,8 @@ export function IocSearchPage() {
 
     if (!type || !value) {
       toast({
-        title: "无法识别 IOC",
-        description: "请输入有效的 IP、域名、URL、MD5、SHA1 或 SHA256。",
+        title: t("feedback.invalidTitle"),
+        description: t("feedback.invalidDescription"),
         variant: "warning",
       })
       return
@@ -497,6 +582,7 @@ export function IocSearchPage() {
     setError("")
     setItem(null)
     setActiveTab("overview")
+    resetGraphState()
 
     void runLocalLocate(type, normalizedValue)
 
@@ -510,11 +596,11 @@ export function IocSearchPage() {
       setItem(nextItem)
       setStatus("success")
     } catch (searchError) {
-      const message = searchError instanceof Error && searchError.message ? searchError.message : "IOC 查询失败。"
+      const message = searchError instanceof Error && searchError.message ? searchError.message : t("feedback.searchFailedDescription")
       setStatus("error")
       setError(message)
       toast({
-        title: "IOC 查询失败",
+        title: t("feedback.searchFailedTitle"),
         description: message,
         variant: "destructive",
       })
@@ -524,15 +610,192 @@ export function IocSearchPage() {
   function copyValue(value: string) {
     void navigator.clipboard.writeText(value)
     toast({
-      title: "已复制",
+      title: t("feedback.copiedTitle"),
       description: value,
       variant: "success",
     })
   }
 
-  const localHitCount = localResult.items.length
-  const remoteHit = item ? isRemoteHit(item) : false
-  const allowlisted = item ? isAllowlisted(item) : false
+  const handleRefreshLocal = useCallback(() => {
+    if (!item) return
+    void runLocalLocate(item.type, item.value)
+  }, [item, runLocalLocate])
+
+  const handleLoadMoreLocal = useCallback(() => {
+    if (!item || !localResult.nextPageToken) return
+    void runLocalLocate(item.type, item.value, localResult.nextPageToken)
+  }, [item, localResult.nextPageToken, runLocalLocate])
+
+  const handleLocateGraph = useCallback(async (event: IocLocalEventSource, index: number) => {
+    const uniqueId = localEventUniqueId(event)
+    const eventType = Number(event.event_type || 0)
+    const eventKey = localEventKey(event, index)
+
+    if (!uniqueId || !eventType) {
+      toast({
+        title: t("feedback.graphInvalidTitle"),
+        description: t("feedback.graphInvalidDescription"),
+        variant: "warning",
+      })
+      return
+    }
+
+    const timeRange = defaultTimeRange()
+    setSelectedEvent(event)
+    setSelectedEventKey(eventKey)
+    setGraphLoadingEventKey(eventKey)
+    setGraphStatus("loading")
+    setGraphError("")
+    setGraphNodeDrillStateByKey(new Map())
+
+    try {
+      const response = await fetchGraphLocateResult({
+        tenantId,
+        startTime: timeRange.startTime,
+        endTime: timeRange.endTime,
+        timezone: timeRange.timezone,
+        sourceKey: {
+          eventType,
+          eventName: event.event_name || "",
+          uniqueId,
+        },
+      })
+
+      if (!response) {
+        throw new Error("GraphLocateResult returned empty response.")
+      }
+
+      const graph = graphLocateToGraphResponse({ response, tenantId, timeRange })
+      graphResponseRef.current = graph
+      setGraphResponse(graph)
+      setGraphScope({
+        alreadyInGraph: Boolean(response.already_in_graph),
+        diagnostics: response.diagnostics,
+        focusNodeKeys: response.focus_node_keys ?? [],
+        scopeId: response.scope_id || "",
+        scopeType: response.scope_type || "positioning",
+      })
+      setGraphStatus("success")
+      setGraphPositionResetKey((key) => key + 1)
+      if (activeTab === "local") {
+        setActiveTab("graph")
+      }
+
+      const nodeCount = response.nodes?.length ?? 0
+      const edgeCount = response.edges?.length ?? 0
+      if (nodeCount || edgeCount) {
+        toast({
+          title: t("feedback.graphGeneratedTitle"),
+          description: `${nodeCount} nodes / ${edgeCount} edges`,
+          variant: "success",
+        })
+      } else {
+        toast({
+          title: t("feedback.graphEmptyTitle"),
+          description: t("feedback.graphEmptyDescription"),
+          variant: "warning",
+        })
+      }
+    } catch (graphLocateError) {
+      const message = graphLocateError instanceof Error && graphLocateError.message
+        ? graphLocateError.message
+        : t("feedback.graphFailedDescription")
+      setGraphStatus("error")
+      setGraphError(message)
+      toast({
+        title: t("feedback.graphFailedTitle"),
+        description: message,
+        variant: "destructive",
+      })
+    } finally {
+      setGraphLoadingEventKey("")
+    }
+  }, [activeTab, tenantId, t])
+
+  const handleGraphMenuAction = useCallback(async (action: AttackGraphMenuAction) => {
+    if (action.kind !== "node-drilldown") return
+
+    const currentGraph = graphResponseRef.current ?? graphResponse
+    const currentScope = graphScope
+    if (!currentGraph || !currentScope?.scopeId) {
+      toast({
+        title: t("feedback.drillInvalidTitle"),
+        description: t("feedback.drillInvalidDescription"),
+        variant: "warning",
+      })
+      return
+    }
+
+    const drillRange =
+      buildGraphDrillTimeRange(currentGraph.start_time, currentGraph.end_time) ??
+      defaultTimeRange()
+    const nodeKey = action.node.key
+    const currentNodeDrillState = graphNodeDrillStateByKey.get(nodeKey) ?? "idle"
+    if (currentNodeDrillState !== "idle") return
+
+    setGraphNodeDrillStateByKey((current) => {
+      const next = new Map(current)
+      next.set(nodeKey, "loading")
+      return next
+    })
+
+    try {
+      const drillResponse = await fetchGraphDrill({
+        scopeType: "positioning",
+        scopeId: currentScope.scopeId,
+        nodeKey,
+        nodeType: action.node.entityType,
+        startTime: drillRange.startTime,
+        endTime: drillRange.endTime,
+        timezone: DRILL_TIMEZONE,
+        tenantId: currentGraph.tenant_id,
+        forceRefresh: false,
+      })
+
+      const mergeResult = mergeGraphCaseDrillResult(currentGraph, {
+        nodes: drillResponse?.nodes ?? [],
+        edges: drillResponse?.edges ?? [],
+      })
+      graphResponseRef.current = mergeResult.response
+      setGraphResponse(mergeResult.response)
+
+      setGraphNodeDrillStateByKey((current) => {
+        const next = new Map(current)
+        next.set(
+          nodeKey,
+          mergeResult.visibleAddedNodeCount > 0 || mergeResult.visibleAddedEdgeCount > 0
+            ? "done"
+            : "empty",
+        )
+        return next
+      })
+
+      if (mergeResult.visibleAddedNodeCount > 0 || mergeResult.visibleAddedEdgeCount > 0) {
+        toast({
+          title: t("feedback.drillAddedTitle"),
+          description: `${mergeResult.visibleAddedNodeCount} nodes / ${mergeResult.visibleAddedEdgeCount} edges`,
+          variant: "success",
+        })
+      } else {
+        toast({
+          title: t("feedback.drillEmptyTitle"),
+          description: t("feedback.drillEmptyDescription"),
+          variant: "warning",
+        })
+      }
+    } catch (drillError) {
+      setGraphNodeDrillStateByKey((current) => {
+        const next = new Map(current)
+        next.delete(nodeKey)
+        return next
+      })
+      toast({
+        title: t("feedback.drillFailedTitle"),
+        description: drillError instanceof Error && drillError.message ? drillError.message : t("feedback.drillFailedDescription"),
+        variant: "destructive",
+      })
+    }
+  }, [graphNodeDrillStateByKey, graphResponse, graphScope, t])
 
   return (
     <main className="bg-gray-50 text-slate-950">
@@ -553,9 +816,9 @@ export function IocSearchPage() {
         {status === "error" ? (
           <section className="mx-auto max-w-5xl rounded-lg border border-rose-200 bg-rose-50 p-5 text-rose-700">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
               <div>
-                <h2 className="font-semibold">查询失败</h2>
+                <h2 className="font-semibold">{t("feedback.searchFailedTitle")}</h2>
                 <p className="mt-1 text-sm leading-6">{error}</p>
               </div>
             </div>
@@ -564,255 +827,117 @@ export function IocSearchPage() {
 
         {item ? (
           <section className="space-y-5">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex min-w-0 items-start gap-4">
-                  <div className={cn("flex size-16 shrink-0 items-center justify-center rounded-lg border", verdictToneClass(item))}>
-                    <VerdictIcon item={item} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <code className="break-all font-mono text-xl font-semibold text-slate-950">{item.value}</code>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                        onClick={() => copyValue(item.value)}
-                        aria-label="复制 IOC"
-                      >
-                        <Copy className="size-4" aria-hidden="true" />
-                      </Button>
-                    </div>
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className={cn("rounded-full px-2.5 py-1 font-mono text-[11px] uppercase", typeClass(item.type))}>
-                        {item.type}
-                      </Badge>
-                      <Badge variant="outline" className={cn("rounded-full px-2.5 py-1 text-xs font-medium", verdictToneClass(item))}>
-                        {verdictLabel(item)}
-                      </Badge>
-                      {allowlisted ? (
-                        <Badge variant="outline" className="rounded-full border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                          白名单命中
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4 lg:min-w-[560px]">
-                  <MetricCard icon={Database} label="本地情报" value={item.verification?.local_status || (item.status === "hit" ? "命中" : "未命中")} tone={item.status === "hit" ? "red" : "slate"} />
-                  <MetricCard icon={Cloud} label="远程情报" value={remoteHit ? "命中" : item.verification?.remote_status || "未命中"} tone={remoteHit ? "red" : "slate"} />
-                  <MetricCard icon={ShieldCheck} label="风险分" value={riskText(item)} tone={item.status === "hit" ? "red" : "green"} />
-                  <MetricCard icon={CheckCircle2} label="置信度" value={confidenceText(item)} tone="blue" />
-                </div>
-              </div>
-            </div>
+            <IocSearchResultSummary
+              graphScopeId={graphScope?.scopeId}
+              item={item}
+              localEventCount={localResult.items.length}
+              onCopy={copyValue}
+            />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="rounded-lg border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-100 px-4 py-3">
                 <TabsList className="h-10 rounded-md bg-slate-100 p-1">
                   <TabsTrigger value="overview" className="rounded px-4 data-[state=active]:bg-white">
-                    概览
+                    {t("tabs.overview")}
                   </TabsTrigger>
                   <TabsTrigger value="detail" className="rounded px-4 data-[state=active]:bg-white">
-                    情报详情
+                    {t("tabs.detail")}
                   </TabsTrigger>
                   <TabsTrigger value="local" className="rounded px-4 data-[state=active]:bg-white">
-                    本地定位
+                    {t("tabs.local")}
                   </TabsTrigger>
-                  <TabsTrigger value="raw" className="rounded px-4 data-[state=active]:bg-white">
-                    原始数据
+                  <TabsTrigger value="graph" className="rounded px-4 data-[state=active]:bg-white">
+                    {t("tabs.graph")}
                   </TabsTrigger>
                 </TabsList>
               </div>
 
-              <TabsContent value="overview" className="m-0 p-5">
-                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-                  <div className="rounded-lg border border-slate-200 p-4">
-                    <h2 className="text-base font-semibold text-slate-950">查询结论</h2>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">
-                      当前 IOC 判定为 <span className="font-semibold text-slate-950">{verdictLabel(item)}</span>。
-                      {item.status === "hit"
-                        ? "建议继续查看本地定位命中事件，确认受影响主机和进程上下文。"
-                        : "未命中不代表绝对安全，可结合本地定位结果继续确认是否出现过相关行为。"}
-                    </p>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-md bg-slate-50 p-3">
-                        <div className="text-xs text-slate-500">命中来源</div>
-                        <div className="mt-1 truncate text-sm font-medium text-slate-900">
-                          {item.verification?.hit_source_database || item.verification?.hit_source_table || "-"}
-                        </div>
-                      </div>
-                      <div className="rounded-md bg-slate-50 p-3">
-                        <div className="text-xs text-slate-500">检查时间</div>
-                        <div className="mt-1 truncate font-mono text-sm font-medium text-slate-900">
-                          {item.verification?.checked_at || "-"}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              <TabsContent value="overview" className="m-0 p-4">
+                <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+                  <IocLocalEventsPanel
+                    className="h-[620px]"
+                    currentValue={currentValue}
+                    defaultLookbackDays={DEFAULT_LOOKBACK_DAYS}
+                    graphLoadingEventKey={graphLoadingEventKey}
+                    onLoadMore={handleLoadMoreLocal}
+                    onLocateGraph={handleLocateGraph}
+                    onRefresh={handleRefreshLocal}
+                    result={localResult}
+                    selectedEventKey={selectedEventKey}
+                  />
 
-                  <div className="rounded-lg border border-slate-200 p-4">
-                    <h2 className="text-base font-semibold text-slate-950">本地定位摘要</h2>
-                    <div className="mt-4 flex items-center gap-3">
-                      <div className="flex size-12 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
-                        <Network className="size-6" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <div className="text-2xl font-semibold text-slate-950">{localHitCount}</div>
-                        <div className="text-xs text-slate-500">本地事件</div>
-                      </div>
-                    </div>
-                    <p className="mt-4 text-sm leading-6 text-slate-600">
-                      {localResult.status === "loading" ? "正在定位本地事件..." : localResult.message || "尚未执行本地定位。"}
-                    </p>
-                  </div>
+                  <IocPositioningGraphPanel
+                    className="h-[620px] min-w-0"
+                    edgeCount={graphVisibleStats.edgeCount}
+                    error={graphError}
+                    graphScopeId={graphScope?.scopeId}
+                    graphScopeType={graphScope?.scopeType}
+                    layoutOptions={graphLayoutOptions}
+                    layoutStrategy={graphLayoutStrategy}
+                    loadingEvent={selectedEvent}
+                    nodeCount={graphVisibleStats.nodeCount}
+                    nodeDrillStateByKey={graphNodeDrillStateByKey}
+                    onLayoutStrategyChange={setGraphLayoutStrategy}
+                    onMenuAction={handleGraphMenuAction}
+                    onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
+                    positionResetKey={graphPositionResetKey}
+                    response={graphResponse}
+                    selectedEvent={selectedEvent}
+                    status={graphStatus}
+                  />
+
+                  <IocVerificationDetailPanel
+                    className="h-[620px] rounded-lg"
+                    item={item}
+                    loading={status === "loading"}
+                    onCopy={copyValue}
+                  />
                 </div>
               </TabsContent>
 
-              <TabsContent value="detail" className="m-0">
+              <TabsContent value="detail" className="m-0 p-4">
                 <IocVerificationDetailPanel
-                  className="min-h-[420px] rounded-none border-0"
+                  className="min-h-[640px] rounded-lg"
                   item={item}
                   loading={status === "loading"}
                   onCopy={copyValue}
                 />
               </TabsContent>
 
-              <TabsContent value="local" className="m-0 p-5">
-                <div className="flex flex-col gap-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <h2 className="text-base font-semibold text-slate-950">本地数据定位</h2>
-                      <p className="mt-1 text-sm text-slate-500">
-                        按最近 {DEFAULT_LOOKBACK_DAYS} 天窗口查询。当前定位值：
-                        <code className="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-slate-700">{localResult.source || currentValue}</code>
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-9 rounded-md border-slate-200"
-                      disabled={localResult.status === "loading"}
-                      onClick={() => {
-                        if (!item) return
-                        void runLocalLocate(item.type, item.value)
-                      }}
-                    >
-                      {localResult.status === "loading" ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-                      重新定位
-                    </Button>
-                  </div>
-
-                  {localResult.status === "loading" ? (
-                    <div className="flex min-h-[180px] items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
-                      <Loader2 className="size-4 animate-spin text-blue-600" aria-hidden="true" />
-                      正在定位本地数据...
-                    </div>
-                  ) : null}
-
-                  {localResult.status === "unsupported" || localResult.status === "error" ? (
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800">
-                      {localResult.message}
-                    </div>
-                  ) : null}
-
-                  {localResult.status === "success" && !localResult.items.length ? (
-                    <div className="flex min-h-[180px] items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50 text-sm text-slate-500">
-                      最近 {DEFAULT_LOOKBACK_DAYS} 天没有发现本地事件。
-                    </div>
-                  ) : null}
-
-                  {localResult.items.length ? (
-                    <div className="overflow-hidden rounded-lg border border-slate-200">
-                      <div className="grid grid-cols-[110px_minmax(0,1fr)_190px_140px] gap-3 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-500">
-                        <span>事件类型</span>
-                        <span>摘要</span>
-                        <span>时间</span>
-                        <span>操作</span>
-                      </div>
-                      <div className="divide-y divide-slate-100">
-                        {localResult.items.map((event, index) => {
-                          const uniqueId = eventUniqueId(event)
-                          return (
-                            <div
-                              key={`${event.event_type}-${event.event_name}-${uniqueId || index}`}
-                              className="grid grid-cols-[110px_minmax(0,1fr)_190px_140px] gap-3 px-4 py-3 text-sm"
-                            >
-                              <div className="min-w-0">
-                                <div className="truncate font-medium text-slate-900">{event.event_name || "-"}</div>
-                                <div className="mt-1 font-mono text-xs text-slate-400">{event.event_type || "-"}</div>
-                              </div>
-                              <div className="min-w-0">
-                                <div className="truncate text-slate-700">{eventSummary(event)}</div>
-                                <div className="mt-1 truncate font-mono text-xs text-slate-400">{uniqueId || "no unique id"}</div>
-                              </div>
-                              <div className="truncate font-mono text-xs text-slate-500">{eventTime(event) || "-"}</div>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="h-8 w-fit rounded-md border-slate-200"
-                                disabled={!uniqueId}
-                                onClick={() => {
-                                  toast({
-                                    title: "图谱定位待接入",
-                                    description: uniqueId
-                                      ? `后续使用 event_type=${event.event_type}, event_name=${event.event_name}, unique_id=${uniqueId} 调用 GraphLocateResult。`
-                                      : "当前事件缺少 UniqueID。",
-                                    variant: "info",
-                                  })
-                                }}
-                              >
-                                <ExternalLink className="size-3.5" />
-                                图谱定位
-                              </Button>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {localResult.hasNext ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-10 rounded-md border-slate-200"
-                      disabled={localResult.status === "loading"}
-                      onClick={() => {
-                        if (!item || !localResult.nextPageToken) return
-                        void runLocalLocate(item.type, item.value, localResult.nextPageToken)
-                      }}
-                    >
-                      加载更多
-                    </Button>
-                  ) : null}
-                </div>
+              <TabsContent value="local" className="m-0 p-4">
+                <IocLocalEventsPanel
+                  className="min-h-[640px]"
+                  currentValue={currentValue}
+                  defaultLookbackDays={DEFAULT_LOOKBACK_DAYS}
+                  graphLoadingEventKey={graphLoadingEventKey}
+                  onLoadMore={handleLoadMoreLocal}
+                  onLocateGraph={handleLocateGraph}
+                  onRefresh={handleRefreshLocal}
+                  result={localResult}
+                  selectedEventKey={selectedEventKey}
+                />
               </TabsContent>
 
-              <TabsContent value="raw" className="m-0 p-5">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="rounded-lg border border-slate-200">
-                    <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-950">
-                      <Hash className="size-4 text-slate-500" aria-hidden="true" />
-                      Verification
-                    </div>
-                    <pre className="max-h-[420px] overflow-auto p-4 text-xs leading-5 text-slate-700">
-                      {JSON.stringify(item.verification || {}, null, 2)}
-                    </pre>
-                  </div>
-                  <div className="rounded-lg border border-slate-200">
-                    <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3 text-sm font-semibold text-slate-950">
-                      <Clock3 className="size-4 text-slate-500" aria-hidden="true" />
-                      Detail View
-                    </div>
-                    <pre className="max-h-[420px] overflow-auto p-4 text-xs leading-5 text-slate-700">
-                      {JSON.stringify(item.verification_detail?.detail_view || item.verification_detail || {}, null, 2)}
-                    </pre>
-                  </div>
-                </div>
+              <TabsContent value="graph" className="m-0 p-4">
+                <IocPositioningGraphPanel
+                  className="h-[720px]"
+                  edgeCount={graphVisibleStats.edgeCount}
+                  error={graphError}
+                  graphScopeId={graphScope?.scopeId}
+                  graphScopeType={graphScope?.scopeType}
+                  layoutOptions={graphLayoutOptions}
+                  layoutStrategy={graphLayoutStrategy}
+                  loadingEvent={selectedEvent}
+                  nodeCount={graphVisibleStats.nodeCount}
+                  nodeDrillStateByKey={graphNodeDrillStateByKey}
+                  onLayoutStrategyChange={setGraphLayoutStrategy}
+                  onMenuAction={handleGraphMenuAction}
+                  onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
+                  positionResetKey={graphPositionResetKey}
+                  response={graphResponse}
+                  selectedEvent={selectedEvent}
+                  status={graphStatus}
+                />
               </TabsContent>
             </Tabs>
           </section>

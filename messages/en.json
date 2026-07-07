@@ -4246,7 +4246,105 @@
         "description": "Query threat intelligence and locate event data",
         "typeLabel": "IOC type",
         "placeholder": "Enter IP, domain, URL, or hash",
-        "submit": "Search"
+        "submit": "Search",
+        "tabs": {
+          "overview": "Overview",
+          "detail": "IOC Details",
+          "local": "Local Events",
+          "graph": "Positioning Graph"
+        },
+        "emptyState": {
+          "title": "Enter an IOC to start",
+          "description": "Supports IP, domain, URL, MD5, SHA1, and SHA256. The query reuses the existing manual IOC verification logic and adds local event positioning plus a positioning graph.",
+          "intelPanelTitle": "Intel verdict",
+          "localPanelTitle": "Local events",
+          "graphPanelTitle": "Positioning graph",
+          "detailPanelTitle": "IOC details",
+          "pendingTitle": "Waiting for query",
+          "pendingDescription": "Enter an IOC to show intelligence, local events, and the positioning graph.",
+          "pendingBadge": "READY"
+        },
+        "feedback": {
+          "invalidTitle": "IOC not recognized",
+          "invalidDescription": "Enter a valid IP, domain, URL, MD5, SHA1, or SHA256.",
+          "searchFailedTitle": "IOC query failed",
+          "searchFailedDescription": "IOC query failed.",
+          "localLocateFailed": "Local positioning failed.",
+          "copiedTitle": "Copied",
+          "graphInvalidTitle": "Cannot generate positioning graph",
+          "graphInvalidDescription": "This event is missing event_type or UniqueID, so GraphLocateResult cannot be called.",
+          "graphGeneratedTitle": "Positioning graph generated",
+          "graphEmptyTitle": "No graph to display",
+          "graphEmptyDescription": "GraphLocateResult did not return nodes or edges.",
+          "graphFailedTitle": "Positioning graph failed",
+          "graphFailedDescription": "Positioning graph generation failed.",
+          "drillInvalidTitle": "Cannot drill down",
+          "drillInvalidDescription": "The positioning graph does not have a scope_id yet.",
+          "drillAddedTitle": "Drill-down data added",
+          "drillEmptyTitle": "No new drill-down data",
+          "drillEmptyDescription": "No new related nodes or edges were found for this node.",
+          "drillFailedTitle": "Graph drill-down failed",
+          "drillFailedDescription": "GraphDrill request failed."
+        },
+        "summary": {
+          "hit": "Hit",
+          "miss": "Miss",
+          "allowlistHit": "Allowlist hit",
+          "checkedAt": "Checked at: ",
+          "verdict": {
+            "unchecked": "Not queried",
+            "malicious": "Malicious hit",
+            "allow": "Allowlisted",
+            "error": "Query error",
+            "checking": "Checking",
+            "ready": "Ready",
+            "unknown": "Unknown"
+          },
+          "actions": {
+            "copyIoc": "Copy IOC"
+          },
+          "metrics": {
+            "localIntel": "Local intel",
+            "remoteIntel": "Remote intel",
+            "riskScore": "Risk score",
+            "confidence": "Confidence",
+            "localEvents": "Local events",
+            "graph": "Positioning graph"
+          },
+          "risk": {
+            "high": "High",
+            "low": "Low"
+          },
+          "graph": {
+            "generated": "Generated",
+            "pendingEvent": "Select event"
+          }
+        },
+        "local": {
+          "title": "Local hit events",
+          "lookback": "Last {days} days · Locate value: ",
+          "refresh": "Locate again",
+          "loading": "Locating local events...",
+          "unsupportedMessage": "This type does not support local positioning yet. SHA1/SHA256 can still show IOC intelligence results.",
+          "foundMessage": "Found {count} local event(s) in the last {days} days.",
+          "empty": "No local events found in the last {days} days.",
+          "noUniqueId": "No unique id",
+          "graphAction": "Graph",
+          "loadMore": "Load more"
+        },
+        "graph": {
+          "title": "Positioning Graph",
+          "description": "Select a local event to generate the positioning graph",
+          "eventFallback": "event",
+          "reset": "Reset",
+          "componentLoading": "Loading positioning graph component...",
+          "loadingTitle": "Generating positioning graph",
+          "loadingDescription": "GraphLocateResult is building the positioning scope from the local event source_key.",
+          "errorTitle": "Positioning graph failed",
+          "errorDescription": "Check the event UniqueID, time range, and graph service status.",
+          "emptyTitle": "No positioning graph",
+          "emptyDescription": "Select a local hit event on the left to generate a positioning graph from event_type, event_name, and unique_id."
+        }
       },
       "verification": {
         "title": "Verification",

@@ -4248,7 +4248,105 @@
         "description": "查询威胁情报，同步定位事件数据",
         "typeLabel": "IOC 类型",
         "placeholder": "输入 IP、域名、URL 或 Hash 查询",
-        "submit": "查询"
+        "submit": "查询",
+        "tabs": {
+          "overview": "总览",
+          "detail": "IOC 详情",
+          "local": "本地事件",
+          "graph": "定位图谱"
+        },
+        "emptyState": {
+          "title": "输入一个 IOC 开始检索",
+          "description": "支持 IP、域名、URL、MD5、SHA1、SHA256。查询会复用现有手动 IOC 验证逻辑，并在结果中补充本地事件定位和 positioning 图谱。",
+          "intelPanelTitle": "情报结论",
+          "localPanelTitle": "本地事件",
+          "graphPanelTitle": "定位图谱",
+          "detailPanelTitle": "IOC 详情",
+          "pendingTitle": "等待查询",
+          "pendingDescription": "输入 IOC 后展示情报、本地事件和定位图谱。",
+          "pendingBadge": "READY"
+        },
+        "feedback": {
+          "invalidTitle": "无法识别 IOC",
+          "invalidDescription": "请输入有效的 IP、域名、URL、MD5、SHA1 或 SHA256。",
+          "searchFailedTitle": "IOC 查询失败",
+          "searchFailedDescription": "IOC 查询失败。",
+          "localLocateFailed": "本地定位失败。",
+          "copiedTitle": "已复制",
+          "graphInvalidTitle": "无法生成定位图谱",
+          "graphInvalidDescription": "当前事件缺少 event_type 或 UniqueID，无法调用 GraphLocateResult。",
+          "graphGeneratedTitle": "定位图谱已生成",
+          "graphEmptyTitle": "暂无可展示图谱",
+          "graphEmptyDescription": "GraphLocateResult 未返回节点或边。",
+          "graphFailedTitle": "定位图谱生成失败",
+          "graphFailedDescription": "定位图谱生成失败。",
+          "drillInvalidTitle": "无法钻探",
+          "drillInvalidDescription": "定位图谱还没有生成 scope_id。",
+          "drillAddedTitle": "钻探数据已加入图谱",
+          "drillEmptyTitle": "暂无新的钻探数据",
+          "drillEmptyDescription": "当前节点未发现新的关联节点或关系。",
+          "drillFailedTitle": "图谱钻探失败",
+          "drillFailedDescription": "GraphDrill 请求失败。"
+        },
+        "summary": {
+          "hit": "命中",
+          "miss": "未命中",
+          "allowlistHit": "白名单命中",
+          "checkedAt": "检查时间：",
+          "verdict": {
+            "unchecked": "未查询",
+            "malicious": "恶意命中",
+            "allow": "白名单",
+            "error": "查询异常",
+            "checking": "查询中",
+            "ready": "待查询",
+            "unknown": "未知"
+          },
+          "actions": {
+            "copyIoc": "复制 IOC"
+          },
+          "metrics": {
+            "localIntel": "本地情报",
+            "remoteIntel": "远程情报",
+            "riskScore": "风险分",
+            "confidence": "置信度",
+            "localEvents": "本地事件",
+            "graph": "定位图谱"
+          },
+          "risk": {
+            "high": "高",
+            "low": "低"
+          },
+          "graph": {
+            "generated": "已生成",
+            "pendingEvent": "待选择事件"
+          }
+        },
+        "local": {
+          "title": "本地命中事件",
+          "lookback": "最近 {days} 天 · 定位值：",
+          "refresh": "重新定位",
+          "loading": "正在定位本地事件...",
+          "unsupportedMessage": "当前类型暂不支持本地定位。SHA1/SHA256 仍可查看 IOC 情报结果。",
+          "foundMessage": "最近 {days} 天发现 {count} 条本地事件。",
+          "empty": "最近 {days} 天没有发现本地事件。",
+          "noUniqueId": "无 unique id",
+          "graphAction": "图谱",
+          "loadMore": "加载更多"
+        },
+        "graph": {
+          "title": "定位图谱",
+          "description": "选择本地事件后生成 positioning 图谱",
+          "eventFallback": "event",
+          "reset": "Reset",
+          "componentLoading": "正在加载定位图谱组件...",
+          "loadingTitle": "正在生成定位图谱",
+          "loadingDescription": "GraphLocateResult 正在根据本地事件 source_key 构建 positioning scope。",
+          "errorTitle": "定位图谱生成失败",
+          "errorDescription": "请检查事件 UniqueID、时间范围和 graph 服务状态。",
+          "emptyTitle": "暂无定位图谱",
+          "emptyDescription": "先在左侧本地命中事件中选择一条记录，使用 event_type、event_name、unique_id 生成定位图谱。"
+        }
       },
       "verification": {
         "title": "情报验证",

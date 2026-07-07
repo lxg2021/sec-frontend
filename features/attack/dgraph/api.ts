@@ -36,6 +36,23 @@ export interface GraphDrillResponseDto {
   };
 }
 
+export interface GraphLocateResultResponseDto {
+  request_id?: string;
+  scope_type?: string;
+  scope_id?: string;
+  already_in_graph?: boolean;
+  focus_node_keys?: string[];
+  nodes?: GraphCaseNodeDto[];
+  edges?: GraphCaseEdgeDto[];
+  diagnostics?: {
+    source_key_count?: number;
+    source_hit_count?: number;
+    focus_node_count?: number;
+    returned_node_count?: number;
+    returned_edge_count?: number;
+  };
+}
+
 export interface FetchGraphDrillParams {
   scopeType: "case" | "positioning";
   scopeId: string;
@@ -46,6 +63,19 @@ export interface FetchGraphDrillParams {
   timezone?: string;
   tenantId?: string;
   forceRefresh?: boolean;
+}
+
+export interface FetchGraphLocateResultParams {
+  endTime: string;
+  forceRefresh?: boolean;
+  sourceKey: {
+    eventName?: string;
+    eventType: number;
+    uniqueId: string;
+  };
+  startTime: string;
+  tenantId?: string;
+  timezone?: string;
 }
 
 export async function fetchGraphCase({
@@ -115,6 +145,44 @@ export async function fetchGraphDrill({
     "/sensor/graph/drill",
     payload,
   )) as ApiResult<GraphDrillResponseDto | null>;
+
+  return result.data ?? null;
+}
+
+export async function fetchGraphLocateResult({
+  endTime,
+  forceRefresh = false,
+  sourceKey,
+  startTime,
+  tenantId,
+  timezone,
+}: FetchGraphLocateResultParams): Promise<GraphLocateResultResponseDto | null> {
+  const payload: Record<string, unknown> = {
+    request_id: createRequestId(),
+    start_time: startTime.trim(),
+    end_time: endTime.trim(),
+    source_key: {
+      event_type: sourceKey.eventType,
+      event_name: sourceKey.eventName?.trim() || "",
+      unique_id: sourceKey.uniqueId.trim(),
+    },
+    force_refresh: forceRefresh,
+  };
+
+  const normalizedTimezone = timezone?.trim();
+  if (normalizedTimezone) {
+    payload.timezone = normalizedTimezone;
+  }
+
+  const normalizedTenantId = tenantId?.trim();
+  if (normalizedTenantId) {
+    payload.tenant_id = normalizedTenantId;
+  }
+
+  const result = (await http.post(
+    "/sensor/graph/locate",
+    payload,
+  )) as ApiResult<GraphLocateResultResponseDto | null>;
 
   return result.data ?? null;
 }
