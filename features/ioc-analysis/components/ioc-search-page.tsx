@@ -393,7 +393,7 @@ function IocSearchEmptyState() {
   const t = useTranslations("pages.iocAnalysis.search.emptyState")
 
   return (
-    <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+    <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
       <IocPanelEmptyState
         title={t("title")}
         description={t("description")}
