@@ -4344,9 +4344,33 @@
           },
           "emptyTitle": "No local events found",
           "emptyDescription": "No matching local event data was found in the selected time range.",
+          "eventTypeLabel": "Type",
+          "summaryLabel": "Summary",
+          "uniqueIdLabel": "Unique ID",
+          "timeLabel": "Time",
           "noUniqueId": "No unique id",
           "graphAction": "Graph",
-          "loadMore": "Load more"
+          "rawDataAction": "JSON",
+          "rawDataTitle": "Source Data",
+          "rawDataDescription": "View the raw JSON data for this event.",
+          "loadMore": "Load more",
+          "columns": {
+            "time": "Time",
+            "endpoint": "Endpoint",
+            "type": "Type",
+            "event": "Event ID",
+            "actor": "Actor",
+            "target": "Matched Object",
+            "context": "Context",
+            "rawData": "Source Data",
+            "action": "Action"
+          },
+          "pagination": {
+            "page": "Page {page}",
+            "returned": "{count} shown",
+            "previous": "Previous",
+            "next": "Next"
+          }
         },
         "graph": {
           "title": "Positioning Graph",

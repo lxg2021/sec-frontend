@@ -4346,9 +4346,33 @@
           },
           "emptyTitle": "未查到本地事件",
           "emptyDescription": "所选时间范围内未定位到相关本地事件数据",
+          "eventTypeLabel": "类型",
+          "summaryLabel": "摘要",
+          "uniqueIdLabel": "唯一 ID",
+          "timeLabel": "时间",
           "noUniqueId": "无 unique id",
           "graphAction": "图谱",
-          "loadMore": "加载更多"
+          "rawDataAction": "JSON",
+          "rawDataTitle": "源数据",
+          "rawDataDescription": "查看当前事件的原始 JSON 数据",
+          "loadMore": "加载更多",
+          "columns": {
+            "time": "时间",
+            "endpoint": "终端",
+            "type": "类型",
+            "event": "事件号",
+            "actor": "主体",
+            "target": "命中对象",
+            "context": "关联信息",
+            "rawData": "源数据",
+            "action": "操作"
+          },
+          "pagination": {
+            "page": "第 {page} 页",
+            "returned": "当前 {count} 条",
+            "previous": "上一页",
+            "next": "下一页"
+          }
         },
         "graph": {
           "title": "定位图谱",

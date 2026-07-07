@@ -3,8 +3,10 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import dynamic from "next/dynamic"
 import { AlertTriangle, Loader2 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
+import { batchDescribeEventSourcesByKeys } from "@/features/attack/dashboard/api"
+import type { EventSourceDescriptionKey } from "@/features/attack/dashboard/types"
 import { fetchGraphDrill, fetchGraphLocateResult, type GraphLocateResultResponseDto } from "@/features/attack/dgraph/api"
 import { buildAttackGraphModel } from "@/features/attack/dgraph/model/core/attack-graph-adapter"
 import type { AttackGraphLayoutOptions, GraphCaseResponseDto } from "@/features/attack/dgraph/model/core/attack-graph-data"
@@ -12,8 +14,13 @@ import { buildGraphDrillTimeRange, mergeGraphCaseDrillResult } from "@/features/
 import type { AttackGraphLayoutStrategyOption } from "@/features/attack/dgraph/components/attack-graph-layout-strategy-toggle"
 import type { AttackGraphMenuAction, AttackGraphNodeDrillState } from "@/features/attack/dgraph/model/menu/attack-graph-menu-types"
 import { getIocHitDetail } from "@/features/ioc-analysis/api"
-import { IocLocalEventsPanel, type IocLocalLocatePanelResult } from "@/features/ioc-analysis/components/ioc-local-events-panel"
 import {
+  IocLocalEventsPanel,
+  type IocLocalEventDescriptionMap,
+  type IocLocalLocatePanelResult,
+} from "@/features/ioc-analysis/components/ioc-local-events-panel"
+import {
+  localEventDescriptionKeyFromValues,
   localEventKey,
   localEventUniqueId,
   type IocLocalEventSource,
@@ -424,7 +431,7 @@ async function locateLocalData({
     start_time: timeRange.startTime,
     end_time: timeRange.endTime,
     timezone: timeRange.timezone,
-    page_size: 20,
+    page_size: 10,
     page_token: pageToken,
     dns_match_mode: 0,
   })) as ApiResult<PositionPageData>
@@ -444,6 +451,63 @@ async function locateLocalData({
     nextPageToken: pagination.next_page_token || "",
     hasNext: Boolean(pagination.has_next),
   }
+}
+
+function semanticDescriptionLanguage(locale: string) {
+  return locale.toLowerCase().startsWith("zh") ? "zh-CN" : "en-US"
+}
+
+async function describeLocalEventPage({
+  items,
+  language,
+  tenantId,
+}: {
+  items: IocLocalEventSource[]
+  language: string
+  tenantId: string
+}): Promise<IocLocalEventDescriptionMap> {
+  const keys: EventSourceDescriptionKey[] = []
+  const requestMapKeys: string[] = []
+  const seen = new Set<string>()
+
+  for (const event of items) {
+    const eventType = Number(event.event_type || 0)
+    const uniqueId = localEventUniqueId(event)
+    const mapKey = localEventDescriptionKeyFromValues(eventType, event.event_name, uniqueId)
+    if (!eventType || !uniqueId || !mapKey || seen.has(mapKey)) continue
+
+    seen.add(mapKey)
+    requestMapKeys.push(mapKey)
+    keys.push({
+      event_type: eventType,
+      event_name: event.event_name || "",
+      source_unique_id: uniqueId,
+    })
+  }
+
+  if (!keys.length) return {}
+
+  const result = await batchDescribeEventSourcesByKeys({
+    keys,
+    tenantId,
+    language,
+    includeEventSource: false,
+    includeAllFields: false,
+  })
+
+  const descriptions: IocLocalEventDescriptionMap = {}
+  result.items.forEach((item, index) => {
+    const responseMapKey = localEventDescriptionKeyFromValues(
+      item.key.event_type,
+      item.key.event_name,
+      item.key.source_unique_id,
+    )
+    const requestMapKey = requestMapKeys[index]
+    if (responseMapKey) descriptions[responseMapKey] = item
+    if (requestMapKey) descriptions[requestMapKey] = item
+  })
+
+  return descriptions
 }
 
 function graphLocateToGraphResponse({
@@ -488,6 +552,7 @@ function IocSearchEmptyState() {
 
 export function IocSearchPage() {
   const t = useTranslations("pages.iocAnalysis.search")
+  const locale = useLocale()
   const [queryType, setQueryType] = useState<IocVerificationType>("auto")
   const [queryValue, setQueryValue] = useState("")
   const [status, setStatus] = useState<SearchStatus>("idle")
@@ -505,6 +570,9 @@ export function IocSearchPage() {
     nextPageToken: "",
     hasNext: false,
   })
+  const [localPageIndex, setLocalPageIndex] = useState(0)
+  const [localPageTokens, setLocalPageTokens] = useState<string[]>([""])
+  const [localEventDescriptions, setLocalEventDescriptions] = useState<IocLocalEventDescriptionMap>({})
   const [activeTab, setActiveTab] = useState("detail")
   const [selectedEvent, setSelectedEvent] = useState<IocLocalEventSource | null>(null)
   const [selectedEventKey, setSelectedEventKey] = useState("")
@@ -520,6 +588,7 @@ export function IocSearchPage() {
   )
   const graphResponseRef = useRef<GraphCaseResponseDto | null>(null)
   const appliedLocalTimeRangeRef = useRef<LocalLocateTimeRange | null>(null)
+  const localLocateRequestRef = useRef(0)
 
   const tenantId = DEFAULT_TENANT_ID
   const resolvedType = useMemo(() => resolveSearchType(queryType, queryValue), [queryType, queryValue])
@@ -574,12 +643,16 @@ export function IocSearchPage() {
     ? currentLocalTimeRange?.label ?? `${DEFAULT_LOOKBACK_DAYS}d`
     : t(`local.range.${localTimeRange.mode}`)
 
-  const runLocalLocate = useCallback(async (type: IocVerificationType, value: string, pageToken = "") => {
-    const timeRange = pageToken
+  const runLocalLocate = useCallback(async (type: IocVerificationType, value: string, pageToken = "", useAppliedRange = false) => {
+    const requestId = localLocateRequestRef.current + 1
+    localLocateRequestRef.current = requestId
+    const isLatestRequest = () => localLocateRequestRef.current === requestId
+    const timeRange = pageToken || useAppliedRange
       ? appliedLocalTimeRangeRef.current
       : buildLocalLocateTimeRange(localTimeRange)
 
     if (!timeRange) {
+      setLocalEventDescriptions({})
       setLocalResult((current) => ({
         ...current,
         status: "error",
@@ -593,7 +666,7 @@ export function IocSearchPage() {
         description: t("local.invalidTimeRange"),
         variant: "warning",
       })
-      return
+      return false
     }
 
     if (!pageToken) {
@@ -602,6 +675,9 @@ export function IocSearchPage() {
 
     const rangeText = timeRange.mode === "custom" ? timeRange.label : t(`local.range.${timeRange.mode}`)
 
+    if (!pageToken) {
+      setLocalEventDescriptions({})
+    }
     setLocalResult((current) => ({
       ...current,
       status: "loading",
@@ -613,7 +689,9 @@ export function IocSearchPage() {
 
     try {
       const next = await locateLocalData({ tenantId, timeRange, type, value, pageToken })
-      setLocalResult((current) => ({
+      if (!isLatestRequest()) return false
+
+      const nextResult = {
         ...next,
         rangeLabel: rangeText,
         message:
@@ -622,9 +700,32 @@ export function IocSearchPage() {
             : next.items.length
               ? t("local.foundMessage", { count: next.items.length, range: rangeText })
               : t("local.empty", { range: rangeText }),
-        items: pageToken ? [...current.items, ...next.items] : next.items,
-      }))
+        items: next.items,
+      }
+
+      setLocalResult(nextResult)
+      setLocalEventDescriptions({})
+
+      if (next.items.length) {
+        void describeLocalEventPage({
+          items: next.items,
+          language: semanticDescriptionLanguage(locale),
+          tenantId,
+        }).then((descriptions) => {
+          if (isLatestRequest()) {
+            setLocalEventDescriptions(descriptions)
+          }
+        }).catch(() => {
+          if (isLatestRequest()) {
+            setLocalEventDescriptions({})
+          }
+        })
+      }
+
+      return true
     } catch (localError) {
+      if (!isLatestRequest()) return false
+      setLocalEventDescriptions({})
       setLocalResult({
         status: "error",
         message: localError instanceof Error && localError.message ? localError.message : t("feedback.localLocateFailed"),
@@ -636,8 +737,9 @@ export function IocSearchPage() {
         nextPageToken: "",
         hasNext: false,
       })
+      return false
     }
-  }, [localTimeRange, tenantId, t])
+  }, [localTimeRange, locale, tenantId, t])
 
   async function handleSearch() {
     try {
@@ -658,6 +760,8 @@ export function IocSearchPage() {
       setError("")
       setItem(null)
       setActiveTab("detail")
+      setLocalPageIndex(0)
+      setLocalPageTokens([""])
       resetGraphState()
 
       void runLocalLocate(type, normalizedValue)
@@ -700,6 +804,8 @@ export function IocSearchPage() {
 
   const handleRefreshLocal = useCallback(() => {
     if (!item) return
+    setLocalPageIndex(0)
+    setLocalPageTokens([""])
     void runLocalLocate(item.type, item.value)
   }, [item, runLocalLocate])
 
@@ -726,10 +832,32 @@ export function IocSearchPage() {
     }))
   }, [])
 
-  const handleLoadMoreLocal = useCallback(() => {
+  const handleNextLocalPage = useCallback(() => {
     if (!item || !localResult.nextPageToken) return
-    void runLocalLocate(item.type, item.value, localResult.nextPageToken)
-  }, [item, localResult.nextPageToken, runLocalLocate])
+    const nextToken = localResult.nextPageToken
+    const nextIndex = localPageIndex + 1
+
+    void runLocalLocate(item.type, item.value, nextToken).then((ok) => {
+      if (!ok) return
+      setLocalPageIndex(nextIndex)
+      setLocalPageTokens((current) => {
+        const next = current.slice(0, nextIndex)
+        next[nextIndex] = nextToken
+        return next
+      })
+    })
+  }, [item, localPageIndex, localResult.nextPageToken, runLocalLocate])
+
+  const handlePreviousLocalPage = useCallback(() => {
+    if (!item || localPageIndex <= 0) return
+    const previousIndex = localPageIndex - 1
+    const previousToken = localPageTokens[previousIndex] ?? ""
+
+    void runLocalLocate(item.type, item.value, previousToken, true).then((ok) => {
+      if (!ok) return
+      setLocalPageIndex(previousIndex)
+    })
+  }, [item, localPageIndex, localPageTokens, runLocalLocate])
 
   const handleLocateGraph = useCallback(async (event: IocLocalEventSource, index: number) => {
     const uniqueId = localEventUniqueId(event)
@@ -968,14 +1096,17 @@ export function IocSearchPage() {
                   className="h-full"
                   customEnd={localTimeRange.customEnd}
                   customStart={localTimeRange.customStart}
+                  descriptions={localEventDescriptions}
                   currentValue={currentValue}
                   graphLoadingEventKey={graphLoadingEventKey}
-                  onLoadMore={item ? handleLoadMoreLocal : undefined}
                   onCustomEndChange={handleLocalCustomEndChange}
                   onCustomStartChange={handleLocalCustomStartChange}
+                  onNextPage={item ? handleNextLocalPage : undefined}
                   onLocateGraph={handleLocateGraph}
+                  onPreviousPage={item ? handlePreviousLocalPage : undefined}
                   onRefresh={item ? handleRefreshLocal : undefined}
                   onTimeRangeModeChange={handleLocalTimeRangeModeChange}
+                  pageIndex={localPageIndex}
                   result={localResult}
                   selectedEventKey={selectedEventKey}
                   timeRangeLabel={localTimeRangeLabel}

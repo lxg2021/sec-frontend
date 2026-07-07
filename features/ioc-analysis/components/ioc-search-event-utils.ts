@@ -61,7 +61,19 @@ export function localEventSummary(event: IocLocalEventSource) {
   const target = localEventStringField(content, "TargetFilename", "FilePath", "Path", "CommandLine")
   const agent = localEventAgent(event)
   const action = [process, ip || domain || target].filter(Boolean).join(" -> ")
-  return action || agent || event.event_name || "本地事件命中"
+  return action || agent || event.event_name || "local event"
+}
+
+export function localEventDescriptionKeyFromValues(eventType: number | string | undefined, eventName: string | undefined, uniqueId: string | undefined) {
+  const normalizedEventType = Number(eventType || 0)
+  const normalizedEventName = (eventName || "").trim()
+  const normalizedUniqueId = (uniqueId || "").trim()
+  if (!normalizedEventType || !normalizedUniqueId) return ""
+  return [normalizedEventType, normalizedEventName, normalizedUniqueId].join(":")
+}
+
+export function localEventDescriptionKey(event: IocLocalEventSource) {
+  return localEventDescriptionKeyFromValues(event.event_type, event.event_name, localEventUniqueId(event))
 }
 
 export function localEventKey(event: IocLocalEventSource, index = 0) {
