@@ -717,9 +717,11 @@ function HeaderMetaField({
 }) {
   return (
     <div className="flex shrink-0 items-center gap-2">
-      <span className="shrink-0 text-xs font-medium text-slate-500">
-        {label}
-      </span>
+      {!current ? (
+        <span className="shrink-0 text-xs font-medium text-slate-500">
+          {label}
+        </span>
+      ) : null}
       <Badge
         variant="outline"
         className={cn(
