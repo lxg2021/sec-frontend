@@ -209,10 +209,10 @@ function isChineseLocale(locale: string) {
  * Stable, locale-independent timestamp formatter.
  * Accepts "YYYY-MM-DD HH:mm:ss" or "YYYY-MM-DDTHH:mm:ss".
  */
-function formatWorkflowTime(value: string, t: WorkflowCenterT): string {
+function formatWorkflowTime(value: string): string {
   const trimmed = (value ?? "").trim()
-  if (!trimmed) return t("spine.notRecorded")
-  if (trimmed.startsWith("0001-01-01")) return t("spine.notRecorded")
+  if (!trimmed) return ""
+  if (trimmed.startsWith("0001-01-01")) return ""
 
   const fullMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2}:\d{2})/)
   if (fullMatch) {
@@ -607,7 +607,6 @@ interface SpineNodeData {
   stage: AttackWorkflowDisplayStage
   status: AttackWorkflowStatus
   label: string
-  statusLabel: string
   state: SpineNodeState
   timeDisplay: string
   isCurrent: boolean
@@ -723,21 +722,12 @@ function HorizontalNode({
           >
             {node.label}
           </span>
-          {node.isCurrent ? (
-            <span
-              className={cn(
-                "max-w-full rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none",
-                getWorkflowStatusTone(node.status).statusBadge,
-              )}
-              title={node.statusLabel}
-            >
-              {node.statusLabel}
-            </span>
-          ) : null}
         </div>
-        <span className={cn("text-slate-400", density.time)}>
-          {node.timeDisplay}
-        </span>
+        {node.timeDisplay ? (
+          <span className={cn("text-slate-400", density.time)}>
+            {node.timeDisplay}
+          </span>
+        ) : null}
         <span
           className={cn(
             "mt-1 h-0.5 rounded-full transition-[width,background-color,opacity]",
@@ -798,20 +788,12 @@ function VerticalNode({
       >
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={cn(density.label, tone.label)}>{node.label}</span>
-          {node.isCurrent ? (
-            <span
-              className={cn(
-                "rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none",
-                getWorkflowStatusTone(node.status).statusBadge,
-              )}
-            >
-              {node.statusLabel}
-            </span>
-          ) : null}
         </div>
-        <span className={cn("text-slate-400", density.time)}>
-          {node.timeDisplay}
-        </span>
+        {node.timeDisplay ? (
+          <span className={cn("text-slate-400", density.time)}>
+            {node.timeDisplay}
+          </span>
+        ) : null}
       </div>
     </div>
   )
@@ -893,9 +875,8 @@ export function AttackWorkflowSpine({
         stage,
         status,
         label: t(DISPLAY_STAGE_LABEL_KEYS[stage]),
-        statusLabel: t(STATUS_LABEL_KEYS[status]),
         state,
-        timeDisplay: formatWorkflowTime(rawTime, t),
+        timeDisplay: formatWorkflowTime(rawTime),
         isCurrent: isKnownStatus && index === currentStageIndex,
         showNext: recommendedStage === stage && index !== currentStageIndex,
         connectorIn: getConnectorTone(
@@ -912,9 +893,18 @@ export function AttackWorkflowSpine({
   )
 
   const renderItem = (node: SpineNodeData, useVertical: boolean) => {
-    const ariaLabel = `${node.label}, ${
-      node.isCurrent ? t("spine.nodeAria.currentPrefix") : ""
-    }${node.state === "pending" ? t("spine.nodeAria.pending") : t("spine.nodeAria.recorded", { time: node.timeDisplay })}`
+    const ariaState = node.timeDisplay
+      ? t("spine.nodeAria.recorded", { time: node.timeDisplay })
+      : node.state === "pending"
+        ? t("spine.nodeAria.pending")
+        : ""
+    const ariaLabel = [
+      node.label,
+      node.isCurrent ? t("spine.nodeAria.currentPrefix") : "",
+      ariaState,
+    ]
+      .filter(Boolean)
+      .join(", ")
 
     const inner = useVertical ? (
       <VerticalNode
