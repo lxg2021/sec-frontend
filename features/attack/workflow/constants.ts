@@ -89,11 +89,11 @@ export const ATTACK_WORKFLOW_RECOMMENDED_NEXT_STATUS: Partial<
   Record<AttackWorkflowStatus, AttackWorkflowStatus>
 > = {
   detected: "investigating",
-  investigating: "confirmed",
+  investigating: "forensics",
   confirmed: "forensics",
   forensics: "responding",
-  responding: "contained",
-  contained: "remediated",
+  responding: "closed",
+  contained: "closed",
   remediated: "closed",
 }
 

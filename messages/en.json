@@ -924,7 +924,7 @@
             "investigating": "Investigating",
             "confirmed": "Confirmed",
             "forensics": "Forensics",
-            "responding": "Responding",
+            "responding": "In Response",
             "contained": "Contained",
             "remediated": "Remediated",
             "closed": "Closed"
@@ -1562,7 +1562,7 @@
           "investigating": "Investigating",
           "confirmed": "Confirmed",
           "forensics": "Forensics",
-          "responding": "Responding",
+          "responding": "In Response",
           "contained": "Contained",
           "remediated": "Remediated",
           "closed": "Closed"
@@ -1639,11 +1639,11 @@
           },
           "nextAction": {
             "detected": "Start investigation",
-            "investigating": "Threat Analysis",
+            "investigating": "Start Forensics",
             "confirmed": "Start Forensics",
-            "forensics": "Review Evidence",
-            "responding": "Response",
-            "contained": "Verify Containment",
+            "forensics": "Start Response",
+            "responding": "Close Workflow",
+            "contained": "Close Workflow",
             "remediated": "Close Workflow",
             "closed": "Resolved",
             "review": "Review workflow"
@@ -1676,7 +1676,7 @@
             "investigating": "Triage",
             "confirmed": "Confirm",
             "forensics": "Forensics",
-            "responding": "Respond",
+            "responding": "Response",
             "contained": "Contain",
             "remediated": "Remediate",
             "closed": "Closed"
@@ -1686,7 +1686,7 @@
             "investigating": "Triage in progress",
             "confirmed": "Threat verified",
             "forensics": "Evidence capture",
-            "responding": "Active response",
+            "responding": "Response active",
             "contained": "Spread halted",
             "remediated": "Threat removed",
             "closed": "Case resolved"
@@ -1892,7 +1892,7 @@
             },
             "riskNote": "Do not escalate before the signal is tied to a concrete case, asset, or time window.",
             "recommendedReason": "Once the signal has enough context, the next useful action is analyst triage.",
-            "transitionEffect": "Moving to Investigating records triage start and shifts the workbench toward evidence review."
+            "transitionEffect": "Moving to Investigation records triage start and shifts the workbench toward evidence review."
           },
           "investigating": {
             "purpose": "Determine whether the alert represents real malicious activity or should be closed as benign or false positive.",
@@ -1907,8 +1907,8 @@
               "3": "The analyst note explains the classification decision."
             },
             "riskNote": "Do not confirm without evidence that links the observed behavior to an attack path.",
-            "recommendedReason": "When classification evidence is clear, the workflow should move from triage into a formal decision state.",
-            "transitionEffect": "Moving forward records the investigation decision and enables confirmation, forensics, or closure handling."
+            "recommendedReason": "When investigation evidence supports the next action, the workflow should move into evidence preservation.",
+            "transitionEffect": "Moving to Forensics records investigation progress and shifts the workbench toward evidence capture."
           },
           "confirmed": {
             "purpose": "Record that the attack is verified, preserve the decision context, and prepare the case for evidence capture.",
@@ -1940,7 +1940,7 @@
             },
             "riskNote": "Avoid destructive response before collecting the evidence needed for review, reporting, or root cause analysis.",
             "recommendedReason": "After evidence is preserved, the workflow can move into response preparation and execution.",
-            "transitionEffect": "Moving to Responding opens the workflow for response action preview, execution, and result tracking."
+            "transitionEffect": "Moving to Response opens the workflow for response action preview, execution, and result tracking."
           },
           "responding": {
             "purpose": "Prepare, preview, execute, and sync response actions while keeping the operator decision auditable.",
@@ -1955,8 +1955,8 @@
               "3": "The workflow has enough result data to validate containment."
             },
             "riskNote": "Review targets carefully before actions that isolate hosts, terminate processes, or block accounts.",
-            "recommendedReason": "Once response actions are complete or ready to validate, the case should move to containment validation.",
-            "transitionEffect": "Moving to Contained records active response completion and starts validation that the attack path is stopped."
+            "recommendedReason": "Once response actions are complete and closure evidence is ready, the case can move to final review.",
+            "transitionEffect": "Moving to Closed records the response conclusion and locks the workflow into review mode."
           },
           "contained": {
             "purpose": "Validate that the active attack path, spread channel, and control path are stopped before cleanup begins.",
@@ -1971,8 +1971,8 @@
               "3": "Cleanup and recovery can start without allowing the active attack to continue."
             },
             "riskNote": "Do not mark contained if active execution or lateral movement is still visible.",
-            "recommendedReason": "Validated containment means the team can move from stopping the attack to cleaning and recovering affected assets.",
-            "transitionEffect": "Moving to Remediated records containment completion and shifts the workbench to cleanup validation."
+            "recommendedReason": "When containment and remediation evidence is enough for closure, the case can move to final review.",
+            "transitionEffect": "Moving to Closed records the final response conclusion and locks the workflow into review mode."
           },
           "remediated": {
             "purpose": "Verify cleanup, recovery, and prevention controls before the workflow is closed.",

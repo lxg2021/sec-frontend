@@ -33,6 +33,7 @@ import {
 
 import type {
   AttackWorkflowActionItem,
+  AttackWorkflowDisplayStage,
   AttackWorkflowEventItem,
   AttackWorkflowItem,
   AttackWorkflowStatus,
@@ -40,6 +41,8 @@ import type {
 import {
   formatWorkflowTime,
   normalizeWorkflowStatus,
+  workflowDisplayStageForStatus,
+  workflowDisplayStageRepresentativeStatus,
   workflowStatusIndex,
   workflowStatusTime,
 } from "@/features/attack/workflow/utils"
@@ -116,6 +119,14 @@ const STATUS_LABEL_KEYS: Record<AttackWorkflowStatus, string> = {
   contained: "statuses.contained",
   remediated: "statuses.remediated",
   closed: "statuses.closed",
+}
+
+const DISPLAY_STAGE_LABEL_KEYS: Record<AttackWorkflowDisplayStage, string> = {
+  discovery: "displayStages.discovery",
+  investigation: "displayStages.investigation",
+  forensics: "displayStages.forensics",
+  response: "displayStages.response",
+  closed: "displayStages.closed",
 }
 
 const STATUS_STYLES: Record<AttackWorkflowStatus, StatusStyle> = {
@@ -334,6 +345,27 @@ function isChineseLocale(locale: string) {
 function statusLabel(t: WorkflowCenterT, status: string) {
   const normalized = normalizeWorkflowStatus(status)
   return normalized ? t(STATUS_LABEL_KEYS[normalized]) : status || t("unknown")
+}
+
+function transitionTargetLabel(
+  t: WorkflowCenterT,
+  status: AttackWorkflowStatus,
+  currentStatus: AttackWorkflowStatus | "",
+) {
+  const targetStage = workflowDisplayStageForStatus(status)
+  const currentStage = currentStatus
+    ? workflowDisplayStageForStatus(currentStatus)
+    : ""
+
+  if (
+    targetStage &&
+    targetStage !== currentStage &&
+    workflowDisplayStageRepresentativeStatus(targetStage) === status
+  ) {
+    return t(DISPLAY_STAGE_LABEL_KEYS[targetStage])
+  }
+
+  return statusLabel(t, status)
 }
 
 function getStageConfig(
@@ -1060,9 +1092,10 @@ export function AttackWorkflowStageWorkbench({
                       {updating
                         ? t("control.updating")
                         : t("control.moveTo", {
-                            status: statusLabel(
+                            status: transitionTargetLabel(
                               t,
                               recommendedStatus as AttackWorkflowStatus,
+                              normalizedCurrentStatus,
                             ),
                           })}
                     </span>
@@ -1141,7 +1174,13 @@ export function AttackWorkflowStageWorkbench({
                           getStatusStyle(status).primaryBtn,
                         )}
                       >
-                        <span className="truncate">{statusLabel(t, status)}</span>
+                        <span className="truncate">
+                          {transitionTargetLabel(
+                            t,
+                            status,
+                            normalizedCurrentStatus,
+                          )}
+                        </span>
                       </Button>
                     ))}
                   </div>
