@@ -19,7 +19,6 @@ import {
   RotateCcw,
   Route,
   Search,
-  ShieldCheck,
   Square,
   TerminalSquare,
   Workflow,
@@ -1077,21 +1076,16 @@ export function RemediationOrchestrationPage({
           <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center">
             <div className="flex min-w-0 items-center gap-4 xl:w-[330px] xl:flex-none 2xl:w-[380px]">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
-                <ShieldCheck aria-hidden className="h-5 w-5" />
+                <Workflow aria-hidden className="h-5 w-5" />
               </div>
 
               <div className="min-w-0 space-y-1.5">
                 <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
                   处置编排
                 </h1>
-                <div className="flex flex-wrap items-center gap-2.5 text-sm">
-                  <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
-                    REMEDIATION
-                  </span>
-                  <span className="min-w-0 truncate text-slate-500">
-                    预览、下发、跟踪处置动作
-                  </span>
-                </div>
+                <p className="min-w-0 truncate text-sm text-slate-500">
+                  预览、下发、跟踪处置动作
+                </p>
               </div>
             </div>
 
