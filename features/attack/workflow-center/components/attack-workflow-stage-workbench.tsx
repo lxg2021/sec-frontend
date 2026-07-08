@@ -1010,7 +1010,7 @@ export function AttackWorkflowStageWorkbench({
               {isViewingCurrentStage ? (
                 <HeaderMetaField
                   current
-                  label={t("labels.current")}
+                  label=""
                   value={statusLabel(t, selectedStatus)}
                   valueClassName={selectedStyle.currentBadge}
                 />
@@ -1024,7 +1024,7 @@ export function AttackWorkflowStageWorkbench({
                   {normalizedCurrentStatus ? (
                     <HeaderMetaField
                       current
-                      label={t("labels.current")}
+                      label=""
                       value={statusLabel(t, normalizedCurrentStatus)}
                       valueClassName={
                         getStatusStyle(normalizedCurrentStatus).currentBadge
