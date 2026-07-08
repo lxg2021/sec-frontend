@@ -85,6 +85,7 @@ interface WorkflowNavigationHrefs {
   aiHref: string
   iocHref: string
   forensicHref: string
+  responseHref: string
 }
 
 interface WorkflowIdentity {
@@ -146,6 +147,39 @@ function buildForensicTaskHref({
   return query
     ? `/frame/investigation/tasks?${query}`
     : "/frame/investigation/tasks"
+}
+
+function buildRemediationOrchestrationHref({
+  action,
+  caseId,
+  queuePage,
+  tenantId,
+  workflow,
+}: {
+  action?: AttackWorkflowActionItem
+  caseId: string
+  queuePage?: number
+  tenantId?: string
+  workflow: AttackWorkflowItem | null
+}) {
+  const params = new URLSearchParams()
+  const workflowId = workflow?.workflow_id || ""
+  const workflowActionId = action?.workflow_action_id || ""
+
+  if (caseId) params.set("case_id", caseId)
+  if (workflowId) params.set("workflow_id", workflowId)
+  if (workflowActionId) params.set("workflow_action_id", workflowActionId)
+  params.set("source_type", "case_graph")
+  params.set("scope_type", "case")
+  if (caseId) params.set("scope_id", caseId)
+  params.set("returnTo", "workflow")
+  if (queuePage && queuePage > 0) params.set("queuePage", String(Math.trunc(queuePage)))
+  if (tenantId?.trim()) params.set("tenantId", tenantId.trim())
+
+  const query = params.toString()
+  return query
+    ? `/frame/response/orchestration?${query}`
+    : "/frame/response/orchestration"
 }
 
 function isWorkflowPastForensics(status: string) {
@@ -616,11 +650,24 @@ export function AttackWorkflowControlCenter({
   const forensicAction = actions.find(
     (action) => action.action_phase.trim().toLowerCase() === "forensics",
   )
+  const remediationAction = actions.find(
+    (action) =>
+      action.action_phase.trim().toLowerCase() === "remediation" &&
+      action.target_type.trim().toLowerCase() === "case" &&
+      action.action_type.trim().toLowerCase() === "remediation_orchestration",
+  )
   const forensicHref = buildForensicTaskHref({
     action: forensicAction,
     caseId: activeCaseId,
     queuePage,
     snapshotId: normalizedSnapshotId,
+    tenantId,
+    workflow,
+  })
+  const responseHref = buildRemediationOrchestrationHref({
+    action: remediationAction,
+    caseId: activeCaseId,
+    queuePage,
     tenantId,
     workflow,
   })
@@ -630,6 +677,7 @@ export function AttackWorkflowControlCenter({
     aiHref,
     iocHref,
     forensicHref,
+    responseHref,
   }
 
   useEffect(() => {

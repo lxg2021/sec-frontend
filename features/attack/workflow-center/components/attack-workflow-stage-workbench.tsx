@@ -58,6 +58,7 @@ interface WorkflowNavigationHrefs {
   aiHref: string
   iocHref: string
   forensicHref: string
+  responseHref: string
 }
 
 interface AttackWorkflowStageWorkbenchProps {
@@ -478,7 +479,7 @@ function stageTools({
     {
       title: t("tools.responseOrchestration.title"),
       description: t("tools.responseOrchestration.description"),
-      href: "/frame/response/dac",
+      href: hrefs.responseHref,
       iconName: "orchestration",
     },
   ]
