@@ -25,6 +25,7 @@ import {
   Sword,
   Target,
   Timer,
+  Workflow,
 } from "lucide-react"
 
 export const menuItems = [
@@ -96,7 +97,7 @@ export const menuItems = [
     labelKey: "response",
     path: "/frame/response",
     submenu: [
-      { id: "orchestration", icon: Sword, labelKey: "orchestration", path: "/frame/response/orchestration" },
+      { id: "orchestration", icon: Workflow, labelKey: "orchestration", path: "/frame/response/orchestration" },
       { id: "dacpolicy", icon: Activity, labelKey: "dacpolicy", path: "/frame/response/dac" },
     ],
   },
