@@ -1,11 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useState, type ComponentType, type FormEvent, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import {
   AlertTriangle,
   ArrowRight,
   Ban,
+  Clock3,
   DatabaseZap,
   FileCode2,
   FileWarning,
@@ -13,10 +14,12 @@ import {
   Loader2,
   Network,
   Play,
+  Plus,
   RefreshCcw,
   RotateCcw,
   Route,
   Search,
+  Settings,
   ShieldCheck,
   Square,
   TerminalSquare,
@@ -161,6 +164,25 @@ function monthAgoDate() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 }
 
+function formatHeaderRefreshTime(value?: Date | null) {
+  if (!value) return "--"
+
+  const parts = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: RESPONSE_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(value)
+  const getPart = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "00"
+
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")} ${getPart("hour")}:${getPart("minute")}:${getPart("second")}`
+}
+
 function workflowBeforeResponding(status: string) {
   const normalized = normalizeWorkflowStatus(status)
   return Boolean(
@@ -297,16 +319,31 @@ function HeaderMeta({
   return (
     <div
       className={cn(
-        "min-w-0 rounded-xl border px-3 py-2",
+        "flex h-12 min-w-0 flex-col justify-center rounded-full border px-4",
         accent === "green"
-          ? "border-emerald-200 bg-emerald-50/70"
+          ? "border-emerald-500/20 bg-emerald-500/10"
           : accent === "amber"
-            ? "border-amber-200 bg-amber-50/70"
-            : "border-slate-200 bg-slate-50",
+            ? "border-amber-500/20 bg-amber-500/10"
+            : accent === "blue"
+              ? "border-sky-500/20 bg-sky-500/10"
+              : "border-slate-200 bg-slate-50",
       )}
     >
-      <div className="text-[11px] text-slate-400">{label}</div>
-      <div className="mt-0.5 truncate font-mono text-xs text-slate-700" title={value}>
+      <div
+        className={cn(
+          "truncate text-[11px] font-medium",
+          accent === "green"
+            ? "text-emerald-600"
+            : accent === "amber"
+              ? "text-amber-600"
+              : accent === "blue"
+                ? "text-sky-600"
+                : "text-slate-400",
+        )}
+      >
+        {label}
+      </div>
+      <div className="mt-0.5 truncate font-mono text-xs font-medium text-slate-700" title={value}>
         {value || "-"}
       </div>
     </div>
@@ -478,6 +515,8 @@ export function RemediationOrchestrationPage({
   const [working, setWorking] = useState("")
   const [error, setError] = useState("")
   const [mockMode, setMockMode] = useState(isMockContext(context))
+  const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id?.trim() || "")
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
   const [startTime] = useState(monthAgoDate)
   const [endTime] = useState(todayDate)
 
@@ -645,6 +684,7 @@ export function RemediationOrchestrationPage({
         setExecution(MOCK_EXECUTION)
         setError(err instanceof Error ? err.message : "处置编排数据加载失败，当前展示接口示例数据")
       } finally {
+        setRefreshedAt(new Date())
         setLoading(false)
         setRefreshing(false)
       }
@@ -655,6 +695,46 @@ export function RemediationOrchestrationPage({
   useEffect(() => {
     void loadPage(false)
   }, [loadPage])
+
+  useEffect(() => {
+    setHeaderCaseInput(routeCaseId || workflow?.case_id || "")
+  }, [routeCaseId, workflow?.case_id])
+
+  function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault()
+    const nextCaseId = headerCaseInput.trim()
+    const current = (routeCaseId || workflow?.case_id || "").trim()
+
+    if (nextCaseId === current) {
+      void loadPage(true)
+      return
+    }
+
+    const params = new URLSearchParams(window.location.search)
+    if (nextCaseId) {
+      params.set("case_id", nextCaseId)
+      params.set("scope_type", "case")
+      params.set("scope_id", nextCaseId)
+    } else {
+      params.delete("case_id")
+      params.delete("scope_id")
+    }
+    params.delete("workflow_id")
+    params.delete("workflow_action_id")
+
+    const query = params.toString()
+    router.push(`${window.location.pathname}${query ? `?${query}` : ""}`)
+  }
+
+  function refreshHeader() {
+    const nextCaseId = headerCaseInput.trim()
+    const current = (routeCaseId || workflow?.case_id || "").trim()
+    if (nextCaseId !== current) {
+      submitHeaderCase()
+      return
+    }
+    void loadPage(true)
+  }
 
   async function ensureCanonicalAction() {
     if (action?.workflow_action_id) return action
@@ -993,34 +1073,108 @@ export function RemediationOrchestrationPage({
 
   return (
     <main className="min-h-[calc(100dvh-3rem)] bg-[#f5f8fb] p-4 text-slate-900 xl:p-5">
-      <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-5">
-        <section className="overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]">
-          <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-400 to-amber-400" />
-          <div className="grid gap-4 px-6 py-5 xl:grid-cols-[minmax(280px,1fr)_minmax(760px,1.7fr)] xl:items-center">
-            <div className="flex min-w-0 items-center gap-4">
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 ring-1 ring-sky-100">
-                <ShieldCheck className="size-6" />
-              </span>
-              <div className="min-w-0">
-                <h1 className="text-xl font-semibold text-slate-950">处置编排</h1>
-                <p className="mt-1 text-sm text-slate-500">
-                  Remediation Orchestration · workflow_action_id 驱动的处置批次与执行目标
-                </p>
+      <div className="flex w-full min-w-0 flex-col gap-5">
+        <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+          <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center">
+            <div className="flex min-w-0 items-center gap-4 xl:w-[330px] xl:flex-none 2xl:w-[380px]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
+                <ShieldCheck aria-hidden className="h-5 w-5" />
+              </div>
+
+              <div className="min-w-0 space-y-1.5">
+                <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
+                  处置编排
+                </h1>
+                <div className="flex flex-wrap items-center gap-2.5 text-sm">
+                  <span className="inline-flex h-7 items-center rounded-full border border-teal-500/20 bg-teal-500/10 px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-teal-600">
+                    REMEDIATION
+                  </span>
+                  <span className="min-w-0 truncate text-slate-500">
+                    处置批次与执行目标
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <HeaderMeta label="case_id" value={currentCaseId} />
-              <HeaderMeta label="workflow_id" value={currentWorkflowId} />
-              <HeaderMeta label="canonical remediation action" value={currentActionId} accent="green" />
-              <HeaderMeta
-                label="workflow status"
-                value={`${workflow?.status ?? "-"} / ${workflowClosed ? "readonly" : "not closed"}`}
-                accent={workflowClosed ? "amber" : "blue"}
-              />
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
+              <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
+                <form
+                  className="flex h-12 min-w-[260px] flex-1 basis-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:min-w-[320px] lg:basis-[420px] xl:min-w-[360px] xl:basis-auto 2xl:min-w-[520px]"
+                  onSubmit={submitHeaderCase}
+                >
+                  <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+                  <input
+                    type="search"
+                    aria-label="CaseID"
+                    value={headerCaseInput}
+                    onChange={(event) => setHeaderCaseInput(event.target.value)}
+                    placeholder="请输入 CaseID"
+                    disabled={loading}
+                    className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                </form>
+
+                <span className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block" aria-hidden="true" />
+
+                <div className="flex shrink-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
+                    <Clock3 aria-hidden className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs text-slate-400">更新时间</div>
+                    <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
+                      {formatHeaderRefreshTime(refreshedAt)}
+                    </div>
+                  </div>
+                </div>
+
+                <span className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block" aria-hidden="true" />
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={refreshHeader}
+                  disabled={loading || refreshing}
+                  aria-label="刷新"
+                  className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
+                >
+                  <RefreshCcw className={cn("h-4 w-4", (loading || refreshing) && "animate-spin")} />
+                  <span className="sr-only">刷新</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    toast({
+                      title: "处置配置",
+                      description: "当前处置能力由后端 QueryRemediationNodeActions 返回",
+                    })
+                  }
+                  className="h-10 shrink-0 rounded-full px-3 text-slate-500 shadow-none hover:bg-slate-100 hover:text-slate-700"
+                >
+                  <Settings className="h-4 w-4" />
+                  <span>处置配置</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  disabled={!canCreatePreview || working === "create-preview"}
+                  onClick={() => void handleCreatePreview()}
+                  className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
+                >
+                  {working === "create-preview" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                  <span>新建预览</span>
+                </Button>
+              </div>
             </div>
           </div>
-        </section>
+        </header>
 
         {mockMode || error ? (
           <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
