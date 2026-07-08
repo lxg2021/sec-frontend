@@ -160,10 +160,9 @@ function WorkflowHeader({
         </h2>
 
         <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 text-sm text-slate-500">
-          <span className="font-medium">{t("process.caseId")}</span>
           <span
             className={cn(
-              "min-w-0 max-w-full rounded-md bg-slate-100 px-3 py-1 font-mono text-xs font-semibold leading-5 text-slate-700",
+              "min-w-0 max-w-full font-mono text-xs font-semibold leading-5 text-slate-500",
               loading && !workflow && "text-slate-400",
             )}
             title={caseId}
