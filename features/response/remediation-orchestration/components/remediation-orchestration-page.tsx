@@ -19,7 +19,6 @@ import {
   RotateCcw,
   Route,
   Search,
-  Settings,
   ShieldCheck,
   Square,
   TerminalSquare,
@@ -1090,7 +1089,7 @@ export function RemediationOrchestrationPage({
                     REMEDIATION
                   </span>
                   <span className="min-w-0 truncate text-slate-500">
-                    处置批次与执行目标
+                    预览、下发、跟踪处置动作
                   </span>
                 </div>
               </div>
@@ -1141,21 +1140,6 @@ export function RemediationOrchestrationPage({
                 >
                   <RefreshCcw className={cn("h-4 w-4", (loading || refreshing) && "animate-spin")} />
                   <span className="sr-only">刷新</span>
-                </Button>
-
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() =>
-                    toast({
-                      title: "处置配置",
-                      description: "当前处置能力由后端 QueryRemediationNodeActions 返回",
-                    })
-                  }
-                  className="h-10 shrink-0 rounded-full px-3 text-slate-500 shadow-none hover:bg-slate-100 hover:text-slate-700"
-                >
-                  <Settings className="h-4 w-4" />
-                  <span>处置配置</span>
                 </Button>
 
                 <Button
