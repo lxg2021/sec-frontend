@@ -347,6 +347,11 @@ function statusLabel(t: WorkflowCenterT, status: string) {
   return normalized ? t(STATUS_LABEL_KEYS[normalized]) : status || t("unknown")
 }
 
+function displayStageLabel(t: WorkflowCenterT, status: string) {
+  const stage = workflowDisplayStageForStatus(status)
+  return stage ? t(DISPLAY_STAGE_LABEL_KEYS[stage]) : t("unknown")
+}
+
 function transitionTargetLabel(
   t: WorkflowCenterT,
   status: AttackWorkflowStatus,
@@ -366,6 +371,27 @@ function transitionTargetLabel(
   }
 
   return statusLabel(t, status)
+}
+
+function transitionActionLabel({
+  currentStatus,
+  status,
+  t,
+}: {
+  currentStatus: AttackWorkflowStatus | ""
+  status: AttackWorkflowStatus
+  t: WorkflowCenterT
+}) {
+  if (status === "closed") {
+    return t("control.completeAndClose", {
+      stage: displayStageLabel(t, currentStatus),
+    })
+  }
+
+  return t("control.confirmAndEnter", {
+    stage: displayStageLabel(t, currentStatus),
+    target: transitionTargetLabel(t, status, currentStatus),
+  })
 }
 
 function getStageConfig(
@@ -876,6 +902,14 @@ export function AttackWorkflowStageWorkbench({
   const secondaryStatuses = allowedStatuses.filter(
     (status) => status !== recommendedStatus,
   )
+  const currentDisplayStage = normalizedCurrentStatus
+    ? workflowDisplayStageForStatus(normalizedCurrentStatus)
+    : ""
+  const otherSecondaryStatuses = secondaryStatuses.filter(
+    (status) =>
+      !currentDisplayStage ||
+      workflowDisplayStageForStatus(status) !== currentDisplayStage,
+  )
   const isViewingCurrentStage = normalizedCurrentStatus === selectedStatus
   const pairedSectionsRef = useRef<HTMLDivElement | null>(null)
   const [pairedSectionHeight, setPairedSectionHeight] = useState<number | null>(
@@ -1091,12 +1125,10 @@ export function AttackWorkflowStageWorkbench({
                     <span>
                       {updating
                         ? t("control.updating")
-                        : t("control.moveTo", {
-                            status: transitionTargetLabel(
-                              t,
-                              recommendedStatus as AttackWorkflowStatus,
-                              normalizedCurrentStatus,
-                            ),
+                        : transitionActionLabel({
+                            currentStatus: normalizedCurrentStatus,
+                            status: recommendedStatus as AttackWorkflowStatus,
+                            t,
                           })}
                     </span>
                     {!updating ? (
@@ -1132,7 +1164,7 @@ export function AttackWorkflowStageWorkbench({
                 </>
               )}
 
-              {secondaryStatuses.length > 0 ? (
+              {otherSecondaryStatuses.length > 0 ? (
                 <div className="flex flex-col gap-1.5">
                   <div className="rounded-lg bg-slate-50 px-2.5 py-2">
                     <span
@@ -1159,10 +1191,10 @@ export function AttackWorkflowStageWorkbench({
                   <div
                     className="grid gap-1.5"
                     style={{
-                      gridTemplateColumns: `repeat(${secondaryStatuses.length}, minmax(0, 1fr))`,
+                      gridTemplateColumns: `repeat(${otherSecondaryStatuses.length}, minmax(0, 1fr))`,
                     }}
                   >
-                    {secondaryStatuses.map((status) => (
+                    {otherSecondaryStatuses.map((status) => (
                       <Button
                         key={status}
                         type="button"
@@ -1175,17 +1207,18 @@ export function AttackWorkflowStageWorkbench({
                         )}
                       >
                         <span className="truncate">
-                          {transitionTargetLabel(
-                            t,
+                          {transitionActionLabel({
+                            currentStatus: normalizedCurrentStatus,
                             status,
-                            normalizedCurrentStatus,
-                          )}
+                            t,
+                          })}
                         </span>
                       </Button>
                     ))}
                   </div>
                 </div>
               ) : null}
+
             </div>
           )}
         </section>

@@ -30,6 +30,7 @@ import {
 import type {
   AttackWorkflowActionItem,
   AttackWorkflowDetail,
+  AttackWorkflowDisplayStage,
   AttackWorkflowEventItem,
   AttackWorkflowItem,
   AttackWorkflowStatus,
@@ -38,6 +39,8 @@ import {
   getAllowedWorkflowTransitions,
   getRecommendedNextWorkflowStatus,
   normalizeWorkflowStatus,
+  workflowDisplayStageForStatus,
+  workflowDisplayStageRepresentativeStatus,
 } from "@/features/attack/workflow/utils"
 import {
   buildAIAnalysisHref,
@@ -181,6 +184,14 @@ const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   closed: "statuses.closed",
 }
 
+const DISPLAY_STAGE_LABELS: Record<AttackWorkflowDisplayStage, string> = {
+  discovery: "displayStages.discovery",
+  investigation: "displayStages.investigation",
+  forensics: "displayStages.forensics",
+  response: "displayStages.response",
+  closed: "displayStages.closed",
+}
+
 const CLOSE_REASON_LABELS: Record<AttackWorkflowCloseReason, string> = {
   resolved: "closeReasons.resolved",
   false_positive: "closeReasons.falsePositive",
@@ -194,6 +205,32 @@ type WorkflowCenterT = ReturnType<typeof useTranslations>
 function statusLabel(t: WorkflowCenterT, status: string) {
   const normalized = normalizeWorkflowStatus(status)
   return normalized ? t(STATUS_LABELS[normalized]) : status || t("unknown")
+}
+
+function displayStageLabel(t: WorkflowCenterT, status: string) {
+  const stage = workflowDisplayStageForStatus(status)
+  return stage ? t(DISPLAY_STAGE_LABELS[stage]) : t("unknown")
+}
+
+function transitionTargetLabel(
+  t: WorkflowCenterT,
+  status: AttackWorkflowStatus,
+  currentStatus: AttackWorkflowStatus | "",
+) {
+  const targetStage = workflowDisplayStageForStatus(status)
+  const currentStage = currentStatus
+    ? workflowDisplayStageForStatus(currentStatus)
+    : ""
+
+  if (
+    targetStage &&
+    targetStage !== currentStage &&
+    workflowDisplayStageRepresentativeStatus(targetStage) === status
+  ) {
+    return t(DISPLAY_STAGE_LABELS[targetStage])
+  }
+
+  return statusLabel(t, status)
 }
 
 function closeReasonLabel(
@@ -1039,6 +1076,60 @@ function StatusDialog({
   updating: boolean
 }) {
   const t = useTranslations("pages.attack.workflowCenter")
+  const normalizedCurrentStatus = normalizeWorkflowStatus(currentStatus)
+  const currentStage = normalizedCurrentStatus
+    ? workflowDisplayStageForStatus(normalizedCurrentStatus)
+    : ""
+  const targetStage = selectedStatus
+    ? workflowDisplayStageForStatus(selectedStatus)
+    : ""
+  const currentStageLabel = displayStageLabel(t, normalizedCurrentStatus)
+  const targetLabel = selectedStatus
+    ? transitionTargetLabel(t, selectedStatus, normalizedCurrentStatus)
+    : "-"
+  const isClosing = selectedStatus === "closed"
+  const isInternalMilestone = Boolean(
+    selectedStatus &&
+      !isClosing &&
+      currentStage &&
+      targetStage === currentStage,
+  )
+  const title = isClosing
+    ? t("dialog.closeTitle")
+    : isInternalMilestone
+      ? t("dialog.milestoneTitle")
+      : t("dialog.confirmStageTitle", { stage: currentStageLabel })
+  const description = isClosing
+    ? t("dialog.closeDescription", { stage: currentStageLabel })
+    : isInternalMilestone
+      ? t("dialog.milestoneDescription", {
+          stage: currentStageLabel,
+          status: selectedStatus ? statusLabel(t, selectedStatus) : "-",
+        })
+      : t("dialog.confirmStageDescription", {
+          stage: currentStageLabel,
+          target: targetLabel,
+        })
+  const noteLabel = isClosing
+    ? t("dialog.closeNote")
+    : isInternalMilestone
+      ? t("dialog.milestoneNote")
+      : t("dialog.decisionNote")
+  const notePlaceholder = isClosing
+    ? t("dialog.closeNotePlaceholder")
+    : isInternalMilestone
+      ? t("dialog.milestoneNotePlaceholder")
+      : t("dialog.decisionNotePlaceholder")
+  const noteHint = isClosing
+    ? t("dialog.closeNoteHint")
+    : isInternalMilestone
+      ? t("dialog.milestoneNoteHint")
+      : t("dialog.decisionNoteHint")
+  const confirmLabel = isClosing
+    ? t("dialog.confirmClose")
+    : isInternalMilestone
+      ? t("dialog.confirmMilestone")
+      : t("dialog.confirmAndEnter", { target: targetLabel })
   const canSubmit =
     Boolean(selectedStatus) &&
     !updating &&
@@ -1054,12 +1145,19 @@ function StatusDialog({
             </span>
             <div>
               <DialogTitle className="text-base font-semibold text-slate-950">
-                {t("dialog.title")}
+                {title}
               </DialogTitle>
               <DialogDescription className="mt-1">
-                {statusLabel(t, currentStatus)} -&gt;{" "}
-                {selectedStatus ? statusLabel(t, selectedStatus) : "-"}
+                {description}
               </DialogDescription>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
+                <span className="rounded-full bg-slate-100 px-2 py-0.5">
+                  {t("dialog.currentStage", { stage: currentStageLabel })}
+                </span>
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
+                  {t("dialog.submitResult", { target: targetLabel })}
+                </span>
+              </div>
             </div>
           </div>
         </DialogHeader>
@@ -1096,17 +1194,17 @@ function StatusDialog({
               className="text-sm font-semibold text-slate-800"
               htmlFor="attack-workflow-center-comment"
             >
-              {t("dialog.operatorNote")}
+              {noteLabel}
             </label>
             <Textarea
               id="attack-workflow-center-comment"
               value={comment}
               onChange={(event) => onCommentChange(event.target.value)}
-              placeholder={t("dialog.operatorNotePlaceholder")}
+              placeholder={notePlaceholder}
               className="min-h-28 resize-y rounded-xl border-slate-200 text-sm leading-6"
             />
             <p className="text-xs leading-5 text-slate-500">
-              {t("dialog.operatorNoteHint")}
+              {noteHint}
             </p>
           </div>
         </div>
@@ -1122,7 +1220,7 @@ function StatusDialog({
             ) : (
               <ShieldCheck className="size-4" />
             )}
-            {t("dialog.confirm")}
+            {confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
