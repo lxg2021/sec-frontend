@@ -1869,7 +1869,11 @@
         "toasts": {
           "loadOverviewFailed": "攻击概览加载失败",
           "statusUpdated": "工作流状态已更新为 {status}",
-          "statusUpdateFailed": "更新工作流状态失败"
+          "statusUpdateFailed": "更新工作流状态失败",
+          "openForensicsFailed": "打开取证中心失败",
+          "openForensicsMissingWorkflow": "当前工作流或 Case ID 未加载，无法创建取证阶段动作",
+          "openForensicsMissingAction": "取证阶段动作创建后未返回 workflow_action_id",
+          "openForensicsAfterResponse": "工作流已进入处置或关闭阶段，不能再创建新的取证阶段动作"
         },
         "errors": {
           "loadWorkflowFailed": "攻击工作流加载失败",

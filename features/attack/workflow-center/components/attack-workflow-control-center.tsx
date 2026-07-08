@@ -17,6 +17,7 @@ import {
 } from "./attack-workflow-queue"
 import { AttackWorkflowStageWorkbench } from "./attack-workflow-stage-workbench"
 import {
+  createAttackWorkflowAction,
   getAttackWorkflow,
   getAttackWorkflowByCaseId,
   listAttackWorkflows,
@@ -98,6 +99,12 @@ const DEFAULT_QUEUE_FILTERS: AttackWorkflowQueueFilters = {
 }
 const QUEUE_PAGE_SIZE = 10
 const WORKFLOW_RANGE_TIMEZONE = "Asia/Shanghai"
+const WORKFLOW_STATUSES_PAST_FORENSICS = new Set<AttackWorkflowStatus>([
+  "responding",
+  "contained",
+  "remediated",
+  "closed",
+])
 
 function normalizeQueuePage(value?: number) {
   const page = Math.trunc(value ?? 1)
@@ -137,6 +144,11 @@ function buildForensicTaskHref({
   return query
     ? `/frame/investigation/tasks?${query}`
     : "/frame/investigation/tasks"
+}
+
+function isWorkflowPastForensics(status: string) {
+  const normalized = normalizeWorkflowStatus(status)
+  return normalized ? WORKFLOW_STATUSES_PAST_FORENSICS.has(normalized) : false
 }
 
 const EMPTY_ATTACK_OVERVIEW: AttackOverview = {
@@ -304,6 +316,7 @@ export function AttackWorkflowControlCenter({
   const [closeReason, setCloseReason] =
     useState<AttackWorkflowCloseReason>("resolved")
   const [updating, setUpdating] = useState(false)
+  const [openingForensics, setOpeningForensics] = useState(false)
   const loadSeqRef = useRef(0)
   const queueLoadSeqRef = useRef(0)
   const autoSelectedQueueKeyRef = useRef("")
@@ -687,6 +700,99 @@ export function AttackWorkflowControlCenter({
     )
   }
 
+  async function openForensicCenter() {
+    if (openingForensics) return
+
+    if (!workflow || !activeWorkflowId || !activeCaseId) {
+      toast({
+        title: t("toasts.openForensicsFailed"),
+        description: t("toasts.openForensicsMissingWorkflow"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (forensicAction?.workflow_action_id) {
+      router.push(
+        buildForensicTaskHref({
+          action: forensicAction,
+          caseId: activeCaseId,
+          queuePage,
+          snapshotId: normalizedSnapshotId,
+          tenantId,
+          workflow,
+        }),
+      )
+      return
+    }
+
+    if (isWorkflowPastForensics(workflow.status)) {
+      toast({
+        title: t("toasts.openForensicsFailed"),
+        description: t("toasts.openForensicsAfterResponse"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    setOpeningForensics(true)
+    try {
+      const action = await createAttackWorkflowAction({
+        tenantId,
+        workflowId: activeWorkflowId,
+        actionPhase: "forensics",
+        targetType: "case",
+        targetKey: activeCaseId,
+        caseId: activeCaseId,
+        actionType: "collect",
+        actionStatus: "pending",
+        createdBy: "attack_workflow_control_center",
+      })
+
+      if (!action?.workflow_action_id) {
+        throw new Error(t("toasts.openForensicsMissingAction"))
+      }
+
+      setDetail((current) => {
+        if (!current || current.workflow.workflow_id !== activeWorkflowId) {
+          return current
+        }
+        const exists = current.actions.some(
+          (item) => item.workflow_action_id === action.workflow_action_id,
+        )
+        return {
+          ...current,
+          actions: exists
+            ? current.actions.map((item) =>
+                item.workflow_action_id === action.workflow_action_id
+                  ? action
+                  : item,
+              )
+            : [...current.actions, action],
+        }
+      })
+
+      router.push(
+        buildForensicTaskHref({
+          action,
+          caseId: activeCaseId,
+          queuePage,
+          snapshotId: normalizedSnapshotId,
+          tenantId,
+          workflow,
+        }),
+      )
+    } catch (err) {
+      toast({
+        title: t("toasts.openForensicsFailed"),
+        description: err instanceof Error ? err.message : undefined,
+        variant: "destructive",
+      })
+    } finally {
+      setOpeningForensics(false)
+    }
+  }
+
   async function submitStatusUpdate() {
     if (!workflow || !selectedStatus || updating) return
     if (selectedStatus === "closed" && !closeReason.trim()) return
@@ -807,8 +913,10 @@ export function AttackWorkflowControlCenter({
             events={events}
             hrefs={navigationHrefs}
             loading={loading}
+            onOpenForensics={openForensicCenter}
             onOpenStatusDialog={openStatusDialog}
             onWorkbenchStatusSelect={setSelectedWorkbenchStatus}
+            openingForensics={openingForensics}
             recommendedStatus={recommendedStatus}
             selectedWorkbenchStatus={selectedWorkbenchStatus}
             updating={updating}
@@ -843,8 +951,10 @@ function WorkflowMainGrid({
   events,
   hrefs,
   loading,
+  onOpenForensics,
   onOpenStatusDialog,
   onWorkbenchStatusSelect,
+  openingForensics,
   recommendedStatus,
   selectedWorkbenchStatus,
   updating,
@@ -857,8 +967,10 @@ function WorkflowMainGrid({
   events: AttackWorkflowEventItem[]
   hrefs: WorkflowNavigationHrefs
   loading: boolean
+  onOpenForensics: () => void
   onOpenStatusDialog: OpenStatusDialog
   onWorkbenchStatusSelect: (status: AttackWorkflowStatus) => void
+  openingForensics: boolean
   recommendedStatus: AttackWorkflowStatus | null
   selectedWorkbenchStatus: AttackWorkflowStatus
   updating: boolean
@@ -882,7 +994,9 @@ function WorkflowMainGrid({
         events={events}
         hrefs={hrefs}
         loading={loading}
+        onOpenForensics={onOpenForensics}
         onOpenStatusDialog={onOpenStatusDialog}
+        openingForensics={openingForensics}
         recommendedStatus={recommendedStatus}
         selectedStatus={selectedWorkbenchStatus}
         updating={updating}

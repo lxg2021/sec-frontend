@@ -1867,7 +1867,11 @@
         "toasts": {
           "loadOverviewFailed": "Failed to load attack overview",
           "statusUpdated": "Workflow status updated to {status}.",
-          "statusUpdateFailed": "Failed to update workflow status"
+          "statusUpdateFailed": "Failed to update workflow status",
+          "openForensicsFailed": "Failed to open Forensic Center",
+          "openForensicsMissingWorkflow": "The current workflow or Case ID is not loaded, so the forensic action cannot be created.",
+          "openForensicsMissingAction": "The forensic action did not return workflow_action_id after creation.",
+          "openForensicsAfterResponse": "This workflow is already in response or closed, so a new forensic action cannot be created."
         },
         "errors": {
           "loadWorkflowFailed": "Failed to load AttackWorkflow.",

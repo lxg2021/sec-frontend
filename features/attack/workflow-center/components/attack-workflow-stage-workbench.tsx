@@ -66,6 +66,8 @@ interface AttackWorkflowStageWorkbenchProps {
   hrefs: WorkflowNavigationHrefs
   loading?: boolean
   onOpenStatusDialog: (status: AttackWorkflowStatus) => void
+  onOpenForensics?: () => void
+  openingForensics?: boolean
   recommendedStatus: AttackWorkflowStatus | null
   selectedStatus: AttackWorkflowStatus
   updating?: boolean
@@ -86,6 +88,7 @@ interface StageTool {
   disabled?: boolean
   href: string
   iconName?: string
+  onClick?: () => void
   title: string
 }
 
@@ -370,9 +373,13 @@ function getToolActionStyle(iconName?: string) {
 
 function stageTools({
   hrefs,
+  onOpenForensics,
+  openingForensics,
   t,
 }: {
   hrefs: WorkflowNavigationHrefs
+  onOpenForensics?: () => void
+  openingForensics?: boolean
   t: WorkflowCenterT
 }): StageTool[] {
   return [
@@ -397,8 +404,10 @@ function stageTools({
     {
       title: t("tools.forensicOrchestration.title"),
       description: t("tools.forensicOrchestration.description"),
+      disabled: openingForensics,
       href: hrefs.forensicHref,
       iconName: "forensics",
+      onClick: onOpenForensics,
     },
     {
       title: t("tools.responseOrchestration.title"),
@@ -754,6 +763,23 @@ function ToolRow({
     )
   }
 
+  if (tool.onClick) {
+    return (
+      <button
+        type="button"
+        aria-label={t("tools.openAria", { title: tool.title })}
+        className={cn(
+          "group relative flex min-h-[68px] w-full items-center gap-4 rounded-2xl px-3 py-3 text-left transition-colors duration-200",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300",
+        )}
+        title={`${tool.title} - ${tool.description}`}
+        onClick={tool.onClick}
+      >
+        {content}
+      </button>
+    )
+  }
+
   return (
     <Link
       href={tool.href}
@@ -776,6 +802,8 @@ export function AttackWorkflowStageWorkbench({
   hrefs,
   loading = false,
   onOpenStatusDialog,
+  onOpenForensics,
+  openingForensics = false,
   recommendedStatus,
   selectedStatus,
   updating = false,
@@ -788,6 +816,8 @@ export function AttackWorkflowStageWorkbench({
   const config = getStageConfig(t, selectedStatus)
   const tools = stageTools({
     hrefs,
+    onOpenForensics,
+    openingForensics,
     t,
   })
   const selectedStyle = getStatusStyle(selectedStatus)

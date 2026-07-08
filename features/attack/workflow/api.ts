@@ -11,6 +11,7 @@ import type {
   AttackWorkflowEventItem,
   AttackWorkflowItem,
   AttackWorkflowPagination,
+  CreateAttackWorkflowActionParams,
   GetAttackWorkflowParams,
   ListAttackWorkflowsData,
   ListAttackWorkflowsParams,
@@ -32,6 +33,10 @@ interface BackendGetAttackWorkflowData {
 
 interface BackendUpdateAttackWorkflowStatusData {
   workflow?: BackendObject | null
+}
+
+interface BackendCreateAttackWorkflowActionData {
+  action?: BackendObject | null
 }
 
 interface BackendListAttackWorkflowsData {
@@ -345,4 +350,55 @@ export async function updateAttackWorkflowStatus({
   )) as ApiResult<BackendUpdateAttackWorkflowStatusData | null>
 
   return result.data?.workflow ? normalizeWorkflowItem(result.data.workflow) : null
+}
+
+export async function createAttackWorkflowAction({
+  tenantId,
+  workflowId,
+  actionId,
+  actionBatchId,
+  actionPhase,
+  targetType,
+  targetKey,
+  instanceId,
+  groupId,
+  caseId,
+  agentId,
+  actionType,
+  actionStatus,
+  errorCode,
+  errorMsg,
+  requestedAt,
+  executedAt,
+  createdBy,
+}: CreateAttackWorkflowActionParams): Promise<AttackWorkflowActionItem | null> {
+  const payload: Record<string, unknown> = {
+    request_id: createRequestId(),
+    workflow_id: workflowId.trim(),
+    action_phase: String(actionPhase).trim(),
+    target_type: targetType.trim(),
+    target_key: targetKey.trim(),
+    action_type: actionType.trim(),
+  }
+
+  if (tenantId?.trim()) payload.tenant_id = tenantId.trim()
+  if (actionId?.trim()) payload.action_id = actionId.trim()
+  if (actionBatchId?.trim()) payload.action_batch_id = actionBatchId.trim()
+  if (instanceId?.trim()) payload.instance_id = instanceId.trim()
+  if (groupId?.trim()) payload.group_id = groupId.trim()
+  if (caseId?.trim()) payload.case_id = caseId.trim()
+  if (agentId?.trim()) payload.agent_id = agentId.trim()
+  if (actionStatus?.trim()) payload.action_status = actionStatus.trim()
+  if (errorCode?.trim()) payload.error_code = errorCode.trim()
+  if (errorMsg?.trim()) payload.error_msg = errorMsg.trim()
+  if (requestedAt?.trim()) payload.requested_at = requestedAt.trim()
+  if (executedAt?.trim()) payload.executed_at = executedAt.trim()
+  if (createdBy?.trim()) payload.created_by = createdBy.trim()
+
+  const result = (await http.post(
+    "/sensor/analysis/attack-workflow/action/create",
+    payload,
+  )) as ApiResult<BackendCreateAttackWorkflowActionData | null>
+
+  return result.data?.action ? normalizeWorkflowAction(result.data.action) : null
 }

@@ -174,3 +174,24 @@ export interface UpdateAttackWorkflowStatusParams {
   occurredAt?: string
   payloadJson?: string
 }
+
+export interface CreateAttackWorkflowActionParams {
+  tenantId?: string
+  workflowId: string
+  actionId?: string
+  actionBatchId?: string
+  actionPhase: AttackWorkflowActionPhase | string
+  targetType: string
+  targetKey: string
+  instanceId?: string
+  groupId?: string
+  caseId?: string
+  agentId?: string
+  actionType: string
+  actionStatus?: AttackWorkflowActionStatus | string
+  errorCode?: string
+  errorMsg?: string
+  requestedAt?: string
+  executedAt?: string
+  createdBy?: string
+}

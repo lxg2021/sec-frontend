@@ -1,4 +1,5 @@
 export {
+  createAttackWorkflowAction,
   getAttackWorkflow,
   getAttackWorkflowByCaseId,
   listAttackWorkflows,
@@ -13,6 +14,7 @@ export {
 } from "./constants"
 export type {
   AttackWorkflowActionItem,
+  CreateAttackWorkflowActionParams,
   AttackWorkflowDetail,
   AttackWorkflowDisplayStage,
   AttackWorkflowEventItem,
