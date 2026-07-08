@@ -1127,7 +1127,7 @@ function StatusDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl rounded-2xl border-slate-200 p-0 shadow-xl">
         <DialogHeader className="border-b border-slate-100 px-5 py-4 pr-12">
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
               <Activity className="size-5" />
             </span>
