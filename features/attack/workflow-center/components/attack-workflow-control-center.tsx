@@ -1113,11 +1113,7 @@ function StatusDialog({
     : isInternalMilestone
       ? t("dialog.milestoneNoteHint")
       : t("dialog.decisionNoteHint")
-  const confirmLabel = isClosing
-    ? t("dialog.confirmClose")
-    : isInternalMilestone
-      ? t("dialog.confirmMilestone")
-      : t("dialog.confirmAndEnter", { target: targetLabel })
+  const confirmLabel = t("dialog.confirm")
   const canSubmit =
     Boolean(selectedStatus) &&
     !updating &&
@@ -1132,15 +1128,14 @@ function StatusDialog({
               <Activity className="size-5" />
             </span>
             <div>
-              <DialogTitle className="text-base font-semibold text-slate-950">
+              <DialogTitle className="text-sm font-semibold text-slate-950">
                 {title}
               </DialogTitle>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
-                <span className="rounded-full bg-slate-100 px-2 py-0.5">
-                  {t("dialog.currentStage", { stage: currentStageLabel })}
-                </span>
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
-                  {t("dialog.submitResult", { target: targetLabel })}
+              <div className="mt-1.5 max-w-full text-xs font-medium text-slate-500">
+                <span className="truncate">
+                  {currentStageLabel}
+                  {" -> "}
+                  {targetLabel}
                 </span>
               </div>
             </div>
