@@ -1,6 +1,12 @@
 "use client"
 
-import { type ComponentType, type ReactNode } from "react"
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type ComponentType,
+  type ReactNode,
+} from "react"
 import {
   DatabaseZap,
   FileCode2,
@@ -14,6 +20,11 @@ import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 
+import {
+  queryRemediationWorkflowDetail,
+  queryRemediationWorkflowStats,
+  queryRemediationWorkflowStatus,
+} from "../api"
 import type {
   RemediationExecutionSnapshot,
   RemediationWorkflowDetail,
@@ -39,28 +50,292 @@ const STATUS_LABELS: Record<string, string> = {
   blocked: "阻断",
 }
 
-interface RemediationExecutionBatchesPanelProps {
-  className?: string
+const ACTION_TYPE_LABELS: Record<string, string> = {
+  block: "阻断",
+  bypass: "放行",
+  composite: "清理",
+  delete: "删除",
+  disable: "禁用",
+  enable: "启用",
+  quarantine: "隔离",
+  reset_password: "重置密码",
+  restore: "恢复",
+  terminate: "终止",
+}
+
+const SOURCE_TYPE_LABELS: Record<string, string> = {
+  case_graph: "案件图谱",
+  drill_graph: "溯源图谱",
+  locate_graph: "定位图谱",
+  manual: "手动创建",
+}
+
+const SCOPE_TYPE_LABELS: Record<string, string> = {
+  case: "案件范围",
+  positioning: "定位范围",
+}
+
+export interface RemediationExecutionBatchesData {
   detail: RemediationWorkflowDetail | null
   execution: RemediationExecutionSnapshot | null
-  onRefreshExecutionStatus: () => void | Promise<void>
-  onSelectBatch: (item: RemediationWorkflowStatsItem) => void | Promise<void>
-  refreshingExecutionStatus?: boolean
   stats: RemediationWorkflowStats | null
 }
 
+interface RemediationExecutionBatchesPanelProps {
+  caseId?: string
+  className?: string
+  enabled?: boolean
+  endTime?: string
+  fallbackDetail?: RemediationWorkflowDetail | null
+  fallbackExecution?: RemediationExecutionSnapshot | null
+  fallbackStats?: RemediationWorkflowStats | null
+  onDataChange?: (data: RemediationExecutionBatchesData) => void
+  refreshKey?: number | string
+  startTime?: string
+  tenantId?: string
+  timezone?: string
+  workflowActionId?: string
+  workflowId?: string
+}
+
 export function RemediationExecutionBatchesPanel({
+  caseId = "",
   className,
-  detail,
-  execution,
-  onRefreshExecutionStatus,
-  onSelectBatch,
-  refreshingExecutionStatus = false,
-  stats,
+  enabled = true,
+  endTime = "",
+  fallbackDetail = null,
+  fallbackExecution = null,
+  fallbackStats = null,
+  onDataChange,
+  refreshKey = 0,
+  startTime = "",
+  tenantId = "",
+  timezone = "Asia/Shanghai",
+  workflowActionId = "",
+  workflowId = "",
 }: RemediationExecutionBatchesPanelProps) {
+  const [stats, setStats] = useState<RemediationWorkflowStats | null>(
+    fallbackStats,
+  )
+  const [detail, setDetail] = useState<RemediationWorkflowDetail | null>(
+    fallbackDetail,
+  )
+  const [execution, setExecution] = useState<RemediationExecutionSnapshot | null>(
+    fallbackExecution,
+  )
+  const [loading, setLoading] = useState(false)
+  const [working, setWorking] = useState("")
+  const [error, setError] = useState("")
+
+  const normalizedTenantId = tenantId.trim()
+  const normalizedWorkflowActionId = workflowActionId.trim()
+  const normalizedWorkflowId = workflowId.trim()
+  const normalizedCaseId = caseId.trim()
+  const hasQueryContext = Boolean(
+    normalizedWorkflowActionId || normalizedWorkflowId || normalizedCaseId,
+  )
   const statsItems = stats?.items ?? []
   const latestItem = statsItems[0]
   const detailExecution = detail?.execution ?? execution
+  const busy = loading || Boolean(working)
+  const refreshingExecutionStatus =
+    loading || working === "refresh-execution"
+
+  const publishData = useCallback(
+    (data: RemediationExecutionBatchesData) => {
+      setStats(data.stats)
+      setDetail(data.detail)
+      setExecution(data.execution)
+      onDataChange?.(data)
+    },
+    [onDataChange],
+  )
+
+  const queryStats = useCallback(async () => {
+    return queryRemediationWorkflowStats({
+      tenant_id: normalizedTenantId,
+      workflow_action_id: normalizedWorkflowActionId,
+      workflow_id: normalizedWorkflowId,
+      case_id: normalizedCaseId,
+      start_time: startTime,
+      end_time: endTime,
+      timezone,
+    })
+  }, [
+    endTime,
+    normalizedCaseId,
+    normalizedTenantId,
+    normalizedWorkflowActionId,
+    normalizedWorkflowId,
+    startTime,
+    timezone,
+  ])
+
+  const loadBatches = useCallback(async () => {
+    if (!enabled || !hasQueryContext) {
+      setError("")
+      publishData({
+        detail: fallbackDetail,
+        execution: fallbackExecution,
+        stats: fallbackStats,
+      })
+      return
+    }
+
+    setLoading(true)
+    setError("")
+    try {
+      const nextStats = await queryStats()
+      const first = nextStats.items[0]
+      if (first?.execution_id || first?.preview_id) {
+        const nextDetail = await queryRemediationWorkflowDetail({
+          tenant_id: normalizedTenantId,
+          execution_id: first.execution_id,
+          preview_id: first.execution_id ? undefined : first.preview_id,
+        })
+        publishData({
+          detail: nextDetail,
+          execution: nextDetail.execution,
+          stats: nextStats,
+        })
+      } else {
+        publishData({
+          detail: null,
+          execution: null,
+          stats: nextStats,
+        })
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "处置批次查询失败")
+      publishData({
+        detail: fallbackDetail,
+        execution: fallbackExecution,
+        stats: fallbackStats,
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [
+    enabled,
+    fallbackDetail,
+    fallbackExecution,
+    fallbackStats,
+    hasQueryContext,
+    normalizedTenantId,
+    publishData,
+    queryStats,
+  ])
+
+  useEffect(() => {
+    void loadBatches()
+  }, [loadBatches, refreshKey])
+
+  const handleSelectBatch = useCallback(
+    async (item: RemediationWorkflowStatsItem) => {
+      if (!enabled || !hasQueryContext) {
+        publishData({
+          detail: fallbackDetail,
+          execution: fallbackExecution,
+          stats: fallbackStats,
+        })
+        return
+      }
+
+      setWorking(`detail-${item.preview_id}`)
+      setError("")
+      try {
+        const nextDetail = await queryRemediationWorkflowDetail({
+          tenant_id: normalizedTenantId,
+          execution_id: item.execution_id,
+          preview_id: item.execution_id ? undefined : item.preview_id,
+        })
+        publishData({
+          detail: nextDetail,
+          execution: nextDetail.execution,
+          stats,
+        })
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "批次详情查询失败")
+      } finally {
+        setWorking("")
+      }
+    },
+    [
+      enabled,
+      fallbackDetail,
+      fallbackExecution,
+      fallbackStats,
+      hasQueryContext,
+      normalizedTenantId,
+      publishData,
+      stats,
+    ],
+  )
+
+  const handleRefreshExecutionStatus = useCallback(async () => {
+    if (!enabled || !hasQueryContext) {
+      publishData({
+        detail: fallbackDetail,
+        execution: fallbackExecution,
+        stats: fallbackStats,
+      })
+      return
+    }
+
+    const executionId = detailExecution?.execution_id || latestItem?.execution_id
+    const previewId = detail?.preview_id || latestItem?.preview_id
+    if (!executionId && !previewId) {
+      await loadBatches()
+      return
+    }
+
+    setWorking("refresh-execution")
+    setError("")
+    try {
+      const nextExecution = await queryRemediationWorkflowStatus({
+        tenant_id: normalizedTenantId,
+        execution_id: executionId,
+        preview_id: executionId ? undefined : previewId,
+      })
+      const [nextStats, nextDetail] = await Promise.all([
+        queryStats(),
+        nextExecution?.execution_id
+          ? queryRemediationWorkflowDetail({
+              tenant_id: normalizedTenantId,
+              execution_id: nextExecution.execution_id,
+            })
+          : previewId
+            ? queryRemediationWorkflowDetail({
+                tenant_id: normalizedTenantId,
+                preview_id: previewId,
+              })
+            : Promise.resolve(null),
+      ])
+      publishData({
+        detail: nextDetail,
+        execution: nextDetail?.execution ?? nextExecution,
+        stats: nextStats,
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "执行状态刷新失败")
+    } finally {
+      setWorking("")
+    }
+  }, [
+    detail?.preview_id,
+    detailExecution?.execution_id,
+    enabled,
+    fallbackDetail,
+    fallbackExecution,
+    fallbackStats,
+    hasQueryContext,
+    latestItem?.execution_id,
+    latestItem?.preview_id,
+    loadBatches,
+    normalizedTenantId,
+    publishData,
+    queryStats,
+  ])
 
   return (
     <section
@@ -72,18 +347,18 @@ export function RemediationExecutionBatchesPanel({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-base font-semibold text-slate-950">
-            执行批次、目标明细与聚合回写
+            处置执行记录
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            按 workflow_action_id 查询全部批次，按 execution_id 查看明细
+            展示当前案件的处置批次、目标执行明细和工作流状态回写结果
           </p>
         </div>
         <Button
           type="button"
           variant="outline"
           size="sm"
-          disabled={!latestItem || refreshingExecutionStatus}
-          onClick={() => void onRefreshExecutionStatus()}
+          disabled={!latestItem || busy}
+          onClick={() => void handleRefreshExecutionStatus()}
           className="rounded-xl border-slate-200"
         >
           {refreshingExecutionStatus ? (
@@ -91,44 +366,50 @@ export function RemediationExecutionBatchesPanel({
           ) : (
             <RotateCcw className="size-4" />
           )}
-          执行状态
+          刷新状态
         </Button>
       </div>
+
+      {error ? (
+        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-700">
+          {error}
+        </div>
+      ) : null}
 
       <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-slate-900">
-              QueryRemediationWorkflowStats
+              处置执行概览
             </div>
-            <div className="mt-1 font-mono text-[11px] text-slate-500">
-              POST /workflow/remediation/stats/query
+            <div className="mt-1 text-xs text-slate-500">
+              汇总当前处置阶段下所有批次和目标的执行结果
             </div>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-            <div className="text-[11px] text-slate-400">summary</div>
+            <div className="text-[11px] text-slate-400">批次总数</div>
             <div className="mt-1 flex items-end gap-2">
               <span className="text-2xl font-semibold text-emerald-600">
                 {statsTotal(stats)}
               </span>
-              <span className="pb-1 text-xs text-slate-500">batches</span>
+              <span className="pb-1 text-xs text-slate-500">批</span>
             </div>
           </div>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-4">
-          <Metric label="Targets" value={targetTotal(stats)} tone="blue" />
+          <Metric label="目标数" value={targetTotal(stats)} tone="blue" />
           <Metric
-            label="Success"
+            label="成功"
             value={stats?.summary.execution_stats.success_count ?? 0}
             tone="green"
           />
           <Metric
-            label="Failed"
+            label="失败"
             value={stats?.summary.execution_stats.failed_count ?? 0}
             tone="red"
           />
           <Metric
-            label="Running"
+            label="执行中"
             value={
               (stats?.summary.execution_stats.created_count ?? 0) +
               (stats?.summary.execution_stats.dispatched_count ?? 0)
@@ -141,8 +422,8 @@ export function RemediationExecutionBatchesPanel({
       <div className="mt-5 rounded-2xl border border-slate-200 bg-white">
         <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
           <div className="text-sm font-semibold text-slate-900">处置批次列表</div>
-          <div className="font-mono text-[11px] text-slate-400">
-            preview_status / execute_status
+          <div className="text-xs text-slate-400">
+            预览状态 / 执行状态
           </div>
         </div>
         <div className="divide-y divide-slate-100">
@@ -156,24 +437,26 @@ export function RemediationExecutionBatchesPanel({
                 <button
                   type="button"
                   key={item.preview_id}
-                  onClick={() => void onSelectBatch(item)}
+                  onClick={() => void handleSelectBatch(item)}
+                  disabled={working.startsWith("detail-")}
                   className={cn(
                     "grid w-full gap-3 px-4 py-3 text-left transition-colors duration-200 md:grid-cols-[98px_108px_1fr_96px_150px]",
                     active ? "bg-sky-50" : "hover:bg-slate-50",
+                    working.startsWith("detail-") && "cursor-wait opacity-80",
                   )}
                 >
                   <span className="truncate font-mono text-xs text-slate-700">
-                    {item.preview_id}
+                    {batchLabel(item.preview_id)}
                   </span>
                   <span className="truncate font-mono text-xs text-slate-700">
-                    {item.execution_id || "-"}
+                    {executionLabel(item.execution_id)}
                   </span>
                   <span className="truncate text-xs text-slate-600">
-                    {item.source_type} · {item.scope_type}
+                    {sourceScopeLabel(item)}
                   </span>
                   <span>{statusBadge(item.execute_status || item.preview_status)}</span>
-                  <span className="truncate font-mono text-[11px] text-slate-400">
-                    {running ? "polling" : buildStatsSummary(item)}
+                  <span className="truncate text-xs text-slate-500">
+                    {running ? "状态同步中" : buildStatsSummary(item)}
                   </span>
                 </button>
               )
@@ -183,7 +466,7 @@ export function RemediationExecutionBatchesPanel({
               <EmptyState
                 icon={DatabaseZap}
                 title="暂无处置批次"
-                description="创建 preview 并确认执行后，这里会按 workflow_action_id 汇总展示全部处置批次"
+                description="创建处置计划并确认执行后，这里会汇总展示全部处置批次"
               />
             </div>
           )}
@@ -194,11 +477,10 @@ export function RemediationExecutionBatchesPanel({
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-sm font-semibold text-slate-900">
-              QueryRemediationWorkflowDetail
+              目标执行明细
             </div>
-            <div className="mt-1 font-mono text-[11px] text-slate-500">
-              POST /workflow/remediation/detail/query · execution_id=
-              {detailExecution?.execution_id || "-"}
+            <div className="mt-1 text-xs text-slate-500">
+              当前批次：{executionLabel(detailExecution?.execution_id || "")}
             </div>
           </div>
           {detailExecution ? statusBadge(detailExecution.execute_status) : null}
@@ -207,11 +489,11 @@ export function RemediationExecutionBatchesPanel({
         {detailExecution ? (
           <div className="mt-4 overflow-hidden rounded-2xl border border-sky-100 bg-white">
             <div className="grid grid-cols-[58px_110px_120px_116px_1fr] border-b border-slate-100 bg-slate-50 px-3 py-2 text-[11px] text-slate-400">
-              <span>target</span>
-              <span>agent</span>
-              <span>action_type</span>
-              <span>status</span>
-              <span>task / pmc object</span>
+              <span>序号</span>
+              <span>终端</span>
+              <span>动作</span>
+              <span>结果</span>
+              <span>下发对象</span>
             </div>
             <div className="divide-y divide-slate-100">
               {detailExecution.targets.map((target) => (
@@ -226,7 +508,7 @@ export function RemediationExecutionBatchesPanel({
                     {target.agent_id}
                   </span>
                   <span className="truncate font-mono text-slate-600">
-                    {target.action_type}
+                    {actionTypeLabel(target.action_type)}
                   </span>
                   <span>{statusBadge(target.execute_status)}</span>
                   <span
@@ -247,7 +529,7 @@ export function RemediationExecutionBatchesPanel({
             </div>
             {detailExecution.targets.some((target) => target.error_msg) ? (
               <div className="border-t border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                error_msg:{" "}
+                失败原因：{" "}
                 {detailExecution.targets.find((target) => target.error_msg)?.error_msg}
               </div>
             ) : null}
@@ -257,7 +539,7 @@ export function RemediationExecutionBatchesPanel({
             <EmptyState
               icon={FileCode2}
               title="未选择执行批次"
-              description="选择已确认的 preview 或刷新执行状态后，这里显示 execution target 明细"
+              description="选择一个处置批次或刷新状态后，这里会显示目标执行明细"
             />
           </div>
         )}
@@ -267,28 +549,45 @@ export function RemediationExecutionBatchesPanel({
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
             <GitBranch className="size-4 text-emerald-600" />
-            Aggregate Backwrite
+            工作流回写
           </div>
-          <div className="mt-3 space-y-1.5 font-mono text-[11px] leading-5 text-slate-600">
-            <div>Control outbox -&gt; Analysis</div>
-            <div>SyncAttackWorkflowActionResult</div>
-            <div>result_type=remediation</div>
+          <div className="mt-3 space-y-1.5 text-xs leading-5 text-slate-600">
+            <div>控制服务收到执行结果后回写分析服务</div>
+            <div>按处置阶段汇总目标执行状态</div>
+            <div>用于更新工作流的处置阶段状态</div>
           </div>
         </div>
         <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
             <Route className="size-4 text-amber-600" />
-            Action Aggregation
+            状态判定
           </div>
-          <div className="mt-3 space-y-1.5 font-mono text-[11px] leading-5 text-slate-600">
-            <div>workflow_action_id 全量 target 聚合</div>
-            <div>any created/dispatched -&gt; running</div>
-            <div>latest batch -&gt; success / failed / skipped</div>
+          <div className="mt-3 space-y-1.5 text-xs leading-5 text-slate-600">
+            <div>存在待执行或已下发目标时，处置阶段保持执行中</div>
+            <div>任一目标失败时，处置阶段标记为失败</div>
+            <div>目标全部成功或跳过时，处置阶段标记为完成</div>
           </div>
         </div>
       </div>
     </section>
   )
+}
+
+function shortId(value: string) {
+  const normalized = value.trim()
+  if (!normalized) return "-"
+  const suffix = normalized.match(/([a-z]*-)?(\d{3,})$/i)?.[2]
+  if (suffix) return suffix
+  if (normalized.length <= 12) return normalized
+  return `${normalized.slice(0, 8)}...${normalized.slice(-4)}`
+}
+
+function batchLabel(previewId: string) {
+  return previewId ? `批次 ${shortId(previewId)}` : "批次 -"
+}
+
+function executionLabel(executionId: string) {
+  return executionId ? `执行 ${shortId(executionId)}` : "未执行"
 }
 
 function statsTotal(stats: RemediationWorkflowStats | null) {
@@ -302,7 +601,18 @@ function targetTotal(stats: RemediationWorkflowStats | null) {
 function buildStatsSummary(item: RemediationWorkflowStatsItem) {
   const execution = item.stats.execution_stats
   if (!item.execution_id) return "未确认执行"
-  return `${execution.success_count} success / ${execution.failed_count} failed / ${execution.skipped_count} skipped`
+  return `成功 ${execution.success_count} / 失败 ${execution.failed_count} / 跳过 ${execution.skipped_count}`
+}
+
+function sourceScopeLabel(item: RemediationWorkflowStatsItem) {
+  const source = SOURCE_TYPE_LABELS[item.source_type] ?? item.source_type
+  const scope = SCOPE_TYPE_LABELS[item.scope_type] ?? item.scope_type
+  return [source, scope].filter(Boolean).join(" · ") || "-"
+}
+
+function actionTypeLabel(actionType: string) {
+  const normalized = actionType.trim().toLowerCase()
+  return ACTION_TYPE_LABELS[normalized] ?? (actionType || "-")
 }
 
 function statusLabel(status: string | number | undefined) {

@@ -45,9 +45,6 @@ import {
   confirmRemediationPreview,
   createRemediationPreview,
   queryRemediationNodeActions,
-  queryRemediationWorkflowDetail,
-  queryRemediationWorkflowStats,
-  queryRemediationWorkflowStatus,
   resolveRemediationNodeAgents,
 } from "../api"
 import {
@@ -69,10 +66,12 @@ import type {
   RemediationPreviewTargetInput,
   RemediationWorkflowDetail,
   RemediationWorkflowStats,
-  RemediationWorkflowStatsItem,
   ResolveRemediationNodeAgentsResponse,
 } from "../types"
-import { RemediationExecutionBatchesPanel } from "./remediation-execution-batches-panel"
+import {
+  RemediationExecutionBatchesPanel,
+  type RemediationExecutionBatchesData,
+} from "./remediation-execution-batches-panel"
 
 const RESPONSE_TIMEZONE = "Asia/Shanghai"
 const PAGE_SOURCE = "remediation_orchestration_page"
@@ -435,6 +434,7 @@ export function RemediationOrchestrationPage({
   const [mockMode, setMockMode] = useState(isMockContext(context))
   const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id?.trim() || "")
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
+  const [batchesRefreshKey, setBatchesRefreshKey] = useState(0)
   const [startTime] = useState(monthAgoDate)
   const [endTime] = useState(todayDate)
 
@@ -442,9 +442,12 @@ export function RemediationOrchestrationPage({
   const routeWorkflowId = context.workflow_id?.trim() || ""
   const routeActionId = context.workflow_action_id?.trim() || ""
   const tenantId = context.tenant_id?.trim() || ""
-  const currentCaseId = workflow?.case_id || routeCaseId || MOCK_WORKFLOW.case_id
-  const currentWorkflowId = workflow?.workflow_id || routeWorkflowId || MOCK_WORKFLOW.workflow_id
-  const currentActionId = action?.workflow_action_id || routeActionId || MOCK_REMEDIATION_ACTION.workflow_action_id
+  const currentCaseId = workflow?.case_id || routeCaseId || (mockMode ? MOCK_WORKFLOW.case_id : "")
+  const currentWorkflowId = workflow?.workflow_id || routeWorkflowId || (mockMode ? MOCK_WORKFLOW.workflow_id : "")
+  const currentActionId =
+    action?.workflow_action_id ||
+    routeActionId ||
+    (mockMode ? MOCK_REMEDIATION_ACTION.workflow_action_id : "")
   const scopeType = context.scope_type?.trim() || "case"
   const scopeId = context.scope_id?.trim() || currentCaseId
   const sourceType = context.source_type?.trim() || "case_graph"
@@ -453,65 +456,9 @@ export function RemediationOrchestrationPage({
   const selectedAction =
     actionOptions.find((option) => option.action_code === selectedActionCode) ??
     actionOptions[0]
-  const detailExecution = detail?.execution ?? execution
 
   const statsItems = useMemo(() => stats?.items ?? [], [stats])
   const latestItem = statsItems[0]
-
-  const refreshStats = useCallback(
-    async ({
-      actionId,
-      caseId,
-      workflowId,
-      useMockFallback,
-    }: {
-      actionId: string
-      caseId: string
-      workflowId: string
-      useMockFallback: boolean
-    }) => {
-      if (!actionId && !workflowId && !caseId) {
-        setStats(MOCK_STATS)
-        setDetail(MOCK_DETAIL)
-        setExecution(MOCK_EXECUTION)
-        return
-      }
-
-      try {
-        const nextStats = await queryRemediationWorkflowStats({
-          tenant_id: tenantId,
-          workflow_action_id: actionId,
-          workflow_id: workflowId,
-          case_id: caseId,
-          start_time: startTime,
-          end_time: endTime,
-          timezone: RESPONSE_TIMEZONE,
-        })
-        setStats(nextStats)
-
-        const first = nextStats.items[0]
-        if (first?.execution_id || first?.preview_id) {
-          const nextDetail = await queryRemediationWorkflowDetail({
-            tenant_id: tenantId,
-            execution_id: first.execution_id,
-            preview_id: first.execution_id ? undefined : first.preview_id,
-          })
-          setDetail(nextDetail)
-          setExecution(nextDetail.execution)
-        } else {
-          setDetail(null)
-          setExecution(null)
-        }
-      } catch (err) {
-        if (!useMockFallback) throw err
-        setMockMode(true)
-        setStats(MOCK_STATS)
-        setDetail(MOCK_DETAIL)
-        setExecution(MOCK_EXECUTION)
-      }
-    },
-    [endTime, startTime, tenantId],
-  )
 
   const loadPage = useCallback(
     async (refreshingOnly = false) => {
@@ -587,12 +534,16 @@ export function RemediationOrchestrationPage({
           setSelectedNodeKey(contextNode.node_key)
         }
 
-        await refreshStats({
-          actionId: nextAction?.workflow_action_id || routeActionId,
-          caseId: nextCaseId,
-          workflowId: nextWorkflow.workflow_id,
-          useMockFallback: demoMode,
-        })
+        if (demoMode) {
+          setStats(MOCK_STATS)
+          setDetail(MOCK_DETAIL)
+          setExecution(MOCK_EXECUTION)
+        } else {
+          setStats(null)
+          setDetail(null)
+          setExecution(null)
+        }
+        setBatchesRefreshKey((current) => current + 1)
       } catch (err) {
         setMockMode(true)
         setWorkflow(MOCK_WORKFLOW)
@@ -607,7 +558,7 @@ export function RemediationOrchestrationPage({
         setRefreshing(false)
       }
     },
-    [context, refreshStats, routeActionId, routeCaseId, routeWorkflowId, tenantId],
+    [context, routeActionId, routeCaseId, routeWorkflowId, tenantId],
   )
 
   useEffect(() => {
@@ -831,12 +782,7 @@ export function RemediationOrchestrationPage({
       if (!nextPreview?.preview_id) throw new Error("后端未返回 preview_id")
       setPreview(nextPreview)
       toast({ title: "处置预览已创建" })
-      await refreshStats({
-        actionId: ensuredAction.workflow_action_id,
-        caseId: currentCaseId,
-        workflowId: currentWorkflowId,
-        useMockFallback: false,
-      })
+      setBatchesRefreshKey((current) => current + 1)
     } catch (err) {
       toast({
         title: "创建预览失败",
@@ -854,6 +800,7 @@ export function RemediationOrchestrationPage({
     if (mockMode) {
       setExecution(MOCK_EXECUTION)
       setDetail(MOCK_DETAIL)
+      setBatchesRefreshKey((current) => current + 1)
       toast({ title: "演示模式已确认执行示例" })
       return
     }
@@ -866,17 +813,7 @@ export function RemediationOrchestrationPage({
       })
       if (!nextExecution?.execution_id) throw new Error("后端未返回 execution_id")
       setExecution(nextExecution)
-      const nextDetail = await queryRemediationWorkflowDetail({
-        tenant_id: tenantId,
-        execution_id: nextExecution.execution_id,
-      })
-      setDetail(nextDetail)
-      await refreshStats({
-        actionId: currentActionId,
-        caseId: currentCaseId,
-        workflowId: currentWorkflowId,
-        useMockFallback: false,
-      })
+      setBatchesRefreshKey((current) => current + 1)
       toast({ title: "处置预览已确认并下发" })
     } catch (err) {
       toast({
@@ -894,6 +831,7 @@ export function RemediationOrchestrationPage({
     if (!previewId || workflowClosed) return
     if (mockMode) {
       setPreview(null)
+      setBatchesRefreshKey((current) => current + 1)
       toast({ title: "演示预览已取消" })
       return
     }
@@ -906,12 +844,7 @@ export function RemediationOrchestrationPage({
         cancel_reason: "operator canceled from remediation orchestration page",
       })
       setPreview(nextPreview)
-      await refreshStats({
-        actionId: currentActionId,
-        caseId: currentCaseId,
-        workflowId: currentWorkflowId,
-        useMockFallback: false,
-      })
+      setBatchesRefreshKey((current) => current + 1)
       toast({ title: "处置预览已取消" })
     } catch (err) {
       toast({
@@ -924,70 +857,18 @@ export function RemediationOrchestrationPage({
     }
   }
 
-  async function refreshExecutionStatus() {
-    const executionId = detailExecution?.execution_id || latestItem?.execution_id
-    const previewId = preview?.preview_id || latestItem?.preview_id
-    if (!executionId && !previewId) return
-    if (mockMode) {
-      setExecution(MOCK_EXECUTION)
-      return
-    }
-    setWorking("refresh-execution")
-    try {
-      const nextExecution = await queryRemediationWorkflowStatus({
-        tenant_id: tenantId,
-        execution_id: executionId,
-        preview_id: executionId ? undefined : previewId,
-      })
-      setExecution(nextExecution)
-      if (nextExecution?.execution_id) {
-        const nextDetail = await queryRemediationWorkflowDetail({
-          tenant_id: tenantId,
-          execution_id: nextExecution.execution_id,
-        })
-        setDetail(nextDetail)
-      }
-    } catch (err) {
-      toast({
-        title: "执行状态刷新失败",
-        description: err instanceof Error ? err.message : undefined,
-        variant: "destructive",
-      })
-    } finally {
-      setWorking("")
-    }
-  }
-
-  async function selectBatch(item: RemediationWorkflowStatsItem) {
-    if (mockMode) {
-      setDetail(MOCK_DETAIL)
-      setExecution(MOCK_EXECUTION)
-      return
-    }
-    setWorking(`detail-${item.preview_id}`)
-    try {
-      const nextDetail = await queryRemediationWorkflowDetail({
-        tenant_id: tenantId,
-        execution_id: item.execution_id,
-        preview_id: item.execution_id ? undefined : item.preview_id,
-      })
-      setDetail(nextDetail)
-      setExecution(nextDetail.execution)
-    } catch (err) {
-      toast({
-        title: "批次详情查询失败",
-        description: err instanceof Error ? err.message : undefined,
-        variant: "destructive",
-      })
-    } finally {
-      setWorking("")
-    }
-  }
-
   const canCreatePreview = Boolean(selectedNode && selectedAction && !workflowClosed)
   const canConfirm =
     Boolean(preview?.preview_id || (latestItem?.preview_status === "created" && latestItem.preview_id)) &&
     !workflowClosed
+  const handleBatchesDataChange = useCallback(
+    ({ detail: nextDetail, execution: nextExecution, stats: nextStats }: RemediationExecutionBatchesData) => {
+      setStats(nextStats)
+      setDetail(nextDetail)
+      setExecution(nextExecution)
+    },
+    [],
+  )
 
   return (
     <main className="min-h-[calc(100dvh-3rem)] bg-[#f5f8fb] p-4 text-slate-900 xl:p-5">
@@ -1384,12 +1265,19 @@ export function RemediationOrchestrationPage({
           </section>
 
           <RemediationExecutionBatchesPanel
-            stats={stats}
-            detail={detail}
-            execution={execution}
-            refreshingExecutionStatus={working === "refresh-execution"}
-            onRefreshExecutionStatus={refreshExecutionStatus}
-            onSelectBatch={selectBatch}
+            caseId={workflow?.case_id || routeCaseId}
+            enabled={!mockMode}
+            endTime={endTime}
+            fallbackDetail={mockMode ? detail ?? MOCK_DETAIL : null}
+            fallbackExecution={mockMode ? execution ?? MOCK_EXECUTION : null}
+            fallbackStats={mockMode ? stats ?? MOCK_STATS : null}
+            onDataChange={handleBatchesDataChange}
+            refreshKey={batchesRefreshKey}
+            startTime={startTime}
+            tenantId={tenantId}
+            timezone={RESPONSE_TIMEZONE}
+            workflowActionId={action?.workflow_action_id || routeActionId}
+            workflowId={workflow?.workflow_id || routeWorkflowId}
           />
         </section>
 
