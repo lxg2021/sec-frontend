@@ -1705,6 +1705,7 @@
           "updating": "Updating...",
           "moveTo": "Move to {status}",
           "confirmAndEnter": "Confirm {stage}, enter {target}",
+          "confirmAndClose": "Confirm {stage}, close workflow",
           "completeAndClose": "Complete {stage}, close workflow",
           "whyThisStep": "Why this step",
           "whatHappensNext": "What happens next",

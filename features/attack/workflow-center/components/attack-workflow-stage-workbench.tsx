@@ -383,7 +383,15 @@ function transitionActionLabel({
   t: WorkflowCenterT
 }) {
   if (status === "closed") {
-    return t("control.completeAndClose", {
+    const currentDisplayStage = currentStatus
+      ? workflowDisplayStageForStatus(currentStatus)
+      : ""
+    const labelKey =
+      currentDisplayStage === "response"
+        ? "control.completeAndClose"
+        : "control.confirmAndClose"
+
+    return t(labelKey, {
       stage: displayStageLabel(t, currentStatus),
     })
   }
@@ -905,11 +913,16 @@ export function AttackWorkflowStageWorkbench({
   const currentDisplayStage = normalizedCurrentStatus
     ? workflowDisplayStageForStatus(normalizedCurrentStatus)
     : ""
-  const otherSecondaryStatuses = secondaryStatuses.filter(
-    (status) =>
-      !currentDisplayStage ||
-      workflowDisplayStageForStatus(status) !== currentDisplayStage,
-  )
+  const otherSecondaryStatuses = secondaryStatuses.filter((status) => {
+    const targetDisplayStage = workflowDisplayStageForStatus(status)
+
+    if (!targetDisplayStage) return false
+    if (targetDisplayStage === currentDisplayStage) return false
+
+    return (
+      workflowDisplayStageRepresentativeStatus(targetDisplayStage) === status
+    )
+  })
   const isViewingCurrentStage = normalizedCurrentStatus === selectedStatus
   const pairedSectionsRef = useRef<HTMLDivElement | null>(null)
   const [pairedSectionHeight, setPairedSectionHeight] = useState<number | null>(
@@ -1058,208 +1071,208 @@ export function AttackWorkflowStageWorkbench({
           ref={pairedSectionsRef}
           className="grid grid-cols-1 items-stretch gap-4 2xl:col-span-7 2xl:grid-cols-7 2xl:gap-5"
         >
-        <section className="flex flex-col gap-3 2xl:col-span-4">
-          <SectionTitle
-            icon={Activity}
-            iconClassName="text-sky-500"
-            isChinese={isChinese}
-          >
-            {t("control.title")}
-          </SectionTitle>
+          <section className="flex flex-col gap-3 2xl:col-span-4">
+            <SectionTitle
+              icon={Activity}
+              iconClassName="text-sky-500"
+              isChinese={isChinese}
+            >
+              {t("control.title")}
+            </SectionTitle>
 
-          {isReadOnly ? (
-            <div
-              className={cn(
-                "min-h-0 rounded-xl border border-slate-200 bg-slate-50 p-3",
-                "2xl:flex-1",
-              )}
-            >
-              <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                <Lock className="h-4 w-4 text-sky-500" aria-hidden="true" />
-                {t("control.reviewMode")}
-              </p>
-              <p className="mt-1.5 pl-2.5 text-xs leading-relaxed text-slate-500">
-                {readOnlyText}
-              </p>
-              <TransitionDetail
-                isChinese={isChinese}
-                label={t("control.guidance")}
-                value={config.transitionEffect}
-              />
-            </div>
-          ) : (
-            <div
-              className={cn(
-                "flex min-h-0 flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3",
-                "2xl:flex-1",
-              )}
-            >
-              <span
+            {isReadOnly ? (
+              <div
                 className={cn(
-                  "font-medium text-slate-900",
-                  isChinese
-                    ? "text-[11px]"
-                    : "text-[11px] uppercase tracking-wide",
+                  "min-h-0 rounded-xl border border-slate-200 bg-slate-50 p-3",
+                  "2xl:flex-1",
                 )}
               >
-                {t("control.recommendedTransition")}
-              </span>
+                <p className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                  <Lock className="h-4 w-4 text-sky-500" aria-hidden="true" />
+                  {t("control.reviewMode")}
+                </p>
+                <p className="mt-1.5 pl-2.5 text-xs leading-relaxed text-slate-500">
+                  {readOnlyText}
+                </p>
+                <TransitionDetail
+                  isChinese={isChinese}
+                  label={t("control.guidance")}
+                  value={config.transitionEffect}
+                />
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  "flex min-h-0 flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3",
+                  "2xl:flex-1",
+                )}
+              >
+                <span
+                  className={cn(
+                    "font-medium text-slate-900",
+                    isChinese
+                      ? "text-[11px]"
+                      : "text-[11px] uppercase tracking-wide",
+                  )}
+                >
+                  {t("control.recommendedTransition")}
+                </span>
 
-              {showRecommended ? (
-                <>
-                  <Button
-                    type="button"
-                    disabled={updating}
-                    onClick={() =>
-                      onOpenStatusDialog(
-                        recommendedStatus as AttackWorkflowStatus,
-                      )
-                    }
-                    className={cn(
-                      "w-full justify-between focus-visible:ring-2 focus-visible:ring-offset-2",
+                {showRecommended ? (
+                  <>
+                    <Button
+                      type="button"
+                      disabled={updating}
+                      onClick={() =>
+                        onOpenStatusDialog(
+                          recommendedStatus as AttackWorkflowStatus,
+                        )
+                      }
+                      className={cn(
+                        "w-full justify-between focus-visible:ring-2 focus-visible:ring-offset-2",
                       getStatusStyle(recommendedStatus as AttackWorkflowStatus)
                         .primaryBtn,
-                      isChinese && "text-sm font-medium",
-                    )}
-                  >
-                    <span>
-                      {updating
-                        ? t("control.updating")
-                        : transitionActionLabel({
-                            currentStatus: normalizedCurrentStatus,
-                            status: recommendedStatus as AttackWorkflowStatus,
-                            t,
-                          })}
-                    </span>
-                    {!updating ? (
-                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                    ) : null}
-                  </Button>
-                  <TransitionDetail
-                    isChinese={isChinese}
-                    label={t("control.whyThisStep")}
-                    value={config.recommendedReason}
-                  />
-                  <TransitionDetail
-                    isChinese={isChinese}
-                    label={t("control.whatHappensNext")}
-                    value={config.transitionEffect}
-                  />
-                </>
-              ) : (
-                <>
-                  <p
-                    className={cn(
-                      "rounded-lg border border-dashed border-slate-200 px-2.5 py-3 text-slate-400",
-                      isChinese ? "text-xs leading-relaxed" : "text-xs",
-                    )}
-                  >
-                    {t("control.noRecommended")}
-                  </p>
-                  <TransitionDetail
-                    isChinese={isChinese}
-                    label={t("control.guidance")}
-                    value={t("control.keepSelectedGuidance")}
-                  />
-                </>
-              )}
-
-              {otherSecondaryStatuses.length > 0 ? (
-                <div className="flex flex-col gap-1.5">
-                  <div className="rounded-lg bg-slate-50 px-2.5 py-2">
-                    <span
-                      className={cn(
-                        "font-medium text-slate-900",
-                        isChinese
-                          ? "text-[11px]"
-                          : "text-[11px] uppercase tracking-wide",
+                        isChinese && "text-sm font-medium",
                       )}
                     >
-                      {t("control.otherTransitions")}
-                    </span>
+                      <span>
+                        {updating
+                          ? t("control.updating")
+                          : transitionActionLabel({
+                              currentStatus: normalizedCurrentStatus,
+                              status: recommendedStatus as AttackWorkflowStatus,
+                              t,
+                            })}
+                      </span>
+                      {!updating ? (
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      ) : null}
+                    </Button>
+                    <TransitionDetail
+                      isChinese={isChinese}
+                      label={t("control.whyThisStep")}
+                      value={config.recommendedReason}
+                    />
+                    <TransitionDetail
+                      isChinese={isChinese}
+                      label={t("control.whatHappensNext")}
+                      value={config.transitionEffect}
+                    />
+                  </>
+                ) : (
+                  <>
                     <p
                       className={cn(
-                        "text-slate-500",
-                        isChinese
-                          ? "mt-0.5 text-xs leading-relaxed"
-                          : "mt-0.5 text-xs leading-relaxed",
+                        "rounded-lg border border-dashed border-slate-200 px-2.5 py-3 text-slate-400",
+                        isChinese ? "text-xs leading-relaxed" : "text-xs",
                       )}
                     >
-                      {t("control.otherTransitionsHint")}
+                      {t("control.noRecommended")}
                     </p>
-                  </div>
-                  <div
-                    className="grid gap-1.5"
-                    style={{
-                      gridTemplateColumns: `repeat(${otherSecondaryStatuses.length}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {otherSecondaryStatuses.map((status) => (
-                      <Button
-                        key={status}
-                        type="button"
-                        size="sm"
-                        disabled={updating}
-                        onClick={() => onOpenStatusDialog(status)}
+                    <TransitionDetail
+                      isChinese={isChinese}
+                      label={t("control.guidance")}
+                      value={t("control.keepSelectedGuidance")}
+                    />
+                  </>
+                )}
+
+                {otherSecondaryStatuses.length > 0 ? (
+                  <div className="flex flex-col gap-1.5">
+                    <div className="rounded-lg bg-slate-50 px-2.5 py-2">
+                      <span
                         className={cn(
-                          "h-8 min-w-0 justify-center px-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-offset-2",
-                          getStatusStyle(status).primaryBtn,
+                          "font-medium text-slate-900",
+                          isChinese
+                            ? "text-[11px]"
+                            : "text-[11px] uppercase tracking-wide",
                         )}
                       >
-                        <span className="truncate">
-                          {transitionActionLabel({
-                            currentStatus: normalizedCurrentStatus,
-                            status,
-                            t,
-                          })}
-                        </span>
-                      </Button>
-                    ))}
+                        {t("control.otherTransitions")}
+                      </span>
+                      <p
+                        className={cn(
+                          "text-slate-500",
+                          isChinese
+                            ? "mt-0.5 text-xs leading-relaxed"
+                            : "mt-0.5 text-xs leading-relaxed",
+                        )}
+                      >
+                        {t("control.otherTransitionsHint")}
+                      </p>
+                    </div>
+                    <div
+                      className="grid gap-1.5"
+                      style={{
+                        gridTemplateColumns: `repeat(${otherSecondaryStatuses.length}, minmax(0, 1fr))`,
+                      }}
+                    >
+                      {otherSecondaryStatuses.map((status) => (
+                        <Button
+                          key={status}
+                          type="button"
+                          size="sm"
+                          disabled={updating}
+                          onClick={() => onOpenStatusDialog(status)}
+                          className={cn(
+                            "h-8 min-w-0 justify-center px-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-offset-2",
+                            getStatusStyle(status).primaryBtn,
+                          )}
+                        >
+                          <span className="truncate">
+                            {transitionActionLabel({
+                              currentStatus: normalizedCurrentStatus,
+                              status,
+                              t,
+                            })}
+                          </span>
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
 
+              </div>
+            )}
+          </section>
+
+          <section className="flex flex-col gap-3 2xl:col-span-3">
+            <SectionTitle
+              icon={Wrench}
+              iconClassName="text-teal-500"
+              isChinese={isChinese}
+            >
+              {t("tools.title")}
+            </SectionTitle>
+            <div
+              className={cn(
+                "flex min-h-0 flex-col 2xl:flex-1",
+                tools.length > 0
+                  ? "overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)] 2xl:justify-evenly"
+                  : "rounded-xl border border-slate-200 bg-white/95 p-2",
+              )}
+            >
+              {tools.length > 0 ? (
+                tools.map((tool, index) => (
+                  <ToolRow
+                    key={`${tool.title}-${index}`}
+                    isChinese={isChinese}
+                    t={t}
+                    tool={tool}
+                  />
+                ))
+              ) : (
+                <p
+                  className={cn(
+                    "px-3 py-4 text-slate-400",
+                    isChinese ? "text-xs leading-relaxed" : "text-xs",
+                  )}
+                >
+                  {t("tools.empty")}
+                </p>
+              )}
             </div>
-          )}
-        </section>
-
-        <section className="flex flex-col gap-3 2xl:col-span-3">
-          <SectionTitle
-            icon={Wrench}
-            iconClassName="text-teal-500"
-            isChinese={isChinese}
-          >
-            {t("tools.title")}
-          </SectionTitle>
-          <div
-            className={cn(
-              "flex min-h-0 flex-col 2xl:flex-1",
-              tools.length > 0
-                ? "overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)] 2xl:justify-evenly"
-                : "rounded-xl border border-slate-200 bg-white/95 p-2",
-            )}
-          >
-            {tools.length > 0 ? (
-              tools.map((tool, index) => (
-                <ToolRow
-                  key={`${tool.title}-${index}`}
-                  isChinese={isChinese}
-                  t={t}
-                  tool={tool}
-                />
-              ))
-            ) : (
-              <p
-                className={cn(
-                  "px-3 py-4 text-slate-400",
-                  isChinese ? "text-xs leading-relaxed" : "text-xs",
-                )}
-              >
-                {t("tools.empty")}
-              </p>
-            )}
-          </div>
-        </section>
+          </section>
         </div>
 
         <section

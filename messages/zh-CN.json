@@ -1707,6 +1707,7 @@
           "updating": "更新中...",
           "moveTo": "流转到 {status}",
           "confirmAndEnter": "确认{stage}，进入{target}",
+          "confirmAndClose": "确认{stage}，关闭工作流",
           "completeAndClose": "完成{stage}，关闭工作流",
           "whyThisStep": "为什么执行",
           "whatHappensNext": "执行后结果",

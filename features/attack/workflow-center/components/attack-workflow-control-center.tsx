@@ -1100,7 +1100,7 @@ function StatusDialog({
       ? t("dialog.milestoneTitle")
       : t("dialog.confirmStageTitle", { stage: currentStageLabel })
   const description = isClosing
-    ? t("dialog.closeDescription", { stage: currentStageLabel })
+    ? ""
     : isInternalMilestone
       ? t("dialog.milestoneDescription", {
           stage: currentStageLabel,
@@ -1147,9 +1147,11 @@ function StatusDialog({
               <DialogTitle className="text-base font-semibold text-slate-950">
                 {title}
               </DialogTitle>
-              <DialogDescription className="mt-1">
-                {description}
-              </DialogDescription>
+              {description ? (
+                <DialogDescription className="mt-1">
+                  {description}
+                </DialogDescription>
+              ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-slate-500">
                 <span className="rounded-full bg-slate-100 px-2 py-0.5">
                   {t("dialog.currentStage", { stage: currentStageLabel })}
