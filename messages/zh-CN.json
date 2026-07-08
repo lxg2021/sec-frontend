@@ -1569,6 +1569,13 @@
           "remediated": "已修复",
           "closed": "已关闭"
         },
+        "displayStages": {
+          "discovery": "发现",
+          "investigation": "调查",
+          "forensics": "取证",
+          "response": "处置",
+          "closed": "关闭"
+        },
         "severity": {
           "critical": "严重",
           "high": "高危",
@@ -1598,6 +1605,8 @@
           "closed": "该攻击工作流已关闭",
           "closedWithReason": "该攻击工作流已关闭，关闭原因：{reason}",
           "currentStatus": "该攻击工作流当前处于 {status}",
+          "currentStageStatus": "当前：{stage} / {status}",
+          "currentStageStatusWithReason": "当前：{stage} / {status}，关闭原因：{reason}",
           "unknownStatus": "该攻击工作流存在未知生命周期状态"
         },
         "queue": {

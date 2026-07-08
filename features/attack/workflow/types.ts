@@ -12,6 +12,13 @@ export type AttackWorkflowStatus =
   | "remediated"
   | "closed"
 
+export type AttackWorkflowDisplayStage =
+  | "discovery"
+  | "investigation"
+  | "forensics"
+  | "response"
+  | "closed"
+
 export type AttackWorkflowActionPhase =
   | "investigation"
   | "forensics"

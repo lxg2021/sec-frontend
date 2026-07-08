@@ -1,4 +1,4 @@
-import type { AttackWorkflowStatus } from "./types"
+import type { AttackWorkflowDisplayStage, AttackWorkflowStatus } from "./types"
 
 export const ATTACK_WORKFLOW_STATUSES = [
   "detected",
@@ -18,6 +18,58 @@ export const ATTACK_WORKFLOW_STATUS_INDEX = ATTACK_WORKFLOW_STATUSES.reduce(
   },
   {} as Record<AttackWorkflowStatus, number>,
 )
+
+export const ATTACK_WORKFLOW_DISPLAY_STAGES = [
+  {
+    stage: "discovery",
+    representativeStatus: "detected",
+    statuses: ["detected"],
+  },
+  {
+    stage: "investigation",
+    representativeStatus: "investigating",
+    statuses: ["investigating", "confirmed"],
+  },
+  {
+    stage: "forensics",
+    representativeStatus: "forensics",
+    statuses: ["forensics"],
+  },
+  {
+    stage: "response",
+    representativeStatus: "responding",
+    statuses: ["responding", "contained", "remediated"],
+  },
+  {
+    stage: "closed",
+    representativeStatus: "closed",
+    statuses: ["closed"],
+  },
+] as const satisfies readonly {
+  stage: AttackWorkflowDisplayStage
+  representativeStatus: AttackWorkflowStatus
+  statuses: readonly AttackWorkflowStatus[]
+}[]
+
+export const ATTACK_WORKFLOW_DISPLAY_STAGE_INDEX =
+  ATTACK_WORKFLOW_DISPLAY_STAGES.reduce(
+    (acc, item, index) => {
+      acc[item.stage] = index
+      return acc
+    },
+    {} as Record<AttackWorkflowDisplayStage, number>,
+  )
+
+export const ATTACK_WORKFLOW_STATUS_DISPLAY_STAGE =
+  ATTACK_WORKFLOW_DISPLAY_STAGES.reduce(
+    (acc, item) => {
+      item.statuses.forEach((status) => {
+        acc[status] = item.stage
+      })
+      return acc
+    },
+    {} as Record<AttackWorkflowStatus, AttackWorkflowDisplayStage>,
+  )
 
 export const ATTACK_WORKFLOW_ALLOWED_TRANSITIONS: Record<
   AttackWorkflowStatus,

@@ -1567,6 +1567,13 @@
           "remediated": "Remediated",
           "closed": "Closed"
         },
+        "displayStages": {
+          "discovery": "Discovery",
+          "investigation": "Investigation",
+          "forensics": "Forensics",
+          "response": "Response",
+          "closed": "Closed"
+        },
         "severity": {
           "critical": "Critical",
           "high": "High",
@@ -1596,6 +1603,8 @@
           "closed": "This attack workflow is closed.",
           "closedWithReason": "This attack workflow is closed. Close reason: {reason}.",
           "currentStatus": "This attack workflow is currently in {status}.",
+          "currentStageStatus": "Current: {stage} / {status}",
+          "currentStageStatusWithReason": "Current: {stage} / {status}. Reason: {reason}",
           "unknownStatus": "This attack workflow has an unknown lifecycle status."
         },
         "queue": {

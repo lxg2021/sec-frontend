@@ -5,10 +5,14 @@ import { useLocale, useTranslations } from "next-intl"
 
 import { AttackWorkflowSpine } from "./attack-workflow-spine"
 import type {
+  AttackWorkflowDisplayStage,
   AttackWorkflowItem,
   AttackWorkflowStatus,
 } from "@/features/attack/workflow/types"
-import { normalizeWorkflowStatus } from "@/features/attack/workflow/utils"
+import {
+  normalizeWorkflowStatus,
+  workflowDisplayStageForStatus,
+} from "@/features/attack/workflow/utils"
 import { cn } from "@/shared/lib/utils"
 import { Card } from "@/shared/ui/card"
 
@@ -29,6 +33,14 @@ const STATUS_LABELS: Record<AttackWorkflowStatus, string> = {
   contained: "statuses.contained",
   remediated: "statuses.remediated",
   closed: "statuses.closed",
+}
+
+const DISPLAY_STAGE_LABELS: Record<AttackWorkflowDisplayStage, string> = {
+  discovery: "displayStages.discovery",
+  investigation: "displayStages.investigation",
+  forensics: "displayStages.forensics",
+  response: "displayStages.response",
+  closed: "displayStages.closed",
 }
 
 function displayHeaderValue(value?: string) {
@@ -53,6 +65,11 @@ function statusLabel(t: WorkflowCenterT, status: string) {
   return normalized ? t(STATUS_LABELS[normalized]) : status || t("unknown")
 }
 
+function displayStageLabel(t: WorkflowCenterT, status: string) {
+  const stage = workflowDisplayStageForStatus(status)
+  return stage ? t(DISPLAY_STAGE_LABELS[stage]) : t("unknown")
+}
+
 function processNotice(
   t: WorkflowCenterT,
   workflow: AttackWorkflowItem | null,
@@ -63,11 +80,21 @@ function processNotice(
   const closeReason = workflow.close_reason.trim()
   if (normalized === "closed") {
     return closeReason
-      ? t("process.closedWithReason", { reason: closeReason })
-      : t("process.closed")
+      ? t("process.currentStageStatusWithReason", {
+          reason: closeReason,
+          stage: displayStageLabel(t, normalized),
+          status: statusLabel(t, normalized),
+        })
+      : t("process.currentStageStatus", {
+          stage: displayStageLabel(t, normalized),
+          status: statusLabel(t, normalized),
+        })
   }
   if (normalized) {
-    return t("process.currentStatus", { status: statusLabel(t, normalized) })
+    return t("process.currentStageStatus", {
+      stage: displayStageLabel(t, normalized),
+      status: statusLabel(t, normalized),
+    })
   }
   return t("process.unknownStatus")
 }

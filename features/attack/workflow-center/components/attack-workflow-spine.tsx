@@ -8,6 +8,15 @@ import {
 import { useLocale, useTranslations } from "next-intl"
 import type { CSSProperties } from "react"
 
+import { ATTACK_WORKFLOW_DISPLAY_STAGES } from "@/features/attack/workflow/constants"
+import type { AttackWorkflowDisplayStage } from "@/features/attack/workflow/types"
+import {
+  workflowDisplayStageForStatus,
+  workflowDisplayStageIndex,
+  workflowDisplayStageRepresentativeForWorkflow,
+  workflowDisplayStageTime,
+} from "@/features/attack/workflow/utils"
+
 /* -------------------------------------------------------------------------- */
 /* Types                                                                      */
 /* -------------------------------------------------------------------------- */
@@ -100,15 +109,12 @@ const STATUS_LABEL_KEYS: Record<AttackWorkflowStatus, string> = {
   closed: "statuses.closed",
 }
 
-const COMPACT_STATUS_LABEL_KEYS: Record<AttackWorkflowStatus, string> = {
-  detected: "spine.compactStatuses.detected",
-  investigating: "spine.compactStatuses.investigating",
-  confirmed: "spine.compactStatuses.confirmed",
-  forensics: "spine.compactStatuses.forensics",
-  responding: "spine.compactStatuses.responding",
-  contained: "spine.compactStatuses.contained",
-  remediated: "spine.compactStatuses.remediated",
-  closed: "spine.compactStatuses.closed",
+const DISPLAY_STAGE_LABEL_KEYS: Record<AttackWorkflowDisplayStage, string> = {
+  discovery: "displayStages.discovery",
+  investigation: "displayStages.investigation",
+  forensics: "displayStages.forensics",
+  response: "displayStages.response",
+  closed: "displayStages.closed",
 }
 
 const STATUS_ICON_PATHS: Record<AttackWorkflowStatus, string> = {
@@ -598,8 +604,10 @@ function AttackWorkflowSpineEmpty({ t }: { t: WorkflowCenterT }) {
 /* -------------------------------------------------------------------------- */
 
 interface SpineNodeData {
+  stage: AttackWorkflowDisplayStage
   status: AttackWorkflowStatus
   label: string
+  statusLabel: string
   state: SpineNodeState
   timeDisplay: string
   isCurrent: boolean
@@ -664,17 +672,12 @@ function WorkflowNodeMarker({
 function HorizontalNode({
   node,
   density,
-  t,
 }: {
   node: SpineNodeData
   density: DensityClasses
-  t: WorkflowCenterT
 }) {
   const tone = getNodeTone(node.status, node.state)
   const emphasized = node.isCurrent || node.showNext || node.isSelected
-  const label = emphasized
-    ? node.label
-    : t(COMPACT_STATUS_LABEL_KEYS[node.status])
 
   return (
     <div className="flex w-full min-w-0 flex-col items-center">
@@ -718,8 +721,19 @@ function HorizontalNode({
             )}
             title={node.label}
           >
-            {label}
+            {node.label}
           </span>
+          {node.isCurrent ? (
+            <span
+              className={cn(
+                "max-w-full rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none",
+                getWorkflowStatusTone(node.status).statusBadge,
+              )}
+              title={node.statusLabel}
+            >
+              {node.statusLabel}
+            </span>
+          ) : null}
         </div>
         <span className={cn("text-slate-400", density.time)}>
           {node.timeDisplay}
@@ -784,6 +798,16 @@ function VerticalNode({
       >
         <div className="flex flex-wrap items-center gap-1.5">
           <span className={cn(density.label, tone.label)}>{node.label}</span>
+          {node.isCurrent ? (
+            <span
+              className={cn(
+                "rounded-full border px-1.5 py-0.5 text-[10px] font-medium leading-none",
+                getWorkflowStatusTone(node.status).statusBadge,
+              )}
+            >
+              {node.statusLabel}
+            </span>
+          ) : null}
         </div>
         <span className={cn("text-slate-400", density.time)}>
           {node.timeDisplay}
@@ -829,9 +853,15 @@ export function AttackWorkflowSpine({
 
   const normalizedStatus = normalizeWorkflowStatus(workflow.status)
   const isKnownStatus = normalizedStatus !== ""
-  const currentIndex = isKnownStatus
-    ? workflowStatusIndex(normalizedStatus)
+  const currentStageIndex = isKnownStatus
+    ? workflowDisplayStageIndex(normalizedStatus)
     : -1
+  const recommendedStage = recommendedStatus
+    ? workflowDisplayStageForStatus(recommendedStatus)
+    : ""
+  const selectedStage = selectedStatus
+    ? workflowDisplayStageForStatus(selectedStatus)
+    : ""
 
   const densityClasses = getDensityClasses(density, isChinese)
   const hasInconsistency = detectTimestampInconsistency(workflow)
@@ -839,38 +869,44 @@ export function AttackWorkflowSpine({
   const closeReason = (workflow.close_reason ?? "").trim()
   const showCloseReason = normalizedStatus === "closed" && closeReason !== ""
 
-  const totalSteps = ATTACK_WORKFLOW_STATUSES.length
+  const totalSteps = ATTACK_WORKFLOW_DISPLAY_STAGES.length
   const progressPct = isKnownStatus
-    ? Math.round(((currentIndex + 1) / totalSteps) * 100)
+    ? Math.round(((currentStageIndex + 1) / totalSteps) * 100)
     : 0
 
-  const nodes: SpineNodeData[] = ATTACK_WORKFLOW_STATUSES.map(
-    (status, index) => {
-      const rawTime = workflowStatusTime(workflow, status)
+  const nodes: SpineNodeData[] = ATTACK_WORKFLOW_DISPLAY_STAGES.map(
+    ({ stage }, index) => {
+      const status = workflowDisplayStageRepresentativeForWorkflow(
+        workflow,
+        stage,
+      )
+      const rawTime = workflowDisplayStageTime(workflow, stage)
       const hasTimestamp = isRecorded(rawTime)
       const state = getNodeState({
         status,
-        currentIndex,
+        currentIndex: currentStageIndex,
         nodeIndex: index,
         hasTimestamp,
         isKnownStatus,
       })
       return {
+        stage,
         status,
-        label: t(STATUS_LABEL_KEYS[status]),
+        label: t(DISPLAY_STAGE_LABEL_KEYS[stage]),
+        statusLabel: t(STATUS_LABEL_KEYS[status]),
         state,
         timeDisplay: formatWorkflowTime(rawTime, t),
-        isCurrent: isKnownStatus && index === currentIndex,
-        showNext: recommendedStatus === status && index !== currentIndex,
+        isCurrent: isKnownStatus && index === currentStageIndex,
+        showNext: recommendedStage === stage && index !== currentStageIndex,
         connectorIn: getConnectorTone(
           status,
           index,
-          currentIndex,
+          currentStageIndex,
           isKnownStatus,
         ),
         isFirst: index === 0,
         isLast: index === totalSteps - 1,
-        isSelected: selectedStatus === status,
+        isSelected: selectedStage === stage,
       }
     },
   )
@@ -889,7 +925,6 @@ export function AttackWorkflowSpine({
       <HorizontalNode
         node={node}
         density={densityClasses}
-        t={t}
       />
     )
 
@@ -900,7 +935,7 @@ export function AttackWorkflowSpine({
 
     if (isInteractive) {
       return (
-        <li key={node.status} className={itemClassName}>
+        <li key={node.stage} className={itemClassName}>
           <button
             type="button"
             aria-current={node.isCurrent ? "step" : undefined}
@@ -921,7 +956,7 @@ export function AttackWorkflowSpine({
     }
     return (
       <li
-        key={node.status}
+        key={node.stage}
         className={itemClassName}
         aria-current={node.isCurrent ? "step" : undefined}
       >
@@ -995,7 +1030,7 @@ export function AttackWorkflowSpine({
             />
           </div>
           <span className="shrink-0 text-[10px] font-mono text-slate-400">
-            {currentIndex + 1}/{totalSteps}
+            {currentStageIndex + 1}/{totalSteps}
           </span>
         </div>
       )}
