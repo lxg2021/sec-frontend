@@ -7,17 +7,12 @@ import {
   ArrowRight,
   Ban,
   Clock3,
-  DatabaseZap,
-  FileCode2,
   FileWarning,
-  GitBranch,
   Loader2,
   Network,
   Play,
   Plus,
   RefreshCcw,
-  RotateCcw,
-  Route,
   Search,
   Square,
   TerminalSquare,
@@ -69,21 +64,19 @@ import type {
   RemediationActionOption,
   RemediationCandidateNode,
   RemediationExecutionSnapshot,
-  RemediationExecutionStats,
   RemediationOrchestrationContext,
   RemediationPreviewSnapshot,
-  RemediationPreviewStats,
   RemediationPreviewTargetInput,
   RemediationWorkflowDetail,
   RemediationWorkflowStats,
   RemediationWorkflowStatsItem,
   ResolveRemediationNodeAgentsResponse,
 } from "../types"
+import { RemediationExecutionBatchesPanel } from "./remediation-execution-batches-panel"
 
 const RESPONSE_TIMEZONE = "Asia/Shanghai"
 const PAGE_SOURCE = "remediation_orchestration_page"
 const RESPONDING_STATUS: AttackWorkflowStatus = "responding"
-const RUNNING_EXECUTION_STATUSES = new Set(["created", "dispatched"])
 
 const STATUS_LABELS: Record<string, string> = {
   detected: "已发现",
@@ -264,29 +257,8 @@ function nodeIcon(entityType: string): ComponentType<{ className?: string }> {
   return Square
 }
 
-function statsTotal(stats: RemediationWorkflowStats | null) {
-  return stats?.summary.preview_stats.total_count ?? 0
-}
-
-function targetTotal(stats: RemediationWorkflowStats | null) {
-  return stats?.summary.execution_stats.total_count ?? 0
-}
-
-function buildStatsSummary(item: RemediationWorkflowStatsItem) {
-  const execution = item.stats.execution_stats
-  if (!item.execution_id) return "未确认执行"
-  return `${execution.success_count} success / ${execution.failed_count} failed / ${execution.skipped_count} skipped`
-}
-
 function isMockContext(context: RemediationOrchestrationContext) {
   return !context.case_id?.trim() && !context.workflow_id?.trim()
-}
-
-function readDetailExecution(
-  detail: RemediationWorkflowDetail | null,
-  fallback: RemediationExecutionSnapshot | null,
-) {
-  return detail?.execution ?? fallback
 }
 
 function statusBadge(status: string | number | undefined, className?: string) {
@@ -398,58 +370,6 @@ function InterfaceCard({
   )
 }
 
-function Metric({
-  label,
-  value,
-  tone = "slate",
-}: {
-  label: string
-  value: ReactNode
-  tone?: "slate" | "green" | "red" | "amber" | "blue"
-}) {
-  const valueClass =
-    tone === "green"
-      ? "text-emerald-600"
-      : tone === "red"
-        ? "text-red-600"
-        : tone === "amber"
-          ? "text-amber-600"
-          : tone === "blue"
-            ? "text-sky-600"
-            : "text-slate-900"
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-      <div className="text-[11px] text-slate-400">{label}</div>
-      <div className={cn("mt-1 text-2xl font-semibold tabular-nums", valueClass)}>{value}</div>
-    </div>
-  )
-}
-
-function ProgressBar({
-  stats,
-}: {
-  stats: RemediationExecutionStats
-}) {
-  const total = Math.max(stats.total_count, 1)
-  const segments = [
-    { value: stats.success_count, className: "bg-emerald-500" },
-    { value: stats.failed_count, className: "bg-red-500" },
-    { value: stats.dispatched_count + stats.created_count, className: "bg-sky-500" },
-    { value: stats.skipped_count, className: "bg-slate-300" },
-  ]
-  return (
-    <div className="flex h-2 overflow-hidden rounded-full bg-slate-100">
-      {segments.map((segment, index) => (
-        <span
-          key={index}
-          className={segment.className}
-          style={{ width: `${(segment.value / total) * 100}%` }}
-        />
-      ))}
-    </div>
-  )
-}
-
 function EmptyState({
   icon: Icon,
   title,
@@ -533,7 +453,7 @@ export function RemediationOrchestrationPage({
   const selectedAction =
     actionOptions.find((option) => option.action_code === selectedActionCode) ??
     actionOptions[0]
-  const detailExecution = readDetailExecution(detail, execution)
+  const detailExecution = detail?.execution ?? execution
 
   const statsItems = useMemo(() => stats?.items ?? [], [stats])
   const latestItem = statsItems[0]
@@ -1463,177 +1383,14 @@ export function RemediationOrchestrationPage({
             </div>
           </section>
 
-          <section className="flex min-h-0 flex-col rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-base font-semibold text-slate-950">
-                  执行批次、目标明细与聚合回写
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  按 workflow_action_id 查询全部批次，按 execution_id 查看明细
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={!latestItem || working === "refresh-execution"}
-                onClick={() => void refreshExecutionStatus()}
-                className="rounded-xl border-slate-200"
-              >
-                {working === "refresh-execution" ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
-                执行状态
-              </Button>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-slate-900">QueryRemediationWorkflowStats</div>
-                  <div className="mt-1 font-mono text-[11px] text-slate-500">
-                    POST /workflow/remediation/stats/query
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-                  <div className="text-[11px] text-slate-400">summary</div>
-                  <div className="mt-1 flex items-end gap-2">
-                    <span className="text-2xl font-semibold text-emerald-600">{statsTotal(stats)}</span>
-                    <span className="pb-1 text-xs text-slate-500">batches</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-4">
-                <Metric label="Targets" value={targetTotal(stats)} tone="blue" />
-                <Metric label="Success" value={stats?.summary.execution_stats.success_count ?? 0} tone="green" />
-                <Metric label="Failed" value={stats?.summary.execution_stats.failed_count ?? 0} tone="red" />
-                <Metric label="Running" value={(stats?.summary.execution_stats.created_count ?? 0) + (stats?.summary.execution_stats.dispatched_count ?? 0)} tone="amber" />
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-white">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <div className="text-sm font-semibold text-slate-900">处置批次列表</div>
-                <div className="font-mono text-[11px] text-slate-400">preview_status / execute_status</div>
-              </div>
-              <div className="divide-y divide-slate-100">
-                {statsItems.length > 0 ? (
-                  statsItems.map((item) => {
-                    const active =
-                      item.execution_id === detailExecution?.execution_id ||
-                      item.preview_id === detail?.preview_id
-                    const running = RUNNING_EXECUTION_STATUSES.has(item.execute_status)
-                    return (
-                      <button
-                        type="button"
-                        key={item.preview_id}
-                        onClick={() => void selectBatch(item)}
-                        className={cn(
-                          "grid w-full gap-3 px-4 py-3 text-left transition-colors duration-200 md:grid-cols-[98px_108px_1fr_96px_150px]",
-                          active ? "bg-sky-50" : "hover:bg-slate-50",
-                        )}
-                      >
-                        <span className="truncate font-mono text-xs text-slate-700">{item.preview_id}</span>
-                        <span className="truncate font-mono text-xs text-slate-700">{item.execution_id || "-"}</span>
-                        <span className="truncate text-xs text-slate-600">
-                          {item.source_type} · {item.scope_type}
-                        </span>
-                        <span>{statusBadge(item.execute_status || item.preview_status)}</span>
-                        <span className="truncate font-mono text-[11px] text-slate-400">
-                          {running ? "polling" : buildStatsSummary(item)}
-                        </span>
-                      </button>
-                    )
-                  })
-                ) : (
-                  <div className="p-4">
-                    <EmptyState
-                      icon={DatabaseZap}
-                      title="暂无处置批次"
-                      description="创建 preview 并确认执行后，这里会按 workflow_action_id 汇总展示全部处置批次"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-slate-900">QueryRemediationWorkflowDetail</div>
-                  <div className="mt-1 font-mono text-[11px] text-slate-500">
-                    POST /workflow/remediation/detail/query · execution_id={detailExecution?.execution_id || "-"}
-                  </div>
-                </div>
-                {detailExecution ? statusBadge(detailExecution.execute_status) : null}
-              </div>
-
-              {detailExecution ? (
-                <div className="mt-4 overflow-hidden rounded-2xl border border-sky-100 bg-white">
-                  <div className="grid grid-cols-[58px_110px_120px_116px_1fr] border-b border-slate-100 bg-slate-50 px-3 py-2 text-[11px] text-slate-400">
-                    <span>target</span>
-                    <span>agent</span>
-                    <span>action_type</span>
-                    <span>status</span>
-                    <span>task / pmc object</span>
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    {detailExecution.targets.map((target) => (
-                      <div
-                        key={`${target.target_index}-${target.agent_id}-${target.action_type}`}
-                        className="grid grid-cols-[58px_110px_120px_116px_1fr] items-center px-3 py-3 text-xs"
-                      >
-                        <span className="font-mono text-slate-700">#{target.target_index}</span>
-                        <span className="truncate font-mono text-slate-600">{target.agent_id}</span>
-                        <span className="truncate font-mono text-slate-600">{target.action_type}</span>
-                        <span>{statusBadge(target.execute_status)}</span>
-                        <span className="truncate font-mono text-slate-500" title={target.execute_task_id || target.pmc_object_id || target.error_msg}>
-                          {target.execute_task_id || target.pmc_object_id || target.error_msg || "-"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {detailExecution.targets.some((target) => target.error_msg) ? (
-                    <div className="border-t border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                      error_msg: {detailExecution.targets.find((target) => target.error_msg)?.error_msg}
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="mt-4">
-                  <EmptyState
-                    icon={FileCode2}
-                    title="未选择执行批次"
-                    description="选择已确认的 preview 或刷新执行状态后，这里显示 execution target 明细"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <GitBranch className="size-4 text-emerald-600" />
-                  Aggregate Backwrite
-                </div>
-                <div className="mt-3 space-y-1.5 font-mono text-[11px] leading-5 text-slate-600">
-                  <div>Control outbox -&gt; Analysis</div>
-                  <div>SyncAttackWorkflowActionResult</div>
-                  <div>result_type=remediation</div>
-                </div>
-              </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                  <Route className="size-4 text-amber-600" />
-                  Action Aggregation
-                </div>
-                <div className="mt-3 space-y-1.5 font-mono text-[11px] leading-5 text-slate-600">
-                  <div>workflow_action_id 全量 target 聚合</div>
-                  <div>any created/dispatched -&gt; running</div>
-                  <div>latest batch -&gt; success / failed / skipped</div>
-                </div>
-              </div>
-            </div>
-          </section>
+          <RemediationExecutionBatchesPanel
+            stats={stats}
+            detail={detail}
+            execution={execution}
+            refreshingExecutionStatus={working === "refresh-execution"}
+            onRefreshExecutionStatus={refreshExecutionStatus}
+            onSelectBatch={selectBatch}
+          />
         </section>
 
         <section className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[17px] border border-slate-200 bg-white px-5 py-3 text-xs text-slate-500">
