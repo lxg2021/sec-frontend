@@ -97,6 +97,7 @@ export function RemediationPreviewDemoPage() {
   )
   const selectedTarget = request.targets[0]
   const selectedContext = selectedTarget.agents[0]?.action_context
+  const selectedInputFields = selectedVariant.inputFields ?? selected.inputFields
   const jsonPayload = useMemo(() => {
     if (jsonView === "target") return selectedTarget
     if (jsonView === "snapshot") return selectedTarget.snapshot
@@ -236,9 +237,9 @@ export function RemediationPreviewDemoPage() {
                 onChange={updateValue}
               />
               <FieldGroup
-                fields={selectedVariant.mode === "forward" ? selected.inputFields : []}
+                fields={selectedVariant.requiresHistory ? [] : selectedInputFields}
                 title={
-                  selectedVariant.mode === "forward"
+                  !selectedVariant.requiresHistory
                     ? `动作扩展参数 ${selectedVariant.inputBranch}`
                     : "动作扩展参数（无，使用历史上下文）"
                 }
@@ -410,7 +411,7 @@ function ActionModeSwitch({
               )}
             >
               <div className="text-sm font-semibold">
-                {variant.mode === "forward" ? "正向动作" : "反向动作（历史）"}
+                {actionModeTitle(variant)}
               </div>
               <div
                 className={cn(
@@ -436,6 +437,11 @@ function ActionModeSwitch({
       </div>
     </section>
   )
+}
+
+function actionModeTitle(variant: DemoActionVariant) {
+  if (variant.mode === "reverse") return "反向动作（历史）"
+  return variant.displayName || "正向动作"
 }
 
 function TypeSelector({

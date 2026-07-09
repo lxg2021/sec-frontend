@@ -1,6 +1,7 @@
 "use client";
 
 import { Checkbox } from "@/shared/ui/checkbox";
+import { Input } from "@/shared/ui/input";
 import { cn } from "@/shared/lib/utils";
 
 import type {
@@ -11,7 +12,7 @@ import type {
 
 type InputBranch = keyof RemediationActionInput;
 type SnapshotBranch = keyof RemediationTargetSnapshot;
-type ParameterKind = "boolean" | "text";
+type ParameterKind = "boolean" | "text" | "password";
 
 export interface RemediationTemplateValues {
   includeChildProcesses: boolean;
@@ -23,6 +24,8 @@ interface TemplateParameter {
   label: string;
   kind: ParameterKind;
   defaultValue?: string | number | boolean;
+  placeholder?: string;
+  required?: boolean;
 }
 
 export interface RemediationPreviewTemplate {
@@ -108,7 +111,46 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     actionCodes: ["account.disable"],
     inputBranch: "account",
     snapshotBranch: "account",
-    parameters: [{ key: "force_logoff", label: "强制注销会话", kind: "boolean", defaultValue: true }],
+    parameters: [{ key: "force_logoff", label: "强制注销会话", kind: "boolean", defaultValue: false }],
+  },
+  {
+    id: "account-delete",
+    title: "删除账号",
+    actionCodes: ["account.delete"],
+    inputBranch: "account",
+    snapshotBranch: "account",
+    parameters: [{ key: "force_logoff", label: "强制注销会话", kind: "boolean", defaultValue: false }],
+  },
+  {
+    id: "account-reset-password",
+    title: "重置密码",
+    actionCodes: ["account.reset_password"],
+    inputBranch: "account",
+    snapshotBranch: "account",
+    parameters: [
+      {
+        key: "new_password",
+        label: "新密码",
+        kind: "password",
+        placeholder: "输入新密码",
+        required: true,
+      },
+      {
+        key: "force_change_at_next_logon",
+        label: "下次登录改密",
+        kind: "boolean",
+        defaultValue: true,
+      },
+      { key: "unlock_account", label: "重置时解锁账号", kind: "boolean", defaultValue: true },
+    ],
+  },
+  {
+    id: "account-enable",
+    title: "启用账号",
+    actionCodes: ["account.enable"],
+    inputBranch: "account",
+    snapshotBranch: "account",
+    parameters: [],
   },
   {
     id: "registry-delete",
@@ -260,6 +302,26 @@ export function buildRemediationTemplateInput({
   };
 }
 
+export function validateRemediationTemplateValues({
+  selectedAction,
+  template,
+  values,
+}: {
+  selectedAction: RemediationActionOption | null | undefined;
+  template: RemediationPreviewTemplate;
+  values: RemediationTemplateValues;
+}) {
+  if (!selectedAction || selectedAction.requires_history || template.id === "generic") {
+    return "";
+  }
+  const missing = template.parameters.find(
+    (field) =>
+      field.required &&
+      stringValue(values.parameterOverrides[field.key]).trim() === "",
+  );
+  return missing ? `请输入${missing.label}` : "";
+}
+
 export function remediationTemplateActionDisplayName(
   action: RemediationActionOption | null | undefined,
   template: RemediationPreviewTemplate,
@@ -335,19 +397,18 @@ export function RemediationTemplateParameterControls({
     );
   }
 
-  const fields = parameterValues(template, actionInput);
+  const fields = parameterValues(template, actionInput, values);
   if (fields.length === 0) {
     return <span className="text-xs text-slate-500">使用默认参数</span>;
   }
 
   return (
     <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl bg-slate-50">
-      {fields.map((item, index) => (
+      {fields.map((item) => (
         <TemplateParameterControl
           disabled={disabled}
           item={item}
           key={item.key}
-          index={index}
           onChange={(value) =>
             onValuesChange({
               ...values,
@@ -366,12 +427,14 @@ export function RemediationTemplateParameterControls({
 function parameterValues(
   template: RemediationPreviewTemplate,
   input: RemediationActionInput | undefined,
+  values: RemediationTemplateValues,
 ) {
   const record = objectValue(input?.[template.inputBranch]);
-  return template.parameters
+  const items = template.parameters
     .map((field) => {
       const rawValue =
-        record[field.key] === undefined ? field.defaultValue : record[field.key];
+        values.parameterOverrides[field.key] ??
+        (record[field.key] === undefined ? field.defaultValue : record[field.key]);
       if (field.kind === "boolean") {
         return {
           key: field.key,
@@ -385,28 +448,63 @@ function parameterValues(
         key: field.key,
         kind: field.kind,
         label: field.label,
+        placeholder: field.placeholder,
+        required: field.required,
         rawValue,
         value: shortValue(displayParameterValue(field.key, stringValue(rawValue))),
       };
     })
-    .filter((item) => item.kind === "boolean" || item.value !== "");
+    .filter((item) => item.kind === "boolean" || item.kind === "password" || item.value !== "");
+  return withParameterLayout(items);
+}
+
+function withParameterLayout<T extends { kind: ParameterKind }>(items: T[]) {
+  let row = 0;
+  let column = 0;
+
+  return items.map((item) => {
+    const span = item.kind === "password" ? 2 : 1;
+    if (span === 2 && column !== 0) {
+      row += 1;
+      column = 0;
+    }
+
+    const positioned = {
+      ...item,
+      visualColumn: column,
+      visualRow: row,
+      visualSpan: span,
+    };
+
+    if (span === 2) {
+      row += 1;
+      column = 0;
+    } else {
+      column += 1;
+      if (column >= 2) {
+        row += 1;
+        column = 0;
+      }
+    }
+
+    return positioned;
+  });
 }
 
 function TemplateParameterControl({
   disabled,
-  index,
   item,
   onChange,
 }: {
   disabled: boolean;
-  index: number;
   item: ReturnType<typeof parameterValues>[number];
   onChange: (value: unknown) => void;
 }) {
   const cellClassName = cn(
     "min-w-0 border-slate-100 px-3 py-2",
-    index % 2 === 1 ? "border-l" : "",
-    index > 1 ? "border-t" : "",
+    item.visualSpan === 2 ? "col-span-2" : "",
+    item.visualColumn > 0 ? "border-l" : "",
+    item.visualRow > 0 ? "border-t" : "",
   );
 
   if (item.kind === "boolean") {
@@ -425,6 +523,31 @@ function TemplateParameterControl({
           className="size-4 rounded border-slate-300 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950"
         />
         <span className="font-medium leading-none">{item.label}</span>
+      </label>
+    );
+  }
+
+  if (item.kind === "password") {
+    return (
+      <label
+        className={cn(
+          cellClassName,
+          "flex min-h-11 items-center gap-3 text-xs text-slate-700",
+          item.required ? "after:hidden" : "",
+        )}
+      >
+        <span className="shrink-0 font-medium leading-none text-slate-500">
+          {item.label}
+          {item.required ? <span className="ml-0.5 text-red-500">*</span> : null}
+        </span>
+        <Input
+          type="password"
+          value={stringValue(item.rawValue)}
+          disabled={disabled}
+          placeholder={item.placeholder || item.label}
+          onChange={(event) => onChange(event.target.value)}
+          className="h-8 max-w-[260px] flex-1 rounded-lg border-slate-200 bg-white px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:ring-offset-0"
+        />
       </label>
     );
   }

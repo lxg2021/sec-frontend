@@ -42,6 +42,7 @@ import {
   initialRemediationTemplateValues,
   remediationTemplateActionDisplayName,
   remediationTemplateSnapshotBranch,
+  validateRemediationTemplateValues,
   type RemediationPreviewTemplate,
   type RemediationTemplateValues,
 } from "./remediation-preview-templates";
@@ -193,11 +194,21 @@ export function CreateRemediationPreviewDialog({
       values: templateValues,
     });
   }, [baseActionInput, selectedAction, selectedTemplate, templateValues]);
+  const templateValidationMessage = useMemo(
+    () =>
+      validateRemediationTemplateValues({
+        selectedAction,
+        template: selectedTemplate,
+        values: templateValues,
+      }),
+    [selectedAction, selectedTemplate, templateValues],
+  );
   const busy =
     createState === "preparing" ||
     createState === "creating" ||
     createState === "loading-detail";
-  const canSubmit = validation.blocking.length === 0 && !busy;
+  const canSubmit =
+    validation.blocking.length === 0 && !templateValidationMessage && !busy;
 
   async function handleCreate() {
     if (busy) return;
@@ -214,6 +225,15 @@ export function CreateRemediationPreviewDialog({
     });
     if (targetValidation.blocking.length > 0) {
       setError(targetValidation.blocking[0]);
+      return;
+    }
+    const templateValidation = validateRemediationTemplateValues({
+      selectedAction,
+      template: selectedTemplate,
+      values: templateValues,
+    });
+    if (templateValidation) {
+      setError(templateValidation);
       return;
     }
     if (!selectedNode || !selectedAction) return;
