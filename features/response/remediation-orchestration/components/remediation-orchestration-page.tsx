@@ -3,7 +3,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
   type ComponentType,
   type FormEvent,
@@ -49,7 +48,6 @@ import { useToast } from "@/shared/ui/use-toast";
 import {
   cancelRemediationPreview,
   confirmRemediationPreview,
-  createRemediationPreview,
   queryRemediationNodeActions,
   resolveRemediationNodeAgents,
 } from "../api";
@@ -69,11 +67,11 @@ import type {
   RemediationExecutionSnapshot,
   RemediationOrchestrationContext,
   RemediationPreviewSnapshot,
-  RemediationPreviewTargetInput,
-  RemediationWorkflowDetail,
+  RemediationPreviewDetail,
   RemediationWorkflowStats,
   ResolveRemediationNodeAgentsResponse,
 } from "../types";
+import { CreateRemediationPreviewDialog } from "./create-remediation-preview-dialog";
 import { RemediationConfigPanel } from "./remediation-config-panel";
 import {
   RemediationHistoryPanel,
@@ -418,7 +416,7 @@ export function RemediationOrchestrationPage({
   const [workflow, setWorkflow] = useState<AttackWorkflowItem | null>(null);
   const [action, setAction] = useState<AttackWorkflowActionItem | null>(null);
   const [stats, setStats] = useState<RemediationWorkflowStats | null>(null);
-  const [detail, setDetail] = useState<RemediationWorkflowDetail | null>(null);
+  const [detail, setDetail] = useState<RemediationPreviewDetail | null>(null);
   const [execution, setExecution] =
     useState<RemediationExecutionSnapshot | null>(null);
   const [preview, setPreview] = useState<RemediationPreviewSnapshot | null>(
@@ -445,6 +443,7 @@ export function RemediationOrchestrationPage({
   );
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
   const [batchesRefreshKey, setBatchesRefreshKey] = useState(0);
+  const [createPreviewOpen, setCreatePreviewOpen] = useState(false);
   const [startTime] = useState(monthAgoDate);
   const [endTime] = useState(todayDate);
 
@@ -468,9 +467,6 @@ export function RemediationOrchestrationPage({
   const selectedAction =
     actionOptions.find((option) => option.action_code === selectedActionCode) ??
     actionOptions[0];
-
-  const statsItems = useMemo(() => stats?.items ?? [], [stats]);
-  const latestItem = statsItems[0];
 
   const loadPage = useCallback(
     async (refreshingOnly = false) => {
@@ -745,32 +741,7 @@ export function RemediationOrchestrationPage({
     }
   }
 
-  function buildPreviewTarget(): RemediationPreviewTargetInput | null {
-    if (!selectedNode || !selectedAction) return null;
-    const agentIds =
-      selectedNode.agent_ids.length > 0
-        ? selectedNode.agent_ids
-        : (agentResolve?.agent_ids ?? []);
-    if (agentIds.length === 0) return null;
-
-    return {
-      node_key: selectedNode.node_key,
-      entity_type: selectedNode.entity_type,
-      action_code: selectedAction.action_code,
-      agents: agentIds.map((agentId) => ({
-        agent_id: agentId,
-        action_context:
-          selectedAction.contexts.find(
-            (contextItem) => contextItem.agent_id === agentId,
-          ) ?? selectedAction.contexts[0],
-      })),
-      target_display: selectedNode.display_name,
-      snapshot: selectedNode.snapshot,
-      input: actionInputFor(selectedAction.action_code),
-    };
-  }
-
-  async function handleCreatePreview() {
+  function handleCreatePreview() {
     if (workflowClosed) return;
     if (mockMode) {
       setPreview(MOCK_DETAIL.preview);
@@ -778,48 +749,30 @@ export function RemediationOrchestrationPage({
       return;
     }
 
-    const target = buildPreviewTarget();
-    if (!target) {
-      toast({
-        title: "无法创建预览",
-        description: "请先选择已解析 Agent 的处置节点和动作",
-        variant: "destructive",
-      });
-      return;
+    setCreatePreviewOpen(true);
+  }
+
+  async function prepareCreatePreviewWorkflowContext() {
+    const existingActionId = action?.workflow_action_id || routeActionId;
+
+    if (existingActionId && currentCaseId && currentWorkflowId) {
+      await moveWorkflowToResponding();
+      return {
+        case_id: currentCaseId,
+        workflow_id: currentWorkflowId,
+        workflow_action_id: existingActionId,
+      };
     }
 
-    setWorking("create-preview");
-    try {
-      const ensuredAction = await ensureCanonicalAction();
-      if (!ensuredAction?.workflow_action_id) {
-        throw new Error("缺少处置阶段，不能创建处置预览");
-      }
-      await moveWorkflowToResponding();
-      const nextPreview = await createRemediationPreview({
-        tenant_id: tenantId,
-        expire_seconds: 600,
-        workflow_id: currentWorkflowId,
-        workflow_action_id: ensuredAction.workflow_action_id,
-        case_id: currentCaseId,
-        source_type: sourceType,
-        scope_type: scopeType,
-        scope_id: scopeId,
-        targets: [target],
-      });
-      if (!nextPreview?.preview_id)
-        throw new Error("预览创建失败，缺少批次信息");
-      setPreview(nextPreview);
-      toast({ title: "处置预览已创建" });
-      setBatchesRefreshKey((current) => current + 1);
-    } catch (err) {
-      toast({
-        title: "创建预览失败",
-        description: err instanceof Error ? err.message : undefined,
-        variant: "destructive",
-      });
-    } finally {
-      setWorking("");
-    }
+    const ensuredAction = await ensureCanonicalAction();
+    if (!ensuredAction?.workflow_action_id) return null;
+
+    await moveWorkflowToResponding();
+    return {
+      case_id: ensuredAction.case_id || currentCaseId,
+      workflow_id: ensuredAction.workflow_id || currentWorkflowId,
+      workflow_action_id: ensuredAction.workflow_action_id,
+    };
   }
 
   async function handleConfirmPreview() {
@@ -1099,6 +1052,34 @@ export function RemediationOrchestrationPage({
           timezone={RESPONSE_TIMEZONE}
           workflowActionId={action?.workflow_action_id || routeActionId}
           workflowId={workflow?.workflow_id || routeWorkflowId}
+        />
+
+        <CreateRemediationPreviewDialog
+          agentResolve={agentResolve}
+          buildActionInput={(actionCode) => actionInputFor(actionCode)}
+          caseId={currentCaseId}
+          expireSeconds={600}
+          onCreated={(nextPreview, nextDetail) => {
+            setPreview(nextDetail?.preview ?? nextPreview);
+            setDetail(nextDetail);
+            setExecution(nextDetail?.execution ?? null);
+            setBatchesRefreshKey((current) => current + 1);
+            toast({
+              title: "处置预览已创建",
+              description: "已按 mitigation 预览结果生成目标明细",
+            });
+          }}
+          onOpenChange={setCreatePreviewOpen}
+          open={createPreviewOpen}
+          prepareWorkflowContext={prepareCreatePreviewWorkflowContext}
+          scopeId={scopeId}
+          scopeType={scopeType}
+          selectedAction={selectedAction}
+          selectedNode={selectedNode}
+          sourceType={sourceType}
+          tenantId={tenantId}
+          workflowActionId={action?.workflow_action_id || routeActionId}
+          workflowId={currentWorkflowId}
         />
 
         {/*
@@ -1409,15 +1390,9 @@ export function RemediationOrchestrationPage({
                         </div>
                         <div
                           className="mt-1 truncate font-mono text-xs text-slate-700"
-                          title={
-                            (preview?.preview_id ?? latestItem?.preview_id) ||
-                            ""
-                          }
+                          title={preview?.preview_id ?? ""}
                         >
-                          {shortValue(
-                            (preview?.preview_id ?? latestItem?.preview_id) ||
-                              "",
-                          )}
+                          {shortValue(preview?.preview_id ?? "")}
                         </div>
                       </div>
                       <div className="rounded-xl bg-slate-50 px-3 py-2">

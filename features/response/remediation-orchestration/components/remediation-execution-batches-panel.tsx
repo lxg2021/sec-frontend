@@ -38,9 +38,8 @@ import type {
   RemediationPreviewList,
   RemediationPreviewListItem,
   RemediationPreviewTargetSnapshot,
-  RemediationWorkflowDetail,
+  RemediationPreviewDetail,
   RemediationWorkflowStats,
-  RemediationWorkflowStatsItem,
 } from "../types"
 
 const PAGE_SIZE = 6
@@ -82,7 +81,7 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
 }
 
 export interface RemediationExecutionBatchesData {
-  detail: RemediationWorkflowDetail | null
+  detail: RemediationPreviewDetail | null
   execution: RemediationExecutionSnapshot | null
   stats: RemediationWorkflowStats | null
 }
@@ -92,7 +91,7 @@ interface RemediationExecutionBatchesPanelProps {
   className?: string
   enabled?: boolean
   endTime?: string
-  fallbackDetail?: RemediationWorkflowDetail | null
+  fallbackDetail?: RemediationPreviewDetail | null
   fallbackExecution?: RemediationExecutionSnapshot | null
   fallbackStats?: RemediationWorkflowStats | null
   onDataChange?: (data: RemediationExecutionBatchesData) => void
@@ -124,16 +123,16 @@ export function RemediationExecutionBatchesPanel({
     fallbackStats,
   )
   const [previewList, setPreviewList] = useState<RemediationPreviewList | null>(
-    () => fallbackListFromStats(fallbackStats),
+    () => fallbackListFromStats(fallbackStats, fallbackDetail),
   )
-  const [detail, setDetail] = useState<RemediationWorkflowDetail | null>(
+  const [detail, setDetail] = useState<RemediationPreviewDetail | null>(
     fallbackDetail,
   )
   const [execution, setExecution] = useState<RemediationExecutionSnapshot | null>(
     fallbackExecution,
   )
   const [selectedPreviewId, setSelectedPreviewId] = useState(
-    fallbackDetail?.preview_id || fallbackStats?.items[0]?.preview_id || "",
+    fallbackDetail?.preview_id || "",
   )
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -237,7 +236,7 @@ export function RemediationExecutionBatchesPanel({
   const loadBatches = useCallback(async () => {
     if (!enabled || !hasQueryContext) {
       setError("")
-      const fallbackList = fallbackListFromStats(fallbackStats)
+      const fallbackList = fallbackListFromStats(fallbackStats, fallbackDetail)
       setPreviewList(fallbackList)
       setSelectedPreviewId(fallbackDetail?.preview_id || fallbackList?.items[0]?.preview_id || "")
       publishData({
@@ -272,7 +271,7 @@ export function RemediationExecutionBatchesPanel({
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : "处置结果查询失败")
-      const fallbackList = fallbackListFromStats(fallbackStats)
+      const fallbackList = fallbackListFromStats(fallbackStats, fallbackDetail)
       setPreviewList(fallbackList)
       setSelectedPreviewId(fallbackDetail?.preview_id || fallbackList?.items[0]?.preview_id || "")
       publishData({
@@ -946,16 +945,32 @@ function formatDateTime(value: string) {
 
 function fallbackListFromStats(
   stats: RemediationWorkflowStats | null,
+  detail: RemediationPreviewDetail | null,
 ): RemediationPreviewList | null {
-  if (!stats) return null
-  const items = stats.items.map(statsItemToPreviewListItem)
+  if (!stats && !detail) return null
+  const items = detail ? [detailToPreviewListItem(detail)] : []
   return {
-    tenant_id: stats.tenant_id,
-    start_time: stats.start_time,
-    end_time: stats.end_time,
-    timezone: stats.timezone,
-    preview_summary: stats.summary.preview_stats,
-    target_summary: stats.summary.execution_stats,
+    tenant_id: stats?.tenant_id ?? detail?.tenant_id ?? "",
+    start_time: stats?.start_time ?? "",
+    end_time: stats?.end_time ?? "",
+    timezone: stats?.timezone ?? "Asia/Shanghai",
+    preview_summary: stats?.summary.preview_stats ?? {
+      total_count: items.length,
+      created_count: 0,
+      confirmed_count: detail?.preview?.preview_status === "confirmed" ? 1 : 0,
+      canceled_count: detail?.preview?.preview_status === "canceled" ? 1 : 0,
+      expired_count: detail?.preview?.preview_status === "expired" ? 1 : 0,
+    },
+    target_summary: stats?.summary.execution_stats ??
+      detail?.target_summary ?? {
+        total_count: 0,
+        created_count: 0,
+        dispatched_count: 0,
+        running_count: 0,
+        success_count: 0,
+        failed_count: 0,
+        skipped_count: 0,
+      },
     items,
     page: {
       page: 1,
@@ -966,41 +981,30 @@ function fallbackListFromStats(
   }
 }
 
-function statsItemToPreviewListItem(
-  item: RemediationWorkflowStatsItem,
+function detailToPreviewListItem(
+  detail: RemediationPreviewDetail,
 ): RemediationPreviewListItem {
+  const preview = detail.preview
   return {
-    tenant_id: item.tenant_id,
-    preview_id: item.preview_id,
-    execution_id: item.execution_id,
-    workflow_id: item.workflow_id,
-    workflow_action_id: item.workflow_action_id,
-    case_id: item.case_id,
-    source_request_id: item.source_request_id,
-    preview_status: item.preview_status,
-    execute_status: item.execute_status,
-    source_type: item.source_type,
-    scope_type: item.scope_type,
-    scope_id: item.scope_id,
-    target_type: "",
-    action_type: "",
-    plan_status: "",
-    created_at: item.created_at,
-    confirmed_at: item.confirmed_at,
-    expires_at: "",
-    preview_target_summary: {
-      total_count: item.stats.execution_stats.total_count,
-      will_apply_count: item.stats.execution_stats.total_count,
-      skipped_count: item.stats.execution_stats.skipped_count,
-    },
-    target_summary: {
-      total_count: item.stats.execution_stats.total_count,
-      created_count: item.stats.execution_stats.created_count,
-      dispatched_count: item.stats.execution_stats.dispatched_count,
-      running_count: item.stats.execution_stats.running_count,
-      success_count: item.stats.execution_stats.success_count,
-      failed_count: item.stats.execution_stats.failed_count,
-      skipped_count: item.stats.execution_stats.skipped_count,
-    },
+    tenant_id: detail.tenant_id,
+    preview_id: detail.preview_id,
+    execution_id: detail.execution_id,
+    workflow_id: preview?.workflow_id ?? "",
+    workflow_action_id: preview?.workflow_action_id ?? "",
+    case_id: preview?.case_id ?? "",
+    source_request_id: preview?.source_request_id ?? "",
+    preview_status: preview?.preview_status ?? "",
+    execute_status: detail.execution?.execute_status ?? "",
+    source_type: preview?.source_type ?? "",
+    scope_type: preview?.scope_type ?? "",
+    scope_id: preview?.scope_id ?? "",
+    target_type: preview?.target_type ?? "",
+    action_type: preview?.action_type ?? "",
+    plan_status: preview?.plan_status ?? "",
+    created_at: preview?.created_at ?? "",
+    confirmed_at: "",
+    expires_at: preview?.expires_at ?? "",
+    preview_target_summary: detail.preview_target_summary,
+    target_summary: detail.target_summary,
   }
 }

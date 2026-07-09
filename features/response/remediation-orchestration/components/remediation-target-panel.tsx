@@ -185,7 +185,7 @@ export function RemediationTargetPanel({
                 </span>
               </span>
               <span className="truncate text-[11px] text-slate-400">
-                Agent: {(node.agent_ids ?? []).join(" / ") || "-"}
+                主机 ID: {(node.agent_ids ?? []).join(" / ") || "-"}
               </span>
               {nodeStatusPill(node.resolve_status)}
             </button>

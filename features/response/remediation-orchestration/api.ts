@@ -28,10 +28,9 @@ import type {
   RemediationPreviewStats,
   RemediationPreviewTargetSnapshot,
   RemediationPreviewTargetSummary,
-  RemediationWorkflowDetail,
+  RemediationPreviewDetail,
   RemediationWorkflowStats,
   RemediationWorkflowStatsGroup,
-  RemediationWorkflowStatsItem,
   ResolveRemediationNodeAgentsRequest,
   ResolveRemediationNodeAgentsResponse,
 } from "./types"
@@ -205,27 +204,6 @@ function normalizeStatsGroup(raw: unknown): RemediationWorkflowStatsGroup {
   }
 }
 
-function normalizeStatsItem(raw: unknown): RemediationWorkflowStatsItem {
-  const item = objectValue(raw)
-  return {
-    tenant_id: stringValue(item.tenant_id),
-    preview_id: stringValue(item.preview_id),
-    execution_id: stringValue(item.execution_id),
-    workflow_id: stringValue(item.workflow_id),
-    source_request_id: stringValue(item.source_request_id),
-    preview_status: stringValue(item.preview_status),
-    execute_status: stringValue(item.execute_status),
-    source_type: stringValue(item.source_type),
-    scope_type: stringValue(item.scope_type),
-    scope_id: stringValue(item.scope_id),
-    created_at: stringValue(item.created_at),
-    confirmed_at: stringValue(item.confirmed_at),
-    workflow_action_id: stringValue(item.workflow_action_id),
-    case_id: stringValue(item.case_id),
-    stats: normalizeStatsGroup(item.stats),
-  }
-}
-
 function normalizePageInfo(raw: unknown): RemediationPageInfo {
   const item = objectValue(raw)
   return {
@@ -284,7 +262,6 @@ function normalizeWorkflowStats(raw: unknown): RemediationWorkflowStats {
     end_time: stringValue(item.end_time),
     timezone: stringValue(item.timezone),
     summary: normalizeStatsGroup(item.summary),
-    items: objectArray(item.items).map(normalizeStatsItem),
   }
 }
 
@@ -385,7 +362,7 @@ function normalizeExecutionSnapshot(raw: unknown): RemediationExecutionSnapshot 
   }
 }
 
-function normalizePreviewDetailAsWorkflowDetail(raw: unknown): RemediationWorkflowDetail {
+function normalizePreviewDetail(raw: unknown): RemediationPreviewDetail {
   const item = objectValue(raw)
   const preview = normalizePreviewSnapshot(item.preview)
   const execution = normalizeExecutionSnapshot(item.execution)
@@ -507,7 +484,7 @@ export async function getRemediationPreviewDetail(
     "/sensor/workflow/remediation/preview/detail",
     withRequestId(params),
   )
-  return normalizePreviewDetailAsWorkflowDetail(data)
+  return normalizePreviewDetail(data)
 }
 
 export async function listRemediationPreviews(

@@ -241,31 +241,12 @@ export interface RemediationWorkflowStatsGroup {
   execution_stats: RemediationExecutionStats
 }
 
-export interface RemediationWorkflowStatsItem {
-  tenant_id: string
-  preview_id: string
-  execution_id: string
-  workflow_id: string
-  source_request_id: string
-  preview_status: string
-  execute_status: string
-  source_type: string
-  scope_type: string
-  scope_id: string
-  created_at: string
-  confirmed_at: string
-  workflow_action_id: string
-  case_id: string
-  stats: RemediationWorkflowStatsGroup
-}
-
 export interface RemediationWorkflowStats {
   tenant_id: string
   start_time: string
   end_time: string
   timezone: string
   summary: RemediationWorkflowStatsGroup
-  items: RemediationWorkflowStatsItem[]
 }
 
 export interface RemediationPageInfo {
@@ -392,7 +373,7 @@ export interface RemediationExecutionSnapshot {
   case_id: string
 }
 
-export interface RemediationWorkflowDetail {
+export interface RemediationPreviewDetail {
   tenant_id: string
   preview_id: string
   execution_id: string

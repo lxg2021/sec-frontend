@@ -2,6 +2,7 @@
 
 import {
   CheckCircle2,
+  History,
   Loader2,
   RotateCcw,
   SlidersHorizontal,
@@ -11,6 +12,7 @@ import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 
 import type {
+  RemediationActionContext,
   RemediationActionOption,
   RemediationCandidateNode,
   ResolveRemediationNodeAgentsResponse,
@@ -166,6 +168,10 @@ export function RemediationConfigPanel({
         )}
       </div>
 
+      {selectedAction?.requires_history ? (
+        <ActionContextSummary contexts={selectedAction.contexts} />
+      ) : null}
+
       <div className="mt-auto pt-4">
         <div className="rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3">
           <div className="flex items-center justify-between gap-3">
@@ -198,6 +204,57 @@ function actionOptionHint(option: RemediationActionOption) {
     option.contexts.length > 0 ? `${option.contexts.length} 个上下文` : "",
   ].filter(Boolean);
   return hints.join(" · ") || "当前目标可执行";
+}
+
+function ActionContextSummary({
+  contexts,
+}: {
+  contexts: RemediationActionContext[];
+}) {
+  return (
+    <div className="mt-4 rounded-[18px] border border-amber-200 bg-amber-50 px-4 py-3">
+      <div className="flex items-center gap-2 text-xs font-semibold text-amber-800">
+        <History className="size-3.5" />
+        历史动作上下文
+      </div>
+      <div className="mt-1 text-[11px] leading-5 text-amber-700">
+        反向动作由后台根据历史成功任务生成，创建预览时会按主机带回 action_context
+      </div>
+      <div className="mt-3 space-y-2">
+        {contexts.length > 0 ? (
+          contexts.slice(0, 3).map((context, index) => (
+            <div
+              key={`${context.agent_id}-${context.source_task_id}-${index}`}
+              className="grid grid-cols-[minmax(72px,0.7fr)_minmax(0,1fr)_64px] items-center gap-2 rounded-2xl bg-white px-3 py-2 text-[11px]"
+            >
+              <span className="truncate font-mono text-slate-700">
+                {context.agent_id || "-"}
+              </span>
+              <span className="truncate text-slate-500" title={context.source_task_id}>
+                {context.source_task_id || context.target_key || "-"}
+              </span>
+              <span className="text-right font-medium text-amber-700">
+                {contextTypeLabel(context.context_type)}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="rounded-2xl border border-dashed border-amber-200 bg-white/70 px-3 py-3 text-center text-[11px] text-amber-700">
+            后台未返回可用上下文，当前反向动作不能创建预览
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function contextTypeLabel(value: string | number | undefined) {
+  const key = String(value ?? "").trim();
+  const normalized = key.toLowerCase();
+  if (key === "1" || normalized.includes("restore")) return "恢复";
+  if (key === "2" || normalized.includes("bypass")) return "放行";
+  if (key === "3" || normalized.includes("enable")) return "启用";
+  return "上下文";
 }
 
 function actionLabel(actionCode: string) {

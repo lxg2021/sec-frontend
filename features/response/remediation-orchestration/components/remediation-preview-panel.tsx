@@ -10,13 +10,13 @@ import type {
   RemediationExecutionSnapshot,
   RemediationPreviewSnapshot,
   RemediationPreviewTargetSnapshot,
-  RemediationWorkflowDetail,
+  RemediationPreviewDetail,
 } from "../types";
 
 interface RemediationPreviewPanelProps {
   canConfirm: boolean;
   canCreatePreview: boolean;
-  detail: RemediationWorkflowDetail | null;
+  detail: RemediationPreviewDetail | null;
   execution: RemediationExecutionSnapshot | null;
   onCancelPreview: () => void;
   onConfirmPreview: () => void;
