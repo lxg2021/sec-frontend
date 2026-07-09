@@ -164,6 +164,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     ],
   },
   {
+    id: "registry-restore",
+    title: "恢复注册表",
+    actionCodes: ["registry.restore"],
+    inputBranch: "registry",
+    snapshotBranch: "registry",
+    parameters: [],
+  },
+  {
     id: "wmi-class-delete",
     title: "删除 WMI Class",
     actionCodes: ["wmi_class.delete"],
