@@ -61,6 +61,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     ],
   },
   {
+    id: "file-restore",
+    title: "恢复文件",
+    actionCodes: ["file.restore"],
+    inputBranch: "file_quarantine",
+    snapshotBranch: "file",
+    parameters: [],
+  },
+  {
     id: "scheduled-task-delete",
     title: "删除计划任务",
     actionCodes: ["scheduled_job.delete", "task.delete", "scheduled_task.delete"],
@@ -285,7 +293,7 @@ export function RemediationTemplateParameterControls({
     return <span className="text-xs text-slate-400">未选择动作</span>;
   }
   if (selectedAction.requires_history) {
-    return <span className="text-xs text-slate-600">使用后台返回的历史上下文</span>;
+    return <span className="text-xs text-slate-600">无需手动参数，使用恢复依据</span>;
   }
   if (template.isProcessTerminate) {
     return (

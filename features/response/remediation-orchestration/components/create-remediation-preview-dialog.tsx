@@ -336,6 +336,7 @@ export function CreateRemediationPreviewDialog({
             {selectedAction?.requires_history ? (
               <ActionContextPanel
                 agentIds={agentIds}
+                action={selectedAction}
                 contextPreview={contextPreview}
                 contexts={selectedAction.contexts}
               />
@@ -660,15 +661,6 @@ function ExecutionSettingsPanel({
             values={templateValues}
           />
         </SettingRow>
-
-        {selectedAction?.requires_history ? (
-          <SettingRow label="历史上下文">
-            <div className="text-sm font-medium text-slate-800">需要</div>
-            <div className="mt-1 text-xs leading-5 text-slate-400">
-              使用后台返回的 backup / policy 上下文
-            </div>
-          </SettingRow>
-        ) : null}
       </div>
     </section>
   );
@@ -1102,27 +1094,25 @@ function formatSnapshotValue(value: unknown) {
 }
 
 function ActionContextPanel({
+  action,
   agentIds,
   contextPreview,
   contexts,
 }: {
+  action: RemediationActionOption;
   agentIds: string[];
   contextPreview: Record<string, RemediationActionContext | undefined>;
   contexts: RemediationActionContext[];
 }) {
   const rows = agentIds.length > 0 ? agentIds : contexts.map((item) => item.agent_id || "");
+  const title = actionContextPanelTitle(action);
+
   return (
-    <section className="rounded-[20px] border border-amber-200 bg-amber-50/70 p-4">
+    <section className="rounded-[20px] border border-slate-200 bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionTitle icon={History} title="后端返回的历史上下文" />
-        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-amber-700">
-          RemediationActionContext
-        </span>
+        <SectionTitle icon={History} title={title} />
       </div>
-      <div className="mt-2 text-xs leading-5 text-amber-800">
-        这不是用户输入项。反向动作必须使用 QueryRemediationNodeActions 返回的上下文，创建预览时按主机原样写入 targets[].agents[].action_context
-      </div>
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="mt-3 grid gap-3">
         {rows.length > 0 ? (
           rows.map((agentId, index) => {
             const context =
@@ -1132,39 +1122,39 @@ function ActionContextPanel({
               <div
                 key={`${agentId}-${index}`}
                 className={cn(
-                  "min-w-0 rounded-2xl border bg-white px-4 py-3",
-                  context ? "border-amber-100" : "border-red-100",
+                  "min-w-0 overflow-hidden rounded-xl border bg-slate-50",
+                  context ? "border-slate-100" : "border-red-100 bg-red-50",
                 )}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="truncate font-mono text-xs text-slate-800">
+                <div className="grid grid-cols-[minmax(120px,0.8fr)_minmax(180px,1fr)_minmax(140px,0.85fr)_minmax(120px,0.75fr)_minmax(220px,1.4fr)] border-b border-slate-100 px-3 py-2 text-[11px] font-medium text-slate-400">
+                  <span>执行终端</span>
+                  <span>来源任务</span>
+                  <span>来源动作</span>
+                  <span>{context?.policy_id ? "Policy ID" : "Backup ID"}</span>
+                  <span>节点ID</span>
+                </div>
+                <div className="grid min-h-11 grid-cols-[minmax(120px,0.8fr)_minmax(180px,1fr)_minmax(140px,0.85fr)_minmax(120px,0.75fr)_minmax(220px,1.4fr)] items-center px-3 py-2 text-xs">
+                  <span className="truncate font-mono font-medium text-slate-700" title={agentId || context?.agent_id || "-"}>
                     {agentId || context?.agent_id || "-"}
                   </span>
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold",
-                      context
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-red-50 text-red-600",
-                    )}
-                  >
-                    {context ? actionContextTypeLabel(context.context_type) : "缺失"}
+                  <span className="truncate font-mono text-slate-700" title={String(context?.source_task_id || "-")}>
+                    {context?.source_task_id || "-"}
                   </span>
-                </div>
-                <div className="mt-3 grid gap-2 text-[11px]">
-                  <ContextLine label="来源任务" value={context?.source_task_id} />
-                  <ContextLine label="来源动作" value={context?.source_action_code} />
-                  <ContextLine label="节点ID" value={context?.target_key} />
-                  <ContextLine
-                    label={context?.policy_id ? "Policy ID" : "Backup ID"}
-                    value={context?.policy_id || context?.backup_id}
-                  />
+                  <span className="truncate font-mono text-slate-700" title={String(context?.source_action_code || "-")}>
+                    {context?.source_action_code || "-"}
+                  </span>
+                  <span className="truncate font-mono text-slate-700" title={String(context?.policy_id || context?.backup_id || "-")}>
+                    {context?.policy_id || context?.backup_id || "-"}
+                  </span>
+                  <span className="truncate font-mono text-slate-700" title={String(context?.target_key || "-")}>
+                    {context?.target_key || "-"}
+                  </span>
                 </div>
               </div>
             );
           })
         ) : (
-          <div className="rounded-2xl border border-dashed border-amber-200 bg-white/70 px-4 py-6 text-center text-xs text-amber-700">
+          <div className="rounded-2xl border border-dashed border-red-200 bg-red-50 px-4 py-6 text-center text-xs text-red-600">
             当前反向动作缺少历史上下文，无法创建预览
           </div>
         )}
@@ -1173,21 +1163,13 @@ function ActionContextPanel({
   );
 }
 
-function ContextLine({
-  label,
-  value,
-}: {
-  label: string;
-  value?: string | number;
-}) {
-  return (
-    <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-3">
-      <span className="text-amber-700/70">{label}</span>
-      <span className="truncate font-mono text-slate-700" title={String(value || "-")}>
-        {value || "-"}
-      </span>
-    </div>
-  );
+function actionContextPanelTitle(action: RemediationActionOption) {
+  const actionCode = action.action_code.trim().toLowerCase();
+  if (actionCode === "file.restore") return "恢复依据";
+  if (actionCode.includes("restore")) return "恢复依据";
+  if (actionCode.includes("bypass")) return "放行依据";
+  if (actionCode.includes("enable")) return "启用依据";
+  return "历史上下文";
 }
 
 function SectionTitle({
