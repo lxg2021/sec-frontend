@@ -77,6 +77,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
   },
   {
+    id: "scheduled-task-restore",
+    title: "恢复计划任务",
+    actionCodes: ["scheduled_job.restore", "task.restore", "scheduled_task.restore"],
+    inputBranch: "scheduled_task",
+    snapshotBranch: "scheduled_task",
+    parameters: [],
+  },
+  {
     id: "service-delete",
     title: "删除服务",
     actionCodes: ["service.delete"],
@@ -85,6 +93,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     parameters: [
       { key: "stop_before_delete", label: "先停止服务", kind: "boolean", defaultValue: true },
     ],
+  },
+  {
+    id: "service-restore",
+    title: "恢复服务",
+    actionCodes: ["service.restore"],
+    inputBranch: "service",
+    snapshotBranch: "service",
+    parameters: [],
   },
   {
     id: "account-disable",
