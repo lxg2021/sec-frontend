@@ -988,10 +988,9 @@ function buildSnapshotView(
         rows: compactSnapshotRows([
           snapshotRow("Hive", record, ["hive"], { mono: true }),
           snapshotRow("Key Path", record, ["key_path"], { mono: true, wide: true }),
-          snapshotRow("Value Name", record, ["value_name"], { mono: true }),
-          snapshotRow("Value Data", record, ["value_data"], {
+          snapshotRow("Value Name", record, ["value_name"], {
             mono: true,
-            wide: true,
+            includeEmpty: true,
           }),
           snapshotRow("Backup ID", record, ["backup_id"], { mono: true }),
         ]),
@@ -1091,14 +1090,16 @@ function snapshotRow(
   label: string,
   record: Record<string, unknown>,
   keys: string[],
-  options: Pick<SnapshotRow, "mono" | "wide"> = {},
+  options: Pick<SnapshotRow, "mono" | "wide"> & { includeEmpty?: boolean } = {},
 ): SnapshotRow | null {
+  const { includeEmpty, ...rowOptions } = options;
   for (const key of keys) {
     const value = formatSnapshotValue(record[key]);
     if (value !== "") {
-      return { label, value, ...options };
+      return { label, value, ...rowOptions };
     }
   }
+  if (includeEmpty) return { label, value: "-", ...rowOptions };
   return null;
 }
 

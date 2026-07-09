@@ -88,6 +88,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     parameters: [],
   },
   {
+    id: "scheduled-task-enable",
+    title: "启用计划任务",
+    actionCodes: ["task.enable", "scheduled_task.enable"],
+    inputBranch: "scheduled_task",
+    snapshotBranch: "scheduled_task",
+    parameters: [],
+  },
+  {
     id: "service-delete",
     title: "删除服务",
     actionCodes: ["service.delete"],
@@ -101,6 +109,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     id: "service-restore",
     title: "恢复服务",
     actionCodes: ["service.restore"],
+    inputBranch: "service",
+    snapshotBranch: "service",
+    parameters: [],
+  },
+  {
+    id: "service-enable",
+    title: "启用服务",
+    actionCodes: ["service.enable"],
     inputBranch: "service",
     snapshotBranch: "service",
     parameters: [],
@@ -183,6 +199,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     ],
   },
   {
+    id: "wmi-class-restore",
+    title: "恢复 WMI Class",
+    actionCodes: ["wmi_class.restore"],
+    inputBranch: "wmi_class",
+    snapshotBranch: "wmi_class",
+    parameters: [],
+  },
+  {
     id: "wmi-subscription-delete",
     title: "删除 WMI 订阅",
     actionCodes: ["wmi_subscription.delete"],
@@ -193,12 +217,28 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     ],
   },
   {
+    id: "wmi-subscription-restore",
+    title: "恢复 WMI 订阅",
+    actionCodes: ["wmi_subscription.restore"],
+    inputBranch: "wmi_subscription",
+    snapshotBranch: "wmi_subscription",
+    parameters: [],
+  },
+  {
     id: "bits-job-delete",
     title: "删除 BITS Job",
     actionCodes: ["bits.delete", "bits_job.delete"],
     inputBranch: "bits_job",
     snapshotBranch: "bits_job",
     parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
+  },
+  {
+    id: "bits-job-restore",
+    title: "恢复 BITS Job",
+    actionCodes: ["bits.restore", "bits_job.restore"],
+    inputBranch: "bits_job",
+    snapshotBranch: "bits_job",
+    parameters: [],
   },
   {
     id: "file-ea-delete",
@@ -209,12 +249,28 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
   },
   {
+    id: "file-ea-restore",
+    title: "恢复文件 EA",
+    actionCodes: ["file_ea.restore"],
+    inputBranch: "file_ea",
+    snapshotBranch: "file",
+    parameters: [],
+  },
+  {
     id: "ntfs-ads-delete",
     title: "删除 NTFS ADS",
     actionCodes: ["ntfs_ads.delete"],
     inputBranch: "ntfs_ads",
     snapshotBranch: "file",
     parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
+  },
+  {
+    id: "ntfs-ads-restore",
+    title: "恢复 NTFS ADS",
+    actionCodes: ["ntfs_ads.restore"],
+    inputBranch: "ntfs_ads",
+    snapshotBranch: "file",
+    parameters: [],
   },
   {
     id: "process-block-execute",
@@ -229,12 +285,28 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     ],
   },
   {
+    id: "process-bypass-execute",
+    title: "放行进程执行",
+    actionCodes: ["process.bypass_execute", "process.bypass"],
+    inputBranch: "process_block",
+    snapshotBranch: "process",
+    parameters: [],
+  },
+  {
     id: "network-block",
     title: "网络阻断",
     actionCodes: ["net.block", "network.block"],
     inputBranch: "net_block",
     snapshotBranch: "network",
     parameters: [{ key: "direction", label: "阻断方向", kind: "text", defaultValue: "out" }],
+  },
+  {
+    id: "network-bypass",
+    title: "放行网络策略",
+    actionCodes: ["net.bypass", "network.bypass"],
+    inputBranch: "net_block",
+    snapshotBranch: "network",
+    parameters: [],
   },
 ];
 
@@ -336,6 +408,7 @@ export function remediationTemplateActionDisplayName(
   fallback: string,
 ) {
   if (!action) return fallback;
+  if (action.requires_history && action.display_name) return action.display_name;
   if (template.id !== "generic") return template.title;
   return action.display_name || fallback;
 }
