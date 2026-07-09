@@ -2,6 +2,13 @@
 
 import { Checkbox } from "@/shared/ui/checkbox";
 import { Input } from "@/shared/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
 import { cn } from "@/shared/lib/utils";
 
 import type {
@@ -12,7 +19,7 @@ import type {
 
 type InputBranch = keyof RemediationActionInput;
 type SnapshotBranch = keyof RemediationTargetSnapshot;
-type ParameterKind = "boolean" | "text" | "password";
+type ParameterKind = "boolean" | "text" | "password" | "select";
 
 export interface RemediationTemplateValues {
   includeChildProcesses: boolean;
@@ -28,6 +35,7 @@ interface TemplateParameter {
   required?: boolean;
   editable?: boolean;
   span?: 1 | 2;
+  options?: Array<{ label: string; value: string }>;
 }
 
 export interface RemediationPreviewTemplate {
@@ -302,7 +310,19 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     actionCodes: ["net.block", "network.block"],
     inputBranch: "net_block",
     snapshotBranch: "network",
-    parameters: [{ key: "direction", label: "阻断方向", kind: "text", defaultValue: "out" }],
+    parameters: [
+      {
+        key: "direction",
+        label: "阻断方向",
+        kind: "select",
+        defaultValue: "out",
+        options: [
+          { label: "出站", value: "out" },
+          { label: "入站", value: "in" },
+          { label: "双向", value: "both" },
+        ],
+      },
+    ],
   },
   {
     id: "network-bypass",
@@ -541,6 +561,7 @@ function parameterValues(
         kind: field.kind,
         label: field.label,
         editable: field.editable,
+        options: field.options,
         placeholder: field.placeholder,
         required: field.required,
         rawValue,
@@ -551,6 +572,7 @@ function parameterValues(
     .filter((item) =>
       item.kind === "boolean" ||
       item.kind === "password" ||
+      item.kind === "select" ||
       item.editable ||
       item.value !== "",
     );
@@ -622,6 +644,38 @@ function TemplateParameterControl({
           className="size-4 rounded border-slate-300 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950"
         />
         <span className="font-medium leading-none">{item.label}</span>
+      </label>
+    );
+  }
+
+  if (item.kind === "select") {
+    return (
+      <label
+        className={cn(
+          cellClassName,
+          "flex min-h-10 items-center gap-3 text-xs text-slate-700",
+          disabled ? "opacity-60" : "",
+        )}
+      >
+        <span className="shrink-0 font-medium leading-none text-slate-500">
+          {item.label}
+        </span>
+        <Select
+          value={stringValue(item.rawValue)}
+          disabled={disabled}
+          onValueChange={(value) => onChange(value)}
+        >
+          <SelectTrigger className="h-8 flex-1 rounded-lg border-slate-200 bg-white px-2.5 text-xs shadow-none focus:ring-1 focus:ring-slate-300 focus:ring-offset-0">
+            <SelectValue placeholder={item.label} />
+          </SelectTrigger>
+          <SelectContent>
+            {(item.options ?? []).map((option) => (
+              <SelectItem key={option.value} value={option.value} className="text-xs">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </label>
     );
   }
