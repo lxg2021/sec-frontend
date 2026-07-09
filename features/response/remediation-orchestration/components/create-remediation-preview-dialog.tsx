@@ -551,7 +551,26 @@ function validateHistoryContexts(
     };
   }
 
+  if (requiresPolicyContext(action)) {
+    const missingPolicyAgents = agentIds.filter((agentId) => {
+      const context = exactActionContext(agentId, action.contexts);
+      return !context?.policy_id?.trim();
+    });
+    if (missingPolicyAgents.length > 0) {
+      return {
+        ok: false,
+        message: `缺少放行 Policy ID：${missingPolicyAgents.slice(0, 3).join("、")}`,
+      };
+    }
+  }
+
   return { ok: true, message: "已匹配后端返回的历史上下文" };
+}
+
+function requiresPolicyContext(action: RemediationActionOption) {
+  const actionCode = action.action_code.trim().toLowerCase();
+  const actionType = action.action_type.trim().toLowerCase();
+  return actionCode.includes("bypass") || actionType === "bypass";
 }
 
 function historyContextKey(context: RemediationActionContext | undefined) {
@@ -909,6 +928,7 @@ function buildSnapshotView(
             mono: true,
             wide: true,
           }),
+          actionPolicyIdRow(action),
           snapshotRow("Process GUID", record, ["process_guid"], {
             mono: true,
             wide: true,
@@ -1107,6 +1127,27 @@ function snapshotRow(
 
 function compactSnapshotRows(rows: Array<SnapshotRow | null>) {
   return rows.filter(Boolean) as SnapshotRow[];
+}
+
+function actionPolicyIdRow(
+  action: RemediationActionOption | null | undefined,
+): SnapshotRow | null {
+  if (!action || !requiresPolicyContext(action)) return null;
+
+  const policyIds = Array.from(
+    new Set(
+      action.contexts
+        .map((context) => context.policy_id?.trim())
+        .filter(Boolean) as string[],
+    ),
+  );
+
+  return {
+    label: "Policy ID",
+    value: policyIds.length > 0 ? policyIds.join("\n") : "-",
+    mono: true,
+    wide: true,
+  };
 }
 
 function formatSnapshotValue(value: unknown) {

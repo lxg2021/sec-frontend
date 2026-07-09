@@ -456,7 +456,7 @@ export function RemediationTemplateParameterControls({
     return <span className="text-xs text-slate-400">未选择动作</span>;
   }
   if (selectedAction.requires_history) {
-    return <span className="text-xs text-slate-600">无需手动参数，使用恢复依据</span>;
+    return <span className="text-xs text-slate-600">{historyParameterText(selectedAction)}</span>;
   }
   if (template.isProcessTerminate) {
     return (
@@ -507,6 +507,13 @@ export function RemediationTemplateParameterControls({
       ))}
     </div>
   );
+}
+
+function historyParameterText(action: RemediationActionOption) {
+  const actionCode = action.action_code.trim().toLowerCase();
+  if (actionCode.includes("bypass")) return "无需手动参数，使用 Policy ID 放行依据";
+  if (actionCode.includes("enable")) return "无需手动参数，使用启用依据";
+  return "无需手动参数，使用恢复依据";
 }
 
 function parameterValues(
