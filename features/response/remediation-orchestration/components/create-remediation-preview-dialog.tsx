@@ -141,8 +141,16 @@ export function CreateRemediationPreviewDialog({
     if (!open) return;
     setCreateState("idle");
     setError("");
-    setTemplateValues(initialRemediationTemplateValues(baseActionInput));
-  }, [baseActionInput, open, selectedAction?.action_code, selectedNode?.node_key]);
+    setTemplateValues(
+      initialRemediationTemplateValues(baseActionInput, selectedTemplate),
+    );
+  }, [
+    baseActionInput,
+    open,
+    selectedAction?.action_code,
+    selectedNode?.node_key,
+    selectedTemplate,
+  ]);
 
   const agentIds = useMemo(
     () => resolvePreviewAgentIds(selectedNode, agentResolve),
@@ -584,7 +592,7 @@ function TargetSnapshotPanel({
   return (
     <section className="rounded-[20px] border border-slate-200 bg-white p-4">
       <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
-        <SectionTitle icon={Cpu} title="目标快照" />
+        <SectionTitle icon={Cpu} title={snapshotView?.title || "目标快照"} />
       </div>
       {snapshotView && snapshotView.rows.length > 0 ? (
         <div className="mt-3 grid gap-2 md:grid-cols-2">

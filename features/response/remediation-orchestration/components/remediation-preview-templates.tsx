@@ -15,6 +15,7 @@ type ParameterKind = "boolean" | "text";
 
 export interface RemediationTemplateValues {
   includeChildProcesses: boolean;
+  parameterOverrides: Record<string, unknown>;
 }
 
 interface TemplateParameter {
@@ -192,12 +193,14 @@ export function getRemediationPreviewTemplate(
 
 export function initialRemediationTemplateValues(
   input: RemediationActionInput | undefined,
+  template?: RemediationPreviewTemplate,
 ): RemediationTemplateValues {
   return {
     includeChildProcesses: boolValue(
       objectValue(input?.process_terminate).include_children,
       true,
     ),
+    parameterOverrides: template ? templateInitialValues(template, input) : {},
   };
 }
 
@@ -213,15 +216,23 @@ export function buildRemediationTemplateInput({
   values: RemediationTemplateValues;
 }): RemediationActionInput | undefined {
   if (!selectedAction || selectedAction.requires_history) return undefined;
-  if (!template.isProcessTerminate) return baseInput;
+  if (template.id === "generic") return baseInput;
+
+  const templateInput = {
+    ...templateDefaults(template),
+    ...objectValue(baseInput?.[template.inputBranch]),
+    ...values.parameterOverrides,
+  };
 
   return {
     ...baseInput,
-    process_terminate: {
-      ...objectValue(baseInput?.process_terminate),
-      include_self: true,
-      include_children: values.includeChildProcesses,
-    },
+    [template.inputBranch]: template.isProcessTerminate
+      ? {
+          ...templateInput,
+          include_self: true,
+          include_children: values.includeChildProcesses,
+        }
+      : templateInput,
   };
 }
 
@@ -306,15 +317,23 @@ export function RemediationTemplateParameterControls({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {fields.map((item) => (
-        <span
-          key={item.label}
-          className="inline-flex h-7 items-center rounded-full bg-slate-100 px-2.5 text-[11px] font-medium text-slate-600"
-          title={`${item.label}: ${item.value}`}
-        >
-          {item.label}: {item.value}
-        </span>
+    <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl bg-slate-50">
+      {fields.map((item, index) => (
+        <TemplateParameterControl
+          disabled={disabled}
+          item={item}
+          key={item.key}
+          index={index}
+          onChange={(value) =>
+            onValuesChange({
+              ...values,
+              parameterOverrides: {
+                ...values.parameterOverrides,
+                [item.key]: value,
+              },
+            })
+          }
+        />
       ))}
     </div>
   );
@@ -329,15 +348,107 @@ function parameterValues(
     .map((field) => {
       const rawValue =
         record[field.key] === undefined ? field.defaultValue : record[field.key];
-      const value =
-        field.kind === "boolean"
-          ? boolValue(rawValue, Boolean(field.defaultValue))
-            ? "是"
-            : "否"
-          : shortValue(stringValue(rawValue));
-      return { label: field.label, value };
+      if (field.kind === "boolean") {
+        return {
+          key: field.key,
+          kind: field.kind,
+          label: field.label,
+          rawValue: boolValue(rawValue, Boolean(field.defaultValue)),
+          value: "",
+        };
+      }
+      return {
+        key: field.key,
+        kind: field.kind,
+        label: field.label,
+        rawValue,
+        value: shortValue(displayParameterValue(field.key, stringValue(rawValue))),
+      };
     })
-    .filter((item) => item.value !== "");
+    .filter((item) => item.kind === "boolean" || item.value !== "");
+}
+
+function TemplateParameterControl({
+  disabled,
+  index,
+  item,
+  onChange,
+}: {
+  disabled: boolean;
+  index: number;
+  item: ReturnType<typeof parameterValues>[number];
+  onChange: (value: unknown) => void;
+}) {
+  const cellClassName = cn(
+    "min-w-0 border-slate-100 px-3 py-2",
+    index % 2 === 1 ? "border-l" : "",
+    index > 1 ? "border-t" : "",
+  );
+
+  if (item.kind === "boolean") {
+    return (
+      <label
+        className={cn(
+          cellClassName,
+          "inline-flex min-h-9 cursor-pointer items-center gap-2 text-xs text-slate-700 transition-colors hover:bg-white/70",
+          disabled ? "cursor-not-allowed opacity-60" : "",
+        )}
+      >
+        <Checkbox
+          checked={Boolean(item.rawValue)}
+          disabled={disabled}
+          onCheckedChange={(checked) => onChange(checked === true)}
+          className="size-4 rounded border-slate-300 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950"
+        />
+        <span className="font-medium leading-none">{item.label}</span>
+      </label>
+    );
+  }
+
+  return (
+    <span className={cn(cellClassName, "inline-flex min-h-9 items-center text-xs text-slate-500")}>
+      <span className="shrink-0 text-slate-400">{item.label}</span>
+      <span className="mx-1 text-slate-300">/</span>
+      <span className="truncate font-medium text-slate-700">{item.value}</span>
+    </span>
+  );
+}
+
+function displayParameterValue(key: string, value: string) {
+  const normalizedKey = key.trim().toLowerCase();
+  const normalizedValue = value.trim().toLowerCase();
+  if (normalizedKey === "storage" && normalizedValue === "local") return "本地";
+  if (normalizedKey === "direction" && normalizedValue === "out") return "出站";
+  if (normalizedKey === "direction" && normalizedValue === "in") return "入站";
+  if (normalizedKey === "direction" && normalizedValue === "both") return "双向";
+  return value;
+}
+
+function templateDefaults(template: RemediationPreviewTemplate) {
+  return template.parameters.reduce<Record<string, unknown>>((result, field) => {
+    if (field.defaultValue !== undefined) {
+      result[field.key] = field.defaultValue;
+    }
+    return result;
+  }, {});
+}
+
+function templateInitialValues(
+  template: RemediationPreviewTemplate,
+  input: RemediationActionInput | undefined,
+) {
+  const record = objectValue(input?.[template.inputBranch]);
+  return template.parameters.reduce<Record<string, unknown>>((result, field) => {
+    const value =
+      record[field.key] === undefined ? field.defaultValue : record[field.key];
+    if (value !== undefined) {
+      result[field.key] =
+        field.kind === "boolean"
+          ? boolValue(value, Boolean(field.defaultValue))
+          : value;
+    }
+    return result;
+  }, {});
 }
 
 function templateByActionFamily(actionCode: string) {
