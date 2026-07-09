@@ -11,6 +11,7 @@ import {
   DatabaseZap,
   FileCode2,
   GitBranch,
+  ListChecks,
   Loader2,
   RotateCcw,
   Route,
@@ -344,14 +345,16 @@ export function RemediationExecutionBatchesPanel({
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-base font-semibold text-slate-950">
-            处置执行记录
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            展示当前案件的处置批次、目标执行明细和工作流状态回写结果
-          </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-sky-200 bg-sky-50 text-sky-600">
+            <ListChecks className="size-4" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold text-slate-950">
+              处置结果
+            </h2>
+          </div>
         </div>
         <Button
           type="button"
