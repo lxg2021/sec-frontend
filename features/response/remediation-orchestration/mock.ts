@@ -86,6 +86,7 @@ export const MOCK_NODES: RemediationCandidateNode[] = [
       file: {
         file_path: "c:/users/public/update.exe",
         file_hash: "e3b0c44298fc1c149afbf4c8996fb924",
+        stream_name: "payload.ps1",
       },
     },
   },
