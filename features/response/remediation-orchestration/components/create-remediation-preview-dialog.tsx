@@ -918,8 +918,14 @@ function buildSnapshotView(
             mono: true,
             wide: true,
           }),
-          snapshotRow("Stream Name", record, ["stream_name"], { mono: true }),
-          snapshotRow("EA Names", record, ["ea_names"], { mono: true }),
+          snapshotRow("Stream Name", record, ["stream_name"], {
+            mono: true,
+            wide: true,
+          }),
+          snapshotRow("EA Names", record, ["ea_names"], {
+            mono: true,
+            wide: true,
+          }),
           snapshotRow("Backup ID", record, ["backup_id"], {
             mono: true,
             wide: true,
