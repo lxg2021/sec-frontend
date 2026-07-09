@@ -871,7 +871,9 @@ function SnapshotField({
         className={cn(
           "mt-1 text-xs leading-5 text-slate-800",
           mono ? "font-mono" : "",
-          wide ? "break-all" : "truncate",
+          display.includes("\n") ? "whitespace-pre-wrap break-all" : "",
+          wide && !display.includes("\n") ? "break-all" : "",
+          !wide && !display.includes("\n") ? "truncate" : "",
         )}
         title={display}
       >
@@ -1109,7 +1111,7 @@ function compactSnapshotRows(rows: Array<SnapshotRow | null>) {
 
 function formatSnapshotValue(value: unknown) {
   if (Array.isArray(value)) {
-    return value.map((item) => stringValue(item)).filter(Boolean).join(", ");
+    return value.map((item) => stringValue(item)).filter(Boolean).join("\n");
   }
   return stringValue(value);
 }

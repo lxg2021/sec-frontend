@@ -26,6 +26,8 @@ interface TemplateParameter {
   defaultValue?: string | number | boolean;
   placeholder?: string;
   required?: boolean;
+  editable?: boolean;
+  span?: 1 | 2;
 }
 
 export interface RemediationPreviewTemplate {
@@ -279,8 +281,10 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     inputBranch: "process_block",
     snapshotBranch: "process",
     parameters: [
-      { key: "object_path", label: "阻断路径", kind: "text" },
-      { key: "object_hash", label: "阻断 Hash", kind: "text" },
+      { key: "subject_path", label: "父进程路径", kind: "text", editable: true, span: 2 },
+      { key: "subject_hash", label: "父进程 Hash", kind: "text", editable: true, span: 2 },
+      { key: "except_path", label: "例外路径", kind: "text", editable: true, span: 2 },
+      { key: "except_hash", label: "例外 Hash", kind: "text", editable: true, span: 2 },
       { key: "audit", label: "开启审计", kind: "boolean", defaultValue: true },
     ],
   },
@@ -529,22 +533,29 @@ function parameterValues(
         key: field.key,
         kind: field.kind,
         label: field.label,
+        editable: field.editable,
         placeholder: field.placeholder,
         required: field.required,
         rawValue,
+        span: field.span,
         value: shortValue(displayParameterValue(field.key, stringValue(rawValue))),
       };
     })
-    .filter((item) => item.kind === "boolean" || item.kind === "password" || item.value !== "");
+    .filter((item) =>
+      item.kind === "boolean" ||
+      item.kind === "password" ||
+      item.editable ||
+      item.value !== "",
+    );
   return withParameterLayout(items);
 }
 
-function withParameterLayout<T extends { kind: ParameterKind }>(items: T[]) {
+function withParameterLayout<T extends { kind: ParameterKind; span?: 1 | 2 }>(items: T[]) {
   let row = 0;
   let column = 0;
 
   return items.map((item) => {
-    const span = item.kind === "password" ? 2 : 1;
+    const span = item.span ?? (item.kind === "password" ? 2 : 1);
     if (span === 2 && column !== 0) {
       row += 1;
       column = 0;
@@ -608,7 +619,7 @@ function TemplateParameterControl({
     );
   }
 
-  if (item.kind === "password") {
+  if (item.kind === "password" || item.editable) {
     return (
       <label
         className={cn(
@@ -622,12 +633,12 @@ function TemplateParameterControl({
           {item.required ? <span className="ml-0.5 text-red-500">*</span> : null}
         </span>
         <Input
-          type="password"
+          type={item.kind === "password" ? "password" : "text"}
           value={stringValue(item.rawValue)}
           disabled={disabled}
           placeholder={item.placeholder || item.label}
           onChange={(event) => onChange(event.target.value)}
-          className="h-8 max-w-[260px] flex-1 rounded-lg border-slate-200 bg-white px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:ring-offset-0"
+          className="h-8 flex-1 rounded-lg border-slate-200 bg-white px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-slate-300 focus-visible:ring-offset-0"
         />
       </label>
     );

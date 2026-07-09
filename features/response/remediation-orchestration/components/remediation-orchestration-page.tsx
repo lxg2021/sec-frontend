@@ -309,6 +309,7 @@ function scopeTypeLabel(scopeType: string) {
 
 function actionInputFor(
   actionCode: string,
+  node?: RemediationCandidateNode,
 ): RemediationActionInput | undefined {
   switch (actionCode) {
     case "file.quarantine":
@@ -320,13 +321,25 @@ function actionInputFor(
       };
     case "process.block_execute":
     case "process.bypass_execute":
-      return { process_block: { audit: true } };
+      return {
+        process_block: {
+          object_path: stringRecordValue(node?.snapshot?.process, "process_path"),
+          object_hash: stringRecordValue(node?.snapshot?.process, "hash"),
+          audit: true,
+        },
+      };
     case "net.block":
     case "net.bypass":
       return { net_block: { direction: "out" } };
     default:
       return undefined;
   }
+}
+
+function stringRecordValue(record: unknown, key: string) {
+  if (!record || typeof record !== "object" || Array.isArray(record)) return "";
+  const value = (record as Record<string, unknown>)[key];
+  return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim();
 }
 
 function nodeIcon(entityType: string): ComponentType<{ className?: string }> {
@@ -1056,7 +1069,7 @@ export function RemediationOrchestrationPage({
 
         <CreateRemediationPreviewDialog
           agentResolve={agentResolve}
-          buildActionInput={(actionCode) => actionInputFor(actionCode)}
+          buildActionInput={(actionCode, node) => actionInputFor(actionCode, node)}
           caseId={currentCaseId}
           expireSeconds={600}
           onCreated={(nextPreview, nextDetail) => {
