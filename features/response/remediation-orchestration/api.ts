@@ -7,20 +7,27 @@ import type {
   CancelRemediationPreviewRequest,
   ConfirmRemediationPreviewRequest,
   CreateRemediationPreviewRequest,
+  GetRemediationExecutionResultRequest,
+  GetRemediationPreviewDetailRequest,
+  ListRemediationPreviewsRequest,
   QueryRemediationNodeActionsRequest,
   QueryRemediationPreviewRequest,
-  QueryRemediationWorkflowDetailRequest,
   QueryRemediationWorkflowStatsRequest,
-  QueryRemediationWorkflowStatusRequest,
   RemediationActionContext,
   RemediationActionOption,
   RemediationExecutionSnapshot,
   RemediationExecutionStats,
   RemediationExecutionTarget,
+  RemediationExecutionTargetSummary,
   RemediationNodeAction,
   RemediationNodeActionsResult,
+  RemediationPageInfo,
+  RemediationPreviewList,
+  RemediationPreviewListItem,
   RemediationPreviewSnapshot,
   RemediationPreviewStats,
+  RemediationPreviewTargetSnapshot,
+  RemediationPreviewTargetSummary,
   RemediationWorkflowDetail,
   RemediationWorkflowStats,
   RemediationWorkflowStatsGroup,
@@ -161,6 +168,29 @@ function normalizeExecutionStats(raw: unknown): RemediationExecutionStats {
     total_count: numberValue(item.total_count),
     created_count: numberValue(item.created_count),
     dispatched_count: numberValue(item.dispatched_count),
+    running_count: numberValue(item.running_count),
+    success_count: numberValue(item.success_count),
+    failed_count: numberValue(item.failed_count),
+    skipped_count: numberValue(item.skipped_count),
+  }
+}
+
+function normalizePreviewTargetSummary(raw: unknown): RemediationPreviewTargetSummary {
+  const item = objectValue(raw)
+  return {
+    total_count: numberValue(item.total_count),
+    will_apply_count: numberValue(item.will_apply_count),
+    skipped_count: numberValue(item.skipped_count),
+  }
+}
+
+function normalizeExecutionTargetSummary(raw: unknown): RemediationExecutionTargetSummary {
+  const item = objectValue(raw)
+  return {
+    total_count: numberValue(item.total_count),
+    created_count: numberValue(item.created_count),
+    dispatched_count: numberValue(item.dispatched_count),
+    running_count: numberValue(item.running_count),
     success_count: numberValue(item.success_count),
     failed_count: numberValue(item.failed_count),
     skipped_count: numberValue(item.skipped_count),
@@ -196,6 +226,56 @@ function normalizeStatsItem(raw: unknown): RemediationWorkflowStatsItem {
   }
 }
 
+function normalizePageInfo(raw: unknown): RemediationPageInfo {
+  const item = objectValue(raw)
+  return {
+    page: numberValue(item.page) || 1,
+    page_size: numberValue(item.page_size) || 20,
+    total: numberValue(item.total),
+    has_next: boolValue(item.has_next),
+  }
+}
+
+function normalizePreviewListItem(raw: unknown): RemediationPreviewListItem {
+  const item = objectValue(raw)
+  return {
+    tenant_id: stringValue(item.tenant_id),
+    preview_id: stringValue(item.preview_id),
+    execution_id: stringValue(item.execution_id),
+    workflow_id: stringValue(item.workflow_id),
+    workflow_action_id: stringValue(item.workflow_action_id),
+    case_id: stringValue(item.case_id),
+    source_request_id: stringValue(item.source_request_id),
+    preview_status: stringValue(item.preview_status),
+    execute_status: stringValue(item.execute_status),
+    source_type: stringValue(item.source_type),
+    scope_type: stringValue(item.scope_type),
+    scope_id: stringValue(item.scope_id),
+    target_type: enumValue(item.target_type),
+    action_type: stringValue(item.action_type),
+    plan_status: enumValue(item.plan_status),
+    created_at: stringValue(item.created_at),
+    confirmed_at: stringValue(item.confirmed_at),
+    expires_at: stringValue(item.expires_at),
+    preview_target_summary: normalizePreviewTargetSummary(item.preview_target_summary),
+    target_summary: normalizeExecutionTargetSummary(item.target_summary),
+  }
+}
+
+function normalizePreviewList(raw: unknown): RemediationPreviewList {
+  const item = objectValue(raw)
+  return {
+    tenant_id: stringValue(item.tenant_id),
+    start_time: stringValue(item.start_time),
+    end_time: stringValue(item.end_time),
+    timezone: stringValue(item.timezone),
+    preview_summary: normalizePreviewStats(item.preview_summary),
+    target_summary: normalizeExecutionTargetSummary(item.target_summary),
+    items: objectArray(item.items).map(normalizePreviewListItem),
+    page: normalizePageInfo(item.page),
+  }
+}
+
 function normalizeWorkflowStats(raw: unknown): RemediationWorkflowStats {
   const item = objectValue(raw)
   return {
@@ -205,6 +285,26 @@ function normalizeWorkflowStats(raw: unknown): RemediationWorkflowStats {
     timezone: stringValue(item.timezone),
     summary: normalizeStatsGroup(item.summary),
     items: objectArray(item.items).map(normalizeStatsItem),
+  }
+}
+
+function normalizePreviewTargetSnapshot(raw: unknown): RemediationPreviewTargetSnapshot {
+  const item = objectValue(raw)
+  return {
+    target_index: numberValue(item.target_index),
+    agent_id: stringValue(item.agent_id),
+    node_keys: stringArray(item.node_keys),
+    rule_id: stringValue(item.rule_id),
+    target_key: stringValue(item.target_key),
+    target_identifier: stringValue(item.target_identifier),
+    target_display: stringValue(item.target_display),
+    dedupe_status: enumValue(item.dedupe_status),
+    dedupe_reason: stringValue(item.dedupe_reason),
+    will_apply: boolValue(item.will_apply),
+    existing_task_id: stringValue(item.existing_task_id),
+    validation_status: enumValue(item.validation_status),
+    validation_reason: stringValue(item.validation_reason),
+    backup_id: stringValue(item.backup_id),
   }
 }
 
@@ -285,15 +385,32 @@ function normalizeExecutionSnapshot(raw: unknown): RemediationExecutionSnapshot 
   }
 }
 
-function normalizeWorkflowDetail(raw: unknown): RemediationWorkflowDetail {
+function normalizePreviewDetailAsWorkflowDetail(raw: unknown): RemediationWorkflowDetail {
   const item = objectValue(raw)
+  const preview = normalizePreviewSnapshot(item.preview)
+  const execution = normalizeExecutionSnapshot(item.execution)
+  const previewStatus = preview?.preview_status ?? ""
+  const previewTargetSummary = normalizePreviewTargetSummary(item.preview_target_summary)
+  const targetSummary = normalizeExecutionTargetSummary(item.target_summary)
   return {
     tenant_id: stringValue(item.tenant_id),
     preview_id: stringValue(item.preview_id),
-    execution_id: stringValue(item.execution_id),
-    preview: normalizePreviewSnapshot(item.preview),
-    execution: normalizeExecutionSnapshot(item.execution),
-    stats: normalizeStatsGroup(item.stats),
+    execution_id: execution?.execution_id ?? "",
+    preview,
+    preview_targets: objectArray(item.preview_targets).map(normalizePreviewTargetSnapshot),
+    execution,
+    preview_target_summary: previewTargetSummary,
+    target_summary: targetSummary,
+    stats: {
+      preview_stats: {
+        total_count: preview ? 1 : 0,
+        created_count: previewStatus === "created" ? 1 : 0,
+        confirmed_count: previewStatus === "confirmed" ? 1 : 0,
+        canceled_count: previewStatus === "canceled" ? 1 : 0,
+        expired_count: previewStatus === "expired" ? 1 : 0,
+      },
+      execution_stats: normalizeExecutionStats(item.target_summary),
+    },
   }
 }
 
@@ -373,14 +490,34 @@ export async function cancelRemediationPreview(
   return normalizePreviewSnapshot(data)
 }
 
-export async function queryRemediationWorkflowStatus(
-  params: Omit<QueryRemediationWorkflowStatusRequest, "request_id">,
+export async function getRemediationExecutionResult(
+  params: Omit<GetRemediationExecutionResultRequest, "request_id">,
 ) {
   const data = await postData<unknown>(
-    "/sensor/workflow/remediation/status/query",
+    "/sensor/workflow/remediation/execution/result",
     withRequestId(params),
   )
-  return normalizeExecutionSnapshot(data)
+  return normalizeExecutionSnapshot(objectValue(data).execution)
+}
+
+export async function getRemediationPreviewDetail(
+  params: Omit<GetRemediationPreviewDetailRequest, "request_id">,
+) {
+  const data = await postData<unknown>(
+    "/sensor/workflow/remediation/preview/detail",
+    withRequestId(params),
+  )
+  return normalizePreviewDetailAsWorkflowDetail(data)
+}
+
+export async function listRemediationPreviews(
+  params: Omit<ListRemediationPreviewsRequest, "request_id">,
+) {
+  const data = await postData<unknown>(
+    "/sensor/workflow/remediation/previews/query",
+    withRequestId(params),
+  )
+  return normalizePreviewList(data)
 }
 
 export async function queryRemediationWorkflowStats(
@@ -391,14 +528,4 @@ export async function queryRemediationWorkflowStats(
     withRequestId(params),
   )
   return normalizeWorkflowStats(data)
-}
-
-export async function queryRemediationWorkflowDetail(
-  params: Omit<QueryRemediationWorkflowDetailRequest, "request_id">,
-) {
-  const data = await postData<unknown>(
-    "/sensor/workflow/remediation/detail/query",
-    withRequestId(params),
-  )
-  return normalizeWorkflowDetail(data)
 }

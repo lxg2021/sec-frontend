@@ -166,11 +166,29 @@ export interface CancelRemediationPreviewRequest {
   cancel_reason?: string
 }
 
-export interface QueryRemediationWorkflowStatusRequest {
+export interface GetRemediationExecutionResultRequest {
   request_id: string
   tenant_id?: string
-  execution_id?: string
-  preview_id?: string
+  execution_id: string
+}
+
+export interface GetRemediationPreviewDetailRequest {
+  request_id: string
+  tenant_id?: string
+  preview_id: string
+}
+
+export interface ListRemediationPreviewsRequest {
+  request_id: string
+  tenant_id?: string
+  case_id?: string
+  workflow_id?: string
+  workflow_action_id?: string
+  start_time?: string
+  end_time?: string
+  timezone?: string
+  page?: number
+  page_size?: number
 }
 
 export interface QueryRemediationWorkflowStatsRequest {
@@ -182,13 +200,6 @@ export interface QueryRemediationWorkflowStatsRequest {
   workflow_action_id?: string
   workflow_id?: string
   case_id?: string
-}
-
-export interface QueryRemediationWorkflowDetailRequest {
-  request_id: string
-  tenant_id?: string
-  execution_id?: string
-  preview_id?: string
 }
 
 export interface RemediationPreviewStats {
@@ -203,6 +214,23 @@ export interface RemediationExecutionStats {
   total_count: number
   created_count: number
   dispatched_count: number
+  running_count: number
+  success_count: number
+  failed_count: number
+  skipped_count: number
+}
+
+export interface RemediationPreviewTargetSummary {
+  total_count: number
+  will_apply_count: number
+  skipped_count: number
+}
+
+export interface RemediationExecutionTargetSummary {
+  total_count: number
+  created_count: number
+  dispatched_count: number
+  running_count: number
   success_count: number
   failed_count: number
   skipped_count: number
@@ -240,6 +268,47 @@ export interface RemediationWorkflowStats {
   items: RemediationWorkflowStatsItem[]
 }
 
+export interface RemediationPageInfo {
+  page: number
+  page_size: number
+  total: number
+  has_next: boolean
+}
+
+export interface RemediationPreviewListItem {
+  tenant_id: string
+  preview_id: string
+  execution_id: string
+  workflow_id: string
+  workflow_action_id: string
+  case_id: string
+  source_request_id: string
+  preview_status: string
+  execute_status: string
+  source_type: string
+  scope_type: string
+  scope_id: string
+  target_type: string | number
+  action_type: string
+  plan_status: string | number
+  created_at: string
+  confirmed_at: string
+  expires_at: string
+  preview_target_summary: RemediationPreviewTargetSummary
+  target_summary: RemediationExecutionTargetSummary
+}
+
+export interface RemediationPreviewList {
+  tenant_id: string
+  start_time: string
+  end_time: string
+  timezone: string
+  preview_summary: RemediationPreviewStats
+  target_summary: RemediationExecutionTargetSummary
+  items: RemediationPreviewListItem[]
+  page: RemediationPageInfo
+}
+
 export interface RemediationPreviewSnapshot {
   tenant_id: string
   preview_id: string
@@ -261,6 +330,23 @@ export interface RemediationPreviewSnapshot {
   canceled_at: string
   workflow_action_id: string
   case_id: string
+}
+
+export interface RemediationPreviewTargetSnapshot {
+  target_index: number
+  agent_id: string
+  node_keys: string[]
+  rule_id: string
+  target_key: string
+  target_identifier: string
+  target_display: string
+  dedupe_status: string | number
+  dedupe_reason: string
+  will_apply: boolean
+  existing_task_id: string
+  validation_status: string | number
+  validation_reason: string
+  backup_id: string
 }
 
 export interface RemediationExecutionTarget {
@@ -311,7 +397,10 @@ export interface RemediationWorkflowDetail {
   preview_id: string
   execution_id: string
   preview: RemediationPreviewSnapshot | null
+  preview_targets: RemediationPreviewTargetSnapshot[]
   execution: RemediationExecutionSnapshot | null
+  preview_target_summary: RemediationPreviewTargetSummary
+  target_summary: RemediationExecutionTargetSummary
   stats: RemediationWorkflowStatsGroup
 }
 

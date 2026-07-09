@@ -1,7 +1,14 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useMemo, useState, type ComponentType, type FormEvent, type ReactNode } from "react"
-import { useRouter } from "next/navigation"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type ComponentType,
+  type FormEvent,
+} from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   ArrowRight,
@@ -17,28 +24,27 @@ import {
   Square,
   TerminalSquare,
   Workflow,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   createAttackWorkflowAction,
   getAttackWorkflow,
   getAttackWorkflowByCaseId,
   updateAttackWorkflowStatus,
-} from "@/features/attack/workflow/api"
+} from "@/features/attack/workflow/api";
 import type {
   AttackWorkflowActionItem,
   AttackWorkflowItem,
   AttackWorkflowStatus,
-} from "@/features/attack/workflow/types"
+} from "@/features/attack/workflow/types";
 import {
-  formatWorkflowTime,
   normalizeWorkflowStatus,
   workflowStatusIndex,
-} from "@/features/attack/workflow/utils"
-import { cn } from "@/shared/lib/utils"
-import { Badge } from "@/shared/ui/badge"
-import { Button } from "@/shared/ui/button"
-import { useToast } from "@/shared/ui/use-toast"
+} from "@/features/attack/workflow/utils";
+import { cn } from "@/shared/lib/utils";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
+import { useToast } from "@/shared/ui/use-toast";
 
 import {
   cancelRemediationPreview,
@@ -46,7 +52,7 @@ import {
   createRemediationPreview,
   queryRemediationNodeActions,
   resolveRemediationNodeAgents,
-} from "../api"
+} from "../api";
 import {
   MOCK_ACTION_OPTIONS,
   MOCK_DETAIL,
@@ -55,7 +61,7 @@ import {
   MOCK_REMEDIATION_ACTION,
   MOCK_STATS,
   MOCK_WORKFLOW,
-} from "../mock"
+} from "../mock";
 import type {
   RemediationActionInput,
   RemediationActionOption,
@@ -67,15 +73,18 @@ import type {
   RemediationWorkflowDetail,
   RemediationWorkflowStats,
   ResolveRemediationNodeAgentsResponse,
-} from "../types"
+} from "../types";
+import { RemediationConfigPanel } from "./remediation-config-panel";
 import {
-  RemediationExecutionBatchesPanel,
-  type RemediationExecutionBatchesData,
-} from "./remediation-execution-batches-panel"
+  RemediationHistoryPanel,
+  type RemediationHistoryData,
+} from "./remediation-history-panel";
+import { RemediationPreviewPanel } from "./remediation-preview-panel";
+import { RemediationTargetPanel } from "./remediation-target-panel";
 
-const RESPONSE_TIMEZONE = "Asia/Shanghai"
-const PAGE_SOURCE = "remediation_orchestration_page"
-const RESPONDING_STATUS: AttackWorkflowStatus = "responding"
+const RESPONSE_TIMEZONE = "Asia/Shanghai";
+const PAGE_SOURCE = "remediation_orchestration_page";
+const RESPONDING_STATUS: AttackWorkflowStatus = "responding";
 
 const STATUS_LABELS: Record<string, string> = {
   detected: "已发现",
@@ -100,9 +109,10 @@ const STATUS_LABELS: Record<string, string> = {
   partial: "部分可执行",
   blocked: "阻断",
   resolved: "已解析",
+  unresolved: "未解析",
   ambiguous: "多 Agent",
   unresolvable: "不可解析",
-}
+};
 
 const ACTION_LABELS: Record<string, string> = {
   "file.quarantine": "隔离文件",
@@ -113,49 +123,49 @@ const ACTION_LABELS: Record<string, string> = {
   "process.bypass_execute": "放行执行",
   "net.block": "阻断网络",
   "net.bypass": "放行网络",
-}
+};
 
 function canonicalRemediationAction(
   actions: AttackWorkflowActionItem[],
   caseId: string,
 ) {
-  const normalizedCaseId = caseId.trim()
+  const normalizedCaseId = caseId.trim();
   return (
     actions.find((action) => {
-      const actionPhase = action.action_phase.trim().toLowerCase()
-      const targetType = action.target_type.trim().toLowerCase()
-      const actionType = action.action_type.trim().toLowerCase()
-      const targetKey = action.target_key.trim()
+      const actionPhase = action.action_phase.trim().toLowerCase();
+      const targetType = action.target_type.trim().toLowerCase();
+      const actionType = action.action_type.trim().toLowerCase();
+      const targetKey = action.target_key.trim();
       return (
         actionPhase === "remediation" &&
         targetType === "case" &&
         actionType === "remediation_orchestration" &&
         !action.action_batch_id.trim() &&
         (!normalizedCaseId || targetKey === normalizedCaseId)
-      )
+      );
     }) ??
     actions.find(
       (action) => action.action_phase.trim().toLowerCase() === "remediation",
     ) ??
     null
-  )
+  );
 }
 
 function todayDate() {
-  const now = new Date()
-  const pad = (value: number) => String(value).padStart(2, "0")
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
 function monthAgoDate() {
-  const now = new Date()
-  now.setMonth(now.getMonth() - 1)
-  const pad = (value: number) => String(value).padStart(2, "0")
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+  const now = new Date();
+  now.setMonth(now.getMonth() - 1);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
 function formatHeaderRefreshTime(value?: Date | null) {
-  if (!value) return "--"
+  if (!value) return "--";
 
   const parts = new Intl.DateTimeFormat("zh-CN", {
     timeZone: RESPONSE_TIMEZONE,
@@ -166,102 +176,181 @@ function formatHeaderRefreshTime(value?: Date | null) {
     minute: "2-digit",
     second: "2-digit",
     hour12: false,
-  }).formatToParts(value)
+  }).formatToParts(value);
   const getPart = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((item) => item.type === type)?.value ?? "00"
+    parts.find((item) => item.type === type)?.value ?? "00";
 
-  return `${getPart("year")}-${getPart("month")}-${getPart("day")} ${getPart("hour")}:${getPart("minute")}:${getPart("second")}`
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")} ${getPart("hour")}:${getPart("minute")}:${getPart("second")}`;
 }
 
 function workflowBeforeResponding(status: string) {
-  const normalized = normalizeWorkflowStatus(status)
+  const normalized = normalizeWorkflowStatus(status);
   return Boolean(
     normalized &&
-      workflowStatusIndex(normalized) >= 0 &&
-      workflowStatusIndex(normalized) < workflowStatusIndex(RESPONDING_STATUS),
-  )
+    workflowStatusIndex(normalized) >= 0 &&
+    workflowStatusIndex(normalized) < workflowStatusIndex(RESPONDING_STATUS),
+  );
 }
 
 function statusLabel(status: string | number | undefined) {
   const normalized =
     typeof status === "number"
       ? String(status)
-      : String(status ?? "").trim().toLowerCase()
-  return STATUS_LABELS[normalized] ?? String(status ?? "-")
+      : String(status ?? "")
+          .trim()
+          .toLowerCase();
+  return STATUS_LABELS[normalized] ?? String(status ?? "-");
 }
 
 function statusTone(status: string | number | undefined) {
-  const normalized = String(status ?? "").trim().toLowerCase()
-  if (["success", "ready", "resolved", "confirmed", "confirmed_preview", "remediated"].includes(normalized)) {
-    return "emerald"
+  const normalized = String(status ?? "")
+    .trim()
+    .toLowerCase();
+  if (
+    [
+      "success",
+      "ready",
+      "resolved",
+      "confirmed",
+      "confirmed_preview",
+      "remediated",
+    ].includes(normalized)
+  ) {
+    return "emerald";
   }
-  if (["failed", "blocked", "unresolvable", "canceled", "expired"].includes(normalized)) {
-    return "red"
+  if (
+    ["failed", "blocked", "unresolvable", "canceled", "expired"].includes(
+      normalized,
+    )
+  ) {
+    return "red";
   }
-  if (["created", "dispatched", "running", "pending", "ambiguous", "partial", "responding"].includes(normalized)) {
-    return "amber"
+  if (
+    [
+      "created",
+      "dispatched",
+      "running",
+      "pending",
+      "ambiguous",
+      "partial",
+      "responding",
+    ].includes(normalized)
+  ) {
+    return "amber";
   }
-  if (["closed", "skipped"].includes(normalized)) return "slate"
-  return "blue"
+  if (["closed", "skipped"].includes(normalized)) return "slate";
+  return "blue";
 }
 
 function toneClasses(tone: string) {
   switch (tone) {
     case "emerald":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
+      return "border-emerald-200 bg-emerald-50 text-emerald-700";
     case "red":
-      return "border-red-200 bg-red-50 text-red-700"
+      return "border-red-200 bg-red-50 text-red-700";
     case "amber":
-      return "border-amber-200 bg-amber-50 text-amber-700"
+      return "border-amber-200 bg-amber-50 text-amber-700";
     case "slate":
-      return "border-slate-200 bg-slate-50 text-slate-600"
+      return "border-slate-200 bg-slate-50 text-slate-600";
     default:
-      return "border-sky-200 bg-sky-50 text-sky-700"
+      return "border-sky-200 bg-sky-50 text-sky-700";
   }
 }
 
-function formatExecutionTime(value: string) {
-  return formatWorkflowTime(value)
-}
-
 function actionLabel(actionCode: string) {
-  return ACTION_LABELS[actionCode] ?? actionCode
+  return ACTION_LABELS[actionCode] ?? actionCode;
 }
 
-function actionInputFor(actionCode: string): RemediationActionInput | undefined {
+function actionOptionLabel(option: RemediationActionOption) {
+  return option.display_name?.trim() || actionLabel(option.action_code);
+}
+
+function actionOptionHint(option: RemediationActionOption) {
+  const hints = [
+    option.requires_agent ? "需要终端" : "",
+    option.requires_history ? "依赖历史" : "",
+    option.contexts.length > 0 ? `${option.contexts.length} 个上下文` : "",
+  ].filter(Boolean);
+  return hints.join(" · ") || "当前目标可执行";
+}
+
+function entityTypeLabel(entityType: string) {
+  const normalized = entityType.trim().toLowerCase();
+  if (normalized.includes("file")) return "文件";
+  if (normalized.includes("process")) return "进程";
+  if (normalized.includes("net")) return "网络";
+  if (normalized.includes("dns")) return "域名";
+  if (normalized.includes("url")) return "URL";
+  if (normalized.includes("account")) return "账号";
+  if (normalized.includes("service")) return "服务";
+  return entityType || "目标";
+}
+
+function shortValue(value: string) {
+  const normalized = value.trim();
+  if (!normalized) return "-";
+  if (normalized.length <= 18) return normalized;
+  return `${normalized.slice(0, 12)}...${normalized.slice(-4)}`;
+}
+
+function sourceTypeLabel(sourceType: string) {
+  const normalized = sourceType.trim().toLowerCase();
+  if (normalized === "case_graph") return "案件图谱";
+  if (normalized === "drill_graph") return "溯源图谱";
+  if (normalized === "locate_graph") return "定位图谱";
+  if (normalized === "manual") return "手动创建";
+  return sourceType || "-";
+}
+
+function scopeTypeLabel(scopeType: string) {
+  const normalized = scopeType.trim().toLowerCase();
+  if (normalized === "case") return "案件范围";
+  if (normalized === "positioning") return "定位范围";
+  return scopeType || "-";
+}
+
+function actionInputFor(
+  actionCode: string,
+): RemediationActionInput | undefined {
   switch (actionCode) {
     case "file.quarantine":
-      return { file_quarantine: { delete_original: true, encrypt: true } }
+      return { file_quarantine: { delete_original: true, encrypt: true } };
     case "process.terminate":
     case "process.force_terminate":
-      return { process_terminate: { include_self: true, include_children: true } }
+      return {
+        process_terminate: { include_self: true, include_children: true },
+      };
     case "process.block_execute":
     case "process.bypass_execute":
-      return { process_block: { audit: true } }
+      return { process_block: { audit: true } };
     case "net.block":
     case "net.bypass":
-      return { net_block: { direction: "out" } }
+      return { net_block: { direction: "out" } };
     default:
-      return undefined
+      return undefined;
   }
 }
 
 function nodeIcon(entityType: string): ComponentType<{ className?: string }> {
-  const normalized = entityType.trim().toLowerCase()
-  if (normalized.includes("file")) return FileWarning
-  if (normalized.includes("process")) return TerminalSquare
-  if (normalized.includes("net") || normalized.includes("dns") || normalized.includes("url")) {
-    return Network
+  const normalized = entityType.trim().toLowerCase();
+  if (normalized.includes("file")) return FileWarning;
+  if (normalized.includes("process")) return TerminalSquare;
+  if (
+    normalized.includes("net") ||
+    normalized.includes("dns") ||
+    normalized.includes("url")
+  ) {
+    return Network;
   }
-  return Square
+  return Square;
 }
 
 function isMockContext(context: RemediationOrchestrationContext) {
-  return !context.case_id?.trim() && !context.workflow_id?.trim()
+  return !context.case_id?.trim() && !context.workflow_id?.trim();
 }
 
 function statusBadge(status: string | number | undefined, className?: string) {
-  const tone = statusTone(status)
+  const tone = statusTone(status);
   return (
     <Badge
       variant="outline"
@@ -273,100 +362,7 @@ function statusBadge(status: string | number | undefined, className?: string) {
     >
       {statusLabel(status)}
     </Badge>
-  )
-}
-
-function HeaderMeta({
-  label,
-  value,
-  accent,
-}: {
-  label: string
-  value: string
-  accent?: "green" | "amber" | "blue"
-}) {
-  return (
-    <div
-      className={cn(
-        "flex h-12 min-w-0 flex-col justify-center rounded-full border px-4",
-        accent === "green"
-          ? "border-emerald-500/20 bg-emerald-500/10"
-          : accent === "amber"
-            ? "border-amber-500/20 bg-amber-500/10"
-            : accent === "blue"
-              ? "border-sky-500/20 bg-sky-500/10"
-              : "border-slate-200 bg-slate-50",
-      )}
-    >
-      <div
-        className={cn(
-          "truncate text-[11px] font-medium",
-          accent === "green"
-            ? "text-emerald-600"
-            : accent === "amber"
-              ? "text-amber-600"
-              : accent === "blue"
-                ? "text-sky-600"
-                : "text-slate-400",
-        )}
-      >
-        {label}
-      </div>
-      <div className="mt-0.5 truncate font-mono text-xs font-medium text-slate-700" title={value}>
-        {value || "-"}
-      </div>
-    </div>
-  )
-}
-
-function InterfaceCard({
-  step,
-  title,
-  endpoint,
-  children,
-  tone = "blue",
-}: {
-  step: string
-  title: string
-  endpoint: string
-  children: ReactNode
-  tone?: "blue" | "green" | "amber" | "slate"
-}) {
-  const dotClass =
-    tone === "green"
-      ? "bg-emerald-500"
-      : tone === "amber"
-        ? "bg-amber-500"
-        : tone === "slate"
-          ? "bg-slate-500"
-          : "bg-sky-500"
-  const boxClass =
-    tone === "green"
-      ? "border-emerald-200 bg-emerald-50/80"
-      : tone === "amber"
-        ? "border-amber-200 bg-amber-50/80"
-        : tone === "slate"
-          ? "border-slate-200 bg-slate-50/80"
-          : "border-sky-200 bg-sky-50/80"
-
-  return (
-    <div className={cn("rounded-2xl border p-4", boxClass)}>
-      <div className="flex items-start gap-3">
-        <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white", dotClass)}>
-          {step}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-slate-900">{title}</div>
-          <div className="mt-1 truncate font-mono text-[11px] text-slate-500" title={endpoint}>
-            {endpoint}
-          </div>
-        </div>
-      </div>
-      <div className="mt-3 space-y-1.5 font-mono text-[11px] leading-5 text-slate-600">
-        {children}
-      </div>
-    </div>
-  )
+  );
 }
 
 function EmptyState({
@@ -374,25 +370,29 @@ function EmptyState({
   title,
   description,
 }: {
-  icon: ComponentType<{ className?: string }>
-  title: string
-  description: string
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
 }) {
   return (
     <div className="flex min-h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-6 text-center">
       <Icon className="size-8 text-slate-300" />
       <div className="mt-3 text-sm font-medium text-slate-700">{title}</div>
-      <div className="mt-1 max-w-sm text-xs leading-5 text-slate-500">{description}</div>
+      <div className="mt-1 max-w-sm text-xs leading-5 text-slate-500">
+        {description}
+      </div>
     </div>
-  )
+  );
 }
 
-function normalizeNodeFromContext(context: RemediationOrchestrationContext): RemediationCandidateNode | null {
-  const nodeKey = context.node_key?.trim()
-  if (!nodeKey) return null
-  const entityType = context.entity_type?.trim() || "File"
-  const displayName = context.display_name?.trim() || nodeKey
-  const agentId = context.workflow_id ? "" : MOCK_WORKFLOW.primary_agent_id
+function normalizeNodeFromContext(
+  context: RemediationOrchestrationContext,
+): RemediationCandidateNode | null {
+  const nodeKey = context.node_key?.trim();
+  if (!nodeKey) return null;
+  const entityType = context.entity_type?.trim() || "File";
+  const displayName = context.display_name?.trim() || nodeKey;
+  const agentId = context.workflow_id ? "" : MOCK_WORKFLOW.primary_agent_id;
   return {
     node_key: nodeKey,
     entity_type: entityType,
@@ -400,79 +400,91 @@ function normalizeNodeFromContext(context: RemediationOrchestrationContext): Rem
     description: "来自图谱入口参数",
     resolve_status: agentId ? "resolved" : "unresolved",
     agent_ids: agentId ? [agentId] : [],
-    snapshot:
-      entityType.toLowerCase().includes("process")
-        ? { process: { process_name: displayName, command_line: displayName } }
-        : entityType.toLowerCase().includes("net")
-          ? { network: { remote_address: displayName, protocol: "tcp" } }
-          : { file: { file_path: displayName } },
-  }
+    snapshot: entityType.toLowerCase().includes("process")
+      ? { process: { process_name: displayName, command_line: displayName } }
+      : entityType.toLowerCase().includes("net")
+        ? { network: { remote_address: displayName, protocol: "tcp" } }
+        : { file: { file_path: displayName } },
+  };
 }
 
 export function RemediationOrchestrationPage({
   context,
 }: {
-  context: RemediationOrchestrationContext
+  context: RemediationOrchestrationContext;
 }) {
-  const router = useRouter()
-  const { toast } = useToast()
-  const [workflow, setWorkflow] = useState<AttackWorkflowItem | null>(null)
-  const [action, setAction] = useState<AttackWorkflowActionItem | null>(null)
-  const [stats, setStats] = useState<RemediationWorkflowStats | null>(null)
-  const [detail, setDetail] = useState<RemediationWorkflowDetail | null>(null)
-  const [execution, setExecution] = useState<RemediationExecutionSnapshot | null>(null)
-  const [preview, setPreview] = useState<RemediationPreviewSnapshot | null>(null)
-  const [nodes, setNodes] = useState<RemediationCandidateNode[]>(MOCK_NODES)
-  const [selectedNodeKey, setSelectedNodeKey] = useState(MOCK_NODES[0]?.node_key ?? "")
-  const [actionOptions, setActionOptions] = useState<RemediationActionOption[]>(MOCK_ACTION_OPTIONS)
-  const [selectedActionCode, setSelectedActionCode] = useState(MOCK_ACTION_OPTIONS[0]?.action_code ?? "")
-  const [agentResolve, setAgentResolve] = useState<ResolveRemediationNodeAgentsResponse | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
-  const [working, setWorking] = useState("")
-  const [error, setError] = useState("")
-  const [mockMode, setMockMode] = useState(isMockContext(context))
-  const [headerCaseInput, setHeaderCaseInput] = useState(context.case_id?.trim() || "")
-  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null)
-  const [batchesRefreshKey, setBatchesRefreshKey] = useState(0)
-  const [startTime] = useState(monthAgoDate)
-  const [endTime] = useState(todayDate)
+  const router = useRouter();
+  const { toast } = useToast();
+  const [workflow, setWorkflow] = useState<AttackWorkflowItem | null>(null);
+  const [action, setAction] = useState<AttackWorkflowActionItem | null>(null);
+  const [stats, setStats] = useState<RemediationWorkflowStats | null>(null);
+  const [detail, setDetail] = useState<RemediationWorkflowDetail | null>(null);
+  const [execution, setExecution] =
+    useState<RemediationExecutionSnapshot | null>(null);
+  const [preview, setPreview] = useState<RemediationPreviewSnapshot | null>(
+    null,
+  );
+  const [nodes, setNodes] = useState<RemediationCandidateNode[]>(MOCK_NODES);
+  const [selectedNodeKey, setSelectedNodeKey] = useState(
+    MOCK_NODES[0]?.node_key ?? "",
+  );
+  const [actionOptions, setActionOptions] =
+    useState<RemediationActionOption[]>(MOCK_ACTION_OPTIONS);
+  const [selectedActionCode, setSelectedActionCode] = useState(
+    MOCK_ACTION_OPTIONS[0]?.action_code ?? "",
+  );
+  const [agentResolve, setAgentResolve] =
+    useState<ResolveRemediationNodeAgentsResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [working, setWorking] = useState("");
+  const [error, setError] = useState("");
+  const [mockMode, setMockMode] = useState(isMockContext(context));
+  const [headerCaseInput, setHeaderCaseInput] = useState(
+    context.case_id?.trim() || "",
+  );
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
+  const [batchesRefreshKey, setBatchesRefreshKey] = useState(0);
+  const [startTime] = useState(monthAgoDate);
+  const [endTime] = useState(todayDate);
 
-  const routeCaseId = context.case_id?.trim() || ""
-  const routeWorkflowId = context.workflow_id?.trim() || ""
-  const routeActionId = context.workflow_action_id?.trim() || ""
-  const tenantId = context.tenant_id?.trim() || ""
-  const currentCaseId = workflow?.case_id || routeCaseId || (mockMode ? MOCK_WORKFLOW.case_id : "")
-  const currentWorkflowId = workflow?.workflow_id || routeWorkflowId || (mockMode ? MOCK_WORKFLOW.workflow_id : "")
-  const currentActionId =
-    action?.workflow_action_id ||
-    routeActionId ||
-    (mockMode ? MOCK_REMEDIATION_ACTION.workflow_action_id : "")
-  const scopeType = context.scope_type?.trim() || "case"
-  const scopeId = context.scope_id?.trim() || currentCaseId
-  const sourceType = context.source_type?.trim() || "case_graph"
-  const workflowClosed = normalizeWorkflowStatus(workflow?.status ?? "") === "closed"
-  const selectedNode = nodes.find((node) => node.node_key === selectedNodeKey) ?? nodes[0]
+  const routeCaseId = context.case_id?.trim() || "";
+  const routeWorkflowId = context.workflow_id?.trim() || "";
+  const routeActionId = context.workflow_action_id?.trim() || "";
+  const tenantId = context.tenant_id?.trim() || "";
+  const currentCaseId =
+    workflow?.case_id || routeCaseId || (mockMode ? MOCK_WORKFLOW.case_id : "");
+  const currentWorkflowId =
+    workflow?.workflow_id ||
+    routeWorkflowId ||
+    (mockMode ? MOCK_WORKFLOW.workflow_id : "");
+  const scopeType = context.scope_type?.trim() || "case";
+  const scopeId = context.scope_id?.trim() || currentCaseId;
+  const sourceType = context.source_type?.trim() || "case_graph";
+  const workflowClosed =
+    normalizeWorkflowStatus(workflow?.status ?? "") === "closed";
+  const selectedNode =
+    nodes.find((node) => node.node_key === selectedNodeKey) ?? nodes[0];
   const selectedAction =
     actionOptions.find((option) => option.action_code === selectedActionCode) ??
-    actionOptions[0]
+    actionOptions[0];
 
-  const statsItems = useMemo(() => stats?.items ?? [], [stats])
-  const latestItem = statsItems[0]
+  const statsItems = useMemo(() => stats?.items ?? [], [stats]);
+  const latestItem = statsItems[0];
 
   const loadPage = useCallback(
     async (refreshingOnly = false) => {
       if (refreshingOnly) {
-        setRefreshing(true)
+        setRefreshing(true);
       } else {
-        setLoading(true)
+        setLoading(true);
       }
-      setError("")
+      setError("");
 
       try {
-        const demoMode = isMockContext(context)
-        let nextWorkflow: AttackWorkflowItem | null = null
-        let nextActions: AttackWorkflowActionItem[] = []
+        const demoMode = isMockContext(context);
+        let nextWorkflow: AttackWorkflowItem | null = null;
+        let nextActions: AttackWorkflowActionItem[] = [];
 
         if (!demoMode) {
           const detailResult = routeWorkflowId
@@ -489,33 +501,35 @@ export function RemediationOrchestrationPage({
                   includeActions: true,
                   includeEvents: false,
                 })
-              : null
+              : null;
 
-          nextWorkflow = detailResult?.workflow ?? null
-          nextActions = detailResult?.actions ?? []
+          nextWorkflow = detailResult?.workflow ?? null;
+          nextActions = detailResult?.actions ?? [];
         }
 
         if (!nextWorkflow) {
-          setMockMode(true)
+          setMockMode(true);
           nextWorkflow = {
             ...MOCK_WORKFLOW,
             case_id: routeCaseId || MOCK_WORKFLOW.case_id,
             root_id: routeCaseId || MOCK_WORKFLOW.root_id,
             workflow_id: routeWorkflowId || MOCK_WORKFLOW.workflow_id,
-          }
-          nextActions = [MOCK_REMEDIATION_ACTION]
+          };
+          nextActions = [MOCK_REMEDIATION_ACTION];
         } else {
-          setMockMode(false)
+          setMockMode(false);
         }
 
-        const nextCaseId = nextWorkflow.case_id || routeCaseId
+        const nextCaseId = nextWorkflow.case_id || routeCaseId;
         const routeAction = routeActionId
-          ? nextActions.find((item) => item.workflow_action_id === routeActionId) ?? null
-          : null
+          ? (nextActions.find(
+              (item) => item.workflow_action_id === routeActionId,
+            ) ?? null)
+          : null;
         const nextAction =
-          routeAction ?? canonicalRemediationAction(nextActions, nextCaseId)
+          routeAction ?? canonicalRemediationAction(nextActions, nextCaseId);
 
-        setWorkflow(nextWorkflow)
+        setWorkflow(nextWorkflow);
         setAction(
           nextAction ??
             (demoMode
@@ -526,90 +540,94 @@ export function RemediationOrchestrationPage({
                   target_key: nextWorkflow.case_id,
                 }
               : null),
-        )
+        );
 
-        const contextNode = normalizeNodeFromContext(context)
+        const contextNode = normalizeNodeFromContext(context);
         if (contextNode) {
-          setNodes([contextNode, ...MOCK_NODES])
-          setSelectedNodeKey(contextNode.node_key)
+          setNodes([contextNode, ...MOCK_NODES]);
+          setSelectedNodeKey(contextNode.node_key);
         }
 
         if (demoMode) {
-          setStats(MOCK_STATS)
-          setDetail(MOCK_DETAIL)
-          setExecution(MOCK_EXECUTION)
+          setStats(MOCK_STATS);
+          setDetail(MOCK_DETAIL);
+          setExecution(MOCK_EXECUTION);
         } else {
-          setStats(null)
-          setDetail(null)
-          setExecution(null)
+          setStats(null);
+          setDetail(null);
+          setExecution(null);
         }
-        setBatchesRefreshKey((current) => current + 1)
+        setBatchesRefreshKey((current) => current + 1);
       } catch (err) {
-        setMockMode(true)
-        setWorkflow(MOCK_WORKFLOW)
-        setAction(MOCK_REMEDIATION_ACTION)
-        setStats(MOCK_STATS)
-        setDetail(MOCK_DETAIL)
-        setExecution(MOCK_EXECUTION)
-        setError(err instanceof Error ? err.message : "处置编排数据加载失败，当前展示接口示例数据")
+        setMockMode(true);
+        setWorkflow(MOCK_WORKFLOW);
+        setAction(MOCK_REMEDIATION_ACTION);
+        setStats(MOCK_STATS);
+        setDetail(MOCK_DETAIL);
+        setExecution(MOCK_EXECUTION);
+        setError(
+          err instanceof Error
+            ? err.message
+            : "处置编排数据加载失败，当前展示演示数据",
+        );
       } finally {
-        setRefreshedAt(new Date())
-        setLoading(false)
-        setRefreshing(false)
+        setRefreshedAt(new Date());
+        setLoading(false);
+        setRefreshing(false);
       }
     },
     [context, routeActionId, routeCaseId, routeWorkflowId, tenantId],
-  )
+  );
 
   useEffect(() => {
-    void loadPage(false)
-  }, [loadPage])
+    void loadPage(false);
+  }, [loadPage]);
 
   useEffect(() => {
-    setHeaderCaseInput(routeCaseId || workflow?.case_id || "")
-  }, [routeCaseId, workflow?.case_id])
+    setHeaderCaseInput(routeCaseId || workflow?.case_id || "");
+  }, [routeCaseId, workflow?.case_id]);
 
   function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
-    event?.preventDefault()
-    const nextCaseId = headerCaseInput.trim()
-    const current = (routeCaseId || workflow?.case_id || "").trim()
+    event?.preventDefault();
+    const nextCaseId = headerCaseInput.trim();
+    const current = (routeCaseId || workflow?.case_id || "").trim();
 
     if (nextCaseId === current) {
-      void loadPage(true)
-      return
+      void loadPage(true);
+      return;
     }
 
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams(window.location.search);
     if (nextCaseId) {
-      params.set("case_id", nextCaseId)
-      params.set("scope_type", "case")
-      params.set("scope_id", nextCaseId)
+      params.set("case_id", nextCaseId);
+      params.set("scope_type", "case");
+      params.set("scope_id", nextCaseId);
     } else {
-      params.delete("case_id")
-      params.delete("scope_id")
+      params.delete("case_id");
+      params.delete("scope_id");
     }
-    params.delete("workflow_id")
-    params.delete("workflow_action_id")
+    params.delete("workflow_id");
+    params.delete("workflow_action_id");
 
-    const query = params.toString()
-    router.push(`${window.location.pathname}${query ? `?${query}` : ""}`)
+    const query = params.toString();
+    router.push(`${window.location.pathname}${query ? `?${query}` : ""}`);
   }
 
   function refreshHeader() {
-    const nextCaseId = headerCaseInput.trim()
-    const current = (routeCaseId || workflow?.case_id || "").trim()
+    const nextCaseId = headerCaseInput.trim();
+    const current = (routeCaseId || workflow?.case_id || "").trim();
     if (nextCaseId !== current) {
-      submitHeaderCase()
-      return
+      submitHeaderCase();
+      return;
     }
-    void loadPage(true)
+    void loadPage(true);
   }
 
   async function ensureCanonicalAction() {
-    if (action?.workflow_action_id) return action
-    if (!workflow?.workflow_id || !currentCaseId || workflowClosed) return null
+    if (action?.workflow_action_id) return action;
+    if (!workflow?.workflow_id || !currentCaseId || workflowClosed) return null;
 
-    setWorking("ensure-action")
+    setWorking("ensure-action");
     try {
       const created = await createAttackWorkflowAction({
         tenantId,
@@ -621,23 +639,28 @@ export function RemediationOrchestrationPage({
         actionType: "remediation_orchestration",
         actionStatus: "pending",
         createdBy: PAGE_SOURCE,
-      })
+      });
 
       if (!created?.workflow_action_id) {
-        throw new Error("后端未返回 workflow_action_id")
+        throw new Error("处置阶段准备失败");
       }
 
-      setAction(created)
-      toast({ title: "已创建处置阶段 action" })
-      return created
+      setAction(created);
+      toast({ title: "已准备处置阶段" });
+      return created;
     } finally {
-      setWorking("")
+      setWorking("");
     }
   }
 
   async function moveWorkflowToResponding() {
-    if (!workflow || workflowClosed || !workflowBeforeResponding(workflow.status)) return workflow
-    setWorking("move-responding")
+    if (
+      !workflow ||
+      workflowClosed ||
+      !workflowBeforeResponding(workflow.status)
+    )
+      return workflow;
+    setWorking("move-responding");
     try {
       const updated = await updateAttackWorkflowStatus({
         tenantId,
@@ -647,21 +670,21 @@ export function RemediationOrchestrationPage({
           source: PAGE_SOURCE,
           comment: "enter remediation orchestration",
         }),
-      })
+      });
       if (updated) {
-        setWorkflow(updated)
-        toast({ title: "工作流已进入处置阶段" })
-        return updated
+        setWorkflow(updated);
+        toast({ title: "工作流已进入处置阶段" });
+        return updated;
       }
-      return workflow
+      return workflow;
     } finally {
-      setWorking("")
+      setWorking("");
     }
   }
 
   async function resolveSelectedNode() {
-    if (!selectedNode || mockMode) return
-    setWorking("resolve-node")
+    if (!selectedNode || mockMode) return;
+    setWorking("resolve-node");
     try {
       const resolved = await resolveRemediationNodeAgents({
         tenant_id: tenantId,
@@ -669,8 +692,8 @@ export function RemediationOrchestrationPage({
         scope_id: scopeId,
         node_key: selectedNode.node_key,
         entity_type: selectedNode.entity_type,
-      })
-      setAgentResolve(resolved)
+      });
+      setAgentResolve(resolved);
       setNodes((current) =>
         current.map((node) =>
           node.node_key === selectedNode.node_key
@@ -681,21 +704,21 @@ export function RemediationOrchestrationPage({
               }
             : node,
         ),
-      )
+      );
     } catch (err) {
       toast({
         title: "Agent 解析失败",
         description: err instanceof Error ? err.message : undefined,
         variant: "destructive",
-      })
+      });
     } finally {
-      setWorking("")
+      setWorking("");
     }
   }
 
   async function querySelectedNodeActions() {
-    if (!selectedNode || mockMode) return
-    setWorking("query-actions")
+    if (!selectedNode || mockMode) return;
+    setWorking("query-actions");
     try {
       const result = await queryRemediationNodeActions({
         tenant_id: tenantId,
@@ -707,25 +730,28 @@ export function RemediationOrchestrationPage({
           entity_type: selectedNode.entity_type,
           agent_ids: selectedNode.agent_ids,
         },
-      })
-      const actions = result.node.actions
-      setActionOptions(actions.length > 0 ? actions : [])
-      setSelectedActionCode(actions[0]?.action_code ?? "")
+      });
+      const actions = result.node.actions;
+      setActionOptions(actions.length > 0 ? actions : []);
+      setSelectedActionCode(actions[0]?.action_code ?? "");
     } catch (err) {
       toast({
         title: "动作查询失败",
         description: err instanceof Error ? err.message : undefined,
         variant: "destructive",
-      })
+      });
     } finally {
-      setWorking("")
+      setWorking("");
     }
   }
 
   function buildPreviewTarget(): RemediationPreviewTargetInput | null {
-    if (!selectedNode || !selectedAction) return null
-    const agentIds = selectedNode.agent_ids.length > 0 ? selectedNode.agent_ids : agentResolve?.agent_ids ?? []
-    if (agentIds.length === 0) return null
+    if (!selectedNode || !selectedAction) return null;
+    const agentIds =
+      selectedNode.agent_ids.length > 0
+        ? selectedNode.agent_ids
+        : (agentResolve?.agent_ids ?? []);
+    if (agentIds.length === 0) return null;
 
     return {
       node_key: selectedNode.node_key,
@@ -734,40 +760,41 @@ export function RemediationOrchestrationPage({
       agents: agentIds.map((agentId) => ({
         agent_id: agentId,
         action_context:
-          selectedAction.contexts.find((contextItem) => contextItem.agent_id === agentId) ??
-          selectedAction.contexts[0],
+          selectedAction.contexts.find(
+            (contextItem) => contextItem.agent_id === agentId,
+          ) ?? selectedAction.contexts[0],
       })),
       target_display: selectedNode.display_name,
       snapshot: selectedNode.snapshot,
       input: actionInputFor(selectedAction.action_code),
-    }
+    };
   }
 
   async function handleCreatePreview() {
-    if (workflowClosed) return
+    if (workflowClosed) return;
     if (mockMode) {
-      setPreview(MOCK_DETAIL.preview)
-      toast({ title: "演示模式已生成预览示例" })
-      return
+      setPreview(MOCK_DETAIL.preview);
+      toast({ title: "演示模式已生成预览示例" });
+      return;
     }
 
-    const target = buildPreviewTarget()
+    const target = buildPreviewTarget();
     if (!target) {
       toast({
         title: "无法创建预览",
         description: "请先选择已解析 Agent 的处置节点和动作",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setWorking("create-preview")
+    setWorking("create-preview");
     try {
-      const ensuredAction = await ensureCanonicalAction()
+      const ensuredAction = await ensureCanonicalAction();
       if (!ensuredAction?.workflow_action_id) {
-        throw new Error("缺少 remediation workflow_action_id，不能创建处置预览")
+        throw new Error("缺少处置阶段，不能创建处置预览");
       }
-      await moveWorkflowToResponding()
+      await moveWorkflowToResponding();
       const nextPreview = await createRemediationPreview({
         tenant_id: tenantId,
         expire_seconds: 600,
@@ -778,97 +805,129 @@ export function RemediationOrchestrationPage({
         scope_type: scopeType,
         scope_id: scopeId,
         targets: [target],
-      })
-      if (!nextPreview?.preview_id) throw new Error("后端未返回 preview_id")
-      setPreview(nextPreview)
-      toast({ title: "处置预览已创建" })
-      setBatchesRefreshKey((current) => current + 1)
+      });
+      if (!nextPreview?.preview_id)
+        throw new Error("预览创建失败，缺少批次信息");
+      setPreview(nextPreview);
+      toast({ title: "处置预览已创建" });
+      setBatchesRefreshKey((current) => current + 1);
     } catch (err) {
       toast({
         title: "创建预览失败",
         description: err instanceof Error ? err.message : undefined,
         variant: "destructive",
-      })
+      });
     } finally {
-      setWorking("")
+      setWorking("");
     }
   }
 
   async function handleConfirmPreview() {
-    const previewId = preview?.preview_id || latestItem?.preview_id
-    if (!previewId || workflowClosed) return
+    const previewId = preview?.preview_id;
+    if (!previewId || workflowClosed) return;
     if (mockMode) {
-      setExecution(MOCK_EXECUTION)
-      setDetail(MOCK_DETAIL)
-      setBatchesRefreshKey((current) => current + 1)
-      toast({ title: "演示模式已确认执行示例" })
-      return
+      setExecution(MOCK_EXECUTION);
+      setDetail(MOCK_DETAIL);
+      setBatchesRefreshKey((current) => current + 1);
+      toast({ title: "演示模式已确认执行示例" });
+      return;
     }
 
-    setWorking("confirm-preview")
+    setWorking("confirm-preview");
     try {
       const nextExecution = await confirmRemediationPreview({
         tenant_id: tenantId,
         preview_id: previewId,
-      })
-      if (!nextExecution?.execution_id) throw new Error("后端未返回 execution_id")
-      setExecution(nextExecution)
-      setBatchesRefreshKey((current) => current + 1)
-      toast({ title: "处置预览已确认并下发" })
+      });
+      if (!nextExecution?.execution_id)
+        throw new Error("执行确认失败，缺少批次信息");
+      setExecution(nextExecution);
+      setBatchesRefreshKey((current) => current + 1);
+      toast({ title: "处置预览已确认并下发" });
     } catch (err) {
       toast({
         title: "确认预览失败",
         description: err instanceof Error ? err.message : undefined,
         variant: "destructive",
-      })
+      });
     } finally {
-      setWorking("")
+      setWorking("");
     }
   }
 
   async function handleCancelPreview() {
-    const previewId = preview?.preview_id || latestItem?.preview_id
-    if (!previewId || workflowClosed) return
+    const previewId = preview?.preview_id;
+    if (!previewId || workflowClosed) return;
     if (mockMode) {
-      setPreview(null)
-      setBatchesRefreshKey((current) => current + 1)
-      toast({ title: "演示预览已取消" })
-      return
+      setPreview(null);
+      setBatchesRefreshKey((current) => current + 1);
+      toast({ title: "演示预览已取消" });
+      return;
     }
 
-    setWorking("cancel-preview")
+    setWorking("cancel-preview");
     try {
       const nextPreview = await cancelRemediationPreview({
         tenant_id: tenantId,
         preview_id: previewId,
         cancel_reason: "operator canceled from remediation orchestration page",
-      })
-      setPreview(nextPreview)
-      setBatchesRefreshKey((current) => current + 1)
-      toast({ title: "处置预览已取消" })
+      });
+      setPreview(nextPreview);
+      setBatchesRefreshKey((current) => current + 1);
+      toast({ title: "处置预览已取消" });
     } catch (err) {
       toast({
         title: "取消预览失败",
         description: err instanceof Error ? err.message : undefined,
         variant: "destructive",
-      })
+      });
     } finally {
-      setWorking("")
+      setWorking("");
     }
   }
 
-  const canCreatePreview = Boolean(selectedNode && selectedAction && !workflowClosed)
-  const canConfirm =
-    Boolean(preview?.preview_id || (latestItem?.preview_status === "created" && latestItem.preview_id)) &&
-    !workflowClosed
-  const handleBatchesDataChange = useCallback(
-    ({ detail: nextDetail, execution: nextExecution, stats: nextStats }: RemediationExecutionBatchesData) => {
-      setStats(nextStats)
-      setDetail(nextDetail)
-      setExecution(nextExecution)
+  const selectRemediationNode = useCallback(
+    (node: RemediationCandidateNode) => {
+      setSelectedNodeKey(node.node_key);
+      const nextActions = MOCK_ACTION_OPTIONS.filter((option) => {
+        const entity = node.entity_type.toLowerCase();
+        if (entity.includes("file"))
+          return option.action_code.startsWith("file.");
+        if (entity.includes("process"))
+          return option.action_code.startsWith("process.");
+        if (entity.includes("net"))
+          return option.action_code.startsWith("net.");
+        return true;
+      });
+      setActionOptions(nextActions);
+      setSelectedActionCode(nextActions[0]?.action_code ?? "");
+      setPreview(null);
     },
     [],
-  )
+  );
+
+  const canCreatePreview = Boolean(
+    selectedNode && selectedAction && !workflowClosed,
+  );
+  const activePreviewStatus = String(preview?.preview_status ?? "")
+    .trim()
+    .toLowerCase();
+  const canConfirm =
+    Boolean(preview?.preview_id) &&
+    !workflowClosed &&
+    !["confirmed", "canceled", "expired"].includes(activePreviewStatus);
+  const handleBatchesDataChange = useCallback(
+    ({
+      detail: nextDetail,
+      execution: nextExecution,
+      stats: nextStats,
+    }: RemediationHistoryData) => {
+      setStats(nextStats);
+      setDetail(nextDetail);
+      setExecution(nextExecution);
+    },
+    [],
+  );
 
   return (
     <main className="min-h-[calc(100dvh-3rem)] bg-[#f5f8fb] p-4 text-slate-900 xl:p-5">
@@ -896,19 +955,25 @@ export function RemediationOrchestrationPage({
                   className="flex h-12 min-w-[260px] flex-1 basis-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:min-w-[320px] lg:basis-[420px] xl:min-w-[360px] xl:basis-auto 2xl:min-w-[520px]"
                   onSubmit={submitHeaderCase}
                 >
-                  <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
+                  <Search
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 text-slate-400"
+                  />
                   <input
                     type="search"
-                    aria-label="CaseID"
+                    aria-label="案件 ID"
                     value={headerCaseInput}
                     onChange={(event) => setHeaderCaseInput(event.target.value)}
-                    placeholder="请输入 CaseID"
+                    placeholder="请输入案件 ID"
                     disabled={loading}
                     className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </form>
 
-                <span className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block" aria-hidden="true" />
+                <span
+                  className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block"
+                  aria-hidden="true"
+                />
 
                 <div className="flex shrink-0 items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
@@ -922,7 +987,10 @@ export function RemediationOrchestrationPage({
                   </div>
                 </div>
 
-                <span className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block" aria-hidden="true" />
+                <span
+                  className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block"
+                  aria-hidden="true"
+                />
 
                 <Button
                   type="button"
@@ -933,7 +1001,12 @@ export function RemediationOrchestrationPage({
                   aria-label="刷新"
                   className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
                 >
-                  <RefreshCcw className={cn("h-4 w-4", (loading || refreshing) && "animate-spin")} />
+                  <RefreshCcw
+                    className={cn(
+                      "h-4 w-4",
+                      (loading || refreshing) && "animate-spin",
+                    )}
+                  />
                   <span className="sr-only">刷新</span>
                 </Button>
 
@@ -960,347 +1033,505 @@ export function RemediationOrchestrationPage({
             <AlertTriangle className="mt-0.5 size-4 shrink-0" />
             <div>
               <div className="font-medium">
-                {mockMode ? "当前为接口示例视图" : "处置编排数据加载异常"}
+                {mockMode ? "演示数据" : "处置编排数据加载异常"}
               </div>
               <div className="mt-0.5 text-xs leading-5 text-amber-700">
                 {error ||
-                  "URL 未携带 case_id / workflow_id，页面使用与后端 proto 对齐的示例数据展示结构，不会真实下发处置。"}
+                  "未携带案件或工作流参数，当前仅展示演示数据，不会真实下发处置。"}
               </div>
             </div>
           </div>
         ) : null}
 
-        <section className="grid min-h-[760px] gap-5 xl:grid-cols-[370px_minmax(480px,520px)_minmax(600px,1fr)]">
-          <aside className="flex min-h-0 flex-col rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-base font-semibold text-slate-950">上下文与接口链路</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  初始化必须先拿到 remediation workflow_action_id
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={loading || refreshing}
-                onClick={() => void loadPage(true)}
-                className="rounded-xl border-slate-200"
-              >
-                {refreshing ? <Loader2 className="size-4 animate-spin" /> : <RefreshCcw className="size-4" />}
-              </Button>
-            </div>
-
-            <div className="mt-5 space-y-4">
-              <InterfaceCard
-                step="1"
-                title="GetAttackWorkflow"
-                endpoint="POST /analysis/attack-workflow/get"
-              >
-                <div>include_actions=true</div>
-                <div>root_type=case / workflow_id</div>
-              </InterfaceCard>
-              <InterfaceCard
-                step="2"
-                title="Ensure canonical action"
-                endpoint="POST /analysis/attack-workflow/action/create"
-                tone="green"
-              >
-                <div>action_phase=remediation</div>
-                <div>target_type=case · action_batch_id=""</div>
-                <div>action_type=remediation_orchestration</div>
-              </InterfaceCard>
-              <InterfaceCard
-                step="3"
-                title="Move to responding"
-                endpoint="POST /analysis/attack-workflow/status/update"
-                tone="amber"
-              >
-                <div>status=responding</div>
-                <div>occurred_at=YYYY-MM-DD HH:mm:ss</div>
-              </InterfaceCard>
-            </div>
-
-            <div className="mt-6 flex min-h-0 flex-1 flex-col">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-semibold text-slate-950">可处置节点</h3>
-                  <p className="mt-1 text-sm text-slate-500">
-                    source_type={sourceType} · scope_type={scopeType}
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={!selectedNode || mockMode || working === "resolve-node"}
-                  onClick={() => void resolveSelectedNode()}
-                  className="rounded-xl border-slate-200"
-                >
-                  {working === "resolve-node" ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-                  解析
-                </Button>
-              </div>
-
-              <div className="mt-4 space-y-3">
-                {nodes.map((node) => {
-                  const Icon = nodeIcon(node.entity_type)
-                  const active = node.node_key === selectedNodeKey
-                  return (
-                    <button
-                      key={node.node_key}
-                      type="button"
-                      onClick={() => {
-                        setSelectedNodeKey(node.node_key)
-                        setActionOptions(MOCK_ACTION_OPTIONS.filter((option) => {
-                          const entity = node.entity_type.toLowerCase()
-                          if (entity.includes("file")) return option.action_code.startsWith("file.")
-                          if (entity.includes("process")) return option.action_code.startsWith("process.")
-                          if (entity.includes("net")) return option.action_code.startsWith("net.")
-                          return true
-                        }))
-                        const next = MOCK_ACTION_OPTIONS.find((option) => {
-                          const entity = node.entity_type.toLowerCase()
-                          if (entity.includes("file")) return option.action_code.startsWith("file.")
-                          if (entity.includes("process")) return option.action_code.startsWith("process.")
-                          if (entity.includes("net")) return option.action_code.startsWith("net.")
-                          return true
-                        })
-                        setSelectedActionCode(next?.action_code ?? "")
-                      }}
-                      className={cn(
-                        "group w-full rounded-2xl border p-3 text-left transition-colors duration-200",
-                        active
-                          ? "border-sky-300 bg-sky-50"
-                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 group-hover:bg-white">
-                          <Icon className="size-5" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-900">{node.entity_type}</span>
-                            {statusBadge(node.resolve_status)}
-                          </div>
-                          <div className="mt-1 truncate text-xs text-slate-500" title={node.display_name}>
-                            {node.display_name}
-                          </div>
-                          <div className="mt-1 truncate font-mono text-[11px] text-slate-400" title={node.description}>
-                            {node.description}
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </aside>
-
-          <section className="flex min-h-0 flex-col rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]">
-            <div>
-              <h2 className="text-base font-semibold text-slate-950">动作选择与处置预览</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Graph 解析 Agent，Workflow 查询动作并创建 preview
-              </p>
-            </div>
-
-            <div className="mt-5 space-y-5">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">ResolveRemediationNodeAgents</div>
-                    <div className="mt-1 font-mono text-[11px] text-slate-500">
-                      POST /graph/remediation/node-agents/resolve
-                    </div>
-                  </div>
-                  {statusBadge(agentResolve?.status || selectedNode?.resolve_status || "pending")}
-                </div>
-                <div className="mt-4 grid gap-3 text-xs text-slate-600 sm:grid-cols-2">
-                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
-                    <div className="text-slate-400">scope</div>
-                    <div className="mt-1 truncate font-mono">{scopeType} / {scopeId}</div>
-                  </div>
-                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
-                    <div className="text-slate-400">agent_ids</div>
-                    <div className="mt-1 truncate font-mono">
-                      {(selectedNode?.agent_ids ?? []).join(" / ") || "-"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">QueryRemediationNodeActions</div>
-                    <div className="mt-1 font-mono text-[11px] text-slate-500">
-                      POST /workflow/remediation/node/actions/query
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    disabled={!selectedNode || mockMode || working === "query-actions"}
-                    onClick={() => void querySelectedNodeActions()}
-                    className="rounded-xl border-sky-200 bg-white"
-                  >
-                    {working === "query-actions" ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-                    查询
-                  </Button>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  {actionOptions.length > 0 ? (
-                    actionOptions.map((option) => {
-                      const active = option.action_code === selectedActionCode
-                      return (
-                        <button
-                          type="button"
-                          key={option.action_code}
-                          onClick={() => setSelectedActionCode(option.action_code)}
-                          className={cn(
-                            "rounded-2xl border bg-white px-3 py-3 text-left transition-colors duration-200",
-                            active
-                              ? "border-sky-400 ring-2 ring-sky-100"
-                              : "border-sky-100 hover:border-sky-300",
-                          )}
-                        >
-                          <div className="font-mono text-xs text-slate-900">{option.action_code}</div>
-                          <div className="mt-1 text-[11px] text-slate-500">
-                            {actionLabel(option.action_code)} · snapshot={String(option.required_snapshot_kind || "-").toLowerCase()}
-                          </div>
-                        </button>
-                      )
-                    })
-                  ) : (
-                    <EmptyState
-                      icon={Ban}
-                      title="当前节点没有可用动作"
-                      description="请检查节点类型、Agent 解析结果，或确认后端 QueryRemediationNodeActions 返回内容"
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">CreateRemediationPreview</div>
-                    <div className="mt-1 font-mono text-[11px] text-slate-500">
-                      POST /workflow/remediation/preview
-                    </div>
-                  </div>
-                  {preview ? statusBadge(preview.preview_status || "created") : statusBadge("pending")}
-                </div>
-                <div className="mt-4 space-y-1.5 font-mono text-[11px] leading-5 text-slate-600">
-                  <div>workflow_id={currentWorkflowId}</div>
-                  <div>workflow_action_id={currentActionId}</div>
-                  <div>case_id={currentCaseId}</div>
-                  <div>source_type={sourceType} · scope_type={scopeType}</div>
-                  <div>targets[].input={selectedActionCode ? Object.keys(actionInputFor(selectedActionCode) ?? {}).join(",") || "default" : "-"}</div>
-                </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-emerald-100">
-                    <div className="text-[11px] text-slate-400">preview_id</div>
-                    <div className="mt-1 truncate font-mono text-xs text-slate-700">
-                      {preview?.preview_id || latestItem?.preview_id || "-"}
-                    </div>
-                  </div>
-                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-emerald-100">
-                    <div className="text-[11px] text-slate-400">plan_status</div>
-                    <div className="mt-1 text-xs text-emerald-700">
-                      {statusLabel(preview?.plan_status || "ready")}
-                    </div>
-                  </div>
-                  <div className="rounded-xl bg-white px-3 py-2 ring-1 ring-emerald-100">
-                    <div className="text-[11px] text-slate-400">summary</div>
-                    <div className="mt-1 truncate text-xs text-slate-700">
-                      {selectedNode?.agent_ids.length || 0} agent · {selectedActionCode || "-"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Button
-                  type="button"
-                  disabled={!canCreatePreview || working === "create-preview"}
-                  onClick={() => void handleCreatePreview()}
-                  className="h-[72px] justify-between rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
-                >
-                  <span className="flex flex-col items-start">
-                    <span className="text-sm font-semibold">Create Preview</span>
-                    <span className="mt-1 font-mono text-[11px] text-slate-300">POST /preview</span>
-                  </span>
-                  {working === "create-preview" ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!canConfirm || working === "confirm-preview"}
-                  onClick={() => void handleConfirmPreview()}
-                  className="h-[72px] justify-between rounded-2xl border-slate-200 bg-white px-5 hover:bg-emerald-50 hover:text-emerald-700"
-                >
-                  <span className="flex flex-col items-start">
-                    <span className="text-sm font-semibold">Confirm Preview</span>
-                    <span className="mt-1 font-mono text-[11px] text-slate-400">POST /preview/confirm</span>
-                  </span>
-                  {working === "confirm-preview" ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!canConfirm || working === "cancel-preview"}
-                  onClick={() => void handleCancelPreview()}
-                  className="h-11 rounded-2xl border-slate-200 bg-white hover:bg-red-50 hover:text-red-700 sm:col-span-2"
-                >
-                  {working === "cancel-preview" ? <Loader2 className="size-4 animate-spin" /> : <Ban className="size-4" />}
-                  Cancel Preview
-                </Button>
-              </div>
-            </div>
-          </section>
-
-          <RemediationExecutionBatchesPanel
-            caseId={workflow?.case_id || routeCaseId}
-            enabled={!mockMode}
-            endTime={endTime}
-            fallbackDetail={mockMode ? detail ?? MOCK_DETAIL : null}
-            fallbackExecution={mockMode ? execution ?? MOCK_EXECUTION : null}
-            fallbackStats={mockMode ? stats ?? MOCK_STATS : null}
-            onDataChange={handleBatchesDataChange}
-            refreshKey={batchesRefreshKey}
-            startTime={startTime}
-            tenantId={tenantId}
-            timezone={RESPONSE_TIMEZONE}
-            workflowActionId={action?.workflow_action_id || routeActionId}
-            workflowId={workflow?.workflow_id || routeWorkflowId}
+        <section className="grid gap-5 xl:grid-cols-[minmax(420px,1.2fr)_minmax(300px,0.78fr)_minmax(360px,1fr)]">
+          <RemediationTargetPanel
+            nodes={nodes}
+            onRefresh={() => void loadPage(true)}
+            onResolve={() => void resolveSelectedNode()}
+            onSelectNode={selectRemediationNode}
+            refreshing={refreshing}
+            scopeType={scopeType}
+            selectedNodeKey={selectedNodeKey}
+            sourceType={sourceType}
+            working={working}
+          />
+          <RemediationConfigPanel
+            actionOptions={actionOptions}
+            agentResolve={agentResolve}
+            mockMode={mockMode}
+            onQueryActions={() => void querySelectedNodeActions()}
+            onSelectAction={(actionCode) => {
+              setSelectedActionCode(actionCode);
+              setPreview(null);
+            }}
+            scopeId={scopeId}
+            scopeType={scopeType}
+            selectedActionCode={selectedActionCode}
+            selectedNode={selectedNode}
+            working={working}
+          />
+          <RemediationPreviewPanel
+            canConfirm={canConfirm}
+            canCreatePreview={canCreatePreview}
+            detail={preview ? detail : null}
+            execution={preview ? execution : null}
+            onCancelPreview={() => void handleCancelPreview()}
+            onConfirmPreview={() => void handleConfirmPreview()}
+            onCreatePreview={() => void handleCreatePreview()}
+            preview={preview}
+            selectedActionCode={selectedActionCode}
+            selectedNode={selectedNode}
+            working={working}
           />
         </section>
 
-        <section className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[17px] border border-slate-200 bg-white px-5 py-3 text-xs text-slate-500">
-          <span className="font-medium text-slate-600">状态口径:</span>
-          <span className="font-mono">
-            workflow: detected -&gt; investigating -&gt; forensics -&gt; responding -&gt; contained -&gt; remediated -&gt; closed
-          </span>
-          <span className="font-medium text-slate-600">页面主流程:</span>
-          <span className="font-mono">发现 -&gt; 调查 -&gt; 取证 -&gt; 处置 -&gt; 关闭</span>
-          <span className="font-medium text-slate-600">只读条件:</span>
-          <span className="font-mono">workflow.status=closed</span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/frame/attack/workflow")}
-            className="ml-auto rounded-xl text-slate-500 hover:bg-slate-100"
-          >
-            <Workflow className="size-4" />
-            返回工作流
-          </Button>
-        </section>
+        <RemediationHistoryPanel
+          caseId={workflow?.case_id || routeCaseId}
+          enabled={!mockMode}
+          endTime={endTime}
+          fallbackDetail={mockMode ? (detail ?? MOCK_DETAIL) : null}
+          fallbackExecution={mockMode ? (execution ?? MOCK_EXECUTION) : null}
+          fallbackStats={mockMode ? (stats ?? MOCK_STATS) : null}
+          onDataChange={handleBatchesDataChange}
+          refreshKey={batchesRefreshKey}
+          startTime={startTime}
+          tenantId={tenantId}
+          timezone={RESPONSE_TIMEZONE}
+          workflowActionId={action?.workflow_action_id || routeActionId}
+          workflowId={workflow?.workflow_id || routeWorkflowId}
+        />
+
+        {/*
+            <section className="grid min-h-[720px] gap-5 xl:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[320px_400px_minmax(0,1fr)]">
+              <aside className="flex min-h-0 flex-col rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-base font-semibold text-slate-950">
+                      处置对象
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                      从案件图谱中选择需要处置的目标
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={loading || refreshing}
+                    onClick={() => void loadPage(true)}
+                    className="rounded-xl border-slate-200"
+                  >
+                    {refreshing ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <RefreshCcw className="size-4" />
+                    )}
+                  </Button>
+                </div>
+
+                <div className="mt-5 rounded-2xl bg-slate-50 p-4">
+                  <div className="grid gap-3 text-xs">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-slate-400">案件</span>
+                      <span
+                        className="truncate font-mono text-slate-700"
+                        title={currentCaseId}
+                      >
+                        {shortValue(currentCaseId)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-slate-400">工作流</span>
+                      <span
+                        className="truncate font-mono text-slate-700"
+                        title={currentWorkflowId}
+                      >
+                        {shortValue(currentWorkflowId)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-slate-400">处置阶段</span>
+                      <span>
+                        {statusBadge(workflow?.status || "responding")}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex min-h-0 flex-1 flex-col">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-semibold text-slate-950">
+                        目标列表
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {sourceTypeLabel(sourceType)} ·{" "}
+                        {scopeTypeLabel(scopeType)}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={
+                        !selectedNode || mockMode || working === "resolve-node"
+                      }
+                      onClick={() => void resolveSelectedNode()}
+                      className="rounded-xl border-slate-200"
+                    >
+                      {working === "resolve-node" ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Search className="size-4" />
+                      )}
+                      解析
+                    </Button>
+                  </div>
+
+                  <div className="mt-4 space-y-3">
+                    {nodes.map((node) => {
+                      const Icon = nodeIcon(node.entity_type);
+                      const active = node.node_key === selectedNodeKey;
+                      return (
+                        <button
+                          key={node.node_key}
+                          type="button"
+                          onClick={() => {
+                            setSelectedNodeKey(node.node_key);
+                            setActionOptions(
+                              MOCK_ACTION_OPTIONS.filter((option) => {
+                                const entity = node.entity_type.toLowerCase();
+                                if (entity.includes("file"))
+                                  return option.action_code.startsWith("file.");
+                                if (entity.includes("process"))
+                                  return option.action_code.startsWith(
+                                    "process.",
+                                  );
+                                if (entity.includes("net"))
+                                  return option.action_code.startsWith("net.");
+                                return true;
+                              }),
+                            );
+                            const next = MOCK_ACTION_OPTIONS.find((option) => {
+                              const entity = node.entity_type.toLowerCase();
+                              if (entity.includes("file"))
+                                return option.action_code.startsWith("file.");
+                              if (entity.includes("process"))
+                                return option.action_code.startsWith(
+                                  "process.",
+                                );
+                              if (entity.includes("net"))
+                                return option.action_code.startsWith("net.");
+                              return true;
+                            });
+                            setSelectedActionCode(next?.action_code ?? "");
+                          }}
+                          className={cn(
+                            "group w-full rounded-2xl border p-3 text-left transition-colors duration-200",
+                            active
+                              ? "border-sky-300 bg-sky-50"
+                              : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600 group-hover:bg-white">
+                              <Icon className="size-5" />
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-slate-900">
+                                  {entityTypeLabel(node.entity_type)}
+                                </span>
+                                {statusBadge(node.resolve_status)}
+                              </div>
+                              <div
+                                className="mt-1 truncate text-xs text-slate-500"
+                                title={node.display_name}
+                              >
+                                {node.display_name}
+                              </div>
+                              <div
+                                className="mt-1 truncate font-mono text-[11px] text-slate-400"
+                                title={node.description}
+                              >
+                                {node.description}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </aside>
+
+              <section className="flex min-h-0 flex-col rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]">
+                <div>
+                  <div className="px-5 pt-5">
+                    <h2 className="text-base font-semibold text-slate-950">
+                      处置配置
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                      选择动作，生成预览，确认后下发执行
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex min-h-0 flex-1 flex-col divide-y divide-slate-100">
+                  <div className="px-5 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">
+                          目标解析
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          确认目标所在终端，避免处置下发到错误对象
+                        </div>
+                      </div>
+                      {statusBadge(
+                        agentResolve?.status ||
+                          selectedNode?.resolve_status ||
+                          "pending",
+                      )}
+                    </div>
+                    <div className="mt-4 grid gap-3 text-xs text-slate-600 sm:grid-cols-2">
+                      <div className="rounded-xl bg-slate-50 px-3 py-2">
+                        <div className="text-slate-400">范围</div>
+                        <div className="mt-1 truncate font-mono">
+                          {scopeTypeLabel(scopeType)} / {shortValue(scopeId)}
+                        </div>
+                      </div>
+                      <div className="rounded-xl bg-slate-50 px-3 py-2">
+                        <div className="text-slate-400">终端</div>
+                        <div className="mt-1 truncate font-mono">
+                          {(selectedNode?.agent_ids ?? []).join(" / ") || "-"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-5 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">
+                          动作选择
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          只展示当前目标可执行的处置动作
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={
+                          !selectedNode ||
+                          mockMode ||
+                          working === "query-actions"
+                        }
+                        onClick={() => void querySelectedNodeActions()}
+                        className="rounded-xl border-slate-200 bg-white hover:bg-slate-50"
+                      >
+                        {working === "query-actions" ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Search className="size-4" />
+                        )}
+                        刷新
+                      </Button>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {actionOptions.length > 0 ? (
+                        actionOptions.map((option) => {
+                          const active =
+                            option.action_code === selectedActionCode;
+                          return (
+                            <button
+                              type="button"
+                              key={option.action_code}
+                              onClick={() =>
+                                setSelectedActionCode(option.action_code)
+                              }
+                              className={cn(
+                                "rounded-2xl border px-3 py-3 text-left transition-colors duration-200",
+                                active
+                                  ? "border-slate-950 bg-slate-950 text-white"
+                                  : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50",
+                              )}
+                            >
+                              <div
+                                className={cn(
+                                  "text-sm font-medium",
+                                  active ? "text-white" : "text-slate-900",
+                                )}
+                              >
+                                {actionOptionLabel(option)}
+                              </div>
+                              <div
+                                className={cn(
+                                  "mt-1 truncate text-[11px]",
+                                  active ? "text-slate-300" : "text-slate-400",
+                                )}
+                              >
+                                {actionOptionHint(option)}
+                              </div>
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <EmptyState
+                          icon={Ban}
+                          title="当前节点没有可用动作"
+                          description="请检查目标类型、终端解析结果，或稍后刷新动作列表"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="px-5 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">
+                          处置预览
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500">
+                          确认目标、动作和终端后生成预览
+                        </div>
+                      </div>
+                      {preview
+                        ? statusBadge(preview?.preview_status || "created")
+                        : statusBadge("pending")}
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-xl bg-slate-50 px-3 py-2">
+                        <div className="text-[11px] text-slate-400">
+                          预览批次
+                        </div>
+                        <div
+                          className="mt-1 truncate font-mono text-xs text-slate-700"
+                          title={
+                            (preview?.preview_id ?? latestItem?.preview_id) ||
+                            ""
+                          }
+                        >
+                          {shortValue(
+                            (preview?.preview_id ?? latestItem?.preview_id) ||
+                              "",
+                          )}
+                        </div>
+                      </div>
+                      <div className="rounded-xl bg-slate-50 px-3 py-2">
+                        <div className="text-[11px] text-slate-400">
+                          计划状态
+                        </div>
+                        <div className="mt-1 text-xs text-emerald-700">
+                          {statusLabel(preview?.plan_status ?? "ready")}
+                        </div>
+                      </div>
+                      <div className="rounded-xl bg-slate-50 px-3 py-2">
+                        <div className="text-[11px] text-slate-400">目标</div>
+                        <div className="mt-1 truncate text-xs text-slate-700">
+                          {selectedNode?.agent_ids.length || 0} 终端 ·{" "}
+                          {actionLabel(selectedActionCode)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 px-5 py-5 sm:grid-cols-2">
+                    <Button
+                      type="button"
+                      disabled={
+                        !canCreatePreview || working === "create-preview"
+                      }
+                      onClick={() => void handleCreatePreview()}
+                      className="h-[72px] justify-between rounded-2xl bg-slate-950 px-5 text-white hover:bg-slate-800"
+                    >
+                      <span className="flex flex-col items-start">
+                        <span className="text-sm font-semibold">生成预览</span>
+                        <span className="mt-1 text-[11px] text-slate-300">
+                          检查目标后再确认执行
+                        </span>
+                      </span>
+                      {working === "create-preview" ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <ArrowRight className="size-4" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!canConfirm || working === "confirm-preview"}
+                      onClick={() => void handleConfirmPreview()}
+                      className="h-[72px] justify-between rounded-2xl border-slate-200 bg-white px-5 hover:bg-emerald-50 hover:text-emerald-700"
+                    >
+                      <span className="flex flex-col items-start">
+                        <span className="text-sm font-semibold">确认执行</span>
+                        <span className="mt-1 text-[11px] text-slate-400">
+                          生成执行批次并下发
+                        </span>
+                      </span>
+                      {working === "confirm-preview" ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Play className="size-4" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={!canConfirm || working === "cancel-preview"}
+                      onClick={() => void handleCancelPreview()}
+                      className="h-11 rounded-2xl border-slate-200 bg-white hover:bg-red-50 hover:text-red-700 sm:col-span-2"
+                    >
+                      {working === "cancel-preview" ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Ban className="size-4" />
+                      )}
+                      取消预览
+                    </Button>
+                  </div>
+                </div>
+              </section>
+
+              <RemediationExecutionBatchesPanel
+                className="xl:col-span-2 2xl:col-span-1"
+                caseId={workflow?.case_id || routeCaseId}
+                enabled={!mockMode}
+                endTime={endTime}
+                fallbackDetail={mockMode ? (detail ?? MOCK_DETAIL) : null}
+                fallbackExecution={
+                  mockMode ? (execution ?? MOCK_EXECUTION) : null
+                }
+                fallbackStats={mockMode ? (stats ?? MOCK_STATS) : null}
+                onDataChange={handleBatchesDataChange}
+                refreshKey={batchesRefreshKey}
+                startTime={startTime}
+                tenantId={tenantId}
+                timezone={RESPONSE_TIMEZONE}
+                workflowActionId={action?.workflow_action_id || routeActionId}
+                workflowId={workflow?.workflow_id || routeWorkflowId}
+              />
+            </section>
+
+            <section className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[17px] border border-slate-200 bg-white px-5 py-3 text-xs text-slate-500">
+              <span className="font-medium text-slate-600">阶段流转</span>
+              <span>发现 -&gt; 调查 -&gt; 取证 -&gt; 处置 -&gt; 关闭</span>
+              <span className="font-medium text-slate-600">关闭后只读</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push("/frame/attack/workflow")}
+                className="ml-auto rounded-xl text-slate-500 hover:bg-slate-100"
+              >
+                <Workflow className="size-4" />
+                返回工作流
+              </Button>
+            </section>
+        */}
       </div>
       {loading ? (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-white/55 backdrop-blur-sm">
@@ -1311,5 +1542,5 @@ export function RemediationOrchestrationPage({
         </div>
       ) : null}
     </main>
-  )
+  );
 }

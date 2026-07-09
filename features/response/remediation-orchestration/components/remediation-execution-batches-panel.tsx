@@ -3,41 +3,51 @@
 import {
   useCallback,
   useEffect,
+  useMemo,
   useState,
   type ComponentType,
   type ReactNode,
 } from "react"
 import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
   DatabaseZap,
   FileCode2,
-  GitBranch,
+  Layers3,
   ListChecks,
   Loader2,
   RotateCcw,
-  Route,
+  ShieldCheck,
+  Target,
+  XCircle,
 } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 
 import {
-  queryRemediationWorkflowDetail,
+  getRemediationExecutionResult,
+  getRemediationPreviewDetail,
+  listRemediationPreviews,
   queryRemediationWorkflowStats,
-  queryRemediationWorkflowStatus,
 } from "../api"
 import type {
   RemediationExecutionSnapshot,
+  RemediationPreviewList,
+  RemediationPreviewListItem,
+  RemediationPreviewTargetSnapshot,
   RemediationWorkflowDetail,
   RemediationWorkflowStats,
   RemediationWorkflowStatsItem,
 } from "../types"
 
-const RUNNING_EXECUTION_STATUSES = new Set(["created", "dispatched"])
+const PAGE_SIZE = 6
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: "等待中",
-  running: "运行中",
+  pending: "待处理",
+  running: "执行中",
   success: "成功",
   failed: "失败",
   skipped: "已跳过",
@@ -49,6 +59,10 @@ const STATUS_LABELS: Record<string, string> = {
   expired: "已过期",
   ready: "就绪",
   blocked: "阻断",
+  unresolved: "未解析",
+  valid: "有效",
+  available: "可执行",
+  partial: "部分可执行",
 }
 
 const ACTION_TYPE_LABELS: Record<string, string> = {
@@ -58,22 +72,13 @@ const ACTION_TYPE_LABELS: Record<string, string> = {
   delete: "删除",
   disable: "禁用",
   enable: "启用",
+  file_quarantine: "文件隔离",
+  net_block: "网络阻断",
+  process_terminate: "进程终止",
   quarantine: "隔离",
   reset_password: "重置密码",
   restore: "恢复",
   terminate: "终止",
-}
-
-const SOURCE_TYPE_LABELS: Record<string, string> = {
-  case_graph: "案件图谱",
-  drill_graph: "溯源图谱",
-  locate_graph: "定位图谱",
-  manual: "手动创建",
-}
-
-const SCOPE_TYPE_LABELS: Record<string, string> = {
-  case: "案件范围",
-  positioning: "定位范围",
 }
 
 export interface RemediationExecutionBatchesData {
@@ -118,12 +123,19 @@ export function RemediationExecutionBatchesPanel({
   const [stats, setStats] = useState<RemediationWorkflowStats | null>(
     fallbackStats,
   )
+  const [previewList, setPreviewList] = useState<RemediationPreviewList | null>(
+    () => fallbackListFromStats(fallbackStats),
+  )
   const [detail, setDetail] = useState<RemediationWorkflowDetail | null>(
     fallbackDetail,
   )
   const [execution, setExecution] = useState<RemediationExecutionSnapshot | null>(
     fallbackExecution,
   )
+  const [selectedPreviewId, setSelectedPreviewId] = useState(
+    fallbackDetail?.preview_id || fallbackStats?.items[0]?.preview_id || "",
+  )
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [working, setWorking] = useState("")
   const [error, setError] = useState("")
@@ -135,12 +147,31 @@ export function RemediationExecutionBatchesPanel({
   const hasQueryContext = Boolean(
     normalizedWorkflowActionId || normalizedWorkflowId || normalizedCaseId,
   )
-  const statsItems = stats?.items ?? []
-  const latestItem = statsItems[0]
-  const detailExecution = detail?.execution ?? execution
+
+  const listItems = previewList?.items ?? []
+  const selectedItem = listItems.find((item) => item.preview_id === selectedPreviewId)
+  const detailExecution = execution ?? detail?.execution ?? null
+  const summary = previewList
+    ? {
+        preview: previewList.preview_summary,
+        target: previewList.target_summary,
+      }
+    : {
+        preview: stats?.summary.preview_stats,
+        target: stats?.summary.execution_stats,
+      }
+  const targetTotal =
+    summary.target?.total_count ||
+    detail?.preview_target_summary.total_count ||
+    selectedItem?.preview_target_summary.total_count ||
+    0
+  const busyTargetCount =
+    (summary.target?.created_count ?? 0) +
+    (summary.target?.dispatched_count ?? 0) +
+    (summary.target?.running_count ?? 0)
   const busy = loading || Boolean(working)
-  const refreshingExecutionStatus =
-    loading || working === "refresh-execution"
+  const canGoPrev = (previewList?.page.page ?? page) > 1 && !busy
+  const canGoNext = Boolean(previewList?.page.has_next) && !busy
 
   const publishData = useCallback(
     (data: RemediationExecutionBatchesData) => {
@@ -152,8 +183,8 @@ export function RemediationExecutionBatchesPanel({
     [onDataChange],
   )
 
-  const queryStats = useCallback(async () => {
-    return queryRemediationWorkflowStats({
+  const queryScope = useMemo(
+    () => ({
       tenant_id: normalizedTenantId,
       workflow_action_id: normalizedWorkflowActionId,
       workflow_id: normalizedWorkflowId,
@@ -161,20 +192,54 @@ export function RemediationExecutionBatchesPanel({
       start_time: startTime,
       end_time: endTime,
       timezone,
-    })
-  }, [
-    endTime,
-    normalizedCaseId,
-    normalizedTenantId,
-    normalizedWorkflowActionId,
-    normalizedWorkflowId,
-    startTime,
-    timezone,
-  ])
+    }),
+    [
+      endTime,
+      normalizedCaseId,
+      normalizedTenantId,
+      normalizedWorkflowActionId,
+      normalizedWorkflowId,
+      startTime,
+      timezone,
+    ],
+  )
+
+  const fetchBatchDetail = useCallback(
+    async (item: RemediationPreviewListItem | null) => {
+      if (!item?.preview_id) {
+        return {
+          detail: null,
+          execution: null,
+        }
+      }
+
+      const [nextDetail, nextExecution] = await Promise.all([
+        getRemediationPreviewDetail({
+          tenant_id: normalizedTenantId,
+          preview_id: item.preview_id,
+        }),
+        item.execution_id
+          ? getRemediationExecutionResult({
+              tenant_id: normalizedTenantId,
+              execution_id: item.execution_id,
+            })
+          : Promise.resolve(null),
+      ])
+
+      return {
+        detail: nextDetail,
+        execution: nextExecution ?? nextDetail.execution,
+      }
+    },
+    [normalizedTenantId],
+  )
 
   const loadBatches = useCallback(async () => {
     if (!enabled || !hasQueryContext) {
       setError("")
+      const fallbackList = fallbackListFromStats(fallbackStats)
+      setPreviewList(fallbackList)
+      setSelectedPreviewId(fallbackDetail?.preview_id || fallbackList?.items[0]?.preview_id || "")
       publishData({
         detail: fallbackDetail,
         execution: fallbackExecution,
@@ -186,28 +251,30 @@ export function RemediationExecutionBatchesPanel({
     setLoading(true)
     setError("")
     try {
-      const nextStats = await queryStats()
-      const first = nextStats.items[0]
-      if (first?.execution_id || first?.preview_id) {
-        const nextDetail = await queryRemediationWorkflowDetail({
-          tenant_id: normalizedTenantId,
-          execution_id: first.execution_id,
-          preview_id: first.execution_id ? undefined : first.preview_id,
-        })
-        publishData({
-          detail: nextDetail,
-          execution: nextDetail.execution,
-          stats: nextStats,
-        })
-      } else {
-        publishData({
-          detail: null,
-          execution: null,
-          stats: nextStats,
-        })
-      }
+      const [nextStats, nextList] = await Promise.all([
+        queryRemediationWorkflowStats(queryScope),
+        listRemediationPreviews({
+          ...queryScope,
+          page,
+          page_size: PAGE_SIZE,
+        }),
+      ])
+      const first = nextList.items[0] ?? null
+      const nextSelection = first?.preview_id ?? ""
+      setPreviewList(nextList)
+      setSelectedPreviewId(nextSelection)
+
+      const nextDetail = await fetchBatchDetail(first)
+      publishData({
+        detail: nextDetail.detail,
+        execution: nextDetail.execution,
+        stats: nextStats,
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "处置批次查询失败")
+      setError(err instanceof Error ? err.message : "处置结果查询失败")
+      const fallbackList = fallbackListFromStats(fallbackStats)
+      setPreviewList(fallbackList)
+      setSelectedPreviewId(fallbackDetail?.preview_id || fallbackList?.items[0]?.preview_id || "")
       publishData({
         detail: fallbackDetail,
         execution: fallbackExecution,
@@ -221,10 +288,11 @@ export function RemediationExecutionBatchesPanel({
     fallbackDetail,
     fallbackExecution,
     fallbackStats,
+    fetchBatchDetail,
     hasQueryContext,
-    normalizedTenantId,
+    page,
     publishData,
-    queryStats,
+    queryScope,
   ])
 
   useEffect(() => {
@@ -232,26 +300,18 @@ export function RemediationExecutionBatchesPanel({
   }, [loadBatches, refreshKey])
 
   const handleSelectBatch = useCallback(
-    async (item: RemediationWorkflowStatsItem) => {
+    async (item: RemediationPreviewListItem) => {
       if (!enabled || !hasQueryContext) {
-        publishData({
-          detail: fallbackDetail,
-          execution: fallbackExecution,
-          stats: fallbackStats,
-        })
         return
       }
 
       setWorking(`detail-${item.preview_id}`)
       setError("")
+      setSelectedPreviewId(item.preview_id)
       try {
-        const nextDetail = await queryRemediationWorkflowDetail({
-          tenant_id: normalizedTenantId,
-          execution_id: item.execution_id,
-          preview_id: item.execution_id ? undefined : item.preview_id,
-        })
+        const nextDetail = await fetchBatchDetail(item)
         publishData({
-          detail: nextDetail,
+          detail: nextDetail.detail,
           execution: nextDetail.execution,
           stats,
         })
@@ -261,314 +321,211 @@ export function RemediationExecutionBatchesPanel({
         setWorking("")
       }
     },
-    [
-      enabled,
-      fallbackDetail,
-      fallbackExecution,
-      fallbackStats,
-      hasQueryContext,
-      normalizedTenantId,
-      publishData,
-      stats,
-    ],
+    [enabled, fetchBatchDetail, hasQueryContext, publishData, stats],
   )
 
-  const handleRefreshExecutionStatus = useCallback(async () => {
-    if (!enabled || !hasQueryContext) {
-      publishData({
-        detail: fallbackDetail,
-        execution: fallbackExecution,
-        stats: fallbackStats,
-      })
-      return
-    }
-
-    const executionId = detailExecution?.execution_id || latestItem?.execution_id
-    const previewId = detail?.preview_id || latestItem?.preview_id
-    if (!executionId && !previewId) {
-      await loadBatches()
-      return
-    }
-
-    setWorking("refresh-execution")
-    setError("")
+  const handleRefresh = useCallback(async () => {
+    setWorking("refresh")
     try {
-      const nextExecution = await queryRemediationWorkflowStatus({
-        tenant_id: normalizedTenantId,
-        execution_id: executionId,
-        preview_id: executionId ? undefined : previewId,
-      })
-      const [nextStats, nextDetail] = await Promise.all([
-        queryStats(),
-        nextExecution?.execution_id
-          ? queryRemediationWorkflowDetail({
-              tenant_id: normalizedTenantId,
-              execution_id: nextExecution.execution_id,
-            })
-          : previewId
-            ? queryRemediationWorkflowDetail({
-                tenant_id: normalizedTenantId,
-                preview_id: previewId,
-              })
-            : Promise.resolve(null),
-      ])
-      publishData({
-        detail: nextDetail,
-        execution: nextDetail?.execution ?? nextExecution,
-        stats: nextStats,
-      })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "执行状态刷新失败")
+      await loadBatches()
     } finally {
       setWorking("")
     }
-  }, [
-    detail?.preview_id,
-    detailExecution?.execution_id,
-    enabled,
-    fallbackDetail,
-    fallbackExecution,
-    fallbackStats,
-    hasQueryContext,
-    latestItem?.execution_id,
-    latestItem?.preview_id,
-    loadBatches,
-    normalizedTenantId,
-    publishData,
-    queryStats,
-  ])
+  }, [loadBatches])
 
   return (
     <section
       className={cn(
-        "flex min-h-0 flex-col rounded-[18px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]",
+        "flex min-h-0 flex-col overflow-hidden rounded-[18px] border border-slate-200 bg-white shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]",
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-sky-200 bg-sky-50 text-sky-600">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white">
             <ListChecks className="size-4" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-slate-950">
-              处置结果
-            </h2>
+            <h2 className="text-base font-semibold text-slate-950">处置结果</h2>
+            <p className="mt-0.5 truncate text-xs text-slate-500">
+              按处置批次查看预览目标与执行结果
+            </p>
           </div>
         </div>
         <Button
           type="button"
-          variant="outline"
-          size="sm"
-          disabled={!latestItem || busy}
-          onClick={() => void handleRefreshExecutionStatus()}
-          className="rounded-xl border-slate-200"
+          variant="ghost"
+          size="icon"
+          disabled={busy}
+          onClick={() => void handleRefresh()}
+          className="size-9 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          aria-label="刷新处置结果"
         >
-          {refreshingExecutionStatus ? (
+          {busy ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
             <RotateCcw className="size-4" />
           )}
-          刷新状态
         </Button>
       </div>
 
       {error ? (
-        <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-700">
+        <div className="mx-5 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-700">
           {error}
         </div>
       ) : null}
 
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold text-slate-900">
-              处置执行概览
-            </div>
-            <div className="mt-1 text-xs text-slate-500">
-              汇总当前处置阶段下所有批次和目标的执行结果
-            </div>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-            <div className="text-[11px] text-slate-400">批次总数</div>
-            <div className="mt-1 flex items-end gap-2">
-              <span className="text-2xl font-semibold text-emerald-600">
-                {statsTotal(stats)}
-              </span>
-              <span className="pb-1 text-xs text-slate-500">批</span>
-            </div>
-          </div>
-        </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-4">
-          <Metric label="目标数" value={targetTotal(stats)} tone="blue" />
-          <Metric
-            label="成功"
-            value={stats?.summary.execution_stats.success_count ?? 0}
-            tone="green"
-          />
-          <Metric
-            label="失败"
-            value={stats?.summary.execution_stats.failed_count ?? 0}
-            tone="red"
-          />
-          <Metric
-            label="执行中"
-            value={
-              (stats?.summary.execution_stats.created_count ?? 0) +
-              (stats?.summary.execution_stats.dispatched_count ?? 0)
-            }
-            tone="amber"
-          />
-        </div>
+      <div className="grid grid-cols-2 border-b border-slate-100 sm:grid-cols-5">
+        <Metric
+          icon={Layers3}
+          label="批次"
+          value={summary.preview?.total_count ?? 0}
+          tone="blue"
+        />
+        <Metric
+          icon={Target}
+          label="目标"
+          value={targetTotal}
+          tone="slate"
+        />
+        <Metric
+          icon={Clock3}
+          label="处理中"
+          value={busyTargetCount}
+          tone="amber"
+        />
+        <Metric
+          icon={CheckCircle2}
+          label="成功"
+          value={summary.target?.success_count ?? 0}
+          tone="green"
+        />
+        <Metric
+          icon={XCircle}
+          label="失败"
+          value={summary.target?.failed_count ?? 0}
+          tone="red"
+        />
       </div>
 
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-white">
-        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-          <div className="text-sm font-semibold text-slate-900">处置批次列表</div>
-          <div className="text-xs text-slate-400">
-            预览状态 / 执行状态
+      <div className="grid min-h-0 flex-1 xl:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="min-h-0 border-b border-slate-100 xl:border-b-0 xl:border-r">
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-slate-950">批次列表</div>
+              <div className="mt-0.5 text-xs text-slate-400">
+                {previewList?.page.total ?? listItems.length} 条记录
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled={!canGoPrev}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                className="size-8 rounded-lg"
+                aria-label="上一页"
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <span className="min-w-8 text-center font-mono text-xs text-slate-500">
+                {previewList?.page.page ?? page}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled={!canGoNext}
+                onClick={() => setPage((current) => current + 1)}
+                className="size-8 rounded-lg"
+                aria-label="下一页"
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
           </div>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {statsItems.length > 0 ? (
-            statsItems.map((item) => {
-              const active =
-                item.execution_id === detailExecution?.execution_id ||
-                item.preview_id === detail?.preview_id
-              const running = RUNNING_EXECUTION_STATUSES.has(item.execute_status)
-              return (
-                <button
-                  type="button"
+
+          <div className="space-y-2 px-3 pb-4">
+            {listItems.length > 0 ? (
+              listItems.map((item) => (
+                <BatchButton
                   key={item.preview_id}
-                  onClick={() => void handleSelectBatch(item)}
+                  active={item.preview_id === selectedPreviewId}
                   disabled={working.startsWith("detail-")}
-                  className={cn(
-                    "grid w-full gap-3 px-4 py-3 text-left transition-colors duration-200 md:grid-cols-[98px_108px_1fr_96px_150px]",
-                    active ? "bg-sky-50" : "hover:bg-slate-50",
-                    working.startsWith("detail-") && "cursor-wait opacity-80",
-                  )}
-                >
-                  <span className="truncate font-mono text-xs text-slate-700">
-                    {batchLabel(item.preview_id)}
-                  </span>
-                  <span className="truncate font-mono text-xs text-slate-700">
-                    {executionLabel(item.execution_id)}
-                  </span>
-                  <span className="truncate text-xs text-slate-600">
-                    {sourceScopeLabel(item)}
-                  </span>
-                  <span>{statusBadge(item.execute_status || item.preview_status)}</span>
-                  <span className="truncate text-xs text-slate-500">
-                    {running ? "状态同步中" : buildStatsSummary(item)}
-                  </span>
-                </button>
-              )
-            })
-          ) : (
-            <div className="p-4">
+                  item={item}
+                  onClick={() => void handleSelectBatch(item)}
+                />
+              ))
+            ) : (
               <EmptyState
                 icon={DatabaseZap}
                 title="暂无处置批次"
-                description="创建处置计划并确认执行后，这里会汇总展示全部处置批次"
+                description="创建并确认处置预览后，这里会展示处置结果"
               />
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-sm font-semibold text-slate-900">
-              目标执行明细
-            </div>
-            <div className="mt-1 text-xs text-slate-500">
-              当前批次：{executionLabel(detailExecution?.execution_id || "")}
-            </div>
+            )}
           </div>
-          {detailExecution ? statusBadge(detailExecution.execute_status) : null}
-        </div>
+        </aside>
 
-        {detailExecution ? (
-          <div className="mt-4 overflow-hidden rounded-2xl border border-sky-100 bg-white">
-            <div className="grid grid-cols-[58px_110px_120px_116px_1fr] border-b border-slate-100 bg-slate-50 px-3 py-2 text-[11px] text-slate-400">
-              <span>序号</span>
-              <span>终端</span>
-              <span>动作</span>
-              <span>结果</span>
-              <span>下发对象</span>
-            </div>
-            <div className="divide-y divide-slate-100">
-              {detailExecution.targets.map((target) => (
-                <div
-                  key={`${target.target_index}-${target.agent_id}-${target.action_type}`}
-                  className="grid grid-cols-[58px_110px_120px_116px_1fr] items-center px-3 py-3 text-xs"
-                >
-                  <span className="font-mono text-slate-700">
-                    #{target.target_index}
-                  </span>
-                  <span className="truncate font-mono text-slate-600">
-                    {target.agent_id}
-                  </span>
-                  <span className="truncate font-mono text-slate-600">
-                    {actionTypeLabel(target.action_type)}
-                  </span>
-                  <span>{statusBadge(target.execute_status)}</span>
-                  <span
-                    className="truncate font-mono text-slate-500"
-                    title={
-                      target.execute_task_id ||
-                      target.pmc_object_id ||
-                      target.error_msg
-                    }
-                  >
-                    {target.execute_task_id ||
-                      target.pmc_object_id ||
-                      target.error_msg ||
-                      "-"}
-                  </span>
+        <div className="min-w-0 p-4">
+          {selectedItem ? (
+            <div className="rounded-2xl bg-slate-50 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-950">
+                      批次 {shortId(selectedItem.preview_id)}
+                    </span>
+                    {statusChip(selectedItem.execute_status || selectedItem.preview_status)}
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                    <span>预览 {formatDateTime(selectedItem.created_at)}</span>
+                    <span>
+                      执行 {selectedItem.confirmed_at ? formatDateTime(selectedItem.confirmed_at) : "未确认"}
+                    </span>
+                  </div>
                 </div>
-              ))}
-            </div>
-            {detailExecution.targets.some((target) => target.error_msg) ? (
-              <div className="border-t border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                失败原因：{" "}
-                {detailExecution.targets.find((target) => target.error_msg)?.error_msg}
+                <div className="flex flex-wrap gap-2">
+                  <MiniFact label="案件" value={selectedItem.case_id || normalizedCaseId || "-"} />
+                  <MiniFact
+                    label="目标"
+                    value={String(
+                      selectedItem.target_summary.total_count ||
+                        selectedItem.preview_target_summary.total_count ||
+                        0,
+                    )}
+                  />
+                </div>
               </div>
-            ) : null}
-          </div>
-        ) : (
-          <div className="mt-4">
+            </div>
+          ) : (
             <EmptyState
               icon={FileCode2}
-              title="未选择执行批次"
-              description="选择一个处置批次或刷新状态后，这里会显示目标执行明细"
+              title="未选择批次"
+              description="选择左侧批次后查看目标与执行明细"
             />
-          </div>
-        )}
-      </div>
+          )}
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <GitBranch className="size-4 text-emerald-600" />
-            工作流回写
-          </div>
-          <div className="mt-3 space-y-1.5 text-xs leading-5 text-slate-600">
-            <div>控制服务收到执行结果后回写分析服务</div>
-            <div>按处置阶段汇总目标执行状态</div>
-            <div>用于更新工作流的处置阶段状态</div>
-          </div>
-        </div>
-        <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <Route className="size-4 text-amber-600" />
-            状态判定
-          </div>
-          <div className="mt-3 space-y-1.5 text-xs leading-5 text-slate-600">
-            <div>存在待执行或已下发目标时，处置阶段保持执行中</div>
-            <div>任一目标失败时，处置阶段标记为失败</div>
-            <div>目标全部成功或跳过时，处置阶段标记为完成</div>
+          <div className="mt-4 grid gap-4 2xl:grid-cols-2">
+            <ResultBlock
+              title="预览目标"
+              description={`${detail?.preview_targets.length ?? 0} 个目标`}
+            >
+              <TargetTable
+                targets={detail?.preview_targets ?? []}
+                loading={loading || working.startsWith("detail-")}
+              />
+            </ResultBlock>
+
+            <ResultBlock
+              title="执行结果"
+              description={detailExecution ? `${detailExecution.targets.length} 个目标` : "未执行"}
+            >
+              <ExecutionTable
+                execution={detailExecution}
+                loading={loading || working.startsWith("detail-")}
+              />
+            </ResultBlock>
           </div>
         </div>
       </div>
@@ -576,127 +533,263 @@ export function RemediationExecutionBatchesPanel({
   )
 }
 
-function shortId(value: string) {
-  const normalized = value.trim()
-  if (!normalized) return "-"
-  const suffix = normalized.match(/([a-z]*-)?(\d{3,})$/i)?.[2]
-  if (suffix) return suffix
-  if (normalized.length <= 12) return normalized
-  return `${normalized.slice(0, 8)}...${normalized.slice(-4)}`
-}
-
-function batchLabel(previewId: string) {
-  return previewId ? `批次 ${shortId(previewId)}` : "批次 -"
-}
-
-function executionLabel(executionId: string) {
-  return executionId ? `执行 ${shortId(executionId)}` : "未执行"
-}
-
-function statsTotal(stats: RemediationWorkflowStats | null) {
-  return stats?.summary.preview_stats.total_count ?? 0
-}
-
-function targetTotal(stats: RemediationWorkflowStats | null) {
-  return stats?.summary.execution_stats.total_count ?? 0
-}
-
-function buildStatsSummary(item: RemediationWorkflowStatsItem) {
-  const execution = item.stats.execution_stats
-  if (!item.execution_id) return "未确认执行"
-  return `成功 ${execution.success_count} / 失败 ${execution.failed_count} / 跳过 ${execution.skipped_count}`
-}
-
-function sourceScopeLabel(item: RemediationWorkflowStatsItem) {
-  const source = SOURCE_TYPE_LABELS[item.source_type] ?? item.source_type
-  const scope = SCOPE_TYPE_LABELS[item.scope_type] ?? item.scope_type
-  return [source, scope].filter(Boolean).join(" · ") || "-"
-}
-
-function actionTypeLabel(actionType: string) {
-  const normalized = actionType.trim().toLowerCase()
-  return ACTION_TYPE_LABELS[normalized] ?? (actionType || "-")
-}
-
-function statusLabel(status: string | number | undefined) {
-  const normalized =
-    typeof status === "number"
-      ? String(status)
-      : String(status ?? "").trim().toLowerCase()
-  return STATUS_LABELS[normalized] ?? String(status ?? "-")
-}
-
-function statusTone(status: string | number | undefined) {
-  const normalized = String(status ?? "").trim().toLowerCase()
-  if (["success", "ready", "confirmed", "confirmed_preview"].includes(normalized)) {
-    return "emerald"
-  }
-  if (["failed", "blocked", "canceled", "expired"].includes(normalized)) {
-    return "red"
-  }
-  if (["created", "dispatched", "running", "pending"].includes(normalized)) {
-    return "amber"
-  }
-  if (["skipped"].includes(normalized)) return "slate"
-  return "blue"
-}
-
-function toneClasses(tone: string) {
-  switch (tone) {
-    case "emerald":
-      return "border-emerald-200 bg-emerald-50 text-emerald-700"
-    case "red":
-      return "border-red-200 bg-red-50 text-red-700"
-    case "amber":
-      return "border-amber-200 bg-amber-50 text-amber-700"
-    case "slate":
-      return "border-slate-200 bg-slate-50 text-slate-600"
-    default:
-      return "border-sky-200 bg-sky-50 text-sky-700"
-  }
-}
-
-function statusBadge(status: string | number | undefined, className?: string) {
-  const tone = statusTone(status)
+function BatchButton({
+  active,
+  disabled,
+  item,
+  onClick,
+}: {
+  active: boolean
+  disabled: boolean
+  item: RemediationPreviewListItem
+  onClick: () => void
+}) {
+  const targetCount =
+    item.target_summary.total_count || item.preview_target_summary.total_count || 0
   return (
-    <Badge
-      variant="outline"
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
       className={cn(
-        "h-6 rounded-full px-2.5 text-[11px] font-medium",
-        toneClasses(tone),
-        className,
+        "group w-full rounded-2xl px-3 py-3 text-left transition-colors duration-200",
+        active
+          ? "bg-slate-950 text-white"
+          : "bg-slate-50 text-slate-700 hover:bg-slate-100",
+        disabled && "cursor-wait opacity-75",
       )}
     >
-      {statusLabel(status)}
-    </Badge>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div
+            className={cn(
+              "truncate text-sm font-semibold",
+              active ? "text-white" : "text-slate-950",
+            )}
+          >
+            批次 {shortId(item.preview_id)}
+          </div>
+          <div
+            className={cn(
+              "mt-1 truncate text-xs",
+              active ? "text-slate-300" : "text-slate-500",
+            )}
+          >
+            {actionTypeLabel(item.action_type)} · {targetCount} 个目标
+          </div>
+        </div>
+        {statusDot(item.execute_status || item.preview_status, active)}
+      </div>
+      <div
+        className={cn(
+          "mt-3 flex items-center justify-between text-[11px]",
+          active ? "text-slate-300" : "text-slate-400",
+        )}
+      >
+        <span>{formatShortTime(item.created_at)}</span>
+        <span>{item.execution_id ? "已执行" : "待确认"}</span>
+      </div>
+    </button>
+  )
+}
+
+function TargetTable({
+  targets,
+  loading,
+}: {
+  targets: RemediationPreviewTargetSnapshot[]
+  loading: boolean
+}) {
+  if (loading) {
+    return <SkeletonRows />
+  }
+  if (targets.length === 0) {
+    return (
+      <EmptyState
+        icon={ShieldCheck}
+        title="暂无预览目标"
+        description="生成预览后会展示本次解析出的目标"
+      />
+    )
+  }
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-[42px_minmax(76px,0.8fr)_minmax(120px,1.4fr)_70px_76px] gap-2 bg-slate-50 px-3 py-2 text-[11px] font-medium text-slate-400">
+        <span>#</span>
+        <span>终端</span>
+        <span>目标对象</span>
+        <span className="text-center">执行</span>
+        <span className="text-center">校验</span>
+      </div>
+      <div className="divide-y divide-slate-100">
+        {targets.map((target) => (
+          <div
+            key={`${target.target_index}-${target.agent_id}-${target.target_key}`}
+            className="grid grid-cols-[42px_minmax(76px,0.8fr)_minmax(120px,1.4fr)_70px_76px] items-center gap-2 px-3 py-3 text-xs"
+          >
+            <span className="font-mono text-[11px] text-slate-400">
+              {target.target_index}
+            </span>
+            <span className="truncate font-mono text-[11px] text-slate-600">
+              {target.agent_id || "-"}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-xs text-slate-700">
+                {target.target_display || target.target_key || "-"}
+              </span>
+              <span className="mt-1 block truncate text-[11px] text-slate-400">
+                {target.dedupe_reason || "本次目标"}
+              </span>
+            </span>
+            <span className="flex justify-center">
+              {statusChip(target.will_apply ? "ready" : "skipped")}
+            </span>
+            <span className="flex justify-center">
+              {statusChip(target.validation_status)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ExecutionTable({
+  execution,
+  loading,
+}: {
+  execution: RemediationExecutionSnapshot | null
+  loading: boolean
+}) {
+  if (loading) {
+    return <SkeletonRows />
+  }
+  if (!execution || execution.targets.length === 0) {
+    return (
+      <EmptyState
+        icon={FileCode2}
+        title="暂无执行结果"
+        description="确认执行后会展示各终端的处置结果"
+      />
+    )
+  }
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-[42px_minmax(76px,0.75fr)_minmax(86px,0.8fr)_76px_minmax(118px,1.3fr)] gap-2 bg-slate-50 px-3 py-2 text-[11px] font-medium text-slate-400">
+        <span>#</span>
+        <span>终端</span>
+        <span>动作</span>
+        <span className="text-center">状态</span>
+        <span>结果</span>
+      </div>
+      <div className="divide-y divide-slate-100">
+        {execution.targets.map((target) => (
+          <div
+            key={`${target.target_index}-${target.agent_id}-${target.action_type}`}
+            className="grid grid-cols-[42px_minmax(76px,0.75fr)_minmax(86px,0.8fr)_76px_minmax(118px,1.3fr)] items-center gap-2 px-3 py-3 text-xs"
+          >
+            <span className="font-mono text-[11px] text-slate-400">
+              {target.target_index}
+            </span>
+            <span className="truncate font-mono text-[11px] text-slate-600">
+              {target.agent_id || "-"}
+            </span>
+            <span className="truncate text-xs text-slate-700">
+              {actionTypeLabel(target.action_type)}
+            </span>
+            <span className="flex justify-center">
+              {statusChip(target.execute_status)}
+            </span>
+            <span
+              className="truncate text-[11px] text-slate-500"
+              title={
+                target.error_msg ||
+                target.execute_task_id ||
+                target.pmc_object_id ||
+                target.target_key
+              }
+            >
+              {target.error_msg ||
+                target.execute_task_id ||
+                target.pmc_object_id ||
+                target.target_key ||
+                "-"}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ResultBlock({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description: string
+  children: ReactNode
+}) {
+  return (
+    <section className="min-w-0">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-slate-950">{title}</div>
+          <div className="mt-0.5 text-xs text-slate-400">{description}</div>
+        </div>
+      </div>
+      {children}
+    </section>
   )
 }
 
 function Metric({
+  icon: Icon,
   label,
   value,
   tone = "slate",
 }: {
+  icon: ComponentType<{ className?: string }>
   label: string
   value: ReactNode
   tone?: "slate" | "green" | "red" | "amber" | "blue"
 }) {
-  const valueClass =
-    tone === "green"
-      ? "text-emerald-600"
-      : tone === "red"
-        ? "text-red-600"
-        : tone === "amber"
-          ? "text-amber-600"
-          : tone === "blue"
-            ? "text-sky-600"
-            : "text-slate-900"
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-      <div className="text-[11px] text-slate-400">{label}</div>
-      <div className={cn("mt-1 text-2xl font-semibold tabular-nums", valueClass)}>
+    <div className="min-w-0 border-r border-slate-100 px-4 py-3 last:border-r-0">
+      <div className="flex items-center gap-2">
+        <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-lg", metricTone(tone))}>
+          <Icon className="size-3.5" />
+        </span>
+        <span className="truncate text-xs text-slate-400">{label}</span>
+      </div>
+      <div className="mt-2 font-mono text-xl font-semibold tabular-nums text-slate-950">
         {value}
       </div>
+    </div>
+  )
+}
+
+function MiniFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-full bg-white px-3 py-1.5 text-xs ring-1 ring-slate-200">
+      <span className="text-slate-400">{label}</span>
+      <span className="ml-2 font-mono text-slate-700" title={value}>
+        {shortReadable(value)}
+      </span>
+    </div>
+  )
+}
+
+function SkeletonRows() {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div
+          key={index}
+          className="h-12 animate-pulse rounded-2xl bg-slate-50"
+        />
+      ))}
     </div>
   )
 }
@@ -711,7 +804,7 @@ function EmptyState({
   description: string
 }) {
   return (
-    <div className="flex min-h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-6 text-center">
+    <div className="flex min-h-36 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center">
       <Icon className="size-8 text-slate-300" />
       <div className="mt-3 text-sm font-medium text-slate-700">{title}</div>
       <div className="mt-1 max-w-sm text-xs leading-5 text-slate-500">
@@ -719,4 +812,195 @@ function EmptyState({
       </div>
     </div>
   )
+}
+
+function statusChip(status: string | number | undefined) {
+  const normalized = String(status ?? "").trim().toLowerCase()
+  const tone = statusTone(normalized)
+  return (
+    <span
+      className={cn(
+        "inline-flex h-6 items-center gap-1.5 rounded-full px-2 text-[11px] font-medium",
+        chipTone(tone),
+      )}
+    >
+      <span className={cn("size-1.5 rounded-full", dotTone(tone))} />
+      {statusLabel(normalized)}
+    </span>
+  )
+}
+
+function statusDot(status: string | number | undefined, inverted = false) {
+  const tone = statusTone(String(status ?? "").trim().toLowerCase())
+  return (
+    <span
+      className={cn(
+        "mt-1 size-2.5 shrink-0 rounded-full",
+        inverted ? "bg-white/70" : dotTone(tone),
+      )}
+      aria-label={statusLabel(status)}
+      title={statusLabel(status)}
+    />
+  )
+}
+
+function statusLabel(status: string | number | undefined) {
+  const normalized =
+    typeof status === "number"
+      ? String(status)
+      : String(status ?? "").trim().toLowerCase()
+  return STATUS_LABELS[normalized] ?? String(status ?? "-")
+}
+
+function statusTone(status: string) {
+  if (["success", "ready", "confirmed", "valid", "available"].includes(status)) {
+    return "emerald"
+  }
+  if (["failed", "blocked", "canceled", "expired"].includes(status)) {
+    return "red"
+  }
+  if (["created", "dispatched", "running", "pending", "partial"].includes(status)) {
+    return "amber"
+  }
+  if (["skipped"].includes(status)) return "slate"
+  return "blue"
+}
+
+function chipTone(tone: string) {
+  switch (tone) {
+    case "emerald":
+      return "bg-emerald-50 text-emerald-700"
+    case "red":
+      return "bg-red-50 text-red-700"
+    case "amber":
+      return "bg-amber-50 text-amber-700"
+    case "slate":
+      return "bg-slate-100 text-slate-600"
+    default:
+      return "bg-sky-50 text-sky-700"
+  }
+}
+
+function dotTone(tone: string) {
+  switch (tone) {
+    case "emerald":
+      return "bg-emerald-500"
+    case "red":
+      return "bg-red-500"
+    case "amber":
+      return "bg-amber-500"
+    case "slate":
+      return "bg-slate-400"
+    default:
+      return "bg-sky-500"
+  }
+}
+
+function metricTone(tone: string) {
+  switch (tone) {
+    case "green":
+      return "bg-emerald-50 text-emerald-600"
+    case "red":
+      return "bg-red-50 text-red-600"
+    case "amber":
+      return "bg-amber-50 text-amber-600"
+    case "blue":
+      return "bg-sky-50 text-sky-600"
+    default:
+      return "bg-slate-50 text-slate-600"
+  }
+}
+
+function actionTypeLabel(actionType: string | number | undefined) {
+  const normalized = String(actionType ?? "").trim().toLowerCase()
+  return ACTION_TYPE_LABELS[normalized] ?? (normalized || "处置动作")
+}
+
+function shortId(value: string) {
+  const normalized = value.trim()
+  if (!normalized) return "-"
+  const suffix = normalized.match(/([a-z]*-)?(\d{3,})$/i)?.[2]
+  if (suffix) return suffix
+  if (normalized.length <= 12) return normalized
+  return `${normalized.slice(0, 8)}...${normalized.slice(-4)}`
+}
+
+function shortReadable(value: string) {
+  const normalized = value.trim()
+  if (!normalized || normalized === "-") return "-"
+  if (normalized.length <= 16) return normalized
+  return `${normalized.slice(0, 10)}...${normalized.slice(-4)}`
+}
+
+function formatShortTime(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "-"
+  return `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "-"
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")} ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`
+}
+
+function fallbackListFromStats(
+  stats: RemediationWorkflowStats | null,
+): RemediationPreviewList | null {
+  if (!stats) return null
+  const items = stats.items.map(statsItemToPreviewListItem)
+  return {
+    tenant_id: stats.tenant_id,
+    start_time: stats.start_time,
+    end_time: stats.end_time,
+    timezone: stats.timezone,
+    preview_summary: stats.summary.preview_stats,
+    target_summary: stats.summary.execution_stats,
+    items,
+    page: {
+      page: 1,
+      page_size: items.length || PAGE_SIZE,
+      total: items.length,
+      has_next: false,
+    },
+  }
+}
+
+function statsItemToPreviewListItem(
+  item: RemediationWorkflowStatsItem,
+): RemediationPreviewListItem {
+  return {
+    tenant_id: item.tenant_id,
+    preview_id: item.preview_id,
+    execution_id: item.execution_id,
+    workflow_id: item.workflow_id,
+    workflow_action_id: item.workflow_action_id,
+    case_id: item.case_id,
+    source_request_id: item.source_request_id,
+    preview_status: item.preview_status,
+    execute_status: item.execute_status,
+    source_type: item.source_type,
+    scope_type: item.scope_type,
+    scope_id: item.scope_id,
+    target_type: "",
+    action_type: "",
+    plan_status: "",
+    created_at: item.created_at,
+    confirmed_at: item.confirmed_at,
+    expires_at: "",
+    preview_target_summary: {
+      total_count: item.stats.execution_stats.total_count,
+      will_apply_count: item.stats.execution_stats.total_count,
+      skipped_count: item.stats.execution_stats.skipped_count,
+    },
+    target_summary: {
+      total_count: item.stats.execution_stats.total_count,
+      created_count: item.stats.execution_stats.created_count,
+      dispatched_count: item.stats.execution_stats.dispatched_count,
+      running_count: item.stats.execution_stats.running_count,
+      success_count: item.stats.execution_stats.success_count,
+      failed_count: item.stats.execution_stats.failed_count,
+      skipped_count: item.stats.execution_stats.skipped_count,
+    },
+  }
 }
