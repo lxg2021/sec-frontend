@@ -29,6 +29,7 @@ import {
   AttackGraphControlPanel,
   AttackGraphIocCandidates,
   AttackGraphRemediationTargets,
+  buildAttackGraphIocGroupKey,
   buildAttackGraphIocSourceKey,
   buildAttackGraphModel,
   buildGraphDrillTimeRange,
@@ -39,8 +40,10 @@ import {
   mergeGraphCaseDrillResult,
 } from "@/features/attack/dgraph"
 import type {
+  AttackGraphIocNodeAssociation,
   AttackGraphLayoutOptions,
   AttackGraphMenuAction,
+  AttackGraphNodeFocusRequest,
   AttackGraphNodeDrillState,
   AttackGraphLayoutStrategyOption,
   GraphCaseResponseDto,
@@ -149,6 +152,8 @@ export default function App() {
   const [graphLayoutStrategy, setGraphLayoutStrategy] =
     useState<AttackGraphLayoutStrategyOption>("auto");
   const [graphPositionResetKey, setGraphPositionResetKey] = useState(0);
+  const [graphNodeFocusRequest, setGraphNodeFocusRequest] =
+    useState<AttackGraphNodeFocusRequest | null>(null);
   const [graphNodeDrillStateByKey, setGraphNodeDrillStateByKey] = useState(
     () => new Map<string, AttackGraphNodeDrillState>(),
   );
@@ -169,6 +174,7 @@ export default function App() {
   )
   const [investigationGraphContextVersion, setInvestigationGraphContextVersion] = useState(0);
   const graphResponseRef = useRef<GraphCaseResponseDto | null>(null);
+  const graphNodeFocusRequestIdRef = useRef(0);
   const iocLoadRunIdRef = useRef(0)
 
   useEffect(() => {
@@ -184,6 +190,7 @@ export default function App() {
     setSelectedIocCandidateIds(new Set())
     setDeletingIocCandidateIds(new Set())
     setDrillParentByNodeKey(new Map())
+    setGraphNodeFocusRequest(null)
     setInvestigationGraphContextVersion(0)
   }, [routeParams])
 
@@ -198,6 +205,53 @@ export default function App() {
   const groupedIocCandidates = useMemo(
     () => groupAttackGraphIocCandidates(iocCandidates),
     [iocCandidates],
+  )
+  const iocNodeAssociationsByGroupKey = useMemo(() => {
+    const associationsByGroupKey = new Map<
+      string,
+      Map<string, AttackGraphIocNodeAssociation>
+    >()
+    if (!graphResponse) return new Map<string, AttackGraphIocNodeAssociation[]>()
+
+    const graph = buildAttackGraphModel(graphResponse)
+    for (const node of graph.nodes) {
+      const nodeAssociation: AttackGraphIocNodeAssociation = {
+        id: node.id,
+        displayName: node.displayName || node.id,
+        entityType: node.entityType,
+        graphOrigin: drillParentByNodeKey.has(node.key || node.id)
+          ? "drill_graph"
+          : "base_graph",
+      }
+
+      for (const candidate of getAttackGraphNodeIocCandidates(node)) {
+        const groupKey = buildAttackGraphIocGroupKey(
+          candidate.iocType,
+          candidate.value,
+        )
+        const associations =
+          associationsByGroupKey.get(groupKey) ??
+          new Map<string, AttackGraphIocNodeAssociation>()
+        associations.set(node.id, nodeAssociation)
+        associationsByGroupKey.set(groupKey, associations)
+      }
+    }
+
+    return new Map(
+      Array.from(associationsByGroupKey, ([groupKey, associations]) => [
+        groupKey,
+        Array.from(associations.values()).sort((left, right) =>
+          left.displayName.localeCompare(right.displayName),
+        ),
+      ]),
+    )
+  }, [drillParentByNodeKey, graphResponse])
+  const associatedIocGroupCount = useMemo(
+    () =>
+      groupedIocCandidates.filter(
+        (group) => (iocNodeAssociationsByGroupKey.get(group.key)?.length ?? 0) > 0,
+      ).length,
+    [groupedIocCandidates, iocNodeAssociationsByGroupKey],
   )
   const iocCandidateSourceKeys = useMemo(
     () =>
@@ -222,6 +276,14 @@ export default function App() {
       const next = new Map(current)
       next.delete(targetKey)
       return next
+    })
+  }, [])
+
+  const locateGraphNode = useCallback((nodeId: string) => {
+    graphNodeFocusRequestIdRef.current += 1
+    setGraphNodeFocusRequest({
+      nodeId,
+      requestId: graphNodeFocusRequestIdRef.current,
     })
   }, [])
 
@@ -832,6 +894,7 @@ export default function App() {
           controlPanel={(
             <AttackGraphControlPanel
               defaultActivePluginId="ioc-candidates"
+              defaultExpanded={false}
               plugins={[
                 {
                   id: "ioc-candidates",
@@ -839,14 +902,22 @@ export default function App() {
                   icon: ScanSearch,
                   count: groupedIocCandidates.length,
                   tone: "blue",
-                  headerDescription: "当前案件有效 IOC，按规范化值聚合展示",
+                  headerDescription: "当前案件有效 IOC · 已关联至图谱节点",
+                  headerAction: (
+                    <span className="hidden h-9 items-center gap-2 whitespace-nowrap rounded-[10px] border border-slate-200 bg-slate-50/80 px-3 text-[11px] font-semibold text-slate-600 2xl:inline-flex">
+                      <span className="h-2 w-2 rounded-full bg-blue-500" aria-hidden="true" />
+                      自动关联 {associatedIocGroupCount} 个
+                    </span>
+                  ),
                   content: (
                     <AttackGraphIocCandidates
                       candidates={iocCandidates}
                       deletingCandidateIds={deletingIocCandidateIds}
                       error={iocCandidatesError}
                       loading={iocCandidatesLoading}
+                      nodeAssociationsByGroupKey={iocNodeAssociationsByGroupKey}
                       onDelete={deleteIocCandidates}
+                      onLocateNode={locateGraphNode}
                       onRefresh={() => loadIocCandidates(false)}
                       onSelectedCandidateIdsChange={setSelectedIocCandidateIds}
                       onStartVerification={startIocVerification}
@@ -874,6 +945,7 @@ export default function App() {
           )}
           edgeCount={graphVisibleStats.edgeCount}
           error={graphError}
+          focusNodeRequest={graphNodeFocusRequest}
           layoutOptions={graphLayoutOptions}
           layoutStrategy={graphLayoutStrategy}
           loading={graphLoading}
