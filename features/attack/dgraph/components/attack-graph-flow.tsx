@@ -847,8 +847,8 @@ export function AttackGraphFlow({
             !(detailCardItem && flowContainerWidth < 1200) ? (
               <div
                 className={cn(
-                  "pointer-events-none absolute bottom-4 left-4 z-10 transition-[right] duration-200 motion-reduce:transition-none",
-                  detailCardItem ? "right-[696px]" : "right-4",
+                  "pointer-events-none absolute bottom-5 left-5 z-10 transition-[right] duration-200 motion-reduce:transition-none",
+                  detailCardItem ? "right-[700px]" : "right-5",
                 )}
                 data-attack-graph-control-panel-host="true"
               >

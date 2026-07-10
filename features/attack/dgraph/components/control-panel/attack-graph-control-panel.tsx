@@ -107,15 +107,15 @@ export function AttackGraphControlPanel({
   return (
     <section
       className={cn(
-        "nodrag nopan nowheel pointer-events-auto overflow-hidden rounded-md border border-slate-200 bg-white shadow-[0_12px_32px_-12px_rgba(15,23,42,0.26)]",
+        "nodrag nopan nowheel pointer-events-auto relative overflow-hidden rounded-[18px] border border-slate-200 bg-white/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.98),inset_0_-1px_0_rgba(148,163,184,0.18),0_18px_46px_rgba(15,23,42,0.20),0_4px_12px_rgba(15,23,42,0.08)] ring-1 ring-black/5 backdrop-blur-sm before:pointer-events-none before:absolute before:inset-x-5 before:top-0 before:z-20 before:h-px before:bg-white after:pointer-events-none after:absolute after:inset-x-5 after:bottom-0 after:z-20 after:h-px after:bg-slate-300/35",
         className,
       )}
       aria-label="图谱任务控制面板"
       data-attack-graph-control-panel="true"
     >
-      <div className="flex min-h-14 items-stretch border-b border-slate-200 bg-slate-50/95">
+      <div className="flex min-h-16 items-center border-b border-slate-200/80 bg-white/95 px-2.5 py-2">
         <div
-          className="flex min-w-0 shrink-0 items-stretch"
+          className="flex min-w-0 shrink-0 items-center gap-1.5"
           role="tablist"
           aria-label="图谱任务类型"
         >
@@ -138,41 +138,39 @@ export function AttackGraphControlPanel({
                 onClick={() => selectPlugin(plugin.id)}
                 onKeyDown={(event) => handleTabKeyDown(event, pluginIndex)}
                 className={cn(
-                  "relative flex min-h-14 min-w-[148px] items-center justify-center gap-2 px-4 text-sm font-semibold outline-none transition-colors duration-200 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset",
+                  "relative flex h-11 min-w-[146px] cursor-pointer items-center justify-center gap-2 rounded-xl border px-3 text-sm font-semibold outline-none transition-[background-color,border-color,color,box-shadow] duration-200 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-offset-1 motion-reduce:transition-none",
                   tone === "emerald"
                     ? "focus-visible:ring-emerald-500"
                     : "focus-visible:ring-blue-500",
                   selected
-                    ? cn(
-                        "bg-white after:absolute after:inset-x-0 after:bottom-0 after:h-0.5",
-                        tone === "emerald"
-                          ? "text-emerald-700 after:bg-emerald-600"
-                          : "text-blue-700 after:bg-blue-600",
-                      )
-                    : "text-slate-700 hover:bg-white/70 hover:text-slate-950",
+                    ? tone === "emerald"
+                      ? "border-emerald-200/80 bg-emerald-50/85 text-emerald-700 shadow-[0_4px_12px_-8px_rgba(5,150,105,0.45)]"
+                      : "border-blue-200/80 bg-blue-50/90 text-blue-700 shadow-[0_4px_12px_-8px_rgba(37,99,235,0.45)]"
+                    : "border-transparent text-slate-700 hover:border-slate-200/80 hover:bg-slate-50 hover:text-slate-950",
                 )}
               >
-                <Icon
+                <span
                   className={cn(
-                    "h-5 w-5",
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors duration-200 motion-reduce:transition-none",
                     selected
                       ? tone === "emerald"
-                        ? "text-emerald-600"
-                        : "text-blue-600"
-                      : "text-slate-500",
+                        ? "border-emerald-200 bg-white text-emerald-600"
+                        : "border-blue-200 bg-white text-blue-600"
+                      : "border-slate-200 bg-slate-100/80 text-slate-500",
                   )}
-                  aria-hidden="true"
-                />
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </span>
                 <span>{plugin.label}</span>
                 {typeof plugin.count === "number" ? (
                   <span
                     className={cn(
-                      "inline-flex min-w-5 items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums",
+                      "inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-bold tabular-nums",
                       selected
                         ? tone === "emerald"
                           ? "bg-emerald-100 text-emerald-700"
                           : "bg-blue-100 text-blue-700"
-                        : "bg-slate-200 text-slate-700",
+                        : "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200",
                     )}
                   >
                     {plugin.count}
@@ -183,8 +181,8 @@ export function AttackGraphControlPanel({
           })}
         </div>
 
-        <div className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4">
-          <div className="min-w-0 truncate text-xs text-slate-500">
+        <div className="ml-2 flex min-w-0 flex-1 items-center justify-between gap-3 border-l border-slate-200/80 pl-5 pr-1">
+          <div className="hidden min-w-0 truncate text-xs font-medium text-slate-500 xl:block">
             {activePlugin.headerDescription}
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -194,7 +192,7 @@ export function AttackGraphControlPanel({
               variant="outline"
               size="icon"
               onClick={toggleExpanded}
-              className="h-10 w-10 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+              className="h-11 w-11 rounded-xl border-slate-200 bg-white text-slate-600 shadow-[0_2px_8px_-5px_rgba(15,23,42,0.28)] hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
               aria-controls={`attack-graph-control-panel-${activePlugin.id}`}
               aria-expanded={resolvedExpanded}
               aria-label={resolvedExpanded ? "收起任务控制面板" : "展开任务控制面板"}
