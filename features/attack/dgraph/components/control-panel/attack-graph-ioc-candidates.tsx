@@ -9,6 +9,7 @@ import {
   Clock3,
   FileKey,
   Globe2,
+  Hash,
   LocateFixed,
   Loader2,
   Network,
@@ -325,10 +326,11 @@ export function AttackGraphIocCandidates({
       </div>
 
       <div className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-t border-slate-200/80 bg-slate-50/70 px-4 py-2">
-        <div className="flex min-w-0 items-center gap-3 text-xs text-slate-500">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-1 ring-inset ring-blue-100">
-            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          </span>
+        <div className="flex min-w-0 items-center gap-2.5 text-xs text-slate-500">
+          <CheckCircle2
+            className="h-3.5 w-3.5 shrink-0 text-slate-500"
+            aria-hidden="true"
+          />
           <span className="font-semibold text-slate-800">已选择 {selectedGroupCount} 个 IOC</span>
           <span className="h-4 w-px bg-slate-300" aria-hidden="true" />
           <span>共 {groups.length} 个</span>
@@ -339,12 +341,12 @@ export function AttackGraphIocCandidates({
           size="sm"
           disabled={selectedCandidateIds.size === 0}
           onClick={() => onStartVerification(Array.from(selectedCandidateIds))}
-          className="h-10 shrink-0 rounded-xl bg-blue-600 px-3.5 pr-4 text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(37,99,235,0.8)] hover:bg-blue-700 disabled:shadow-none"
+          className="h-10 shrink-0 rounded-xl bg-slate-900 px-3.5 pr-4 text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(15,23,42,0.75)] hover:bg-slate-800 focus-visible:ring-slate-950 disabled:shadow-none"
         >
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
             <Play className="h-3.5 w-3.5 fill-current" />
           </span>
-          开始 IOC 检测
+          IOC 检测
         </Button>
       </div>
     </div>
@@ -480,6 +482,7 @@ function getIocSourceLabel(group: AttackGraphIocCandidateGroup) {
 function getIocTypeIcon(type: string) {
   if (type === "ip") return Network;
   if (type === "domain" || type === "url") return Globe2;
+  if (type === "md5" || type === "sha1" || type === "sha256") return Hash;
   return FileKey;
 }
 

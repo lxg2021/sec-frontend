@@ -1,6 +1,13 @@
 "use client";
 
-import { FileText, Network, ShieldCheck, Trash2, X } from "lucide-react";
+import {
+  CheckCircle2,
+  FileText,
+  Network,
+  ShieldCheck,
+  Trash2,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/shared/ui/button";
 
@@ -131,20 +138,30 @@ export function AttackGraphRemediationTargets({
       </div>
 
       {targets.length > 0 ? (
-        <div className="flex min-h-14 shrink-0 items-center justify-between gap-4 border-t border-slate-200 bg-slate-50/70 px-4 py-2">
-        <p className="min-w-0 text-xs text-slate-500">
-          已选择 {targets.length} 个目标，可继续在图中右键添加其他节点。
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onClear}
-          className="h-10 shrink-0 bg-white px-3 text-xs text-slate-600 hover:bg-red-50 hover:text-red-700"
-        >
-          <Trash2 className="h-4 w-4" />
-          清空目标
-        </Button>
+        <div className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-t border-slate-200 bg-slate-50/80 px-4 py-2">
+          <div className="flex min-w-0 items-center gap-2.5 text-xs">
+            <CheckCircle2
+              className="h-3.5 w-3.5 shrink-0 text-slate-500"
+              aria-hidden="true"
+            />
+            <span className="shrink-0 font-semibold text-slate-900">
+              已选择 {targets.length} 个目标
+            </span>
+            <span className="h-4 w-px shrink-0 bg-slate-300" aria-hidden="true" />
+            <span className="truncate text-slate-500">
+              可继续在图中右键添加其他节点
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onClear}
+            className="h-9 shrink-0 rounded-lg border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-none hover:border-red-200 hover:bg-red-50 hover:text-red-700 focus-visible:ring-slate-950"
+          >
+            <Trash2 className="h-4 w-4" />
+            清空目标
+          </Button>
         </div>
       ) : null}
     </div>

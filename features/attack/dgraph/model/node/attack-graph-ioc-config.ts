@@ -1,3 +1,5 @@
+import { v5 as uuidv5 } from "uuid";
+
 import type { AttackGraphNodeModel } from "../core/attack-graph-data";
 
 export type AttackGraphIocType =
@@ -31,6 +33,8 @@ const HASH_PATTERN_BY_TYPE: Record<"md5" | "sha1" | "sha256", RegExp> = {
   sha1: /^[a-f0-9]{40}$/i,
   sha256: /^[a-f0-9]{64}$/i,
 };
+
+const ATTACK_GRAPH_IOC_SOURCE_REF_MAX_LENGTH = 128;
 
 const IOC_FIELDS_BY_ENTITY_TYPE: Record<string, readonly IocFieldConfig[]> = {
   DnsName: [{ field: "domain", type: "domain" }],
@@ -74,7 +78,7 @@ const IOC_FIELDS_BY_ENTITY_TYPE: Record<string, readonly IocFieldConfig[]> = {
 export function getAttackGraphNodeIocCandidates(
   node: AttackGraphNodeModel,
 ): AttackGraphNodeIocCandidate[] {
-  const sourceRefId = (node.key || node.id).trim();
+  const sourceRefId = compactAttackGraphIocSourceRefId(node.key || node.id);
   const fieldConfigs = IOC_FIELDS_BY_ENTITY_TYPE[node.entityType] ?? [];
   if (!sourceRefId || fieldConfigs.length === 0) return [];
 
@@ -122,6 +126,15 @@ export function getAttackGraphNodeIocCandidates(
   }
 
   return candidates;
+}
+
+export function compactAttackGraphIocSourceRefId(rawSourceRefId: string) {
+  const sourceRefId = rawSourceRefId.trim();
+  if (sourceRefId.length <= ATTACK_GRAPH_IOC_SOURCE_REF_MAX_LENGTH) {
+    return sourceRefId;
+  }
+
+  return `graph-node:${uuidv5(sourceRefId, uuidv5.URL)}`;
 }
 
 export function buildAttackGraphIocSourceKey(input: {

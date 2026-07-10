@@ -57,7 +57,7 @@ export function createCommonAttackGraphNodeMenuProvider({
               ? "remove-remediation-target"
               : "add-remediation-target",
             label: remediationSelected
-              ? "\u4ece\u5904\u7f6e\u7f16\u6392\u4e2d\u79fb\u9664"
+              ? "\u79fb\u9664\u5904\u7f6e\u7f16\u6392"
               : "\u52a0\u5165\u5904\u7f6e\u7f16\u6392",
             checked: remediationSelected,
             icon: remediationSelected ? (

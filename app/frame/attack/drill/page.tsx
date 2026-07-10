@@ -33,6 +33,7 @@ import {
   buildAttackGraphIocSourceKey,
   buildAttackGraphModel,
   buildGraphDrillTimeRange,
+  compactAttackGraphIocSourceRefId,
   fetchGraphDrill,
   fetchGraphCase,
   getAttackGraphNodeIocCandidates,
@@ -500,7 +501,10 @@ export default function App() {
         }
 
         const nodeKey = action.node.key || action.node.id
-        const drillParentRefId = drillParentByNodeKey.get(nodeKey) || ""
+        const rawDrillParentRefId = drillParentByNodeKey.get(nodeKey) || ""
+        const drillParentRefId = rawDrillParentRefId
+          ? compactAttackGraphIocSourceRefId(rawDrillParentRefId)
+          : ""
         const items: AppendAttackCaseIOCCandidateInput[] = nodeCandidates.map(
           (candidate) => ({
             ioc_type: candidate.iocType,
