@@ -241,8 +241,18 @@ export function AttackGraphIocCandidates({
                     aria-label={t("ioc.selectAll")}
                   />
                 </th>
-                <th className="px-2 py-2.5">IOC</th>
-                <th className="px-3 py-2.5">{t("ioc.columns.nodes")}</th>
+                <th className="px-2 py-2.5">
+                  <span className="flex items-center gap-2.5">
+                    <span className="w-8 shrink-0" aria-hidden="true" />
+                    <span>IOC</span>
+                  </span>
+                </th>
+                <th className="px-3 py-2.5">
+                  <span className="flex items-center gap-2.5 px-1">
+                    <span className="w-8 shrink-0" aria-hidden="true" />
+                    <span>{t("ioc.columns.nodes")}</span>
+                  </span>
+                </th>
                 <th className="px-3 py-2.5">{t("ioc.columns.source")}</th>
                 <th className="px-3 py-2.5 text-center">{t("ioc.columns.verdict")}</th>
                 <th className="px-3 py-2.5 text-center">{t("ioc.columns.risk")}</th>
