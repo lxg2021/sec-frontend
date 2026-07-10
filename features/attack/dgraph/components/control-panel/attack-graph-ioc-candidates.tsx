@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   AlertCircle,
   CheckCircle2,
@@ -139,6 +140,7 @@ export function AttackGraphIocCandidates({
   onStartVerification,
   selectedCandidateIds,
 }: AttackGraphIocCandidatesProps) {
+  const t = useTranslations("pages.attack.drill.controlPanel");
   const groups = groupAttackGraphIocCandidates(candidates);
   const representativeCandidateIds = groups
     .map(getAttackGraphIocRepresentativeCandidateId)
@@ -177,7 +179,7 @@ export function AttackGraphIocCandidates({
     return (
       <div className="flex h-[244px] w-full min-w-0 items-center justify-center gap-2 text-sm text-slate-500" role="status">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-        正在加载预检 IOC
+        {t("ioc.loading")}
       </div>
     );
   }
@@ -188,11 +190,13 @@ export function AttackGraphIocCandidates({
         className="flex h-[244px] w-full min-w-0 flex-col items-center justify-center px-6 text-center"
         role="alert"
       >
-        <p className="text-sm font-semibold text-slate-800">预检 IOC 加载失败</p>
+        <p className="text-sm font-semibold text-slate-800">
+          {t("ioc.loadFailed")}
+        </p>
         <p className="mt-1 max-w-lg text-xs leading-5 text-slate-500">{error}</p>
         <Button type="button" variant="outline" size="sm" className="mt-3 h-10 bg-white" onClick={() => void onRefresh()}>
           <RefreshCw className="h-4 w-4" />
-          重新加载
+          {t("ioc.reload")}
         </Button>
       </div>
     );
@@ -206,11 +210,13 @@ export function AttackGraphIocCandidates({
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
               <ScanSearch className="h-5 w-5" aria-hidden="true" />
             </span>
-            <p className="mt-3 text-sm font-semibold text-slate-800">暂无预检 IOC</p>
+            <p className="mt-3 text-sm font-semibold text-slate-800">
+              {t("ioc.empty")}
+            </p>
           </div>
         ) : (
           <table className="w-full min-w-[900px] table-fixed border-collapse text-left">
-            <caption className="sr-only">当前案件预检 IOC 清单</caption>
+            <caption className="sr-only">{t("ioc.caption")}</caption>
             <colgroup>
               <col className="w-12" />
               <col className="w-[34%]" />
@@ -225,14 +231,14 @@ export function AttackGraphIocCandidates({
                   <Checkbox
                     checked={allSelected}
                     onCheckedChange={(checked) => toggleAll(checked === true)}
-                    aria-label="选择全部预检 IOC"
+                    aria-label={t("ioc.selectAll")}
                   />
                 </th>
                 <th className="px-2 py-2.5">IOC</th>
-                <th className="px-3 py-2.5">关联节点</th>
-                <th className="px-3 py-2.5">来源</th>
-                <th className="px-3 py-2.5">检测状态</th>
-                <th className="px-2 py-2.5"><span className="sr-only">操作</span></th>
+                <th className="px-3 py-2.5">{t("ioc.columns.nodes")}</th>
+                <th className="px-3 py-2.5">{t("ioc.columns.source")}</th>
+                <th className="px-3 py-2.5">{t("ioc.columns.status")}</th>
+                <th className="px-2 py-2.5"><span className="sr-only">{t("ioc.columns.actions")}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -260,7 +266,7 @@ export function AttackGraphIocCandidates({
                       <Checkbox
                         checked={groupSelected}
                         onCheckedChange={(checked) => toggleGroup(group, checked === true)}
-                        aria-label={`选择 ${group.value}`}
+                        aria-label={t("ioc.selectItem", { value: group.value })}
                       />
                     </td>
                     <td className="px-2 py-1.5">
@@ -286,10 +292,12 @@ export function AttackGraphIocCandidates({
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="font-medium text-slate-800">
-                        {getIocSourceLabel(group)}
+                        {t(`ioc.sources.${getIocSourceKey(group)}`)}
                       </div>
                       <div className="mt-0.5 text-[10px] text-slate-500">
-                        共 {group.candidates.length} 条证据
+                        {t("ioc.evidenceCount", {
+                          count: group.candidates.length,
+                        })}
                       </div>
                     </td>
                     <td className="px-3 py-1.5">
@@ -298,7 +306,7 @@ export function AttackGraphIocCandidates({
                           className={`h-3.5 w-3.5 shrink-0 ${status.spinning ? "animate-spin" : ""}`}
                           aria-hidden="true"
                         />
-                        {status.label}
+                        {t(`ioc.status.${status.key}`)}
                       </span>
                     </td>
                     <td className="px-2 py-1.5 text-right">
@@ -311,26 +319,32 @@ export function AttackGraphIocCandidates({
                               size="icon"
                               disabled={deleting}
                               className="h-10 w-10 rounded-full border border-transparent text-slate-500 hover:border-red-100 hover:bg-red-50 hover:text-red-600"
-                              aria-label={`删除自添加 IOC ${group.value}`}
-                              title="删除自添加来源"
+                              aria-label={t("ioc.deleteAria", {
+                                value: group.value,
+                              })}
+                              title={t("ioc.deleteSource")}
                             >
                               {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>删除自添加 IOC？</AlertDialogTitle>
+                              <AlertDialogTitle>
+                                {t("ioc.deleteDialogTitle")}
+                              </AlertDialogTitle>
                               <AlertDialogDescription>
-                                将删除该 IOC 的 {group.userCandidateIds.length} 个图谱添加来源，自动分析来源不会受到影响。
+                                {t("ioc.deleteDialogDescription", {
+                                  count: group.userCandidateIds.length,
+                                })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>取消</AlertDialogCancel>
+                              <AlertDialogCancel>{t("ioc.cancel")}</AlertDialogCancel>
                               <AlertDialogAction
                                 className="bg-red-600 text-white hover:bg-red-700"
                                 onClick={() => void onDelete(group.userCandidateIds)}
                               >
-                                删除
+                                {t("ioc.delete")}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -351,10 +365,12 @@ export function AttackGraphIocCandidates({
             className="h-3.5 w-3.5 shrink-0 text-slate-500"
             aria-hidden="true"
           />
-          <span className="font-semibold text-slate-800">已选择 {selectedGroupCount} 个 IOC</span>
+          <span className="font-semibold text-slate-800">
+            {t("ioc.selectedCount", { count: selectedGroupCount })}
+          </span>
           <span className="h-4 w-px bg-slate-300" aria-hidden="true" />
-          <span>共 {groups.length} 个</span>
-          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="正在刷新" /> : null}
+          <span>{t("ioc.totalCount", { count: groups.length })}</span>
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label={t("ioc.refreshing")} /> : null}
         </div>
         <Button
           type="button"
@@ -366,7 +382,7 @@ export function AttackGraphIocCandidates({
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
             <Play className="h-3.5 w-3.5 fill-current" />
           </span>
-          IOC 检测
+          {t("ioc.verify")}
         </Button>
       </div>
     </div>
@@ -380,6 +396,7 @@ function IocAssociatedNodes({
   nodes: readonly AttackGraphIocNodeAssociation[];
   onLocateNode?: (nodeId: string) => void;
 }) {
+  const t = useTranslations("pages.attack.drill.controlPanel");
   const [open, setOpen] = useState(false);
 
   if (nodes.length === 0) {
@@ -389,8 +406,12 @@ function IocAssociatedNodes({
           <CircleDot className="h-4 w-4" aria-hidden="true" />
         </span>
         <div className="min-w-0">
-          <div className="truncate font-medium text-slate-500">当前图中未匹配</div>
-          <div className="mt-0.5 text-[10px] text-slate-400">暂无可定位节点</div>
+          <div className="truncate font-medium text-slate-500">
+            {t("ioc.nodes.unmatched")}
+          </div>
+          <div className="mt-0.5 text-[10px] text-slate-400">
+            {t("ioc.nodes.noLocatable")}
+          </div>
         </div>
       </div>
     );
@@ -404,8 +425,8 @@ function IocAssociatedNodes({
         onClick={() => onLocateNode?.(node.id)}
         disabled={!onLocateNode}
         className="flex h-10 w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-lg px-1 text-left outline-none transition-colors duration-150 hover:bg-cyan-50/80 focus-visible:ring-2 focus-visible:ring-cyan-500 disabled:cursor-default disabled:hover:bg-transparent motion-reduce:transition-none"
-        aria-label={`定位图节点 ${node.displayName}`}
-        title={`定位节点\n${node.id}`}
+        aria-label={t("ioc.nodes.locateAria", { node: node.displayName })}
+        title={t("ioc.nodes.locateTitle", { id: node.id })}
       >
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-700 ring-1 ring-inset ring-cyan-100">
           <LocateFixed className="h-4 w-4" aria-hidden="true" />
@@ -421,15 +442,20 @@ function IocAssociatedNodes({
         <button
           type="button"
           className="flex h-10 w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-lg px-1 text-left outline-none transition-colors duration-150 hover:bg-cyan-50/80 focus-visible:ring-2 focus-visible:ring-cyan-500 motion-reduce:transition-none"
-          aria-label={`选择要定位的节点，共 ${nodes.length} 个`}
+          aria-label={t("ioc.nodes.selectAria", { count: nodes.length })}
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-700 ring-1 ring-inset ring-cyan-100">
             <LocateFixed className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="font-semibold text-slate-900">{nodes.length} 个关联节点</div>
+            <div className="font-semibold text-slate-900">
+              {t("ioc.nodes.associatedCount", { count: nodes.length })}
+            </div>
             <div className="mt-0.5 truncate text-[10px] text-slate-500">
-              {nodes.slice(0, 2).map((node) => node.displayName).join("、")}
+              {nodes
+                .slice(0, 2)
+                .map((node) => node.displayName)
+                .join(t("ioc.nodes.separator"))}
             </div>
           </div>
           <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
@@ -442,7 +468,7 @@ function IocAssociatedNodes({
         className="w-[360px] max-w-[calc(100vw-32px)] rounded-xl border-slate-200 bg-white p-2 shadow-[0_18px_40px_-18px_rgba(15,23,42,0.35)]"
       >
         <div className="px-2 pb-2 pt-1 text-xs font-semibold text-slate-700">
-          选择关联节点
+          {t("ioc.nodes.selectTitle")}
         </div>
         <div className="max-h-56 space-y-1 overflow-y-auto">
           {nodes.map((node) => (
@@ -473,13 +499,17 @@ function NodeAssociationLabel({
 }: {
   node: AttackGraphIocNodeAssociation;
 }) {
+  const t = useTranslations("pages.attack.drill.controlPanel");
   return (
     <div className="min-w-0 flex-1">
       <div className="truncate font-semibold text-slate-900" title={node.displayName}>
         {node.displayName}
       </div>
       <div className="mt-0.5 truncate font-mono text-[10px] text-slate-500">
-        {node.entityType} · {shortenNodeId(node.id)} · {node.graphOrigin === "drill_graph" ? "钻探" : "基础图谱"}
+        {node.entityType} · {shortenNodeId(node.id)} ·{" "}
+        {node.graphOrigin === "drill_graph"
+          ? t("ioc.nodes.drillGraph")
+          : t("ioc.nodes.baseGraph")}
       </div>
     </div>
   );
@@ -490,13 +520,13 @@ function shortenNodeId(nodeId: string) {
   return `${nodeId.slice(0, 16)}...${nodeId.slice(-8)}`;
 }
 
-function getIocSourceLabel(group: AttackGraphIocCandidateGroup) {
+function getIocSourceKey(group: AttackGraphIocCandidateGroup) {
   const automaticCount = group.candidates.length - group.userCandidateIds.length;
   if (automaticCount > 0 && group.userCandidateIds.length > 0) {
-    return "自动分析 + 图谱添加";
+    return "mixed" as const;
   }
-  if (group.userCandidateIds.length > 0) return "图谱添加";
-  return "自动分析";
+  if (group.userCandidateIds.length > 0) return "graph" as const;
+  return "automatic" as const;
 }
 
 function getIocTypeIcon(type: string) {
@@ -510,7 +540,7 @@ function getIocGroupStatus(group: AttackGraphIocCandidateGroup) {
   const statuses = new Set(group.candidates.map((candidate) => candidate.status));
   if (statuses.has("hit")) {
     return {
-      label: "命中",
+      key: "hit" as const,
       Icon: ShieldAlert,
       className: "bg-red-50 text-red-700 ring-red-200",
       spinning: false,
@@ -518,7 +548,7 @@ function getIocGroupStatus(group: AttackGraphIocCandidateGroup) {
   }
   if (statuses.has("error")) {
     return {
-      label: "检测失败",
+      key: "error" as const,
       Icon: AlertCircle,
       className: "bg-amber-50 text-amber-800 ring-amber-200",
       spinning: false,
@@ -526,7 +556,7 @@ function getIocGroupStatus(group: AttackGraphIocCandidateGroup) {
   }
   if (statuses.has("checking")) {
     return {
-      label: "检测中",
+      key: "checking" as const,
       Icon: Loader2,
       className: "bg-blue-50 text-blue-700 ring-blue-200",
       spinning: true,
@@ -534,14 +564,14 @@ function getIocGroupStatus(group: AttackGraphIocCandidateGroup) {
   }
   if (statuses.has("miss") || statuses.has("allowlisted") || statuses.has("suppressed")) {
     return {
-      label: "未命中",
+      key: "miss" as const,
       Icon: CheckCircle2,
       className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
       spinning: false,
     };
   }
   return {
-    label: "待检测",
+    key: "pending" as const,
     Icon: Clock3,
     className: "bg-slate-100 text-slate-600 ring-slate-200",
     spinning: false,

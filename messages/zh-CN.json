@@ -1172,7 +1172,134 @@
         "statusEmpty": "暂无图谱",
         "statusEmptyDescription": "时间线可能仍可加载",
         "statusError": "加载失败",
-        "statusErrorDescription": "请求失败"
+        "statusErrorDescription": "请求失败",
+        "controlPanel": {
+          "accessibility": {
+            "panel": "图谱任务控制面板",
+            "taskTypes": "图谱任务类型",
+            "collapsePanel": "收起任务控制面板",
+            "expandPanel": "展开任务控制面板",
+            "collapse": "收起",
+            "expand": "展开"
+          },
+          "plugins": {
+            "ioc": {
+              "label": "IOC 预检",
+              "description": "当前案件有效 IOC · 已关联至图谱节点"
+            },
+            "remediation": {
+              "label": "处置目标",
+              "description": "任务清单独立于节点详情，可继续从图中追加目标"
+            }
+          },
+          "ioc": {
+            "loading": "正在加载预检 IOC",
+            "loadFailed": "预检 IOC 加载失败",
+            "reload": "重新加载",
+            "empty": "暂无预检 IOC",
+            "caption": "当前案件预检 IOC 清单",
+            "selectAll": "选择全部预检 IOC",
+            "selectItem": "选择 {value}",
+            "columns": {
+              "nodes": "关联节点",
+              "source": "来源",
+              "status": "检测状态",
+              "actions": "操作"
+            },
+            "evidenceCount": "共 {count} 条证据",
+            "deleteAria": "删除自添加 IOC {value}",
+            "deleteSource": "删除自添加来源",
+            "deleteDialogTitle": "删除自添加 IOC？",
+            "deleteDialogDescription": "将删除该 IOC 的 {count} 个图谱添加来源，自动分析来源不会受到影响。",
+            "cancel": "取消",
+            "delete": "删除",
+            "selectedCount": "已选择 {count} 个 IOC",
+            "totalCount": "共 {count} 个",
+            "refreshing": "正在刷新",
+            "verify": "IOC 检测",
+            "sources": {
+              "mixed": "自动分析 + 图谱添加",
+              "graph": "图谱添加",
+              "automatic": "自动分析"
+            },
+            "status": {
+              "hit": "命中",
+              "error": "检测失败",
+              "checking": "检测中",
+              "miss": "未命中",
+              "pending": "待检测"
+            },
+            "nodes": {
+              "unmatched": "当前图中未匹配",
+              "noLocatable": "暂无可定位节点",
+              "locateAria": "定位图节点 {node}",
+              "locateTitle": "定位节点：{id}",
+              "selectAria": "选择要定位的节点，共 {count} 个",
+              "associatedCount": "{count} 个关联节点",
+              "separator": "、",
+              "selectTitle": "选择关联节点",
+              "drillGraph": "钻探",
+              "baseGraph": "基础图谱"
+            },
+            "messages": {
+              "extractFailed": "自动提取预检 IOC 失败。",
+              "requestFailed": "预检 IOC 请求失败。",
+              "removed": "已移除预检 IOC",
+              "removedDescription": "已移除 {count} 个图谱来源。",
+              "removeFailed": "删除预检 IOC 失败",
+              "unknownError": "未知请求错误。",
+              "selectRequired": "请选择需要检测的 IOC。",
+              "syncPending": "预检 IOC 尚未同步完成，请稍后重试。",
+              "noManualToRemove": "当前节点没有可移除的人工预检 IOC。",
+              "graphNotReady": "当前案件图谱尚未加载完成。",
+              "noAddable": "当前节点没有可加入的 IOC。",
+              "noPublicAddable": "当前节点没有可加入的公网 IOC。",
+              "alreadyExists": "当前节点的 IOC 已在预检清单中。",
+              "adding": "正在加入预检 IOC...",
+              "added": "已加入预检 IOC",
+              "exists": "IOC 已在预检清单中",
+              "changedDescription": "新增 {created} 个，恢复 {reactivated} 个。",
+              "existingDescription": "当前节点的 {count} 个 IOC 无需重复添加。",
+              "addFailed": "加入预检 IOC 失败"
+            }
+          },
+          "remediation": {
+            "empty": "暂无处置目标",
+            "caption": "已加入处置编排的图谱节点",
+            "columns": {
+              "target": "处置目标",
+              "type": "类型",
+              "nodeId": "节点标识",
+              "status": "状态",
+              "actions": "操作"
+            },
+            "capabilities": {
+              "account": "账户",
+              "bits": "BITS 任务",
+              "file": "文件",
+              "network": "网络",
+              "process": "进程",
+              "registry": "注册表",
+              "service": "服务",
+              "scheduledTask": "计划任务",
+              "wmi": "WMI",
+              "common": "通用节点"
+            },
+            "added": "已加入",
+            "removeAria": "移除处置目标 {target}",
+            "remove": "移除",
+            "selectedCount": "已选择 {count} 个目标",
+            "addMoreHint": "可继续在图中右键添加其他节点",
+            "clear": "清空目标",
+            "messages": {
+              "missingId": "当前节点缺少可用标识，无法加入处置编排。",
+              "added": "已加入处置编排",
+              "addedDescription": "{target} 已加入当前处置目标清单。",
+              "removed": "已从处置编排中移除",
+              "removedDescription": "{target} 已从当前处置目标清单移除。"
+            }
+          }
+        }
       },
       "graph": {
         "edges": {

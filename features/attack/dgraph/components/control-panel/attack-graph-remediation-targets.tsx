@@ -8,6 +8,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/shared/ui/button";
 
@@ -20,23 +21,12 @@ export interface AttackGraphRemediationTargetsProps {
   onRemove: (targetKey: string) => void;
 }
 
-const REMEDIATION_CAPABILITY_LABELS: Record<string, string> = {
-  account: "账户",
-  bits: "BITS 任务",
-  file: "文件",
-  network: "网络",
-  process: "进程",
-  registry: "注册表",
-  service: "服务",
-  "scheduled-task": "计划任务",
-  wmi: "WMI",
-};
-
 export function AttackGraphRemediationTargets({
   targets,
   onClear,
   onRemove,
 }: AttackGraphRemediationTargetsProps) {
+  const t = useTranslations("pages.attack.drill.controlPanel");
   return (
     <div className="flex max-h-[300px] w-full min-w-0 flex-col">
       <div className="min-h-0 overflow-auto">
@@ -45,11 +35,13 @@ export function AttackGraphRemediationTargets({
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200">
               <ShieldCheck className="h-5 w-5" aria-hidden="true" />
             </span>
-            <p className="mt-3 text-sm font-semibold text-slate-600">暂无处置目标</p>
+            <p className="mt-3 text-sm font-semibold text-slate-600">
+              {t("remediation.empty")}
+            </p>
           </div>
         ) : (
           <table className="w-full min-w-[620px] table-fixed border-collapse text-left">
-        <caption className="sr-only">已加入处置编排的图谱节点</caption>
+        <caption className="sr-only">{t("remediation.caption")}</caption>
         <colgroup>
           <col className="w-[34%]" />
           <col className="w-[18%]" />
@@ -59,12 +51,12 @@ export function AttackGraphRemediationTargets({
         </colgroup>
         <thead className="sticky top-0 z-[1] bg-white">
           <tr className="border-b border-slate-200 text-[11px] font-semibold text-slate-500">
-            <th className="px-4 py-2.5">处置目标</th>
-            <th className="px-3 py-2.5">类型</th>
-            <th className="px-3 py-2.5">节点标识</th>
-            <th className="px-3 py-2.5">状态</th>
+            <th className="px-4 py-2.5">{t("remediation.columns.target")}</th>
+            <th className="px-3 py-2.5">{t("remediation.columns.type")}</th>
+            <th className="px-3 py-2.5">{t("remediation.columns.nodeId")}</th>
+            <th className="px-3 py-2.5">{t("remediation.columns.status")}</th>
             <th className="px-2 py-2.5">
-              <span className="sr-only">操作</span>
+              <span className="sr-only">{t("remediation.columns.actions")}</span>
             </th>
           </tr>
         </thead>
@@ -103,7 +95,7 @@ export function AttackGraphRemediationTargets({
                   </div>
                 </td>
                 <td className="px-3 py-3 font-medium text-slate-700">
-                  {REMEDIATION_CAPABILITY_LABELS[capability] ?? "通用节点"}
+                  {getRemediationCapabilityLabel(capability, t)}
                 </td>
                 <td className="px-3 py-3">
                   <code className="block truncate text-[11px] text-slate-600" title={targetKey}>
@@ -113,7 +105,7 @@ export function AttackGraphRemediationTargets({
                 <td className="px-3 py-3">
                   <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                    已加入
+                    {t("remediation.added")}
                   </span>
                 </td>
                 <td className="px-2 py-2 text-right">
@@ -123,8 +115,10 @@ export function AttackGraphRemediationTargets({
                     size="icon"
                     onClick={() => onRemove(targetKey)}
                     className="h-10 w-10 text-slate-500 hover:bg-red-50 hover:text-red-600"
-                    aria-label={`移除处置目标 ${target.displayName || targetKey}`}
-                    title="移除"
+                    aria-label={t("remediation.removeAria", {
+                      target: target.displayName || targetKey,
+                    })}
+                    title={t("remediation.remove")}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -145,11 +139,11 @@ export function AttackGraphRemediationTargets({
               aria-hidden="true"
             />
             <span className="shrink-0 font-semibold text-slate-900">
-              已选择 {targets.length} 个目标
+              {t("remediation.selectedCount", { count: targets.length })}
             </span>
             <span className="h-4 w-px shrink-0 bg-slate-300" aria-hidden="true" />
             <span className="truncate text-slate-500">
-              可继续在图中右键添加其他节点
+              {t("remediation.addMoreHint")}
             </span>
           </div>
           <Button
@@ -160,10 +154,28 @@ export function AttackGraphRemediationTargets({
             className="h-9 shrink-0 rounded-lg border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-none hover:border-red-200 hover:bg-red-50 hover:text-red-700 focus-visible:ring-slate-950"
           >
             <Trash2 className="h-4 w-4" />
-            清空目标
+            {t("remediation.clear")}
           </Button>
         </div>
       ) : null}
     </div>
   );
+}
+
+function getRemediationCapabilityLabel(
+  capability: string,
+  t: ReturnType<typeof useTranslations<"pages.attack.drill.controlPanel">>,
+) {
+  if (capability === "account") return t("remediation.capabilities.account");
+  if (capability === "bits") return t("remediation.capabilities.bits");
+  if (capability === "file") return t("remediation.capabilities.file");
+  if (capability === "network") return t("remediation.capabilities.network");
+  if (capability === "process") return t("remediation.capabilities.process");
+  if (capability === "registry") return t("remediation.capabilities.registry");
+  if (capability === "service") return t("remediation.capabilities.service");
+  if (capability === "scheduled-task") {
+    return t("remediation.capabilities.scheduledTask");
+  }
+  if (capability === "wmi") return t("remediation.capabilities.wmi");
+  return t("remediation.capabilities.common");
 }

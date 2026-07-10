@@ -1170,7 +1170,134 @@
         "statusEmpty": "No Graph",
         "statusEmptyDescription": "Timeline may still load",
         "statusError": "Error",
-        "statusErrorDescription": "Load failed"
+        "statusErrorDescription": "Load failed",
+        "controlPanel": {
+          "accessibility": {
+            "panel": "Graph task control panel",
+            "taskTypes": "Graph task types",
+            "collapsePanel": "Collapse task control panel",
+            "expandPanel": "Expand task control panel",
+            "collapse": "Collapse",
+            "expand": "Expand"
+          },
+          "plugins": {
+            "ioc": {
+              "label": "IOC Precheck",
+              "description": "Active case IOCs · Linked to graph nodes"
+            },
+            "remediation": {
+              "label": "Response Targets",
+              "description": "This task list is independent of node details; add more targets from the graph"
+            }
+          },
+          "ioc": {
+            "loading": "Loading IOC precheck candidates",
+            "loadFailed": "Failed to load IOC precheck candidates",
+            "reload": "Reload",
+            "empty": "No IOC precheck candidates",
+            "caption": "IOC precheck candidates for this case",
+            "selectAll": "Select all IOC precheck candidates",
+            "selectItem": "Select {value}",
+            "columns": {
+              "nodes": "Linked Nodes",
+              "source": "Source",
+              "status": "Status",
+              "actions": "Actions"
+            },
+            "evidenceCount": "Evidence: {count}",
+            "deleteAria": "Delete user-added IOC {value}",
+            "deleteSource": "Delete user-added source",
+            "deleteDialogTitle": "Delete user-added IOC?",
+            "deleteDialogDescription": "Graph-added sources to remove: {count}. Automatically extracted sources will not be affected.",
+            "cancel": "Cancel",
+            "delete": "Delete",
+            "selectedCount": "Selected IOCs: {count}",
+            "totalCount": "Total: {count}",
+            "refreshing": "Refreshing",
+            "verify": "IOC Check",
+            "sources": {
+              "mixed": "Automatic + Graph-added",
+              "graph": "Graph-added",
+              "automatic": "Automatic"
+            },
+            "status": {
+              "hit": "Detected",
+              "error": "Check Failed",
+              "checking": "Checking",
+              "miss": "No Match",
+              "pending": "Pending"
+            },
+            "nodes": {
+              "unmatched": "Not matched in current graph",
+              "noLocatable": "No node available to locate",
+              "locateAria": "Locate graph node {node}",
+              "locateTitle": "Locate node: {id}",
+              "selectAria": "Select a node to locate; {count} available",
+              "associatedCount": "Linked nodes: {count}",
+              "separator": ", ",
+              "selectTitle": "Select Linked Node",
+              "drillGraph": "Drilldown",
+              "baseGraph": "Base Graph"
+            },
+            "messages": {
+              "extractFailed": "Automatic IOC extraction failed.",
+              "requestFailed": "Failed to request IOC candidates.",
+              "removed": "IOC removed from precheck",
+              "removedDescription": "Removed {count} graph-added sources.",
+              "removeFailed": "Failed to remove IOC from precheck",
+              "unknownError": "Unknown request error.",
+              "selectRequired": "Select at least one IOC to check.",
+              "syncPending": "IOC candidates are still syncing. Try again shortly.",
+              "noManualToRemove": "This node has no user-added IOC to remove.",
+              "graphNotReady": "The case graph has not finished loading.",
+              "noAddable": "This node has no IOC that can be added.",
+              "noPublicAddable": "This node has no public IOC that can be added.",
+              "alreadyExists": "This node's IOC is already in the precheck list.",
+              "adding": "Adding IOC to precheck...",
+              "added": "IOC added to precheck",
+              "exists": "IOC is already in the precheck list",
+              "changedDescription": "Created: {created}; reactivated: {reactivated}.",
+              "existingDescription": "The {count} IOC candidates from this node do not need to be added again.",
+              "addFailed": "Failed to add IOC to precheck"
+            }
+          },
+          "remediation": {
+            "empty": "No response targets",
+            "caption": "Graph nodes added to response orchestration",
+            "columns": {
+              "target": "Response Target",
+              "type": "Type",
+              "nodeId": "Node ID",
+              "status": "Status",
+              "actions": "Actions"
+            },
+            "capabilities": {
+              "account": "Account",
+              "bits": "BITS Task",
+              "file": "File",
+              "network": "Network",
+              "process": "Process",
+              "registry": "Registry",
+              "service": "Service",
+              "scheduledTask": "Scheduled Task",
+              "wmi": "WMI",
+              "common": "General Node"
+            },
+            "added": "Added",
+            "removeAria": "Remove response target {target}",
+            "remove": "Remove",
+            "selectedCount": "Selected targets: {count}",
+            "addMoreHint": "Right-click other graph nodes to add more targets",
+            "clear": "Clear Targets",
+            "messages": {
+              "missingId": "This node has no usable identifier and cannot be added to response orchestration.",
+              "added": "Added to response orchestration",
+              "addedDescription": "{target} was added to the current response target list.",
+              "removed": "Removed from response orchestration",
+              "removedDescription": "{target} was removed from the current response target list."
+            }
+          }
+        }
       },
       "graph": {
         "edges": {

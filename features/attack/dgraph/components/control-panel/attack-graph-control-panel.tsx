@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
@@ -45,6 +46,7 @@ export function AttackGraphControlPanel({
   onActivePluginChange,
   onExpandedChange,
 }: AttackGraphControlPanelProps) {
+  const t = useTranslations("pages.attack.drill.controlPanel");
   const [internalActivePluginId, setInternalActivePluginId] = useState(
     defaultActivePluginId ?? plugins[0]?.id ?? "",
   );
@@ -113,7 +115,7 @@ export function AttackGraphControlPanel({
           : "max-w-[380px] rounded-full border-slate-200 bg-white/95 shadow-[inset_0_1px_0_rgba(255,255,255,1),inset_0_-1px_0_rgba(148,163,184,0.10),0_12px_24px_rgba(15,23,42,0.10),0_2px_4px_rgba(15,23,42,0.06)] ring-1 ring-white/80",
         className,
       )}
-      aria-label="图谱任务控制面板"
+      aria-label={t("accessibility.panel")}
       data-expanded={resolvedExpanded}
       data-attack-graph-control-panel="true"
     >
@@ -128,7 +130,7 @@ export function AttackGraphControlPanel({
         <div
           className="flex min-w-0 shrink-0 items-center gap-1.5"
           role="tablist"
-          aria-label="图谱任务类型"
+          aria-label={t("accessibility.taskTypes")}
         >
           {plugins.map((plugin, pluginIndex) => {
             const Icon = plugin.icon;
@@ -214,8 +216,16 @@ export function AttackGraphControlPanel({
               )}
               aria-controls={`attack-graph-control-panel-${activePlugin.id}`}
               aria-expanded={resolvedExpanded}
-              aria-label={resolvedExpanded ? "收起任务控制面板" : "展开任务控制面板"}
-              title={resolvedExpanded ? "收起" : "展开"}
+              aria-label={
+                resolvedExpanded
+                  ? t("accessibility.collapsePanel")
+                  : t("accessibility.expandPanel")
+              }
+              title={
+                resolvedExpanded
+                  ? t("accessibility.collapse")
+                  : t("accessibility.expand")
+              }
             >
               {resolvedExpanded ? (
                 <ChevronDown className="h-4 w-4" />

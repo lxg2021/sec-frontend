@@ -348,7 +348,8 @@ export default function App() {
         } else if (extractTaskStatus === "failed") {
           setIocCandidateSyncState("error")
           setIocCandidatesError(
-            data.extract_task?.error_message || "自动提取预检 IOC 失败。",
+            data.extract_task?.error_message ||
+              t("controlPanel.ioc.messages.extractFailed"),
           )
         } else {
           setIocCandidateSyncState("ready")
@@ -369,7 +370,9 @@ export default function App() {
         setIocCandidateSyncState("error")
         setIocExtractTaskStatus("")
         setIocCandidatesError(
-          error instanceof Error ? error.message : "预检 IOC 请求失败。",
+          error instanceof Error
+            ? error.message
+            : t("controlPanel.ioc.messages.requestFailed"),
         )
       } finally {
         if (iocLoadRunIdRef.current === runId) {
@@ -377,7 +380,7 @@ export default function App() {
         }
       }
     },
-    [timelineCaseId],
+    [t, timelineCaseId],
   )
 
   const deleteIocCandidates = useCallback(
@@ -408,12 +411,17 @@ export default function App() {
         setSelectedIocCandidateIds((current) =>
           new Set(Array.from(current).filter((candidateId) => !deletedIds.has(candidateId))),
         )
-        toast.success("已移除预检 IOC", {
-          description: `已移除 ${data.deleted_count} 个图谱来源。`,
+        toast.success(t("controlPanel.ioc.messages.removed"), {
+          description: t("controlPanel.ioc.messages.removedDescription", {
+            count: data.deleted_count,
+          }),
         })
       } catch (error) {
-        toast.error("删除预检 IOC 失败", {
-          description: error instanceof Error ? error.message : "未知请求错误。",
+        toast.error(t("controlPanel.ioc.messages.removeFailed"), {
+          description:
+            error instanceof Error
+              ? error.message
+              : t("controlPanel.ioc.messages.unknownError"),
         })
       } finally {
         setDeletingIocCandidateIds((current) => {
@@ -423,7 +431,7 @@ export default function App() {
         })
       }
     },
-    [timelineCaseId],
+    [t, timelineCaseId],
   )
 
   const startIocVerification = useCallback(
@@ -433,7 +441,7 @@ export default function App() {
         new Set(candidateIds.map((item) => item.trim()).filter(Boolean)),
       )
       if (!caseId || normalizedIds.length === 0) {
-        toast.warning("请选择需要检测的 IOC。")
+        toast.warning(t("controlPanel.ioc.messages.selectRequired"))
         return
       }
 
@@ -447,7 +455,7 @@ export default function App() {
         }),
       )
     },
-    [returnQueuePage, returnWorkflowId, router, timelineCaseId, timelineSnapshotId],
+    [returnQueuePage, returnWorkflowId, router, t, timelineCaseId, timelineSnapshotId],
   )
 
   const graphVisibleStats = useMemo(() => {
@@ -534,7 +542,7 @@ export default function App() {
     async (action: AttackGraphMenuAction) => {
       if (action.kind === "remove-ioc-candidates") {
         if (iocCandidateSyncState !== "ready") {
-          toast.info("预检 IOC 尚未同步完成，请稍后重试。")
+          toast.info(t("controlPanel.ioc.messages.syncPending"))
           return
         }
         const candidateIds = Array.from(
@@ -550,7 +558,7 @@ export default function App() {
           ),
         )
         if (candidateIds.length === 0) {
-          toast.info("当前节点没有可移除的人工预检 IOC。")
+          toast.info(t("controlPanel.ioc.messages.noManualToRemove"))
           return
         }
         await deleteIocCandidates(candidateIds)
@@ -561,17 +569,17 @@ export default function App() {
         const currentGraph = graphResponseRef.current ?? graphResponse
         const caseId = (currentGraph?.case_id || timelineCaseId).trim()
         if (!currentGraph || !caseId) {
-          toast.error("当前案件图谱尚未加载完成。")
+          toast.error(t("controlPanel.ioc.messages.graphNotReady"))
           return
         }
 
         const nodeCandidates = getAttackGraphNodeIocCandidates(action.node)
         if (nodeCandidates.length === 0) {
-          toast.warning("当前节点没有可加入的 IOC。")
+          toast.warning(t("controlPanel.ioc.messages.noAddable"))
           return
         }
         if (iocCandidateSyncState !== "ready") {
-          toast.info("预检 IOC 尚未同步完成，请稍后重试。")
+          toast.info(t("controlPanel.ioc.messages.syncPending"))
           return
         }
         const eligibleNodeCandidates = nodeCandidates.filter(
@@ -580,7 +588,7 @@ export default function App() {
         if (eligibleNodeCandidates.length === 0) {
           toast.info(
             nodeCandidates[0]?.precheckUnavailableReason ||
-              "当前节点没有可加入的公网 IOC。",
+              t("controlPanel.ioc.messages.noPublicAddable"),
           )
           return
         }
@@ -594,7 +602,7 @@ export default function App() {
             ),
         )
         if (missingNodeCandidates.length === 0) {
-          toast.info("当前节点的 IOC 已在预检清单中。")
+          toast.info(t("controlPanel.ioc.messages.alreadyExists"))
           return
         }
 
@@ -618,7 +626,7 @@ export default function App() {
             source_display_name: candidate.sourceDisplayName || undefined,
           }))
 
-        const toastId = toast.loading("正在加入预检 IOC...")
+        const toastId = toast.loading(t("controlPanel.ioc.messages.adding"))
         try {
           const data = await appendAttackCaseIocCandidates({
             caseId,
@@ -644,17 +652,30 @@ export default function App() {
           })
 
           const changedCount = data.created_count + data.reactivated_count
-          toast.success(changedCount > 0 ? "已加入预检 IOC" : "IOC 已在预检清单中", {
+          toast.success(
+            changedCount > 0
+              ? t("controlPanel.ioc.messages.added")
+              : t("controlPanel.ioc.messages.exists"),
+            {
+              id: toastId,
+              description:
+                changedCount > 0
+                  ? t("controlPanel.ioc.messages.changedDescription", {
+                      created: data.created_count,
+                      reactivated: data.reactivated_count,
+                    })
+                  : t("controlPanel.ioc.messages.existingDescription", {
+                      count: data.existing_count,
+                    }),
+            },
+          )
+        } catch (error) {
+          toast.error(t("controlPanel.ioc.messages.addFailed"), {
             id: toastId,
             description:
-              changedCount > 0
-                ? `新增 ${data.created_count} 个，恢复 ${data.reactivated_count} 个。`
-                : `当前节点的 ${data.existing_count} 个 IOC 无需重复添加。`,
-          })
-        } catch (error) {
-          toast.error("加入预检 IOC 失败", {
-            id: toastId,
-            description: error instanceof Error ? error.message : "未知请求错误。",
+              error instanceof Error
+                ? error.message
+                : t("controlPanel.ioc.messages.unknownError"),
           })
         }
         return
@@ -666,7 +687,7 @@ export default function App() {
       ) {
         const targetKey = action.node.key || action.node.id
         if (!targetKey) {
-          toast.error("当前节点缺少可用标识，无法加入处置编排。")
+          toast.error(t("controlPanel.remediation.messages.missingId"))
           return
         }
 
@@ -684,12 +705,18 @@ export default function App() {
         const targetName =
           action.node.displayName || action.node.key || action.node.id
         if (adding) {
-          toast.success("已加入处置编排", {
-            description: `${targetName} 已加入当前处置目标清单。`,
+          toast.success(t("controlPanel.remediation.messages.added"), {
+            description: t(
+              "controlPanel.remediation.messages.addedDescription",
+              { target: targetName },
+            ),
           })
         } else {
-          toast.success("已从处置编排中移除", {
-            description: `${targetName} 已从当前处置目标清单移除。`,
+          toast.success(t("controlPanel.remediation.messages.removed"), {
+            description: t(
+              "controlPanel.remediation.messages.removedDescription",
+              { target: targetName },
+            ),
           })
         }
         return
@@ -833,6 +860,7 @@ export default function App() {
       iocCandidateIdentityKeys,
       iocCandidateSyncState,
       iocCandidateUserIdsBySourceKey,
+      t,
       timelineCaseId,
     ],
   )
@@ -1016,11 +1044,11 @@ export default function App() {
               plugins={[
                 {
                   id: "ioc-candidates",
-                  label: "IOC 预检",
+                  label: t("controlPanel.plugins.ioc.label"),
                   icon: ScanSearch,
                   count: groupedIocCandidates.length,
                   tone: "blue",
-                  headerDescription: "当前案件有效 IOC · 已关联至图谱节点",
+                  headerDescription: t("controlPanel.plugins.ioc.description"),
                   content: (
                     <AttackGraphIocCandidates
                       candidates={iocCandidates}
@@ -1042,11 +1070,13 @@ export default function App() {
                 },
                 {
                   id: "remediation-targets",
-                  label: "处置目标",
+                  label: t("controlPanel.plugins.remediation.label"),
                   icon: ShieldCheck,
                   count: remediationTargets.length,
                   tone: "emerald",
-                  headerDescription: "任务清单独立于节点详情，可继续从图中追加目标",
+                  headerDescription: t(
+                    "controlPanel.plugins.remediation.description",
+                  ),
                   content: (
                     <AttackGraphRemediationTargets
                       targets={remediationTargets}
