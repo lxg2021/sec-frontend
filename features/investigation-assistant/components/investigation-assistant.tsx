@@ -429,12 +429,12 @@ export function InvestigationAssistant({
                             onClick={() => void handleExecute(action, index)}
                             disabled={done || busy}
                             className={cn(
-                              "inline-flex min-h-8 flex-shrink-0 cursor-pointer items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+                              "inline-flex min-h-8 flex-shrink-0 cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold shadow-none transition-[background-color,border-color,color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 focus-visible:ring-offset-2 motion-reduce:transition-none",
                               done
-                                ? "cursor-default border border-emerald-200 bg-emerald-50 text-emerald-700"
+                                ? "cursor-default border-emerald-200 bg-emerald-50 text-emerald-700"
                                 : busy
-                                  ? "cursor-wait border border-blue-200 bg-blue-50 text-blue-700"
-                                  : "bg-blue-600 text-white shadow-sm hover:bg-blue-700",
+                                  ? "cursor-wait border-blue-100 bg-blue-50 text-blue-700"
+                                  : "border-blue-600 bg-blue-600 text-white hover:border-blue-700 hover:bg-blue-700 active:border-blue-800 active:bg-blue-800",
                             )}
                           >
                             {done ? (
