@@ -904,9 +904,9 @@ export default function App() {
                   tone: "blue",
                   headerDescription: "当前案件有效 IOC · 已关联至图谱节点",
                   headerAction: (
-                    <span className="hidden h-9 items-center gap-2 whitespace-nowrap rounded-[10px] border border-slate-200 bg-slate-50/80 px-3 text-[11px] font-semibold text-slate-600 2xl:inline-flex">
+                    <span className="inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-[10px] border border-slate-200 bg-slate-50/80 px-3 text-[11px] font-semibold text-slate-600">
                       <span className="h-2 w-2 rounded-full bg-blue-500" aria-hidden="true" />
-                      自动关联 {associatedIocGroupCount} 个
+                      {associatedIocGroupCount} 个 IOC 已关联图谱
                     </span>
                   ),
                   content: (

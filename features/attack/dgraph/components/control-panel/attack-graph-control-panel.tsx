@@ -107,13 +107,22 @@ export function AttackGraphControlPanel({
   return (
     <section
       className={cn(
-        "nodrag nopan nowheel pointer-events-auto relative overflow-hidden rounded-[18px] border border-slate-200 bg-white/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.98),inset_0_-1px_0_rgba(148,163,184,0.18),0_18px_46px_rgba(15,23,42,0.20),0_4px_12px_rgba(15,23,42,0.08)] ring-1 ring-black/5 backdrop-blur-sm before:pointer-events-none before:absolute before:inset-x-5 before:top-0 before:z-20 before:h-px before:bg-white after:pointer-events-none after:absolute after:inset-x-5 after:bottom-0 after:z-20 after:h-px after:bg-slate-300/35",
+        "nodrag nopan nowheel pointer-events-auto relative mx-auto w-full overflow-hidden rounded-[18px] border border-slate-200 bg-white/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.98),inset_0_-1px_0_rgba(148,163,184,0.18),0_18px_46px_rgba(15,23,42,0.20),0_4px_12px_rgba(15,23,42,0.08)] ring-1 ring-black/5 backdrop-blur-sm transition-[max-width] duration-200 ease-out motion-reduce:transition-none before:pointer-events-none before:absolute before:inset-x-5 before:top-0 before:z-20 before:h-px before:bg-white after:pointer-events-none after:absolute after:inset-x-5 after:bottom-0 after:z-20 after:h-px after:bg-slate-300/35",
+        resolvedExpanded ? "max-w-full" : "max-w-[650px]",
         className,
       )}
       aria-label="图谱任务控制面板"
+      data-expanded={resolvedExpanded}
       data-attack-graph-control-panel="true"
     >
-      <div className="flex min-h-16 items-center border-b border-slate-200/80 bg-white/95 px-2.5 py-2">
+      <div
+        className={cn(
+          "flex min-h-16 items-center bg-white/95 px-2.5 py-2 transition-colors duration-200 motion-reduce:transition-none",
+          resolvedExpanded
+            ? "border-b border-slate-200/80"
+            : "border-b border-transparent",
+        )}
+      >
         <div
           className="flex min-w-0 shrink-0 items-center gap-1.5"
           role="tablist"
@@ -181,12 +190,26 @@ export function AttackGraphControlPanel({
           })}
         </div>
 
-        <div className="ml-2 flex min-w-0 flex-1 items-center justify-between gap-3 border-l border-slate-200/80 pl-5 pr-1">
-          <div className="hidden min-w-0 truncate text-xs font-medium text-slate-500 xl:block">
+        <div
+          className={cn(
+            "ml-2 flex min-w-0 items-center justify-between gap-3 border-l border-slate-200/80 pr-1",
+            resolvedExpanded ? "flex-1 pl-5" : "shrink-0 pl-4",
+          )}
+        >
+          <div
+            className={cn(
+              "min-w-0 truncate text-xs font-medium text-slate-500",
+              resolvedExpanded ? "hidden xl:block" : "hidden",
+            )}
+          >
             {activePlugin.headerDescription}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {activePlugin.headerAction}
+            {activePlugin.headerAction ? (
+              <div className={resolvedExpanded ? "hidden 2xl:block" : "block"}>
+                {activePlugin.headerAction}
+              </div>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -213,7 +236,7 @@ export function AttackGraphControlPanel({
           id={`attack-graph-control-panel-${activePlugin.id}`}
           role="tabpanel"
           aria-labelledby={`attack-graph-control-panel-${activePlugin.id}-tab`}
-          className="max-h-[300px] min-h-0 overflow-hidden bg-white"
+          className="max-h-[300px] min-h-0 animate-in overflow-hidden bg-white fade-in-0 slide-in-from-bottom-1 duration-200 motion-reduce:animate-none"
         >
           {activePlugin.content}
         </div>
