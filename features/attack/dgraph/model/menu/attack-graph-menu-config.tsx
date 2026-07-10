@@ -10,11 +10,12 @@ import type {
   AttackGraphMenuAction,
   AttackGraphMenuGroup,
   AttackGraphMenuProvider,
+  AttackGraphIocCandidateSyncState,
   AttackGraphNodeDrillStateByKey,
 } from "./attack-graph-menu-types";
 import { canShowAttackGraphRemediationMenu } from "../node/attack-graph-remediation-config";
 import {
-  buildAttackGraphIocSourceKey,
+  buildAttackGraphIocIdentityKey,
   getAttackGraphNodeIocCandidates,
 } from "../node/attack-graph-ioc-config";
 
@@ -22,14 +23,16 @@ export function createCommonAttackGraphNodeMenuProvider({
   drillStateByNodeKey,
   enableIocMenu = false,
   enableRemediationMenu = false,
-  iocCandidateSourceKeys,
+  iocCandidateIdentityKeys,
+  iocCandidateSyncState = "ready",
   onMenuAction,
   remediationTargetKeys,
 }: {
   drillStateByNodeKey?: AttackGraphNodeDrillStateByKey;
   enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
-  iocCandidateSourceKeys?: ReadonlySet<string>;
+  iocCandidateIdentityKeys?: ReadonlySet<string>;
+  iocCandidateSyncState?: AttackGraphIocCandidateSyncState;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   remediationTargetKeys?: ReadonlySet<string>;
 } = {}): AttackGraphMenuProvider {
@@ -39,11 +42,74 @@ export function createCommonAttackGraphNodeMenuProvider({
     const nodeIocCandidates = enableIocMenu
       ? getAttackGraphNodeIocCandidates(context.node)
       : [];
-    const allNodeIocsAdded =
-      nodeIocCandidates.length > 0 &&
-      nodeIocCandidates.every((candidate) =>
-        iocCandidateSourceKeys?.has(buildAttackGraphIocSourceKey(candidate)),
-      );
+    const eligibleNodeIocCandidates = nodeIocCandidates.filter(
+      (candidate) => candidate.precheckEligible,
+    );
+    const unavailableNodeIocCount =
+      nodeIocCandidates.length - eligibleNodeIocCandidates.length;
+    const existingNodeIocCount = eligibleNodeIocCandidates.filter((candidate) =>
+      iocCandidateIdentityKeys?.has(
+        buildAttackGraphIocIdentityKey(candidate.iocType, candidate.value),
+      ),
+    ).length;
+    const missingNodeIocCount =
+      eligibleNodeIocCandidates.length - existingNodeIocCount;
+    const allNodeIocsExist =
+      eligibleNodeIocCandidates.length > 0 && missingNodeIocCount === 0;
+    const iocSyncUnavailable = iocCandidateSyncState !== "ready";
+    const noEligibleNodeIocs =
+      nodeIocCandidates.length > 0 && eligibleNodeIocCandidates.length === 0;
+    const iocMenuDisabled =
+      iocSyncUnavailable || noEligibleNodeIocs || allNodeIocsExist;
+    const iocItems: AttackGraphMenuGroup["items"] =
+      nodeIocCandidates.length > 0
+        ? [
+            {
+              id: "add-ioc-candidates",
+              label:
+                iocCandidateSyncState === "loading"
+                  ? "正在同步预检 IOC"
+                  : iocCandidateSyncState === "error"
+                    ? "预检 IOC 同步失败"
+                    : noEligibleNodeIocs
+                      ? nodeIocCandidates[0]?.precheckUnavailableReason ||
+                        "当前节点无可预检 IOC"
+                      : allNodeIocsExist
+                        ? "已存在预检 IOC"
+                        : "加入预检 IOC",
+              description:
+                iocCandidateSyncState === "loading"
+                  ? "候选加载或自动提取完成后即可操作"
+                  : iocCandidateSyncState === "error"
+                    ? "请在 Control Panel 中重新加载候选"
+                    : noEligibleNodeIocs
+                      ? "该地址不会提交到公网 IOC 检测"
+                      : allNodeIocsExist
+                        ? undefined
+                        : existingNodeIocCount > 0
+                          ? `已存在 ${existingNodeIocCount} 个，可加入 ${missingNodeIocCount} 个`
+                          : eligibleNodeIocCandidates.length > 1
+                            ? `将节点中的 ${eligibleNodeIocCandidates.length} 个 IOC 加入清单`
+                            : unavailableNodeIocCount > 0
+                              ? `另有 ${unavailableNodeIocCount} 个 IOC 无需公网预检`
+                              : undefined,
+              disabled: iocMenuDisabled,
+              checked: !iocSyncUnavailable && allNodeIocsExist,
+              icon: <ScanSearch className="h-4 w-4" />,
+              tone: iocMenuDisabled ? "default" : "primary",
+              action: async ({ graph, node }) => {
+                if (iocMenuDisabled) {
+                  return;
+                }
+                await onMenuAction?.({
+                  kind: "add-ioc-candidates",
+                  graph,
+                  node,
+                });
+              },
+            },
+          ]
+        : [];
     const remediationTargetKey = context.node.key || context.node.id;
     const remediationSelected =
       remediationTargetKeys?.has(remediationTargetKey) ?? false;
@@ -79,7 +145,7 @@ export function createCommonAttackGraphNodeMenuProvider({
         ]
       : [];
 
-    return [
+    const groups: AttackGraphMenuGroup[] = [
       {
         id: "node-actions",
         label: "\u8282\u70b9\u64cd\u4f5c",
@@ -120,34 +186,13 @@ export function createCommonAttackGraphNodeMenuProvider({
           },
         ],
       },
-      ...(nodeIocCandidates.length > 0
+      ...(iocItems.length > 0
         ? [
             {
               id: "ioc-actions",
               label: "IOC 预检",
               order: 5,
-              items: [
-                {
-                  id: "add-ioc-candidates",
-                  label: allNodeIocsAdded
-                    ? "已加入预检 IOC"
-                    : "加入预检 IOC",
-                  description:
-                    nodeIocCandidates.length > 1
-                      ? `将节点中的 ${nodeIocCandidates.length} 个 IOC 加入清单`
-                      : undefined,
-                  checked: allNodeIocsAdded,
-                  icon: <ScanSearch className="h-4 w-4" />,
-                  tone: allNodeIocsAdded ? "default" : "primary",
-                  action: async ({ graph, node }) => {
-                    await onMenuAction?.({
-                      kind: "add-ioc-candidates",
-                      graph,
-                      node,
-                    });
-                  },
-                },
-              ],
+              items: iocItems,
             },
           ]
         : []),
@@ -162,6 +207,7 @@ export function createCommonAttackGraphNodeMenuProvider({
           ]
         : []),
     ];
+    return groups;
   };
 }
 

@@ -204,13 +204,23 @@ export function AttackGraphContextMenu({
               <span className="min-w-0 flex-1">
                 <span className="block truncate">{item.label}</span>
                 {item.description ? (
-                  <span className="block truncate text-[11px] font-normal leading-4 text-slate-500">
+                  <span
+                    className={cn(
+                      "block truncate text-[11px] font-normal leading-4",
+                      item.disabled ? "text-slate-400" : "text-slate-500",
+                    )}
+                  >
                     {item.description}
                   </span>
                 ) : null}
               </span>
               {item.checked ? (
-                <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    item.disabled ? "bg-slate-300" : "bg-blue-600",
+                  )}
+                />
               ) : null}
             </button>
           ))}

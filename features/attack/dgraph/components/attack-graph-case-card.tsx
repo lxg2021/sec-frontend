@@ -17,6 +17,7 @@ import type {
   GraphCaseResponseDto,
 } from "../model/core/attack-graph-data";
 import type {
+  AttackGraphIocCandidateSyncState,
   AttackGraphMenuAction,
   AttackGraphNodeDrillStateByKey,
 } from "../model/menu/attack-graph-menu-types";
@@ -41,7 +42,8 @@ export interface AttackGraphCaseCardProps {
   loading?: boolean;
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
   nodeCount?: number;
-  iocCandidateSourceKeys?: ReadonlySet<string>;
+  iocCandidateIdentityKeys?: ReadonlySet<string>;
+  iocCandidateSyncState?: AttackGraphIocCandidateSyncState;
   onBack?: () => void;
   onLayoutStrategyChange: (strategy: AttackGraphLayoutStrategyOption) => void;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
@@ -67,7 +69,8 @@ export function AttackGraphCaseCard({
   loading = false,
   nodeDrillStateByKey,
   nodeCount = 0,
-  iocCandidateSourceKeys,
+  iocCandidateIdentityKeys,
+  iocCandidateSyncState,
   onBack,
   onLayoutStrategyChange,
   onMenuAction,
@@ -167,7 +170,8 @@ export function AttackGraphCaseCard({
               className="h-full"
               enableIocMenu={enableIocMenu}
               enableRemediationMenu={enableRemediationMenu}
-              iocCandidateSourceKeys={iocCandidateSourceKeys}
+              iocCandidateIdentityKeys={iocCandidateIdentityKeys}
+              iocCandidateSyncState={iocCandidateSyncState}
               layoutOptions={layoutOptions}
               nodeDrillStateByKey={nodeDrillStateByKey}
               onMenuAction={onMenuAction}

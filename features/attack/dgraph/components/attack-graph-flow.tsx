@@ -51,6 +51,7 @@ import { layoutAttackGraph } from "../model/layout/attack-graph-layout";
 import { createCommonAttackGraphNodeMenuProvider } from "../model/menu/attack-graph-menu-config";
 import { resolveAttackGraphNodeMenu } from "../model/menu/attack-graph-menu-resolver";
 import type {
+  AttackGraphIocCandidateSyncState,
   AttackGraphMenuAction,
   AttackGraphNodeDrillStateByKey,
   AttackGraphMenuProvider,
@@ -92,7 +93,8 @@ export interface AttackGraphFlowProps
   className?: string;
   enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
-  iocCandidateSourceKeys?: ReadonlySet<string>;
+  iocCandidateIdentityKeys?: ReadonlySet<string>;
+  iocCandidateSyncState?: AttackGraphIocCandidateSyncState;
   layoutOptions?: AttackGraphLayoutOptions;
   menuProviders?: AttackGraphMenuProvider[];
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
@@ -205,7 +207,8 @@ export function AttackGraphFlow({
   className,
   enableIocMenu = false,
   enableRemediationMenu = false,
-  iocCandidateSourceKeys,
+  iocCandidateIdentityKeys,
+  iocCandidateSyncState,
   layoutOptions,
   menuProviders,
   nodeDrillStateByKey,
@@ -367,7 +370,8 @@ export function AttackGraphFlow({
         drillStateByNodeKey: nodeDrillStateByKey,
         enableIocMenu,
         enableRemediationMenu,
-        iocCandidateSourceKeys,
+        iocCandidateIdentityKeys,
+        iocCandidateSyncState,
         onMenuAction,
         remediationTargetKeys,
       }),
@@ -376,7 +380,8 @@ export function AttackGraphFlow({
     [
       enableIocMenu,
       enableRemediationMenu,
-      iocCandidateSourceKeys,
+      iocCandidateIdentityKeys,
+      iocCandidateSyncState,
       menuProviders,
       nodeDrillStateByKey,
       onMenuAction,

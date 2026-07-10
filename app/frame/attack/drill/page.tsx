@@ -30,18 +30,20 @@ import {
   AttackGraphIocCandidates,
   AttackGraphRemediationTargets,
   buildAttackGraphIocGroupKey,
-  buildAttackGraphIocSourceKey,
+  buildAttackGraphIocIdentityKey,
   buildAttackGraphModel,
   buildGraphDrillTimeRange,
   compactAttackGraphIocSourceRefId,
   fetchGraphDrill,
   fetchGraphCase,
   getAttackGraphNodeIocCandidates,
+  getAttackGraphIocRepresentativeCandidateId,
   groupAttackGraphIocCandidates,
   mergeGraphCaseDrillResult,
 } from "@/features/attack/dgraph"
 import type {
   AttackGraphIocNodeAssociation,
+  AttackGraphIocCandidateSyncState,
   AttackGraphLayoutOptions,
   AttackGraphMenuAction,
   AttackGraphNodeFocusRequest,
@@ -67,6 +69,8 @@ import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 
 const DRILL_TIMEZONE = "Asia/Shanghai"
+const IOC_EXTRACT_POLL_INTERVAL_MS = 2000
+const IOC_EXTRACT_ACTIVE_STATUSES = new Set(["pending", "running"])
 
 function getRouteParam(value: string | null) {
   return value?.trim() || ""
@@ -163,6 +167,9 @@ export default function App() {
   );
   const [iocCandidates, setIocCandidates] = useState<IocVerificationItem[]>([])
   const [iocCandidatesLoading, setIocCandidatesLoading] = useState(false)
+  const [iocCandidateSyncState, setIocCandidateSyncState] =
+    useState<AttackGraphIocCandidateSyncState>("loading")
+  const [iocExtractTaskStatus, setIocExtractTaskStatus] = useState("")
   const [iocCandidatesError, setIocCandidatesError] = useState("")
   const [selectedIocCandidateIds, setSelectedIocCandidateIds] = useState(
     () => new Set<string>(),
@@ -187,6 +194,8 @@ export default function App() {
     setReturnQueuePage(routeParams.queuePage)
     setRemediationTargetsByKey(new Map())
     setIocCandidates([])
+    setIocCandidateSyncState("loading")
+    setIocExtractTaskStatus("")
     setIocCandidatesError("")
     setSelectedIocCandidateIds(new Set())
     setDeletingIocCandidateIds(new Set())
@@ -247,19 +256,15 @@ export default function App() {
       ]),
     )
   }, [drillParentByNodeKey, graphResponse])
-  const iocCandidateSourceKeys = useMemo(
+  const iocCandidateIdentityKeys = useMemo(
     () =>
       new Set(
-        iocCandidates
-          .filter((candidate) => candidate.source === "case_graph")
-          .map((candidate) =>
-            buildAttackGraphIocSourceKey({
-              iocType: candidate.type,
-              value: candidate.normalized_value || candidate.value,
-              sourceRefId: candidate.source_ref_id || "",
-              sourceField: candidate.source_field || "",
-            }),
+        iocCandidates.map((candidate) =>
+          buildAttackGraphIocIdentityKey(
+            candidate.type,
+            candidate.normalized_value || candidate.value,
           ),
+        ),
       ),
     [iocCandidates],
   )
@@ -294,12 +299,15 @@ export default function App() {
         setIocCandidates([])
         setSelectedIocCandidateIds(new Set())
         setIocCandidatesError("")
+        setIocCandidateSyncState("ready")
+        setIocExtractTaskStatus("")
         return
       }
 
       const runId = iocLoadRunIdRef.current + 1
       iocLoadRunIdRef.current = runId
       setIocCandidatesLoading(true)
+      setIocCandidateSyncState("loading")
       setIocCandidatesError("")
       try {
         const data = await listAttackCaseIocCandidates({
@@ -309,9 +317,22 @@ export default function App() {
         if (iocLoadRunIdRef.current !== runId) return
 
         setIocCandidates(data.items)
+        const extractTaskStatus =
+          data.extract_task?.status.trim().toLowerCase() || ""
+        setIocExtractTaskStatus(extractTaskStatus)
+        if (IOC_EXTRACT_ACTIVE_STATUSES.has(extractTaskStatus)) {
+          setIocCandidateSyncState("loading")
+        } else if (extractTaskStatus === "failed") {
+          setIocCandidateSyncState("error")
+          setIocCandidatesError(
+            data.extract_task?.error_message || "自动提取预检 IOC 失败。",
+          )
+        } else {
+          setIocCandidateSyncState("ready")
+        }
         const activeIds = new Set(
-          data.items
-            .map((candidate) => candidate.candidate_id || candidate.id)
+          groupAttackGraphIocCandidates(data.items)
+            .map(getAttackGraphIocRepresentativeCandidateId)
             .filter(Boolean),
         )
         setSelectedIocCandidateIds((current) => {
@@ -322,6 +343,8 @@ export default function App() {
         })
       } catch (error) {
         if (iocLoadRunIdRef.current !== runId) return
+        setIocCandidateSyncState("error")
+        setIocExtractTaskStatus("")
         setIocCandidatesError(
           error instanceof Error ? error.message : "预检 IOC 请求失败。",
         )
@@ -499,14 +522,41 @@ export default function App() {
           toast.warning("当前节点没有可加入的 IOC。")
           return
         }
+        if (iocCandidateSyncState !== "ready") {
+          toast.info("预检 IOC 尚未同步完成，请稍后重试。")
+          return
+        }
+        const eligibleNodeCandidates = nodeCandidates.filter(
+          (candidate) => candidate.precheckEligible,
+        )
+        if (eligibleNodeCandidates.length === 0) {
+          toast.info(
+            nodeCandidates[0]?.precheckUnavailableReason ||
+              "当前节点没有可加入的公网 IOC。",
+          )
+          return
+        }
+        const missingNodeCandidates = eligibleNodeCandidates.filter(
+          (candidate) =>
+            !iocCandidateIdentityKeys.has(
+              buildAttackGraphIocIdentityKey(
+                candidate.iocType,
+                candidate.value,
+              ),
+            ),
+        )
+        if (missingNodeCandidates.length === 0) {
+          toast.info("当前节点的 IOC 已在预检清单中。")
+          return
+        }
 
         const nodeKey = action.node.key || action.node.id
         const rawDrillParentRefId = drillParentByNodeKey.get(nodeKey) || ""
         const drillParentRefId = rawDrillParentRefId
           ? compactAttackGraphIocSourceRefId(rawDrillParentRefId)
           : ""
-        const items: AppendAttackCaseIOCCandidateInput[] = nodeCandidates.map(
-          (candidate) => ({
+        const items: AppendAttackCaseIOCCandidateInput[] =
+          missingNodeCandidates.map((candidate) => ({
             ioc_type: candidate.iocType,
             query_type: candidate.queryType,
             value: candidate.value,
@@ -518,8 +568,7 @@ export default function App() {
             source_parent_ref_id: drillParentRefId || undefined,
             source_entity_type: candidate.sourceEntityType || undefined,
             source_display_name: candidate.sourceDisplayName || undefined,
-          }),
-        )
+          }))
 
         const toastId = toast.loading("正在加入预检 IOC...")
         try {
@@ -732,6 +781,8 @@ export default function App() {
       drillParentByNodeKey,
       graphNodeDrillStateByKey,
       graphResponse,
+      iocCandidateIdentityKeys,
+      iocCandidateSyncState,
       timelineCaseId,
     ],
   )
@@ -777,6 +828,26 @@ export default function App() {
       iocLoadRunIdRef.current += 1
     }
   }, [loadIocCandidates])
+
+  useEffect(() => {
+    if (
+      !timelineCaseId.trim() ||
+      iocCandidatesLoading ||
+      !IOC_EXTRACT_ACTIVE_STATUSES.has(iocExtractTaskStatus)
+    ) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      void loadIocCandidates(false)
+    }, IOC_EXTRACT_POLL_INTERVAL_MS)
+    return () => window.clearTimeout(timer)
+  }, [
+    iocCandidatesLoading,
+    iocExtractTaskStatus,
+    loadIocCandidates,
+    timelineCaseId,
+  ])
 
   useEffect(() => {
     const caseId = timelineCaseId.trim()
@@ -905,7 +976,10 @@ export default function App() {
                       candidates={iocCandidates}
                       deletingCandidateIds={deletingIocCandidateIds}
                       error={iocCandidatesError}
-                      loading={iocCandidatesLoading}
+                      loading={
+                        iocCandidatesLoading ||
+                        iocCandidateSyncState === "loading"
+                      }
                       nodeAssociationsByGroupKey={iocNodeAssociationsByGroupKey}
                       onDelete={deleteIocCandidates}
                       onLocateNode={locateGraphNode}
@@ -940,7 +1014,8 @@ export default function App() {
           layoutOptions={graphLayoutOptions}
           layoutStrategy={graphLayoutStrategy}
           loading={graphLoading}
-          iocCandidateSourceKeys={iocCandidateSourceKeys}
+          iocCandidateIdentityKeys={iocCandidateIdentityKeys}
+          iocCandidateSyncState={iocCandidateSyncState}
           nodeDrillStateByKey={graphNodeDrillStateByKey}
           nodeCount={graphVisibleStats.nodeCount}
           onBack={handleBackToAttackDetail}

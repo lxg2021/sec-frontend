@@ -20,6 +20,11 @@ export type AttackGraphMenuActionKind =
 
 export type AttackGraphNodeDrillState = "idle" | "loading" | "empty" | "done";
 
+export type AttackGraphIocCandidateSyncState =
+  | "loading"
+  | "ready"
+  | "error";
+
 export type AttackGraphNodeDrillStateByKey = ReadonlyMap<
   string,
   AttackGraphNodeDrillState

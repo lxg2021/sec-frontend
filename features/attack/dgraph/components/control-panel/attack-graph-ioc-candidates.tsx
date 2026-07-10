@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/shared/ui/alert-dialog";
+import { buildAttackGraphIocIdentityKey } from "../../model/node/attack-graph-ioc-config";
 
 export interface AttackGraphIocCandidateGroup {
   key: string;
@@ -113,7 +114,16 @@ export function groupAttackGraphIocCandidates(
 }
 
 export function buildAttackGraphIocGroupKey(type: string, value: string) {
-  return `${type.trim().toLowerCase()}\u0000${value.trim().toLowerCase()}`;
+  return buildAttackGraphIocIdentityKey(type, value);
+}
+
+export function getAttackGraphIocRepresentativeCandidateId(
+  group: AttackGraphIocCandidateGroup,
+) {
+  const candidate =
+    group.candidates.find((item) => item.source === "case_evidence") ??
+    group.candidates[0];
+  return candidate ? (candidate.candidate_id || candidate.id).trim() : "";
 }
 
 export function AttackGraphIocCandidates({
@@ -130,28 +140,35 @@ export function AttackGraphIocCandidates({
   selectedCandidateIds,
 }: AttackGraphIocCandidatesProps) {
   const groups = groupAttackGraphIocCandidates(candidates);
-  const allCandidateIds = candidates
-    .map((candidate) => (candidate.candidate_id || candidate.id).trim())
+  const representativeCandidateIds = groups
+    .map(getAttackGraphIocRepresentativeCandidateId)
     .filter(Boolean);
   const allSelected =
-    allCandidateIds.length > 0 &&
-    allCandidateIds.every((candidateId) => selectedCandidateIds.has(candidateId));
-  const selectedGroupCount = groups.filter((group) =>
-    group.candidates.some((candidate) =>
-      selectedCandidateIds.has(candidate.candidate_id || candidate.id),
-    ),
-  ).length;
+    representativeCandidateIds.length > 0 &&
+    representativeCandidateIds.every((candidateId) =>
+      selectedCandidateIds.has(candidateId),
+    );
+  const selectedRepresentativeCandidateIds = representativeCandidateIds.filter(
+    (candidateId) => selectedCandidateIds.has(candidateId),
+  );
+  const selectedGroupCount = selectedRepresentativeCandidateIds.length;
 
   const toggleAll = (checked: boolean) => {
-    onSelectedCandidateIdsChange(checked ? new Set(allCandidateIds) : new Set());
+    onSelectedCandidateIdsChange(
+      checked ? new Set(representativeCandidateIds) : new Set(),
+    );
   };
 
   const toggleGroup = (group: AttackGraphIocCandidateGroup, checked: boolean) => {
     const next = new Set(selectedCandidateIds);
     for (const candidate of group.candidates) {
       const candidateId = candidate.candidate_id || candidate.id;
-      if (checked) next.add(candidateId);
-      else next.delete(candidateId);
+      next.delete(candidateId);
+    }
+    if (checked) {
+      const representativeCandidateId =
+        getAttackGraphIocRepresentativeCandidateId(group);
+      if (representativeCandidateId) next.add(representativeCandidateId);
     }
     onSelectedCandidateIdsChange(next);
   };
@@ -167,7 +184,10 @@ export function AttackGraphIocCandidates({
 
   if (error && groups.length === 0) {
     return (
-      <div className="flex h-[244px] w-full min-w-0 flex-col items-center justify-center px-6 text-center">
+      <div
+        className="flex h-[244px] w-full min-w-0 flex-col items-center justify-center px-6 text-center"
+        role="alert"
+      >
         <p className="text-sm font-semibold text-slate-800">预检 IOC 加载失败</p>
         <p className="mt-1 max-w-lg text-xs leading-5 text-slate-500">{error}</p>
         <Button type="button" variant="outline" size="sm" className="mt-3 h-10 bg-white" onClick={() => void onRefresh()}>
@@ -217,11 +237,11 @@ export function AttackGraphIocCandidates({
             </thead>
             <tbody>
               {groups.map((group) => {
-                const groupCandidateIds = group.candidates.map(
-                  (candidate) => candidate.candidate_id || candidate.id,
-                );
-                const groupSelected = groupCandidateIds.every((candidateId) =>
-                  selectedCandidateIds.has(candidateId),
+                const representativeCandidateId =
+                  getAttackGraphIocRepresentativeCandidateId(group);
+                const groupSelected = Boolean(
+                  representativeCandidateId &&
+                    selectedCandidateIds.has(representativeCandidateId),
                 );
                 const deleting = group.userCandidateIds.some((candidateId) =>
                   deletingCandidateIds.has(candidateId),
@@ -339,8 +359,8 @@ export function AttackGraphIocCandidates({
         <Button
           type="button"
           size="sm"
-          disabled={selectedCandidateIds.size === 0}
-          onClick={() => onStartVerification(Array.from(selectedCandidateIds))}
+          disabled={selectedRepresentativeCandidateIds.length === 0}
+          onClick={() => onStartVerification(selectedRepresentativeCandidateIds)}
           className="h-10 shrink-0 rounded-xl bg-slate-900 px-3.5 pr-4 text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(15,23,42,0.75)] hover:bg-slate-800 focus-visible:ring-slate-950 disabled:shadow-none"
         >
           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
