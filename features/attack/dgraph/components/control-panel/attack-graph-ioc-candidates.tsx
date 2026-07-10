@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
-  AlertCircle,
   CheckCircle2,
   ChevronDown,
   CircleDot,
-  Clock3,
   FileKey,
   Globe2,
   Hash,
@@ -17,11 +15,12 @@ import {
   Play,
   RefreshCw,
   ScanSearch,
-  ShieldAlert,
   Trash2,
 } from "lucide-react";
 
 import type { IocVerificationItem } from "@/features/ioc-analysis/types";
+import { VerdictBadge } from "@/features/ioc-analysis/components/ioc-verification-badges";
+import { riskText } from "@/features/ioc-analysis/components/ioc-verification-display-utils";
 import { Button } from "@/shared/ui/button";
 import { Checkbox } from "@/shared/ui/checkbox";
 import {
@@ -121,10 +120,17 @@ export function buildAttackGraphIocGroupKey(type: string, value: string) {
 export function getAttackGraphIocRepresentativeCandidateId(
   group: AttackGraphIocCandidateGroup,
 ) {
-  const candidate =
-    group.candidates.find((item) => item.source === "case_evidence") ??
-    group.candidates[0];
+  const candidate = getAttackGraphIocRepresentativeCandidate(group);
   return candidate ? (candidate.candidate_id || candidate.id).trim() : "";
+}
+
+function getAttackGraphIocRepresentativeCandidate(
+  group: AttackGraphIocCandidateGroup,
+) {
+  return (
+    group.candidates.find((item) => item.source === "case_evidence") ??
+    group.candidates[0]
+  );
 }
 
 export function AttackGraphIocCandidates({
@@ -219,10 +225,11 @@ export function AttackGraphIocCandidates({
             <caption className="sr-only">{t("ioc.caption")}</caption>
             <colgroup>
               <col className="w-12" />
-              <col className="w-[30%]" />
-              <col className="w-[30%]" />
-              <col className="w-1/5" />
-              <col className="w-1/5" />
+              <col className="w-[28.571%]" />
+              <col className="w-[28.571%]" />
+              <col className="w-[14.286%]" />
+              <col className="w-[14.286%]" />
+              <col className="w-[14.286%]" />
               <col className="w-14" />
             </colgroup>
             <thead className="sticky top-0 z-[2] bg-slate-50/95 backdrop-blur-sm">
@@ -237,12 +244,15 @@ export function AttackGraphIocCandidates({
                 <th className="px-2 py-2.5">IOC</th>
                 <th className="px-3 py-2.5">{t("ioc.columns.nodes")}</th>
                 <th className="px-3 py-2.5">{t("ioc.columns.source")}</th>
-                <th className="px-3 py-2.5">{t("ioc.columns.status")}</th>
+                <th className="px-3 py-2.5 text-center">{t("ioc.columns.verdict")}</th>
+                <th className="px-3 py-2.5 text-center">{t("ioc.columns.risk")}</th>
                 <th className="px-2 py-2.5"><span className="sr-only">{t("ioc.columns.actions")}</span></th>
               </tr>
             </thead>
             <tbody>
               {groups.map((group) => {
+                const representativeCandidate =
+                  getAttackGraphIocRepresentativeCandidate(group);
                 const representativeCandidateId =
                   getAttackGraphIocRepresentativeCandidateId(group);
                 const groupSelected = Boolean(
@@ -253,7 +263,6 @@ export function AttackGraphIocCandidates({
                   deletingCandidateIds.has(candidateId),
                 );
                 const Icon = getIocTypeIcon(group.type);
-                const status = getIocGroupStatus(group);
                 const nodeAssociations =
                   nodeAssociationsByGroupKey.get(group.key) ?? [];
 
@@ -300,13 +309,18 @@ export function AttackGraphIocCandidates({
                         })}
                       </div>
                     </td>
-                    <td className="px-3 py-1.5">
-                      <span className={`inline-flex h-7 w-[84px] items-center justify-start gap-1.5 whitespace-nowrap rounded-full px-2 text-[11px] font-semibold ring-1 ring-inset ${status.className}`}>
-                        <status.Icon
-                          className={`h-3.5 w-3.5 shrink-0 ${status.spinning ? "animate-spin" : ""}`}
-                          aria-hidden="true"
-                        />
-                        {t(`ioc.status.${status.key}`)}
+                    <td className="px-3 py-1.5 text-center">
+                      {representativeCandidate ? (
+                        <VerdictBadge item={representativeCandidate} />
+                      ) : (
+                        <span className="text-slate-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-3 py-1.5 text-center">
+                      <span className="font-mono text-xs font-medium tabular-nums text-slate-500">
+                        {representativeCandidate
+                          ? riskText(representativeCandidate).toLocaleLowerCase()
+                          : "-"}
                       </span>
                     </td>
                     <td className="px-2 py-1.5 text-right">
@@ -551,46 +565,4 @@ function getIocTypeIcon(type: string) {
   if (type === "domain" || type === "url") return Globe2;
   if (type === "md5" || type === "sha1" || type === "sha256") return Hash;
   return FileKey;
-}
-
-function getIocGroupStatus(group: AttackGraphIocCandidateGroup) {
-  const statuses = new Set(group.candidates.map((candidate) => candidate.status));
-  if (statuses.has("hit")) {
-    return {
-      key: "hit" as const,
-      Icon: ShieldAlert,
-      className: "bg-red-50 text-red-700 ring-red-200",
-      spinning: false,
-    };
-  }
-  if (statuses.has("error")) {
-    return {
-      key: "error" as const,
-      Icon: AlertCircle,
-      className: "bg-amber-50 text-amber-800 ring-amber-200",
-      spinning: false,
-    };
-  }
-  if (statuses.has("checking")) {
-    return {
-      key: "checking" as const,
-      Icon: Loader2,
-      className: "bg-blue-50 text-blue-700 ring-blue-200",
-      spinning: true,
-    };
-  }
-  if (statuses.has("miss") || statuses.has("allowlisted") || statuses.has("suppressed")) {
-    return {
-      key: "miss" as const,
-      Icon: CheckCircle2,
-      className: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-      spinning: false,
-    };
-  }
-  return {
-    key: "pending" as const,
-    Icon: Clock3,
-    className: "bg-slate-100 text-slate-600 ring-slate-200",
-    spinning: false,
-  };
 }

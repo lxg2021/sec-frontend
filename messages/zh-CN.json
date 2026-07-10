@@ -1204,6 +1204,8 @@
               "nodes": "关联节点",
               "source": "来源",
               "status": "检测状态",
+              "verdict": "判定",
+              "risk": "风险",
               "actions": "操作"
             },
             "evidenceCount": "共 {count} 条证据",
