@@ -219,10 +219,10 @@ export function AttackGraphIocCandidates({
             <caption className="sr-only">{t("ioc.caption")}</caption>
             <colgroup>
               <col className="w-12" />
-              <col className="w-[34%]" />
-              <col className="w-[30%]" />
-              <col className="w-36" />
-              <col className="w-32" />
+              <col className="w-1/4" />
+              <col className="w-1/4" />
+              <col className="w-1/4" />
+              <col className="w-1/4" />
               <col className="w-14" />
             </colgroup>
             <thead className="sticky top-0 z-[2] bg-slate-50/95 backdrop-blur-sm">
@@ -452,10 +452,8 @@ function IocAssociatedNodes({
               {t("ioc.nodes.associatedCount", { count: nodes.length })}
             </div>
             <div className="mt-0.5 truncate text-[10px] text-slate-500">
-              {nodes
-                .slice(0, 2)
-                .map((node) => node.displayName)
-                .join(t("ioc.nodes.separator"))}
+              {getNodeDisplayLabel(nodes[0])}
+              {nodes.length > 1 ? ` +${nodes.length - 1}` : ""}
             </div>
           </div>
           <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
@@ -465,7 +463,7 @@ function IocAssociatedNodes({
         align="start"
         side="top"
         sideOffset={8}
-        className="w-[360px] max-w-[calc(100vw-32px)] rounded-xl border-slate-200 bg-white p-2 shadow-[0_18px_40px_-18px_rgba(15,23,42,0.35)]"
+        className="w-[320px] max-w-[calc(100vw-32px)] rounded-xl border-slate-200 bg-white p-2 shadow-[0_18px_40px_-18px_rgba(15,23,42,0.35)]"
       >
         <div className="px-2 pb-2 pt-1 text-xs font-semibold text-slate-700">
           {t("ioc.nodes.selectTitle")}
@@ -480,7 +478,7 @@ function IocAssociatedNodes({
                 onLocateNode?.(node.id);
               }}
               className="flex min-h-12 w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 text-left outline-none transition-colors duration-150 hover:bg-cyan-50/80 focus-visible:ring-2 focus-visible:ring-cyan-500 motion-reduce:transition-none"
-              title={node.id}
+              title={`${node.displayName}\n${node.id}`}
             >
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-700">
                 <LocateFixed className="h-4 w-4" aria-hidden="true" />
@@ -503,7 +501,7 @@ function NodeAssociationLabel({
   return (
     <div className="min-w-0 flex-1">
       <div className="truncate font-semibold text-slate-900" title={node.displayName}>
-        {node.displayName}
+        {getNodeDisplayLabel(node)}
       </div>
       <div className="mt-0.5 truncate font-mono text-[10px] text-slate-500">
         {node.entityType} · {shortenNodeId(node.id)} ·{" "}
@@ -515,9 +513,28 @@ function NodeAssociationLabel({
   );
 }
 
+function getNodeDisplayLabel(node: AttackGraphIocNodeAssociation) {
+  const displayName = node.displayName.trim();
+  if (!displayName) return shortenNodeId(node.id);
+
+  const normalizedPath = displayName.replace(/\\/g, "/").replace(/\/+$/, "");
+  const looksLikeUrl = /^[a-z][a-z0-9+.-]*:\/\//i.test(normalizedPath);
+  const lastSeparatorIndex = normalizedPath.lastIndexOf("/");
+  const compactName =
+    !looksLikeUrl && lastSeparatorIndex >= 0
+      ? normalizedPath.slice(lastSeparatorIndex + 1)
+      : displayName;
+  return shortenDisplayValue(compactName || displayName);
+}
+
+function shortenDisplayValue(value: string) {
+  if (value.length <= 32) return value;
+  return `${value.slice(0, 21)}...${value.slice(-8)}`;
+}
+
 function shortenNodeId(nodeId: string) {
-  if (nodeId.length <= 30) return nodeId;
-  return `${nodeId.slice(0, 16)}...${nodeId.slice(-8)}`;
+  if (nodeId.length <= 22) return nodeId;
+  return `${nodeId.slice(0, 12)}...${nodeId.slice(-6)}`;
 }
 
 function getIocSourceKey(group: AttackGraphIocCandidateGroup) {
