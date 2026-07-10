@@ -14,6 +14,7 @@ export type AttackGraphMenuActionKind =
   | "copy-label"
   | "node-drilldown"
   | "add-ioc-candidates"
+  | "remove-ioc-candidates"
   | "add-remediation-target"
   | "remove-remediation-target"
   | string;

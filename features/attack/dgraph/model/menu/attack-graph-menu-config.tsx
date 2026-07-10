@@ -1,4 +1,5 @@
 import {
+  CircleMinus,
   Copy,
   ScanSearch,
   ShieldMinus,
@@ -16,6 +17,7 @@ import type {
 import { canShowAttackGraphRemediationMenu } from "../node/attack-graph-remediation-config";
 import {
   buildAttackGraphIocIdentityKey,
+  buildAttackGraphIocSourceKey,
   getAttackGraphNodeIocCandidates,
 } from "../node/attack-graph-ioc-config";
 
@@ -24,6 +26,7 @@ export function createCommonAttackGraphNodeMenuProvider({
   enableIocMenu = false,
   enableRemediationMenu = false,
   iocCandidateIdentityKeys,
+  iocCandidateUserSourceKeys,
   iocCandidateSyncState = "ready",
   onMenuAction,
   remediationTargetKeys,
@@ -32,6 +35,7 @@ export function createCommonAttackGraphNodeMenuProvider({
   enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
   iocCandidateIdentityKeys?: ReadonlySet<string>;
+  iocCandidateUserSourceKeys?: ReadonlySet<string>;
   iocCandidateSyncState?: AttackGraphIocCandidateSyncState;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   remediationTargetKeys?: ReadonlySet<string>;
@@ -54,62 +58,90 @@ export function createCommonAttackGraphNodeMenuProvider({
     ).length;
     const missingNodeIocCount =
       eligibleNodeIocCandidates.length - existingNodeIocCount;
+    const userAddedNodeIocCount = eligibleNodeIocCandidates.filter(
+      (candidate) =>
+        iocCandidateUserSourceKeys?.has(buildAttackGraphIocSourceKey(candidate)),
+    ).length;
+    const hasUserAddedNodeIocs = userAddedNodeIocCount > 0;
     const allNodeIocsExist =
       eligibleNodeIocCandidates.length > 0 && missingNodeIocCount === 0;
     const iocSyncUnavailable = iocCandidateSyncState !== "ready";
     const noEligibleNodeIocs =
       nodeIocCandidates.length > 0 && eligibleNodeIocCandidates.length === 0;
-    const iocMenuDisabled =
-      iocSyncUnavailable || noEligibleNodeIocs || allNodeIocsExist;
-    const iocItems: AttackGraphMenuGroup["items"] =
-      nodeIocCandidates.length > 0
-        ? [
-            {
-              id: "add-ioc-candidates",
-              label:
-                iocCandidateSyncState === "loading"
-                  ? "正在同步预检 IOC"
-                  : iocCandidateSyncState === "error"
-                    ? "预检 IOC 同步失败"
-                    : noEligibleNodeIocs
-                      ? nodeIocCandidates[0]?.precheckUnavailableReason ||
-                        "当前节点无可预检 IOC"
-                      : allNodeIocsExist
-                        ? "已存在预检 IOC"
-                        : "加入预检 IOC",
-              description:
-                iocCandidateSyncState === "loading"
-                  ? "候选加载或自动提取完成后即可操作"
-                  : iocCandidateSyncState === "error"
-                    ? "请在 Control Panel 中重新加载候选"
-                    : noEligibleNodeIocs
-                      ? "该地址不会提交到公网 IOC 检测"
-                      : allNodeIocsExist
-                        ? undefined
-                        : existingNodeIocCount > 0
-                          ? `已存在 ${existingNodeIocCount} 个，可加入 ${missingNodeIocCount} 个`
-                          : eligibleNodeIocCandidates.length > 1
-                            ? `将节点中的 ${eligibleNodeIocCandidates.length} 个 IOC 加入清单`
-                            : unavailableNodeIocCount > 0
-                              ? `另有 ${unavailableNodeIocCount} 个 IOC 无需公网预检`
-                              : undefined,
-              disabled: iocMenuDisabled,
-              checked: !iocSyncUnavailable && allNodeIocsExist,
-              icon: <ScanSearch className="h-4 w-4" />,
-              tone: iocMenuDisabled ? "default" : "primary",
-              action: async ({ graph, node }) => {
-                if (iocMenuDisabled) {
-                  return;
-                }
-                await onMenuAction?.({
-                  kind: "add-ioc-candidates",
-                  graph,
-                  node,
-                });
-              },
+    const iocItems: AttackGraphMenuGroup["items"] = [];
+    if (nodeIocCandidates.length > 0) {
+      if (iocSyncUnavailable || noEligibleNodeIocs) {
+        iocItems.push({
+          id: "ioc-candidates-unavailable",
+          label:
+            iocCandidateSyncState === "loading"
+              ? "正在同步预检 IOC"
+              : iocCandidateSyncState === "error"
+                ? "预检 IOC 同步失败"
+                : nodeIocCandidates[0]?.precheckUnavailableReason ||
+                  "当前节点无可预检 IOC",
+          description:
+            iocCandidateSyncState === "loading"
+              ? "候选加载或自动提取完成后即可操作"
+              : iocCandidateSyncState === "error"
+                ? "请在 Control Panel 中重新加载候选"
+                : "该地址不会提交到公网 IOC 检测",
+          disabled: true,
+          icon: <ScanSearch className="h-4 w-4" />,
+          tone: "default",
+          action: () => undefined,
+        });
+      } else {
+        if (missingNodeIocCount > 0) {
+          iocItems.push({
+            id: "add-ioc-candidates",
+            label: "加入预检 IOC",
+            description:
+              existingNodeIocCount > 0
+                ? `已存在 ${existingNodeIocCount} 个，可加入 ${missingNodeIocCount} 个`
+                : eligibleNodeIocCandidates.length > 1
+                  ? `将节点中的 ${eligibleNodeIocCandidates.length} 个 IOC 加入清单`
+                  : unavailableNodeIocCount > 0
+                    ? `另有 ${unavailableNodeIocCount} 个 IOC 无需公网预检`
+                    : undefined,
+            icon: <ScanSearch className="h-4 w-4" />,
+            tone: "primary",
+            action: async ({ graph, node }) => {
+              await onMenuAction?.({
+                kind: "add-ioc-candidates",
+                graph,
+                node,
+              });
             },
-          ]
-        : [];
+          });
+        }
+        if (hasUserAddedNodeIocs) {
+          iocItems.push({
+            id: "remove-ioc-candidates",
+            label: "移除预检 IOC",
+            icon: <CircleMinus className="h-4 w-4" />,
+            tone: "default",
+            action: async ({ graph, node }) => {
+              await onMenuAction?.({
+                kind: "remove-ioc-candidates",
+                graph,
+                node,
+              });
+            },
+          });
+        } else if (allNodeIocsExist) {
+          iocItems.push({
+            id: "ioc-candidates-existing",
+            label: "已存在预检 IOC",
+            disabled: true,
+            checked: true,
+            icon: <ScanSearch className="h-4 w-4" />,
+            tone: "default",
+            action: () => undefined,
+          });
+        }
+      }
+    }
     const remediationTargetKey = context.node.key || context.node.id;
     const remediationSelected =
       remediationTargetKeys?.has(remediationTargetKey) ?? false;

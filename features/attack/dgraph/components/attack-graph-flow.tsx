@@ -94,6 +94,7 @@ export interface AttackGraphFlowProps
   enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
   iocCandidateIdentityKeys?: ReadonlySet<string>;
+  iocCandidateUserSourceKeys?: ReadonlySet<string>;
   iocCandidateSyncState?: AttackGraphIocCandidateSyncState;
   layoutOptions?: AttackGraphLayoutOptions;
   menuProviders?: AttackGraphMenuProvider[];
@@ -208,6 +209,7 @@ export function AttackGraphFlow({
   enableIocMenu = false,
   enableRemediationMenu = false,
   iocCandidateIdentityKeys,
+  iocCandidateUserSourceKeys,
   iocCandidateSyncState,
   layoutOptions,
   menuProviders,
@@ -371,6 +373,7 @@ export function AttackGraphFlow({
         enableIocMenu,
         enableRemediationMenu,
         iocCandidateIdentityKeys,
+        iocCandidateUserSourceKeys,
         iocCandidateSyncState,
         onMenuAction,
         remediationTargetKeys,
@@ -381,6 +384,7 @@ export function AttackGraphFlow({
       enableIocMenu,
       enableRemediationMenu,
       iocCandidateIdentityKeys,
+      iocCandidateUserSourceKeys,
       iocCandidateSyncState,
       menuProviders,
       nodeDrillStateByKey,

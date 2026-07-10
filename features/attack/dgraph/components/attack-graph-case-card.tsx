@@ -43,6 +43,7 @@ export interface AttackGraphCaseCardProps {
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
   nodeCount?: number;
   iocCandidateIdentityKeys?: ReadonlySet<string>;
+  iocCandidateUserSourceKeys?: ReadonlySet<string>;
   iocCandidateSyncState?: AttackGraphIocCandidateSyncState;
   onBack?: () => void;
   onLayoutStrategyChange: (strategy: AttackGraphLayoutStrategyOption) => void;
@@ -70,6 +71,7 @@ export function AttackGraphCaseCard({
   nodeDrillStateByKey,
   nodeCount = 0,
   iocCandidateIdentityKeys,
+  iocCandidateUserSourceKeys,
   iocCandidateSyncState,
   onBack,
   onLayoutStrategyChange,
@@ -171,6 +173,7 @@ export function AttackGraphCaseCard({
               enableIocMenu={enableIocMenu}
               enableRemediationMenu={enableRemediationMenu}
               iocCandidateIdentityKeys={iocCandidateIdentityKeys}
+              iocCandidateUserSourceKeys={iocCandidateUserSourceKeys}
               iocCandidateSyncState={iocCandidateSyncState}
               layoutOptions={layoutOptions}
               nodeDrillStateByKey={nodeDrillStateByKey}

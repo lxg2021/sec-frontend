@@ -31,6 +31,7 @@ import {
   AttackGraphRemediationTargets,
   buildAttackGraphIocGroupKey,
   buildAttackGraphIocIdentityKey,
+  buildAttackGraphIocSourceKey,
   buildAttackGraphModel,
   buildGraphDrillTimeRange,
   compactAttackGraphIocSourceRefId,
@@ -268,6 +269,28 @@ export default function App() {
       ),
     [iocCandidates],
   )
+  const iocCandidateUserIdsBySourceKey = useMemo(() => {
+    const candidateIdsBySourceKey = new Map<string, string[]>()
+    for (const candidate of iocCandidates) {
+      if (candidate.source !== "case_graph") continue
+      const candidateId = (candidate.candidate_id || candidate.id).trim()
+      if (!candidateId) continue
+      const sourceKey = buildAttackGraphIocSourceKey({
+        iocType: candidate.type,
+        value: candidate.normalized_value || candidate.value,
+        sourceRefId: candidate.source_ref_id || "",
+        sourceField: candidate.source_field || "",
+      })
+      const candidateIds = candidateIdsBySourceKey.get(sourceKey) ?? []
+      candidateIds.push(candidateId)
+      candidateIdsBySourceKey.set(sourceKey, candidateIds)
+    }
+    return candidateIdsBySourceKey
+  }, [iocCandidates])
+  const iocCandidateUserSourceKeys = useMemo(
+    () => new Set(iocCandidateUserIdsBySourceKey.keys()),
+    [iocCandidateUserIdsBySourceKey],
+  )
 
   const removeRemediationTarget = useCallback((targetKey: string) => {
     setRemediationTargetsByKey((current) => {
@@ -385,7 +408,7 @@ export default function App() {
         setSelectedIocCandidateIds((current) =>
           new Set(Array.from(current).filter((candidateId) => !deletedIds.has(candidateId))),
         )
-        toast.success("已删除自添加 IOC", {
+        toast.success("已移除预检 IOC", {
           description: `已移除 ${data.deleted_count} 个图谱来源。`,
         })
       } catch (error) {
@@ -509,6 +532,31 @@ export default function App() {
 
   const handleGraphMenuAction = useCallback(
     async (action: AttackGraphMenuAction) => {
+      if (action.kind === "remove-ioc-candidates") {
+        if (iocCandidateSyncState !== "ready") {
+          toast.info("预检 IOC 尚未同步完成，请稍后重试。")
+          return
+        }
+        const candidateIds = Array.from(
+          new Set(
+            getAttackGraphNodeIocCandidates(action.node)
+              .filter((candidate) => candidate.precheckEligible)
+              .flatMap(
+                (candidate) =>
+                  iocCandidateUserIdsBySourceKey.get(
+                    buildAttackGraphIocSourceKey(candidate),
+                  ) ?? [],
+              ),
+          ),
+        )
+        if (candidateIds.length === 0) {
+          toast.info("当前节点没有可移除的人工预检 IOC。")
+          return
+        }
+        await deleteIocCandidates(candidateIds)
+        return
+      }
+
       if (action.kind === "add-ioc-candidates") {
         const currentGraph = graphResponseRef.current ?? graphResponse
         const caseId = (currentGraph?.case_id || timelineCaseId).trim()
@@ -779,10 +827,12 @@ export default function App() {
     },
     [
       drillParentByNodeKey,
+      deleteIocCandidates,
       graphNodeDrillStateByKey,
       graphResponse,
       iocCandidateIdentityKeys,
       iocCandidateSyncState,
+      iocCandidateUserIdsBySourceKey,
       timelineCaseId,
     ],
   )
@@ -1015,6 +1065,7 @@ export default function App() {
           layoutStrategy={graphLayoutStrategy}
           loading={graphLoading}
           iocCandidateIdentityKeys={iocCandidateIdentityKeys}
+          iocCandidateUserSourceKeys={iocCandidateUserSourceKeys}
           iocCandidateSyncState={iocCandidateSyncState}
           nodeDrillStateByKey={graphNodeDrillStateByKey}
           nodeCount={graphVisibleStats.nodeCount}
