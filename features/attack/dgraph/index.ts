@@ -23,4 +23,5 @@ export * from "./model/menu/attack-graph-menu-config";
 export * from "./model/menu/attack-graph-menu-resolver";
 export * from "./model/menu/attack-graph-menu-types";
 export * from "./model/node/attack-graph-node-config";
+export * from "./model/node/attack-graph-remediation-config";
 export * from "./model/node/attack-graph-node-types";

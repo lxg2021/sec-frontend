@@ -13,6 +13,7 @@ export interface AttackGraphMenuContext {
 export type AttackGraphMenuActionKind =
   | "copy-label"
   | "node-drilldown"
+  | "remediation-orchestration"
   | string;
 
 export type AttackGraphNodeDrillState = "idle" | "loading" | "empty" | "done";
@@ -28,6 +29,12 @@ export interface AttackGraphMenuAction {
   graph: AttackGraphLayoutResult;
 }
 
+export type AttackGraphMenuItemTone =
+  | "default"
+  | "primary"
+  | "success"
+  | "danger";
+
 export interface AttackGraphMenuItem {
   id: string;
   label: string;
@@ -36,6 +43,7 @@ export interface AttackGraphMenuItem {
   disabled?: boolean;
   danger?: boolean;
   checked?: boolean;
+  tone?: AttackGraphMenuItemTone;
   action: (context: AttackGraphMenuContext) => void | Promise<void>;
 }
 

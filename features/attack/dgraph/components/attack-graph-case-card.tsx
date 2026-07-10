@@ -29,6 +29,7 @@ export interface AttackGraphCaseCardProps {
   backLabel?: string;
   caseId: string;
   edgeCount?: number;
+  enableRemediationMenu?: boolean;
   error?: string;
   layoutOptions?: AttackGraphLayoutOptions;
   layoutStrategy: AttackGraphLayoutStrategyOption;
@@ -49,6 +50,7 @@ export function AttackGraphCaseCard({
   backLabel = "Back",
   caseId,
   edgeCount = 0,
+  enableRemediationMenu = true,
   error = "",
   layoutOptions,
   layoutStrategy,
@@ -149,6 +151,7 @@ export function AttackGraphCaseCard({
             <AttackGraphFlow
               response={response}
               className="h-full"
+              enableRemediationMenu={enableRemediationMenu}
               layoutOptions={layoutOptions}
               nodeDrillStateByKey={nodeDrillStateByKey}
               onMenuAction={onMenuAction}

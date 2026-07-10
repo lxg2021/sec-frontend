@@ -1,4 +1,4 @@
-import { Copy, SplitSquareVertical } from "lucide-react";
+import { Copy, ShieldCheck, SplitSquareVertical } from "lucide-react";
 
 import type {
   AttackGraphMenuAction,
@@ -6,28 +6,52 @@ import type {
   AttackGraphMenuProvider,
   AttackGraphNodeDrillStateByKey,
 } from "./attack-graph-menu-types";
+import { canShowAttackGraphRemediationMenu } from "../node/attack-graph-remediation-config";
 
 export function createCommonAttackGraphNodeMenuProvider({
   drillStateByNodeKey,
+  enableRemediationMenu = false,
   onMenuAction,
 }: {
   drillStateByNodeKey?: AttackGraphNodeDrillStateByKey;
+  enableRemediationMenu?: boolean;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
 } = {}): AttackGraphMenuProvider {
   return (context) => {
     const drillState = drillStateByNodeKey?.get(context.node.key) ?? "idle";
     const drillDisabled = drillState !== "idle";
+    const remediationVisible =
+      enableRemediationMenu &&
+      canShowAttackGraphRemediationMenu(context.node.entityType);
+    const remediationItems: AttackGraphMenuGroup["items"] = remediationVisible
+      ? [
+          {
+            id: "remediation-orchestration",
+            label: "\u5904\u7f6e\u7f16\u6392",
+            icon: <ShieldCheck className="h-4 w-4" />,
+            tone: "success",
+            action: async ({ graph, node }) => {
+              await onMenuAction?.({
+                kind: "remediation-orchestration",
+                graph,
+                node,
+              });
+            },
+          },
+        ]
+      : [];
 
     return [
       {
-        id: "common",
-        label: "Common",
+        id: "node-actions",
+        label: "\u8282\u70b9\u64cd\u4f5c",
         order: 0,
         items: [
           {
             id: "copy-label",
-            label: "Copy label",
-            icon: <Copy className="h-4 w-4 text-slate-500" />,
+            label: "\u590d\u5236\u540d\u79f0",
+            icon: <Copy className="h-4 w-4" />,
+            tone: "primary",
             action: async ({ node }) => {
               const text = node.displayName || node.key || node.id;
               if (navigator.clipboard?.writeText) {
@@ -42,17 +66,9 @@ export function createCommonAttackGraphNodeMenuProvider({
           },
           {
             id: "node-drilldown",
-            label: "Data drilldown",
+            label: "\u6570\u636e\u4e0b\u94bb",
             disabled: drillDisabled,
-            icon: (
-              <SplitSquareVertical
-                className={
-                  drillDisabled
-                    ? "h-4 w-4 text-slate-300"
-                    : "h-4 w-4 text-blue-500"
-                }
-              />
-            ),
+            icon: <SplitSquareVertical className="h-4 w-4" />,
             action: async ({ graph, node }) => {
               if (drillDisabled) {
                 return;
@@ -66,6 +82,16 @@ export function createCommonAttackGraphNodeMenuProvider({
           },
         ],
       },
+      ...(remediationItems.length > 0
+        ? [
+            {
+              id: "response-actions",
+              label: "\u54cd\u5e94\u52a8\u4f5c",
+              order: 10,
+              items: remediationItems,
+            },
+          ]
+        : []),
     ];
   };
 }

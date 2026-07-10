@@ -229,6 +229,39 @@ export default function App() {
 
   const handleGraphMenuAction = useCallback(
     async (action: AttackGraphMenuAction) => {
+      if (action.kind === "remediation-orchestration") {
+        const currentGraph = graphResponseRef.current ?? graphResponse
+        if (!currentGraph) {
+          toast.error("Graph data is not loaded.")
+          return
+        }
+
+        const caseId = (currentGraph.case_id || timelineCaseId).trim()
+        if (!caseId) {
+          toast.error("Cannot open remediation orchestration without a CaseID.")
+          return
+        }
+
+        const params = new URLSearchParams()
+        params.set("case_id", caseId)
+        params.set("source_type", "drill_graph")
+        params.set("scope_type", "case")
+        params.set("scope_id", caseId)
+        params.set("node_key", action.node.key)
+        params.set("entity_type", action.node.entityType)
+        params.set("display_name", action.node.displayName || action.node.key)
+        params.set("returnTo", "drill")
+        if (currentGraph.tenant_id) {
+          params.set("tenant_id", currentGraph.tenant_id)
+        }
+        if (routeParams.workflowId) {
+          params.set("workflow_id", routeParams.workflowId)
+        }
+
+        router.push(`/frame/response/orchestration?${params.toString()}`)
+        return
+      }
+
       if (action.kind !== "node-drilldown") {
         return
       }
@@ -341,7 +374,7 @@ export default function App() {
         })
       }
     },
-    [graphNodeDrillStateByKey, graphResponse, timelineCaseId],
+    [graphNodeDrillStateByKey, graphResponse, routeParams.workflowId, router, timelineCaseId],
   )
 
   const handleInvestigationActionClick = useCallback(

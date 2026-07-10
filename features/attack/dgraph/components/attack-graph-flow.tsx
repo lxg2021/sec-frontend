@@ -88,6 +88,7 @@ export interface AttackGraphFlowProps
   extends Omit<ReactFlowProps, "nodes" | "edges" | "nodeTypes" | "edgeTypes"> {
   response: GraphCaseResponseDto;
   className?: string;
+  enableRemediationMenu?: boolean;
   layoutOptions?: AttackGraphLayoutOptions;
   menuProviders?: AttackGraphMenuProvider[];
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
@@ -190,6 +191,7 @@ function createManualNodePositionsByStrategy(): ManualNodePositionsByStrategy {
 export function AttackGraphFlow({
   response,
   className,
+  enableRemediationMenu = false,
   layoutOptions,
   menuProviders,
   nodeDrillStateByKey,
@@ -330,11 +332,12 @@ export function AttackGraphFlow({
     () => [
       createCommonAttackGraphNodeMenuProvider({
         drillStateByNodeKey: nodeDrillStateByKey,
+        enableRemediationMenu,
         onMenuAction,
       }),
       ...(menuProviders ?? []),
     ],
-    [menuProviders, nodeDrillStateByKey, onMenuAction],
+    [enableRemediationMenu, menuProviders, nodeDrillStateByKey, onMenuAction],
   );
 
   const flowNodes = useMemo(
