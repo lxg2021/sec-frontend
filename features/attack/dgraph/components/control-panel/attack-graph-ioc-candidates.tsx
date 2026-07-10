@@ -219,10 +219,10 @@ export function AttackGraphIocCandidates({
             <caption className="sr-only">{t("ioc.caption")}</caption>
             <colgroup>
               <col className="w-12" />
-              <col className="w-1/4" />
-              <col className="w-1/4" />
-              <col className="w-1/4" />
-              <col className="w-1/4" />
+              <col className="w-[30%]" />
+              <col className="w-[30%]" />
+              <col className="w-1/5" />
+              <col className="w-1/5" />
               <col className="w-14" />
             </colgroup>
             <thead className="sticky top-0 z-[2] bg-slate-50/95 backdrop-blur-sm">
