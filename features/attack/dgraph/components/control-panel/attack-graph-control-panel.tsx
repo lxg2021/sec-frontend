@@ -109,9 +109,9 @@ export function AttackGraphControlPanel({
   return (
     <section
       className={cn(
-        "nodrag nopan nowheel pointer-events-auto relative mx-auto overflow-hidden border backdrop-blur-sm transition-[max-width,border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none",
+        "nodrag nopan nowheel pointer-events-auto relative mx-auto overflow-hidden border backdrop-blur-sm transition-[width,max-width,border-radius,box-shadow] duration-200 ease-out motion-reduce:transition-none",
         resolvedExpanded
-          ? "w-full max-w-full rounded-[18px] border-slate-200 bg-white/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.98),inset_0_-1px_0_rgba(148,163,184,0.18),0_18px_46px_rgba(15,23,42,0.20),0_4px_12px_rgba(15,23,42,0.08)] ring-1 ring-black/5 before:pointer-events-none before:absolute before:inset-x-5 before:top-0 before:z-20 before:h-px before:bg-white after:pointer-events-none after:absolute after:inset-x-5 after:bottom-0 after:z-20 after:h-px after:bg-slate-300/35"
+          ? "w-[92%] max-w-[1600px] rounded-[24px] border-slate-200 bg-white/95 shadow-[inset_0_1px_0_rgba(255,255,255,0.98),inset_0_-1px_0_rgba(148,163,184,0.18),0_18px_46px_rgba(15,23,42,0.20),0_4px_12px_rgba(15,23,42,0.08)] ring-1 ring-black/5 before:pointer-events-none before:absolute before:inset-x-5 before:top-0 before:z-20 before:h-px before:bg-white after:pointer-events-none after:absolute after:inset-x-5 after:bottom-0 after:z-20 after:h-px after:bg-slate-300/35"
           : "min-w-[380px] w-fit max-w-full rounded-full border-slate-200 bg-white/95 shadow-[inset_0_1px_0_rgba(255,255,255,1),inset_0_-1px_0_rgba(148,163,184,0.10),0_12px_24px_rgba(15,23,42,0.10),0_2px_4px_rgba(15,23,42,0.06)] ring-1 ring-white/80",
         className,
       )}
