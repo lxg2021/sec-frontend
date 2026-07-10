@@ -6,6 +6,7 @@ import { ArrowLeft, RotateCcw, Shield } from "lucide-react";
 import {
   AttackGraphFlow,
   AttackGraphFlowHeader,
+  type AttackGraphNodeFocusRequest,
 } from "./attack-graph-flow";
 import {
   AttackGraphLayoutStrategyToggle,
@@ -34,6 +35,7 @@ export interface AttackGraphCaseCardProps {
   enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
   error?: string;
+  focusNodeRequest?: AttackGraphNodeFocusRequest | null;
   layoutOptions?: AttackGraphLayoutOptions;
   layoutStrategy: AttackGraphLayoutStrategyOption;
   loading?: boolean;
@@ -59,6 +61,7 @@ export function AttackGraphCaseCard({
   enableIocMenu = true,
   enableRemediationMenu = true,
   error = "",
+  focusNodeRequest,
   layoutOptions,
   layoutStrategy,
   loading = false,
@@ -159,6 +162,7 @@ export function AttackGraphCaseCard({
           ) : hasGraph && response ? (
             <AttackGraphFlow
               controlPanel={controlPanel}
+              focusNodeRequest={focusNodeRequest}
               response={response}
               className="h-full"
               enableIocMenu={enableIocMenu}

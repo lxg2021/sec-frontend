@@ -87,6 +87,7 @@ import {
 export interface AttackGraphFlowProps
   extends Omit<ReactFlowProps, "nodes" | "edges" | "nodeTypes" | "edgeTypes"> {
   controlPanel?: ReactNode;
+  focusNodeRequest?: AttackGraphNodeFocusRequest | null;
   response: GraphCaseResponseDto;
   className?: string;
   enableIocMenu?: boolean;
@@ -101,6 +102,11 @@ export interface AttackGraphFlowProps
   remediationTargetKeys?: ReadonlySet<string>;
   showMiniMap?: boolean;
   showBackground?: boolean;
+}
+
+export interface AttackGraphNodeFocusRequest {
+  nodeId: string;
+  requestId: number;
 }
 
 export interface AttackGraphFlowDiagnostics {
@@ -194,6 +200,7 @@ function createManualNodePositionsByStrategy(): ManualNodePositionsByStrategy {
 
 export function AttackGraphFlow({
   controlPanel,
+  focusNodeRequest,
   response,
   className,
   enableIocMenu = false,
@@ -224,6 +231,7 @@ export function AttackGraphFlow({
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [flowContainerWidth, setFlowContainerWidth] = useState(0);
   const [contextMenu, setContextMenu] =
     useState<AttackGraphContextMenuState | null>(null);
@@ -239,6 +247,10 @@ export function AttackGraphFlow({
   const previousCaseIdRef = useRef<string>("");
   const flowContainerRef = useRef<HTMLDivElement | null>(null);
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
+  const lastFocusRequestIdRef = useRef<number | null>(null);
+  const focusHighlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const hasFittedRef = useRef(false);
   const lastPositionResetKeyRef = useRef(positionResetKey);
 
@@ -378,8 +390,63 @@ export function AttackGraphFlow({
         layoutedNodes,
         currentManualNodePositions,
         selectedNodeId,
+        focusedNodeId,
       ),
-    [layoutedNodes, currentManualNodePositions, selectedNodeId],
+    [
+      layoutedNodes,
+      currentManualNodePositions,
+      focusedNodeId,
+      selectedNodeId,
+    ],
+  );
+
+  useEffect(() => {
+    if (
+      !focusNodeRequest ||
+      focusNodeRequest.requestId === lastFocusRequestIdRef.current ||
+      !rfInstanceRef.current
+    ) {
+      return;
+    }
+
+    const targetNode = flowNodes.find(
+      (node) => node.id === focusNodeRequest.nodeId,
+    );
+    if (!targetNode) return;
+
+    lastFocusRequestIdRef.current = focusNodeRequest.requestId;
+    setFocusedNodeId(targetNode.id);
+    setContextMenu(null);
+
+    const nodeWidth = targetNode.width ?? ATTACK_GRAPH_NODE_TILE_WIDTH;
+    const nodeHeight = targetNode.height ?? ATTACK_GRAPH_DEFAULT_NODE_HEIGHT;
+    void rfInstanceRef.current.setCenter(
+      targetNode.position.x + nodeWidth / 2,
+      targetNode.position.y + nodeHeight / 2,
+      {
+        duration: 320,
+        zoom: rfInstanceRef.current.getZoom(),
+      },
+    );
+
+    if (focusHighlightTimerRef.current) {
+      clearTimeout(focusHighlightTimerRef.current);
+    }
+    focusHighlightTimerRef.current = setTimeout(() => {
+      setFocusedNodeId((current) =>
+        current === targetNode.id ? null : current,
+      );
+      focusHighlightTimerRef.current = null;
+    }, 1800);
+  }, [flowNodes, focusNodeRequest]);
+
+  useEffect(
+    () => () => {
+      if (focusHighlightTimerRef.current) {
+        clearTimeout(focusHighlightTimerRef.current);
+      }
+    },
+    [],
   );
 
   useEffect(() => {
@@ -807,6 +874,7 @@ function toReactFlowNodes(
   manualNodePositionsById: Map<string, AttackGraphNodePosition> =
     EMPTY_MANUAL_NODE_POSITIONS,
   selectedNodeId: string | null = null,
+  focusedNodeId: string | null = null,
 ): ReactFlowNode<AttackGraphNodeData>[] {
   return nodes.map((node) => {
     const data = toNodeVisualItem(node);
@@ -818,7 +886,7 @@ function toReactFlowNodes(
       type: "attackGraphNode",
       position: manualPosition ?? node.position ?? { x: 0, y: 0 },
       data,
-      selected: node.id === selectedNodeId,
+      selected: node.id === selectedNodeId || node.id === focusedNodeId,
       width: ATTACK_GRAPH_NODE_TILE_WIDTH,
       height,
       sourcePosition: Position.Right,
