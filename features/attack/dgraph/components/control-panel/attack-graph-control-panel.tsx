@@ -119,10 +119,10 @@ export function AttackGraphControlPanel({
     >
       <div
         className={cn(
-          "flex h-[60px] items-center bg-white/95 px-3 py-2.5 transition-colors duration-200 motion-reduce:transition-none",
+          "flex items-center bg-white/95 transition-[height,padding,background-color] duration-200 ease-out motion-reduce:transition-none",
           resolvedExpanded
-            ? "border-b border-slate-200/80"
-            : "border-b border-transparent",
+            ? "h-12 border-b border-slate-200/80 px-2.5 py-1.5"
+            : "h-[60px] border-b border-transparent px-3 py-2.5",
         )}
       >
         <div
@@ -148,7 +148,10 @@ export function AttackGraphControlPanel({
                 onClick={() => selectPlugin(plugin.id)}
                 onKeyDown={(event) => handleTabKeyDown(event, pluginIndex)}
                 className={cn(
-                  "relative flex h-10 min-w-[124px] cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3 text-[13px] font-semibold outline-none transition-[background-color,border-color,color,box-shadow] duration-200 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-1 motion-reduce:transition-none",
+                  "relative flex cursor-pointer items-center justify-center whitespace-nowrap rounded-full border font-semibold outline-none transition-[height,min-width,padding,background-color,border-color,color,box-shadow] duration-200 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-1 motion-reduce:transition-none",
+                  resolvedExpanded
+                    ? "h-9 min-w-[112px] gap-1.5 px-2.5 text-xs"
+                    : "h-10 min-w-[124px] gap-2 px-3 text-[13px]",
                   selected
                     ? "border-slate-950 bg-slate-900 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:bg-slate-800"
                     : "border-transparent bg-slate-50 text-slate-950 hover:bg-slate-100 hover:text-black",
@@ -206,7 +209,8 @@ export function AttackGraphControlPanel({
               size="icon"
               onClick={toggleExpanded}
               className={cn(
-                "h-10 w-10 shrink-0 rounded-full border-transparent bg-slate-50 text-slate-950 shadow-none outline-none transition-[background-color,border-color,color,box-shadow] duration-200 hover:border-transparent hover:bg-slate-100 hover:text-black focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-1 motion-reduce:transition-none",
+                "shrink-0 rounded-full border-transparent bg-slate-50 text-slate-950 shadow-none outline-none transition-[height,width,background-color,border-color,color,box-shadow] duration-200 hover:border-transparent hover:bg-slate-100 hover:text-black focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-1 motion-reduce:transition-none",
+                resolvedExpanded ? "h-9 w-9" : "h-10 w-10",
               )}
               aria-controls={`attack-graph-control-panel-${activePlugin.id}`}
               aria-expanded={resolvedExpanded}
