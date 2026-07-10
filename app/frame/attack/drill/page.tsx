@@ -13,7 +13,6 @@ import {
   Loader2,
   ScanSearch,
   Search,
-  Share2,
   ShieldCheck,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -247,13 +246,6 @@ export default function App() {
       ]),
     )
   }, [drillParentByNodeKey, graphResponse])
-  const associatedIocGroupCount = useMemo(
-    () =>
-      groupedIocCandidates.filter(
-        (group) => (iocNodeAssociationsByGroupKey.get(group.key)?.length ?? 0) > 0,
-      ).length,
-    [groupedIocCandidates, iocNodeAssociationsByGroupKey],
-  )
   const iocCandidateSourceKeys = useMemo(
     () =>
       new Set(
@@ -904,13 +896,6 @@ export default function App() {
                   count: groupedIocCandidates.length,
                   tone: "blue",
                   headerDescription: "当前案件有效 IOC · 已关联至图谱节点",
-                  headerAction: (
-                    <span className="inline-flex h-10 items-center gap-2 whitespace-nowrap px-1 text-[13px] font-semibold text-slate-900">
-                      <span className="h-2 w-2 rounded-full bg-slate-950" aria-hidden="true" />
-                      <Share2 className="h-4 w-4" aria-hidden="true" />
-                      {associatedIocGroupCount} 个 IOC 已关联图谱
-                    </span>
-                  ),
                   content: (
                     <AttackGraphIocCandidates
                       candidates={iocCandidates}
@@ -934,13 +919,6 @@ export default function App() {
                   count: remediationTargets.length,
                   tone: "emerald",
                   headerDescription: "任务清单独立于节点详情，可继续从图中追加目标",
-                  headerAction: (
-                    <span className="inline-flex h-10 items-center gap-2 whitespace-nowrap px-1 text-[13px] font-semibold text-slate-900">
-                      <span className="h-2 w-2 rounded-full bg-slate-950" aria-hidden="true" />
-                      <Share2 className="h-4 w-4" aria-hidden="true" />
-                      {associatedIocGroupCount} 个 IOC 已关联图谱
-                    </span>
-                  ),
                   content: (
                     <AttackGraphRemediationTargets
                       targets={remediationTargets}
