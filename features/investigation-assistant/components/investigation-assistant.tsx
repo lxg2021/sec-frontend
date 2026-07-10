@@ -311,7 +311,7 @@ export function InvestigationAssistant({
             }
             aria-busy={continueInvestigationLoading}
             className={cn(
-              "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+              "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full px-3 text-xs font-semibold shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
               continueInvestigationDisabled || continueInvestigationLoading
                 ? "cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400 shadow-none"
                 : "border border-blue-600 bg-blue-600 text-white hover:border-blue-700 hover:bg-blue-700",
