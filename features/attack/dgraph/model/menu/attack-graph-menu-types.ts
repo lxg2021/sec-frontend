@@ -13,7 +13,9 @@ export interface AttackGraphMenuContext {
 export type AttackGraphMenuActionKind =
   | "copy-label"
   | "node-drilldown"
-  | "remediation-orchestration"
+  | "add-ioc-candidates"
+  | "add-remediation-target"
+  | "remove-remediation-target"
   | string;
 
 export type AttackGraphNodeDrillState = "idle" | "loading" | "empty" | "done";

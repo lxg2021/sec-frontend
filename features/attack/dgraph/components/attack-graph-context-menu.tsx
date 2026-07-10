@@ -177,6 +177,9 @@ export function AttackGraphContextMenu({
                 item.danger && !item.disabled ? "text-red-600 hover:text-red-700" : "",
               )}
               disabled={item.disabled}
+              aria-checked={
+                item.checked === undefined ? undefined : item.checked
+              }
               onClick={() => {
                 if (item.disabled) {
                   return;
@@ -184,7 +187,9 @@ export function AttackGraphContextMenu({
                 void item.action(menu.context);
                 onClose();
               }}
-              role="menuitem"
+              role={
+                item.checked === undefined ? "menuitem" : "menuitemcheckbox"
+              }
             >
               {item.icon ? (
                 <span

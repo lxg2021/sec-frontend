@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ArrowLeft, RotateCcw, Shield } from "lucide-react";
 
 import {
@@ -28,7 +29,9 @@ import {
 export interface AttackGraphCaseCardProps {
   backLabel?: string;
   caseId: string;
+  controlPanel?: ReactNode;
   edgeCount?: number;
+  enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
   error?: string;
   layoutOptions?: AttackGraphLayoutOptions;
@@ -36,11 +39,13 @@ export interface AttackGraphCaseCardProps {
   loading?: boolean;
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
   nodeCount?: number;
+  iocCandidateSourceKeys?: ReadonlySet<string>;
   onBack?: () => void;
   onLayoutStrategyChange: (strategy: AttackGraphLayoutStrategyOption) => void;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   onResetPositions: () => void;
   positionResetKey: number | string;
+  remediationTargetKeys?: ReadonlySet<string>;
   response: GraphCaseResponseDto | null;
   subtitle?: string;
   title: string;
@@ -49,7 +54,9 @@ export interface AttackGraphCaseCardProps {
 export function AttackGraphCaseCard({
   backLabel = "Back",
   caseId,
+  controlPanel,
   edgeCount = 0,
+  enableIocMenu = true,
   enableRemediationMenu = true,
   error = "",
   layoutOptions,
@@ -57,11 +64,13 @@ export function AttackGraphCaseCard({
   loading = false,
   nodeDrillStateByKey,
   nodeCount = 0,
+  iocCandidateSourceKeys,
   onBack,
   onLayoutStrategyChange,
   onMenuAction,
   onResetPositions,
   positionResetKey,
+  remediationTargetKeys,
   response,
   subtitle,
   title,
@@ -149,13 +158,17 @@ export function AttackGraphCaseCard({
             />
           ) : hasGraph && response ? (
             <AttackGraphFlow
+              controlPanel={controlPanel}
               response={response}
               className="h-full"
+              enableIocMenu={enableIocMenu}
               enableRemediationMenu={enableRemediationMenu}
+              iocCandidateSourceKeys={iocCandidateSourceKeys}
               layoutOptions={layoutOptions}
               nodeDrillStateByKey={nodeDrillStateByKey}
               onMenuAction={onMenuAction}
               positionResetKey={positionResetKey}
+              remediationTargetKeys={remediationTargetKeys}
             />
           ) : (
             <GraphStateMessage

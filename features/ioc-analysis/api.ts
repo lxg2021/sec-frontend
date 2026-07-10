@@ -5,6 +5,8 @@ import { createRequestId } from "@/shared/lib/utils"
 
 import type {
   AttackCaseIOCCandidateListData,
+  AppendAttackCaseIOCCandidateInput,
+  AppendAttackCaseIOCCandidatesData,
   AttackCaseIOCCandidateSummary,
   AttackCaseIOCExtractTask,
   AttackCaseIOCBlacklistIndicatorHitDetail,
@@ -41,6 +43,7 @@ import type {
   AttackCaseIOCWhitelistHitDetail,
   AttackCaseIOCWhitelistIPDetail,
   AttackCaseIOCWhitelistPopularityDetail,
+  DeleteAttackCaseIOCCandidatesData,
   IocVerificationItem,
   IocVerificationStatus,
   IocVerificationType,
@@ -996,6 +999,10 @@ function normalizeCaseCandidate(raw: unknown): IocVerificationItem | null {
     source,
     source_ref_id: sourceRefId,
     source_field: sourceField,
+    graph_origin: stringValue(item.graph_origin),
+    source_parent_ref_id: stringValue(item.source_parent_ref_id),
+    source_entity_type: stringValue(item.source_entity_type),
+    source_display_name: stringValue(item.source_display_name),
     file_name: fileName,
     file_path: filePath,
     evidence_id: evidenceId,
@@ -1149,6 +1156,76 @@ export async function listAttackCaseIocCandidates({
   )) as ApiResult<unknown>
 
   return normalizeCaseCandidateList(result.data)
+}
+
+export async function appendAttackCaseIocCandidates({
+  caseId,
+  items,
+  tenantId = DEFAULT_TENANT_ID,
+}: {
+  caseId: string
+  items: AppendAttackCaseIOCCandidateInput[]
+  tenantId?: string
+}): Promise<AppendAttackCaseIOCCandidatesData> {
+  const result = (await http.post(
+    "/sensor/analysis/attack-workflow/ioc-candidates/append",
+    {
+      request_id: createRequestId(),
+      tenant_id: tenantId.trim() || DEFAULT_TENANT_ID,
+      case_id: caseId.trim(),
+      items,
+    },
+  )) as ApiResult<unknown>
+
+  const data = objectValue(result.data)
+  return {
+    items: normalizeMutationItems(data.items),
+    created_count: numberValue(data.created_count),
+    existing_count: numberValue(data.existing_count),
+    reactivated_count: numberValue(data.reactivated_count),
+  }
+}
+
+export async function deleteAttackCaseIocCandidates({
+  candidateIds,
+  caseId,
+  tenantId = DEFAULT_TENANT_ID,
+}: {
+  candidateIds: string[]
+  caseId: string
+  tenantId?: string
+}): Promise<DeleteAttackCaseIOCCandidatesData> {
+  const result = (await http.post(
+    "/sensor/analysis/attack-workflow/ioc-candidates/delete",
+    {
+      request_id: createRequestId(),
+      tenant_id: tenantId.trim() || DEFAULT_TENANT_ID,
+      case_id: caseId.trim(),
+      candidate_ids: candidateIds,
+    },
+  )) as ApiResult<unknown>
+
+  const data = objectValue(result.data)
+  return {
+    items: normalizeMutationItems(data.items),
+    deleted_count: numberValue(data.deleted_count),
+    already_deleted_count: numberValue(data.already_deleted_count),
+  }
+}
+
+function normalizeMutationItems(raw: unknown) {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((entry) => {
+      const item = objectValue(entry)
+      const candidate = normalizeCaseCandidate(item.candidate)
+      if (!candidate) return null
+      return {
+        outcome: stringValue(item.outcome),
+        candidate,
+      }
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
 }
 
 export async function createAttackCaseIocVerifyTask({

@@ -95,6 +95,10 @@ export interface IocCandidate {
   normalized_value?: string
   source_ref_id?: string
   source_field?: string
+  graph_origin?: string
+  source_parent_ref_id?: string
+  source_entity_type?: string
+  source_display_name?: string
   file_name?: string
   file_path?: string
   evidence_id?: string
@@ -537,6 +541,45 @@ export interface AttackCaseIOCCandidateListData {
   extract_task_exists: boolean
   items: IocVerificationItem[]
   summary: AttackCaseIOCCandidateSummary
+}
+
+export interface AppendAttackCaseIOCCandidateInput {
+  ioc_type: "md5" | "sha1" | "sha256" | "ip" | "domain" | "url"
+  value: string
+  source_ref_id: string
+  source_field: string
+  query_type?: string
+  file_name?: string
+  file_path?: string
+  graph_origin: "base_graph" | "drill_graph"
+  source_parent_ref_id?: string
+  source_entity_type?: string
+  source_display_name?: string
+}
+
+export type AttackCaseIOCCandidateMutationOutcome =
+  | "created"
+  | "existing"
+  | "reactivated"
+  | "deleted"
+  | "already_deleted"
+
+export interface AttackCaseIOCCandidateMutationItem {
+  outcome: AttackCaseIOCCandidateMutationOutcome | string
+  candidate: IocVerificationItem
+}
+
+export interface AppendAttackCaseIOCCandidatesData {
+  items: AttackCaseIOCCandidateMutationItem[]
+  created_count: number
+  existing_count: number
+  reactivated_count: number
+}
+
+export interface DeleteAttackCaseIOCCandidatesData {
+  items: AttackCaseIOCCandidateMutationItem[]
+  deleted_count: number
+  already_deleted_count: number
 }
 
 export interface AttackCaseIOCVerificationDetail {

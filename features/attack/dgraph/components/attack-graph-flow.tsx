@@ -86,15 +86,19 @@ import {
 
 export interface AttackGraphFlowProps
   extends Omit<ReactFlowProps, "nodes" | "edges" | "nodeTypes" | "edgeTypes"> {
+  controlPanel?: ReactNode;
   response: GraphCaseResponseDto;
   className?: string;
+  enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
+  iocCandidateSourceKeys?: ReadonlySet<string>;
   layoutOptions?: AttackGraphLayoutOptions;
   menuProviders?: AttackGraphMenuProvider[];
   nodeDrillStateByKey?: AttackGraphNodeDrillStateByKey;
   onDiagnosticsChange?: (diagnostics: AttackGraphFlowDiagnostics) => void;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   positionResetKey?: number | string;
+  remediationTargetKeys?: ReadonlySet<string>;
   showMiniMap?: boolean;
   showBackground?: boolean;
 }
@@ -189,15 +193,19 @@ function createManualNodePositionsByStrategy(): ManualNodePositionsByStrategy {
 }
 
 export function AttackGraphFlow({
+  controlPanel,
   response,
   className,
+  enableIocMenu = false,
   enableRemediationMenu = false,
+  iocCandidateSourceKeys,
   layoutOptions,
   menuProviders,
   nodeDrillStateByKey,
   onDiagnosticsChange,
   onMenuAction,
   positionResetKey,
+  remediationTargetKeys,
   showMiniMap = false,
   showBackground = true,
   fitView = false,
@@ -216,6 +224,7 @@ export function AttackGraphFlow({
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [flowContainerWidth, setFlowContainerWidth] = useState(0);
   const [contextMenu, setContextMenu] =
     useState<AttackGraphContextMenuState | null>(null);
   const [layouted, setLayouted] = useState<AttackGraphLayoutResult | null>(null);
@@ -228,9 +237,21 @@ export function AttackGraphFlow({
   >({});
   const lastLayoutStrategyRef = useRef<AttackGraphLayoutStrategy | null>(null);
   const previousCaseIdRef = useRef<string>("");
+  const flowContainerRef = useRef<HTMLDivElement | null>(null);
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
   const hasFittedRef = useRef(false);
   const lastPositionResetKeyRef = useRef(positionResetKey);
+
+  useEffect(() => {
+    const element = flowContainerRef.current;
+    if (!element) return;
+
+    const updateWidth = () => setFlowContainerWidth(element.clientWidth);
+    updateWidth();
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -332,12 +353,23 @@ export function AttackGraphFlow({
     () => [
       createCommonAttackGraphNodeMenuProvider({
         drillStateByNodeKey: nodeDrillStateByKey,
+        enableIocMenu,
         enableRemediationMenu,
+        iocCandidateSourceKeys,
         onMenuAction,
+        remediationTargetKeys,
       }),
       ...(menuProviders ?? []),
     ],
-    [enableRemediationMenu, menuProviders, nodeDrillStateByKey, onMenuAction],
+    [
+      enableIocMenu,
+      enableRemediationMenu,
+      iocCandidateSourceKeys,
+      menuProviders,
+      nodeDrillStateByKey,
+      onMenuAction,
+      remediationTargetKeys,
+    ],
   );
 
   const flowNodes = useMemo(
@@ -689,7 +721,10 @@ export function AttackGraphFlow({
   );
 
   return (
-    <div className={cn("relative h-full min-h-[420px] w-full bg-transparent", className)}>
+    <div
+      ref={flowContainerRef}
+      className={cn("relative h-full min-h-[420px] w-full bg-transparent", className)}
+    >
       <TooltipProvider delayDuration={180}>
         {layouted ? (
           <>
@@ -740,6 +775,19 @@ export function AttackGraphFlow({
               menu={contextMenu}
               onClose={() => setContextMenu(null)}
             />
+            {controlPanel &&
+            flowContainerWidth >= 640 &&
+            !(detailCardItem && flowContainerWidth < 1200) ? (
+              <div
+                className={cn(
+                  "pointer-events-none absolute bottom-4 left-4 z-10 transition-[right] duration-200 motion-reduce:transition-none",
+                  detailCardItem ? "right-[696px]" : "right-4",
+                )}
+                data-attack-graph-control-panel-host="true"
+              >
+                {controlPanel}
+              </div>
+            ) : null}
             <AttackGraphDetailCard
               item={detailCardItem}
               nodesById={layoutedNodesById}

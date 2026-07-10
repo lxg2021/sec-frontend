@@ -71,7 +71,9 @@ export function formatFullTime(value: string) {
 }
 
 export interface AttackWorkflowRouteOptions {
+  candidateIds?: readonly string[]
   workflowId?: string
+  returnToGraph?: boolean
   returnToWorkflow?: boolean
   queuePage?: number
   tenantId?: string
@@ -83,7 +85,8 @@ function appendOptionalWorkflowParams(
 ) {
   const workflowId = options?.workflowId?.trim()
   if (workflowId) params.set("workflowId", workflowId)
-  if (options?.returnToWorkflow) params.set("returnTo", "workflow")
+  if (options?.returnToGraph) params.set("returnTo", "graph")
+  else if (options?.returnToWorkflow) params.set("returnTo", "workflow")
   if (options?.tenantId?.trim()) params.set("tenantId", options.tenantId.trim())
   if (options?.queuePage && options.queuePage > 0) {
     params.set("queuePage", String(Math.trunc(options.queuePage)))
@@ -143,6 +146,10 @@ export function buildIOCVerificationHref(
   params.set("caseId", caseId)
   if (snapshotId?.trim()) params.set("snapshotId", snapshotId.trim())
   appendOptionalWorkflowParams(params, options)
+  const candidateIds = Array.from(
+    new Set(options?.candidateIds?.map((item) => item.trim()).filter(Boolean)),
+  )
+  if (candidateIds.length) params.set("candidate_ids", candidateIds.join(","))
   return `/frame/ioc-analysis/ioc-verification?${params.toString()}`
 }
 

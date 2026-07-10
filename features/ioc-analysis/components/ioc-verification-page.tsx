@@ -14,6 +14,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import {
   buildAttackDetailHref,
   buildAttackWorkflowHref,
+  buildTraceHref,
 } from "@/features/attack/detail/utils/attack-case-format"
 import {
   isAllowlisted,
@@ -79,6 +80,17 @@ function getRoutePageParam(value: string | null) {
   if (!normalized) return undefined
   const parsed = Number.parseInt(normalized, 10)
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
+}
+
+function getRouteListParam(value: string | null) {
+  return Array.from(
+    new Set(
+      (value || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  )
 }
 
 function normalizeTaskStatus(status?: string) {
@@ -398,6 +410,9 @@ export function IocVerificationPage() {
       queuePage:
         getRoutePageParam(searchParams.get("queuePage")) ||
         getRoutePageParam(searchParams.get("queue_page")),
+      candidateIds: getRouteListParam(
+        searchParams.get("candidateIds") || searchParams.get("candidate_ids"),
+      ),
     }),
     [searchParams],
   )
@@ -422,8 +437,10 @@ export function IocVerificationPage() {
   const verifyRunIdRef = useRef(0)
   const detailRunIdRef = useRef(0)
   const autoLoadedCaseRef = useRef("")
+  const autoVerifiedCandidateSelectionRef = useRef("")
   const mountedRef = useRef(false)
   const counts = useMemo(() => summaryCounts(items), [items])
+  const requestedCandidateIdsKey = routeParams.candidateIds.join(",")
   const casePreviewMessage = useMemo(() => {
     if (!caseId.trim()) return ""
     if (!casePreview) return t("casePanel.previewNotLoaded")
@@ -947,8 +964,51 @@ export function IocVerificationPage() {
     void loadCaseIocs()
   }, [loadCaseIocs, routeParams.caseId])
 
+  useEffect(() => {
+    const normalizedCaseId = routeParams.caseId.trim()
+    if (!normalizedCaseId || !requestedCandidateIdsKey || !casePreview) return
+
+    const requestKey = `${normalizedCaseId}:${requestedCandidateIdsKey}`
+    if (autoVerifiedCandidateSelectionRef.current === requestKey) return
+    autoVerifiedCandidateSelectionRef.current = requestKey
+
+    const requestedIds = new Set(routeParams.candidateIds)
+    const requestedCandidates = casePreview.items.filter((candidate) =>
+      requestedIds.has(candidate.candidate_id || candidate.id),
+    )
+    if (requestedCandidates.length === 0) {
+      toast({
+        title: "未找到指定 IOC",
+        description: "所选 IOC 可能已被删除或不属于当前案件。",
+        variant: "warning",
+      })
+      return
+    }
+
+    void verifyCandidates(requestedCandidates)
+  }, [
+    casePreview,
+    requestedCandidateIdsKey,
+    routeParams.candidateIds,
+    routeParams.caseId,
+    toast,
+    verifyCandidates,
+  ])
+
   function handleBack() {
     const normalizedCaseId = caseId.trim()
+
+    if (routeParams.returnTo === "graph") {
+      router.push(
+        buildTraceHref(normalizedCaseId, routeParams.snapshotId, {
+          queuePage: routeParams.queuePage,
+          returnToWorkflow: Boolean(routeParams.workflowId),
+          tenantId,
+          workflowId: routeParams.workflowId,
+        }),
+      )
+      return
+    }
 
     if (routeParams.returnTo === "workflow" || routeParams.workflowId) {
       router.push(

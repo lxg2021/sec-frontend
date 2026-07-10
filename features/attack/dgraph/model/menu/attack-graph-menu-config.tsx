@@ -1,4 +1,10 @@
-import { Copy, ShieldCheck, SplitSquareVertical } from "lucide-react";
+import {
+  Copy,
+  ScanSearch,
+  ShieldMinus,
+  ShieldPlus,
+  SplitSquareVertical,
+} from "lucide-react";
 
 import type {
   AttackGraphMenuAction,
@@ -7,32 +13,64 @@ import type {
   AttackGraphNodeDrillStateByKey,
 } from "./attack-graph-menu-types";
 import { canShowAttackGraphRemediationMenu } from "../node/attack-graph-remediation-config";
+import {
+  buildAttackGraphIocSourceKey,
+  getAttackGraphNodeIocCandidates,
+} from "../node/attack-graph-ioc-config";
 
 export function createCommonAttackGraphNodeMenuProvider({
   drillStateByNodeKey,
+  enableIocMenu = false,
   enableRemediationMenu = false,
+  iocCandidateSourceKeys,
   onMenuAction,
+  remediationTargetKeys,
 }: {
   drillStateByNodeKey?: AttackGraphNodeDrillStateByKey;
+  enableIocMenu?: boolean;
   enableRemediationMenu?: boolean;
+  iocCandidateSourceKeys?: ReadonlySet<string>;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
+  remediationTargetKeys?: ReadonlySet<string>;
 } = {}): AttackGraphMenuProvider {
   return (context) => {
     const drillState = drillStateByNodeKey?.get(context.node.key) ?? "idle";
     const drillDisabled = drillState !== "idle";
+    const nodeIocCandidates = enableIocMenu
+      ? getAttackGraphNodeIocCandidates(context.node)
+      : [];
+    const allNodeIocsAdded =
+      nodeIocCandidates.length > 0 &&
+      nodeIocCandidates.every((candidate) =>
+        iocCandidateSourceKeys?.has(buildAttackGraphIocSourceKey(candidate)),
+      );
+    const remediationTargetKey = context.node.key || context.node.id;
+    const remediationSelected =
+      remediationTargetKeys?.has(remediationTargetKey) ?? false;
     const remediationVisible =
       enableRemediationMenu &&
       canShowAttackGraphRemediationMenu(context.node.entityType);
     const remediationItems: AttackGraphMenuGroup["items"] = remediationVisible
       ? [
           {
-            id: "remediation-orchestration",
-            label: "\u5904\u7f6e\u7f16\u6392",
-            icon: <ShieldCheck className="h-4 w-4" />,
-            tone: "success",
+            id: remediationSelected
+              ? "remove-remediation-target"
+              : "add-remediation-target",
+            label: remediationSelected
+              ? "\u4ece\u5904\u7f6e\u7f16\u6392\u4e2d\u79fb\u9664"
+              : "\u52a0\u5165\u5904\u7f6e\u7f16\u6392",
+            checked: remediationSelected,
+            icon: remediationSelected ? (
+              <ShieldMinus className="h-4 w-4" />
+            ) : (
+              <ShieldPlus className="h-4 w-4" />
+            ),
+            tone: remediationSelected ? "default" : "success",
             action: async ({ graph, node }) => {
               await onMenuAction?.({
-                kind: "remediation-orchestration",
+                kind: remediationSelected
+                  ? "remove-remediation-target"
+                  : "add-remediation-target",
                 graph,
                 node,
               });
@@ -82,6 +120,37 @@ export function createCommonAttackGraphNodeMenuProvider({
           },
         ],
       },
+      ...(nodeIocCandidates.length > 0
+        ? [
+            {
+              id: "ioc-actions",
+              label: "IOC 预检",
+              order: 5,
+              items: [
+                {
+                  id: "add-ioc-candidates",
+                  label: allNodeIocsAdded
+                    ? "已加入预检 IOC"
+                    : "加入预检 IOC",
+                  description:
+                    nodeIocCandidates.length > 1
+                      ? `将节点中的 ${nodeIocCandidates.length} 个 IOC 加入清单`
+                      : undefined,
+                  checked: allNodeIocsAdded,
+                  icon: <ScanSearch className="h-4 w-4" />,
+                  tone: allNodeIocsAdded ? "default" : "primary",
+                  action: async ({ graph, node }) => {
+                    await onMenuAction?.({
+                      kind: "add-ioc-candidates",
+                      graph,
+                      node,
+                    });
+                  },
+                },
+              ],
+            },
+          ]
+        : []),
       ...(remediationItems.length > 0
         ? [
             {
