@@ -9,15 +9,11 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   ArrowLeft,
-  ArrowRight,
-  Ban,
   Clock3,
   FileWarning,
   Loader2,
   Network,
-  Play,
   Plus,
   RefreshCcw,
   Search,
@@ -73,13 +69,7 @@ import type {
   ResolveRemediationNodeAgentsResponse,
 } from "../types";
 import { CreateRemediationPreviewDialog } from "./create-remediation-preview-dialog";
-import { RemediationConfigPanel } from "./remediation-config-panel";
-import {
-  RemediationHistoryPanel,
-  type RemediationHistoryData,
-} from "./remediation-history-panel";
-import { RemediationPreviewPanel } from "./remediation-preview-panel";
-import { RemediationTargetPanel } from "./remediation-target-panel";
+import type { RemediationHistoryData } from "./remediation-history-panel";
 
 const RESPONSE_TIMEZONE = "Asia/Shanghai";
 const PAGE_SOURCE = "remediation_orchestration_page";
