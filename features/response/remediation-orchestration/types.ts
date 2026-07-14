@@ -1,6 +1,7 @@
 "use client"
 
 export interface RemediationOrchestrationContext {
+  order_id?: string
   case_id?: string
   workflow_id?: string
   workflow_action_id?: string

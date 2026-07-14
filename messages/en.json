@@ -1187,7 +1187,7 @@
             },
             "remediation": {
               "label": "Response Targets",
-              "description": "This task list is independent of node details; add more targets from the graph"
+              "description": "Select draft-ready Agents and actions; configure parameters in orchestration"
             }
           },
           "ioc": {
@@ -1265,38 +1265,87 @@
           },
           "remediation": {
             "empty": "No response targets",
+            "emptyHint": "Right-click a supported graph node and add it as a response target.",
             "caption": "Graph nodes added to response orchestration",
             "columns": {
               "target": "Response Target",
-              "type": "Type",
-              "nodeId": "Node ID",
+              "agent": "Agent",
+              "action": "Action",
+              "risk": "Risk",
               "status": "Status",
               "actions": "Actions"
             },
-            "capabilities": {
-              "account": "Account",
-              "bits": "BITS Task",
-              "file": "File",
-              "network": "Network",
-              "process": "Process",
-              "registry": "Registry",
-              "service": "Service",
-              "scheduledTask": "Scheduled Task",
-              "wmi": "WMI",
-              "common": "General Node"
+            "statuses": {
+              "resolving": "Resolving",
+              "ready": "Ready",
+              "configurationRequired": "Configuration required",
+              "blocked": "Blocked",
+              "error": "Error",
+              "draft": "Draft",
+              "prepared": "Prepared",
+              "pending": "Pending",
+              "running": "Running",
+              "success": "Succeeded",
+              "failed": "Failed",
+              "uncertain": "Uncertain",
+              "skipped": "Skipped",
+              "completed": "Completed",
+              "satisfied": "Already satisfied",
+              "canceled": "Canceled",
+              "expired": "Expired",
+              "unknown": "Unknown"
             },
-            "added": "Added",
+            "risks": {
+              "critical": "Critical",
+              "high": "High",
+              "medium": "Medium",
+              "low": "Low",
+              "unknown": "Unknown"
+            },
+            "loadingDraft": "Restoring the editable response order...",
+            "preparedHint": "This draft is already prepared, so the graph panel is read-only. Continue in response orchestration to review or execute it.",
+            "workflowMissing": "The current graph has no Workflow ID. Targets can be reviewed, but the draft cannot be saved or opened in orchestration.",
+            "selectAgent": "Select Agent",
+            "selectAction": "Select Action",
+            "noAvailableAction": "No action can be added to the draft",
+            "selectHistory": "Select source execution",
+            "selectAgentAria": "Select an Agent for {target}",
+            "selectActionAria": "Select an action for {target}",
+            "selectHistoryAria": "Select a source execution to reverse for {target}",
+            "orchestrationDisabled": "Unavailable",
+            "applicability": {
+              "available": "Available",
+              "requiresConfiguration": "Configuration required",
+              "unavailable": "Not applicable to this node"
+            },
             "removeAria": "Remove response target {target}",
             "remove": "Remove",
+            "retry": "Retry resolution",
+            "retryAria": "Retry Agent and action resolution for {target}",
             "selectedCount": "Selected targets: {count}",
-            "addMoreHint": "Right-click other graph nodes to add more targets",
             "clear": "Clear Targets",
+            "localDraft": "Local draft",
+            "unsaved": "Unsaved changes",
+            "save": "Save Draft",
+            "saving": "Saving...",
+            "saveAndOpen": "Save & Open Orchestration",
+            "savingAndOpening": "Saving draft...",
+            "openOrchestration": "Open Orchestration",
             "messages": {
               "missingId": "This node has no usable identifier and cannot be added to response orchestration.",
+              "readOnly": "This response order is already prepared. Continue from the orchestration page to review or change it.",
+              "resolving": "Resolving Agent and actions...",
               "added": "Added to response orchestration",
               "addedDescription": "{target} was added to the current response target list.",
+              "addedBlocked": "No action can currently be added to the draft",
+              "addedBlockedDescription": "{target} was not added. Try again after the object state changes.",
+              "resolveFailed": "Failed to resolve Agent or actions",
               "removed": "Removed from response orchestration",
-              "removedDescription": "{target} was removed from the current response target list."
+              "removedDescription": "{target} was removed from the current response target list.",
+              "saved": "Response draft saved",
+              "saveFailed": "Failed to save the response draft",
+              "openFailed": "Unable to open response orchestration",
+              "unknownError": "Unknown request error."
             }
           }
         }

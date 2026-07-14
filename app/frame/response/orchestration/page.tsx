@@ -1,4 +1,5 @@
 import { RemediationOrchestrationPage } from "@/features/response/remediation-orchestration/components/remediation-orchestration-page"
+import { RemediationOrderOrchestrationPage } from "@/features/response/remediation-orchestration/components/remediation-order-orchestration-page"
 import type { RemediationOrchestrationContext } from "@/features/response/remediation-orchestration/types"
 
 interface PageProps {
@@ -15,6 +16,7 @@ export default async function ResponseOrchestrationPage({
 }: PageProps) {
   const params = searchParams ? await searchParams : {}
   const context: RemediationOrchestrationContext = {
+    order_id: pick(params.order_id) || pick(params.orderId),
     case_id:
       pick(params.case_id) ||
       pick(params.caseId) ||
@@ -32,5 +34,9 @@ export default async function ResponseOrchestrationPage({
     return_to: pick(params.returnTo),
   }
 
-  return <RemediationOrchestrationPage context={context} />
+  return context.order_id ? (
+    <RemediationOrderOrchestrationPage context={context} />
+  ) : (
+    <RemediationOrchestrationPage context={context} />
+  )
 }

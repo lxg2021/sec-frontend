@@ -53,6 +53,10 @@ import type {
   GraphCaseResponseDto,
 } from "@/features/attack/dgraph"
 import {
+  buildRemediationOrchestrationHref,
+  useRemediationOrderWorkspace,
+} from "@/features/attack/remediation-order"
+import {
   InvestigationAssistantPanel,
   type InvestigationAssistantLanguage,
   type InvestigationNextAction,
@@ -72,6 +76,7 @@ import { Input } from "@/shared/ui/input"
 const DRILL_TIMEZONE = "Asia/Shanghai"
 const IOC_EXTRACT_POLL_INTERVAL_MS = 2000
 const IOC_EXTRACT_ACTIVE_STATUSES = new Set(["pending", "running"])
+const EMPTY_ATTACK_GRAPH_NODES = Object.freeze([])
 
 function getRouteParam(value: string | null) {
   return value?.trim() || ""
@@ -163,9 +168,9 @@ export default function App() {
   const [graphNodeDrillStateByKey, setGraphNodeDrillStateByKey] = useState(
     () => new Map<string, AttackGraphNodeDrillState>(),
   );
-  const [remediationTargetsByKey, setRemediationTargetsByKey] = useState(
-    () => new Map<string, AttackGraphMenuAction["node"]>(),
-  );
+  const [controlPanelActivePluginId, setControlPanelActivePluginId] =
+    useState("ioc-candidates")
+  const [controlPanelExpanded, setControlPanelExpanded] = useState(false)
   const [iocCandidates, setIocCandidates] = useState<IocVerificationItem[]>([])
   const [iocCandidatesLoading, setIocCandidatesLoading] = useState(false)
   const [iocCandidateSyncState, setIocCandidateSyncState] =
@@ -193,7 +198,8 @@ export default function App() {
     setReturnTo(routeParams.returnTo)
     setReturnWorkflowId(routeParams.workflowId)
     setReturnQueuePage(routeParams.queuePage)
-    setRemediationTargetsByKey(new Map())
+    setControlPanelActivePluginId("ioc-candidates")
+    setControlPanelExpanded(false)
     setIocCandidates([])
     setIocCandidateSyncState("loading")
     setIocExtractTaskStatus("")
@@ -205,14 +211,6 @@ export default function App() {
     setInvestigationGraphContextVersion(0)
   }, [routeParams])
 
-  const remediationTargetKeys = useMemo(
-    () => new Set(remediationTargetsByKey.keys()),
-    [remediationTargetsByKey],
-  )
-  const remediationTargets = useMemo(
-    () => Array.from(remediationTargetsByKey.values()),
-    [remediationTargetsByKey],
-  )
   const groupedIocCandidates = useMemo(
     () => groupAttackGraphIocCandidates(iocCandidates),
     [iocCandidates],
@@ -292,27 +290,12 @@ export default function App() {
     [iocCandidateUserIdsBySourceKey],
   )
 
-  const removeRemediationTarget = useCallback((targetKey: string) => {
-    setRemediationTargetsByKey((current) => {
-      if (!current.has(targetKey)) return current
-      const next = new Map(current)
-      next.delete(targetKey)
-      return next
-    })
-  }, [])
-
   const locateGraphNode = useCallback((nodeId: string) => {
     graphNodeFocusRequestIdRef.current += 1
     setGraphNodeFocusRequest({
       nodeId,
       requestId: graphNodeFocusRequestIdRef.current,
     })
-  }, [])
-
-  const clearRemediationTargets = useCallback(() => {
-    setRemediationTargetsByKey((current) =>
-      current.size === 0 ? current : new Map(),
-    )
   }, [])
 
   const loadIocCandidates = useCallback(
@@ -458,17 +441,93 @@ export default function App() {
     [returnQueuePage, returnWorkflowId, router, t, timelineCaseId, timelineSnapshotId],
   )
 
+  const graphModel = useMemo(
+    () => (graphResponse ? buildAttackGraphModel(graphResponse) : null),
+    [graphResponse],
+  )
   const graphVisibleStats = useMemo(() => {
-    if (!graphResponse) {
-      return { edgeCount: 0, nodeCount: 0 }
-    }
-
-    const graph = buildAttackGraphModel(graphResponse)
+    if (!graphModel) return { edgeCount: 0, nodeCount: 0 }
     return {
-      edgeCount: graph.edges.length,
-      nodeCount: graph.nodes.length,
+      edgeCount: graphModel.edges.length,
+      nodeCount: graphModel.nodes.length,
     }
-  }, [graphResponse])
+  }, [graphModel])
+  const remediationGraphMatchesCase = Boolean(
+    graphResponse &&
+      (graphResponse.case_id || "").trim() === timelineCaseId.trim(),
+  )
+  const remediation = useRemediationOrderWorkspace({
+    caseId: timelineCaseId,
+    workflowId: returnWorkflowId,
+    tenantId: remediationGraphMatchesCase
+      ? graphResponse?.tenant_id
+      : undefined,
+    nodes:
+      remediationGraphMatchesCase && graphModel
+        ? graphModel.nodes
+        : EMPTY_ATTACK_GRAPH_NODES,
+  })
+  const handleRemediationSave = useCallback(async () => {
+    try {
+      await remediation.saveDraft()
+      toast.success(t("controlPanel.remediation.messages.saved"))
+    } catch (error) {
+      toast.error(t("controlPanel.remediation.messages.saveFailed"), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t("controlPanel.remediation.messages.unknownError"),
+      })
+    }
+  }, [remediation.saveDraft, t])
+  const handleOpenRemediationOrchestration = useCallback(async () => {
+    try {
+      let currentOrder = remediation.order
+      if (!currentOrder || remediation.dirty) {
+        currentOrder = await remediation.saveDraft()
+      }
+      router.push(
+        buildRemediationOrchestrationHref(currentOrder, {
+          fallbackCaseId: timelineCaseId,
+          fallbackWorkflowId: returnWorkflowId,
+          queuePage: returnQueuePage,
+          snapshotId: timelineSnapshotId,
+        }),
+      )
+    } catch (error) {
+      toast.error(t("controlPanel.remediation.messages.openFailed"), {
+        description:
+          error instanceof Error
+            ? error.message
+            : t("controlPanel.remediation.messages.unknownError"),
+      })
+    }
+  }, [
+    remediation.dirty,
+    remediation.order,
+    remediation.saveDraft,
+    returnQueuePage,
+    returnWorkflowId,
+    router,
+    t,
+    timelineCaseId,
+    timelineSnapshotId,
+  ])
+  const handleRemediationRetry = useCallback(
+    async (targetKey: string) => {
+      try {
+        await remediation.retryTarget(targetKey)
+      } catch (error) {
+        toast.error(t("controlPanel.remediation.messages.resolveFailed"), {
+          description:
+            error instanceof Error
+              ? error.message
+              : t("controlPanel.remediation.messages.unknownError"),
+        })
+      }
+    },
+    [remediation.retryTarget, t],
+  )
   const graphLayoutOptions = useMemo<AttackGraphLayoutOptions | undefined>(
     () =>
       graphLayoutStrategy === "auto"
@@ -691,27 +750,52 @@ export default function App() {
           return
         }
 
+        if (!remediation.editable) {
+          toast.warning(t("controlPanel.remediation.messages.readOnly"))
+          return
+        }
         const adding = action.kind === "add-remediation-target"
-        setRemediationTargetsByKey((current) => {
-          const next = new Map(current)
-          if (adding) {
-            next.set(targetKey, action.node)
-          } else {
-            next.delete(targetKey)
-          }
-          return next
-        })
-
         const targetName =
           action.node.displayName || action.node.key || action.node.id
         if (adding) {
-          toast.success(t("controlPanel.remediation.messages.added"), {
-            description: t(
-              "controlPanel.remediation.messages.addedDescription",
-              { target: targetName },
-            ),
-          })
+          setControlPanelActivePluginId("remediation-targets")
+          setControlPanelExpanded(true)
+          const toastId = toast.loading(
+            t("controlPanel.remediation.messages.resolving"),
+          )
+          try {
+            const resolved = await remediation.addTarget(action.node)
+            if (resolved) {
+              toast.success(t("controlPanel.remediation.messages.added"), {
+                id: toastId,
+                description: t(
+                  "controlPanel.remediation.messages.addedDescription",
+                  { target: targetName },
+                ),
+              })
+            } else {
+              toast.warning(
+                t("controlPanel.remediation.messages.addedBlocked"),
+                {
+                  id: toastId,
+                  description: t(
+                    "controlPanel.remediation.messages.addedBlockedDescription",
+                    { target: targetName },
+                  ),
+                },
+              )
+            }
+          } catch (error) {
+            toast.error(t("controlPanel.remediation.messages.resolveFailed"), {
+              id: toastId,
+              description:
+                error instanceof Error
+                  ? error.message
+                  : t("controlPanel.remediation.messages.unknownError"),
+            })
+          }
         } else {
+          remediation.removeTarget(targetKey)
           toast.success(t("controlPanel.remediation.messages.removed"), {
             description: t(
               "controlPanel.remediation.messages.removedDescription",
@@ -860,6 +944,9 @@ export default function App() {
       iocCandidateIdentityKeys,
       iocCandidateSyncState,
       iocCandidateUserIdsBySourceKey,
+      remediation.addTarget,
+      remediation.editable,
+      remediation.removeTarget,
       t,
       timelineCaseId,
     ],
@@ -1039,8 +1126,10 @@ export default function App() {
           caseId={timelineCaseId}
           controlPanel={(
             <AttackGraphControlPanel
-              defaultActivePluginId="ioc-candidates"
-              defaultExpanded={false}
+              activePluginId={controlPanelActivePluginId}
+              expanded={controlPanelExpanded}
+              onActivePluginChange={setControlPanelActivePluginId}
+              onExpandedChange={setControlPanelExpanded}
               plugins={[
                 {
                   id: "ioc-candidates",
@@ -1072,16 +1161,32 @@ export default function App() {
                   id: "remediation-targets",
                   label: t("controlPanel.plugins.remediation.label"),
                   icon: ShieldCheck,
-                  count: remediationTargets.length,
+                  count: remediation.targets.length,
                   tone: "emerald",
+                  contentClassName: "max-h-[460px]",
                   headerDescription: t(
                     "controlPanel.plugins.remediation.description",
                   ),
                   content: (
                     <AttackGraphRemediationTargets
-                      targets={remediationTargets}
-                      onClear={clearRemediationTargets}
-                      onRemove={removeRemediationTarget}
+                      targets={remediation.targets}
+                      order={remediation.order}
+                      loadingDraft={remediation.loadingDraft}
+                      saving={remediation.saving}
+                      dirty={remediation.dirty}
+                      error={remediation.error}
+                      workflowMissing={remediation.workflowMissing}
+                      editable={remediation.editable}
+                      allTargetsComplete={remediation.allTargetsComplete}
+                      onClear={remediation.clearTargets}
+                      onRemove={remediation.removeTarget}
+                      onRetry={handleRemediationRetry}
+                      onAgentChange={remediation.selectAgent}
+                      onActionChange={remediation.selectActionCode}
+                      onSave={handleRemediationSave}
+                      onOpenOrchestration={
+                        handleOpenRemediationOrchestration
+                      }
                     />
                   ),
                 },
@@ -1104,7 +1209,7 @@ export default function App() {
           onMenuAction={handleGraphMenuAction}
           onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
           positionResetKey={graphPositionResetKey}
-          remediationTargetKeys={remediationTargetKeys}
+          remediationTargetKeys={remediation.targetKeys}
           response={graphResponse}
           subtitle={t("subtitle")}
           title={t("graph")}

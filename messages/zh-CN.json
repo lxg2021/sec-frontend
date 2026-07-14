@@ -1189,7 +1189,7 @@
             },
             "remediation": {
               "label": "处置目标",
-              "description": "任务清单独立于节点详情，可继续从图中追加目标"
+              "description": "选择可加入草稿的 Agent 和处置动作，具体参数在编排页配置"
             }
           },
           "ioc": {
@@ -1267,38 +1267,87 @@
           },
           "remediation": {
             "empty": "暂无处置目标",
+            "emptyHint": "在支持处置的图谱节点上点击右键，将其加入处置目标。",
             "caption": "已加入处置编排的图谱节点",
             "columns": {
               "target": "处置目标",
-              "type": "类型",
-              "nodeId": "节点标识",
+              "agent": "Agent",
+              "action": "处置动作",
+              "risk": "风险",
               "status": "状态",
               "actions": "操作"
             },
-            "capabilities": {
-              "account": "账户",
-              "bits": "BITS 任务",
-              "file": "文件",
-              "network": "网络",
-              "process": "进程",
-              "registry": "注册表",
-              "service": "服务",
-              "scheduledTask": "计划任务",
-              "wmi": "WMI",
-              "common": "通用节点"
+            "statuses": {
+              "resolving": "解析中",
+              "ready": "可处置",
+              "configurationRequired": "待配置",
+              "blocked": "已阻塞",
+              "error": "解析失败",
+              "draft": "草稿",
+              "prepared": "已准备",
+              "pending": "等待执行",
+              "running": "执行中",
+              "success": "执行成功",
+              "failed": "执行失败",
+              "uncertain": "结果不确定",
+              "skipped": "已跳过",
+              "completed": "已完成",
+              "satisfied": "已满足",
+              "canceled": "已取消",
+              "expired": "已过期",
+              "unknown": "未知"
             },
-            "added": "已加入",
+            "risks": {
+              "critical": "严重",
+              "high": "高",
+              "medium": "中",
+              "low": "低",
+              "unknown": "未知"
+            },
+            "loadingDraft": "正在恢复可编辑处置单...",
+            "preparedHint": "该草稿已经完成准备，图谱面板现为只读。请前往处置编排页面继续审核或执行。",
+            "workflowMissing": "当前图谱缺少 Workflow ID。可以查看和选择目标，但无法保存草稿或前往处置编排。",
+            "selectAgent": "选择 Agent",
+            "selectAction": "选择处置动作",
+            "noAvailableAction": "暂无可加入草稿的动作",
+            "selectHistory": "选择来源执行记录",
+            "selectAgentAria": "为 {target} 选择 Agent",
+            "selectActionAria": "为 {target} 选择处置动作",
+            "selectHistoryAria": "为 {target} 选择要回滚的来源执行记录",
+            "orchestrationDisabled": "不可编排",
+            "applicability": {
+              "available": "可用",
+              "requiresConfiguration": "需在编排页配置",
+              "unavailable": "不适用于此节点"
+            },
             "removeAria": "移除处置目标 {target}",
             "remove": "移除",
+            "retry": "重新解析",
+            "retryAria": "重新解析 {target} 的 Agent 和处置动作",
             "selectedCount": "已选择 {count} 个目标",
-            "addMoreHint": "可继续在图中右键添加其他节点",
             "clear": "清空目标",
+            "localDraft": "本地草稿",
+            "unsaved": "有未保存更改",
+            "save": "保存草稿",
+            "saving": "保存中...",
+            "saveAndOpen": "保存并前往处置编排",
+            "savingAndOpening": "正在保存草稿...",
+            "openOrchestration": "前往处置编排",
             "messages": {
               "missingId": "当前节点缺少可用标识，无法加入处置编排。",
+              "readOnly": "当前处置单已经准备，图谱面板中不能继续编辑，请前往处置编排页面处理。",
+              "resolving": "正在解析 Agent 和处置动作...",
               "added": "已加入处置编排",
               "addedDescription": "{target} 已加入当前处置目标清单。",
+              "addedBlocked": "当前没有可加入草稿的处置动作",
+              "addedBlockedDescription": "{target} 未加入目标清单；对象状态变化后可以重新尝试。",
+              "resolveFailed": "Agent 或处置动作解析失败",
               "removed": "已从处置编排中移除",
-              "removedDescription": "{target} 已从当前处置目标清单移除。"
+              "removedDescription": "{target} 已从当前处置目标清单移除。",
+              "saved": "处置草稿已保存",
+              "saveFailed": "保存处置草稿失败",
+              "openFailed": "无法前往处置编排页面",
+              "unknownError": "未知请求错误。"
             }
           }
         }
