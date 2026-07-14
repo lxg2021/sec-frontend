@@ -17,6 +17,7 @@ import {
   Plus,
   RefreshCcw,
   Search,
+  ShieldCheck,
   Square,
   TerminalSquare,
   Workflow,
@@ -69,6 +70,7 @@ import type {
   ResolveRemediationNodeAgentsResponse,
 } from "../types";
 import { CreateRemediationPreviewDialog } from "./create-remediation-preview-dialog";
+import { RemediationOrderWorkspace } from "./remediation-order-workspace";
 import type { RemediationHistoryData } from "./remediation-history-panel";
 
 const RESPONSE_TIMEZONE = "Asia/Shanghai";
@@ -448,10 +450,15 @@ export function RemediationOrchestrationPage({
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
   const [batchesRefreshKey, setBatchesRefreshKey] = useState(0);
   const [createPreviewOpen, setCreatePreviewOpen] = useState(false);
+  const [orderRefreshKey, setOrderRefreshKey] = useState(0);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [loadedOrderCaseId, setLoadedOrderCaseId] = useState("");
   const [startTime] = useState(monthAgoDate);
   const [endTime] = useState(todayDate);
 
   const routeCaseId = context.case_id?.trim() || "";
+  const routeOrderId = context.order_id?.trim() || "";
+  const orderMode = Boolean(routeOrderId);
   const routeWorkflowId = context.workflow_id?.trim() || "";
   const routeActionId = context.workflow_action_id?.trim() || "";
   const tenantId = context.tenant_id?.trim() || "";
@@ -580,12 +587,32 @@ export function RemediationOrchestrationPage({
   );
 
   useEffect(() => {
+    if (orderMode) {
+      setLoading(false);
+      setRefreshing(false);
+      setRefreshedAt(new Date());
+      return;
+    }
     void loadPage(false);
-  }, [loadPage]);
+  }, [loadPage, orderMode]);
 
   useEffect(() => {
-    setHeaderCaseInput(routeCaseId);
-  }, [routeCaseId]);
+    setHeaderCaseInput(routeCaseId || loadedOrderCaseId);
+  }, [loadedOrderCaseId, routeCaseId]);
+
+  const handleOrderLoaded = useCallback(
+    (nextOrder: { source: { case_id: string } }) => {
+      setLoadedOrderCaseId(nextOrder.source.case_id.trim());
+      setRefreshedAt(new Date());
+    },
+    [],
+  );
+
+  const handleOrderLoadingChange = useCallback((nextLoading: boolean) => {
+    setOrderLoading(nextLoading);
+    setRefreshing(nextLoading);
+    if (!nextLoading) setRefreshedAt(new Date());
+  }, []);
 
   function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
@@ -614,6 +641,10 @@ export function RemediationOrchestrationPage({
   }
 
   function refreshHeader() {
+    if (orderMode) {
+      setOrderRefreshKey((current) => current + 1);
+      return;
+    }
     const nextCaseId = headerCaseInput.trim();
     const current = routeCaseId;
     if (nextCaseId !== current) {
@@ -934,7 +965,7 @@ export function RemediationOrchestrationPage({
                     value={headerCaseInput}
                     onChange={(event) => setHeaderCaseInput(event.target.value)}
                     placeholder="请输入案件 ID"
-                    disabled={loading}
+                    disabled={orderMode ? orderLoading : loading}
                     className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </form>
@@ -966,14 +997,14 @@ export function RemediationOrchestrationPage({
                   variant="ghost"
                   size="icon"
                   onClick={refreshHeader}
-                  disabled={loading || refreshing}
+                  disabled={loading || refreshing || orderLoading}
                   aria-label="刷新"
                   className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
                 >
                   <RefreshCcw
                     className={cn(
                       "h-4 w-4",
-                      (loading || refreshing) && "animate-spin",
+                    (loading || refreshing || orderLoading) && "animate-spin",
                     )}
                   />
                   <span className="sr-only">刷新</span>
@@ -981,49 +1012,68 @@ export function RemediationOrchestrationPage({
 
                 <Button
                   type="button"
-                  disabled={!canCreatePreview || working === "create-preview"}
-                  onClick={() => void handleCreatePreview()}
+                  disabled={
+                    orderMode ||
+                    !canCreatePreview ||
+                    working === "create-preview"
+                  }
+                  onClick={() => {
+                    if (!orderMode) void handleCreatePreview();
+                  }}
                   className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
                 >
-                  {working === "create-preview" ? (
+                  {orderMode ? (
+                    <ShieldCheck className="h-4 w-4" />
+                  ) : working === "create-preview" ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
                     <Plus className="h-4 w-4" />
                   )}
-                  <span>新建预览</span>
+                  <span>{orderMode ? "准备校验" : "新建预览"}</span>
                 </Button>
               </div>
             </div>
           </div>
         </header>
 
-        <CreateRemediationPreviewDialog
-          agentResolve={agentResolve}
-          buildActionInput={(actionCode, node) => actionInputFor(actionCode, node)}
-          caseId={currentCaseId}
-          expireSeconds={600}
-          onCreated={(nextPreview, nextDetail) => {
-            setPreview(nextDetail?.preview ?? nextPreview);
-            setDetail(nextDetail);
-            setExecution(nextDetail?.execution ?? null);
-            setBatchesRefreshKey((current) => current + 1);
-            toast({
-              title: "处置预览已创建",
-              description: "已按 mitigation 预览结果生成目标明细",
-            });
-          }}
-          onOpenChange={setCreatePreviewOpen}
-          open={createPreviewOpen}
-          prepareWorkflowContext={prepareCreatePreviewWorkflowContext}
-          scopeId={scopeId}
-          scopeType={scopeType}
-          selectedAction={selectedAction}
-          selectedNode={selectedNode}
-          sourceType={sourceType}
-          tenantId={tenantId}
-          workflowActionId={action?.workflow_action_id || routeActionId}
-          workflowId={currentWorkflowId}
-        />
+        {orderMode ? (
+          <RemediationOrderWorkspace
+            onLoadingChange={handleOrderLoadingChange}
+            onOrderLoaded={handleOrderLoaded}
+            orderId={routeOrderId}
+            refreshKey={orderRefreshKey}
+          />
+        ) : (
+          <CreateRemediationPreviewDialog
+            agentResolve={agentResolve}
+            buildActionInput={(actionCode, node) =>
+              actionInputFor(actionCode, node)
+            }
+            caseId={currentCaseId}
+            expireSeconds={600}
+            onCreated={(nextPreview, nextDetail) => {
+              setPreview(nextDetail?.preview ?? nextPreview);
+              setDetail(nextDetail);
+              setExecution(nextDetail?.execution ?? null);
+              setBatchesRefreshKey((current) => current + 1);
+              toast({
+                title: "处置预览已创建",
+                description: "已按 mitigation 预览结果生成目标明细",
+              });
+            }}
+            onOpenChange={setCreatePreviewOpen}
+            open={createPreviewOpen}
+            prepareWorkflowContext={prepareCreatePreviewWorkflowContext}
+            scopeId={scopeId}
+            scopeType={scopeType}
+            selectedAction={selectedAction}
+            selectedNode={selectedNode}
+            sourceType={sourceType}
+            tenantId={tenantId}
+            workflowActionId={action?.workflow_action_id || routeActionId}
+            workflowId={currentWorkflowId}
+          />
+        )}
 
         {/*
             <section className="grid min-h-[720px] gap-5 xl:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[320px_400px_minmax(0,1fr)]">

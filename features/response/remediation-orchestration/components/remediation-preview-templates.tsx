@@ -52,12 +52,13 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
   {
     id: "process-terminate",
     title: "结束进程",
-    actionCodes: ["process.terminate", "process.force_terminate"],
+    actionCodes: ["process.terminate"],
     inputBranch: "process_terminate",
     snapshotBranch: "process",
     isProcessTerminate: true,
     parameters: [
       { key: "include_children", label: "终止子进程", kind: "boolean", defaultValue: true },
+      { key: "force", label: "强制结束", kind: "boolean", defaultValue: false },
     ],
   },
   {
@@ -480,25 +481,49 @@ export function RemediationTemplateParameterControls({
   }
   if (template.isProcessTerminate) {
     return (
-      <label
-        className={cn(
-          "inline-flex min-h-8 cursor-pointer items-center gap-2 rounded-lg px-1.5 py-1 text-xs text-slate-700 transition-colors hover:bg-slate-50",
-          disabled ? "cursor-not-allowed opacity-60" : "",
-        )}
-      >
-        <Checkbox
-          checked={values.includeChildProcesses}
-          disabled={disabled}
-          onCheckedChange={(checked) =>
-            onValuesChange({
-              ...values,
-              includeChildProcesses: checked === true,
-            })
-          }
-          className="size-4 rounded border-slate-300 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950"
-        />
-        <span className="font-medium leading-none">终止子进程</span>
-      </label>
+      <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl bg-slate-50">
+        <label
+          className={cn(
+            "inline-flex min-h-10 cursor-pointer items-center gap-2 px-3 py-2 text-xs text-slate-700 transition-colors hover:bg-white/70",
+            disabled ? "cursor-not-allowed opacity-60" : "",
+          )}
+        >
+          <Checkbox
+            checked={values.includeChildProcesses}
+            disabled={disabled}
+            onCheckedChange={(checked) =>
+              onValuesChange({
+                ...values,
+                includeChildProcesses: checked === true,
+              })
+            }
+            className="size-4 rounded border-slate-300 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950"
+          />
+          <span className="font-medium leading-none">终止子进程</span>
+        </label>
+        <label
+          className={cn(
+            "inline-flex min-h-10 cursor-pointer items-center gap-2 border-l border-slate-100 px-3 py-2 text-xs text-slate-700 transition-colors hover:bg-white/70",
+            disabled ? "cursor-not-allowed opacity-60" : "",
+          )}
+        >
+          <Checkbox
+            checked={Boolean(values.parameterOverrides.force)}
+            disabled={disabled}
+            onCheckedChange={(checked) =>
+              onValuesChange({
+                ...values,
+                parameterOverrides: {
+                  ...values.parameterOverrides,
+                  force: checked === true,
+                },
+              })
+            }
+            className="size-4 rounded border-slate-300 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950"
+          />
+          <span className="font-medium leading-none">强制结束</span>
+        </label>
+      </div>
     );
   }
 
