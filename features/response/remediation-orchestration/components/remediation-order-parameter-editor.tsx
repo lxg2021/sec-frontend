@@ -7,6 +7,7 @@ import type {
   RemediationActionDecision,
   RemediationActionInput as OrderActionInput,
   RemediationOrderItem,
+  RemediationTargetSnapshot,
 } from "@/features/attack/remediation-order";
 import { cn } from "@/shared/lib/utils";
 import { Input } from "@/shared/ui/input";
@@ -162,6 +163,184 @@ function entityLabel(item: RemediationOrderItem) {
   return value ? value.toUpperCase() : "TARGET";
 }
 
+interface TargetSnapshotRow {
+  label: string;
+  value: string;
+  wide?: boolean;
+}
+
+function targetSnapshotRows(
+  snapshot: RemediationTargetSnapshot,
+): TargetSnapshotRow[] {
+  const rows: Array<TargetSnapshotRow | null> = [];
+  const add = (label: string, value: unknown, wide = false) => {
+    const display = Array.isArray(value)
+      ? value.map(stringValue).filter(Boolean).join("、")
+      : stringValue(value).trim();
+    rows.push(display ? { label, value: display, wide } : null);
+  };
+
+  if (snapshot.process) {
+    add("进程名", snapshot.process.process_name);
+    add("PID", snapshot.process.pid || "");
+    add("进程路径", snapshot.process.process_path, true);
+    add("进程 Hash", snapshot.process.process_hash, true);
+    add("Process GUID", snapshot.process.process_guid, true);
+    add("命令行", snapshot.process.command_line, true);
+  } else if (snapshot.file) {
+    add("文件完整路径", snapshot.file.file_path, true);
+    add("文件 Hash", snapshot.file.file_hash || "暂无可信 Hash", true);
+    add("文件类型", snapshot.file.file_type);
+    add("签名状态", snapshot.file.signature);
+    add("签名厂商", snapshot.file.signer);
+    add("Stream Name", snapshot.file.stream_name, true);
+    add("已观测 EA", snapshot.file.observed_ea_names, true);
+  } else if (snapshot.scheduled_task) {
+    add("任务名称", snapshot.scheduled_task.task_name);
+    add("任务路径", snapshot.scheduled_task.task_path, true);
+    add("Job ID", snapshot.scheduled_task.job_id, true);
+    add("命令", snapshot.scheduled_task.command, true);
+    add("二进制路径", snapshot.scheduled_task.binary_path, true);
+    add("二进制 Hash", snapshot.scheduled_task.binary_hash, true);
+    add("运行账号", snapshot.scheduled_task.run_as);
+    add("当前状态", snapshot.scheduled_task.state);
+  } else if (snapshot.service) {
+    add("服务名", snapshot.service.service_name);
+    add("显示名称", snapshot.service.display_name);
+    add("二进制路径", snapshot.service.binary_path, true);
+    add("二进制 Hash", snapshot.service.binary_hash, true);
+    add("启动账号", snapshot.service.start_account);
+    add("当前状态", snapshot.service.state);
+  } else if (snapshot.account) {
+    add("账号名称", snapshot.account.account_name);
+    add("域", snapshot.account.domain);
+    add("SID", snapshot.account.sid, true);
+    if (snapshot.account.enabled !== undefined) {
+      add("启用状态", snapshot.account.enabled ? "已启用" : "已禁用");
+    }
+    if (snapshot.account.locked !== undefined) {
+      add("锁定状态", snapshot.account.locked ? "已锁定" : "未锁定");
+    }
+  } else if (snapshot.registry) {
+    add("Hive", snapshot.registry.hive);
+    add("Key Path", snapshot.registry.key_path, true);
+    add("Value Name", snapshot.registry.value_name);
+    if (snapshot.registry.present !== undefined) {
+      add("存在状态", snapshot.registry.present ? "存在" : "不存在");
+    }
+  } else if (snapshot.wmi_class) {
+    add("Namespace", snapshot.wmi_class.namespace);
+    add("Class Name", snapshot.wmi_class.class_name);
+    add("Class Path", snapshot.wmi_class.class_path, true);
+    add("Server", snapshot.wmi_class.server_name);
+  } else if (snapshot.wmi_subscription) {
+    add("Namespace", snapshot.wmi_subscription.namespace);
+    add("Filter", snapshot.wmi_subscription.filter_name);
+    add("Consumer", snapshot.wmi_subscription.consumer_name);
+    add("Consumer Type", snapshot.wmi_subscription.consumer_type, true);
+    add("Filter 绑定数", snapshot.wmi_subscription.filter_binding_count || "");
+    add(
+      "Consumer 绑定数",
+      snapshot.wmi_subscription.consumer_binding_count || "",
+    );
+  } else if (snapshot.bits_job) {
+    add("Job ID", snapshot.bits_job.job_id, true);
+    add("Job Name", snapshot.bits_job.job_name);
+    add("Job Type", snapshot.bits_job.job_type);
+    add("Job Status", snapshot.bits_job.job_status);
+    add("Remote URL", snapshot.bits_job.remote_url, true);
+    add("Local Files", snapshot.bits_job.local_files, true);
+  } else if (snapshot.network) {
+    add("目标 IP", snapshot.network.ip);
+    add("目标端口", snapshot.network.port || "");
+    add("协议", snapshot.network.protocol);
+    add("域名", snapshot.network.domain, true);
+    add("URL", snapshot.network.url, true);
+  }
+
+  return rows.filter(Boolean) as TargetSnapshotRow[];
+}
+
+function TargetSnapshotPanel({
+  item,
+  snapshot,
+}: {
+  item: RemediationOrderItem;
+  snapshot: RemediationTargetSnapshot | null;
+}) {
+  const snapshotAvailable = snapshot?.status === "available";
+  const snapshotRows = snapshotAvailable ? targetSnapshotRows(snapshot) : [];
+  const fallbackRows: TargetSnapshotRow[] = [
+    { label: "目标名称", value: targetName(item) },
+    { label: "对象类型", value: entityLabel(item) },
+    ...(item.node_key.trim()
+      ? [{ label: "节点标识", value: item.node_key.trim(), wide: true }]
+      : []),
+  ];
+  const rows = snapshotRows.length > 0 ? snapshotRows : fallbackRows;
+  const sourceLabel =
+    snapshot?.source === "graph_current"
+      ? "Graph 当前证据"
+      : snapshot?.source === "prepared_frozen"
+        ? "Prepare 已冻结"
+        : snapshot?.source === "history_frozen"
+          ? "历史冻结"
+          : snapshotAvailable
+            ? "目标证据"
+            : "等待解析";
+  const unavailableMessage = !snapshot
+    ? "当前接口未返回目标快照，PID、路径、Hash 等可信证据等待后台解析。"
+    : snapshot.status !== "available"
+      ? snapshot.reason_message ||
+        snapshot.reason_code ||
+        "后台暂未返回可信目标证据。"
+      : snapshotRows.length === 0
+        ? "目标快照已返回，但未包含当前对象可展示的证据字段。"
+        : "";
+
+  return (
+    <div className="mt-4">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold text-slate-700">目标信息</div>
+        <span
+          className={cn(
+            "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium",
+            snapshotAvailable && snapshotRows.length > 0
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700",
+          )}
+        >
+          {sourceLabel}
+        </span>
+      </div>
+      <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+        {rows.map((row, index) => (
+          <div
+            className={cn(
+              "min-w-0 bg-slate-50 px-4 py-2.5",
+              row.wide ? "sm:col-span-2" : "",
+            )}
+            key={`${row.label}-${index}`}
+          >
+            <div className="text-[11px] text-slate-400">{row.label}</div>
+            <div
+              className="mt-1 truncate font-mono text-xs font-medium text-slate-700"
+              title={row.value}
+            >
+              {row.value}
+            </div>
+          </div>
+        ))}
+      </div>
+      {unavailableMessage ? (
+        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-700">
+          {unavailableMessage}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : value == null ? "" : String(value);
 }
@@ -244,6 +423,8 @@ export function RemediationOrderParameterPanel({
       >
         {targetText(item)}
       </div>
+
+      <TargetSnapshotPanel item={item} snapshot={item.target_snapshot} />
 
       <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2">
         <div className="min-w-0 px-4 py-3">

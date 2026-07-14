@@ -1,5 +1,4 @@
 import { RemediationOrchestrationPage } from "@/features/response/remediation-orchestration/components/remediation-orchestration-page"
-import { RemediationOrderOrchestrationPage } from "@/features/response/remediation-orchestration/components/remediation-order-orchestration-page"
 import type { RemediationOrchestrationContext } from "@/features/response/remediation-orchestration/types"
 
 interface PageProps {
@@ -34,9 +33,5 @@ export default async function ResponseOrchestrationPage({
     return_to: pick(params.returnTo),
   }
 
-  return context.order_id ? (
-    <RemediationOrderOrchestrationPage context={context} />
-  ) : (
-    <RemediationOrchestrationPage context={context} />
-  )
+  return <RemediationOrchestrationPage context={context} />
 }

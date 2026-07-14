@@ -163,6 +163,33 @@ describe("remediation order normalizers", () => {
     });
   });
 
+  it("keeps force as a process.terminate parameter", () => {
+    const order = normalizeRemediationOrder({
+      order_id: "order-process",
+      revision: 1,
+      items: [
+        {
+          item_id: "item-process",
+          action_code: "process.terminate",
+          action_input: {
+            process_terminate: {
+              include_self: true,
+              include_children: false,
+              force: true,
+            },
+          },
+        },
+      ],
+    });
+
+    expect(order.items[0].action_code).toBe("process.terminate");
+    expect(order.items[0].action_input.process_terminate).toEqual({
+      include_self: true,
+      include_children: false,
+      force: true,
+    });
+  });
+
   it("normalizes the current per-Action and per-Agent protocol shape", () => {
     const result = normalizeRemediationNodeActionsResult({
       tenant_id: "public",
@@ -371,6 +398,78 @@ describe("remediation order normalizers", () => {
     expect(result.items[0].action_input.wmi_subscription).toEqual({
       target_candidate_id: "candidate-1",
       remove_binding_only: true,
+    });
+  });
+
+  it("normalizes typed target snapshots without accepting raw target JSON", () => {
+    const result = normalizeRemediationOrder({
+      items: [
+        {
+          target_snapshot: {
+            status: "REMEDIATION_TARGET_SNAPSHOT_STATUS_AVAILABLE",
+            source: 2,
+            canonical_node_key: " file:1 ",
+            observed_at: "2026-07-14T10:00:00Z",
+            file: {
+              file_path: " C:\\Windows\\Temp\\evil.exe ",
+              file_hash: " abcdef ",
+              file_type: "exe",
+              signature: "unsigned",
+              observed_ea_names: [" Zone.Identifier ", ""],
+            },
+            target_identifier_json: '{"file_path":"must-not-pass"}',
+          },
+        },
+        {
+          target_snapshot: {
+            status: 1,
+            source: "REMEDIATION_TARGET_SNAPSHOT_SOURCE_GRAPH_CURRENT",
+            wmi_subscription: {
+              candidate_id: " candidate-1 ",
+              namespace: "root\\subscription",
+              filter_name: "Filter-A",
+              consumer_name: "Consumer-A",
+              consumer_type: "CommandLineEventConsumer",
+              shared_filter: 1,
+              shared_consumer: false,
+              filter_binding_count: "2",
+              consumer_binding_count: 1,
+            },
+          },
+        },
+      ],
+    });
+
+    expect(result.items[0].target_snapshot).toEqual({
+      status: "available",
+      source: "prepared_frozen",
+      reason_code: "",
+      reason_message: "",
+      canonical_node_key: "file:1",
+      observed_at: "2026-07-14T10:00:00Z",
+      process: null,
+      file: {
+        file_path: "C:\\Windows\\Temp\\evil.exe",
+        file_hash: "abcdef",
+        file_type: "exe",
+        signature: "unsigned",
+        signer: "",
+        observed_ea_names: ["Zone.Identifier"],
+        stream_name: "",
+      },
+      scheduled_task: null,
+      service: null,
+      account: null,
+      registry: null,
+      wmi_class: null,
+      wmi_subscription: null,
+      bits_job: null,
+      network: null,
+    });
+    expect(result.items[1].target_snapshot?.wmi_subscription).toMatchObject({
+      candidate_id: "candidate-1",
+      shared_filter: true,
+      filter_binding_count: 2,
     });
   });
 });

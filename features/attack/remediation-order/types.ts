@@ -31,6 +31,7 @@ export interface FileQuarantineInput {
 export interface ProcessTerminateInput {
   include_self?: boolean;
   include_children?: boolean;
+  force?: boolean;
 }
 
 export interface ProcessBlockInput {
@@ -346,6 +347,147 @@ export interface RemediationBackupAvailability {
   expires_at: string;
 }
 
+export type RemediationTargetSnapshotStatus =
+  | "unspecified"
+  | "available"
+  | "unavailable";
+
+export type RemediationTargetSnapshotSource =
+  | "unspecified"
+  | "graph_current"
+  | "prepared_frozen"
+  | "history_frozen";
+
+export interface RemediationProcessTargetSnapshot {
+  process_guid: string;
+  pid: number;
+  process_name: string;
+  process_path: string;
+  process_hash: string;
+  command_line: string;
+}
+
+export interface RemediationFileTargetSnapshot {
+  file_path: string;
+  file_hash: string;
+  file_type: string;
+  signature: string;
+  signer: string;
+  observed_ea_names: string[];
+  stream_name: string;
+}
+
+export type RemediationScheduledTargetKind =
+  | "unspecified"
+  | "task"
+  | "job";
+
+export interface RemediationScheduledTaskTargetSnapshot {
+  kind: RemediationScheduledTargetKind;
+  task_name: string;
+  task_path: string;
+  job_id: string;
+  command: string;
+  binary_path: string;
+  binary_hash: string;
+  run_as: string;
+  state: string;
+}
+
+export interface RemediationServiceTargetSnapshot {
+  service_name: string;
+  display_name: string;
+  binary_path: string;
+  binary_hash: string;
+  start_account: string;
+  state: string;
+}
+
+export interface RemediationAccountTargetSnapshot {
+  account_name: string;
+  domain: string;
+  sid: string;
+  enabled?: boolean;
+  locked?: boolean;
+}
+
+export type RemediationRegistryTargetKind =
+  | "unspecified"
+  | "key"
+  | "value";
+
+export interface RemediationRegistryTargetSnapshot {
+  kind: RemediationRegistryTargetKind;
+  hive: string;
+  key_path: string;
+  value_name: string;
+  present?: boolean;
+}
+
+export interface RemediationWmiClassTargetSnapshot {
+  namespace: string;
+  class_name: string;
+  class_path: string;
+  server_name: string;
+}
+
+export interface RemediationWmiSubscriptionTargetSnapshot {
+  candidate_id: string;
+  namespace: string;
+  filter_name: string;
+  consumer_name: string;
+  consumer_type: string;
+  shared_filter: boolean;
+  shared_consumer: boolean;
+  filter_binding_count: number;
+  consumer_binding_count: number;
+}
+
+export interface RemediationBitsJobTargetSnapshot {
+  job_id: string;
+  job_name: string;
+  job_type: string;
+  job_status: string;
+  remote_url: string;
+  local_files: string[];
+}
+
+export type RemediationNetworkTargetKind =
+  | "unspecified"
+  | "ip_address"
+  | "endpoint"
+  | "domain"
+  | "url";
+
+export interface RemediationNetworkTargetSnapshot {
+  kind: RemediationNetworkTargetKind;
+  ip: string;
+  port: number;
+  protocol: string;
+  is_ipv6?: boolean;
+  domain: string;
+  url: string;
+}
+
+export interface RemediationTargetSnapshot {
+  status: RemediationTargetSnapshotStatus;
+  source: RemediationTargetSnapshotSource;
+  reason_code: string;
+  reason_message: string;
+  canonical_node_key: string;
+  observed_at: string;
+  process: RemediationProcessTargetSnapshot | null;
+  file: RemediationFileTargetSnapshot | null;
+  scheduled_task: RemediationScheduledTaskTargetSnapshot | null;
+  service: RemediationServiceTargetSnapshot | null;
+  account: RemediationAccountTargetSnapshot | null;
+  registry: RemediationRegistryTargetSnapshot | null;
+  wmi_class: RemediationWmiClassTargetSnapshot | null;
+  wmi_subscription: RemediationWmiSubscriptionTargetSnapshot | null;
+  bits_job: RemediationBitsJobTargetSnapshot | null;
+  network: RemediationNetworkTargetSnapshot | null;
+}
+
 export interface RemediationOrderItem {
   item_id: string;
   position: number;
@@ -388,6 +530,7 @@ export interface RemediationOrderItem {
   execution: RemediationItemExecution | null;
   backup: RemediationBackupAvailability | null;
   order_id: string;
+  target_snapshot: RemediationTargetSnapshot | null;
 }
 
 export interface RemediationOrderSummary {

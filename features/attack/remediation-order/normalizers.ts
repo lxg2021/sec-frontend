@@ -27,6 +27,12 @@ import type {
   RemediationOrderSummary,
   RemediationSource,
   RemediationSummary,
+  RemediationTargetSnapshot,
+  RemediationTargetSnapshotSource,
+  RemediationTargetSnapshotStatus,
+  RemediationScheduledTargetKind,
+  RemediationRegistryTargetKind,
+  RemediationNetworkTargetKind,
   RemediationReverseContextOption,
   ResolveRemediationNodeAgentsResult,
   ScheduledTaskInput,
@@ -148,6 +154,58 @@ function nodeResolutionStatusValue(
   return "unspecified";
 }
 
+function targetSnapshotStatusValue(
+  value: unknown,
+): RemediationTargetSnapshotStatus {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized === "available" || normalized.endsWith("_available")) {
+    return "available";
+  }
+  if (value === 2 || normalized === "2" || normalized === "unavailable" || normalized.endsWith("_unavailable")) {
+    return "unavailable";
+  }
+  return "unspecified";
+}
+
+function targetSnapshotSourceValue(
+  value: unknown,
+): RemediationTargetSnapshotSource {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized === "graph_current" || normalized.endsWith("_graph_current")) {
+    return "graph_current";
+  }
+  if (value === 2 || normalized === "2" || normalized === "prepared_frozen" || normalized.endsWith("_prepared_frozen")) {
+    return "prepared_frozen";
+  }
+  if (value === 3 || normalized === "3" || normalized === "history_frozen" || normalized.endsWith("_history_frozen")) {
+    return "history_frozen";
+  }
+  return "unspecified";
+}
+
+function scheduledTargetKindValue(value: unknown): RemediationScheduledTargetKind {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized === "task" || normalized.endsWith("_task")) return "task";
+  if (value === 2 || normalized === "2" || normalized === "job" || normalized.endsWith("_job")) return "job";
+  return "unspecified";
+}
+
+function registryTargetKindValue(value: unknown): RemediationRegistryTargetKind {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized === "key" || normalized.endsWith("_key")) return "key";
+  if (value === 2 || normalized === "2" || normalized === "value" || normalized.endsWith("_value")) return "value";
+  return "unspecified";
+}
+
+function networkTargetKindValue(value: unknown): RemediationNetworkTargetKind {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized === "ip_address" || normalized.endsWith("_ip_address")) return "ip_address";
+  if (value === 2 || normalized === "2" || normalized === "endpoint" || normalized.endsWith("_endpoint")) return "endpoint";
+  if (value === 3 || normalized === "3" || normalized === "domain" || normalized.endsWith("_domain")) return "domain";
+  if (value === 4 || normalized === "4" || normalized === "url" || normalized.endsWith("_url")) return "url";
+  return "unspecified";
+}
+
 function uint64Value(value: unknown): UInt64 {
   if (typeof value === "bigint") {
     return value >= BigInt(0) ? value.toString() : "0";
@@ -227,6 +285,7 @@ export function normalizeRemediationActionInput(
     >({
       include_self: optionalBoolean(value, "include_self"),
       include_children: optionalBoolean(value, "include_children"),
+      force: optionalBoolean(value, "force"),
     });
   }
   if (hasObject(input, "process_block")) {
@@ -462,6 +521,141 @@ export function normalizeRemediationBackupAvailability(
   };
 }
 
+export function normalizeRemediationTargetSnapshot(
+  raw: unknown,
+): RemediationTargetSnapshot | null {
+  const snapshot = objectValue(raw);
+  if (Object.keys(snapshot).length === 0) return null;
+
+  const process = objectValue(snapshot.process);
+  const file = objectValue(snapshot.file);
+  const scheduledTask = objectValue(snapshot.scheduled_task);
+  const service = objectValue(snapshot.service);
+  const account = objectValue(snapshot.account);
+  const registry = objectValue(snapshot.registry);
+  const wmiClass = objectValue(snapshot.wmi_class);
+  const wmiSubscription = objectValue(snapshot.wmi_subscription);
+  const bitsJob = objectValue(snapshot.bits_job);
+  const network = objectValue(snapshot.network);
+
+  return {
+    status: targetSnapshotStatusValue(snapshot.status),
+    source: targetSnapshotSourceValue(snapshot.source),
+    reason_code: stringValue(snapshot.reason_code),
+    reason_message: stringValue(snapshot.reason_message),
+    canonical_node_key: stringValue(snapshot.canonical_node_key),
+    observed_at: stringValue(snapshot.observed_at),
+    process: hasObject(snapshot, "process")
+      ? {
+          process_guid: stringValue(process.process_guid),
+          pid: numberValue(process.pid),
+          process_name: stringValue(process.process_name),
+          process_path: stringValue(process.process_path),
+          process_hash: stringValue(process.process_hash),
+          command_line: stringValue(process.command_line),
+        }
+      : null,
+    file: hasObject(snapshot, "file")
+      ? {
+          file_path: stringValue(file.file_path),
+          file_hash: stringValue(file.file_hash),
+          file_type: stringValue(file.file_type),
+          signature: stringValue(file.signature),
+          signer: stringValue(file.signer),
+          observed_ea_names: stringArray(file.observed_ea_names),
+          stream_name: stringValue(file.stream_name),
+        }
+      : null,
+    scheduled_task: hasObject(snapshot, "scheduled_task")
+      ? {
+          kind: scheduledTargetKindValue(scheduledTask.kind),
+          task_name: stringValue(scheduledTask.task_name),
+          task_path: stringValue(scheduledTask.task_path),
+          job_id: stringValue(scheduledTask.job_id),
+          command: stringValue(scheduledTask.command),
+          binary_path: stringValue(scheduledTask.binary_path),
+          binary_hash: stringValue(scheduledTask.binary_hash),
+          run_as: stringValue(scheduledTask.run_as),
+          state: stringValue(scheduledTask.state),
+        }
+      : null,
+    service: hasObject(snapshot, "service")
+      ? {
+          service_name: stringValue(service.service_name),
+          display_name: stringValue(service.display_name),
+          binary_path: stringValue(service.binary_path),
+          binary_hash: stringValue(service.binary_hash),
+          start_account: stringValue(service.start_account),
+          state: stringValue(service.state),
+        }
+      : null,
+    account: hasObject(snapshot, "account")
+      ? compactOptional({
+          account_name: stringValue(account.account_name),
+          domain: stringValue(account.domain),
+          sid: stringValue(account.sid),
+          enabled: optionalBoolean(account, "enabled"),
+          locked: optionalBoolean(account, "locked"),
+        })
+      : null,
+    registry: hasObject(snapshot, "registry")
+      ? compactOptional({
+          kind: registryTargetKindValue(registry.kind),
+          hive: stringValue(registry.hive),
+          key_path: stringValue(registry.key_path),
+          value_name: stringValue(registry.value_name),
+          present: optionalBoolean(registry, "present"),
+        })
+      : null,
+    wmi_class: hasObject(snapshot, "wmi_class")
+      ? {
+          namespace: stringValue(wmiClass.namespace),
+          class_name: stringValue(wmiClass.class_name),
+          class_path: stringValue(wmiClass.class_path),
+          server_name: stringValue(wmiClass.server_name),
+        }
+      : null,
+    wmi_subscription: hasObject(snapshot, "wmi_subscription")
+      ? {
+          candidate_id: stringValue(wmiSubscription.candidate_id),
+          namespace: stringValue(wmiSubscription.namespace),
+          filter_name: stringValue(wmiSubscription.filter_name),
+          consumer_name: stringValue(wmiSubscription.consumer_name),
+          consumer_type: stringValue(wmiSubscription.consumer_type),
+          shared_filter: boolValue(wmiSubscription.shared_filter),
+          shared_consumer: boolValue(wmiSubscription.shared_consumer),
+          filter_binding_count: numberValue(
+            wmiSubscription.filter_binding_count,
+          ),
+          consumer_binding_count: numberValue(
+            wmiSubscription.consumer_binding_count,
+          ),
+        }
+      : null,
+    bits_job: hasObject(snapshot, "bits_job")
+      ? {
+          job_id: stringValue(bitsJob.job_id),
+          job_name: stringValue(bitsJob.job_name),
+          job_type: stringValue(bitsJob.job_type),
+          job_status: stringValue(bitsJob.job_status),
+          remote_url: stringValue(bitsJob.remote_url),
+          local_files: stringArray(bitsJob.local_files),
+        }
+      : null,
+    network: hasObject(snapshot, "network")
+      ? compactOptional({
+          kind: networkTargetKindValue(network.kind),
+          ip: stringValue(network.ip),
+          port: numberValue(network.port),
+          protocol: stringValue(network.protocol),
+          is_ipv6: optionalBoolean(network, "is_ipv6"),
+          domain: stringValue(network.domain),
+          url: stringValue(network.url),
+        })
+      : null,
+  };
+}
+
 export function normalizeRemediationOrderItem(
   raw: unknown,
 ): RemediationOrderItem {
@@ -508,6 +702,7 @@ export function normalizeRemediationOrderItem(
     execution: normalizeRemediationItemExecution(item.execution),
     backup: normalizeRemediationBackupAvailability(item.backup),
     order_id: stringValue(item.order_id),
+    target_snapshot: normalizeRemediationTargetSnapshot(item.target_snapshot),
   };
 }
 
