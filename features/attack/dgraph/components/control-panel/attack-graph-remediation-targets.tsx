@@ -22,6 +22,8 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useId, useState } from "react"
+import { createPortal } from "react-dom"
 
 import type {
   RemediationOrder,
@@ -42,13 +44,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/ui/tooltip"
-
 import { getAttackGraphRemediationNodeConfig } from "../../model/node/attack-graph-remediation-config"
 import { getRemediationTargetPresentation } from "./attack-graph-remediation-target-presentation"
 
@@ -100,8 +95,7 @@ export function AttackGraphRemediationTargets({
   }
 
   return (
-    <TooltipProvider delayDuration={180}>
-      <div className="flex h-full w-full min-w-0 flex-col">
+    <div className="flex h-full w-full min-w-0 flex-col">
       {error ? (
         <div
           className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800"
@@ -218,8 +212,7 @@ export function AttackGraphRemediationTargets({
           </Button>
         </div>
       ) : null}
-      </div>
-    </TooltipProvider>
+    </div>
   )
 }
 
@@ -268,20 +261,10 @@ function RemediationTargetRow({
           </span>
           <span className="min-w-0 flex-1">
             {targetPresentation.showFullValue ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    className="block cursor-help truncate rounded-sm font-semibold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-1"
-                    tabIndex={0}
-                    aria-label={targetPresentation.fullValue}
-                  >
-                    {targetPresentation.label}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-[560px] break-all font-mono text-xs leading-5">
-                  {targetPresentation.fullValue}
-                </TooltipContent>
-              </Tooltip>
+              <PointerPathTooltip
+                fullValue={targetPresentation.fullValue}
+                label={targetPresentation.label}
+              />
             ) : (
               <span className="block truncate font-semibold text-slate-900">
                 {targetPresentation.label}
@@ -422,6 +405,70 @@ function RemediationTargetRow({
         </Button>
       </td>
     </tr>
+  )
+}
+
+type PointerTooltipPosition = {
+  left: number
+  maxWidth: number
+  top: number
+}
+
+function PointerPathTooltip({
+  fullValue,
+  label,
+}: {
+  fullValue: string
+  label: string
+}) {
+  const tooltipId = useId()
+  const [position, setPosition] = useState<PointerTooltipPosition | null>(null)
+
+  const showAt = (clientX: number, clientY: number) => {
+    const offset = 12
+    const left = clientX + offset
+    setPosition({
+      left,
+      maxWidth: Math.max(80, Math.min(560, window.innerWidth - left - offset)),
+      top: Math.min(clientY + offset, window.innerHeight - 48),
+    })
+  }
+
+  return (
+    <>
+      <span
+        className="block cursor-help truncate rounded-sm font-semibold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-1"
+        tabIndex={0}
+        aria-describedby={position ? tooltipId : undefined}
+        aria-label={fullValue}
+        onMouseEnter={(event) => showAt(event.clientX, event.clientY)}
+        onMouseMove={(event) => showAt(event.clientX, event.clientY)}
+        onMouseLeave={() => setPosition(null)}
+        onFocus={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect()
+          showAt(rect.right, rect.top + rect.height / 2)
+        }}
+        onBlur={() => setPosition(null)}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") setPosition(null)
+        }}
+      >
+        {label}
+      </span>
+      {position && typeof document !== "undefined"
+        ? createPortal(
+            <div
+              id={tooltipId}
+              role="tooltip"
+              className="pointer-events-none fixed z-[1000] break-all rounded-md border bg-popover px-3 py-1.5 text-left font-mono text-xs leading-5 text-popover-foreground shadow-md"
+              style={position}
+            >
+              {fullValue}
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
   )
 }
 

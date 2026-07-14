@@ -1269,7 +1269,7 @@
             "caption": "Graph nodes added to response orchestration",
             "columns": {
               "target": "Response Target",
-              "agent": "Agent",
+              "agent": "HostID",
               "action": "Action",
               "risk": "Risk",
               "status": "Status",

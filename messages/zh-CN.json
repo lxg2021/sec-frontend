@@ -1271,7 +1271,7 @@
             "caption": "已加入处置编排的图谱节点",
             "columns": {
               "target": "处置目标",
-              "agent": "Agent",
+              "agent": "主机ID",
               "action": "处置动作",
               "risk": "风险",
               "status": "状态",
