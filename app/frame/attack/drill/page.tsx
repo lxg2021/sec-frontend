@@ -1163,7 +1163,6 @@ export default function App() {
                   icon: ShieldCheck,
                   count: remediation.targets.length,
                   tone: "emerald",
-                  contentClassName: "max-h-[460px]",
                   headerDescription: t(
                     "controlPanel.plugins.remediation.description",
                   ),

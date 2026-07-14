@@ -35,8 +35,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip"
 
 import { getAttackGraphRemediationNodeConfig } from "../../model/node/attack-graph-remediation-config"
+import { getRemediationTargetPresentation } from "./attack-graph-remediation-target-presentation"
 
 export interface AttackGraphRemediationTargetsProps {
   targets: readonly RemediationTargetDraft[]
@@ -86,7 +93,7 @@ export function AttackGraphRemediationTargets({
 
   if (loadingDraft && targets.length === 0) {
     return (
-      <div className="flex h-[280px] items-center justify-center gap-2 text-sm font-medium text-slate-600">
+      <div className="flex h-full items-center justify-center gap-2 text-sm font-medium text-slate-600">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         {t("remediation.loadingDraft")}
       </div>
@@ -94,7 +101,8 @@ export function AttackGraphRemediationTargets({
   }
 
   return (
-    <div className="flex max-h-[460px] w-full min-w-0 flex-col">
+    <TooltipProvider delayDuration={180}>
+      <div className="flex h-full w-full min-w-0 flex-col">
       {error ? (
         <div
           className="mt-3 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800"
@@ -127,7 +135,7 @@ export function AttackGraphRemediationTargets({
 
       <div className="min-h-0 flex-1 overflow-auto">
         {targets.length === 0 ? (
-          <div className="flex h-[260px] flex-col items-center justify-center text-center">
+          <div className="flex h-full min-h-[188px] flex-col items-center justify-center text-center">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200">
               <ShieldCheck className="h-5 w-5" aria-hidden="true" />
             </span>
@@ -250,7 +258,8 @@ export function AttackGraphRemediationTargets({
           </div>
         </div>
       ) : null}
-    </div>
+      </div>
+    </TooltipProvider>
   )
 }
 
@@ -284,6 +293,11 @@ function RemediationTargetRow({
   const selectableAgentIds = getRemediationSelectableAgentIds(target)
   const selectableActions = getRemediationSelectableActions(target)
   const risk = action?.risk_level || ""
+  const targetPresentation = getRemediationTargetPresentation(
+    capability,
+    target.node.displayName || target.key,
+    target.node.properties,
+  )
 
   return (
     <tr className="border-b border-slate-100 align-top text-xs text-slate-700 last:border-b-0 hover:bg-slate-50/80">
@@ -292,19 +306,27 @@ function RemediationTargetRow({
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100">
             <Icon className="h-4 w-4" aria-hidden="true" />
           </span>
-          <span className="min-w-0">
-            <span
-              className="block truncate font-semibold text-slate-900"
-              title={target.node.displayName || target.key}
-            >
-              {target.node.displayName || target.key}
-            </span>
-            <code
-              className="mt-1 block truncate text-[10px] text-slate-500"
-              title={target.key}
-            >
-              {target.key}
-            </code>
+          <span className="min-w-0 flex-1">
+            {targetPresentation.showFullValue ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="block cursor-help truncate rounded-sm font-semibold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-1"
+                    tabIndex={0}
+                    aria-label={targetPresentation.fullValue}
+                  >
+                    {targetPresentation.label}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[560px] break-all font-mono text-xs leading-5">
+                  {targetPresentation.fullValue}
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <span className="block truncate font-semibold text-slate-900">
+                {targetPresentation.label}
+              </span>
+            )}
           </span>
         </div>
       </td>

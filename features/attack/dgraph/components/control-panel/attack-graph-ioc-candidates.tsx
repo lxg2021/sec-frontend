@@ -183,7 +183,7 @@ export function AttackGraphIocCandidates({
 
   if (loading && groups.length === 0) {
     return (
-      <div className="flex h-[244px] w-full min-w-0 items-center justify-center gap-2 text-sm text-slate-500" role="status">
+      <div className="flex h-full w-full min-w-0 items-center justify-center gap-2 text-sm text-slate-500" role="status">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
         {t("ioc.loading")}
       </div>
@@ -193,7 +193,7 @@ export function AttackGraphIocCandidates({
   if (error && groups.length === 0) {
     return (
       <div
-        className="flex h-[244px] w-full min-w-0 flex-col items-center justify-center px-6 text-center"
+        className="flex h-full w-full min-w-0 flex-col items-center justify-center px-6 text-center"
         role="alert"
       >
         <p className="text-sm font-semibold text-slate-800">
@@ -209,10 +209,10 @@ export function AttackGraphIocCandidates({
   }
 
   return (
-    <div className="flex max-h-[300px] w-full min-w-0 flex-col">
-      <div className="min-h-0 overflow-auto">
+    <div className="flex h-full w-full min-w-0 flex-col">
+      <div className="min-h-0 flex-1 overflow-auto">
         {groups.length === 0 ? (
-          <div className="flex h-[188px] flex-col items-center justify-center text-center">
+          <div className="flex h-full min-h-[188px] flex-col items-center justify-center text-center">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600">
               <ScanSearch className="h-5 w-5" aria-hidden="true" />
             </span>

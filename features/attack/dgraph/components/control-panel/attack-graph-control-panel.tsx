@@ -20,7 +20,6 @@ export interface AttackGraphControlPanelPlugin {
   icon: ComponentType<{ className?: string }>;
   count?: number;
   content: ReactNode;
-  contentClassName?: string;
   headerDescription?: ReactNode;
   headerAction?: ReactNode;
   tone?: "blue" | "emerald";
@@ -243,10 +242,7 @@ export function AttackGraphControlPanel({
           id={`attack-graph-control-panel-${activePlugin.id}`}
           role="tabpanel"
           aria-labelledby={`attack-graph-control-panel-${activePlugin.id}-tab`}
-          className={cn(
-            "min-h-0 animate-in overflow-hidden bg-white px-5 fade-in-0 slide-in-from-bottom-1 duration-200 motion-reduce:animate-none",
-            activePlugin.contentClassName ?? "max-h-[300px]",
-          )}
+          className="h-[300px] min-h-0 animate-in overflow-hidden bg-white px-5 fade-in-0 slide-in-from-bottom-1 duration-200 motion-reduce:animate-none"
         >
           {activePlugin.content}
         </div>
