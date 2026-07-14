@@ -473,14 +473,7 @@ export default function App() {
       if (!currentOrder || remediation.dirty) {
         currentOrder = await remediation.saveDraft()
       }
-      router.push(
-        buildRemediationOrchestrationHref(currentOrder, {
-          fallbackCaseId: timelineCaseId,
-          fallbackWorkflowId: returnWorkflowId,
-          queuePage: returnQueuePage,
-          snapshotId: timelineSnapshotId,
-        }),
-      )
+      router.push(buildRemediationOrchestrationHref(currentOrder))
     } catch (error) {
       toast.error(t("controlPanel.remediation.messages.openFailed"), {
         description:
@@ -493,12 +486,8 @@ export default function App() {
     remediation.dirty,
     remediation.order,
     remediation.saveDraft,
-    returnQueuePage,
-    returnWorkflowId,
     router,
     t,
-    timelineCaseId,
-    timelineSnapshotId,
   ])
   const handleRemediationRetry = useCallback(
     async (targetKey: string) => {
