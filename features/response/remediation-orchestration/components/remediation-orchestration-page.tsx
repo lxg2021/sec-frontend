@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   Ban,
   Clock3,
@@ -593,13 +594,13 @@ export function RemediationOrchestrationPage({
   }, [loadPage]);
 
   useEffect(() => {
-    setHeaderCaseInput(routeCaseId || workflow?.case_id || "");
-  }, [routeCaseId, workflow?.case_id]);
+    setHeaderCaseInput(routeCaseId);
+  }, [routeCaseId]);
 
   function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     const nextCaseId = headerCaseInput.trim();
-    const current = (routeCaseId || workflow?.case_id || "").trim();
+    const current = routeCaseId;
 
     if (nextCaseId === current) {
       void loadPage(true);
@@ -624,7 +625,7 @@ export function RemediationOrchestrationPage({
 
   function refreshHeader() {
     const nextCaseId = headerCaseInput.trim();
-    const current = (routeCaseId || workflow?.case_id || "").trim();
+    const current = routeCaseId;
     if (nextCaseId !== current) {
       submitHeaderCase();
       return;
@@ -898,7 +899,7 @@ export function RemediationOrchestrationPage({
   return (
     <main className="min-h-[calc(100dvh-3rem)] bg-[#f5f8fb] p-4 text-slate-900 xl:p-5">
       <div className="flex w-full min-w-0 flex-col gap-5">
-        <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+        <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-[13px] shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
           <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center">
             <div className="flex min-w-0 items-center gap-4 xl:w-[330px] xl:flex-none 2xl:w-[380px]">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
@@ -906,9 +907,21 @@ export function RemediationOrchestrationPage({
               </div>
 
               <div className="min-w-0 space-y-1.5">
-                <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
-                  处置编排
-                </h1>
+                <div className="flex min-w-0 flex-wrap items-center gap-3">
+                  <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
+                    处置编排
+                  </h1>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-9 rounded-full border-slate-200 bg-white px-3 text-slate-800"
+                    onClick={() => router.back()}
+                  >
+                    <ArrowLeft className="size-4" aria-hidden="true" />
+                    返回
+                  </Button>
+                </div>
                 <p className="min-w-0 truncate text-sm text-slate-500">
                   预览、下发、跟踪处置动作
                 </p>
