@@ -57,7 +57,12 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     snapshotBranch: "process",
     isProcessTerminate: true,
     parameters: [
-      { key: "include_children", label: "终止子进程", kind: "boolean", defaultValue: true },
+      {
+        key: "include_children",
+        label: "终止子进程",
+        kind: "boolean",
+        defaultValue: true,
+      },
       { key: "force", label: "强制结束", kind: "boolean", defaultValue: false },
     ],
   },
@@ -68,10 +73,32 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     inputBranch: "file_quarantine",
     snapshotBranch: "file",
     parameters: [
-      { key: "delete_original", label: "删除原文件", kind: "boolean", defaultValue: true },
-      { key: "encrypt", label: "加密隔离", kind: "boolean", defaultValue: true },
-      { key: "storage", label: "存储位置", kind: "text", defaultValue: "local" },
-      { key: "suffix", label: "隔离后缀", kind: "text", defaultValue: "qtn" },
+      {
+        key: "delete_original",
+        label: "删除原文件",
+        kind: "boolean",
+        defaultValue: true,
+      },
+      {
+        key: "encrypt",
+        label: "加密隔离",
+        kind: "boolean",
+        defaultValue: true,
+      },
+      {
+        key: "storage",
+        label: "存储位置",
+        kind: "text",
+        defaultValue: "local",
+        editable: true,
+      },
+      {
+        key: "suffix",
+        label: "隔离后缀",
+        kind: "text",
+        defaultValue: "qtn",
+        editable: true,
+      },
     ],
   },
   {
@@ -85,17 +112,45 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
   {
     id: "scheduled-task-delete",
     title: "删除计划任务",
-    actionCodes: ["scheduled_job.delete", "task.delete", "scheduled_task.delete"],
+    actionCodes: [
+      "scheduled_job.delete",
+      "task.delete",
+      "scheduled_task.delete",
+    ],
     inputBranch: "scheduled_task",
     snapshotBranch: "scheduled_task",
-    parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
+    parameters: [
+      { key: "force", label: "强制删除", kind: "boolean", defaultValue: false },
+    ],
+  },
+  {
+    id: "scheduled-task-disable",
+    title: "禁用计划任务",
+    actionCodes: ["task.disable", "scheduled_task.disable"],
+    inputBranch: "scheduled_task",
+    snapshotBranch: "scheduled_task",
+    parameters: [
+      { key: "force", label: "强制禁用", kind: "boolean", defaultValue: false },
+    ],
   },
   {
     id: "scheduled-task-restore",
     title: "恢复计划任务",
-    actionCodes: ["scheduled_job.restore", "task.restore", "scheduled_task.restore"],
+    actionCodes: [
+      "scheduled_job.restore",
+      "task.restore",
+      "scheduled_task.restore",
+    ],
     inputBranch: "scheduled_task",
     snapshotBranch: "scheduled_task",
+    parameters: [],
+  },
+  {
+    id: "service-disable",
+    title: "禁用服务",
+    actionCodes: ["service.disable"],
+    inputBranch: "service",
+    snapshotBranch: "service",
     parameters: [],
   },
   {
@@ -113,7 +168,12 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     inputBranch: "service",
     snapshotBranch: "service",
     parameters: [
-      { key: "stop_before_delete", label: "先停止服务", kind: "boolean", defaultValue: true },
+      {
+        key: "stop_before_delete",
+        label: "先停止服务",
+        kind: "boolean",
+        defaultValue: true,
+      },
     ],
   },
   {
@@ -138,7 +198,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     actionCodes: ["account.disable"],
     inputBranch: "account",
     snapshotBranch: "account",
-    parameters: [{ key: "force_logoff", label: "强制注销会话", kind: "boolean", defaultValue: false }],
+    parameters: [
+      {
+        key: "force_logoff",
+        label: "强制注销会话",
+        kind: "boolean",
+        defaultValue: false,
+      },
+    ],
   },
   {
     id: "account-delete",
@@ -146,7 +213,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     actionCodes: ["account.delete"],
     inputBranch: "account",
     snapshotBranch: "account",
-    parameters: [{ key: "force_logoff", label: "强制注销会话", kind: "boolean", defaultValue: false }],
+    parameters: [
+      {
+        key: "force_logoff",
+        label: "强制注销会话",
+        kind: "boolean",
+        defaultValue: false,
+      },
+    ],
   },
   {
     id: "account-reset-password",
@@ -168,7 +242,12 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
         kind: "boolean",
         defaultValue: true,
       },
-      { key: "unlock_account", label: "重置时解锁账号", kind: "boolean", defaultValue: true },
+      {
+        key: "unlock_account",
+        label: "重置时解锁账号",
+        kind: "boolean",
+        defaultValue: true,
+      },
     ],
   },
   {
@@ -186,8 +265,18 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     inputBranch: "registry",
     snapshotBranch: "registry",
     parameters: [
-      { key: "recursive", label: "递归删除", kind: "boolean", defaultValue: true },
-      { key: "stop_on_failure", label: "失败即停止", kind: "boolean", defaultValue: true },
+      {
+        key: "recursive",
+        label: "递归删除",
+        kind: "boolean",
+        defaultValue: true,
+      },
+      {
+        key: "stop_on_failure",
+        label: "失败即停止",
+        kind: "boolean",
+        defaultValue: true,
+      },
     ],
   },
   {
@@ -205,8 +294,18 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     inputBranch: "wmi_class",
     snapshotBranch: "wmi_class",
     parameters: [
-      { key: "delete_instances", label: "删除实例", kind: "boolean", defaultValue: true },
-      { key: "recursive_delete", label: "递归删除", kind: "boolean", defaultValue: false },
+      {
+        key: "delete_instances",
+        label: "删除实例",
+        kind: "boolean",
+        defaultValue: false,
+      },
+      {
+        key: "recursive_delete",
+        label: "递归删除",
+        kind: "boolean",
+        defaultValue: false,
+      },
     ],
   },
   {
@@ -224,7 +323,12 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     inputBranch: "wmi_subscription",
     snapshotBranch: "wmi_subscription",
     parameters: [
-      { key: "remove_binding_only", label: "仅删除绑定", kind: "boolean", defaultValue: false },
+      {
+        key: "remove_binding_only",
+        label: "仅删除绑定",
+        kind: "boolean",
+        defaultValue: false,
+      },
     ],
   },
   {
@@ -241,7 +345,9 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     actionCodes: ["bits.delete", "bits_job.delete"],
     inputBranch: "bits_job",
     snapshotBranch: "bits_job",
-    parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
+    parameters: [
+      { key: "force", label: "强制删除", kind: "boolean", defaultValue: false },
+    ],
   },
   {
     id: "bits-job-restore",
@@ -257,7 +363,9 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     actionCodes: ["file_ea.delete"],
     inputBranch: "file_ea",
     snapshotBranch: "file",
-    parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
+    parameters: [
+      { key: "force", label: "强制删除", kind: "boolean", defaultValue: false },
+    ],
   },
   {
     id: "file-ea-restore",
@@ -273,7 +381,9 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     actionCodes: ["ntfs_ads.delete"],
     inputBranch: "ntfs_ads",
     snapshotBranch: "file",
-    parameters: [{ key: "force", label: "强制删除", kind: "boolean", defaultValue: true }],
+    parameters: [
+      { key: "force", label: "强制删除", kind: "boolean", defaultValue: false },
+    ],
   },
   {
     id: "ntfs-ads-restore",
@@ -290,10 +400,34 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     inputBranch: "process_block",
     snapshotBranch: "process",
     parameters: [
-      { key: "subject_path", label: "父进程路径", kind: "text", editable: true, span: 2 },
-      { key: "subject_hash", label: "父进程 Hash", kind: "text", editable: true, span: 2 },
-      { key: "except_path", label: "例外路径", kind: "text", editable: true, span: 2 },
-      { key: "except_hash", label: "例外 Hash", kind: "text", editable: true, span: 2 },
+      {
+        key: "subject_path",
+        label: "父进程路径",
+        kind: "text",
+        editable: true,
+        span: 2,
+      },
+      {
+        key: "subject_hash",
+        label: "父进程 Hash",
+        kind: "text",
+        editable: true,
+        span: 2,
+      },
+      {
+        key: "except_path",
+        label: "例外路径",
+        kind: "text",
+        editable: true,
+        span: 2,
+      },
+      {
+        key: "except_hash",
+        label: "例外 Hash",
+        kind: "text",
+        editable: true,
+        span: 2,
+      },
       { key: "audit", label: "开启审计", kind: "boolean", defaultValue: true },
     ],
   },
@@ -352,10 +486,14 @@ export function getRemediationPreviewTemplate(
 
   return (
     REMEDIATION_PREVIEW_TEMPLATES.find((template) =>
-      template.actionCodes.some((code) => actionCode === normalizeActionCode(code)),
+      template.actionCodes.some(
+        (code) => actionCode === normalizeActionCode(code),
+      ),
     ) ??
     REMEDIATION_PREVIEW_TEMPLATES.find((template) =>
-      template.actionCodes.some((code) => actionCode.startsWith(normalizeActionCode(code))),
+      template.actionCodes.some((code) =>
+        actionCode.startsWith(normalizeActionCode(code)),
+      ),
     ) ??
     templateByActionFamily(actionCode) ??
     FALLBACK_TEMPLATE
@@ -416,7 +554,11 @@ export function validateRemediationTemplateValues({
   template: RemediationPreviewTemplate;
   values: RemediationTemplateValues;
 }) {
-  if (!selectedAction || selectedAction.requires_history || template.id === "generic") {
+  if (
+    !selectedAction ||
+    selectedAction.requires_history ||
+    template.id === "generic"
+  ) {
     return "";
   }
   const missing = template.parameters.find(
@@ -433,7 +575,8 @@ export function remediationTemplateActionDisplayName(
   fallback: string,
 ) {
   if (!action) return fallback;
-  if (action.requires_history && action.display_name) return action.display_name;
+  if (action.requires_history && action.display_name)
+    return action.display_name;
   if (template.id !== "generic") return template.title;
   return action.display_name || fallback;
 }
@@ -477,7 +620,11 @@ export function RemediationTemplateParameterControls({
     return <span className="text-xs text-slate-400">未选择动作</span>;
   }
   if (selectedAction.requires_history) {
-    return <span className="text-xs text-slate-600">{historyParameterText(selectedAction)}</span>;
+    return (
+      <span className="text-xs text-slate-600">
+        {historyParameterText(selectedAction)}
+      </span>
+    );
   }
   if (template.isProcessTerminate) {
     return (
@@ -556,7 +703,8 @@ export function RemediationTemplateParameterControls({
 
 function historyParameterText(action: RemediationActionOption) {
   const actionCode = action.action_code.trim().toLowerCase();
-  if (actionCode.includes("bypass")) return "无需手动参数，使用 Policy ID 放行依据";
+  if (actionCode.includes("bypass"))
+    return "无需手动参数，使用 Policy ID 放行依据";
   if (actionCode.includes("enable")) return "无需手动参数，使用启用依据";
   return "无需手动参数，使用恢复依据";
 }
@@ -571,7 +719,9 @@ function parameterValues(
     .map((field) => {
       const rawValue =
         values.parameterOverrides[field.key] ??
-        (record[field.key] === undefined ? field.defaultValue : record[field.key]);
+        (record[field.key] === undefined
+          ? field.defaultValue
+          : record[field.key]);
       if (field.kind === "boolean") {
         return {
           key: field.key,
@@ -591,20 +741,25 @@ function parameterValues(
         required: field.required,
         rawValue,
         span: field.span,
-        value: shortValue(displayParameterValue(field.key, stringValue(rawValue))),
+        value: shortValue(
+          displayParameterValue(field.key, stringValue(rawValue)),
+        ),
       };
     })
-    .filter((item) =>
-      item.kind === "boolean" ||
-      item.kind === "password" ||
-      item.kind === "select" ||
-      item.editable ||
-      item.value !== "",
+    .filter(
+      (item) =>
+        item.kind === "boolean" ||
+        item.kind === "password" ||
+        item.kind === "select" ||
+        item.editable ||
+        item.value !== "",
     );
   return withParameterLayout(items);
 }
 
-function withParameterLayout<T extends { kind: ParameterKind; span?: 1 | 2 }>(items: T[]) {
+function withParameterLayout<T extends { kind: ParameterKind; span?: 1 | 2 }>(
+  items: T[],
+) {
   let row = 0;
   let column = 0;
 
@@ -695,7 +850,11 @@ function TemplateParameterControl({
           </SelectTrigger>
           <SelectContent>
             {(item.options ?? []).map((option) => (
-              <SelectItem key={option.value} value={option.value} className="text-xs">
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="text-xs"
+              >
                 {option.label}
               </SelectItem>
             ))}
@@ -716,7 +875,9 @@ function TemplateParameterControl({
       >
         <span className="shrink-0 font-medium leading-none text-slate-500">
           {item.label}
-          {item.required ? <span className="ml-0.5 text-red-500">*</span> : null}
+          {item.required ? (
+            <span className="ml-0.5 text-red-500">*</span>
+          ) : null}
         </span>
         <Input
           type={item.kind === "password" ? "password" : "text"}
@@ -731,7 +892,12 @@ function TemplateParameterControl({
   }
 
   return (
-    <span className={cn(cellClassName, "inline-flex min-h-9 items-center text-xs text-slate-500")}>
+    <span
+      className={cn(
+        cellClassName,
+        "inline-flex min-h-9 items-center text-xs text-slate-500",
+      )}
+    >
       <span className="shrink-0 text-slate-400">{item.label}</span>
       <span className="mx-1 text-slate-300">/</span>
       <span className="truncate font-medium text-slate-700">{item.value}</span>
@@ -745,17 +911,21 @@ function displayParameterValue(key: string, value: string) {
   if (normalizedKey === "storage" && normalizedValue === "local") return "本地";
   if (normalizedKey === "direction" && normalizedValue === "out") return "出站";
   if (normalizedKey === "direction" && normalizedValue === "in") return "入站";
-  if (normalizedKey === "direction" && normalizedValue === "both") return "双向";
+  if (normalizedKey === "direction" && normalizedValue === "both")
+    return "双向";
   return value;
 }
 
 function templateDefaults(template: RemediationPreviewTemplate) {
-  return template.parameters.reduce<Record<string, unknown>>((result, field) => {
-    if (field.defaultValue !== undefined) {
-      result[field.key] = field.defaultValue;
-    }
-    return result;
-  }, {});
+  return template.parameters.reduce<Record<string, unknown>>(
+    (result, field) => {
+      if (field.defaultValue !== undefined) {
+        result[field.key] = field.defaultValue;
+      }
+      return result;
+    },
+    {},
+  );
 }
 
 function templateInitialValues(
@@ -763,61 +933,92 @@ function templateInitialValues(
   input: RemediationActionInput | undefined,
 ) {
   const record = objectValue(input?.[template.inputBranch]);
-  return template.parameters.reduce<Record<string, unknown>>((result, field) => {
-    const value =
-      record[field.key] === undefined ? field.defaultValue : record[field.key];
-    if (value !== undefined) {
-      result[field.key] =
-        field.kind === "boolean"
-          ? boolValue(value, Boolean(field.defaultValue))
-          : value;
-    }
-    return result;
-  }, {});
+  return template.parameters.reduce<Record<string, unknown>>(
+    (result, field) => {
+      const value =
+        record[field.key] === undefined
+          ? field.defaultValue
+          : record[field.key];
+      if (value !== undefined) {
+        result[field.key] =
+          field.kind === "boolean"
+            ? boolValue(value, Boolean(field.defaultValue))
+            : value;
+      }
+      return result;
+    },
+    {},
+  );
 }
 
 function templateByActionFamily(actionCode: string) {
   if (actionCode.startsWith("file.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "file-quarantine");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "file-quarantine",
+    );
   }
   if (actionCode.startsWith("task.") || actionCode.startsWith("scheduled")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "scheduled-task-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "scheduled-task-delete",
+    );
   }
   if (actionCode.startsWith("service.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "service-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "service-delete",
+    );
   }
   if (actionCode.startsWith("account.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "account-disable");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "account-disable",
+    );
   }
   if (actionCode.startsWith("registry.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "registry-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "registry-delete",
+    );
   }
   if (actionCode.startsWith("wmi_class.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "wmi-class-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "wmi-class-delete",
+    );
   }
   if (actionCode.startsWith("wmi_subscription.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "wmi-subscription-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "wmi-subscription-delete",
+    );
   }
   if (actionCode.startsWith("bits.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "bits-job-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "bits-job-delete",
+    );
   }
   if (actionCode.startsWith("file_ea.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "file-ea-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "file-ea-delete",
+    );
   }
   if (actionCode.startsWith("ntfs_ads.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "ntfs-ads-delete");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "ntfs-ads-delete",
+    );
   }
   if (actionCode.startsWith("process.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "process-block-execute");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "process-block-execute",
+    );
   }
   if (actionCode.startsWith("net.")) {
-    return REMEDIATION_PREVIEW_TEMPLATES.find((item) => item.id === "network-block");
+    return REMEDIATION_PREVIEW_TEMPLATES.find(
+      (item) => item.id === "network-block",
+    );
   }
   return undefined;
 }
 
 function normalizeActionCode(actionCode: string | undefined) {
-  return String(actionCode ?? "").trim().toLowerCase();
+  return String(actionCode ?? "")
+    .trim()
+    .toLowerCase();
 }
 
 function objectValue(value: unknown): Record<string, unknown> {
@@ -827,7 +1028,11 @@ function objectValue(value: unknown): Record<string, unknown> {
 }
 
 function stringValue(value: unknown) {
-  return typeof value === "string" ? value.trim() : value == null ? "" : String(value).trim();
+  return typeof value === "string"
+    ? value.trim()
+    : value == null
+      ? ""
+      : String(value).trim();
 }
 
 function boolValue(value: unknown, fallback: boolean) {

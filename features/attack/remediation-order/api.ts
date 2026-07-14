@@ -15,6 +15,7 @@ import type {
   CancelRemediationOrderRequest,
   ConfirmRemediationOrderRequest,
   CreateRemediationOrderRequest,
+  DeleteRemediationOrderRequest,
   PrepareRemediationOrderRequest,
   QueryEditableRemediationOrderBySourceRequest,
   QueryRemediationItemsByAgentIdRequest,
@@ -38,6 +39,7 @@ const REMEDIATION_PATHS = {
   nodeActions: "/sensor/workflow/remediation/node/actions/query",
   orderCreate: "/sensor/remediation/order/create",
   orderUpdate: "/sensor/remediation/order/update",
+  orderDelete: "/sensor/remediation/order/delete",
   orderQuery: "/sensor/remediation/order/query",
   editableOrderQuery: "/sensor/remediation/order/editable/query",
   orderListQuery: "/sensor/remediation/order/list/query",
@@ -93,6 +95,14 @@ export async function updateRemediationOrder(
 ) {
   return normalizeRemediationOrder(
     await postData(REMEDIATION_PATHS.orderUpdate, withRequestId(params)),
+  )
+}
+
+export async function deleteRemediationOrder(
+  params: RequestWithOptionalId<DeleteRemediationOrderRequest>,
+) {
+  return normalizeRemediationOrder(
+    await postData(REMEDIATION_PATHS.orderDelete, withRequestId(params)),
   )
 }
 

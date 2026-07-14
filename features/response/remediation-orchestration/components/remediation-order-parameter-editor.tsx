@@ -11,6 +11,7 @@ import type {
 } from "@/features/attack/remediation-order";
 import { cn } from "@/shared/lib/utils";
 import { Input } from "@/shared/ui/input";
+import { Textarea } from "@/shared/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -33,6 +34,12 @@ import {
   type RemediationPreviewTemplate,
   type RemediationTemplateValues,
 } from "./remediation-preview-templates";
+import {
+  normalizeFileEANames,
+  remediationActionApplicabilityError,
+  validateFileEAEditor,
+  validateWmiSubscriptionEditor,
+} from "../remediation-order-model";
 
 const RESTORE_ACTION_PATTERN = /(?:\.restore|\.enable|\.bypass(?:_execute)?)$/;
 
@@ -129,6 +136,38 @@ export function validateRemediationOrderItemParameters({
   item: RemediationOrderItem;
   reverseSourceItemId: string;
 }) {
+  const applicabilityError = remediationActionApplicabilityError(
+    decision,
+    item.agent_id,
+  );
+  if (applicabilityError) return applicabilityError;
+  const normalizedActionCode = item.action_code.trim().toLowerCase();
+  if (normalizedActionCode === "file_ea.delete") {
+    const fileEA = actionInput.file_ea;
+    const fileEAError = validateFileEAEditor({
+      mode: fileEA?.delete_all
+        ? "all"
+        : fileEA?.ea_names?.length
+          ? "named"
+          : "",
+      eaNamesText: fileEA?.ea_names?.join("\n") ?? "",
+      force: Boolean(fileEA?.force),
+    });
+    if (fileEAError) return fileEAError;
+  }
+  if (normalizedActionCode === "wmi_subscription.delete") {
+    const wmiSubscription = actionInput.wmi_subscription;
+    const wmiError = validateWmiSubscriptionEditor(
+      {
+        targetCandidateId: wmiSubscription?.target_candidate_id?.trim() ?? "",
+        removeBindingOnly: Boolean(wmiSubscription?.remove_binding_only),
+      },
+      decision,
+      item.agent_id,
+    );
+    if (wmiError) return wmiError;
+  }
+  const agentDecision = decisionForAgent(decision, item.agent_id);
   const action = remediationOrderActionOption(item);
   const template = getRemediationPreviewTemplate(action);
   const values = initialRemediationTemplateValues(
@@ -142,7 +181,6 @@ export function validateRemediationOrderItemParameters({
   });
   if (templateError) return templateError;
 
-  const agentDecision = decisionForAgent(decision, item.agent_id);
   const missing = agentDecision?.required_input_fields.find((field) =>
     requiredFieldMissing(field, actionInput, reverseSourceItemId),
   );
@@ -150,7 +188,9 @@ export function validateRemediationOrderItemParameters({
 }
 
 function targetText(item: RemediationOrderItem) {
-  return item.display_name.trim() || item.object_id.trim() || item.node_key.trim();
+  return (
+    item.display_name.trim() || item.object_id.trim() || item.node_key.trim()
+  );
 }
 
 function targetName(item: RemediationOrderItem) {
@@ -360,7 +400,8 @@ function fieldValue(field: TemplateField, values: RemediationTemplateValues) {
 
 function historyParameterText(actionCode: string) {
   const normalized = actionCode.trim().toLowerCase();
-  if (normalized.includes("bypass")) return "使用原处置参数中的 Policy ID 放行依据";
+  if (normalized.includes("bypass"))
+    return "使用原处置参数中的 Policy ID 放行依据";
   if (normalized.includes("enable")) return "使用原处置参数中的启用依据";
   return "使用原处置参数中的恢复依据";
 }
@@ -448,7 +489,10 @@ export function RemediationOrderParameterPanel({
       </div>
 
       <div className="mt-4 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
-        <ShieldCheck className="mt-0.5 size-5 shrink-0 text-blue-600" aria-hidden />
+        <ShieldCheck
+          className="mt-0.5 size-5 shrink-0 text-blue-600"
+          aria-hidden
+        />
         <div>
           <div className="text-xs font-semibold">参数由处置页面补充</div>
           <div className="mt-1 text-xs leading-5 text-blue-600">
@@ -459,7 +503,9 @@ export function RemediationOrderParameterPanel({
 
       <div className="mt-4">
         <WorkspaceTemplateControls
+          actionInput={actionInput}
           disabled={disabled}
+          onActionInputChange={onActionInputChange}
           onValuesChange={updateTemplateValues}
           selectedAction={selectedAction}
           template={template}
@@ -471,13 +517,17 @@ export function RemediationOrderParameterPanel({
 }
 
 function WorkspaceTemplateControls({
+  actionInput,
   disabled,
+  onActionInputChange,
   onValuesChange,
   selectedAction,
   template,
   values,
 }: {
+  actionInput: OrderActionInput;
   disabled: boolean;
+  onActionInputChange: (input: OrderActionInput) => void;
   onValuesChange: (values: RemediationTemplateValues) => void;
   selectedAction: RemediationActionOption;
   template: RemediationPreviewTemplate;
@@ -490,12 +540,24 @@ function WorkspaceTemplateControls({
           <History className="size-4" aria-hidden />
         </span>
         <div>
-          <div className="text-xs font-semibold text-slate-700">无需填写动作参数</div>
+          <div className="text-xs font-semibold text-slate-700">
+            无需填写动作参数
+          </div>
           <div className="mt-1 text-xs leading-5 text-slate-500">
             {historyParameterText(selectedAction.action_code)}
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (selectedAction.action_code.trim().toLowerCase() === "file_ea.delete") {
+    return (
+      <FileEAWorkspaceControls
+        actionInput={actionInput}
+        disabled={disabled}
+        onActionInputChange={onActionInputChange}
+      />
     );
   }
 
@@ -511,10 +573,14 @@ function WorkspaceTemplateControls({
   }
 
   if (template.isProcessTerminate) {
-    const forceField = template.parameters.find((field) => field.key === "force");
+    const forceField = template.parameters.find(
+      (field) => field.key === "force",
+    );
     return (
       <div>
-        <div className="mb-2 text-xs font-semibold text-slate-700">进程结束行为</div>
+        <div className="mb-2 text-xs font-semibold text-slate-700">
+          进程结束行为
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <BooleanParameterCard
             checked={values.includeChildProcesses}
@@ -557,7 +623,9 @@ function WorkspaceTemplateControls({
 
   return (
     <div>
-      <div className="mb-2 text-xs font-semibold text-slate-700">{template.title}参数</div>
+      <div className="mb-2 text-xs font-semibold text-slate-700">
+        {template.title}参数
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {template.parameters.map((field) => (
           <WorkspaceParameterField
@@ -581,6 +649,110 @@ function WorkspaceTemplateControls({
   );
 }
 
+function FileEAWorkspaceControls({
+  actionInput,
+  disabled,
+  onActionInputChange,
+}: {
+  actionInput: OrderActionInput;
+  disabled: boolean;
+  onActionInputChange: (input: OrderActionInput) => void;
+}) {
+  const input = actionInput.file_ea ?? {};
+  const mode = input.delete_all
+    ? "all"
+    : Array.isArray(input.ea_names)
+      ? "named"
+      : "";
+  const [eaNamesText, setEANamesText] = useState(
+    () => input.ea_names?.join("\n") ?? "",
+  );
+  const normalizedNames = normalizeFileEANames(eaNamesText);
+
+  function updateFileEA(next: NonNullable<OrderActionInput["file_ea"]>) {
+    onActionInputChange({ ...actionInput, file_ea: next });
+  }
+
+  return (
+    <div className="space-y-3">
+      <label className="block rounded-2xl border border-slate-200 bg-white px-4 py-3">
+        <span className="text-xs font-semibold text-slate-700">删除范围</span>
+        <Select
+          disabled={disabled}
+          value={mode || undefined}
+          onValueChange={(value) =>
+            updateFileEA(
+              value === "all"
+                ? { force: Boolean(input.force), delete_all: true }
+                : {
+                    force: Boolean(input.force),
+                    ea_names: normalizedNames,
+                  },
+            )
+          }
+        >
+          <SelectTrigger className="mt-2 h-10 rounded-xl border-slate-200 bg-slate-50 text-xs shadow-none focus:ring-teal-200">
+            <SelectValue placeholder="请选择删除范围" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="named" className="text-xs">
+              按 EA 名称删除
+            </SelectItem>
+            <SelectItem value="all" className="text-xs">
+              明确删除全部 EA
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </label>
+
+      {mode === "named" ? (
+        <label className="block rounded-2xl border border-slate-200 bg-white px-4 py-3">
+          <span className="text-xs font-semibold text-slate-700">EA 名称</span>
+          <span className="ml-1 text-red-500">*</span>
+          <Textarea
+            aria-label="EA 名称"
+            disabled={disabled}
+            value={eaNamesText}
+            placeholder="每行填写一个 EA 名称"
+            onChange={(event) => setEANamesText(event.target.value)}
+            onBlur={() =>
+              updateFileEA({
+                force: Boolean(input.force),
+                ea_names: normalizedNames,
+              })
+            }
+            className="mt-2 min-h-24 resize-y rounded-xl border-slate-200 bg-slate-50 font-mono text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0"
+          />
+          <span className="mt-2 block text-[11px] leading-4 text-slate-500">
+            最多 128 个名称，支持换行或逗号分隔。
+          </span>
+        </label>
+      ) : null}
+
+      {mode === "all" ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
+          已明确选择删除该文件上的全部 EA。
+        </div>
+      ) : null}
+
+      <BooleanParameterCard
+        checked={Boolean(input.force)}
+        description="仅在普通删除失败时使用强制方式"
+        disabled={disabled}
+        label="强制删除"
+        onCheckedChange={(checked) =>
+          updateFileEA({
+            force: checked,
+            ...(mode === "all"
+              ? { delete_all: true }
+              : { ea_names: normalizedNames }),
+          })
+        }
+      />
+    </div>
+  );
+}
+
 function FileQuarantineWorkspaceControls({
   disabled,
   onValuesChange,
@@ -599,7 +771,9 @@ function FileQuarantineWorkspaceControls({
   const storage = fields.storage;
   const encrypt = fields.encrypt;
   const suffix = fields.suffix;
-  const storageValue = storage ? stringValue(fieldValue(storage, values)) : "local";
+  const storageValue = storage
+    ? stringValue(fieldValue(storage, values))
+    : "local";
 
   function setField(field: TemplateField | undefined, value: unknown) {
     if (!field) return;
@@ -616,7 +790,9 @@ function FileQuarantineWorkspaceControls({
     <div className="space-y-4">
       {deleteOriginal ? (
         <div>
-          <div className="mb-2 text-xs font-semibold text-slate-700">隔离行为</div>
+          <div className="mb-2 text-xs font-semibold text-slate-700">
+            隔离行为
+          </div>
           <BooleanParameterCard
             checked={booleanValue(
               fieldValue(deleteOriginal, values),
@@ -650,7 +826,9 @@ function FileQuarantineWorkspaceControls({
                     className={cn(
                       "inline-flex min-h-8 items-center gap-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
                       selected ? "text-slate-700" : "text-slate-400",
-                      storage.editable && !disabled ? "cursor-pointer" : "cursor-default",
+                      storage.editable && !disabled
+                        ? "cursor-pointer"
+                        : "cursor-default",
                     )}
                   >
                     <span
@@ -660,7 +838,9 @@ function FileQuarantineWorkspaceControls({
                       )}
                       aria-hidden
                     >
-                      {selected ? <span className="size-1.5 rounded-full bg-teal-600" /> : null}
+                      {selected ? (
+                        <span className="size-1.5 rounded-full bg-teal-600" />
+                      ) : null}
                     </span>
                     {option.label}
                   </button>
@@ -686,7 +866,9 @@ function FileQuarantineWorkspaceControls({
 
       {suffix ? (
         <label className="block">
-          <span className="text-xs font-semibold text-slate-700">隔离文件后缀</span>
+          <span className="text-xs font-semibold text-slate-700">
+            隔离文件后缀
+          </span>
           <Input
             value={stringValue(fieldValue(suffix, values))}
             disabled={disabled}
@@ -718,7 +900,9 @@ function BooleanParameterCard({
       <div className="min-w-0">
         <div className="text-xs font-semibold text-slate-700">{label}</div>
         {description ? (
-          <div className="mt-1 text-[11px] leading-4 text-slate-500">{description}</div>
+          <div className="mt-1 text-[11px] leading-4 text-slate-500">
+            {description}
+          </div>
         ) : null}
       </div>
       <Switch
@@ -764,7 +948,9 @@ function WorkspaceParameterField({
           field.span === 2 && "sm:col-span-2",
         )}
       >
-        <span className="text-xs font-semibold text-slate-700">{field.label}</span>
+        <span className="text-xs font-semibold text-slate-700">
+          {field.label}
+        </span>
         <Select
           value={stringValue(value)}
           disabled={disabled}
@@ -775,7 +961,11 @@ function WorkspaceParameterField({
           </SelectTrigger>
           <SelectContent>
             {(field.options ?? []).map((option) => (
-              <SelectItem key={option.value} value={option.value} className="text-xs">
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="text-xs"
+              >
                 {option.label}
               </SelectItem>
             ))}

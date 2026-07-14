@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Boxes,
   CalendarCheck2,
   Check,
-  CheckCircle2,
   ChevronRight,
   Cog,
   Database,
@@ -19,20 +26,34 @@ import {
 } from "lucide-react";
 
 import {
+  cancelRemediationOrder,
+  confirmRemediationOrder,
+  deleteRemediationOrder,
+  prepareRemediationOrder,
   queryRemediationNodeActions,
   queryRemediationOrderById,
+  updateRemediationOrder,
   type RemediationActionDecision,
   type RemediationActionInput,
   type RemediationOrder,
   type RemediationOrderItem,
 } from "@/features/attack/remediation-order";
-import { cn } from "@/shared/lib/utils";
+import { cn, createRequestId } from "@/shared/lib/utils";
+import { useToast } from "@/shared/ui/use-toast";
+
+import {
+  buildRemediationOrderDraftItemsFromInputs,
+  remediationOrderLifecycleActions,
+} from "../remediation-order-model";
 
 import {
   RemediationOrderParameterPanel,
   remediationOrderActionLabel,
   validateRemediationOrderItemParameters,
 } from "./remediation-order-parameter-editor";
+import { RemediationOrderAuthorityReference } from "./remediation-order-authority-reference";
+import { RemediationOrderLifecycleDialogs } from "./remediation-order-lifecycle-dialogs";
+import { RemediationOrderLifecyclePanel } from "./remediation-order-lifecycle-panel";
 
 interface RemediationOrderWorkspaceProps {
   onLoadingChange?: (loading: boolean) => void;
@@ -42,13 +63,6 @@ interface RemediationOrderWorkspaceProps {
 }
 
 type ItemIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-
-const PREPARE_CHECKS = [
-  "Graph 节点与 Agent 权威上下文",
-  "Capability、Current Effect 与对象状态",
-  "历史来源、备份可用性与活动冲突",
-  "动作参数、风险和 Prepared Fingerprint",
-];
 
 function requestErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "处置草稿加载失败";
@@ -123,37 +137,14 @@ function statusBadge(
   return { label: "完整", className: "bg-emerald-50 text-emerald-700" };
 }
 
-function orderStage(status: string) {
-  const normalized = status.trim().toLowerCase();
-  if (["running", "success", "failed", "partial", "completed"].includes(normalized)) {
-    return 3;
-  }
-  if (["prepared", "ready", "confirmed"].includes(normalized)) return 2;
-  return 1;
-}
-
-function stageBadge(status: string) {
-  const normalized = status.trim().toLowerCase();
-  const labels: Record<string, string> = {
-    draft: "草稿阶段",
-    prepared: "已准备",
-    ready: "已准备",
-    confirmed: "已确认",
-    running: "执行中",
-    success: "执行成功",
-    failed: "执行失败",
-    canceled: "已取消",
-    expired: "已过期",
-  };
-  return labels[normalized] || normalized || "未知阶段";
-}
-
 export function RemediationOrderWorkspace({
   onLoadingChange,
   onOrderLoaded,
   orderId,
   refreshKey = 0,
 }: RemediationOrderWorkspaceProps) {
+  const router = useRouter();
+  const { toast } = useToast();
   const [order, setOrder] = useState<RemediationOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -164,6 +155,49 @@ export function RemediationOrderWorkspace({
   const [decisions, setDecisions] = useState<Record<string, RemediationActionDecision | null>>({});
   const [decisionLoading, setDecisionLoading] = useState(false);
   const [dirtyItemIds, setDirtyItemIds] = useState<Set<string>>(() => new Set());
+  const [working, setWorking] = useState("");
+  const [pollError, setPollError] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("操作员取消已准备的处置单");
+  const mutationRequestIds = useRef<Record<string, string>>({});
+
+  function mutationRequestId(operation: string) {
+    const current = mutationRequestIds.current[operation];
+    if (current) return current;
+    const created = createRequestId();
+    mutationRequestIds.current[operation] = created;
+    return created;
+  }
+
+  function clearMutationRequestId(operation: string) {
+    delete mutationRequestIds.current[operation];
+  }
+
+  const applyOrder = useCallback(
+    (nextOrder: RemediationOrder) => {
+      setOrder(nextOrder);
+      setActionInputs(
+        Object.fromEntries(
+          nextOrder.items.map((item) => [item.item_id, item.action_input ?? {}]),
+        ),
+      );
+      setReverseSourceIds(
+        Object.fromEntries(
+          nextOrder.items.map((item) => [item.item_id, item.reverse_source_id || ""]),
+        ),
+      );
+      setDirtyItemIds(new Set());
+      setSelectedItemId((current) =>
+        nextOrder.items.some((item) => item.item_id === current)
+          ? current
+          : nextOrder.items[0]?.item_id ?? "",
+      );
+      onOrderLoaded?.(nextOrder);
+    },
+    [onOrderLoaded],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -182,24 +216,7 @@ export function RemediationOrderWorkspace({
     void queryRemediationOrderById({ order_id: normalizedOrderId })
       .then((nextOrder) => {
         if (cancelled) return;
-        setOrder(nextOrder);
-        setActionInputs(
-          Object.fromEntries(
-            nextOrder.items.map((item) => [item.item_id, item.action_input ?? {}]),
-          ),
-        );
-        setReverseSourceIds(
-          Object.fromEntries(
-            nextOrder.items.map((item) => [item.item_id, item.reverse_source_id || ""]),
-          ),
-        );
-        setDirtyItemIds(new Set());
-        setSelectedItemId((current) =>
-          nextOrder.items.some((item) => item.item_id === current)
-            ? current
-            : nextOrder.items[0]?.item_id ?? "",
-        );
-        onOrderLoaded?.(nextOrder);
+        applyOrder(nextOrder);
       })
       .catch((cause) => {
         if (!cancelled) {
@@ -217,10 +234,38 @@ export function RemediationOrderWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [onLoadingChange, onOrderLoaded, orderId, refreshKey]);
+  }, [applyOrder, onLoadingChange, orderId, refreshKey]);
 
   useEffect(() => {
-    if (!order?.items.length) {
+    if (!remediationOrderLifecycleActions(order).poll || !order?.order_id) return;
+    let cancelled = false;
+    let polling = false;
+    const poll = async () => {
+      if (polling || cancelled) return;
+      polling = true;
+      try {
+        const nextOrder = await queryRemediationOrderById({
+          order_id: order.order_id,
+        });
+        if (!cancelled) {
+          setPollError("");
+          applyOrder(nextOrder);
+        }
+      } catch (cause) {
+        if (!cancelled) setPollError(requestErrorMessage(cause));
+      } finally {
+        polling = false;
+      }
+    };
+    const timer = window.setInterval(() => void poll(), 3_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [applyOrder, order]);
+
+  useEffect(() => {
+    if (!order?.items.length || order.status.trim().toLowerCase() !== "draft") {
       setDecisions({});
       return;
     }
@@ -270,17 +315,20 @@ export function RemediationOrderWorkspace({
 
   const validationErrors = useMemo(() => {
     if (!order) return {};
+    const draft = order.status.trim().toLowerCase() === "draft";
     return Object.fromEntries(
       order.items.map((item) => {
         const input = actionInputs[item.item_id] ?? item.action_input ?? {};
         const reverseSourceItemId =
           reverseSourceIds[item.item_id] ?? item.reverse_source_id ?? "";
-        const parameterError = validateRemediationOrderItemParameters({
-          actionInput: input,
-          decision: decisions[item.item_id],
-          item,
-          reverseSourceItemId,
-        });
+        const parameterError = draft
+          ? validateRemediationOrderItemParameters({
+              actionInput: input,
+              decision: decisions[item.item_id],
+              item,
+              reverseSourceItemId,
+            })
+          : "";
         const statusError =
           item.status.trim().toLowerCase() === "blocked"
             ? item.reason_message || item.reason_code || "Prepare 已阻止该目标。"
@@ -311,7 +359,8 @@ export function RemediationOrderWorkspace({
   const selectedInput = selectedItem
     ? actionInputs[selectedItem.item_id] ?? selectedItem.action_input ?? {}
     : {};
-  const editable = order?.status.trim().toLowerCase() === "draft";
+  const lifecycle = remediationOrderLifecycleActions(order);
+  const editable = lifecycle.edit;
   const total = order?.items.length ?? 0;
   const complete = order
     ? order.items.filter((item) => !validationErrors[item.item_id]).length
@@ -320,8 +369,179 @@ export function RemediationOrderWorkspace({
     order?.items.find((item) => validationErrors[item.item_id]) ?? null;
 
   function updateActionInput(itemId: string, input: RemediationActionInput) {
+    clearMutationRequestId("save");
     setActionInputs((current) => ({ ...current, [itemId]: input }));
     setDirtyItemIds((current) => new Set(current).add(itemId));
+  }
+
+  function updateReverseSource(itemId: string, sourceItemId: string) {
+    clearMutationRequestId("save");
+    setReverseSourceIds((current) => ({ ...current, [itemId]: sourceItemId }));
+    setDirtyItemIds((current) => new Set(current).add(itemId));
+  }
+
+  async function persistDraft(baseOrder: RemediationOrder) {
+    return updateRemediationOrder({
+      request_id: mutationRequestId("save"),
+      order_id: baseOrder.order_id,
+      expected_revision: baseOrder.revision,
+      title: baseOrder.title,
+      source: baseOrder.source,
+      items: buildRemediationOrderDraftItemsFromInputs(
+        baseOrder,
+        actionInputs,
+        reverseSourceIds,
+      ),
+    });
+  }
+
+  async function handleSaveDraft() {
+    if (!order || !lifecycle.edit || working) return;
+    setWorking("save");
+    try {
+      const nextOrder = await persistDraft(order);
+      applyOrder(nextOrder);
+      clearMutationRequestId("save");
+      toast({ title: "处置草稿已保存" });
+    } catch (cause) {
+      toast({
+        title: "保存处置草稿失败",
+        description: requestErrorMessage(cause),
+        variant: "destructive",
+      });
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function handlePrepare() {
+    if (!order || !lifecycle.prepare || working) return;
+    if (lifecycle.edit && (complete !== total || total === 0)) {
+      if (firstIncomplete) onSelectIncompleteItem(firstIncomplete.item_id);
+      return;
+    }
+    setWorking("prepare");
+    try {
+      let draft = order;
+      if (lifecycle.edit && dirtyItemIds.size > 0) {
+        draft = await persistDraft(order);
+        applyOrder(draft);
+        clearMutationRequestId("save");
+      }
+      const nextOrder = await prepareRemediationOrder({
+        request_id: mutationRequestId("prepare"),
+        order_id: draft.order_id,
+        revision: draft.revision,
+      });
+      applyOrder(nextOrder);
+      clearMutationRequestId("prepare");
+      toast({
+        title: nextOrder.confirmable
+          ? "Prepare 权威校验已完成"
+          : "Prepare 已完成，存在不可执行目标",
+        description: nextOrder.confirmable
+          ? "计划已冻结，可以确认下发。"
+          : "请查看 blocked 目标；如需修改，请取消后重新建立草稿。",
+        variant: nextOrder.confirmable ? "default" : "destructive",
+      });
+    } catch (cause) {
+      toast({
+        title: "Prepare 权威校验失败",
+        description: requestErrorMessage(cause),
+        variant: "destructive",
+      });
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function handleConfirm() {
+    if (!order || !lifecycle.confirm || working) return;
+    setWorking("confirm");
+    try {
+      const nextOrder = await confirmRemediationOrder({
+        request_id: mutationRequestId("confirm"),
+        order_id: order.order_id,
+        revision: order.revision,
+        prepared_fingerprint_version: order.prepared_fingerprint_version,
+        prepared_fingerprint: order.prepared_fingerprint,
+      });
+      applyOrder(nextOrder);
+      clearMutationRequestId("confirm");
+      setConfirmDialogOpen(false);
+      toast({
+        title: nextOrder.status === "completed" ? "处置已完成" : "处置已确认并进入执行队列",
+        description: "Agent 离线不会阻止下发，页面会持续轮询执行状态。",
+      });
+    } catch (cause) {
+      toast({
+        title: "确认下发失败",
+        description: requestErrorMessage(cause),
+        variant: "destructive",
+      });
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function handleCancel() {
+    if (!order || !lifecycle.cancel || working || !cancelReason.trim()) return;
+    setWorking("cancel");
+    try {
+      const nextOrder = await cancelRemediationOrder({
+        request_id: mutationRequestId("cancel"),
+        order_id: order.order_id,
+        revision: order.revision,
+        reason: cancelReason.trim(),
+      });
+      applyOrder(nextOrder);
+      clearMutationRequestId("cancel");
+      setCancelDialogOpen(false);
+      toast({ title: "已取消 Prepared 处置单" });
+    } catch (cause) {
+      toast({
+        title: "取消处置单失败",
+        description: requestErrorMessage(cause),
+        variant: "destructive",
+      });
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function handleDeleteDraft() {
+    if (!order || !lifecycle.delete || working) return;
+    setWorking("delete");
+    try {
+      await deleteRemediationOrder({
+        request_id: mutationRequestId("delete"),
+        order_id: order.order_id,
+        expected_revision: order.revision,
+      });
+      setDeleteDialogOpen(false);
+      clearMutationRequestId("delete");
+      toast({ title: "处置草稿已删除" });
+      router.back();
+    } catch (cause) {
+      toast({
+        title: "删除处置草稿失败",
+        description: requestErrorMessage(cause),
+        variant: "destructive",
+      });
+    } finally {
+      setWorking("");
+    }
+  }
+
+  function onSelectIncompleteItem(itemId: string) {
+    setSelectedItemId(itemId);
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    document.getElementById("remediation-order-parameters")?.scrollIntoView({
+      behavior: reduceMotion ? "auto" : "smooth",
+      block: "start",
+    });
   }
 
   if (loading) {
@@ -346,10 +566,11 @@ export function RemediationOrderWorkspace({
   }
 
   return (
-    <section
-      aria-label="处置草稿工作区"
-      className="grid min-w-0 gap-4 xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
-    >
+    <>
+      <section
+        aria-label="处置草稿工作区"
+        className="grid min-w-0 gap-4 xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
+      >
       <TargetListPanel
         items={visibleItems}
         query={query}
@@ -370,6 +591,23 @@ export function RemediationOrderWorkspace({
         </div>
         {selectedItem ? (
           <div className="pt-4">
+            <RemediationOrderAuthorityReference
+              actionInput={selectedInput}
+              decision={decisions[selectedItem.item_id]}
+              disabled={!editable}
+              item={selectedItem}
+              onActionInputChange={(input) =>
+                updateActionInput(selectedItem.item_id, input)
+              }
+              onReverseSourceChange={(sourceItemId) =>
+                updateReverseSource(selectedItem.item_id, sourceItemId)
+              }
+              reverseSourceItemId={
+                reverseSourceIds[selectedItem.item_id] ??
+                selectedItem.reverse_source_id ??
+                ""
+              }
+            />
             <RemediationOrderParameterPanel
               key={`${selectedItem.item_id}:${order.revision}`}
               actionInput={selectedInput}
@@ -407,19 +645,45 @@ export function RemediationOrderWorkspace({
         )}
       </section>
 
-      <PreparePanel
+      <RemediationOrderLifecyclePanel
         complete={complete}
         decisionLoading={decisionLoading}
+        dirty={dirtyItemIds.size > 0}
         firstIncomplete={firstIncomplete}
-        onSelectItem={setSelectedItemId}
+        onCancel={() => setCancelDialogOpen(true)}
+        onConfirm={() => setConfirmDialogOpen(true)}
+        onDelete={() => setDeleteDialogOpen(true)}
+        onPrepare={() => void handlePrepare()}
+        onSave={() => void handleSaveDraft()}
+        onSelectItem={onSelectIncompleteItem}
         order={order}
+        pollError={pollError}
         total={total}
         validationErrors={validationErrors}
+        working={working}
       />
-    </section>
+      </section>
+
+      <RemediationOrderLifecycleDialogs
+        cancelOpen={cancelDialogOpen}
+        cancelReason={cancelReason}
+        confirmOpen={confirmDialogOpen}
+        deleteOpen={deleteDialogOpen}
+        onCancel={() => void handleCancel()}
+        onCancelOpenChange={setCancelDialogOpen}
+        onCancelReasonChange={(reason) => {
+          clearMutationRequestId("cancel");
+          setCancelReason(reason);
+        }}
+        onConfirm={() => void handleConfirm()}
+        onConfirmOpenChange={setConfirmDialogOpen}
+        onDelete={() => void handleDeleteDraft()}
+        onDeleteOpenChange={setDeleteDialogOpen}
+        working={working}
+      />
+    </>
   );
 }
-
 function TargetListPanel({
   items,
   query,
@@ -516,152 +780,6 @@ function TargetListPanel({
       </div>
       <div className="mt-4 rounded-xl bg-slate-50 px-3 py-3 text-xs leading-5 text-slate-500">
         仅编辑当前处置单中的 Agent、Action 对应参数
-      </div>
-    </aside>
-  );
-}
-
-function PreparePanel({
-  complete,
-  decisionLoading,
-  firstIncomplete,
-  onSelectItem,
-  order,
-  total,
-  validationErrors,
-}: {
-  complete: number;
-  decisionLoading: boolean;
-  firstIncomplete: RemediationOrderItem | null;
-  onSelectItem: (itemId: string) => void;
-  order: RemediationOrder;
-  total: number;
-  validationErrors: Record<string, string>;
-}) {
-  const stage = orderStage(order.status);
-  const percent = total ? Math.round((complete / total) * 100) : 0;
-
-  return (
-    <aside
-      id="remediation-order-prepare"
-      className="min-h-[620px] min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-slate-950">准备与执行</h2>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-600">
-          {stageBadge(order.status)}
-        </span>
-      </div>
-
-      <div className="mt-7 flex items-center" aria-label={`当前处置阶段：第 ${stage} 阶段`}>
-        {["草稿", "准备", "执行"].map((label, index) => {
-          const step = index + 1;
-          const active = step <= stage;
-          return (
-            <div key={label} className={cn("flex items-center", index < 2 && "flex-1")}>
-              <span className={cn("flex items-center gap-2", index > 0 && "pl-2")}>
-                <span
-                  className={cn(
-                    "flex size-7 items-center justify-center rounded-full border-2 text-[10px] font-bold",
-                    active
-                      ? "border-teal-600 bg-teal-600 text-white"
-                      : "border-slate-300 bg-white text-slate-500",
-                  )}
-                >
-                  {step < stage || (step === 1 && active) ? <Check className="size-4" aria-hidden /> : step}
-                </span>
-                <span className={cn("text-xs font-semibold", active ? "text-slate-800" : "text-slate-500")}>
-                  {label}
-                </span>
-              </span>
-              {index < 2 ? <span className={cn("mx-3 h-0.5 min-w-6 flex-1", step < stage ? "bg-teal-500" : "bg-slate-300")} /> : null}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-        <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-700">
-          <span>参数完整度</span>
-          <span className={complete === total && total > 0 ? "text-emerald-700" : "text-amber-700"}>
-            {complete} / {total}
-          </span>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200" aria-hidden>
-          <div className="h-full rounded-full bg-teal-500 transition-[width] duration-300 motion-reduce:transition-none" style={{ width: `${percent}%` }} />
-        </div>
-        <p className="mt-3 text-xs leading-5 text-slate-500">
-          完成所有必填参数后才能进行 Prepare 权威校验。
-        </p>
-      </div>
-
-      {firstIncomplete ? (
-        <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-700" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-amber-900">
-                {total - complete} 个目标需要处理
-              </div>
-              <div className="mt-3 truncate text-xs font-semibold text-amber-900" title={itemTargetText(firstIncomplete)}>
-                {basename(itemTargetText(firstIncomplete))} · {remediationOrderActionLabel(firstIncomplete)}
-              </div>
-              <p className="mt-1 text-xs leading-5 text-amber-700">
-                {validationErrors[firstIncomplete.item_id]}
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  onSelectItem(firstIncomplete.item_id);
-                  const reduceMotion = window.matchMedia(
-                    "(prefers-reduced-motion: reduce)",
-                  ).matches;
-                  document
-                    .getElementById("remediation-order-parameters")
-                    ?.scrollIntoView({
-                      behavior: reduceMotion ? "auto" : "smooth",
-                      block: "start",
-                    });
-                }}
-                className="mt-3 min-h-9 rounded-full border border-amber-500 bg-white px-4 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-              >
-                前往配置该目标
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : total > 0 ? (
-        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
-          <CheckCircle2 className="mt-0.5 size-5 shrink-0" aria-hidden />
-          <div>
-            <div className="text-xs font-bold">所有目标参数完整</div>
-            <p className="mt-1 text-xs leading-5 text-emerald-700">
-              可以保存草稿，随后进入 Prepare 权威校验。
-            </p>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="mt-5">
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-          Prepare 将重新验证
-          {decisionLoading ? <Loader2 className="size-3.5 animate-spin text-slate-400" aria-label="正在加载动作依据" /> : null}
-        </div>
-        <ul className="mt-3 space-y-3">
-          {PREPARE_CHECKS.map((item) => (
-            <li key={item} className="flex items-start gap-2.5 text-xs leading-5 text-slate-600">
-              <Check className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden />
-              {item}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-4">
-        <div className="text-xs font-bold text-blue-900">下发规则</div>
-        <p className="mt-2 text-xs leading-5 text-blue-700">
-          Agent 在线状态只展示信息，不作为是否允许 Confirm 的门禁。真正的执行资格由 Prepare 返回的 ready / blocked 决定。
-        </p>
       </div>
     </aside>
   );

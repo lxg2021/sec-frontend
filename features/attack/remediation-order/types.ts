@@ -220,6 +220,12 @@ export interface UpdateRemediationOrderRequest {
   items: RemediationOrderDraftItemInput[];
 }
 
+export interface DeleteRemediationOrderRequest {
+  request_id: string;
+  order_id: string;
+  expected_revision: UInt64Input;
+}
+
 export interface QueryRemediationOrderByIdRequest {
   request_id: string;
   order_id: string;

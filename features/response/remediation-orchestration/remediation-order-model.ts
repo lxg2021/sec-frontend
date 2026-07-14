@@ -26,12 +26,84 @@ export type RemediationActionDecisionMap = Record<
   RemediationActionDecision | null
 >;
 
+export interface RemediationOrderLifecycleActions {
+  cancel: boolean;
+  confirm: boolean;
+  delete: boolean;
+  edit: boolean;
+  poll: boolean;
+  prepare: boolean;
+}
+
+export function remediationOrderLifecycleActions(
+  order: RemediationOrder | null,
+): RemediationOrderLifecycleActions {
+  const status = order?.status.trim().toLowerCase() ?? "";
+  return {
+    edit: status === "draft",
+    delete: status === "draft",
+    prepare: status === "draft" || status === "prepared",
+    confirm: status === "prepared" && Boolean(order?.confirmable),
+    cancel: status === "prepared",
+    poll: status === "running",
+  };
+}
+
+export function remediationActionApplicabilityError(
+  decision: RemediationActionDecision | null | undefined,
+  agentId: string,
+) {
+  if (!decision) return "尚未取得当前动作的节点适用性依据。";
+  const agentDecision = decision.agent_decisions.find(
+    (item) => item.agent_id === agentId,
+  );
+  if (!agentDecision) return "后台没有返回当前 Agent 的动作适用性判定。";
+  if (agentDecision.status !== "unavailable") return "";
+  return (
+    agentDecision.reason_message ||
+    agentDecision.reason_code ||
+    "当前动作已不适用于该 Agent。"
+  );
+}
+
+export function buildRemediationOrderDraftItemsFromInputs(
+  order: RemediationOrder,
+  actionInputs: Record<string, RemediationActionInput>,
+  reverseSourceItemIds: Record<string, string>,
+): RemediationOrderDraftItemInput[] {
+  return order.items.map((item) => {
+    const actionInput = actionInputs[item.item_id] ?? item.action_input ?? {};
+    const reverseSourceItemId = Object.prototype.hasOwnProperty.call(
+      reverseSourceItemIds,
+      item.item_id,
+    )
+      ? reverseSourceItemIds[item.item_id].trim()
+      : item.reverse_source_id.trim();
+    return {
+      item_id: item.item_id,
+      action_code: item.action_code,
+      ...(Object.keys(actionInput).length ? { action_input: actionInput } : {}),
+      graph_target: {
+        node_key: item.node_key,
+        agent_id: item.agent_id,
+      },
+      ...(reverseSourceItemId
+        ? { reverse_source_item_id: reverseSourceItemId }
+        : {}),
+    };
+  });
+}
+
 export function fileEAEditorFromItem(
   item: RemediationOrderItem,
 ): FileEAEditorState {
   const input = item.action_input.file_ea;
   return {
-    mode: input?.delete_all ? "all" : input?.ea_names?.length ? "named" : "",
+    mode: input?.delete_all
+      ? "all"
+      : Array.isArray(input?.ea_names)
+        ? "named"
+        : "",
     eaNamesText: input?.ea_names?.join("\n") ?? "",
     force: Boolean(input?.force),
   };
@@ -280,5 +352,5 @@ export function validateOrderForPrepare(
 }
 
 export function shouldPollRemediationOrder(order: RemediationOrder | null) {
-  return order?.status === "running";
+  return remediationOrderLifecycleActions(order).poll;
 }

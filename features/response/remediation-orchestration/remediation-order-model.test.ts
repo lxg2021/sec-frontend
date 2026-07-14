@@ -8,10 +8,13 @@ import type {
 import {
   applicableHistoryContexts,
   applicableWmiSubscriptionCandidates,
+  buildRemediationOrderDraftItemsFromInputs,
   buildRemediationOrderDraftItems,
   fileEAEditorFromItem,
   fileEAInputFromEditor,
   normalizeFileEANames,
+  remediationActionApplicabilityError,
+  remediationOrderLifecycleActions,
   shouldPollRemediationOrder,
   validateOrderForPrepare,
   validateHistorySource,
@@ -129,6 +132,14 @@ describe("remediation Order orchestration model", () => {
     ).toEqual({ delete_all: true });
   });
 
+  it("keeps named scope selected while the EA name list is empty", () => {
+    expect(fileEAEditorFromItem(fileEAItem({ file_ea: { ea_names: [] } }))).toEqual({
+      mode: "named",
+      eaNamesText: "",
+      force: false,
+    });
+  });
+
   it("blocks Prepare until scope is explicit", () => {
     const current = order();
     expect(
@@ -174,6 +185,88 @@ describe("remediation Order orchestration model", () => {
     expect(
       shouldPollRemediationOrder({ ...order(), status: "completed" }),
     ).toBe(false);
+  });
+
+  it("keeps lifecycle actions aligned with the backend state machine", () => {
+    expect(remediationOrderLifecycleActions(order())).toEqual({
+      edit: true,
+      delete: true,
+      prepare: true,
+      confirm: false,
+      cancel: false,
+      poll: false,
+    });
+    expect(
+      remediationOrderLifecycleActions({
+        ...order(),
+        status: "prepared",
+        confirmable: true,
+      }),
+    ).toEqual({
+      edit: false,
+      delete: false,
+      prepare: true,
+      confirm: true,
+      cancel: true,
+      poll: false,
+    });
+    expect(
+      remediationOrderLifecycleActions({ ...order(), status: "running" }),
+    ).toMatchObject({
+      edit: false,
+      delete: false,
+      prepare: false,
+      confirm: false,
+      cancel: false,
+      poll: true,
+    });
+  });
+
+  it("fails closed when current Agent applicability evidence is missing or unavailable", () => {
+    expect(remediationActionApplicabilityError(null, "agent-1")).toContain(
+      "适用性依据",
+    );
+    expect(
+      remediationActionApplicabilityError(
+        {
+          action: { action_code: "file.quarantine" },
+          agent_decisions: [
+            {
+              agent_id: "agent-1",
+              status: "unavailable",
+              reason_code: "ACTIVE_EFFECT",
+              reason_message: "该文件正在执行隔离",
+              required_input_fields: [],
+              reverse_contexts: [],
+              target_candidates: [],
+            },
+          ],
+        } as import("@/features/attack/remediation-order").RemediationActionDecision,
+        "agent-1",
+      ),
+    ).toBe("该文件正在执行隔离");
+  });
+
+  it("builds a complete Draft update from the generic parameter editor", () => {
+    const current = order(restoreItem());
+    expect(
+      buildRemediationOrderDraftItemsFromInputs(
+        current,
+        { "item-restore": { file_quarantine: { encrypt: true } } },
+        { "item-restore": "source-item-1" },
+      ),
+    ).toEqual([
+      {
+        item_id: "item-restore",
+        action_code: "file.restore",
+        action_input: { file_quarantine: { encrypt: true } },
+        graph_target: {
+          node_key: "file:public:agent-1:c:/a.exe",
+          agent_id: "agent-1",
+        },
+        reverse_source_item_id: "source-item-1",
+      },
+    ]);
   });
 
   it("requires binding-only scope for a shared WMI Subscription candidate", () => {

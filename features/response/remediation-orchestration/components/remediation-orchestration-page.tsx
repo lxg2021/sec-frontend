@@ -616,6 +616,10 @@ export function RemediationOrchestrationPage({
 
   function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
+    if (orderMode) {
+      setOrderRefreshKey((current) => current + 1);
+      return;
+    }
     const nextCaseId = headerCaseInput.trim();
     const current = routeCaseId;
 
@@ -966,7 +970,8 @@ export function RemediationOrchestrationPage({
                     onChange={(event) => setHeaderCaseInput(event.target.value)}
                     placeholder="请输入案件 ID"
                     disabled={orderMode ? orderLoading : loading}
-                    className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    readOnly={orderMode}
+                    className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 read-only:cursor-default disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </form>
 
@@ -1010,27 +1015,26 @@ export function RemediationOrchestrationPage({
                   <span className="sr-only">刷新</span>
                 </Button>
 
-                <Button
-                  type="button"
-                  disabled={
-                    orderMode ||
-                    !canCreatePreview ||
-                    working === "create-preview"
-                  }
-                  onClick={() => {
-                    if (!orderMode) void handleCreatePreview();
-                  }}
-                  className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
-                >
-                  {orderMode ? (
-                    <ShieldCheck className="h-4 w-4" />
-                  ) : working === "create-preview" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4" />
-                  )}
-                  <span>{orderMode ? "准备校验" : "新建预览"}</span>
-                </Button>
+                {orderMode ? (
+                  <span className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-slate-100 px-4 text-sm font-medium text-slate-600">
+                    <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                    Order 模式
+                  </span>
+                ) : (
+                  <Button
+                    type="button"
+                    disabled={!canCreatePreview || working === "create-preview"}
+                    onClick={() => void handleCreatePreview()}
+                    className="h-10 shrink-0 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
+                  >
+                    {working === "create-preview" ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
+                    <span>新建预览</span>
+                  </Button>
+                )}
               </div>
             </div>
           </div>
