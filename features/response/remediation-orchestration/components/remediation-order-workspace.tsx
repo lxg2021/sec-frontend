@@ -29,7 +29,7 @@ import {
 import { cn } from "@/shared/lib/utils";
 
 import {
-  RemediationOrderParameterEditor,
+  RemediationOrderParameterPanel,
   remediationOrderActionLabel,
   validateRemediationOrderItemParameters,
 } from "./remediation-order-parameter-editor";
@@ -79,11 +79,6 @@ function shortId(value: string, left = 8, right = 4) {
 
 function itemTargetText(item: RemediationOrderItem) {
   return item.display_name.trim() || item.object_id.trim() || item.node_key.trim();
-}
-
-function itemEntityLabel(item: RemediationOrderItem) {
-  const normalized = item.entity_type.trim().replace(/[\s_-]+/g, " ");
-  return normalized ? normalized.toUpperCase() : "TARGET";
 }
 
 function itemIcon(entityType: string): ItemIcon {
@@ -316,9 +311,6 @@ export function RemediationOrderWorkspace({
   const selectedInput = selectedItem
     ? actionInputs[selectedItem.item_id] ?? selectedItem.action_input ?? {}
     : {};
-  const selectedReverseSourceId = selectedItem
-    ? reverseSourceIds[selectedItem.item_id] ?? selectedItem.reverse_source_id ?? ""
-    : "";
   const editable = order?.status.trim().toLowerCase() === "draft";
   const total = order?.items.length ?? 0;
   const complete = order
@@ -329,11 +321,6 @@ export function RemediationOrderWorkspace({
 
   function updateActionInput(itemId: string, input: RemediationActionInput) {
     setActionInputs((current) => ({ ...current, [itemId]: input }));
-    setDirtyItemIds((current) => new Set(current).add(itemId));
-  }
-
-  function updateReverseSource(itemId: string, sourceItemId: string) {
-    setReverseSourceIds((current) => ({ ...current, [itemId]: sourceItemId }));
     setDirtyItemIds((current) => new Set(current).add(itemId));
   }
 
@@ -383,66 +370,15 @@ export function RemediationOrderWorkspace({
         </div>
         {selectedItem ? (
           <div className="pt-4">
-            <div className="text-xs text-slate-400">当前目标</div>
-            <div className="mt-1 flex min-w-0 items-center gap-3">
-              <h3
-                className="truncate text-base font-semibold text-slate-950"
-                title={itemTargetText(selectedItem)}
-              >
-                {basename(itemTargetText(selectedItem))}
-              </h3>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500">
-                {itemEntityLabel(selectedItem)}
-              </span>
-            </div>
-            <div
-              className="mt-1 truncate font-mono text-xs text-slate-500"
-              title={itemTargetText(selectedItem)}
-            >
-              {itemTargetText(selectedItem)}
-            </div>
-
-            <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2">
-              <div className="min-w-0 px-4 py-3">
-                <div className="text-xs text-slate-400">执行 Agent</div>
-                <div className="mt-1 truncate font-mono text-xs font-semibold text-slate-700" title={selectedItem.agent_id}>
-                  {selectedItem.agent_id || "-"}
-                </div>
-              </div>
-              <div className="min-w-0 border-t border-slate-200 px-4 py-3 sm:border-l sm:border-t-0">
-                <div className="text-xs text-slate-400">处置动作</div>
-                <div className="mt-1 truncate text-xs font-semibold text-blue-700" title={selectedItem.action_code}>
-                  {remediationOrderActionLabel(selectedItem)}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
-              <ShieldCheck className="mt-0.5 size-5 shrink-0 text-blue-600" aria-hidden />
-              <div>
-                <div className="text-xs font-semibold">参数由处置页面补充</div>
-                <div className="mt-1 text-xs leading-5 text-blue-600">
-                  Agent 和 Action 来自 ControlPanel 的权威选择，此处不重新推断。
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <RemediationOrderParameterEditor
-                key={`${selectedItem.item_id}:${order.revision}`}
-                actionInput={selectedInput}
-                decision={decisions[selectedItem.item_id]}
-                disabled={!editable}
-                item={selectedItem}
-                onActionInputChange={(input) =>
-                  updateActionInput(selectedItem.item_id, input)
-                }
-                onReverseSourceItemIdChange={(sourceItemId) =>
-                  updateReverseSource(selectedItem.item_id, sourceItemId)
-                }
-                reverseSourceItemId={selectedReverseSourceId}
-              />
-            </div>
+            <RemediationOrderParameterPanel
+              key={`${selectedItem.item_id}:${order.revision}`}
+              actionInput={selectedInput}
+              disabled={!editable}
+              item={selectedItem}
+              onActionInputChange={(input) =>
+                updateActionInput(selectedItem.item_id, input)
+              }
+            />
 
             <div
               role="status"

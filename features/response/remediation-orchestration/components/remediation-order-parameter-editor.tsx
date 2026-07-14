@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, Check, DatabaseBackup } from "lucide-react";
+import { History, ShieldCheck } from "lucide-react";
 
 import type {
   RemediationActionDecision,
@@ -9,6 +9,7 @@ import type {
   RemediationOrderItem,
 } from "@/features/attack/remediation-order";
 import { cn } from "@/shared/lib/utils";
+import { Input } from "@/shared/ui/input";
 import {
   Select,
   SelectContent,
@@ -16,22 +17,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { Switch } from "@/shared/ui/switch";
 
 import type {
   RemediationActionInput as PreviewActionInput,
   RemediationActionOption,
 } from "../types";
 import {
-  RemediationTemplateParameterControls,
   buildRemediationTemplateInput,
   getRemediationPreviewTemplate,
   initialRemediationTemplateValues,
   remediationTemplateActionDisplayName,
   validateRemediationTemplateValues,
+  type RemediationPreviewTemplate,
   type RemediationTemplateValues,
 } from "./remediation-preview-templates";
 
 const RESTORE_ACTION_PATTERN = /(?:\.restore|\.enable|\.bypass(?:_execute)?)$/;
+
+type TemplateField = RemediationPreviewTemplate["parameters"][number];
 
 function asPreviewInput(input: OrderActionInput): PreviewActionInput {
   return input as unknown as PreviewActionInput;
@@ -137,26 +141,6 @@ export function validateRemediationOrderItemParameters({
   });
   if (templateError) return templateError;
 
-  const actionCode = item.action_code.trim().toLowerCase();
-  if (actionCode === "file_ea.delete") {
-    const fileEA = actionInput.file_ea;
-    if (!fileEA?.delete_all && !fileEA?.ea_names?.length) {
-      return "请选择删除全部 EA，或至少填写一个 EA 名称。";
-    }
-  }
-  if (
-    actionCode === "wmi_subscription.delete" &&
-    !actionInput.wmi_subscription?.target_candidate_id?.trim()
-  ) {
-    return "请选择具体的 WMI Filter–Binding–Consumer 候选关系。";
-  }
-  if (
-    remediationOrderActionRequiresHistory(actionCode) &&
-    !reverseSourceItemId.trim()
-  ) {
-    return "请选择权威的历史处置或备份来源。";
-  }
-
   const agentDecision = decisionForAgent(decision, item.agent_id);
   const missing = agentDecision?.required_input_fields.find((field) =>
     requiredFieldMissing(field, actionInput, reverseSourceItemId),
@@ -164,22 +148,54 @@ export function validateRemediationOrderItemParameters({
   return missing ? `缺少必要参数：${missing}` : "";
 }
 
-export function RemediationOrderParameterEditor({
+function targetText(item: RemediationOrderItem) {
+  return item.display_name.trim() || item.object_id.trim() || item.node_key.trim();
+}
+
+function targetName(item: RemediationOrderItem) {
+  const value = targetText(item).replace(/[\\/]+$/, "");
+  return value.split(/[\\/]/).filter(Boolean).pop() || value || "未命名目标";
+}
+
+function entityLabel(item: RemediationOrderItem) {
+  const value = item.entity_type.trim().replace(/[\s_-]+/g, " ");
+  return value ? value.toUpperCase() : "TARGET";
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" ? value : value == null ? "" : String(value);
+}
+
+function booleanValue(value: unknown, fallback = false) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.trim().toLowerCase() === "true") return true;
+    if (value.trim().toLowerCase() === "false") return false;
+  }
+  return fallback;
+}
+
+function fieldValue(field: TemplateField, values: RemediationTemplateValues) {
+  return values.parameterOverrides[field.key] ?? field.defaultValue;
+}
+
+function historyParameterText(actionCode: string) {
+  const normalized = actionCode.trim().toLowerCase();
+  if (normalized.includes("bypass")) return "使用原处置参数中的 Policy ID 放行依据";
+  if (normalized.includes("enable")) return "使用原处置参数中的启用依据";
+  return "使用原处置参数中的恢复依据";
+}
+
+export function RemediationOrderParameterPanel({
   actionInput,
-  decision,
   disabled,
   item,
   onActionInputChange,
-  onReverseSourceItemIdChange,
-  reverseSourceItemId,
 }: {
   actionInput: OrderActionInput;
-  decision?: RemediationActionDecision | null;
   disabled: boolean;
   item: RemediationOrderItem;
   onActionInputChange: (input: OrderActionInput) => void;
-  onReverseSourceItemIdChange: (sourceItemId: string) => void;
-  reverseSourceItemId: string;
 }) {
   const selectedAction = useMemo(
     () => remediationOrderActionOption(item),
@@ -193,10 +209,6 @@ export function RemediationOrderParameterEditor({
     useState<RemediationTemplateValues>(() =>
       initialRemediationTemplateValues(asPreviewInput(actionInput), template),
     );
-  const agentDecision = decisionForAgent(decision, item.agent_id);
-  const targetCandidates = agentDecision?.target_candidates ?? [];
-  const reverseContexts = agentDecision?.reverse_contexts ?? [];
-  const actionCode = item.action_code.trim().toLowerCase();
 
   function updateTemplateValues(values: RemediationTemplateValues) {
     setTemplateValues(values);
@@ -213,13 +225,59 @@ export function RemediationOrderParameterEditor({
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-2 text-xs font-semibold text-slate-600">
-          {template.title}参数
+    <div>
+      <div className="text-xs text-slate-400">当前目标</div>
+      <div className="mt-1 flex min-w-0 items-center gap-3">
+        <h3
+          className="truncate text-base font-semibold text-slate-950"
+          title={targetText(item)}
+        >
+          {targetName(item)}
+        </h3>
+        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500">
+          {entityLabel(item)}
+        </span>
+      </div>
+      <div
+        className="mt-1 truncate font-mono text-xs text-slate-500"
+        title={targetText(item)}
+      >
+        {targetText(item)}
+      </div>
+
+      <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2">
+        <div className="min-w-0 px-4 py-3">
+          <div className="text-xs text-slate-400">执行 Agent</div>
+          <div
+            className="mt-1 truncate font-mono text-xs font-semibold text-slate-700"
+            title={item.agent_id}
+          >
+            {item.agent_id || "-"}
+          </div>
         </div>
-        <RemediationTemplateParameterControls
-          actionInput={asPreviewInput(actionInput)}
+        <div className="min-w-0 border-t border-slate-200 px-4 py-3 sm:border-l sm:border-t-0">
+          <div className="text-xs text-slate-400">处置动作</div>
+          <div
+            className="mt-1 truncate text-xs font-semibold text-blue-700"
+            title={item.action_code}
+          >
+            {remediationOrderActionLabel(item)}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
+        <ShieldCheck className="mt-0.5 size-5 shrink-0 text-blue-600" aria-hidden />
+        <div>
+          <div className="text-xs font-semibold">参数由处置页面补充</div>
+          <div className="mt-1 text-xs leading-5 text-blue-600">
+            Agent 和 Action 来自 ControlPanel 的权威选择，此处不重新推断。
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <WorkspaceTemplateControls
           disabled={disabled}
           onValuesChange={updateTemplateValues}
           selectedAction={selectedAction}
@@ -227,236 +285,346 @@ export function RemediationOrderParameterEditor({
           values={templateValues}
         />
       </div>
+    </div>
+  );
+}
 
-      {actionCode === "file_ea.delete" ? (
-        <FileEAControls
-          disabled={disabled}
-          input={actionInput}
-          onChange={onActionInputChange}
-        />
+function WorkspaceTemplateControls({
+  disabled,
+  onValuesChange,
+  selectedAction,
+  template,
+  values,
+}: {
+  disabled: boolean;
+  onValuesChange: (values: RemediationTemplateValues) => void;
+  selectedAction: RemediationActionOption;
+  template: RemediationPreviewTemplate;
+  values: RemediationTemplateValues;
+}) {
+  if (selectedAction.requires_history) {
+    return (
+      <div className="flex min-h-24 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-500 shadow-sm">
+          <History className="size-4" aria-hidden />
+        </span>
+        <div>
+          <div className="text-xs font-semibold text-slate-700">无需填写动作参数</div>
+          <div className="mt-1 text-xs leading-5 text-slate-500">
+            {historyParameterText(selectedAction.action_code)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (template.id === "file-quarantine") {
+    return (
+      <FileQuarantineWorkspaceControls
+        disabled={disabled}
+        onValuesChange={onValuesChange}
+        template={template}
+        values={values}
+      />
+    );
+  }
+
+  if (template.isProcessTerminate) {
+    const forceField = template.parameters.find((field) => field.key === "force");
+    return (
+      <div>
+        <div className="mb-2 text-xs font-semibold text-slate-700">进程结束行为</div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <BooleanParameterCard
+            checked={values.includeChildProcesses}
+            description="结束目标进程时一并结束其子进程"
+            disabled={disabled}
+            label="终止子进程"
+            onCheckedChange={(checked) =>
+              onValuesChange({ ...values, includeChildProcesses: checked })
+            }
+          />
+          {forceField ? (
+            <BooleanParameterCard
+              checked={booleanValue(fieldValue(forceField, values), false)}
+              description="使用强制方式结束目标进程"
+              disabled={disabled}
+              label={forceField.label}
+              onCheckedChange={(checked) =>
+                onValuesChange({
+                  ...values,
+                  parameterOverrides: {
+                    ...values.parameterOverrides,
+                    [forceField.key]: checked,
+                  },
+                })
+              }
+            />
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (template.parameters.length === 0) {
+    return (
+      <div className="flex min-h-20 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-xs text-slate-500">
+        使用原处置参数中的默认配置
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="mb-2 text-xs font-semibold text-slate-700">{template.title}参数</div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {template.parameters.map((field) => (
+          <WorkspaceParameterField
+            disabled={disabled}
+            field={field}
+            key={field.key}
+            onChange={(value) =>
+              onValuesChange({
+                ...values,
+                parameterOverrides: {
+                  ...values.parameterOverrides,
+                  [field.key]: value,
+                },
+              })
+            }
+            value={fieldValue(field, values)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FileQuarantineWorkspaceControls({
+  disabled,
+  onValuesChange,
+  template,
+  values,
+}: {
+  disabled: boolean;
+  onValuesChange: (values: RemediationTemplateValues) => void;
+  template: RemediationPreviewTemplate;
+  values: RemediationTemplateValues;
+}) {
+  const fields = Object.fromEntries(
+    template.parameters.map((field) => [field.key, field]),
+  ) as Record<string, TemplateField | undefined>;
+  const deleteOriginal = fields.delete_original;
+  const storage = fields.storage;
+  const encrypt = fields.encrypt;
+  const suffix = fields.suffix;
+  const storageValue = storage ? stringValue(fieldValue(storage, values)) : "local";
+
+  function setField(field: TemplateField | undefined, value: unknown) {
+    if (!field) return;
+    onValuesChange({
+      ...values,
+      parameterOverrides: {
+        ...values.parameterOverrides,
+        [field.key]: value,
+      },
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      {deleteOriginal ? (
+        <div>
+          <div className="mb-2 text-xs font-semibold text-slate-700">隔离行为</div>
+          <BooleanParameterCard
+            checked={booleanValue(
+              fieldValue(deleteOriginal, values),
+              Boolean(deleteOriginal.defaultValue),
+            )}
+            description="默认开启；隔离失败时不会删除原文件"
+            disabled={disabled}
+            label="隔离成功后删除原文件"
+            onCheckedChange={(checked) => setField(deleteOriginal, checked)}
+          />
+        </div>
       ) : null}
 
-      {actionCode === "wmi_subscription.delete" ? (
-        <WmiTargetControls
-          candidates={targetCandidates}
-          disabled={disabled}
-          input={actionInput}
-          onChange={onActionInputChange}
-        />
-      ) : null}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {storage ? (
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+            <div className="text-xs font-semibold text-slate-700">隔离存储</div>
+            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs">
+              {[
+                { label: "本地安全区", value: "local" },
+                { label: "中心存储", value: "central" },
+              ].map((option) => {
+                const selected = storageValue === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-pressed={selected}
+                    disabled={disabled || !storage.editable}
+                    onClick={() => setField(storage, option.value)}
+                    className={cn(
+                      "inline-flex min-h-8 items-center gap-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
+                      selected ? "text-slate-700" : "text-slate-400",
+                      storage.editable && !disabled ? "cursor-pointer" : "cursor-default",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex size-4 items-center justify-center rounded-full border-2",
+                        selected ? "border-teal-600" : "border-slate-300",
+                      )}
+                      aria-hidden
+                    >
+                      {selected ? <span className="size-1.5 rounded-full bg-teal-600" /> : null}
+                    </span>
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
-      {remediationOrderActionRequiresHistory(actionCode) ? (
-        <ReverseSourceControls
-          contexts={reverseContexts}
-          disabled={disabled}
-          onChange={onReverseSourceItemIdChange}
-          value={reverseSourceItemId}
-        />
+        {encrypt ? (
+          <BooleanParameterCard
+            checked={booleanValue(
+              fieldValue(encrypt, values),
+              Boolean(encrypt.defaultValue),
+            )}
+            description="使用 Agent 安全密钥加密"
+            disabled={disabled}
+            label="隔离包加密"
+            onCheckedChange={(checked) => setField(encrypt, checked)}
+          />
+        ) : null}
+      </div>
+
+      {suffix ? (
+        <label className="block">
+          <span className="text-xs font-semibold text-slate-700">隔离文件后缀</span>
+          <Input
+            value={stringValue(fieldValue(suffix, values))}
+            disabled={disabled}
+            readOnly={!suffix.editable}
+            onChange={(event) => setField(suffix, event.target.value)}
+            className="mt-2 h-11 rounded-xl border-slate-200 bg-white px-4 font-mono text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0 read-only:bg-white"
+          />
+        </label>
       ) : null}
     </div>
   );
 }
 
-function FileEAControls({
+function BooleanParameterCard({
+  checked,
+  description,
   disabled,
-  input,
-  onChange,
+  label,
+  onCheckedChange,
 }: {
+  checked: boolean;
+  description?: string;
   disabled: boolean;
-  input: OrderActionInput;
-  onChange: (input: OrderActionInput) => void;
+  label: string;
+  onCheckedChange: (checked: boolean) => void;
 }) {
-  const current = input.file_ea ?? {};
-  const mode = current.delete_all ? "all" : "named";
-  const names = current.ea_names?.join("\n") ?? "";
-
   return (
-    <section className="rounded-2xl border border-slate-200 p-3.5">
-      <div className="text-xs font-semibold text-slate-700">EA 删除范围</div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        {[
-          { label: "按名称删除", value: "named" },
-          { label: "删除全部 EA", value: "all" },
-        ].map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            disabled={disabled}
-            onClick={() =>
-              onChange({
-                ...input,
-                file_ea:
-                  option.value === "all"
-                    ? { ...(current.force ? { force: true } : {}), delete_all: true }
-                    : {
-                        ...(current.force ? { force: true } : {}),
-                        ...(current.ea_names?.length
-                          ? { ea_names: current.ea_names }
-                          : {}),
-                      },
-              })
-            }
-            className={cn(
-              "min-h-10 rounded-xl border px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-              mode === option.value
-                ? "border-teal-500 bg-teal-50 text-teal-800"
-                : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50",
-            )}
-          >
-            {option.label}
-          </button>
-        ))}
+    <div className="flex min-h-[62px] items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+      <div className="min-w-0">
+        <div className="text-xs font-semibold text-slate-700">{label}</div>
+        {description ? (
+          <div className="mt-1 text-[11px] leading-4 text-slate-500">{description}</div>
+        ) : null}
       </div>
-      {mode === "named" ? (
-        <label className="mt-3 block">
-          <span className="text-xs font-medium text-slate-600">EA 名称</span>
-          <textarea
-            value={names}
-            disabled={disabled}
-            onChange={(event) => {
-              const values = Array.from(
-                new Set(
-                  event.target.value
-                    .split(/[\n,]/)
-                    .map((value) => value.trim())
-                    .filter(Boolean),
-                ),
-              );
-              onChange({
-                ...input,
-                file_ea: {
-                  ...(current.force ? { force: true } : {}),
-                  ...(values.length ? { ea_names: values } : {}),
-                },
-              });
-            }}
-            placeholder="每行填写一个 EA 名称"
-            className="mt-2 min-h-24 w-full resize-y rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs leading-5 text-slate-700 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100 disabled:cursor-not-allowed disabled:bg-slate-50"
-          />
-        </label>
-      ) : (
-        <div className="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
-          删除全部 EA 属于显式高风险选择，Prepare 时仍会重新校验目标状态。
-        </div>
-      )}
-    </section>
+      <Switch
+        aria-label={label}
+        checked={checked}
+        disabled={disabled}
+        onCheckedChange={onCheckedChange}
+        className="data-[state=checked]:bg-teal-500"
+      />
+    </div>
   );
 }
 
-function WmiTargetControls({
-  candidates,
+function WorkspaceParameterField({
   disabled,
-  input,
-  onChange,
-}: {
-  candidates: NonNullable<
-    ReturnType<typeof decisionForAgent>
-  >["target_candidates"];
-  disabled: boolean;
-  input: OrderActionInput;
-  onChange: (input: OrderActionInput) => void;
-}) {
-  const current = input.wmi_subscription ?? {};
-
-  return (
-    <section className="rounded-2xl border border-slate-200 p-3.5">
-      <div className="text-xs font-semibold text-slate-700">
-        Filter–Binding–Consumer 目标
-      </div>
-      <p className="mt-1 text-xs leading-5 text-slate-500">
-        仅允许选择 Graph 返回的权威候选，不支持手工输入原始标识。
-      </p>
-      <Select
-        disabled={disabled || candidates.length === 0}
-        value={current.target_candidate_id ?? ""}
-        onValueChange={(value) =>
-          onChange({
-            ...input,
-            wmi_subscription: {
-              ...current,
-              target_candidate_id: value,
-            },
-          })
-        }
-      >
-        <SelectTrigger className="mt-3 h-10 rounded-xl border-slate-200 text-xs">
-          <SelectValue
-            placeholder={
-              candidates.length ? "请选择权威候选关系" : "暂无可用候选关系"
-            }
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {candidates.map((candidate) => (
-            <SelectItem
-              key={candidate.candidate_id}
-              value={candidate.candidate_id}
-              className="text-xs"
-            >
-              {candidate.display_name || candidate.candidate_id}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </section>
-  );
-}
-
-function ReverseSourceControls({
-  contexts,
-  disabled,
+  field,
   onChange,
   value,
 }: {
-  contexts: NonNullable<
-    ReturnType<typeof decisionForAgent>
-  >["reverse_contexts"];
   disabled: boolean;
-  onChange: (sourceItemId: string) => void;
-  value: string;
+  field: TemplateField;
+  onChange: (value: unknown) => void;
+  value: unknown;
 }) {
-  const options = contexts.length
-    ? contexts
-    : value
-      ? [{ source_item_id: value, source_action_code: "" }]
-      : [];
-
-  return (
-    <section className="rounded-2xl border border-slate-200 p-3.5">
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-        <DatabaseBackup className="size-4 text-teal-600" aria-hidden />
-        恢复依据
+  if (field.kind === "boolean") {
+    return (
+      <div className={field.span === 2 ? "sm:col-span-2" : ""}>
+        <BooleanParameterCard
+          checked={booleanValue(value, Boolean(field.defaultValue))}
+          disabled={disabled}
+          label={field.label}
+          onCheckedChange={onChange}
+        />
       </div>
-      <p className="mt-1 text-xs leading-5 text-slate-500">
-        恢复动作必须绑定后端返回的有效历史处置或备份来源。
-      </p>
-      <Select disabled={disabled || options.length === 0} value={value} onValueChange={onChange}>
-        <SelectTrigger className="mt-3 h-10 rounded-xl border-slate-200 text-xs">
-          <SelectValue
-            placeholder={options.length ? "请选择恢复来源" : "暂无有效恢复来源"}
-          />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((context) => (
-            <SelectItem
-              key={context.source_item_id}
-              value={context.source_item_id}
-              className="text-xs"
-            >
-              {context.source_action_code
-                ? `${context.source_action_code} · ${context.source_item_id}`
-                : context.source_item_id}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {value ? (
-        <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-700">
-          <Check className="size-3.5" aria-hidden />
-          已选择恢复来源
-        </div>
-      ) : null}
-    </section>
+    );
+  }
+
+  if (field.kind === "select") {
+    return (
+      <label
+        className={cn(
+          "block rounded-2xl border border-slate-200 bg-white px-4 py-3",
+          field.span === 2 && "sm:col-span-2",
+        )}
+      >
+        <span className="text-xs font-semibold text-slate-700">{field.label}</span>
+        <Select
+          value={stringValue(value)}
+          disabled={disabled}
+          onValueChange={onChange}
+        >
+          <SelectTrigger className="mt-2 h-10 rounded-xl border-slate-200 bg-slate-50 text-xs shadow-none focus:ring-teal-200">
+            <SelectValue placeholder={field.placeholder || field.label} />
+          </SelectTrigger>
+          <SelectContent>
+            {(field.options ?? []).map((option) => (
+              <SelectItem key={option.value} value={option.value} className="text-xs">
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </label>
+    );
+  }
+
+  const editable = field.kind === "password" || Boolean(field.editable);
+  return (
+    <label
+      className={cn(
+        "block rounded-2xl border border-slate-200 bg-white px-4 py-3",
+        field.span === 2 && "sm:col-span-2",
+      )}
+    >
+      <span className="text-xs font-semibold text-slate-700">
+        {field.label}
+        {field.required ? <span className="ml-1 text-red-500">*</span> : null}
+      </span>
+      <Input
+        type={field.kind === "password" ? "password" : "text"}
+        value={stringValue(value)}
+        disabled={disabled}
+        readOnly={!editable}
+        placeholder={field.placeholder || field.label}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 h-10 rounded-xl border-slate-200 bg-slate-50 px-3 text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0 read-only:text-slate-500"
+      />
+    </label>
   );
 }
