@@ -467,19 +467,6 @@ export default function App() {
         ? graphModel.nodes
         : EMPTY_ATTACK_GRAPH_NODES,
   })
-  const handleRemediationSave = useCallback(async () => {
-    try {
-      await remediation.saveDraft()
-      toast.success(t("controlPanel.remediation.messages.saved"))
-    } catch (error) {
-      toast.error(t("controlPanel.remediation.messages.saveFailed"), {
-        description:
-          error instanceof Error
-            ? error.message
-            : t("controlPanel.remediation.messages.unknownError"),
-      })
-    }
-  }, [remediation.saveDraft, t])
   const handleOpenRemediationOrchestration = useCallback(async () => {
     try {
       let currentOrder = remediation.order
@@ -1177,12 +1164,10 @@ export default function App() {
                       workflowMissing={remediation.workflowMissing}
                       editable={remediation.editable}
                       allTargetsComplete={remediation.allTargetsComplete}
-                      onClear={remediation.clearTargets}
                       onRemove={remediation.removeTarget}
                       onRetry={handleRemediationRetry}
                       onAgentChange={remediation.selectAgent}
                       onActionChange={remediation.selectActionCode}
-                      onSave={handleRemediationSave}
                       onOpenOrchestration={
                         handleOpenRemediationOrchestration
                       }

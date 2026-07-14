@@ -1330,7 +1330,7 @@
             "saving": "Saving...",
             "saveAndOpen": "Save & Open Orchestration",
             "savingAndOpening": "Saving draft...",
-            "openOrchestration": "Open Orchestration",
+            "openOrchestration": "Orchestration",
             "messages": {
               "missingId": "This node has no usable identifier and cannot be added to response orchestration.",
               "readOnly": "This response order is already prepared. Continue from the orchestration page to review or change it.",

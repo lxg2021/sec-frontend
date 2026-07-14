@@ -2,16 +2,14 @@
 
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle2,
   FileText,
   Loader2,
   Network,
+  Play,
   RotateCcw,
-  Save,
   ShieldAlert,
   ShieldCheck,
-  Trash2,
   X,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -55,12 +53,10 @@ export interface AttackGraphRemediationTargetsProps {
   workflowMissing: boolean
   editable: boolean
   allTargetsComplete: boolean
-  onClear: () => void
   onRemove: (targetKey: string) => void
   onRetry: (targetKey: string) => void | Promise<unknown>
   onAgentChange: (targetKey: string, agentId: string) => void
   onActionChange: (targetKey: string, actionCode: string) => void
-  onSave: () => void | Promise<unknown>
   onOpenOrchestration: () => void | Promise<unknown>
 }
 
@@ -74,21 +70,15 @@ export function AttackGraphRemediationTargets({
   workflowMissing,
   editable,
   allTargetsComplete,
-  onClear,
   onRemove,
   onRetry,
   onAgentChange,
   onActionChange,
-  onSave,
   onOpenOrchestration,
 }: AttackGraphRemediationTargetsProps) {
   const t = useTranslations("pages.attack.drill.controlPanel")
   const busy = saving
   const orderStatus = order?.status || ""
-  const showSave =
-    targets.length > 0 &&
-    editable &&
-    (!order || dirty || orderStatus === "draft")
   const shouldSaveBeforeOpening = !order || dirty
 
   if (loadingDraft && targets.length === 0) {
@@ -185,77 +175,38 @@ export function AttackGraphRemediationTargets({
       </div>
 
       {targets.length > 0 || order ? (
-        <div className="shrink-0 border-t border-slate-200 bg-slate-50/90 px-4 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-              <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
-                <CheckCircle2 className="h-4 w-4 text-slate-500" aria-hidden="true" />
-                {t("remediation.selectedCount", { count: targets.length })}
-              </span>
-              <OrderStageSummary dirty={dirty} order={order} />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {editable && targets.length > 0 ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onClear}
-                  disabled={busy}
-                  className="h-11 rounded-lg border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 shadow-none hover:border-red-200 hover:bg-red-50 hover:text-red-700 focus-visible:ring-slate-950"
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  {t("remediation.clear")}
-                </Button>
-              ) : null}
-
-              {showSave ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => void onSave()}
-                  disabled={
-                    busy || workflowMissing || !allTargetsComplete || (!dirty && Boolean(order))
-                  }
-                  className="h-11 rounded-lg border-slate-300 bg-white px-4 text-xs font-semibold shadow-none focus-visible:ring-slate-950"
-                >
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <Save className="h-4 w-4" aria-hidden="true" />
-                  )}
-                  {saving ? t("remediation.saving") : t("remediation.save")}
-                </Button>
-              ) : null}
-
-              {targets.length > 0 || order ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => void onOpenOrchestration()}
-                  disabled={
-                    busy ||
-                    (shouldSaveBeforeOpening &&
-                      (workflowMissing || !allTargetsComplete))
-                  }
-                  className="h-11 rounded-lg bg-emerald-700 px-4 text-xs font-semibold text-white hover:bg-emerald-800 focus-visible:ring-emerald-950"
-                >
-                  {saving && shouldSaveBeforeOpening ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  )}
-                  {saving && shouldSaveBeforeOpening
-                    ? t("remediation.savingAndOpening")
-                    : shouldSaveBeforeOpening
-                      ? t("remediation.saveAndOpen")
-                      : t("remediation.openOrchestration")}
-                </Button>
-              ) : null}
-            </div>
+        <div className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-t border-slate-200/80 bg-slate-50/70 px-4 py-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
+              <CheckCircle2 className="h-4 w-4 text-slate-500" aria-hidden="true" />
+              {t("remediation.selectedCount", { count: targets.length })}
+            </span>
+            <OrderStageSummary dirty={dirty} order={order} />
           </div>
+
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => void onOpenOrchestration()}
+            disabled={
+              busy ||
+              (shouldSaveBeforeOpening &&
+                (workflowMissing || !allTargetsComplete))
+            }
+            className="h-10 shrink-0 rounded-xl bg-slate-900 px-3.5 pr-4 text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(15,23,42,0.75)] hover:bg-slate-800 focus-visible:ring-slate-950 disabled:shadow-none"
+          >
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+              {saving && shouldSaveBeforeOpening ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+              ) : (
+                <Play
+                  className="h-3.5 w-3.5 fill-current"
+                  aria-hidden="true"
+                />
+              )}
+            </span>
+            {t("remediation.openOrchestration")}
+          </Button>
         </div>
       ) : null}
       </div>
@@ -300,10 +251,10 @@ function RemediationTargetRow({
   )
 
   return (
-    <tr className="border-b border-slate-100 align-top text-xs text-slate-700 last:border-b-0 hover:bg-slate-50/80">
-      <td className="px-3 py-3">
+    <tr className="border-b border-slate-100 align-middle text-xs text-slate-700 last:border-b-0 hover:bg-slate-50/80">
+      <td className="px-3 py-1.5">
         <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-100">
             <Icon className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0 flex-1">
@@ -330,7 +281,7 @@ function RemediationTargetRow({
           </span>
         </div>
       </td>
-      <td className="px-3 py-3">
+      <td className="px-3 py-1.5">
         <Select
           value={target.selectedAgentId || undefined}
           onValueChange={(value) => onAgentChange(target.key, value)}
@@ -342,7 +293,7 @@ function RemediationTargetRow({
           }
         >
           <SelectTrigger
-            className="h-11 border-slate-300 bg-white text-xs focus:ring-slate-950"
+            className="h-10 border-slate-300 bg-white text-xs focus:ring-slate-950"
             aria-label={t("remediation.selectAgentAria", {
               target: target.node.displayName || target.key,
             })}
@@ -358,7 +309,7 @@ function RemediationTargetRow({
           </SelectContent>
         </Select>
       </td>
-      <td className="px-3 py-3">
+      <td className="px-3 py-1.5">
         <Select
           value={target.selectedActionCode || undefined}
           onValueChange={(value) => onActionChange(target.key, value)}
@@ -370,7 +321,7 @@ function RemediationTargetRow({
           }
         >
           <SelectTrigger
-            className="h-11 border-slate-300 bg-white text-xs focus:ring-slate-950"
+            className="h-10 border-slate-300 bg-white text-xs focus:ring-slate-950"
             aria-label={t("remediation.selectActionAria", {
               target: target.node.displayName || target.key,
             })}
@@ -411,10 +362,10 @@ function RemediationTargetRow({
           </SelectContent>
         </Select>
       </td>
-      <td className="px-3 py-3">
+      <td className="px-3 py-1.5">
         <RiskBadge risk={risk} />
       </td>
-      <td className="px-2 py-2 text-right">
+      <td className="px-2 py-1.5 text-right">
         {target.resolutionStatus === "error" ||
         target.resolutionStatus === "blocked" ? (
           <Button
@@ -423,7 +374,7 @@ function RemediationTargetRow({
             size="icon"
             onClick={() => void onRetry(target.key)}
             disabled={disabled}
-            className="h-11 w-11 text-slate-500 hover:bg-amber-50 hover:text-amber-700"
+            className="h-10 w-10 text-slate-500 hover:bg-amber-50 hover:text-amber-700"
             aria-label={t("remediation.retryAria", {
               target: target.node.displayName || target.key,
             })}
@@ -438,7 +389,7 @@ function RemediationTargetRow({
           size="icon"
           onClick={() => onRemove(target.key)}
           disabled={disabled}
-          className="h-11 w-11 text-slate-500 hover:bg-red-50 hover:text-red-600"
+          className="h-10 w-10 text-slate-500 hover:bg-red-50 hover:text-red-600"
           aria-label={t("remediation.removeAria", {
             target: target.node.displayName || target.key,
           })}

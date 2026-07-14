@@ -1332,7 +1332,7 @@
             "saving": "保存中...",
             "saveAndOpen": "保存并前往处置编排",
             "savingAndOpening": "正在保存草稿...",
-            "openOrchestration": "前往处置编排",
+            "openOrchestration": "处置编排",
             "messages": {
               "missingId": "当前节点缺少可用标识，无法加入处置编排。",
               "readOnly": "当前处置单已经准备，图谱面板中不能继续编辑，请前往处置编排页面处理。",

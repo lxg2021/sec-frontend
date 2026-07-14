@@ -471,14 +471,8 @@ function IocAssociatedNodes({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-50 text-cyan-700 ring-1 ring-inset ring-cyan-100">
             <LocateFixed className="h-4 w-4" aria-hidden="true" />
           </span>
-          <div className="min-w-0 flex-1">
-            <div className="font-semibold text-slate-900">
-              {t("ioc.nodes.associatedCount", { count: nodes.length })}
-            </div>
-            <div className="mt-0.5 truncate text-[10px] text-slate-500">
-              {getNodeDisplayLabel(nodes[0])}
-              {nodes.length > 1 ? ` +${nodes.length - 1}` : ""}
-            </div>
+          <div className="min-w-0 flex-1 truncate font-semibold text-slate-900">
+            {t("ioc.nodes.associatedCount", { count: nodes.length })}
           </div>
           <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" aria-hidden="true" />
         </button>
@@ -521,17 +515,10 @@ function NodeAssociationLabel({
 }: {
   node: AttackGraphIocNodeAssociation;
 }) {
-  const t = useTranslations("pages.attack.drill.controlPanel");
   return (
     <div className="min-w-0 flex-1">
       <div className="truncate font-semibold text-slate-900" title={node.displayName}>
         {getNodeDisplayLabel(node)}
-      </div>
-      <div className="mt-0.5 truncate font-mono text-[10px] text-slate-500">
-        {node.entityType} · {shortenNodeId(node.id)} ·{" "}
-        {node.graphOrigin === "drill_graph"
-          ? t("ioc.nodes.drillGraph")
-          : t("ioc.nodes.baseGraph")}
       </div>
     </div>
   );
