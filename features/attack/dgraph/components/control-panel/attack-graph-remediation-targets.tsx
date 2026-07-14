@@ -302,7 +302,7 @@ function RemediationTargetRow({
           }
         >
           <SelectTrigger
-            className="h-10 border-slate-300 bg-white text-xs focus:ring-slate-950"
+            className="h-10 max-w-[320px] border-slate-300 bg-white text-xs focus:ring-slate-950"
             aria-label={t("remediation.selectAgentAria", {
               target: target.node.displayName || target.key,
             })}
@@ -330,7 +330,7 @@ function RemediationTargetRow({
           }
         >
           <SelectTrigger
-            className="h-10 border-slate-300 bg-white text-xs focus:ring-slate-950 [&>span]:min-w-0 [&>span]:flex-1"
+            className="h-10 max-w-[240px] border-slate-300 bg-white text-xs focus:ring-slate-950 [&>span]:min-w-0 [&>span]:flex-1"
             aria-label={t("remediation.selectActionAria", {
               target: target.node.displayName || target.key,
             })}
