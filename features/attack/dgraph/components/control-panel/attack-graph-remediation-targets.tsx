@@ -2,15 +2,24 @@
 
 import {
   AlertCircle,
+  Archive,
+  Ban,
   CheckCircle2,
+  CircleStop,
   FileText,
+  KeyRound,
   Loader2,
   Network,
   Play,
+  Power,
+  PowerOff,
   RotateCcw,
   ShieldAlert,
   ShieldCheck,
+  Trash2,
+  Wrench,
   X,
+  type LucideIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -140,9 +149,9 @@ export function AttackGraphRemediationTargets({
           <table className="w-full min-w-[1060px] table-fixed border-collapse text-left">
             <caption className="sr-only">{t("remediation.caption")}</caption>
             <colgroup>
-              <col className="w-[26%]" />
-              <col className="w-[24%]" />
+              <col className="w-[28%]" />
               <col className="w-[32%]" />
+              <col className="w-[22%]" />
               <col className="w-[12%]" />
               <col className="w-[6%]" />
             </colgroup>
@@ -321,7 +330,7 @@ function RemediationTargetRow({
           }
         >
           <SelectTrigger
-            className="h-10 border-slate-300 bg-white text-xs focus:ring-slate-950"
+            className="h-10 border-slate-300 bg-white text-xs focus:ring-slate-950 [&>span]:min-w-0 [&>span]:flex-1"
             aria-label={t("remediation.selectActionAria", {
               target: target.node.displayName || target.key,
             })}
@@ -332,7 +341,14 @@ function RemediationTargetRow({
                   ? t("remediation.noAvailableAction")
                   : t("remediation.selectAction")
               }
-            />
+            >
+              {action ? (
+                <RemediationActionLabel
+                  actionCode={action.action_code}
+                  label={action.display_name || action.action_code}
+                />
+              ) : undefined}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {selectableActions.map((candidate) => {
@@ -346,16 +362,23 @@ function RemediationTargetRow({
               )
               const applicabilityStatus =
                 agentDecision?.status || "unavailable"
+              const label = candidate.display_name || candidate.action_code
+              const detail =
+                applicabilityStatus === "requires_configuration"
+                  ? t("remediation.applicability.requiresConfiguration")
+                  : ""
               return (
                 <SelectItem
                   key={candidate.action_code}
                   value={candidate.action_code}
+                  textValue={detail ? `${label} · ${detail}` : label}
                   className="text-xs"
                 >
-                  {candidate.display_name || candidate.action_code}
-                  {applicabilityStatus === "requires_configuration"
-                    ? ` · ${t("remediation.applicability.requiresConfiguration")}`
-                    : ""}
+                  <RemediationActionLabel
+                    actionCode={candidate.action_code}
+                    detail={detail}
+                    label={label}
+                  />
                 </SelectItem>
               )
             })}
@@ -400,6 +423,54 @@ function RemediationTargetRow({
       </td>
     </tr>
   )
+}
+
+function RemediationActionLabel({
+  actionCode,
+  detail = "",
+  label,
+}: {
+  actionCode: string
+  detail?: string
+  label: string
+}) {
+  const Icon = getRemediationActionIcon(actionCode)
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <Icon
+        className="h-3.5 w-3.5 shrink-0 text-slate-500"
+        aria-hidden="true"
+      />
+      <span className="min-w-0 truncate">
+        {label}
+        {detail ? <span className="text-slate-500"> · {detail}</span> : null}
+      </span>
+    </span>
+  )
+}
+
+function getRemediationActionIcon(actionCode: string): LucideIcon {
+  const normalized = actionCode.trim().toLowerCase()
+  const actionName = normalized.split(".").at(-1) || ""
+
+  if (actionName === "quarantine") return Archive
+  if (actionName === "terminate") return CircleStop
+  if (actionName === "block" || actionName === "block_execute")
+    return Ban
+  if (actionName === "bypass" || actionName === "bypass_execute")
+    return ShieldCheck
+  if (actionName === "disable") return PowerOff
+  if (actionName === "enable") return Power
+  if (actionName === "reset_password") return KeyRound
+  if (actionName === "restore") return RotateCcw
+  if (
+    actionName === "delete" ||
+    actionName === "delete_key" ||
+    actionName === "delete_value"
+  ) {
+    return Trash2
+  }
+  return Wrench
 }
 
 function RiskBadge({ risk }: { risk: string }) {
