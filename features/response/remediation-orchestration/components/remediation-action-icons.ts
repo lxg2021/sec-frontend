@@ -68,3 +68,30 @@ export function remediationActionIcon(actionCode: string): RemediationIcon {
   if (action.startsWith("process.")) return REMEDIATION_TYPE_ICONS.process;
   return ShieldCheck;
 }
+
+export function remediationActionIconClassName(actionCode: string): string {
+  const action = actionCode.trim().toLowerCase();
+  if (action.startsWith("file.") || action.startsWith("file_ea.") || action.startsWith("ntfs_ads.")) {
+    return "text-amber-600";
+  }
+  if (
+    action.startsWith("scheduled_job.") ||
+    action.startsWith("scheduled_task.") ||
+    action.startsWith("task.") ||
+    action.startsWith("service.") ||
+    action.startsWith("bits.") ||
+    action.startsWith("bits_job.")
+  ) {
+    return "text-blue-600";
+  }
+  if (action.startsWith("account.")) return "text-cyan-600";
+  if (action.startsWith("registry.")) return "text-emerald-600";
+  if (action.startsWith("wmi_class.") || action.startsWith("wmi_subscription.")) {
+    return "text-violet-600";
+  }
+  if (action.startsWith("net.") || action.startsWith("network.")) {
+    return "text-teal-600";
+  }
+  if (action.startsWith("process.")) return "text-indigo-600";
+  return "text-slate-500";
+}

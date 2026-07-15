@@ -47,7 +47,10 @@ import { RemediationOrderAuthorityReference } from "./remediation-order-authorit
 import { RemediationOrderLifecycleDialogs } from "./remediation-order-lifecycle-dialogs";
 import { RemediationOrderLifecyclePanel } from "./remediation-order-lifecycle-panel";
 import { remediationReadinessIssuePresentation } from "./remediation-order-readiness";
-import { remediationActionIcon } from "./remediation-action-icons";
+import {
+  remediationActionIcon,
+  remediationActionIconClassName,
+} from "./remediation-action-icons";
 
 interface RemediationOrderWorkspaceProps {
   onLoadingChange?: (loading: boolean) => void;
@@ -709,13 +712,11 @@ function TargetListPanel({
                 <div className="flex items-start gap-3">
                   <span
                     className={cn(
-                      "flex size-10 shrink-0 items-center justify-center rounded-2xl transition-colors",
-                      selected
-                        ? "bg-teal-600 text-white"
-                        : "bg-slate-100 text-slate-500 group-hover:bg-slate-200",
+                      "flex size-10 shrink-0 items-center justify-center",
+                      remediationActionIconClassName(item.action_code),
                     )}
                   >
-                    <Icon className="size-4" aria-hidden />
+                    <Icon className="size-5" aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-start justify-between gap-2">
