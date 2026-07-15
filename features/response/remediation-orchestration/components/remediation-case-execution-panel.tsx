@@ -605,8 +605,8 @@ export function RemediationCaseExecutionPanel({
       <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
-              <ListChecks className="size-4 text-blue-600" aria-hidden />
+            <h3 className="ml-[22px] flex items-center gap-2 text-base font-semibold text-slate-800">
+              <ListChecks className="size-[18px] text-blue-600" aria-hidden />
               处置清单
             </h3>
           </div>
