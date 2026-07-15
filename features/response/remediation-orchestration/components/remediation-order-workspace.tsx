@@ -694,7 +694,7 @@ function TargetListPanel({
 }) {
   return (
     <aside className="flex min-h-[620px] min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
           <Crosshair className="size-4 text-blue-600" aria-hidden />
           处置目标
