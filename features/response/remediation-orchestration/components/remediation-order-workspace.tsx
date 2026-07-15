@@ -30,6 +30,7 @@ import {
   type RemediationOrder,
   type RemediationOrderItem,
 } from "@/features/attack/remediation-order";
+import { RemediationOrderTitleDialog } from "@/features/attack/remediation-order/remediation-order-title-dialog";
 import { cn, createRequestId } from "@/shared/lib/utils";
 import { useToast } from "@/shared/ui/use-toast";
 
@@ -58,6 +59,7 @@ interface RemediationOrderWorkspaceProps {
   onOrderLoaded?: (order: RemediationOrder) => void;
   orderId: string;
   refreshKey?: number;
+  titleEditRequestKey?: number;
 }
 
 function requestErrorMessage(error: unknown) {
@@ -139,6 +141,7 @@ export function RemediationOrderWorkspace({
   onOrderLoaded,
   orderId,
   refreshKey = 0,
+  titleEditRequestKey = 0,
 }: RemediationOrderWorkspaceProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -157,8 +160,10 @@ export function RemediationOrderWorkspace({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [titleDialogOpen, setTitleDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("操作员放弃本次提交");
   const mutationRequestIds = useRef<Record<string, string>>({});
+  const titleEditRequestRef = useRef(titleEditRequestKey);
 
   function mutationRequestId(operation: string) {
     const current = mutationRequestIds.current[operation];
@@ -310,6 +315,20 @@ export function RemediationOrderWorkspace({
     };
   }, [order]);
 
+  useEffect(() => {
+    if (titleEditRequestKey === titleEditRequestRef.current) return;
+    titleEditRequestRef.current = titleEditRequestKey;
+    if (order?.status.trim().toLowerCase() !== "draft") return;
+    if (dirtyItemIds.size > 0) {
+      toast({
+        title: "请先保存动作参数",
+        description: "保存当前参数后再修改处置单名称。",
+      });
+      return;
+    }
+    setTitleDialogOpen(true);
+  }, [dirtyItemIds.size, order?.status, titleEditRequestKey, toast]);
+
   const validationErrors = useMemo(() => {
     if (!order) return {};
     const draft = order.status.trim().toLowerCase() === "draft";
@@ -377,12 +396,12 @@ export function RemediationOrderWorkspace({
     setDirtyItemIds((current) => new Set(current).add(itemId));
   }
 
-  async function persistDraft(baseOrder: RemediationOrder) {
+  async function persistDraft(baseOrder: RemediationOrder, title = baseOrder.title) {
     return updateRemediationOrder({
       request_id: mutationRequestId("save"),
       order_id: baseOrder.order_id,
       expected_revision: baseOrder.revision,
-      title: baseOrder.title,
+      title,
       source: baseOrder.source,
       items: buildRemediationOrderDraftItemsFromInputs(
         baseOrder,
@@ -403,6 +422,34 @@ export function RemediationOrderWorkspace({
     } catch (cause) {
       toast({
         title: "保存处置草稿失败",
+        description: requestErrorMessage(cause),
+        variant: "destructive",
+      });
+    } finally {
+      setWorking("");
+    }
+  }
+
+  async function handleSaveTitle(title: string) {
+    if (!order || !lifecycle.edit || working) return;
+    if (dirtyItemIds.size > 0) {
+      toast({
+        title: "请先保存动作参数",
+        description: "保存当前参数后再修改处置单名称。",
+      });
+      return;
+    }
+    setWorking("rename-title");
+    try {
+      clearMutationRequestId("save");
+      const nextOrder = await persistDraft(order, title);
+      applyOrder(nextOrder);
+      clearMutationRequestId("save");
+      setTitleDialogOpen(false);
+      toast({ title: "处置单名称已保存" });
+    } catch (cause) {
+      toast({
+        title: "保存处置单名称失败",
         description: requestErrorMessage(cause),
         variant: "destructive",
       });
@@ -673,6 +720,15 @@ export function RemediationOrderWorkspace({
         onDelete={() => void handleDeleteDraft()}
         onDeleteOpenChange={setDeleteDialogOpen}
         working={working}
+      />
+
+      <RemediationOrderTitleDialog
+        defaultTitle={order.title}
+        mode="rename"
+        onOpenChange={setTitleDialogOpen}
+        onSubmit={handleSaveTitle}
+        open={titleDialogOpen}
+        submitting={working === "rename-title"}
       />
     </>
   );

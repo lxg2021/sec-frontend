@@ -23,6 +23,7 @@ import {
   queryRemediationItemsBySource,
   queryRemediationOrderList,
   queryRemediationSummary,
+  isLegacyCaseRemediationTitle,
   RemediationSourceType,
   type ProtoEnum,
   type RemediationItemExecution,
@@ -652,6 +653,14 @@ export function RemediationCaseExecutionPanel({
 
         <div className="mt-3 space-y-3">
           {orders.map((order) => {
+            const savedOrderTitle = order.title.trim();
+            const orderCaseId =
+              order.source.case_id.trim() || order.source.source_ref_id.trim();
+            const displayOrderTitle =
+              savedOrderTitle &&
+              !isLegacyCaseRemediationTitle(savedOrderTitle, orderCaseId)
+                ? savedOrderTitle
+                : `处置单 · ${formatTimestamp(order.created_at || order.updated_at, locale)}`;
             const orderItems = (
               data?.itemsByOrderId[order.order_id] ??
               currentOrder.items.filter(
@@ -687,8 +696,7 @@ export function RemediationCaseExecutionPanel({
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                       <span className="text-sm font-semibold text-slate-800">
-                        {order.title.trim() ||
-                          `处置单 · ${formatTimestamp(order.created_at || order.updated_at, locale)}`}
+                        {displayOrderTitle}
                       </span>
                       <span
                         className="font-mono text-[10px] text-slate-500"

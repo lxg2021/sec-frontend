@@ -44,6 +44,7 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { useToast } from "@/shared/ui/use-toast";
 import type { RemediationOrder } from "@/features/attack/remediation-order";
+import { isLegacyCaseRemediationTitle } from "@/features/attack/remediation-order";
 
 import {
   cancelRemediationPreview,
@@ -484,6 +485,12 @@ export function RemediationOrchestrationPage({
     actionOptions.find((option) => option.action_code === selectedActionCode) ??
     actionOptions[0];
 
+  useEffect(() => {
+    setLoadedOrderCaseId("");
+    setLoadedOrderTitle("");
+    setLoadedOrderStatus("");
+  }, [routeOrderId]);
+
   const loadPage = useCallback(
     async (refreshingOnly = false) => {
       if (refreshingOnly) {
@@ -608,7 +615,15 @@ export function RemediationOrchestrationPage({
   const handleOrderLoaded = useCallback(
     (nextOrder: RemediationOrder) => {
       setLoadedOrderCaseId(nextOrder.source.case_id.trim());
-      setLoadedOrderTitle(nextOrder.title.trim());
+      const title = nextOrder.title.trim();
+      setLoadedOrderTitle(
+        isLegacyCaseRemediationTitle(
+          title,
+          nextOrder.source.case_id || nextOrder.source.source_ref_id,
+        )
+          ? "处置单"
+          : title,
+      );
       setLoadedOrderStatus(nextOrder.status.trim().toLowerCase());
       setRefreshedAt(new Date());
     },
