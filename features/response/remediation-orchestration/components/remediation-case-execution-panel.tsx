@@ -228,7 +228,7 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
       primary: timedOutAt
         ? `超时 ${formatTimestamp(timedOutAt, locale)}`
         : "回报超时",
-      secondary: "未收到终态结果",
+      secondary: "",
     };
   }
   if (itemHasUncertainResult(item)) {
@@ -1003,9 +1003,11 @@ function ExecutionItemRow({
         >
           {time.primary}
         </div>
-        <div className="truncate text-slate-500" title={time.secondary}>
-          {time.secondary}
-        </div>
+        {time.secondary ? (
+          <div className="truncate text-slate-500" title={time.secondary}>
+            {time.secondary}
+          </div>
+        ) : null}
       </div>
       <div className="min-w-0 text-[11px] leading-5">
         <div className="flex min-w-0 items-center gap-2">
