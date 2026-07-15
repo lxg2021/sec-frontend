@@ -248,39 +248,43 @@ function resultPresentation(item: RemediationOrderItem) {
   if (errorCode || errorMessage) {
     return {
       code: errorCode,
-      primary: errorMessage || errorCode,
-      secondary: reason,
+      result: errorMessage || errorCode,
+      reason,
     };
   }
   if (status === "success") {
     return {
       code: "",
-      primary: "执行结果已确认",
-      secondary: reason || "终端已确认处置结果",
+      result: "执行结果已确认",
+      reason: reason || "终端已确认处置结果",
     };
   }
   if (status === "uncertain") {
     return {
       code: "",
-      primary: "需人工对账",
-      secondary: reason || "结果未能被权威确认",
+      result: "需人工对账",
+      reason: reason || "结果未能被权威确认",
     };
   }
   if (status === "failed" || status === "blocked") {
     return {
       code: "",
-      primary: reason || "当前无法执行",
-      secondary: "请查看状态与处理原因",
+      result: status === "failed" ? "执行失败" : "当前无法执行",
+      reason: reason || "-",
     };
   }
   if (itemIsActive(item)) {
     return {
       code: "",
-      primary: reason || "等待 Agent 回执",
-      secondary: "处置下发后将自动刷新",
+      result: "执行中",
+      reason: reason || "等待 Agent 回执",
     };
   }
-  return { code: "", primary: reason || "尚未进入执行阶段", secondary: "-" };
+  return {
+    code: "",
+    result: "尚未进入执行阶段",
+    reason: reason || "-",
+  };
 }
 
 function orderStateSummary(order: RemediationOrderListItem) {
@@ -725,14 +729,16 @@ export function RemediationCaseExecutionPanel({
 
                 {expanded ? (
                   <div className="overflow-x-auto">
-                    <div className="min-w-[1060px]">
-                      <div className="grid grid-cols-[minmax(250px,1.35fr)_minmax(180px,.8fr)_150px_minmax(220px,1fr)_190px_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 text-[11px] font-bold text-slate-500">
-                        <span>目标 / 处置动作</span>
+                    <div className="min-w-[1540px]">
+                      <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_minmax(190px,.8fr)_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 text-[11px] font-bold text-slate-500">
+                        <span>目标</span>
+                        <span>处置动作</span>
                         <span>{hostIdLabel}</span>
                         <span>当前状态</span>
                         <span>执行链路</span>
                         <span>时间</span>
-                        <span>结果 / 原因</span>
+                        <span>结果</span>
+                        <span>原因</span>
                       </div>
                       {orderItems.length ? (
                         orderItems.map((item) => (
@@ -859,8 +865,16 @@ function ExecutionItemRow({
   const time = executionTimePresentation(item, locale);
   const result = resultPresentation(item);
   return (
-    <div className="grid grid-cols-[minmax(250px,1.35fr)_minmax(180px,.8fr)_150px_minmax(220px,1fr)_190px_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 last:border-b-0">
-      <div className="flex min-w-0 items-start gap-3">
+    <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_minmax(190px,.8fr)_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 last:border-b-0">
+      <div className="min-w-0">
+        <div
+          className="truncate text-xs font-semibold text-slate-800"
+          title={itemTargetText(item)}
+        >
+          {itemTargetText(item)}
+        </div>
+      </div>
+      <div className="flex min-w-0 items-center gap-2.5">
         <span
           className={cn(
             "flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50",
@@ -869,17 +883,12 @@ function ExecutionItemRow({
         >
           <Icon className="size-4" aria-hidden />
         </span>
-        <div className="min-w-0">
-          <div
-            className="truncate text-xs font-semibold text-slate-800"
-            title={itemTargetText(item)}
-          >
-            {itemTargetText(item)}
-          </div>
-          <div className="mt-1 truncate text-[11px] text-slate-500">
-            {remediationOrderActionLabel(item)}
-          </div>
-        </div>
+        <span
+          className="min-w-0 truncate text-[11px] font-medium text-slate-700"
+          title={remediationOrderActionLabel(item)}
+        >
+          {remediationOrderActionLabel(item)}
+        </span>
       </div>
       <div className="min-w-0">
         <div
@@ -887,9 +896,6 @@ function ExecutionItemRow({
           title={item.agent_id}
         >
           {shortId(item.agent_id)}
-        </div>
-        <div className="mt-1 truncate text-[11px] text-slate-500">
-          {item.entity_type || "-"}
         </div>
       </div>
       <div>
@@ -930,14 +936,16 @@ function ExecutionItemRow({
           ) : null}
           <span
             className="truncate font-medium text-slate-700"
-            title={result.primary}
+            title={result.result}
           >
-            {result.primary}
+            {result.result}
           </span>
         </div>
-        <div className="truncate text-slate-500" title={result.secondary}>
-          {result.secondary}
-        </div>
+      </div>
+      <div className="min-w-0 text-[11px] leading-5 text-slate-500">
+        <span className="block truncate" title={result.reason}>
+          {result.reason}
+        </span>
       </div>
     </div>
   );
