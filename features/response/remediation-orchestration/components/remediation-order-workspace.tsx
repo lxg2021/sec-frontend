@@ -46,6 +46,7 @@ import {
 import { RemediationOrderAuthorityReference } from "./remediation-order-authority-reference";
 import { RemediationOrderLifecycleDialogs } from "./remediation-order-lifecycle-dialogs";
 import { RemediationOrderLifecyclePanel } from "./remediation-order-lifecycle-panel";
+import { RemediationCaseExecutionPanel } from "./remediation-case-execution-panel";
 import { remediationReadinessIssuePresentation } from "./remediation-order-readiness";
 import {
   remediationActionIcon,
@@ -652,6 +653,8 @@ export function RemediationOrderWorkspace({
         working={working}
       />
       </section>
+
+      <RemediationCaseExecutionPanel order={order} />
 
       <RemediationOrderLifecycleDialogs
         cancelOpen={cancelDialogOpen}
