@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "next/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   AlertTriangle,
   Crosshair,
@@ -62,8 +62,8 @@ interface RemediationOrderWorkspaceProps {
   titleEditRequestKey?: number;
 }
 
-function requestErrorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "处置草稿加载失败";
+function requestErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
 }
 
 function orderSourceType(sourceType: string | number) {
@@ -97,6 +97,7 @@ function statusBadge(
   item: RemediationOrderItem,
   validationError: string,
   decision: RemediationActionDecision | null | undefined,
+  t: (key: string) => string,
 ) {
   const status = item.status.trim().toLowerCase();
   const reasonCode = item.reason_code.trim().toUpperCase();
@@ -108,32 +109,32 @@ function statusBadge(
     (agentDecision?.draft_selectable &&
       agentDecision.current_effect_state === "same_action_in_flight")
   ) {
-    return { label: "处理中", className: "bg-blue-50 text-blue-700" };
+    return { label: t("workspace.processing"), className: "bg-blue-50 text-blue-700" };
   }
   if (
     agentDecision?.draft_selectable &&
     agentDecision.current_effect_state === "satisfied"
   ) {
-    return { label: "已满足", className: "bg-emerald-50 text-emerald-700" };
+    return { label: t("workspace.satisfied"), className: "bg-emerald-50 text-emerald-700" };
   }
   if (
     reasonCode === "REMEDIATION_RESULT_UNCERTAIN" ||
     (agentDecision?.draft_selectable &&
       agentDecision.current_effect_state === "uncertain")
   ) {
-    return { label: "将重新执行", className: "bg-amber-50 text-amber-700" };
+    return { label: t("workspace.willRetry"), className: "bg-amber-50 text-amber-700" };
   }
   if (["pending", "dispatched", "running"].includes(status)) {
-    return { label: "执行中", className: "bg-blue-50 text-blue-700" };
+    return { label: t("workspace.executing"), className: "bg-blue-50 text-blue-700" };
   }
   if (status === "blocked") {
-    return { label: "已阻止", className: "bg-red-50 text-red-700" };
+    return { label: t("workspace.blocked"), className: "bg-red-50 text-red-700" };
   }
   if (validationError) {
     const issue = remediationReadinessIssuePresentation(validationError);
     return { label: issue.badge, className: issue.badgeClassName };
   }
-  return { label: "可提交", className: "bg-emerald-50 text-emerald-700" };
+  return { label: t("workspace.submittable"), className: "bg-emerald-50 text-emerald-700" };
 }
 
 export function RemediationOrderWorkspace({
@@ -144,6 +145,8 @@ export function RemediationOrderWorkspace({
   titleEditRequestKey = 0,
 }: RemediationOrderWorkspaceProps) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("pages.collection.orchestration");
   const { toast } = useToast();
   const [order, setOrder] = useState<RemediationOrder | null>(null);
   const [loading, setLoading] = useState(true);
@@ -161,7 +164,7 @@ export function RemediationOrderWorkspace({
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("操作员放弃本次提交");
+  const [cancelReason, setCancelReason] = useState(() => t("workspace.defaultCancelReason"));
   const mutationRequestIds = useRef<Record<string, string>>({});
   const titleEditRequestRef = useRef(titleEditRequestKey);
 
@@ -207,7 +210,7 @@ export function RemediationOrderWorkspace({
     if (!normalizedOrderId) {
       setOrder(null);
       setLoading(false);
-      setError("缺少 order_id，无法加载处置草稿。");
+      setError(t("workspace.missingOrderId"));
       onLoadingChange?.(false);
       return;
     }
@@ -223,7 +226,7 @@ export function RemediationOrderWorkspace({
       .catch((cause) => {
         if (!cancelled) {
           setOrder(null);
-          setError(requestErrorMessage(cause));
+          setError(requestErrorMessage(cause, t("workspace.loadFailed")));
         }
       })
       .finally(() => {
@@ -254,7 +257,7 @@ export function RemediationOrderWorkspace({
           applyOrder(nextOrder);
         }
       } catch (cause) {
-        if (!cancelled) setPollError(requestErrorMessage(cause));
+        if (!cancelled) setPollError(requestErrorMessage(cause, t("workspace.loadFailed")));
       } finally {
         polling = false;
       }
@@ -321,8 +324,8 @@ export function RemediationOrderWorkspace({
     if (order?.status.trim().toLowerCase() !== "draft") return;
     if (dirtyItemIds.size > 0) {
       toast({
-        title: "请先保存动作参数",
-        description: "保存当前参数后再修改处置单名称。",
+        title: t("workspace.saveParametersFirst"),
+        description: t("workspace.saveParametersFirstDescription"),
       });
       return;
     }
@@ -347,7 +350,7 @@ export function RemediationOrderWorkspace({
           : "";
         const statusError =
           item.status.trim().toLowerCase() === "blocked"
-            ? item.reason_message || item.reason_code || "该目标当前不可执行。"
+            ? item.reason_message || item.reason_code || t("workspace.targetUnavailable")
             : "";
         return [item.item_id, parameterError || statusError];
       }),
@@ -418,11 +421,11 @@ export function RemediationOrderWorkspace({
       const nextOrder = await persistDraft(order);
       applyOrder(nextOrder);
       clearMutationRequestId("save");
-      toast({ title: "处置草稿已保存" });
+      toast({ title: t("workspace.draftSaved") });
     } catch (cause) {
       toast({
-        title: "保存处置草稿失败",
-        description: requestErrorMessage(cause),
+        title: t("workspace.draftSaveFailed"),
+        description: requestErrorMessage(cause, t("workspace.draftSaveFailed")),
         variant: "destructive",
       });
     } finally {
@@ -434,8 +437,8 @@ export function RemediationOrderWorkspace({
     if (!order || !lifecycle.edit || working) return;
     if (dirtyItemIds.size > 0) {
       toast({
-        title: "请先保存动作参数",
-        description: "保存当前参数后再修改处置单名称。",
+        title: t("workspace.saveParametersFirst"),
+        description: t("workspace.saveParametersFirstDescription"),
       });
       return;
     }
@@ -446,11 +449,11 @@ export function RemediationOrderWorkspace({
       applyOrder(nextOrder);
       clearMutationRequestId("save");
       setTitleDialogOpen(false);
-      toast({ title: "处置单名称已保存" });
+      toast({ title: t("workspace.orderTitleSaved") });
     } catch (cause) {
       toast({
-        title: "保存处置单名称失败",
-        description: requestErrorMessage(cause),
+        title: t("workspace.orderTitleSaveFailed"),
+        description: requestErrorMessage(cause, t("workspace.orderTitleSaveFailed")),
         variant: "destructive",
       });
     } finally {
@@ -483,15 +486,15 @@ export function RemediationOrderWorkspace({
         setConfirmDialogOpen(true);
       } else {
         toast({
-          title: "提交前检查未通过",
-          description: "部分目标当前不可执行，请查看目标状态后重新检查。",
+          title: t("workspace.prepareBlocked"),
+          description: t("workspace.prepareBlockedDescription"),
           variant: "destructive",
         });
       }
     } catch (cause) {
       toast({
-        title: "提交前检查失败",
-        description: requestErrorMessage(cause),
+        title: t("workspace.prepareFailed"),
+        description: requestErrorMessage(cause, t("workspace.prepareFailed")),
         variant: "destructive",
       });
     } finally {
@@ -514,13 +517,13 @@ export function RemediationOrderWorkspace({
       clearMutationRequestId("confirm");
       setConfirmDialogOpen(false);
       toast({
-        title: nextOrder.status === "completed" ? "处置已完成" : "处置已提交",
-        description: "Agent 离线不会阻止下发，页面会持续轮询执行状态。",
+        title: nextOrder.status === "completed" ? t("workspace.completed") : t("workspace.submitted"),
+        description: t("workspace.submittedDescription"),
       });
     } catch (cause) {
       toast({
-        title: "确认下发失败",
-        description: requestErrorMessage(cause),
+        title: t("workspace.confirmFailed"),
+        description: requestErrorMessage(cause, t("workspace.confirmFailed")),
         variant: "destructive",
       });
     } finally {
@@ -541,11 +544,11 @@ export function RemediationOrderWorkspace({
       applyOrder(nextOrder);
       clearMutationRequestId("cancel");
       setCancelDialogOpen(false);
-      toast({ title: "已放弃本次提交" });
+      toast({ title: t("workspace.submissionAbandoned") });
     } catch (cause) {
       toast({
-        title: "放弃本次提交失败",
-        description: requestErrorMessage(cause),
+        title: t("workspace.abandonFailed"),
+        description: requestErrorMessage(cause, t("workspace.abandonFailed")),
         variant: "destructive",
       });
     } finally {
@@ -564,12 +567,12 @@ export function RemediationOrderWorkspace({
       });
       setDeleteDialogOpen(false);
       clearMutationRequestId("delete");
-      toast({ title: "处置草稿已删除" });
+      toast({ title: t("workspace.draftDeleted") });
       router.back();
     } catch (cause) {
       toast({
-        title: "删除处置草稿失败",
-        description: requestErrorMessage(cause),
+        title: t("workspace.deleteFailed"),
+        description: requestErrorMessage(cause, t("workspace.deleteFailed")),
         variant: "destructive",
       });
     } finally {
@@ -592,7 +595,7 @@ export function RemediationOrderWorkspace({
     return (
       <section className="flex min-h-[420px] items-center justify-center rounded-[22px] border border-slate-200 bg-white text-sm text-slate-500 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
         <Loader2 className="mr-2 size-4 animate-spin text-teal-600" aria-hidden />
-        正在加载处置草稿
+        {t("workspace.loading")}
       </section>
     );
   }
@@ -601,9 +604,9 @@ export function RemediationOrderWorkspace({
     return (
       <section className="flex min-h-[280px] flex-col items-center justify-center rounded-[22px] border border-red-200 bg-white px-6 text-center shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
         <AlertTriangle className="size-8 text-red-500" aria-hidden />
-        <h2 className="mt-3 text-sm font-semibold text-slate-900">处置草稿加载失败</h2>
+        <h2 className="mt-3 text-sm font-semibold text-slate-900">{t("workspace.loadFailed")}</h2>
         <p className="mt-1 max-w-xl text-xs leading-5 text-slate-500">
-          {error || "后台没有返回对应的 Remediation Order。"}
+          {error || t("workspace.notFound")}
         </p>
       </section>
     );
@@ -612,7 +615,7 @@ export function RemediationOrderWorkspace({
   return (
     <>
       <section
-        aria-label="处置草稿工作区"
+        aria-label={t("workspace.ariaLabel")}
         className="grid min-w-0 gap-4 xl:h-[620px] xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
       >
       <TargetListPanel
@@ -633,14 +636,14 @@ export function RemediationOrderWorkspace({
         <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
             <SlidersHorizontal className="size-4 text-violet-600" aria-hidden />
-            动作参数
+            {t("workspace.parameters")}
           </h2>
           {selectedItem ? (
             <span
               className="max-w-[55%] truncate rounded-full bg-slate-950 px-3 py-1 text-[11px] font-semibold text-white"
-              title={remediationOrderActionLabel(selectedItem)}
+              title={remediationOrderActionLabel(selectedItem, locale)}
             >
-              {remediationOrderActionLabel(selectedItem)}
+              {remediationOrderActionLabel(selectedItem, locale)}
             </span>
           ) : null}
         </div>
@@ -676,7 +679,7 @@ export function RemediationOrderWorkspace({
             </div>
           ) : (
             <div className="flex min-h-full items-center justify-center text-sm text-slate-400">
-              当前处置单没有目标
+              {t("workspace.noTargets")}
             </div>
           )}
         </div>
@@ -753,15 +756,14 @@ function TargetListPanel({
   validationErrors: Record<string, string>;
 }) {
   const locale = useLocale();
-  const hostIdLabel = locale.toLowerCase().startsWith("zh")
-    ? "主机ID"
-    : "HostID";
+  const t = useTranslations("pages.collection.orchestration");
+  const hostIdLabel = t("workspace.hostId");
   return (
     <aside className="flex h-full min-h-0 min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
           <Crosshair className="size-4 text-blue-600" aria-hidden />
-          处置目标
+          {t("workspace.targets")}
         </h2>
         <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-white">
           {total}
@@ -769,11 +771,11 @@ function TargetListPanel({
       </div>
       <label className="mt-4 flex h-10 items-center rounded-full border border-slate-200 bg-slate-50 px-3 focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
         <Search className="size-4 shrink-0 text-slate-400" aria-hidden />
-        <span className="sr-only">搜索处置目标</span>
+        <span className="sr-only">{t("workspace.searchTargets")}</span>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="搜索目标、Agent 或动作"
+          placeholder={t("workspace.searchPlaceholder")}
           className="min-w-0 flex-1 bg-transparent px-2 text-xs text-slate-700 outline-none placeholder:text-slate-400"
         />
       </label>
@@ -787,6 +789,7 @@ function TargetListPanel({
               item,
               validationErrors[item.item_id],
               decisions[item.item_id],
+              t,
             );
             return (
               <button
@@ -825,7 +828,7 @@ function TargetListPanel({
                       </span>
                     </span>
                     <span className="mt-1 block truncate text-xs font-semibold text-slate-700">
-                      {remediationOrderActionLabel(item)}
+                      {remediationOrderActionLabel(item, locale)}
                     </span>
                     <span
                       className="mt-2 block truncate font-mono text-[11px] text-slate-500"
@@ -840,7 +843,7 @@ function TargetListPanel({
           })
         ) : (
           <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-xs text-slate-400">
-            {query ? "没有匹配的处置目标" : "当前处置单没有目标"}
+            {query ? t("workspace.noMatchedTargets") : t("workspace.noTargets")}
           </div>
         )}
       </div>

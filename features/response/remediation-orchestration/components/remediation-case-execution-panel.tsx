@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   AlertTriangle,
   ChevronDown,
@@ -127,7 +127,10 @@ const ACTIVE_DISPATCH_SKIP_REASONS = new Set([
   "ACTIVE_DISPATCH_REQUIRES_RECONCILIATION",
 ]);
 
-export function activeDispatchSkipPresentation(item: RemediationOrderItem) {
+export function activeDispatchSkipPresentation(
+  item: RemediationOrderItem,
+  locale = "zh-CN",
+) {
   const reasonCode = itemExecutionCodes(item).find((code) =>
     ACTIVE_DISPATCH_SKIP_REASONS.has(code),
   );
@@ -136,21 +139,33 @@ export function activeDispatchSkipPresentation(item: RemediationOrderItem) {
   switch (reasonCode) {
     case "ACTIVE_DISPATCH_IN_PROGRESS":
       return {
-        label: "未重复下发",
-        result: "未重复下发",
-        reason: "同一目标已有处置任务正在执行，本条未重复下发。",
+        label: localized(locale, "未重复下发", "Not Redispatched"),
+        result: localized(locale, "未重复下发", "Not Redispatched"),
+        reason: localized(
+          locale,
+          "同一目标已有处置任务正在执行，本条未重复下发。",
+          "A remediation task for this target is already running; this item was not redispatched.",
+        ),
       };
     case "ACTIVE_DISPATCH_UNCERTAIN":
       return {
-        label: "未重复下发",
-        result: "未重复下发",
-        reason: "同一目标已有下发任务，终端结果待确认。",
+        label: localized(locale, "未重复下发", "Not Redispatched"),
+        result: localized(locale, "未重复下发", "Not Redispatched"),
+        reason: localized(
+          locale,
+          "同一目标已有下发任务，终端结果待确认。",
+          "A dispatch already exists for this target; the endpoint result is awaiting confirmation.",
+        ),
       };
     default:
       return {
-        label: "未重复下发",
-        result: "未重复下发",
-        reason: "同一目标已有待对账任务，本条未重复下发。",
+        label: localized(locale, "未重复下发", "Not Redispatched"),
+        result: localized(locale, "未重复下发", "Not Redispatched"),
+        reason: localized(
+          locale,
+          "同一目标已有待对账任务，本条未重复下发。",
+          "A reconciliation task already exists for this target; this item was not redispatched.",
+        ),
       };
   }
 }
@@ -164,8 +179,12 @@ function itemHasUncertainResult(item: RemediationOrderItem) {
   );
 }
 
-function itemStatusPresentation(item: RemediationOrderItem) {
-  const activeDispatchSkip = activeDispatchSkipPresentation(item);
+function localized(locale: string, zh: string, en: string) {
+  return locale.toLowerCase().startsWith("zh") ? zh : en;
+}
+
+function itemStatusPresentation(item: RemediationOrderItem, locale: string) {
+  const activeDispatchSkip = activeDispatchSkipPresentation(item, locale);
   if (activeDispatchSkip) {
     return {
       label: activeDispatchSkip.label,
@@ -173,38 +192,38 @@ function itemStatusPresentation(item: RemediationOrderItem) {
     };
   }
   if (itemIsReportTimeout(item)) {
-    return { label: "回报超时", className: "bg-orange-50 text-orange-700" };
+    return { label: localized(locale, "回报超时", "Report Timed Out"), className: "bg-orange-50 text-orange-700" };
   }
   if (itemHasUncertainResult(item)) {
-    return { label: "结果未确认", className: "bg-amber-50 text-amber-700" };
+    return { label: localized(locale, "结果未确认", "Result Unconfirmed"), className: "bg-amber-50 text-amber-700" };
   }
   const status = item.status.trim().toLowerCase();
   switch (status) {
     case "draft":
-      return { label: "草稿", className: "bg-slate-100 text-slate-700" };
+      return { label: localized(locale, "草稿", "Draft"), className: "bg-slate-100 text-slate-700" };
     case "ready":
-      return { label: "待确认", className: "bg-violet-50 text-violet-700" };
+      return { label: localized(locale, "待确认", "Awaiting Confirmation"), className: "bg-violet-50 text-violet-700" };
     case "satisfied":
-      return { label: "已满足", className: "bg-emerald-50 text-emerald-700" };
+      return { label: localized(locale, "已满足", "Satisfied"), className: "bg-emerald-50 text-emerald-700" };
     case "blocked":
-      return { label: "已阻断", className: "bg-rose-50 text-rose-700" };
+      return { label: localized(locale, "已阻断", "Blocked"), className: "bg-rose-50 text-rose-700" };
     case "pending":
-      return { label: "待下发", className: "bg-sky-50 text-sky-700" };
+      return { label: localized(locale, "待下发", "Pending Dispatch"), className: "bg-sky-50 text-sky-700" };
     case "running":
-      return { label: "执行中", className: "bg-sky-50 text-sky-700" };
+      return { label: localized(locale, "执行中", "Running"), className: "bg-sky-50 text-sky-700" };
     case "success":
-      return { label: "成功", className: "bg-emerald-50 text-emerald-700" };
+      return { label: localized(locale, "成功", "Succeeded"), className: "bg-emerald-50 text-emerald-700" };
     case "failed":
-      return { label: "失败", className: "bg-rose-50 text-rose-700" };
+      return { label: localized(locale, "失败", "Failed"), className: "bg-rose-50 text-rose-700" };
     case "skipped":
-      return { label: "已跳过", className: "bg-slate-100 text-slate-700" };
+      return { label: localized(locale, "已跳过", "Skipped"), className: "bg-slate-100 text-slate-700" };
     case "uncertain":
-      return { label: "未确定", className: "bg-amber-50 text-amber-700" };
+      return { label: localized(locale, "未确定", "Uncertain"), className: "bg-amber-50 text-amber-700" };
     case "canceled":
-      return { label: "已取消", className: "bg-slate-100 text-slate-700" };
+      return { label: localized(locale, "已取消", "Canceled"), className: "bg-slate-100 text-slate-700" };
     default:
       return {
-        label: status || "未开始",
+        label: status || localized(locale, "未开始", "Not Started"),
         className: "bg-slate-100 text-slate-700",
       };
   }
@@ -267,50 +286,50 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
   const startedAt = execution?.started_at.trim() || "";
   const finishedAt = execution?.finished_at.trim() || item.finished_at.trim();
   const lastReportAt = execution?.last_report_at.trim() || "";
-  const activeDispatchSkip = activeDispatchSkipPresentation(item);
+  const activeDispatchSkip = activeDispatchSkipPresentation(item, locale);
   if (activeDispatchSkip) {
     const skippedAt = finishedAt || executionTimestamp(item);
     return {
       primary: skippedAt
-        ? `未下发 ${formatTimestamp(skippedAt, locale)}`
-        : "未重复下发",
+        ? `${localized(locale, "未下发", "Not Dispatched")} ${formatTimestamp(skippedAt, locale)}`
+        : localized(locale, "未重复下发", "Not Redispatched"),
     };
   }
   if (itemIsReportTimeout(item)) {
     const timedOutAt = finishedAt || executionTimestamp(item);
     return {
       primary: timedOutAt
-        ? `超时 ${formatTimestamp(timedOutAt, locale)}`
-        : "回报超时",
+        ? `${localized(locale, "超时", "Timed Out")} ${formatTimestamp(timedOutAt, locale)}`
+        : localized(locale, "回报超时", "Report Timed Out"),
     };
   }
   if (itemHasUncertainResult(item)) {
     const uncertainAt = finishedAt || executionTimestamp(item);
     return {
       primary: uncertainAt
-        ? `待确认 ${formatTimestamp(uncertainAt, locale)}`
-        : "结果未确认",
+        ? `${localized(locale, "待确认", "Awaiting Confirmation")} ${formatTimestamp(uncertainAt, locale)}`
+        : localized(locale, "结果未确认", "Result Unconfirmed"),
     };
   }
   if (finishedAt) {
     return {
-      primary: `完成 ${formatTimestamp(finishedAt, locale)}`,
+      primary: `${localized(locale, "完成", "Completed")} ${formatTimestamp(finishedAt, locale)}`,
     };
   }
   if (startedAt) {
     return {
-      primary: `开始 ${formatTimestamp(startedAt, locale)}`,
+      primary: `${localized(locale, "开始", "Started")} ${formatTimestamp(startedAt, locale)}`,
     };
   }
   if (lastReportAt) {
     return {
-      primary: `最后回执 ${formatTimestamp(lastReportAt, locale)}`,
+      primary: `${localized(locale, "最后回执", "Last Report")} ${formatTimestamp(lastReportAt, locale)}`,
     };
   }
-  return { primary: "尚未开始" };
+  return { primary: localized(locale, "尚未开始", "Not Started") };
 }
 
-function resultPresentation(item: RemediationOrderItem) {
+function resultPresentation(item: RemediationOrderItem, locale: string) {
   const execution = executionForItem(item);
   const errorCode = execution?.error_code.trim() || item.error_code.trim();
   const errorMessage =
@@ -321,7 +340,7 @@ function resultPresentation(item: RemediationOrderItem) {
     execution?.reason_code.trim() ||
     item.reason_code.trim();
   const status = item.status.trim().toLowerCase();
-  const activeDispatchSkip = activeDispatchSkipPresentation(item);
+  const activeDispatchSkip = activeDispatchSkipPresentation(item, locale);
   if (activeDispatchSkip) {
     return {
       code: "",
@@ -332,16 +351,20 @@ function resultPresentation(item: RemediationOrderItem) {
   if (itemIsReportTimeout(item)) {
     return {
       code: "",
-      result: "未收到终态结果",
+      result: localized(locale, "未收到终态结果", "No Final Result Received"),
       reason:
-        "处置请求已被接收，但在回报截止时间前未收到 Agent 的最终结果",
+        localized(
+          locale,
+          "处置请求已被接收，但在回报截止时间前未收到 Agent 的最终结果",
+          "The remediation request was accepted, but no final Agent result was received before the reporting deadline.",
+        ),
     };
   }
   if (itemHasUncertainResult(item)) {
     return {
       code: "",
-      result: "等待人工确认",
-      reason: reason || errorMessage || "结果尚未被权威确认",
+      result: localized(locale, "等待人工确认", "Awaiting Manual Confirmation"),
+      reason: reason || errorMessage || localized(locale, "结果尚未被权威确认", "The result has not been authoritatively confirmed."),
     };
   }
   if (errorCode || errorMessage) {
@@ -354,34 +377,36 @@ function resultPresentation(item: RemediationOrderItem) {
   if (status === "success") {
     return {
       code: "",
-      result: "执行结果已确认",
-      reason: reason || "终端已确认处置结果",
+      result: localized(locale, "执行结果已确认", "Execution Result Confirmed"),
+      reason: reason || localized(locale, "终端已确认处置结果", "The endpoint has confirmed the remediation result."),
     };
   }
   if (status === "uncertain") {
     return {
       code: "",
-      result: "需人工对账",
-      reason: reason || "结果未能被权威确认",
+      result: localized(locale, "需人工对账", "Manual Reconciliation Required"),
+      reason: reason || localized(locale, "结果未能被权威确认", "The result could not be authoritatively confirmed."),
     };
   }
   if (status === "failed" || status === "blocked") {
     return {
       code: "",
-      result: status === "failed" ? "执行失败" : "当前无法执行",
+      result: status === "failed"
+        ? localized(locale, "执行失败", "Execution Failed")
+        : localized(locale, "当前无法执行", "Cannot Execute Now"),
       reason: reason || "-",
     };
   }
   if (itemIsActive(item)) {
     return {
       code: "",
-      result: "执行中",
-      reason: reason || "等待 Agent 回执",
+      result: localized(locale, "执行中", "Running"),
+      reason: reason || localized(locale, "等待 Agent 回执", "Waiting for the Agent report."),
     };
   }
   return {
     code: "",
-    result: "尚未进入执行阶段",
+    result: localized(locale, "尚未进入执行阶段", "Execution Has Not Started"),
     reason: reason || "-",
   };
 }
@@ -423,6 +448,7 @@ export function RemediationCaseExecutionPanel({
   order: currentOrder,
 }: RemediationCaseExecutionPanelProps) {
   const locale = useLocale();
+  const t = useTranslations("pages.collection.orchestration");
   const requestSequence = useRef(0);
   const currentOrderRef = useRef(currentOrder);
   const [data, setData] = useState<CaseExecutionData | null>(null);
@@ -579,8 +605,7 @@ export function RemediationCaseExecutionPanel({
   }, [currentOrder.items, data?.itemsByOrderId]);
   const activeCount = allItems.filter(itemIsActive).length;
   const attentionCount = allItems.filter(itemNeedsAttention).length;
-  const isZhLocale = locale.toLowerCase().startsWith("zh");
-  const sourceLabel = caseId ? "当前 Case" : "当前图来源";
+  const sourceLabel = caseId ? t("execution.currentCase") : t("execution.currentGraphSource");
   const summary = data?.summary ?? EMPTY_SUMMARY;
   const reportTimeoutCount = allItems.filter(itemIsReportTimeout).length;
   const uncertainCount = allItems.filter(
@@ -603,7 +628,7 @@ export function RemediationCaseExecutionPanel({
 
   return (
     <section
-      aria-label="处置执行情况"
+      aria-label={t("execution.title")}
       className="mt-4 min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
     >
       <div className="flex flex-col gap-4 border-b border-slate-100 pb-4 xl:flex-row xl:items-center xl:justify-between">
@@ -613,11 +638,11 @@ export function RemediationCaseExecutionPanel({
           </span>
           <div className="min-w-0">
             <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
-              处置执行情况
+              {t("execution.title")}
               {loading ? (
                 <Loader2
                   className="size-3.5 animate-spin text-slate-400"
-                  aria-label="正在加载"
+                  aria-label={t("execution.loading")}
                 />
               ) : null}
             </h2>
@@ -631,7 +656,7 @@ export function RemediationCaseExecutionPanel({
         </div>
         <div className="flex shrink-0 items-center gap-3 self-end xl:self-auto">
           <div aria-live="polite" className="hidden text-right sm:block">
-            <div className="text-[11px] text-slate-400">更新时间</div>
+            <div className="text-[11px] text-slate-400">{t("page.updatedAt")}</div>
             <div className="mt-0.5 text-xs font-medium tabular-nums text-slate-600">
               {updatedAt ? formatTimestamp(updatedAt, locale) : "-"}
             </div>
@@ -640,7 +665,7 @@ export function RemediationCaseExecutionPanel({
             type="button"
             onClick={() => void load({ manual: true })}
             disabled={refreshing}
-            aria-label="刷新处置执行情况"
+            aria-label={t("execution.refresh")}
             className="flex size-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <RefreshCcw
@@ -652,35 +677,35 @@ export function RemediationCaseExecutionPanel({
       </div>
 
       <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2 xl:grid-cols-6">
-        <SummaryMetric label="处置单" value={summary.order_count} suffix="张" />
+        <SummaryMetric label={t("execution.orderCount")} value={summary.order_count} suffix={t("execution.orderSuffix")} />
         <SummaryMetric
-          label="待下发 / 执行中"
+          label={t("execution.runningCount")}
           value={summary.running_count}
-          suffix="个目标"
+          suffix={t("execution.targetSuffix")}
           tone="active"
         />
         <SummaryMetric
-          label="执行成功"
+          label={t("execution.successCount")}
           value={summary.success_count}
-          suffix="个目标"
+          suffix={t("execution.targetSuffix")}
           tone="success"
         />
         <SummaryMetric
-          label="回报超时"
+          label={t("execution.timeoutCount")}
           value={String(reportTimeoutCount)}
-          suffix="个目标"
+          suffix={t("execution.targetSuffix")}
           tone="timeout"
         />
         <SummaryMetric
-          label="执行失败"
+          label={t("execution.failedCount")}
           value={String(failedCount)}
-          suffix="个目标"
+          suffix={t("execution.targetSuffix")}
           tone="danger"
         />
         <SummaryMetric
-          label="结果未确定"
+          label={t("execution.uncertainCount")}
           value={String(uncertainCount)}
-          suffix="个目标"
+          suffix={t("execution.targetSuffix")}
           tone="warning"
         />
       </div>
@@ -690,32 +715,32 @@ export function RemediationCaseExecutionPanel({
           <div>
             <h3 className="ml-[22px] flex items-center gap-2 text-base font-semibold text-slate-800">
               <ListChecks className="size-[18px] text-blue-600" aria-hidden />
-              处置清单
+              {t("execution.orderList")}
             </h3>
           </div>
           <div
             className="flex flex-wrap items-center gap-2"
-            aria-label="执行状态筛选"
+            aria-label={t("execution.status")}
           >
             <FilterButton
               active={filter === "all"}
               onClick={() => setFilter("all")}
             >
-              全部 {allItems.length || numericValue(summary.item_count)}
+              {t("execution.all")} {allItems.length || numericValue(summary.item_count)}
             </FilterButton>
             <FilterButton
               active={filter === "active"}
               onClick={() => setFilter("active")}
               tone="active"
             >
-              处理中 {activeCount}
+              {t("execution.active")} {activeCount}
             </FilterButton>
             <FilterButton
               active={filter === "attention"}
               onClick={() => setFilter("attention")}
               tone="danger"
             >
-              异常 {attentionCount}
+              {t("execution.attention")} {attentionCount}
             </FilterButton>
           </div>
         </div>
@@ -727,7 +752,7 @@ export function RemediationCaseExecutionPanel({
           >
             <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
             <div>
-              <div className="font-semibold">处置执行明细暂时无法刷新</div>
+              <div className="font-semibold">{t("execution.loadUnavailable")}</div>
               <p className="mt-1 leading-5">{error}</p>
             </div>
           </div>
@@ -742,7 +767,9 @@ export function RemediationCaseExecutionPanel({
               savedOrderTitle &&
               !isLegacyCaseRemediationTitle(savedOrderTitle, orderCaseId)
                 ? savedOrderTitle
-                : `处置单 · ${formatTimestamp(order.created_at || order.updated_at, locale)}`;
+                : t("execution.orderFallback", {
+                    time: formatTimestamp(order.created_at || order.updated_at, locale),
+                  });
             const allOrderItems =
               data?.itemsByOrderId[order.order_id] ??
               currentOrder.items.filter(
@@ -784,7 +811,7 @@ export function RemediationCaseExecutionPanel({
                     </span>
                   </span>
                   <span className="hidden shrink-0 text-right text-[11px] text-slate-500 lg:block">
-                    最近更新{" "}
+                    {t("execution.recentlyUpdated")}{" "}
                     {formatTimestamp(
                       order.updated_at || order.created_at,
                       locale,
@@ -796,16 +823,16 @@ export function RemediationCaseExecutionPanel({
                   <div className="overflow-x-auto">
                     <div className="min-w-[1810px]">
                       <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
-                        <span>目标</span>
-                        <span>处置动作</span>
-                        <span>{isZhLocale ? "处置单ID" : "OrderID"}</span>
-                        <span>{isZhLocale ? "主机ID" : "HostID"}</span>
-                        <span>{isZhLocale ? "主机名" : "HostName"}</span>
+                        <span>{t("execution.target")}</span>
+                        <span>{t("execution.action")}</span>
+                        <span>{t("execution.orderId")}</span>
+                        <span>{t("execution.hostId")}</span>
+                        <span>{t("execution.hostName")}</span>
                         <span>IP</span>
-                        <span>当前状态</span>
-                        <span>时间</span>
-                        <span>结果</span>
-                        <span>原因</span>
+                        <span>{t("execution.status")}</span>
+                        <span>{t("execution.time")}</span>
+                        <span>{t("execution.result")}</span>
+                        <span>{t("execution.reason")}</span>
                       </div>
                       {orderItems.length ? (
                         orderItems.map((item) => (
@@ -818,8 +845,8 @@ export function RemediationCaseExecutionPanel({
                       ) : (
                         <div className="px-5 py-9 text-center text-xs text-slate-500">
                           {filter === "all"
-                            ? "当前处置单暂无可展示的目标执行记录。"
-                            : "没有符合当前状态筛选的目标。"}
+                            ? t("execution.noItems")
+                            : t("execution.noFilteredItems")}
                         </div>
                       )}
                     </div>
@@ -832,18 +859,18 @@ export function RemediationCaseExecutionPanel({
 
         {!loading && !orders.length ? (
           <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
-            当前 {sourceLabel} 尚未创建处置单。
+            {t("execution.noOrders", { source: sourceLabel })}
           </div>
         ) : null}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-[11px] text-slate-500">
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <StatusLegend className="bg-sky-500" label="待下发 / 执行中" />
-          <StatusLegend className="bg-emerald-500" label="成功" />
-          <StatusLegend className="bg-orange-500" label="回报超时" />
-          <StatusLegend className="bg-rose-500" label="执行失败" />
-          <StatusLegend className="bg-amber-500" label="未确定" />
+          <StatusLegend className="bg-sky-500" label={t("execution.runningCount")} />
+          <StatusLegend className="bg-emerald-500" label={t("execution.successCount")} />
+          <StatusLegend className="bg-orange-500" label={t("execution.timeoutCount")} />
+          <StatusLegend className="bg-rose-500" label={t("execution.failedCount")} />
+          <StatusLegend className="bg-amber-500" label={t("execution.uncertainCount")} />
         </span>
       </div>
     </section>
@@ -933,9 +960,9 @@ function ExecutionItemRow({
   locale: string;
 }) {
   const Icon = remediationActionIcon(item.action_code);
-  const status = itemStatusPresentation(item);
+  const status = itemStatusPresentation(item, locale);
   const time = executionTimePresentation(item, locale);
-  const result = resultPresentation(item);
+  const result = resultPresentation(item, locale);
   const target = remediationTargetPresentation(item);
   const agent = item.agent_snapshot;
   const hostID = item.agent_id.trim() || "-";
@@ -968,9 +995,9 @@ function ExecutionItemRow({
         </span>
         <span
           className="min-w-0 truncate text-[11px] font-medium text-slate-700"
-          title={remediationOrderActionLabel(item)}
+          title={remediationOrderActionLabel(item, locale)}
         >
-          {remediationOrderActionLabel(item)}
+          {remediationOrderActionLabel(item, locale)}
         </span>
       </div>
       <TableOrderIDValue value={item.order_id} />

@@ -13,6 +13,7 @@ import {
   Workflow,
   XCircle,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import type {
   RemediationOrder,
@@ -31,12 +32,12 @@ function targetText(item: RemediationOrderItem) {
   );
 }
 
-function basename(value: string) {
+function basename(value: string, fallback: string) {
   const normalized = value.trim().replace(/[\\/]+$/, "");
   return (
     normalized.split(/[\\/]/).filter(Boolean).pop() ||
     normalized ||
-    "未命名目标"
+    fallback
   );
 }
 
@@ -52,21 +53,21 @@ function orderStage(status: string) {
   return 1;
 }
 
-function stageBadge(status: string) {
+function stageBadge(status: string, t: (key: string) => string) {
   const normalized = status.trim().toLowerCase();
   const labels: Record<string, string> = {
-    draft: "配置中",
-    prepared: "待确认",
-    ready: "待确认",
-    confirmed: "已提交",
-    running: "执行中",
-    success: "执行成功",
-    failed: "执行失败",
-    completed: "执行完成",
-    canceled: "已取消",
-    expired: "已过期",
+    draft: t("lifecycle.draft"),
+    prepared: t("lifecycle.prepared"),
+    ready: t("lifecycle.prepared"),
+    confirmed: t("lifecycle.confirmed"),
+    running: t("lifecycle.running"),
+    success: t("lifecycle.success"),
+    failed: t("lifecycle.failed"),
+    completed: t("lifecycle.completed"),
+    canceled: t("lifecycle.canceled"),
+    expired: t("lifecycle.expired"),
   };
-  return labels[normalized] || normalized || "未知阶段";
+  return labels[normalized] || normalized || t("lifecycle.unknown");
 }
 
 export interface RemediationOrderLifecyclePanelProps {
@@ -104,6 +105,7 @@ export function RemediationOrderLifecyclePanel({
   validationErrors,
   working,
 }: RemediationOrderLifecyclePanelProps) {
+  const t = useTranslations("pages.collection.orchestration");
   const stage = orderStage(order.status);
   const lifecycle = remediationOrderLifecycleActions(order);
   const busy = Boolean(working);
@@ -126,18 +128,18 @@ export function RemediationOrderLifecyclePanel({
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
           <Workflow className="size-4 text-teal-600" aria-hidden />
-          提交执行
+          {t("lifecycle.title")}
         </h2>
         <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-bold text-white">
-          {stageBadge(order.status)}
+          {stageBadge(order.status, t)}
         </span>
       </div>
 
       <div
         className="mt-7 flex items-center"
-        aria-label={`当前处置阶段：第 ${stage} 阶段`}
+        aria-label={t("lifecycle.stageAria", { stage })}
       >
-        {["配置", "确认", "执行"].map((label, index) => {
+        {[t("lifecycle.stageConfiguration"), t("lifecycle.stageConfirmation"), t("lifecycle.stageExecution")].map((label, index) => {
           const step = index + 1;
           const active = step <= stage;
           return (
@@ -190,10 +192,10 @@ export function RemediationOrderLifecyclePanel({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-xs font-semibold text-slate-800">
-                  提交检查
+                  {t("lifecycle.prepare")}
                 </div>
                 <div className="mt-1 text-[11px] text-slate-500">
-                  提交前的目标与参数状态
+                  {t("lifecycle.prepareDescription")}
                 </div>
               </div>
               <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-bold text-white">
@@ -203,7 +205,7 @@ export function RemediationOrderLifecyclePanel({
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
                 <div className="text-[10px] font-medium text-emerald-700">
-                  可提交
+                  {t("lifecycle.ready")}
                 </div>
                 <div className="mt-1 text-lg font-bold text-emerald-800">
                   {complete}
@@ -211,7 +213,7 @@ export function RemediationOrderLifecyclePanel({
               </div>
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
                 <div className="text-[10px] font-medium text-amber-700">
-                  需处理
+                  {t("lifecycle.attention")}
                 </div>
                 <div className="mt-1 text-lg font-bold text-amber-800">
                   {blocked}
@@ -223,7 +225,7 @@ export function RemediationOrderLifecyclePanel({
           {lifecycle.edit && decisionLoading ? (
             <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
               <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
-              正在核对目标适用性与活动冲突…
+              {t("lifecycle.checking")}
             </div>
           ) : lifecycle.edit && firstIncomplete && readinessIssue ? (
             <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
@@ -234,14 +236,14 @@ export function RemediationOrderLifecyclePanel({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-bold text-amber-900">
-                    当前阻塞项
+                    {t("lifecycle.blockingItems")}
                   </div>
                   <div className="mt-3 flex items-start justify-between gap-3">
                     <div
                       className="min-w-0 truncate text-xs font-semibold text-amber-900"
                       title={targetText(firstIncomplete)}
                     >
-                      {basename(targetText(firstIncomplete))} ·{" "}
+                      {basename(targetText(firstIncomplete), t("workspace.unnamedTarget"))} ·{" "}
                       {remediationOrderActionLabel(firstIncomplete)}
                     </div>
                     <span
@@ -270,9 +272,9 @@ export function RemediationOrderLifecyclePanel({
             <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
               <CheckCircle2 className="mt-0.5 size-5 shrink-0" aria-hidden />
               <div>
-                <div className="text-xs font-bold">所有目标均可提交</div>
+                <div className="text-xs font-bold">{t("lifecycle.allReady")}</div>
                 <p className="mt-1 text-xs leading-5 text-emerald-700">
-                  当前没有缺失参数或动作冲突，提交后将进行最终检查。
+                  {t("lifecycle.allReadyDescription")}
                 </p>
               </div>
             </div>
@@ -304,7 +306,7 @@ export function RemediationOrderLifecyclePanel({
                   order.confirmable ? "text-teal-900" : "text-amber-900",
                 )}
               >
-                {order.confirmable ? "提交检查已通过" : "提交检查未通过"}
+                {order.confirmable ? t("lifecycle.preparePassed") : t("lifecycle.prepareNotPassed")}
               </div>
               <p
                 className={cn(
@@ -312,8 +314,11 @@ export function RemediationOrderLifecyclePanel({
                   order.confirmable ? "text-teal-700" : "text-amber-700",
                 )}
               >
-                {order.summary.ready} 个目标待下发，{order.summary.satisfied}{" "}
-                个目标已满足，{order.summary.blocked} 个目标暂不可执行。
+                {t("lifecycle.summary", {
+                  ready: order.summary.ready,
+                  satisfied: order.summary.satisfied,
+                  blocked: order.summary.blocked,
+                })}
               </p>
             </div>
           </div>
@@ -336,12 +341,12 @@ export function RemediationOrderLifecyclePanel({
                 ) : (
                   <Save />
                 )}
-                保存草稿
+                {t("lifecycle.saveDraft")}
               </Button>
             ) : (
               <div className="flex h-10 items-center justify-center gap-2 text-xs font-medium text-slate-500">
                 <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
-                草稿已保存
+                {t("lifecycle.saved")}
               </div>
             )}
             <Button
@@ -358,10 +363,10 @@ export function RemediationOrderLifecyclePanel({
                 <ShieldCheck />
               )}
               {working === "prepare"
-                ? "正在检查"
+                ? t("lifecycle.checking")
                 : dirty
-                  ? "保存并提交处置"
-                  : "提交处置"}
+                  ? t("lifecycle.saveAndSubmit")
+                  : t("lifecycle.submit")}
             </Button>
             <Button
               type="button"
@@ -371,7 +376,7 @@ export function RemediationOrderLifecyclePanel({
               onClick={onDelete}
             >
               <Trash2 />
-              删除草稿
+              {t("lifecycle.deleteDraft")}
             </Button>
           </>
         ) : null}
@@ -386,7 +391,7 @@ export function RemediationOrderLifecyclePanel({
                 onClick={onConfirm}
               >
                 <Play />
-                确认并执行
+                {t("lifecycle.confirmAndExecute")}
               </Button>
             ) : (
               <Button
@@ -400,7 +405,7 @@ export function RemediationOrderLifecyclePanel({
                 ) : (
                   <RotateCcw />
                 )}
-                {working === "prepare" ? "正在检查" : "重新检查"}
+                {working === "prepare" ? t("lifecycle.checking") : t("lifecycle.recheck")}
               </Button>
             )}
             <Button
@@ -411,11 +416,11 @@ export function RemediationOrderLifecyclePanel({
               onClick={onCancel}
             >
               <XCircle />
-              放弃本次提交
+              {t("lifecycle.abandon")}
             </Button>
             {!order.confirmable ? (
               <p className="text-center text-xs leading-5 text-amber-700">
-                部分目标当前不可执行，状态变化后可以重新检查。
+                {t("lifecycle.recheckHint")}
               </p>
             ) : null}
           </>
@@ -425,7 +430,7 @@ export function RemediationOrderLifecyclePanel({
           <>
             <div className="flex h-10 items-center justify-center gap-2 text-xs font-medium text-slate-500">
               <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
-              处置已提交
+              {t("lifecycle.submitted")}
             </div>
             <Button
               type="button"
@@ -433,7 +438,7 @@ export function RemediationOrderLifecyclePanel({
               disabled
             >
               <ShieldCheck />
-              已提交处置
+              {t("lifecycle.submittedAction")}
             </Button>
           </>
         ) : null}
@@ -453,7 +458,7 @@ export function RemediationOrderLifecyclePanel({
             ) : (
               <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
             )}
-            <span>{pollError || "正在轮询执行状态"}</span>
+            <span>{pollError || t("lifecycle.polling")}</span>
           </div>
         ) : null}
       </div>

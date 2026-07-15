@@ -1,6 +1,7 @@
 "use client"
 
 import { Loader2, Play, Trash2, XCircle } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import type { RemediationOrder } from "@/features/attack/remediation-order"
 
@@ -44,18 +45,19 @@ export function RemediationOrderLifecycleDialogs({
   onDeleteOpenChange: (open: boolean) => void
   working: string
 }) {
+  const t = useTranslations("pages.collection.orchestration")
   return (
     <>
       <AlertDialog open={deleteOpen} onOpenChange={onDeleteOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>删除处置草稿？</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialogs.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              删除尚未提交的处置草稿。删除后将从处置列表、目标查询和汇总中隐藏，但后台仍保留审计记录。
+              {t("dialogs.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={working === "delete"}>保留草稿</AlertDialogCancel>
+            <AlertDialogCancel disabled={working === "delete"}>{t("dialogs.keepDraft")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 text-white hover:bg-red-700"
               disabled={working === "delete"}
@@ -65,7 +67,7 @@ export function RemediationOrderLifecycleDialogs({
               }}
             >
               {working === "delete" ? <Loader2 className="animate-spin" /> : <Trash2 />}
-              删除草稿
+              {t("dialogs.deleteDraft")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -74,14 +76,16 @@ export function RemediationOrderLifecycleDialogs({
       <AlertDialog open={confirmOpen} onOpenChange={onConfirmOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认执行处置？</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialogs.confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              本次将下发 {confirmOrder.summary.ready} 个处置目标；
-              {confirmOrder.summary.satisfied} 个已满足目标将自动跳过。确认后不能再编辑或删除，Agent 当前离线不会阻止下发。
+              {t("dialogs.confirmDescription", {
+                ready: confirmOrder.summary.ready,
+                satisfied: confirmOrder.summary.satisfied,
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={working === "confirm"}>暂不执行</AlertDialogCancel>
+            <AlertDialogCancel disabled={working === "confirm"}>{t("dialogs.notNow")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-teal-600 text-white hover:bg-teal-700"
               disabled={working === "confirm"}
@@ -91,7 +95,7 @@ export function RemediationOrderLifecycleDialogs({
               }}
             >
               {working === "confirm" ? <Loader2 className="animate-spin" /> : <Play />}
-              确认执行
+              {t("dialogs.confirmExecute")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -100,13 +104,13 @@ export function RemediationOrderLifecycleDialogs({
       <AlertDialog open={cancelOpen} onOpenChange={onCancelOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>放弃本次提交？</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialogs.cancelTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              当前处置已经完成提交前检查，但尚未执行。放弃后该处置单不能继续下发。
+              {t("dialogs.cancelDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <label className="grid gap-2 text-sm font-medium text-slate-700">
-            取消原因
+            {t("dialogs.cancelReason")}
             <textarea
               value={cancelReason}
               onChange={(event) => onCancelReasonChange(event.target.value)}
@@ -116,7 +120,7 @@ export function RemediationOrderLifecycleDialogs({
             />
           </label>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={working === "cancel"}>返回</AlertDialogCancel>
+            <AlertDialogCancel disabled={working === "cancel"}>{t("dialogs.return")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 text-white hover:bg-red-700"
               disabled={working === "cancel" || !cancelReason.trim()}
@@ -126,7 +130,7 @@ export function RemediationOrderLifecycleDialogs({
               }}
             >
               {working === "cancel" ? <Loader2 className="animate-spin" /> : <XCircle />}
-              确认取消
+              {t("dialogs.confirmCancel")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

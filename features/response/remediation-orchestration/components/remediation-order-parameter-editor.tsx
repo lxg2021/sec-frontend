@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, History } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import type {
   RemediationActionDecision,
@@ -46,6 +46,150 @@ const RESTORE_ACTION_PATTERN = /(?:\.restore|\.enable|\.bypass(?:_execute)?)$/;
 
 type TemplateField = RemediationPreviewTemplate["parameters"][number];
 
+function humanizeRemediationIdentifier(value: string) {
+  const words: Record<string, string> = {
+    ads: "ADS",
+    bits: "BITS",
+    ea: "EA",
+    id: "ID",
+    ip: "IP",
+    ntfs: "NTFS",
+    wmi: "WMI",
+  };
+  return value
+    .trim()
+    .split(/[._\s-]+/)
+    .filter(Boolean)
+    .map((part) => words[part.toLowerCase()] ?? `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
+}
+
+type ParameterTextKey =
+  | "historyNoParameters"
+  | "historyBypass"
+  | "historyEnable"
+  | "historyRestore"
+  | "processTermination"
+  | "terminateChildren"
+  | "terminateChildrenDescription"
+  | "forceTerminateDescription"
+  | "usingDefaultParameters"
+  | "deleteScope"
+  | "selectDeleteScope"
+  | "deleteNamedEa"
+  | "deleteAllEa"
+  | "eaNames"
+  | "eaNamesPlaceholder"
+  | "eaNamesHint"
+  | "deleteAllEaHint"
+  | "forceDelete"
+  | "forceDeleteDescription"
+  | "quarantineBehavior"
+  | "deleteOriginal"
+  | "deleteOriginalDescription"
+  | "quarantineStorage"
+  | "localSecureStorage"
+  | "centralStorage"
+  | "encryptPackage"
+  | "encryptPackageDescription"
+  | "quarantineSuffix";
+
+function parameterText(locale: string, key: ParameterTextKey) {
+  const zh = locale.toLowerCase().startsWith("zh");
+  const values: Record<ParameterTextKey, [string, string]> = {
+    historyNoParameters: ["无需填写动作参数", "No action parameters are required"],
+    historyBypass: ["使用原处置参数中的 Policy ID 放行依据", "Use the Policy ID allow reference from the original remediation parameters"],
+    historyEnable: ["使用原处置参数中的启用依据", "Use the enable reference from the original remediation parameters"],
+    historyRestore: ["使用原处置参数中的恢复依据", "Use the restore reference from the original remediation parameters"],
+    processTermination: ["进程结束行为", "Process Termination Behavior"],
+    terminateChildren: ["终止子进程", "Terminate Child Processes"],
+    terminateChildrenDescription: ["结束目标进程时一并结束其子进程", "Terminate child processes together with the target process"],
+    forceTerminateDescription: ["使用强制方式结束目标进程", "Use forceful termination for the target process"],
+    usingDefaultParameters: ["使用原处置参数中的默认配置", "Using the default configuration from the original remediation parameters"],
+    deleteScope: ["删除范围", "Deletion Scope"],
+    selectDeleteScope: ["请选择删除范围", "Select a deletion scope"],
+    deleteNamedEa: ["按 EA 名称删除", "Delete by EA Name"],
+    deleteAllEa: ["明确删除全部 EA", "Explicitly Delete All EAs"],
+    eaNames: ["EA 名称", "EA Names"],
+    eaNamesPlaceholder: ["每行填写一个 EA 名称", "Enter one EA name per line"],
+    eaNamesHint: ["最多 128 个名称，支持换行或逗号分隔。", "Up to 128 names; separate them with new lines or commas."],
+    deleteAllEaHint: ["已明确选择删除该文件上的全部 EA。", "All EAs on this file will be explicitly deleted."],
+    forceDelete: ["强制删除", "Force Delete"],
+    forceDeleteDescription: ["仅在普通删除失败时使用强制方式", "Use force only when normal deletion fails"],
+    quarantineBehavior: ["隔离行为", "Quarantine Behavior"],
+    deleteOriginal: ["隔离成功后删除原文件", "Delete Original File After Quarantine"],
+    deleteOriginalDescription: ["默认开启；隔离失败时不会删除原文件", "Enabled by default; the original file is retained if quarantine fails"],
+    quarantineStorage: ["隔离存储", "Quarantine Storage"],
+    localSecureStorage: ["本地安全区", "Local Secure Storage"],
+    centralStorage: ["中心存储", "Central Storage"],
+    encryptPackage: ["隔离包加密", "Encrypt Quarantine Package"],
+    encryptPackageDescription: ["使用 Agent 安全密钥加密", "Encrypt with the Agent security key"],
+    quarantineSuffix: ["隔离文件后缀", "Quarantine File Suffix"],
+  };
+  return values[key][zh ? 0 : 1];
+}
+
+function localizedFieldLabel(templateId: string, key: string, locale: string) {
+  if (locale.toLowerCase().startsWith("zh")) {
+    if (key === "force") {
+      if (templateId.includes("terminate")) return "强制结束";
+      if (templateId.includes("disable")) return "强制禁用";
+      return "强制删除";
+    }
+    return null;
+  }
+  if (key === "force") {
+    if (templateId.includes("terminate")) return "Force Terminate";
+    if (templateId.includes("disable")) return "Force Disable";
+    return "Force Delete";
+  }
+  const labels: Record<string, string> = {
+    include_children: "Terminate Child Processes",
+    delete_original: "Delete Original File",
+    encrypt: "Encrypt Quarantine Package",
+    storage: "Quarantine Storage",
+    suffix: "Quarantine File Suffix",
+    stop_before_delete: "Stop Service Before Deletion",
+    force_logoff: "Force Logoff",
+    new_password: "New Password",
+    force_change_at_next_logon: "Require Password Change at Next Sign-in",
+    unlock_account: "Unlock Account",
+    stop_on_failure: "Stop on Failure",
+    delete_instances: "Delete Instances",
+    recursive_delete: "Delete Recursively",
+    remove_binding_only: "Remove Binding Only",
+    subject_path: "Parent Process Path",
+    subject_hash: "Parent Process Hash",
+    except_path: "Exception Path",
+    except_hash: "Exception Hash",
+    audit: "Enable Audit",
+    direction: "Blocking Direction",
+  };
+  return labels[key] ?? humanizeRemediationIdentifier(key);
+}
+
+function localizedTemplate(template: RemediationPreviewTemplate, locale: string) {
+  return {
+    ...template,
+    title: locale.toLowerCase().startsWith("zh")
+      ? template.title
+      : humanizeRemediationIdentifier(template.id),
+    parameters: template.parameters.map((field) => ({
+      ...field,
+      label: localizedFieldLabel(template.id, field.key, locale) ?? field.label,
+      placeholder: !locale.toLowerCase().startsWith("zh") && field.placeholder
+        ? `Enter ${humanizeRemediationIdentifier(field.key)}`
+        : field.placeholder,
+      options: field.options?.map((option) => ({
+        ...option,
+        label: locale.toLowerCase().startsWith("zh")
+          ? option.label
+          : humanizeRemediationIdentifier(option.value),
+      })),
+    })),
+  };
+}
+
 function asPreviewInput(input: OrderActionInput): PreviewActionInput {
   return input as unknown as PreviewActionInput;
 }
@@ -74,9 +218,13 @@ export function remediationOrderActionOption(
 
 export function remediationOrderActionLabel(
   item: Pick<RemediationOrderItem, "action_code" | "entity_type">,
+  locale = "zh-CN",
 ) {
   const action = remediationOrderActionOption(item);
   const template = getRemediationPreviewTemplate(action);
+  if (!locale.toLowerCase().startsWith("zh")) {
+    return humanizeRemediationIdentifier(item.action_code || template.id);
+  }
   return remediationTemplateActionDisplayName(
     action,
     template,
@@ -384,7 +532,10 @@ function SectionCollapseButton({
   onClick: () => void;
   sectionName: string;
 }) {
-  const label = expanded ? "收起" : "展开";
+  const locale = useLocale();
+  const label = expanded
+    ? locale.toLowerCase().startsWith("zh") ? "收起" : "Collapse"
+    : locale.toLowerCase().startsWith("zh") ? "展开" : "Expand";
   const Icon = expanded ? ChevronUp : ChevronDown;
   return (
     <button
@@ -417,12 +568,12 @@ function fieldValue(field: TemplateField, values: RemediationTemplateValues) {
   return values.parameterOverrides[field.key] ?? field.defaultValue;
 }
 
-function historyParameterText(actionCode: string) {
+function historyParameterText(actionCode: string, locale: string) {
   const normalized = actionCode.trim().toLowerCase();
   if (normalized.includes("bypass"))
-    return "使用原处置参数中的 Policy ID 放行依据";
-  if (normalized.includes("enable")) return "使用原处置参数中的启用依据";
-  return "使用原处置参数中的恢复依据";
+    return parameterText(locale, "historyBypass");
+  if (normalized.includes("enable")) return parameterText(locale, "historyEnable");
+  return parameterText(locale, "historyRestore");
 }
 
 export function RemediationOrderParameterPanel({
@@ -437,16 +588,15 @@ export function RemediationOrderParameterPanel({
   onActionInputChange: (input: OrderActionInput) => void;
 }) {
   const locale = useLocale();
-  const hostIdLabel = locale.toLowerCase().startsWith("zh")
-    ? "主机ID"
-    : "HostID";
+  const t = useTranslations("pages.collection.orchestration");
+  const hostIdLabel = t("workspace.hostId");
   const selectedAction = useMemo(
     () => remediationOrderActionOption(item),
     [item.action_code, item.entity_type],
   );
   const template = useMemo(
-    () => getRemediationPreviewTemplate(selectedAction),
-    [selectedAction],
+    () => localizedTemplate(getRemediationPreviewTemplate(selectedAction), locale),
+    [locale, selectedAction],
   );
   const [templateValues, setTemplateValues] =
     useState<RemediationTemplateValues>(() =>
@@ -490,12 +640,12 @@ export function RemediationOrderParameterPanel({
             </div>
           </div>
           <div className="min-w-0 border-t border-slate-200 px-4 py-3 sm:border-l sm:border-t-0">
-            <div className="text-xs text-slate-400">处置动作</div>
+            <div className="text-xs text-slate-400">{t("parameters.remediationAction")}</div>
             <div
               className="mt-1 truncate text-xs font-semibold text-blue-700"
               title={item.action_code}
             >
-              {remediationOrderActionLabel(item)}
+              {remediationOrderActionLabel(item, locale)}
             </div>
           </div>
         </div>
@@ -539,6 +689,7 @@ function WorkspaceTemplateControls({
   template: RemediationPreviewTemplate;
   values: RemediationTemplateValues;
 }) {
+  const locale = useLocale();
   if (selectedAction.requires_history) {
     return (
       <div className="flex min-h-24 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
@@ -547,10 +698,10 @@ function WorkspaceTemplateControls({
         </span>
         <div>
           <div className="text-xs font-semibold text-slate-700">
-            无需填写动作参数
+            {parameterText(locale, "historyNoParameters")}
           </div>
           <div className="mt-1 text-xs leading-5 text-slate-500">
-            {historyParameterText(selectedAction.action_code)}
+            {historyParameterText(selectedAction.action_code, locale)}
           </div>
         </div>
       </div>
@@ -585,14 +736,14 @@ function WorkspaceTemplateControls({
     return (
       <div>
         <div className="mb-2 text-xs font-semibold text-slate-700">
-          进程结束行为
+          {parameterText(locale, "processTermination")}
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <BooleanParameterCard
             checked={values.includeChildProcesses}
-            description="结束目标进程时一并结束其子进程"
+            description={parameterText(locale, "terminateChildrenDescription")}
             disabled={disabled}
-            label="终止子进程"
+            label={parameterText(locale, "terminateChildren")}
             onCheckedChange={(checked) =>
               onValuesChange({ ...values, includeChildProcesses: checked })
             }
@@ -600,7 +751,7 @@ function WorkspaceTemplateControls({
           {forceField ? (
             <BooleanParameterCard
               checked={booleanValue(fieldValue(forceField, values), false)}
-              description="使用强制方式结束目标进程"
+              description={parameterText(locale, "forceTerminateDescription")}
               disabled={disabled}
               label={forceField.label}
               onCheckedChange={(checked) =>
@@ -622,14 +773,14 @@ function WorkspaceTemplateControls({
   if (template.parameters.length === 0) {
     return (
       <div className="flex min-h-20 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-xs text-slate-500">
-        使用原处置参数中的默认配置
+        {parameterText(locale, "usingDefaultParameters")}
       </div>
     );
   }
 
   const parameterTitle =
     template.id === "process-block-execute"
-      ? "阻断参数"
+      ? locale.toLowerCase().startsWith("zh") ? "阻断参数" : "Block Parameters"
       : `${template.title}参数`;
 
   return (
@@ -678,6 +829,7 @@ function FileEAWorkspaceControls({
   disabled: boolean;
   onActionInputChange: (input: OrderActionInput) => void;
 }) {
+  const locale = useLocale();
   const input = actionInput.file_ea ?? {};
   const mode = input.delete_all
     ? "all"
@@ -696,7 +848,7 @@ function FileEAWorkspaceControls({
   return (
     <div className="space-y-3">
       <label className="block rounded-2xl border border-slate-200 bg-white px-4 py-3">
-        <span className="text-xs font-semibold text-slate-700">删除范围</span>
+        <span className="text-xs font-semibold text-slate-700">{parameterText(locale, "deleteScope")}</span>
         <Select
           disabled={disabled}
           value={mode || undefined}
@@ -712,14 +864,14 @@ function FileEAWorkspaceControls({
           }
         >
           <SelectTrigger className="mt-2 h-10 rounded-xl border-slate-200 bg-slate-50 text-xs shadow-none focus:ring-teal-200">
-            <SelectValue placeholder="请选择删除范围" />
+            <SelectValue placeholder={parameterText(locale, "selectDeleteScope")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="named" className="text-xs">
-              按 EA 名称删除
+              {parameterText(locale, "deleteNamedEa")}
             </SelectItem>
             <SelectItem value="all" className="text-xs">
-              明确删除全部 EA
+              {parameterText(locale, "deleteAllEa")}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -727,13 +879,13 @@ function FileEAWorkspaceControls({
 
       {mode === "named" ? (
         <label className="block rounded-2xl border border-slate-200 bg-white px-4 py-3">
-          <span className="text-xs font-semibold text-slate-700">EA 名称</span>
+          <span className="text-xs font-semibold text-slate-700">{parameterText(locale, "eaNames")}</span>
           <span className="ml-1 text-red-500">*</span>
           <Textarea
-            aria-label="EA 名称"
+            aria-label={parameterText(locale, "eaNames")}
             disabled={disabled}
             value={eaNamesText}
-            placeholder="每行填写一个 EA 名称"
+            placeholder={parameterText(locale, "eaNamesPlaceholder")}
             onChange={(event) => setEANamesText(event.target.value)}
             onBlur={() =>
               updateFileEA({
@@ -744,22 +896,22 @@ function FileEAWorkspaceControls({
             className="mt-2 min-h-24 resize-y rounded-xl border-slate-200 bg-slate-50 font-mono text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0"
           />
           <span className="mt-2 block text-[11px] leading-4 text-slate-500">
-            最多 128 个名称，支持换行或逗号分隔。
+            {parameterText(locale, "eaNamesHint")}
           </span>
         </label>
       ) : null}
 
       {mode === "all" ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-          已明确选择删除该文件上的全部 EA。
+          {parameterText(locale, "deleteAllEaHint")}
         </div>
       ) : null}
 
       <BooleanParameterCard
         checked={Boolean(input.force)}
-        description="仅在普通删除失败时使用强制方式"
+        description={parameterText(locale, "forceDeleteDescription")}
         disabled={disabled}
-        label="强制删除"
+        label={parameterText(locale, "forceDelete")}
         onCheckedChange={(checked) =>
           updateFileEA({
             force: checked,
@@ -784,6 +936,7 @@ function FileQuarantineWorkspaceControls({
   template: RemediationPreviewTemplate;
   values: RemediationTemplateValues;
 }) {
+  const locale = useLocale();
   const fields = Object.fromEntries(
     template.parameters.map((field) => [field.key, field]),
   ) as Record<string, TemplateField | undefined>;
@@ -811,16 +964,16 @@ function FileQuarantineWorkspaceControls({
       {deleteOriginal ? (
         <div>
           <div className="mb-2 text-xs font-semibold text-slate-700">
-            隔离行为
+            {parameterText(locale, "quarantineBehavior")}
           </div>
           <BooleanParameterCard
             checked={booleanValue(
               fieldValue(deleteOriginal, values),
               Boolean(deleteOriginal.defaultValue),
             )}
-            description="默认开启；隔离失败时不会删除原文件"
+            description={parameterText(locale, "deleteOriginalDescription")}
             disabled={disabled}
-            label="隔离成功后删除原文件"
+            label={parameterText(locale, "deleteOriginal")}
             onCheckedChange={(checked) => setField(deleteOriginal, checked)}
           />
         </div>
@@ -829,11 +982,11 @@ function FileQuarantineWorkspaceControls({
       <div className="grid gap-3 sm:grid-cols-2">
         {storage ? (
           <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-            <div className="text-xs font-semibold text-slate-700">隔离存储</div>
+            <div className="text-xs font-semibold text-slate-700">{parameterText(locale, "quarantineStorage")}</div>
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs">
               {[
-                { label: "本地安全区", value: "local" },
-                { label: "中心存储", value: "central" },
+                { label: parameterText(locale, "localSecureStorage"), value: "local" },
+                { label: parameterText(locale, "centralStorage"), value: "central" },
               ].map((option) => {
                 const selected = storageValue === option.value;
                 return (
@@ -876,9 +1029,9 @@ function FileQuarantineWorkspaceControls({
               fieldValue(encrypt, values),
               Boolean(encrypt.defaultValue),
             )}
-            description="使用 Agent 安全密钥加密"
+            description={parameterText(locale, "encryptPackageDescription")}
             disabled={disabled}
-            label="隔离包加密"
+            label={parameterText(locale, "encryptPackage")}
             onCheckedChange={(checked) => setField(encrypt, checked)}
           />
         ) : null}
@@ -887,7 +1040,7 @@ function FileQuarantineWorkspaceControls({
       {suffix ? (
         <label className="block">
           <span className="text-xs font-semibold text-slate-700">
-            隔离文件后缀
+            {parameterText(locale, "quarantineSuffix")}
           </span>
           <Input
             value={stringValue(fieldValue(suffix, values))}

@@ -8,6 +8,7 @@ import {
   type FormEvent,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import {
   ArrowLeft,
   Clock3,
@@ -158,10 +159,10 @@ function monthAgoDate() {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-function formatHeaderRefreshTime(value?: Date | null) {
+function formatHeaderRefreshTime(value: Date | null | undefined, locale: string) {
   if (!value) return "--";
 
-  const parts = new Intl.DateTimeFormat("zh-CN", {
+  const parts = new Intl.DateTimeFormat(locale, {
     timeZone: RESPONSE_TIMEZONE,
     year: "numeric",
     month: "2-digit",
@@ -421,6 +422,8 @@ export function RemediationOrchestrationPage({
   context: RemediationOrchestrationContext;
 }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations("pages.collection.orchestration");
   const { toast } = useToast();
   const [workflow, setWorkflow] = useState<AttackWorkflowItem | null>(null);
   const [action, setAction] = useState<AttackWorkflowActionItem | null>(null);
@@ -956,7 +959,7 @@ export function RemediationOrchestrationPage({
               <div className="min-w-0 space-y-1.5">
                 <div className="flex min-w-0 flex-wrap items-center gap-3">
                   <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
-                    处置编排
+                    {t("page.title")}
                   </h1>
                   <Button
                     type="button"
@@ -966,7 +969,7 @@ export function RemediationOrchestrationPage({
                     onClick={() => router.back()}
                   >
                     <ArrowLeft className="size-4" aria-hidden="true" />
-                    返回
+                    {t("page.back")}
                   </Button>
                 </div>
                 {orderMode ? (
@@ -975,7 +978,7 @@ export function RemediationOrchestrationPage({
                       className="min-w-0 truncate text-sm text-slate-500"
                       title={loadedOrderTitle || undefined}
                     >
-                      {loadedOrderTitle || "正在加载处置单名称…"}
+                      {loadedOrderTitle || t("page.orderLoading")}
                     </p>
                     {loadedOrderStatus === "draft" ? (
                       <button
@@ -984,8 +987,8 @@ export function RemediationOrchestrationPage({
                         onClick={() =>
                           setTitleEditRequestKey((current) => current + 1)
                         }
-                        aria-label="修改处置单名称"
-                        title="修改处置单名称"
+                        aria-label={t("page.editOrderTitle")}
+                        title={t("page.editOrderTitle")}
                       >
                         <Pencil className="size-3.5" aria-hidden="true" />
                       </button>
@@ -994,7 +997,7 @@ export function RemediationOrchestrationPage({
                 ) : null}
                 {!orderMode ? (
                 <p className="min-w-0 truncate text-sm text-slate-500">
-                  预览、下发、跟踪处置动作
+                  {t("page.description")}
                 </p>
                 ) : null}
               </div>
@@ -1012,10 +1015,10 @@ export function RemediationOrchestrationPage({
                   />
                   <input
                     type="search"
-                    aria-label="案件 ID"
+                    aria-label={t("page.caseId")}
                     value={headerCaseInput}
                     onChange={(event) => setHeaderCaseInput(event.target.value)}
-                    placeholder="请输入案件 ID"
+                    placeholder={t("page.caseIdPlaceholder")}
                     disabled={orderMode ? orderLoading : loading}
                     readOnly={orderMode}
                     className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 read-only:cursor-default disabled:cursor-not-allowed disabled:opacity-60"
@@ -1032,9 +1035,9 @@ export function RemediationOrchestrationPage({
                     <Clock3 aria-hidden className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="text-xs text-slate-400">更新时间</div>
+                    <div className="text-xs text-slate-400">{t("page.updatedAt")}</div>
                     <div className="whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
-                      {formatHeaderRefreshTime(refreshedAt)}
+                      {formatHeaderRefreshTime(refreshedAt, locale)}
                     </div>
                   </div>
                 </div>
@@ -1050,7 +1053,7 @@ export function RemediationOrchestrationPage({
                   size="icon"
                   onClick={refreshHeader}
                   disabled={loading || refreshing || orderLoading}
-                  aria-label="刷新"
+                  aria-label={t("page.refresh")}
                   className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
                 >
                   <RefreshCcw
@@ -1059,13 +1062,13 @@ export function RemediationOrchestrationPage({
                     (loading || refreshing || orderLoading) && "animate-spin",
                     )}
                   />
-                  <span className="sr-only">刷新</span>
+                  <span className="sr-only">{t("page.refresh")}</span>
                 </Button>
 
                 {orderMode ? (
                   <span className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-slate-100 px-4 text-sm font-medium text-slate-600">
                     <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                    Order 模式
+                    {t("page.orderMode")}
                   </span>
                 ) : (
                   <Button

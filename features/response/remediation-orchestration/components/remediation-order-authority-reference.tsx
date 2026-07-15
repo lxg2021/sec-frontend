@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import type {
   RemediationActionDecision,
   RemediationActionInput,
@@ -36,6 +38,7 @@ export function RemediationOrderAuthorityReference({
   onReverseSourceChange: (sourceItemId: string) => void
   reverseSourceItemId: string
 }) {
+  const t = useTranslations("pages.collection.orchestration")
   const agentDecision = decision?.agent_decisions.find(
     (candidate) => candidate.agent_id === item.agent_id,
   )
@@ -49,22 +52,22 @@ export function RemediationOrderAuthorityReference({
   return (
     <div className="mb-4 grid gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4">
       <div>
-        <div className="text-xs font-semibold text-blue-900">权威执行引用</div>
+        <div className="text-xs font-semibold text-blue-900">{t("reference.title")}</div>
         <p className="mt-1 text-xs leading-5 text-blue-700">
-          这里只选择后台返回的历史来源或具体目标，不重新推断 Agent 和 Action。
+          {t("reference.description")}
         </p>
       </div>
 
       {reverseContexts.length > 0 ? (
         <label className="grid gap-2 text-xs font-medium text-slate-700">
-          恢复来源
+          {t("reference.restoreSource")}
           <Select
             disabled={disabled}
             value={reverseSourceItemId || undefined}
             onValueChange={onReverseSourceChange}
           >
             <SelectTrigger className="h-10 bg-white text-left">
-              <SelectValue placeholder="请选择历史处置来源" />
+              <SelectValue placeholder={t("reference.restoreSourcePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {reverseContexts.map((context) => (
@@ -72,7 +75,7 @@ export function RemediationOrderAuthorityReference({
                   key={context.source_item_id}
                   value={context.source_item_id}
                 >
-                  {context.source_action_code || "历史处置"} · {shortId(context.source_item_id)}
+                  {context.source_action_code || t("reference.historyAction")} · {shortId(context.source_item_id)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -82,7 +85,7 @@ export function RemediationOrderAuthorityReference({
 
       {targetCandidates.length > 0 ? (
         <label className="grid gap-2 text-xs font-medium text-slate-700">
-          具体处置目标
+          {t("reference.target")}
           <Select
             disabled={disabled}
             value={selectedCandidateId || undefined}
@@ -97,7 +100,7 @@ export function RemediationOrderAuthorityReference({
             }
           >
             <SelectTrigger className="h-10 bg-white text-left">
-              <SelectValue placeholder="请选择具体目标" />
+              <SelectValue placeholder={t("reference.targetPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {targetCandidates.map((candidate) => (

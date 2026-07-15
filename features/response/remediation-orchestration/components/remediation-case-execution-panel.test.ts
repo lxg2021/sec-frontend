@@ -29,6 +29,20 @@ describe("activeDispatchSkipPresentation", () => {
     });
   });
 
+  it("localizes an existing Dispatch reason for the English execution table", () => {
+    expect(
+      activeDispatchSkipPresentation(
+        item("ACTIVE_DISPATCH_UNCERTAIN"),
+        "en",
+      ),
+    ).toMatchObject({
+      label: "Not Redispatched",
+      result: "Not Redispatched",
+      reason:
+        "A dispatch already exists for this target; the endpoint result is awaiting confirmation.",
+    });
+  });
+
   it("does not change ordinary skipped Items", () => {
     expect(activeDispatchSkipPresentation(item("SATISFIED_AT_DISPATCH"))).toBeNull();
   });
