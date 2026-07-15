@@ -810,7 +810,7 @@ export function RemediationCaseExecutionPanel({
                 {expanded ? (
                   <div className="overflow-x-auto">
                     <div className="min-w-[1280px]">
-                      <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 text-[11px] font-bold text-slate-500">
+                      <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
                         <span>目标</span>
                         <span>处置动作</span>
                         <span>{hostIdLabel}</span>
@@ -950,7 +950,7 @@ function ExecutionItemRow({
   const result = resultPresentation(item);
   const target = remediationTargetPresentation(item);
   return (
-    <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 last:border-b-0">
+    <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center last:border-b-0">
       <div className="min-w-0">
         <div
           className={cn(
@@ -962,7 +962,7 @@ function ExecutionItemRow({
           {target.displayName}
         </div>
       </div>
-      <div className="flex min-w-0 items-center gap-2.5">
+      <div className="flex min-w-0 items-center justify-center gap-2.5">
         <span
           className={cn(
             "flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50",
@@ -986,7 +986,7 @@ function ExecutionItemRow({
           {shortId(item.agent_id)}
         </div>
       </div>
-      <div>
+      <div className="flex justify-center">
         <span
           className={cn(
             "inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold",
@@ -1010,7 +1010,7 @@ function ExecutionItemRow({
         ) : null}
       </div>
       <div className="min-w-0 text-[11px] leading-5">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-center justify-center gap-2">
           {result.code ? (
             <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-700">
               {result.code}
