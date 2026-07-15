@@ -23,6 +23,7 @@ import { Button } from "@/shared/ui/button";
 
 import { remediationOrderLifecycleActions } from "../remediation-order-model";
 import { remediationOrderActionLabel } from "./remediation-order-parameter-editor";
+import { remediationReadinessIssuePresentation } from "./remediation-order-readiness";
 
 function targetText(item: RemediationOrderItem) {
   return (
@@ -110,40 +111,6 @@ function executionTime(value: string) {
     : parsed.toLocaleString("zh-CN", { hour12: false });
 }
 
-function readinessIssuePresentation(error: string) {
-  const normalized = error.trim().toLowerCase();
-  if (
-    normalized.includes("已有相关处置") ||
-    normalized.includes("running or uncertain") ||
-    normalized.includes("active_effect")
-  ) {
-    return {
-      badge: "动作冲突",
-      action: "查看目标",
-      message:
-        "该 Agent 上已有相关处置正在执行，或上一条处置结果尚未确认，当前不能重复下发。",
-    };
-  }
-  if (
-    normalized.includes("历史") ||
-    normalized.includes("来源") ||
-    normalized.includes("备份") ||
-    normalized.includes("history") ||
-    normalized.includes("backup")
-  ) {
-    return { badge: "缺少历史来源", action: "选择来源", message: error };
-  }
-  if (
-    normalized.includes("适用性依据") ||
-    normalized.includes("适用性判定") ||
-    normalized.includes("目标证据") ||
-    normalized.includes("graph")
-  ) {
-    return { badge: "缺少目标依据", action: "查看目标", message: error };
-  }
-  return { badge: "待补参数", action: "补充参数", message: error };
-}
-
 export interface RemediationOrderLifecyclePanelProps {
   complete: number;
   decisionLoading: boolean;
@@ -190,7 +157,9 @@ export function RemediationOrderLifecyclePanel({
     ) || stage === 3;
   const blocked = Math.max(total - complete, 0);
   const readinessIssue = firstIncomplete
-    ? readinessIssuePresentation(validationErrors[firstIncomplete.item_id] ?? "")
+    ? remediationReadinessIssuePresentation(
+        validationErrors[firstIncomplete.item_id] ?? "",
+      )
     : null;
 
   return (
@@ -319,7 +288,12 @@ export function RemediationOrderLifecyclePanel({
                       {basename(targetText(firstIncomplete))} ·{" "}
                       {remediationOrderActionLabel(firstIncomplete)}
                     </div>
-                    <span className="shrink-0 rounded-full bg-amber-200 px-2.5 py-1 text-[10px] font-bold text-amber-900">
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold",
+                        readinessIssue.badgeClassName,
+                      )}
+                    >
                       {readinessIssue.badge}
                     </span>
                   </div>

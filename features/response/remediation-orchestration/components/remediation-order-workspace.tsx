@@ -9,13 +9,14 @@ import {
   type ComponentType,
 } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import {
   AlertTriangle,
   Boxes,
   CalendarCheck2,
-  ChevronRight,
   Cog,
   Crosshair,
+  Cpu,
   Database,
   FileText,
   Loader2,
@@ -55,6 +56,7 @@ import {
 import { RemediationOrderAuthorityReference } from "./remediation-order-authority-reference";
 import { RemediationOrderLifecycleDialogs } from "./remediation-order-lifecycle-dialogs";
 import { RemediationOrderLifecyclePanel } from "./remediation-order-lifecycle-panel";
+import { remediationReadinessIssuePresentation } from "./remediation-order-readiness";
 
 interface RemediationOrderWorkspaceProps {
   onLoadingChange?: (loading: boolean) => void;
@@ -98,6 +100,7 @@ function itemTargetText(item: RemediationOrderItem) {
 
 function itemIcon(entityType: string): ItemIcon {
   const type = entityType.trim().toLowerCase();
+  if (type.includes("process")) return Cpu;
   if (type.includes("file") || type.includes("ea") || type.includes("ads")) {
     return FileText;
   }
@@ -114,6 +117,7 @@ function itemIcon(entityType: string): ItemIcon {
 
 function iconTone(entityType: string) {
   const type = entityType.trim().toLowerCase();
+  if (type.includes("process")) return "bg-indigo-50 text-indigo-600";
   if (type.includes("file")) return "bg-teal-100 text-teal-700";
   if (type.includes("task")) return "bg-blue-50 text-blue-600";
   if (type.includes("service")) return "bg-violet-50 text-violet-600";
@@ -133,9 +137,10 @@ function statusBadge(
     return { label: "已阻止", className: "bg-red-50 text-red-700" };
   }
   if (validationError) {
-    return { label: "需配置", className: "bg-amber-100 text-amber-800" };
+    const issue = remediationReadinessIssuePresentation(validationError);
+    return { label: issue.badge, className: issue.badgeClassName };
   }
-  return { label: "完整", className: "bg-emerald-50 text-emerald-700" };
+  return { label: "可准备", className: "bg-emerald-50 text-emerald-700" };
 }
 
 export function RemediationOrderWorkspace({
@@ -692,6 +697,10 @@ function TargetListPanel({
   total: number;
   validationErrors: Record<string, string>;
 }) {
+  const locale = useLocale();
+  const hostIdLabel = locale.toLowerCase().startsWith("zh")
+    ? "主机ID"
+    : "HostID";
   return (
     <aside className="flex min-h-[620px] min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
       <div className="flex items-center justify-between gap-3">
@@ -751,14 +760,14 @@ function TargetListPanel({
                         {badge.label}
                       </span>
                     </span>
-                    <span className="mt-1 block truncate font-mono text-[11px] text-slate-500" title={item.agent_id}>
-                      HostID&nbsp; {shortId(item.agent_id)}
+                    <span className="mt-1 block truncate text-xs font-semibold text-slate-700">
+                      {remediationOrderActionLabel(item)}
                     </span>
-                    <span className="mt-2 flex items-center justify-between gap-2">
-                      <span className="truncate text-xs font-semibold text-slate-600">
-                        {remediationOrderActionLabel(item)}
-                      </span>
-                      {selected ? <ChevronRight className="size-4 shrink-0 text-teal-700" aria-hidden /> : null}
+                    <span
+                      className="mt-2 block truncate font-mono text-[11px] text-slate-500"
+                      title={item.agent_id}
+                    >
+                      {hostIdLabel}&nbsp; {shortId(item.agent_id)}
                     </span>
                   </span>
                 </div>
