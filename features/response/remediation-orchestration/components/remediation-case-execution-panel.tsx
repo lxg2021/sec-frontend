@@ -396,62 +396,6 @@ function resultPresentation(item: RemediationOrderItem) {
   };
 }
 
-function orderStateSummary(
-  order: RemediationOrderListItem,
-  items: RemediationOrderItem[],
-) {
-  const summary = order.summary;
-  const reportTimeoutCount = items.filter(itemIsReportTimeout).length;
-  const activeDispatchSkipCount = items.filter((item) =>
-    Boolean(activeDispatchSkipPresentation(item)),
-  ).length;
-  const uncertainCount = Math.max(
-    summary.uncertain - reportTimeoutCount,
-    0,
-  );
-  const failedCount = Math.max(
-    summary.failed - Math.max(summary.uncertain, reportTimeoutCount),
-    0,
-  );
-  return [
-    {
-      label: `待下发/执行中 ${summary.pending + summary.running}`,
-      visible: summary.pending + summary.running > 0,
-      className: "bg-sky-50 text-sky-700",
-    },
-    {
-      label: `成功 ${summary.success}`,
-      visible: summary.success > 0,
-      className: "bg-emerald-50 text-emerald-700",
-    },
-    {
-      label: `未重复下发 ${activeDispatchSkipCount}`,
-      visible: activeDispatchSkipCount > 0,
-      className: "bg-slate-100 text-slate-700",
-    },
-    {
-      label: `回报超时 ${reportTimeoutCount}`,
-      visible: reportTimeoutCount > 0,
-      className: "bg-orange-50 text-orange-700",
-    },
-    {
-      label: `失败 ${failedCount}`,
-      visible: failedCount > 0,
-      className: "bg-rose-50 text-rose-700",
-    },
-    {
-      label: `未确定 ${uncertainCount}`,
-      visible: uncertainCount > 0,
-      className: "bg-amber-50 text-amber-700",
-    },
-    {
-      label: `待确认 ${summary.ready}`,
-      visible: summary.ready > 0,
-      className: "bg-violet-50 text-violet-700",
-    },
-  ].filter((entry) => entry.visible);
-}
-
 function querySources(
   orders: RemediationOrderListItem[],
   currentOrder: RemediationOrder,
@@ -820,7 +764,6 @@ export function RemediationCaseExecutionPanel({
               itemMatchesFilter(item, filter),
             );
             const expanded = expandedOrderIds.has(order.order_id);
-            const orderBadges = orderStateSummary(order, allOrderItems);
             return (
               <article
                 key={order.order_id}
@@ -848,23 +791,6 @@ export function RemediationCaseExecutionPanel({
                       <span className="text-sm font-semibold text-slate-800">
                         {displayOrderTitle}
                       </span>
-                      <span
-                        className="font-mono text-[10px] text-slate-500"
-                        title={order.order_id}
-                      >
-                        Order {shortId(order.order_id)}
-                      </span>
-                      {orderBadges.map((badge) => (
-                        <span
-                          key={badge.label}
-                          className={cn(
-                            "rounded-full px-2.5 py-1 text-[10px] font-bold",
-                            badge.className,
-                          )}
-                        >
-                          {badge.label}
-                        </span>
-                      ))}
                     </span>
                   </span>
                   <span className="hidden shrink-0 text-right text-[11px] text-slate-500 lg:block">
@@ -878,10 +804,11 @@ export function RemediationCaseExecutionPanel({
 
                 {expanded ? (
                   <div className="overflow-x-auto">
-                    <div className="min-w-[1840px]">
-                      <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
+                    <div className="min-w-[2010px]">
+                      <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
                         <span>目标</span>
                         <span>处置动作</span>
+                        <span>{isZhLocale ? "处置单ID" : "OrderID"}</span>
                         <span>{isZhLocale ? "主机ID" : "HostID"}</span>
                         <span>{isZhLocale ? "主机名" : "HostName"}</span>
                         <span>IP</span>
@@ -1030,7 +957,7 @@ function ExecutionItemRow({
     : primaryIP;
   const macAddresses = agent?.mac_addresses.join(", ") || "";
   return (
-    <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center last:border-b-0">
+    <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center last:border-b-0">
       <div className="min-w-0">
         <div
           className={cn(
@@ -1058,6 +985,7 @@ function ExecutionItemRow({
           {remediationOrderActionLabel(item)}
         </span>
       </div>
+      <TableOrderIDValue value={item.order_id} />
       <TableIdentityValue value={hostID} mono />
       <TableIdentityValue value={hostName} />
       <TableIdentityValue value={ipAddresses} mono />
@@ -1105,6 +1033,18 @@ function ExecutionItemRow({
           {result.reason}
         </span>
       </div>
+    </div>
+  );
+}
+
+function TableOrderIDValue({ value }: { value: string }) {
+  const normalized = value.trim();
+  return (
+    <div
+      className="min-w-0 truncate font-mono text-[11px] text-slate-700"
+      title={normalized || undefined}
+    >
+      {normalized ? shortId(normalized) : "-"}
     </div>
   );
 }
