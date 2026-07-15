@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { History } from "lucide-react";
+import { ChevronDown, ChevronUp, History } from "lucide-react";
 import { useLocale } from "next-intl";
 
 import type {
@@ -303,10 +303,14 @@ function targetSnapshotRows(
 }
 
 function TargetSnapshotPanel({
+  expanded,
   item,
+  onExpandedChange,
   snapshot,
 }: {
+  expanded: boolean;
   item: RemediationOrderItem;
+  onExpandedChange: (expanded: boolean) => void;
   snapshot: RemediationTargetSnapshot | null;
 }) {
   const snapshotAvailable = snapshot?.status === "available";
@@ -331,32 +335,68 @@ function TargetSnapshotPanel({
 
   return (
     <div className="mt-4">
-      <div className="mb-2 text-xs font-semibold text-slate-700">目标信息</div>
-      <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
-        {rows.map((row, index) => (
-          <div
-            className={cn(
-              "min-w-0 bg-slate-50 px-4 py-2.5",
-              row.wide ? "sm:col-span-2" : "",
-            )}
-            key={`${row.label}-${index}`}
-          >
-            <div className="text-[11px] text-slate-400">{row.label}</div>
-            <div
-              className="mt-1 truncate font-mono text-xs font-medium text-slate-700"
-              title={row.value}
-            >
-              {row.value}
-            </div>
-          </div>
-        ))}
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold text-slate-700">目标信息</div>
+        <SectionCollapseButton
+          expanded={expanded}
+          onClick={() => onExpandedChange(!expanded)}
+          sectionName="目标信息"
+        />
       </div>
-      {unavailableMessage ? (
-        <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-700">
-          {unavailableMessage}
-        </div>
+      {expanded ? (
+        <>
+          <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+            {rows.map((row, index) => (
+              <div
+                className={cn(
+                  "min-w-0 bg-slate-50 px-4 py-2.5",
+                  row.wide ? "sm:col-span-2" : "",
+                )}
+                key={`${row.label}-${index}`}
+              >
+                <div className="text-[11px] text-slate-400">{row.label}</div>
+                <div
+                  className="mt-1 truncate font-mono text-xs font-medium text-slate-700"
+                  title={row.value}
+                >
+                  {row.value}
+                </div>
+              </div>
+            ))}
+          </div>
+          {unavailableMessage ? (
+            <div className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-700">
+              {unavailableMessage}
+            </div>
+          ) : null}
+        </>
       ) : null}
     </div>
+  );
+}
+
+function SectionCollapseButton({
+  expanded,
+  onClick,
+  sectionName,
+}: {
+  expanded: boolean;
+  onClick: () => void;
+  sectionName: string;
+}) {
+  const label = expanded ? "收起" : "展开";
+  const Icon = expanded ? ChevronUp : ChevronDown;
+  return (
+    <button
+      type="button"
+      aria-expanded={expanded}
+      aria-label={`${label}${sectionName}`}
+      onClick={onClick}
+      className="inline-flex h-7 shrink-0 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2"
+    >
+      {label}
+      <Icon className="size-3.5" aria-hidden />
+    </button>
   );
 }
 
@@ -412,6 +452,8 @@ export function RemediationOrderParameterPanel({
     useState<RemediationTemplateValues>(() =>
       initialRemediationTemplateValues(asPreviewInput(actionInput), template),
     );
+  const [targetInfoExpanded, setTargetInfoExpanded] = useState(true);
+  const [parametersExpanded, setParametersExpanded] = useState(true);
 
   function updateTemplateValues(values: RemediationTemplateValues) {
     setTemplateValues(values);
@@ -429,28 +471,35 @@ export function RemediationOrderParameterPanel({
 
   return (
     <div>
-      <TargetSnapshotPanel item={item} snapshot={item.target_snapshot} />
+      <TargetSnapshotPanel
+        expanded={targetInfoExpanded}
+        item={item}
+        onExpandedChange={setTargetInfoExpanded}
+        snapshot={item.target_snapshot}
+      />
 
-      <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2">
-        <div className="min-w-0 px-4 py-3">
-          <div className="text-xs text-slate-400">{hostIdLabel}</div>
-          <div
-            className="mt-1 truncate font-mono text-xs font-semibold text-slate-700"
-            title={item.agent_id}
-          >
-            {item.agent_id || "-"}
+      {targetInfoExpanded ? (
+        <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2">
+          <div className="min-w-0 px-4 py-3">
+            <div className="text-xs text-slate-400">{hostIdLabel}</div>
+            <div
+              className="mt-1 truncate font-mono text-xs font-semibold text-slate-700"
+              title={item.agent_id}
+            >
+              {item.agent_id || "-"}
+            </div>
+          </div>
+          <div className="min-w-0 border-t border-slate-200 px-4 py-3 sm:border-l sm:border-t-0">
+            <div className="text-xs text-slate-400">处置动作</div>
+            <div
+              className="mt-1 truncate text-xs font-semibold text-blue-700"
+              title={item.action_code}
+            >
+              {remediationOrderActionLabel(item)}
+            </div>
           </div>
         </div>
-        <div className="min-w-0 border-t border-slate-200 px-4 py-3 sm:border-l sm:border-t-0">
-          <div className="text-xs text-slate-400">处置动作</div>
-          <div
-            className="mt-1 truncate text-xs font-semibold text-blue-700"
-            title={item.action_code}
-          >
-            {remediationOrderActionLabel(item)}
-          </div>
-        </div>
-      </div>
+      ) : null}
 
       <div className="mt-4">
         <WorkspaceTemplateControls
@@ -458,6 +507,8 @@ export function RemediationOrderParameterPanel({
           disabled={disabled}
           onActionInputChange={onActionInputChange}
           onValuesChange={updateTemplateValues}
+          parametersExpanded={parametersExpanded}
+          onParametersExpandedChange={setParametersExpanded}
           selectedAction={selectedAction}
           template={template}
           values={templateValues}
@@ -472,6 +523,8 @@ function WorkspaceTemplateControls({
   disabled,
   onActionInputChange,
   onValuesChange,
+  onParametersExpandedChange,
+  parametersExpanded,
   selectedAction,
   template,
   values,
@@ -480,6 +533,8 @@ function WorkspaceTemplateControls({
   disabled: boolean;
   onActionInputChange: (input: OrderActionInput) => void;
   onValuesChange: (values: RemediationTemplateValues) => void;
+  onParametersExpandedChange: (expanded: boolean) => void;
+  parametersExpanded: boolean;
   selectedAction: RemediationActionOption;
   template: RemediationPreviewTemplate;
   values: RemediationTemplateValues;
@@ -572,30 +627,44 @@ function WorkspaceTemplateControls({
     );
   }
 
+  const parameterTitle =
+    template.id === "process-block-execute"
+      ? "阻断参数"
+      : `${template.title}参数`;
+
   return (
     <div>
-      <div className="mb-2 text-xs font-semibold text-slate-700">
-        {template.title}参数
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold text-slate-700">
+          {parameterTitle}
+        </div>
+        <SectionCollapseButton
+          expanded={parametersExpanded}
+          onClick={() => onParametersExpandedChange(!parametersExpanded)}
+          sectionName={parameterTitle}
+        />
       </div>
-      <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
-        {template.parameters.map((field) => (
-          <WorkspaceParameterField
-            disabled={disabled}
-            field={field}
-            key={field.key}
-            onChange={(value) =>
-              onValuesChange({
-                ...values,
-                parameterOverrides: {
-                  ...values.parameterOverrides,
-                  [field.key]: value,
-                },
-              })
-            }
-            value={fieldValue(field, values)}
-          />
-        ))}
-      </div>
+      {parametersExpanded ? (
+        <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+          {template.parameters.map((field) => (
+            <WorkspaceParameterField
+              disabled={disabled}
+              field={field}
+              key={field.key}
+              onChange={(value) =>
+                onValuesChange({
+                  ...values,
+                  parameterOverrides: {
+                    ...values.parameterOverrides,
+                    [field.key]: value,
+                  },
+                })
+              }
+              value={fieldValue(field, values)}
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -565,7 +565,7 @@ export function RemediationOrderWorkspace({
     <>
       <section
         aria-label="处置草稿工作区"
-        className="grid min-w-0 gap-4 xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
+        className="grid min-w-0 gap-4 xl:h-[620px] xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
       >
       <TargetListPanel
         decisions={decisions}
@@ -580,7 +580,7 @@ export function RemediationOrderWorkspace({
 
       <section
         id="remediation-order-parameters"
-        className="min-h-[620px] min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
+        className="flex h-full min-h-0 min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
       >
         <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
@@ -596,40 +596,42 @@ export function RemediationOrderWorkspace({
             </span>
           ) : null}
         </div>
-        {selectedItem ? (
-          <div className="pt-4">
-            <RemediationOrderAuthorityReference
-              actionInput={selectedInput}
-              decision={decisions[selectedItem.item_id]}
-              disabled={!editable}
-              item={selectedItem}
-              onActionInputChange={(input) =>
-                updateActionInput(selectedItem.item_id, input)
-              }
-              onReverseSourceChange={(sourceItemId) =>
-                updateReverseSource(selectedItem.item_id, sourceItemId)
-              }
-              reverseSourceItemId={
-                reverseSourceIds[selectedItem.item_id] ??
-                selectedItem.reverse_source_id ??
-                ""
-              }
-            />
-            <RemediationOrderParameterPanel
-              key={`${selectedItem.item_id}:${order.revision}`}
-              actionInput={selectedInput}
-              disabled={!editable}
-              item={selectedItem}
-              onActionInputChange={(input) =>
-                updateActionInput(selectedItem.item_id, input)
-              }
-            />
-          </div>
-        ) : (
-          <div className="flex min-h-[480px] items-center justify-center text-sm text-slate-400">
-            当前处置单没有目标
-          </div>
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          {selectedItem ? (
+            <div className="pt-4">
+              <RemediationOrderAuthorityReference
+                actionInput={selectedInput}
+                decision={decisions[selectedItem.item_id]}
+                disabled={!editable}
+                item={selectedItem}
+                onActionInputChange={(input) =>
+                  updateActionInput(selectedItem.item_id, input)
+                }
+                onReverseSourceChange={(sourceItemId) =>
+                  updateReverseSource(selectedItem.item_id, sourceItemId)
+                }
+                reverseSourceItemId={
+                  reverseSourceIds[selectedItem.item_id] ??
+                  selectedItem.reverse_source_id ??
+                  ""
+                }
+              />
+              <RemediationOrderParameterPanel
+                key={`${selectedItem.item_id}:${order.revision}`}
+                actionInput={selectedInput}
+                disabled={!editable}
+                item={selectedItem}
+                onActionInputChange={(input) =>
+                  updateActionInput(selectedItem.item_id, input)
+                }
+              />
+            </div>
+          ) : (
+            <div className="flex min-h-full items-center justify-center text-sm text-slate-400">
+              当前处置单没有目标
+            </div>
+          )}
+        </div>
       </section>
 
       <RemediationOrderLifecyclePanel
@@ -696,7 +698,7 @@ function TargetListPanel({
     ? "主机ID"
     : "HostID";
   return (
-    <aside className="flex min-h-[620px] min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
+    <aside className="flex h-full min-h-0 min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
           <Crosshair className="size-4 text-blue-600" aria-hidden />
