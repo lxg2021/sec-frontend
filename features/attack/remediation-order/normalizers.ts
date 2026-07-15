@@ -15,6 +15,7 @@ import type {
   RemediationActionDecision,
   RemediationActionInput,
   RemediationActionTargetCandidate,
+  RemediationAgentSnapshot,
   RemediationBackupAvailability,
   RemediationItemExecution,
   RemediationItemList,
@@ -567,6 +568,21 @@ export function normalizeRemediationBackupAvailability(
   };
 }
 
+export function normalizeRemediationAgentSnapshot(
+  raw: unknown,
+): RemediationAgentSnapshot | null {
+  const snapshot = objectValue(raw);
+  if (Object.keys(snapshot).length === 0) return null;
+  return {
+    agent_id: stringValue(snapshot.agent_id),
+    host_name: stringValue(snapshot.host_name),
+    primary_ip: stringValue(snapshot.primary_ip),
+    ip_addresses: stringArray(snapshot.ip_addresses),
+    mac_addresses: stringArray(snapshot.mac_addresses),
+    observed_at: stringValue(snapshot.observed_at),
+  };
+}
+
 export function normalizeRemediationTargetSnapshot(
   raw: unknown,
 ): RemediationTargetSnapshot | null {
@@ -749,6 +765,7 @@ export function normalizeRemediationOrderItem(
     backup: normalizeRemediationBackupAvailability(item.backup),
     order_id: stringValue(item.order_id),
     target_snapshot: normalizeRemediationTargetSnapshot(item.target_snapshot),
+    agent_snapshot: normalizeRemediationAgentSnapshot(item.agent_snapshot),
   };
 }
 

@@ -34,7 +34,6 @@ import {
   type RemediationSummary,
 } from "@/features/attack/remediation-order";
 import { cn } from "@/shared/lib/utils";
-
 import { remediationOrderActionLabel } from "./remediation-order-parameter-editor";
 import {
   remediationActionIcon,
@@ -574,9 +573,7 @@ export function RemediationCaseExecutionPanel({
   }, [currentOrder.items, data?.itemsByOrderId]);
   const activeCount = allItems.filter(itemIsActive).length;
   const attentionCount = allItems.filter(itemNeedsAttention).length;
-  const hostIdLabel = locale.toLowerCase().startsWith("zh")
-    ? "主机ID"
-    : "HostID";
+  const isZhLocale = locale.toLowerCase().startsWith("zh");
   const sourceLabel = caseId ? "当前 Case" : "当前图来源";
   const summary = data?.summary ?? EMPTY_SUMMARY;
   const reportTimeoutCount = allItems.filter(itemIsReportTimeout).length;
@@ -809,11 +806,14 @@ export function RemediationCaseExecutionPanel({
 
                 {expanded ? (
                   <div className="overflow-x-auto">
-                    <div className="min-w-[1280px]">
-                      <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
+                    <div className="min-w-[1840px]">
+                      <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
                         <span>目标</span>
                         <span>处置动作</span>
-                        <span>{hostIdLabel}</span>
+                        <span>{isZhLocale ? "主机ID" : "HostID"}</span>
+                        <span>{isZhLocale ? "主机名" : "HostName"}</span>
+                        <span>IP</span>
+                        <span>MACS</span>
                         <span>当前状态</span>
                         <span>时间</span>
                         <span>结果</span>
@@ -949,8 +949,16 @@ function ExecutionItemRow({
   const time = executionTimePresentation(item, locale);
   const result = resultPresentation(item);
   const target = remediationTargetPresentation(item);
+  const agent = item.agent_snapshot;
+  const hostID = item.agent_id.trim() || "-";
+  const hostName = agent?.host_name.trim() || "";
+  const primaryIP = agent?.primary_ip.trim() || "";
+  const ipAddresses = agent?.ip_addresses.length
+    ? agent.ip_addresses.join(", ")
+    : primaryIP;
+  const macAddresses = agent?.mac_addresses.join(", ") || "";
   return (
-    <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center last:border-b-0">
+    <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center last:border-b-0">
       <div className="min-w-0">
         <div
           className={cn(
@@ -978,14 +986,10 @@ function ExecutionItemRow({
           {remediationOrderActionLabel(item)}
         </span>
       </div>
-      <div className="min-w-0">
-        <div
-          className="truncate font-mono text-[11px] text-slate-700"
-          title={item.agent_id}
-        >
-          {shortId(item.agent_id)}
-        </div>
-      </div>
+      <TableIdentityValue value={hostID} mono />
+      <TableIdentityValue value={hostName} />
+      <TableIdentityValue value={ipAddresses} mono />
+      <TableIdentityValue value={macAddresses} mono />
       <div className="flex justify-center">
         <span
           className={cn(
@@ -1029,6 +1033,27 @@ function ExecutionItemRow({
           {result.reason}
         </span>
       </div>
+    </div>
+  );
+}
+
+function TableIdentityValue({
+  mono = false,
+  value,
+}: {
+  mono?: boolean;
+  value: string;
+}) {
+  const displayValue = value || "-";
+  return (
+    <div
+      className={cn(
+        "min-w-0 truncate text-[11px] text-slate-700",
+        mono && "font-mono",
+      )}
+      title={value || undefined}
+    >
+      {displayValue}
     </div>
   );
 }

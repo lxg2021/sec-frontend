@@ -420,6 +420,14 @@ describe("remediation order normalizers", () => {
     const result = normalizeRemediationOrder({
       items: [
         {
+          agent_snapshot: {
+            agent_id: " agent-1 ",
+            host_name: " OFFICE-PC-023 ",
+            primary_ip: " 10.0.40.15 ",
+            ip_addresses: [" 10.0.40.15 ", "fe80::1", ""],
+            mac_addresses: [" 00-15-5D-12-34-56 ", ""],
+            observed_at: "2026-07-15T06:10:28Z",
+          },
           target_snapshot: {
             status: "REMEDIATION_TARGET_SNAPSHOT_STATUS_AVAILABLE",
             source: 2,
@@ -480,6 +488,14 @@ describe("remediation order normalizers", () => {
       wmi_subscription: null,
       bits_job: null,
       network: null,
+    });
+    expect(result.items[0].agent_snapshot).toEqual({
+      agent_id: "agent-1",
+      host_name: "OFFICE-PC-023",
+      primary_ip: "10.0.40.15",
+      ip_addresses: ["10.0.40.15", "fe80::1"],
+      mac_addresses: ["00-15-5D-12-34-56"],
+      observed_at: "2026-07-15T06:10:28Z",
     });
     expect(result.items[1].target_snapshot?.wmi_subscription).toMatchObject({
       candidate_id: "candidate-1",

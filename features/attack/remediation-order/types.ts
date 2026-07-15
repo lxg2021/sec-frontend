@@ -371,6 +371,15 @@ export interface RemediationBackupAvailability {
   expires_at: string;
 }
 
+export interface RemediationAgentSnapshot {
+  agent_id: string;
+  host_name: string;
+  primary_ip: string;
+  ip_addresses: string[];
+  mac_addresses: string[];
+  observed_at: string;
+}
+
 export type RemediationTargetSnapshotStatus =
   | "unspecified"
   | "available"
@@ -555,6 +564,7 @@ export interface RemediationOrderItem {
   backup: RemediationBackupAvailability | null;
   order_id: string;
   target_snapshot: RemediationTargetSnapshot | null;
+  agent_snapshot: RemediationAgentSnapshot | null;
 }
 
 export interface RemediationOrderSummary {
