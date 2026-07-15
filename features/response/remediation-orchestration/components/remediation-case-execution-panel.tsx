@@ -137,19 +137,19 @@ export function activeDispatchSkipPresentation(item: RemediationOrderItem) {
     case "ACTIVE_DISPATCH_IN_PROGRESS":
       return {
         label: "未重复下发",
-        result: "已有任务执行中",
+        result: "未重复下发",
         reason: "同一目标已有处置任务正在执行，本条未重复下发。",
       };
     case "ACTIVE_DISPATCH_UNCERTAIN":
       return {
         label: "未重复下发",
-        result: "已有下发待确认",
-        reason: "同一目标已有已下发任务，但终端结果尚未确认，本条未重复下发。",
+        result: "未重复下发",
+        reason: "同一目标已有下发任务，终端结果待确认。",
       };
     default:
       return {
         label: "未重复下发",
-        result: "已有任务待对账",
+        result: "未重复下发",
         reason: "同一目标已有待对账任务，本条未重复下发。",
       };
   }
@@ -274,7 +274,6 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
       primary: skippedAt
         ? `未下发 ${formatTimestamp(skippedAt, locale)}`
         : "未重复下发",
-      secondary: "",
     };
   }
   if (itemIsReportTimeout(item)) {
@@ -283,7 +282,6 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
       primary: timedOutAt
         ? `超时 ${formatTimestamp(timedOutAt, locale)}`
         : "回报超时",
-      secondary: "",
     };
   }
   if (itemHasUncertainResult(item)) {
@@ -292,32 +290,24 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
       primary: uncertainAt
         ? `待确认 ${formatTimestamp(uncertainAt, locale)}`
         : "结果未确认",
-      secondary: "尚无权威终态结果",
     };
   }
   if (finishedAt) {
     return {
       primary: `完成 ${formatTimestamp(finishedAt, locale)}`,
-      secondary: "已收到终态回执",
     };
   }
   if (startedAt) {
     return {
       primary: `开始 ${formatTimestamp(startedAt, locale)}`,
-      secondary: lastReportAt
-        ? `最后回执 ${formatTimestamp(lastReportAt, locale)}`
-        : status === "pending"
-          ? "等待下发"
-          : "等待执行回执",
     };
   }
   if (lastReportAt) {
     return {
       primary: `最后回执 ${formatTimestamp(lastReportAt, locale)}`,
-      secondary: "等待状态更新",
     };
   }
-  return { primary: "尚未开始", secondary: "-" };
+  return { primary: "尚未开始" };
 }
 
 function resultPresentation(item: RemediationOrderItem) {
@@ -1007,11 +997,6 @@ function ExecutionItemRow({
         >
           {time.primary}
         </div>
-        {time.secondary ? (
-          <div className="truncate text-slate-500" title={time.secondary}>
-            {time.secondary}
-          </div>
-        ) : null}
       </div>
       <div className="min-w-0 text-[11px] leading-5">
         <div className="flex min-w-0 items-center justify-center gap-2">

@@ -18,14 +18,14 @@ describe("activeDispatchSkipPresentation", () => {
   it("explains an existing in-progress target Dispatch without calling it a failure", () => {
     expect(activeDispatchSkipPresentation(item("ACTIVE_DISPATCH_IN_PROGRESS"))).toMatchObject({
       label: "未重复下发",
-      result: "已有任务执行中",
+      result: "未重复下发",
     });
   });
 
   it("explains a published Dispatch with an unconfirmed result without claiming a terminal receipt", () => {
     expect(activeDispatchSkipPresentation(item("ACTIVE_DISPATCH_UNCERTAIN"))).toMatchObject({
       label: "未重复下发",
-      result: "已有下发待确认",
+      result: "未重复下发",
     });
   });
 
