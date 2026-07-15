@@ -794,15 +794,14 @@ export function RemediationCaseExecutionPanel({
 
                 {expanded ? (
                   <div className="overflow-x-auto">
-                    <div className="min-w-[2010px]">
-                      <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
+                    <div className="min-w-[1810px]">
+                      <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
                         <span>目标</span>
                         <span>处置动作</span>
                         <span>{isZhLocale ? "处置单ID" : "OrderID"}</span>
                         <span>{isZhLocale ? "主机ID" : "HostID"}</span>
                         <span>{isZhLocale ? "主机名" : "HostName"}</span>
                         <span>IP</span>
-                        <span>MACS</span>
                         <span>当前状态</span>
                         <span>时间</span>
                         <span>结果</span>
@@ -945,9 +944,8 @@ function ExecutionItemRow({
   const ipAddresses = agent?.ip_addresses.length
     ? agent.ip_addresses.join(", ")
     : primaryIP;
-  const macAddresses = agent?.mac_addresses.join(", ") || "";
   return (
-    <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_190px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center last:border-b-0">
+    <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center last:border-b-0">
       <div className="min-w-0">
         <div
           className={cn(
@@ -979,7 +977,6 @@ function ExecutionItemRow({
       <TableIdentityValue value={hostID} mono />
       <TableIdentityValue value={hostName} />
       <TableIdentityValue value={ipAddresses} mono />
-      <TableIdentityValue value={macAddresses} mono />
       <div className="flex justify-center">
         <span
           className={cn(
