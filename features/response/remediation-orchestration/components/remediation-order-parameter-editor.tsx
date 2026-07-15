@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, History } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import type {
@@ -65,15 +65,10 @@ function humanizeRemediationIdentifier(value: string) {
 }
 
 type ParameterTextKey =
-  | "historyNoParameters"
-  | "historyBypass"
-  | "historyEnable"
-  | "historyRestore"
   | "processTermination"
   | "terminateChildren"
   | "terminateChildrenDescription"
   | "forceTerminateDescription"
-  | "usingDefaultParameters"
   | "deleteScope"
   | "selectDeleteScope"
   | "deleteNamedEa"
@@ -97,15 +92,10 @@ type ParameterTextKey =
 function parameterText(locale: string, key: ParameterTextKey) {
   const zh = locale.toLowerCase().startsWith("zh");
   const values: Record<ParameterTextKey, [string, string]> = {
-    historyNoParameters: ["无需填写动作参数", "No action parameters are required"],
-    historyBypass: ["使用原处置参数中的 Policy ID 放行依据", "Use the Policy ID allow reference from the original remediation parameters"],
-    historyEnable: ["使用原处置参数中的启用依据", "Use the enable reference from the original remediation parameters"],
-    historyRestore: ["使用原处置参数中的恢复依据", "Use the restore reference from the original remediation parameters"],
     processTermination: ["进程结束行为", "Process Termination Behavior"],
     terminateChildren: ["终止子进程", "Terminate Child Processes"],
     terminateChildrenDescription: ["结束目标进程时一并结束其子进程", "Terminate child processes together with the target process"],
     forceTerminateDescription: ["使用强制方式结束目标进程", "Use forceful termination for the target process"],
-    usingDefaultParameters: ["使用原处置参数中的默认配置", "Using the default configuration from the original remediation parameters"],
     deleteScope: ["删除范围", "Deletion Scope"],
     selectDeleteScope: ["请选择删除范围", "Select a deletion scope"],
     deleteNamedEa: ["按 EA 名称删除", "Delete by EA Name"],
@@ -568,14 +558,6 @@ function fieldValue(field: TemplateField, values: RemediationTemplateValues) {
   return values.parameterOverrides[field.key] ?? field.defaultValue;
 }
 
-function historyParameterText(actionCode: string, locale: string) {
-  const normalized = actionCode.trim().toLowerCase();
-  if (normalized.includes("bypass"))
-    return parameterText(locale, "historyBypass");
-  if (normalized.includes("enable")) return parameterText(locale, "historyEnable");
-  return parameterText(locale, "historyRestore");
-}
-
 export function RemediationOrderParameterPanel({
   actionInput,
   disabled,
@@ -702,21 +684,7 @@ function WorkspaceTemplateControls({
 }) {
   const locale = useLocale();
   if (selectedAction.requires_history) {
-    return (
-      <div className="flex min-h-24 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white text-slate-500 shadow-sm">
-          <History className="size-4" aria-hidden />
-        </span>
-        <div>
-          <div className="text-xs font-semibold text-slate-700">
-            {parameterText(locale, "historyNoParameters")}
-          </div>
-          <div className="mt-1 text-xs leading-5 text-slate-500">
-            {historyParameterText(selectedAction.action_code, locale)}
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   if (selectedAction.action_code.trim().toLowerCase() === "file_ea.delete") {
@@ -725,6 +693,8 @@ function WorkspaceTemplateControls({
         actionInput={actionInput}
         disabled={disabled}
         onActionInputChange={onActionInputChange}
+        onParametersExpandedChange={onParametersExpandedChange}
+        parametersExpanded={parametersExpanded}
       />
     );
   }
@@ -782,11 +752,7 @@ function WorkspaceTemplateControls({
   }
 
   if (template.parameters.length === 0) {
-    return (
-      <div className="flex min-h-20 items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-xs text-slate-500">
-        {parameterText(locale, "usingDefaultParameters")}
-      </div>
-    );
+    return null;
   }
 
   const parameterTitle =
@@ -835,12 +801,19 @@ function FileEAWorkspaceControls({
   actionInput,
   disabled,
   onActionInputChange,
+  onParametersExpandedChange,
+  parametersExpanded,
 }: {
   actionInput: OrderActionInput;
   disabled: boolean;
   onActionInputChange: (input: OrderActionInput) => void;
+  onParametersExpandedChange: (expanded: boolean) => void;
+  parametersExpanded: boolean;
 }) {
   const locale = useLocale();
+  const parameterTitle = locale.toLowerCase().startsWith("zh")
+    ? "删除文件 EA 参数"
+    : "Delete File EA Parameters";
   const input = actionInput.file_ea ?? {};
   const mode = input.delete_all
     ? "all"
@@ -857,81 +830,112 @@ function FileEAWorkspaceControls({
   }
 
   return (
-    <div className="space-y-3">
-      <label className="block rounded-2xl border border-slate-200 bg-white px-4 py-3">
-        <span className="text-xs font-semibold text-slate-700">{parameterText(locale, "deleteScope")}</span>
-        <Select
-          disabled={disabled}
-          value={mode || undefined}
-          onValueChange={(value) =>
-            updateFileEA(
-              value === "all"
-                ? { force: Boolean(input.force), delete_all: true }
-                : {
+    <div>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold text-slate-700">
+          {parameterTitle}
+        </div>
+        <SectionCollapseButton
+          expanded={parametersExpanded}
+          onClick={() => onParametersExpandedChange(!parametersExpanded)}
+          sectionName={parameterTitle}
+        />
+      </div>
+
+      {parametersExpanded ? (
+        <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+          <label className="block min-w-0 bg-slate-50 px-4 py-2.5 sm:col-span-2">
+            <span className="text-[11px] font-medium text-slate-400">
+              {parameterText(locale, "deleteScope")}
+            </span>
+            <Select
+              disabled={disabled}
+              value={mode || undefined}
+              onValueChange={(value) =>
+                updateFileEA(
+                  value === "all"
+                    ? { force: Boolean(input.force), delete_all: true }
+                    : {
+                        force: Boolean(input.force),
+                        ea_names: normalizedNames,
+                      },
+                )
+              }
+            >
+              <SelectTrigger className="mt-1 h-9 rounded-lg border-slate-200 bg-white text-xs shadow-none focus:ring-teal-200">
+                <SelectValue
+                  placeholder={parameterText(locale, "selectDeleteScope")}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="named" className="text-xs">
+                  {parameterText(locale, "deleteNamedEa")}
+                </SelectItem>
+                <SelectItem value="all" className="text-xs">
+                  {parameterText(locale, "deleteAllEa")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </label>
+
+          {mode === "named" ? (
+            <label className="block min-w-0 bg-slate-50 px-4 py-2.5 sm:col-span-2">
+              <span className="text-[11px] font-medium text-slate-400">
+                {parameterText(locale, "eaNames")}
+              </span>
+              <span className="ml-1 text-red-500">*</span>
+              <Textarea
+                aria-label={parameterText(locale, "eaNames")}
+                disabled={disabled}
+                value={eaNamesText}
+                placeholder={parameterText(locale, "eaNamesPlaceholder")}
+                onChange={(event) => setEANamesText(event.target.value)}
+                onBlur={() =>
+                  updateFileEA({
                     force: Boolean(input.force),
                     ea_names: normalizedNames,
-                  },
-            )
-          }
-        >
-          <SelectTrigger className="mt-2 h-10 rounded-xl border-slate-200 bg-slate-50 text-xs shadow-none focus:ring-teal-200">
-            <SelectValue placeholder={parameterText(locale, "selectDeleteScope")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="named" className="text-xs">
-              {parameterText(locale, "deleteNamedEa")}
-            </SelectItem>
-            <SelectItem value="all" className="text-xs">
-              {parameterText(locale, "deleteAllEa")}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </label>
+                  })
+                }
+                className="mt-1 min-h-24 resize-y rounded-lg border-slate-200 bg-white font-mono text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0"
+              />
+              <span className="mt-2 block text-[11px] leading-4 text-slate-500">
+                {parameterText(locale, "eaNamesHint")}
+              </span>
+            </label>
+          ) : null}
 
-      {mode === "named" ? (
-        <label className="block rounded-2xl border border-slate-200 bg-white px-4 py-3">
-          <span className="text-xs font-semibold text-slate-700">{parameterText(locale, "eaNames")}</span>
-          <span className="ml-1 text-red-500">*</span>
-          <Textarea
-            aria-label={parameterText(locale, "eaNames")}
-            disabled={disabled}
-            value={eaNamesText}
-            placeholder={parameterText(locale, "eaNamesPlaceholder")}
-            onChange={(event) => setEANamesText(event.target.value)}
-            onBlur={() =>
-              updateFileEA({
-                force: Boolean(input.force),
-                ea_names: normalizedNames,
-              })
-            }
-            className="mt-2 min-h-24 resize-y rounded-xl border-slate-200 bg-slate-50 font-mono text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0"
-          />
-          <span className="mt-2 block text-[11px] leading-4 text-slate-500">
-            {parameterText(locale, "eaNamesHint")}
-          </span>
-        </label>
-      ) : null}
+          {mode === "all" ? (
+            <div className="bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800 sm:col-span-2">
+              {parameterText(locale, "deleteAllEaHint")}
+            </div>
+          ) : null}
 
-      {mode === "all" ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800">
-          {parameterText(locale, "deleteAllEaHint")}
+          <div className="flex min-h-[66px] items-center justify-between gap-4 bg-slate-50 px-4 py-2.5 sm:col-span-2">
+            <div className="min-w-0">
+              <div className="text-[11px] font-medium text-slate-500">
+                {parameterText(locale, "forceDelete")}
+              </div>
+              <div className="mt-1 text-[11px] leading-4 text-slate-500">
+                {parameterText(locale, "forceDeleteDescription")}
+              </div>
+            </div>
+            <Switch
+              aria-label={parameterText(locale, "forceDelete")}
+              checked={Boolean(input.force)}
+              disabled={disabled}
+              onCheckedChange={(checked) =>
+                updateFileEA({
+                  force: checked,
+                  ...(mode === "all"
+                    ? { delete_all: true }
+                    : { ea_names: normalizedNames }),
+                })
+              }
+              className="data-[state=checked]:bg-teal-500"
+            />
+          </div>
         </div>
       ) : null}
-
-      <BooleanParameterCard
-        checked={Boolean(input.force)}
-        description={parameterText(locale, "forceDeleteDescription")}
-        disabled={disabled}
-        label={parameterText(locale, "forceDelete")}
-        onCheckedChange={(checked) =>
-          updateFileEA({
-            force: checked,
-            ...(mode === "all"
-              ? { delete_all: true }
-              : { ea_names: normalizedNames }),
-          })
-        }
-      />
     </div>
   );
 }

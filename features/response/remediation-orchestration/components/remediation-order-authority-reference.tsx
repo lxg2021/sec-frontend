@@ -57,6 +57,16 @@ export function remediationRestoreSourceDetails(
   }
 }
 
+export function shouldShowRemediationRecoveryParameters(actionCode: string) {
+  return actionCode.trim().toLowerCase().endsWith(".restore")
+}
+
+export function shouldShowRemediationTargetCandidateSelector(
+  candidateCount: number,
+) {
+  return candidateCount > 1
+}
+
 export function RemediationOrderAuthorityReference({
   actionInput,
   decision,
@@ -96,9 +106,14 @@ export function RemediationOrderAuthorityReference({
           ]
         : []
   const targetCandidates = agentDecision?.target_candidates ?? []
-  if (reverseContexts.length === 0 && targetCandidates.length === 0) return null
+  const showTargetCandidateSelector =
+    shouldShowRemediationTargetCandidateSelector(targetCandidates.length)
+  if (reverseContexts.length === 0 && !showTargetCandidateSelector) return null
 
   const fileRestore = item.action_code.trim().toLowerCase() === "file.restore"
+  const showRecoveryParameters = shouldShowRemediationRecoveryParameters(
+    item.action_code,
+  )
   const restoreSourceDetails = (context: RemediationReverseContextOption) =>
     remediationRestoreSourceDetails(
       context.source_item_id,
@@ -106,6 +121,9 @@ export function RemediationOrderAuthorityReference({
       item.backup?.backup_id ?? "",
     )
   const restoreSourceLabel = (context: RemediationReverseContextOption) => {
+    if (!fileRestore) {
+      return `${context.source_action_code || t("reference.historyAction")} · ${shortId(context.source_item_id)}`
+    }
     const details = remediationRestoreSourceDetails(
       context.source_item_id,
       sourceItems,
@@ -126,65 +144,63 @@ export function RemediationOrderAuthorityReference({
   const selectedCandidateId =
     actionInput.wmi_subscription?.target_candidate_id?.trim() ?? ""
 
-  if (fileRestore) {
+  if (reverseContexts.length > 0 && showRecoveryParameters) {
     return (
       <div className="mt-4">
         <div className="mb-2 text-xs font-semibold text-slate-700">
           {t("reference.restoreTitle")}
         </div>
         <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
-          {reverseContexts.length > 0 ? (
-            <label className="block min-w-0 bg-slate-50 px-4 py-3 sm:col-span-2">
-              <span className="block text-[11px] text-slate-400">
-                {t("reference.restoreSource")}
-              </span>
-              <Select
-                disabled={disabled}
-                value={reverseSourceItemId || undefined}
-                onValueChange={onReverseSourceChange}
-              >
-                <SelectTrigger className="mt-2 h-10 rounded-xl border-slate-200 bg-white text-left shadow-none focus:ring-teal-200">
-                  <SelectValue
-                    placeholder={t("reference.restoreSourcePlaceholder")}
+          <label className="block min-w-0 bg-slate-50 px-4 py-3 sm:col-span-2">
+            <span className="block text-[11px] text-slate-400">
+              {t("reference.restoreSource")}
+            </span>
+            <Select
+              disabled={disabled}
+              value={reverseSourceItemId || undefined}
+              onValueChange={onReverseSourceChange}
+            >
+              <SelectTrigger className="mt-2 h-10 rounded-xl border-slate-200 bg-white text-left shadow-none focus:ring-teal-200">
+                <SelectValue
+                  placeholder={t("reference.restoreSourcePlaceholder")}
+                >
+                  {selectedReverseContext
+                    ? restoreSourceLabel(selectedReverseContext)
+                    : undefined}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {reverseContexts.map((context) => (
+                  <SelectItem
+                    key={context.source_item_id}
+                    textValue={restoreSourceLabel(context)}
+                    value={context.source_item_id}
                   >
-                    {selectedReverseContext
-                      ? restoreSourceLabel(selectedReverseContext)
-                      : undefined}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {reverseContexts.map((context) => (
-                    <SelectItem
-                      key={context.source_item_id}
-                      textValue={restoreSourceLabel(context)}
-                      value={context.source_item_id}
-                    >
-                      <span className="grid min-w-0 gap-0.5 py-0.5">
-                        <span className="truncate text-xs font-medium text-slate-800">
-                          {restoreSourceLabel(context)}
-                        </span>
-                        {restoreSourceDetails(context) ? (
-                          <span className="truncate font-mono text-[10px] text-slate-400">
-                            {restoreSourceDetails(context)?.backupFileId || "-"}
-                          </span>
-                        ) : null}
-                        <span
-                          className="truncate font-mono text-[10px] text-slate-400"
-                          title={context.source_item_id}
-                        >
-                          {t("reference.sourceItem", {
-                            item: shortId(context.source_item_id),
-                          })}
-                        </span>
+                    <span className="grid min-w-0 gap-0.5 py-0.5">
+                      <span className="truncate text-xs font-medium text-slate-800">
+                        {restoreSourceLabel(context)}
                       </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </label>
-          ) : null}
+                      {fileRestore && restoreSourceDetails(context) ? (
+                        <span className="truncate font-mono text-[10px] text-slate-400">
+                          {restoreSourceDetails(context)?.backupFileId || "-"}
+                        </span>
+                      ) : null}
+                      <span
+                        className="truncate font-mono text-[10px] text-slate-400"
+                        title={context.source_item_id}
+                      >
+                        {t("reference.sourceItem", {
+                          item: shortId(context.source_item_id),
+                        })}
+                      </span>
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </label>
 
-          {selectedRestoreDetails ? (
+          {fileRestore && selectedRestoreDetails ? (
             <>
               <div className="min-w-0 bg-slate-50 px-4 py-2.5">
                 <div className="text-[11px] text-slate-400">
@@ -213,11 +229,38 @@ export function RemediationOrderAuthorityReference({
                 </div>
               </div>
             </>
+          ) : selectedReverseContext ? (
+            <>
+              <div className="min-w-0 bg-slate-50 px-4 py-2.5">
+                <div className="text-[11px] text-slate-400">
+                  {t("reference.sourceAction")}
+                </div>
+                <div
+                  className="mt-1 truncate font-mono text-xs font-medium text-slate-700"
+                  title={selectedReverseContext.source_action_code || "-"}
+                >
+                  {selectedReverseContext.source_action_code || "-"}
+                </div>
+              </div>
+              <div className="min-w-0 bg-slate-50 px-4 py-2.5">
+                <div className="text-[11px] text-slate-400">
+                  {t("reference.sourceItemId")}
+                </div>
+                <div
+                  className="mt-1 truncate font-mono text-xs font-medium text-slate-700"
+                  title={selectedReverseContext.source_item_id || "-"}
+                >
+                  {selectedReverseContext.source_item_id || "-"}
+                </div>
+              </div>
+            </>
           ) : null}
         </div>
       </div>
     )
   }
+
+  if (reverseContexts.length > 0) return null
 
   return (
     <div className="mb-4 grid gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4">
@@ -230,33 +273,7 @@ export function RemediationOrderAuthorityReference({
         </p>
       </div>
 
-      {reverseContexts.length > 0 ? (
-        <label className="grid gap-2 text-xs font-medium text-slate-700">
-          {t("reference.restoreSource")}
-          <Select
-            disabled={disabled}
-            value={reverseSourceItemId || undefined}
-            onValueChange={onReverseSourceChange}
-          >
-            <SelectTrigger className="h-10 bg-white text-left">
-              <SelectValue placeholder={t("reference.restoreSourcePlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              {reverseContexts.map((context) => (
-                <SelectItem
-                  key={context.source_item_id}
-                  textValue={`${context.source_action_code || t("reference.historyAction")} · ${context.source_item_id}`}
-                  value={context.source_item_id}
-                >
-                  {context.source_action_code || t("reference.historyAction")} · {shortId(context.source_item_id)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </label>
-      ) : null}
-
-      {targetCandidates.length > 0 ? (
+      {showTargetCandidateSelector ? (
         <label className="grid gap-2 text-xs font-medium text-slate-700">
           {t("reference.target")}
           <Select

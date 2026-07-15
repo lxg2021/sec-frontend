@@ -17,7 +17,15 @@ import type {
 
 export type DemoFieldType = "text" | "number" | "boolean"
 export type DemoValues = Record<string, string | number | boolean>
-export type DemoActionMode = "forward" | "reverse" | "account_delete" | "account_reset_password"
+export type DemoActionMode =
+  | "forward"
+  | "reverse"
+  | "account_delete"
+  | "account_reset_password"
+  | "task_delete"
+  | "disable"
+  | "enable"
+  | "registry_value_delete"
 
 export interface DemoField {
   key: string
@@ -781,6 +789,86 @@ export function demoActionVariants(
         }),
       },
     )
+  }
+  if (template.id === "scheduled-task") {
+    variants.push(
+      {
+        mode: "task_delete",
+        actionCode: "task.delete",
+        displayName: "删除计划任务",
+        actionType: "delete",
+        inputBranch: template.inputBranch,
+        requiresHistory: false,
+        contextFields: [],
+        inputFields: template.inputFields,
+        buildInput: template.buildInput,
+      },
+      {
+        mode: "disable",
+        actionCode: "task.disable",
+        displayName: "禁用计划任务",
+        actionType: "disable",
+        inputBranch: template.inputBranch,
+        requiresHistory: false,
+        contextFields: [],
+        inputFields: template.inputFields,
+        buildInput: template.buildInput,
+      },
+      {
+        mode: "enable",
+        actionCode: "task.enable",
+        displayName: "启用计划任务",
+        actionType: "enable",
+        inputBranch: "reverse_source_item_id",
+        requiresHistory: true,
+        contextType: 3,
+        sourceActionCode: "task.disable",
+        contextFields: enableContextFields,
+        inputFields: [],
+        buildInput: () => undefined,
+      },
+    )
+  }
+  if (template.id === "service") {
+    variants.push(
+      {
+        mode: "disable",
+        actionCode: "service.disable",
+        displayName: "禁用服务",
+        actionType: "disable",
+        inputBranch: template.inputBranch,
+        requiresHistory: false,
+        contextFields: [],
+        inputFields: [],
+        buildInput: () => undefined,
+      },
+      {
+        mode: "enable",
+        actionCode: "service.enable",
+        displayName: "启用服务",
+        actionType: "enable",
+        inputBranch: "reverse_source_item_id",
+        requiresHistory: true,
+        contextType: 3,
+        sourceActionCode: "service.disable",
+        contextFields: enableContextFields,
+        inputFields: [],
+        buildInput: () => undefined,
+      },
+    )
+  }
+  if (template.id === "registry") {
+    variants.push({
+      mode: "registry_value_delete",
+      actionCode: "registry.delete_value",
+      displayName: "删除注册表值",
+      actionType: "composite",
+      inputBranch: template.inputBranch,
+      requiresHistory: false,
+      contextFields: [],
+      inputFields: template.inputFields,
+      buildInput: template.buildInput,
+    })
   }
   const reverseConfig = reverseVariantConfig[template.id]
   if (reverseConfig) {

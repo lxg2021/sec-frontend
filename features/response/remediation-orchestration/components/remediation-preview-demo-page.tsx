@@ -2,17 +2,17 @@
 
 import { useMemo, useRef, useState } from "react"
 import {
-  BadgeCheck,
   Check,
   Copy,
-  History,
   ShieldCheck,
   SlidersHorizontal,
+  Workflow,
 } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
+import type { RemediationActionInput as OrderActionInput } from "@/features/attack/remediation-order"
 
 import {
   buildDemoAction,
@@ -27,11 +27,15 @@ import {
   resolveDemoActionVariant,
   type DemoActionMode,
   type DemoActionVariant,
-  type DemoField,
   type DemoValues,
 } from "../demo-data"
-import type { RemediationActionContext, RemediationPreviewSnapshot } from "../types"
+import type {
+  RemediationActionContext,
+  RemediationActionInput as PreviewActionInput,
+  RemediationPreviewSnapshot,
+} from "../types"
 import { CreateRemediationPreviewDialog } from "./create-remediation-preview-dialog"
+import { RemediationDynamicParameterDemo } from "./remediation-dynamic-parameter-demo"
 import { remediationTypeIcon } from "./remediation-action-icons"
 
 type JsonView = "request" | "target" | "snapshot" | "input" | "context"
@@ -50,6 +54,9 @@ export function RemediationPreviewDemoPage() {
   const [values, setValues] = useState<DemoValues>(() =>
     defaultDemoValues(selected, "forward"),
   )
+  const [dynamicActionInput, setDynamicActionInput] = useState<OrderActionInput>(
+    () => asOrderActionInput(selectedVariant.buildInput(values)),
+  )
   const [jsonView, setJsonView] = useState<JsonView>("request")
   const [copied, setCopied] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -57,10 +64,20 @@ export function RemediationPreviewDemoPage() {
     useState<RemediationPreviewSnapshot | null>(null)
   const previewRef = useRef<RemediationPreviewSnapshot | null>(null)
 
-  const request = useMemo(
-    () => buildDemoCreateRequest(selected, values, selectedVariant.mode),
-    [selected, selectedVariant.mode, values],
-  )
+  const request = useMemo(() => {
+    const base = buildDemoCreateRequest(selected, values, selectedVariant.mode)
+    return {
+      ...base,
+      targets: base.targets.map((target, index) =>
+        index === 0
+          ? {
+              ...target,
+              input: dynamicActionInput as unknown as PreviewActionInput,
+            }
+          : target,
+      ),
+    }
+  }, [dynamicActionInput, selected, selectedVariant.mode, values])
   const selectedNode = useMemo(
     () => buildDemoNode(selected, values, selectedVariant.mode),
     [selected, selectedVariant.mode, values],
@@ -71,7 +88,6 @@ export function RemediationPreviewDemoPage() {
   )
   const selectedTarget = request.targets[0]
   const selectedContext = selectedTarget.agents[0]?.action_context
-  const selectedInputFields = selectedVariant.inputFields ?? selected.inputFields
   const jsonPayload = useMemo(() => {
     if (jsonView === "target") return selectedTarget
     if (jsonView === "snapshot") return selectedTarget.snapshot
@@ -105,6 +121,9 @@ export function RemediationPreviewDemoPage() {
     setSelectedId(next.id)
     setActionMode(nextMode)
     setValues(nextValues)
+    setDynamicActionInput(
+      asOrderActionInput(resolveDemoActionVariant(next, nextMode).buildInput(nextValues)),
+    )
     setJsonView("request")
     setLastPreview(null)
   }
@@ -117,15 +136,9 @@ export function RemediationPreviewDemoPage() {
     }
     setActionMode(variant.mode)
     setValues(nextValues)
+    setDynamicActionInput(asOrderActionInput(variant.buildInput(nextValues)))
     setJsonView("request")
     setLastPreview(null)
-  }
-
-  function updateValue(field: DemoField, nextValue: string | boolean) {
-    setValues((current) => ({
-      ...current,
-      [field.key]: field.type === "number" ? Number(nextValue) : nextValue,
-    }))
   }
 
   async function copyJson() {
@@ -140,6 +153,10 @@ export function RemediationPreviewDemoPage() {
     (item) => item.objectType === "Command",
   ).length
   const policyCount = remediationPreviewDemoTemplates.length - commandCount
+  const scenarioCount = remediationPreviewDemoTemplates.reduce(
+    (total, template) => total + demoActionVariants(template).length,
+    0,
+  )
 
   return (
     <main className="min-h-[calc(100dvh-3rem)] bg-[#f5f8fb] p-4 text-slate-900 xl:p-5">
@@ -152,16 +169,17 @@ export function RemediationPreviewDemoPage() {
               </div>
               <div className="min-w-0 space-y-1.5">
                 <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
-                  处置预览 Dialog Demo
+                  处置动态参数 Demo
                 </h1>
                 <p className="min-w-0 truncate text-sm text-slate-500">
-                  模拟 QueryRemediationNodeActions 返回动作，再生成 CreateRemediationPreviewRequest
+                  逐项核对 13 类处置的正向、反向动作参数及历史来源
                 </p>
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[520px]">
+            <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[680px] xl:grid-cols-4">
               <HeaderMetric label="Target Types" value="13" />
+              <HeaderMetric label="Action Scenarios" value={String(scenarioCount)} />
               <HeaderMetric label="Command" value={String(commandCount)} />
               <HeaderMetric label="Policy" value={String(policyCount)} />
             </div>
@@ -176,10 +194,10 @@ export function RemediationPreviewDemoPage() {
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
                   <SlidersHorizontal aria-hidden className="h-4 w-4 text-slate-500" />
-                  参数模板
+                  动态参数验收
                 </div>
                 <div className="mt-1 text-xs leading-5 text-slate-500">
-                  Snapshot 来自图谱节点，Action Input 是用户补充参数，Action Context 来自后台历史任务
+                  选择处置类型和动作，直接核对正式处置编排页面使用的参数组件
                 </div>
               </div>
               <Button
@@ -188,7 +206,7 @@ export function RemediationPreviewDemoPage() {
                 className="h-10 rounded-full bg-teal-600 px-4 text-white shadow-sm hover:bg-teal-700"
               >
                 <ShieldCheck aria-hidden className="h-4 w-4" />
-                打开预览弹窗
+                打开旧预览弹窗
               </Button>
             </div>
 
@@ -198,34 +216,14 @@ export function RemediationPreviewDemoPage() {
                 onChange={selectActionMode}
                 variants={actionVariants}
               />
-              <FieldGroup
-                fields={remediationDemoCommonFields}
-                title="基础上下文"
+              <RemediationDynamicParameterDemo
+                key={`${selected.id}:${selectedVariant.mode}`}
+                actionInput={dynamicActionInput}
+                onActionInputChange={setDynamicActionInput}
+                template={selected}
                 values={values}
-                onChange={updateValue}
+                variant={selectedVariant}
               />
-              <FieldGroup
-                fields={selected.targetFields}
-                title={`目标模板参数 ${selected.snapshotBranch}`}
-                values={values}
-                onChange={updateValue}
-              />
-              <FieldGroup
-                fields={selectedVariant.requiresHistory ? [] : selectedInputFields}
-                title={
-                  !selectedVariant.requiresHistory
-                    ? `动作扩展参数 ${selectedVariant.inputBranch}`
-                    : "动作扩展参数（无，使用历史上下文）"
-                }
-                values={values}
-                onChange={updateValue}
-              />
-              {selectedVariant.requiresHistory ? (
-                <ActionContextMockPanel
-                  context={selectedContext}
-                  variant={selectedVariant}
-                />
-              ) : null}
             </div>
           </section>
 
@@ -414,7 +412,7 @@ function ActionModeSwitch({
 }
 
 function actionModeTitle(variant: DemoActionVariant) {
-  if (variant.mode === "reverse") return "反向动作（历史）"
+  if (variant.requiresHistory) return "反向动作（历史）"
   return variant.displayName || "正向动作"
 }
 
@@ -490,116 +488,6 @@ function TypeSelector({
             </button>
           )
         })}
-      </div>
-    </section>
-  )
-}
-
-function FieldGroup({
-  fields,
-  onChange,
-  title,
-  values,
-}: {
-  fields: DemoField[]
-  onChange: (field: DemoField, value: string | boolean) => void
-  title: string
-  values: DemoValues
-}) {
-  return (
-    <section className="rounded-[20px] border border-slate-100 bg-slate-50/70 p-4">
-      <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-slate-700">
-        <BadgeCheck aria-hidden className="h-4 w-4 text-teal-600" />
-        {title}
-      </div>
-      {fields.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-4 text-xs leading-5 text-slate-400">
-          当前动作不需要额外 Action Input，执行凭证来自 RemediationActionContext
-        </div>
-      ) : null}
-      <div className="grid gap-3 md:grid-cols-2">
-        {fields.map((field) => (
-          <label key={field.key} className="min-w-0">
-            <span className="mb-1.5 block text-[11px] font-medium text-slate-500">
-              {field.label}
-            </span>
-            {field.type === "boolean" ? (
-              <button
-                type="button"
-                aria-pressed={Boolean(values[field.key])}
-                onClick={() => onChange(field, !Boolean(values[field.key]))}
-                className={cn(
-                  "flex h-10 w-full items-center justify-between rounded-2xl border px-3 text-xs font-medium transition-colors",
-                  values[field.key]
-                    ? "border-teal-200 bg-teal-50 text-teal-700"
-                    : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50",
-                )}
-              >
-                <span>{values[field.key] ? "true" : "false"}</span>
-                <span
-                  className={cn(
-                    "h-5 w-9 rounded-full p-0.5 transition-colors",
-                    values[field.key] ? "bg-teal-500" : "bg-slate-200",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "block h-4 w-4 rounded-full bg-white transition-transform",
-                      values[field.key] && "translate-x-4",
-                    )}
-                  />
-                </span>
-              </button>
-            ) : (
-              <input
-                type={field.type === "number" ? "number" : "text"}
-                value={String(values[field.key] ?? "")}
-                onChange={(event) => onChange(field, event.target.value)}
-                placeholder={field.placeholder}
-                className="h-10 w-full min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-xs text-slate-700 outline-none transition-colors placeholder:text-slate-300 focus:border-teal-300 focus:ring-2 focus:ring-teal-100"
-              />
-            )}
-          </label>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-function ActionContextMockPanel({
-  context,
-  variant,
-}: {
-  context?: RemediationActionContext
-  variant: DemoActionVariant
-}) {
-  return (
-    <section className="rounded-[20px] border border-amber-100 bg-amber-50/70 p-4">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs font-semibold text-amber-800">
-          <History aria-hidden className="h-4 w-4" />
-          RemediationActionContext
-        </div>
-        <span className="rounded-full bg-white px-3 py-1 text-[11px] font-medium text-amber-700">
-          后端返回 · 前端原样带回
-        </span>
-      </div>
-      <div className="text-xs leading-5 text-amber-800">
-        这里模拟 QueryRemediationNodeActions 返回的 contexts[]。真实页面不让用户编辑这些字段，只在创建预览时写入 targets[].agents[].action_context
-      </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <ContextFact label="context_type" value={contextTypeLabel(context)} />
-        <ContextFact label="agent_id" value={context?.agent_id} />
-        <ContextFact label="source_task_id" value={context?.source_task_id} />
-        <ContextFact
-          label="source_action_code"
-          value={context?.source_action_code || variant.sourceActionCode}
-        />
-        <ContextFact label="target_key" value={context?.target_key} />
-        <ContextFact
-          label={context?.policy_id ? "policy_id" : "backup_id"}
-          value={context?.policy_id || context?.backup_id}
-        />
       </div>
     </section>
   )
@@ -718,6 +606,12 @@ function contextTypeLabel(context?: RemediationActionContext) {
   if (type === "2" || type.includes("BYPASS")) return "BYPASS 放行上下文"
   if (type === "3" || type.includes("ENABLE")) return "ENABLE 启用上下文"
   return "NONE"
+}
+
+function asOrderActionInput(
+  input: PreviewActionInput | undefined,
+): OrderActionInput {
+  return (input ?? {}) as unknown as OrderActionInput
 }
 
 function JsonSwitch({

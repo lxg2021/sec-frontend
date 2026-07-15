@@ -448,6 +448,8 @@
           "restoreTitle": "恢复参数",
           "restoreSource": "恢复来源",
           "restoreSourcePlaceholder": "请选择历史处置来源",
+          "sourceAction": "来源动作",
+          "sourceItemId": "来源处置项 ID",
           "backupFileId": "备份文件 ID",
           "backupFileName": "备份文件名",
           "sourceItem": "来源处置项 {item}",

@@ -41,6 +41,7 @@ import {
 import {
   RemediationOrderParameterPanel,
   remediationOrderActionLabel,
+  remediationOrderActionRequiresHistory,
   validateRemediationOrderItemParameters,
 } from "./remediation-order-parameter-editor";
 import { RemediationOrderAuthorityReference } from "./remediation-order-authority-reference";
@@ -464,8 +465,9 @@ export function RemediationOrderWorkspace({
   const firstIncomplete =
     activeItems.find((item) => validationErrors[item.item_id]) ?? null;
   const parameterDisabled = !editable || selectedIsHistorical;
-  const selectedIsFileRestore =
-    selectedItem?.action_code.trim().toLowerCase() === "file.restore";
+  const selectedRequiresHistory = selectedItem
+    ? remediationOrderActionRequiresHistory(selectedItem.action_code)
+    : false;
 
   function updateActionInput(itemId: string, input: RemediationActionInput) {
     clearMutationRequestId("save");
@@ -783,7 +785,7 @@ export function RemediationOrderWorkspace({
           <div className="min-h-0 flex-1 overflow-y-auto pr-1">
             {selectedItem ? (
               <div className="pt-4">
-                {!selectedIsFileRestore ? selectedAuthorityReference : null}
+                {!selectedRequiresHistory ? selectedAuthorityReference : null}
                 <RemediationOrderParameterPanel
                   key={`${selectedItem.item_id}:${order.revision}`}
                   actionInput={selectedInput}
@@ -795,7 +797,7 @@ export function RemediationOrderWorkspace({
                     }
                   }}
                 />
-                {selectedIsFileRestore ? selectedAuthorityReference : null}
+                {selectedRequiresHistory ? selectedAuthorityReference : null}
               </div>
             ) : (
               <div className="flex min-h-full items-center justify-center text-sm text-slate-400">

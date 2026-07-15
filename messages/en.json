@@ -448,6 +448,8 @@
           "restoreTitle": "Restore Parameters",
           "restoreSource": "Restore Source",
           "restoreSourcePlaceholder": "Select a historical remediation source",
+          "sourceAction": "Source Action",
+          "sourceItemId": "Source Item ID",
           "backupFileId": "Backup File ID",
           "backupFileName": "Backup File Name",
           "sourceItem": "Source Item {item}",
