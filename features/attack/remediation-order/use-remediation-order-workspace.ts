@@ -674,7 +674,7 @@ export function useRemediationOrderWorkspace({
     setDirty(true);
   }, []);
 
-  const saveDraft = useCallback(async () => {
+  const saveDraft = useCallback(async (options: { title?: string } = {}) => {
     if (!normalizedCaseId) throw new Error("A Case ID is required");
     const currentOrder = orderRef.current;
     if (currentOrder && currentOrder.status !== "draft") {
@@ -697,6 +697,13 @@ export function useRemediationOrderWorkspace({
       throw new Error(
         `Complete the Agent and action selection for ${incomplete.node.displayName || incomplete.key}`,
       );
+    }
+    const newOrderTitle = options.title?.trim() || "";
+    if (!currentOrder && !newOrderTitle) {
+      throw new Error("A remediation order title is required");
+    }
+    if (currentOrder && !currentOrder.title.trim()) {
+      throw new Error("The existing remediation order has no title");
     }
 
     setSaving(true);
@@ -726,12 +733,14 @@ export function useRemediationOrderWorkspace({
         ? await updateRemediationOrder({
             order_id: currentOrder.order_id,
             expected_revision: currentOrder.revision,
-            title: currentOrder.title || `Case ${normalizedCaseId} remediation`,
+            // A selected existing Draft keeps its saved user-facing title. Adding
+            // targets from ControlPanel must never silently rename it.
+            title: currentOrder.title.trim(),
             source,
             items,
           })
         : await createRemediationOrder({
-            title: `Case ${normalizedCaseId} remediation`,
+            title: newOrderTitle,
             source,
             items,
           });

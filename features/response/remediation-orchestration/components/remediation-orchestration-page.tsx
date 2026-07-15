@@ -14,6 +14,7 @@ import {
   FileWarning,
   Loader2,
   Network,
+  Pencil,
   Plus,
   RefreshCcw,
   Search,
@@ -42,6 +43,7 @@ import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { useToast } from "@/shared/ui/use-toast";
+import type { RemediationOrder } from "@/features/attack/remediation-order";
 
 import {
   cancelRemediationPreview,
@@ -453,6 +455,9 @@ export function RemediationOrchestrationPage({
   const [orderRefreshKey, setOrderRefreshKey] = useState(0);
   const [orderLoading, setOrderLoading] = useState(false);
   const [loadedOrderCaseId, setLoadedOrderCaseId] = useState("");
+  const [loadedOrderTitle, setLoadedOrderTitle] = useState("");
+  const [loadedOrderStatus, setLoadedOrderStatus] = useState("");
+  const [titleEditRequestKey, setTitleEditRequestKey] = useState(0);
   const [startTime] = useState(monthAgoDate);
   const [endTime] = useState(todayDate);
 
@@ -601,8 +606,10 @@ export function RemediationOrchestrationPage({
   }, [loadedOrderCaseId, routeCaseId]);
 
   const handleOrderLoaded = useCallback(
-    (nextOrder: { source: { case_id: string } }) => {
+    (nextOrder: RemediationOrder) => {
       setLoadedOrderCaseId(nextOrder.source.case_id.trim());
+      setLoadedOrderTitle(nextOrder.title.trim());
+      setLoadedOrderStatus(nextOrder.status.trim().toLowerCase());
       setRefreshedAt(new Date());
     },
     [],
@@ -947,9 +954,34 @@ export function RemediationOrchestrationPage({
                     返回
                   </Button>
                 </div>
+                {orderMode ? (
+                  <div className="flex min-w-0 items-center gap-1">
+                    <p
+                      className="min-w-0 truncate text-sm text-slate-500"
+                      title={loadedOrderTitle || undefined}
+                    >
+                      {loadedOrderTitle || "正在加载处置单名称…"}
+                    </p>
+                    {loadedOrderStatus === "draft" ? (
+                      <button
+                        type="button"
+                        className="flex size-7 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                        onClick={() =>
+                          setTitleEditRequestKey((current) => current + 1)
+                        }
+                        aria-label="修改处置单名称"
+                        title="修改处置单名称"
+                      >
+                        <Pencil className="size-3.5" aria-hidden="true" />
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+                {!orderMode ? (
                 <p className="min-w-0 truncate text-sm text-slate-500">
                   预览、下发、跟踪处置动作
                 </p>
+                ) : null}
               </div>
             </div>
 
@@ -1046,6 +1078,7 @@ export function RemediationOrchestrationPage({
             onOrderLoaded={handleOrderLoaded}
             orderId={routeOrderId}
             refreshKey={orderRefreshKey}
+            titleEditRequestKey={titleEditRequestKey}
           />
         ) : (
           <CreateRemediationPreviewDialog
