@@ -446,7 +446,6 @@
           "title": "权威执行引用",
           "description": "这里只选择后台返回的历史来源或具体目标，不重新推断 Agent 和 Action。",
           "restoreTitle": "恢复参数",
-          "restoreDescription": "选择用于恢复文件的隔离备份。",
           "restoreSource": "恢复来源",
           "restoreSourcePlaceholder": "请选择历史处置来源",
           "backupFileId": "备份文件 ID",

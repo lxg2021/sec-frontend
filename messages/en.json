@@ -446,7 +446,6 @@
           "title": "Authoritative Execution Reference",
           "description": "Select only a historical source or concrete target returned by the backend; do not infer the Agent or action again.",
           "restoreTitle": "Restore Parameters",
-          "restoreDescription": "Select the quarantine backup that will be used to restore the file.",
           "restoreSource": "Restore Source",
           "restoreSourcePlaceholder": "Select a historical remediation source",
           "backupFileId": "Backup File ID",
