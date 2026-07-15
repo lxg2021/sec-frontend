@@ -247,6 +247,31 @@ describe("remediation Order orchestration model", () => {
     ).toBe("该文件正在执行隔离");
   });
 
+  it("normalizes the ACTIVE_EFFECT backend reason into actionable Chinese", () => {
+    expect(
+      remediationActionApplicabilityError(
+        {
+          action: { action_code: "process.terminate" },
+          agent_decisions: [
+            {
+              agent_id: "agent-1",
+              status: "unavailable",
+              reason_code: "ACTIVE_EFFECT",
+              reason_message:
+                "A related remediation effect is running or uncertain on this Agent",
+              required_input_fields: [],
+              reverse_contexts: [],
+              target_candidates: [],
+            },
+          ],
+        } as import("@/features/attack/remediation-order").RemediationActionDecision,
+        "agent-1",
+      ),
+    ).toBe(
+      "该 Agent 上已有相关处置正在执行，或上一条处置结果尚未确认，当前不能重复下发。",
+    );
+  });
+
   it("builds a complete Draft update from the generic parameter editor", () => {
     const current = order(restoreItem());
     expect(

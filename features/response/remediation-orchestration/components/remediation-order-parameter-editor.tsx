@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { History } from "lucide-react";
+import { useLocale } from "next-intl";
 
 import type {
   RemediationActionDecision,
@@ -395,6 +396,10 @@ export function RemediationOrderParameterPanel({
   item: RemediationOrderItem;
   onActionInputChange: (input: OrderActionInput) => void;
 }) {
+  const locale = useLocale();
+  const hostIdLabel = locale.toLowerCase().startsWith("zh")
+    ? "主机ID"
+    : "HostID";
   const selectedAction = useMemo(
     () => remediationOrderActionOption(item),
     [item.action_code, item.entity_type],
@@ -428,7 +433,7 @@ export function RemediationOrderParameterPanel({
 
       <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2">
         <div className="min-w-0 px-4 py-3">
-          <div className="text-xs text-slate-400">执行 Agent</div>
+          <div className="text-xs text-slate-400">{hostIdLabel}</div>
           <div
             className="mt-1 truncate font-mono text-xs font-semibold text-slate-700"
             title={item.agent_id}

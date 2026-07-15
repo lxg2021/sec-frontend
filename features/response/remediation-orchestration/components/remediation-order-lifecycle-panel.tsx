@@ -23,13 +23,6 @@ import { Button } from "@/shared/ui/button";
 import { remediationOrderLifecycleActions } from "../remediation-order-model";
 import { remediationOrderActionLabel } from "./remediation-order-parameter-editor";
 
-const PREPARE_CHECKS = [
-  "Graph 节点与 Agent 权威上下文",
-  "Capability、Current Effect 与对象状态",
-  "历史来源、备份可用性与活动冲突",
-  "动作参数、风险和 Prepared Fingerprint",
-];
-
 function targetText(item: RemediationOrderItem) {
   return (
     item.display_name.trim() || item.object_id.trim() || item.node_key.trim()
@@ -116,6 +109,40 @@ function executionTime(value: string) {
     : parsed.toLocaleString("zh-CN", { hour12: false });
 }
 
+function readinessIssuePresentation(error: string) {
+  const normalized = error.trim().toLowerCase();
+  if (
+    normalized.includes("已有相关处置") ||
+    normalized.includes("running or uncertain") ||
+    normalized.includes("active_effect")
+  ) {
+    return {
+      badge: "动作冲突",
+      action: "查看目标",
+      message:
+        "该 Agent 上已有相关处置正在执行，或上一条处置结果尚未确认，当前不能重复下发。",
+    };
+  }
+  if (
+    normalized.includes("历史") ||
+    normalized.includes("来源") ||
+    normalized.includes("备份") ||
+    normalized.includes("history") ||
+    normalized.includes("backup")
+  ) {
+    return { badge: "缺少历史来源", action: "选择来源", message: error };
+  }
+  if (
+    normalized.includes("适用性依据") ||
+    normalized.includes("适用性判定") ||
+    normalized.includes("目标证据") ||
+    normalized.includes("graph")
+  ) {
+    return { badge: "缺少目标依据", action: "查看目标", message: error };
+  }
+  return { badge: "待补参数", action: "补充参数", message: error };
+}
+
 export interface RemediationOrderLifecyclePanelProps {
   complete: number;
   decisionLoading: boolean;
@@ -152,7 +179,6 @@ export function RemediationOrderLifecyclePanel({
   working,
 }: RemediationOrderLifecyclePanelProps) {
   const stage = orderStage(order.status);
-  const percent = total ? Math.round((complete / total) * 100) : 0;
   const lifecycle = remediationOrderLifecycleActions(order);
   const busy = Boolean(working);
   const normalizedStatus = order.status.trim().toLowerCase();
@@ -161,6 +187,10 @@ export function RemediationOrderLifecyclePanel({
     order.items.some(
       (item) => item.operation_id || item.dispatch_id || item.execution,
     ) || stage === 3;
+  const blocked = Math.max(total - complete, 0);
+  const readinessIssue = firstIncomplete
+    ? readinessIssuePresentation(validationErrors[firstIncomplete.item_id] ?? "")
+    : null;
 
   return (
     <aside
@@ -169,7 +199,7 @@ export function RemediationOrderLifecyclePanel({
     >
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-slate-950">准备与执行</h2>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-600">
+        <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-bold text-white">
           {stageBadge(order.status)}
         </span>
       </div>
@@ -228,33 +258,45 @@ export function RemediationOrderLifecyclePanel({
       {lifecycle.edit ? (
         <>
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <div className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-700">
-              <span>参数完整度</span>
-              <span
-                className={
-                  complete === total && total > 0
-                    ? "text-emerald-700"
-                    : "text-amber-700"
-                }
-              >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs font-semibold text-slate-800">
+                  目标就绪度
+                </div>
+                <div className="mt-1 text-[11px] text-slate-500">
+                  Prepare 前的当前状态
+                </div>
+              </div>
+              <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-bold text-white">
                 {complete} / {total}
               </span>
             </div>
-            <div
-              className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200"
-              aria-hidden
-            >
-              <div
-                className="h-full rounded-full bg-teal-500 transition-[width] duration-300 motion-reduce:transition-none"
-                style={{ width: `${percent}%` }}
-              />
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
+                <div className="text-[10px] font-medium text-emerald-700">
+                  可准备
+                </div>
+                <div className="mt-1 text-lg font-bold text-emerald-800">
+                  {complete}
+                </div>
+              </div>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3">
+                <div className="text-[10px] font-medium text-amber-700">
+                  需处理
+                </div>
+                <div className="mt-1 text-lg font-bold text-amber-800">
+                  {blocked}
+                </div>
+              </div>
             </div>
-            <p className="mt-3 text-xs leading-5 text-slate-500">
-              完成所有必填参数后才能进行 Prepare 权威校验。
-            </p>
           </div>
 
-          {firstIncomplete ? (
+          {decisionLoading ? (
+            <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
+              <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+              正在核对目标适用性与活动冲突…
+            </div>
+          ) : firstIncomplete && readinessIssue ? (
             <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle
@@ -263,24 +305,29 @@ export function RemediationOrderLifecyclePanel({
                 />
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-bold text-amber-900">
-                    {total - complete} 个目标需要处理
+                    当前阻塞项
                   </div>
-                  <div
-                    className="mt-3 truncate text-xs font-semibold text-amber-900"
-                    title={targetText(firstIncomplete)}
-                  >
-                    {basename(targetText(firstIncomplete))} ·{" "}
-                    {remediationOrderActionLabel(firstIncomplete)}
+                  <div className="mt-3 flex items-start justify-between gap-3">
+                    <div
+                      className="min-w-0 truncate text-xs font-semibold text-amber-900"
+                      title={targetText(firstIncomplete)}
+                    >
+                      {basename(targetText(firstIncomplete))} ·{" "}
+                      {remediationOrderActionLabel(firstIncomplete)}
+                    </div>
+                    <span className="shrink-0 rounded-full bg-amber-200 px-2.5 py-1 text-[10px] font-bold text-amber-900">
+                      {readinessIssue.badge}
+                    </span>
                   </div>
                   <p className="mt-1 text-xs leading-5 text-amber-700">
-                    {validationErrors[firstIncomplete.item_id]}
+                    {readinessIssue.message}
                   </p>
                   <button
                     type="button"
                     onClick={() => onSelectItem(firstIncomplete.item_id)}
                     className="mt-3 min-h-9 rounded-full border border-amber-500 bg-white px-4 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
                   >
-                    前往配置该目标
+                    {readinessIssue.action}
                   </button>
                 </div>
               </div>
@@ -289,39 +336,13 @@ export function RemediationOrderLifecyclePanel({
             <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
               <CheckCircle2 className="mt-0.5 size-5 shrink-0" aria-hidden />
               <div>
-                <div className="text-xs font-bold">所有目标参数完整</div>
+                <div className="text-xs font-bold">所有目标均可准备</div>
                 <p className="mt-1 text-xs leading-5 text-emerald-700">
-                  可以保存草稿，随后进入 Prepare 权威校验。
+                  当前没有缺失参数或动作冲突，可以进入 Prepare 校验。
                 </p>
               </div>
             </div>
           ) : null}
-
-          <div className="mt-5">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
-              Prepare 将重新验证
-              {decisionLoading ? (
-                <Loader2
-                  className="size-3.5 animate-spin text-slate-400"
-                  aria-label="正在加载动作依据"
-                />
-              ) : null}
-            </div>
-            <ul className="mt-3 space-y-3">
-              {PREPARE_CHECKS.map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2.5 text-xs leading-5 text-slate-600"
-                >
-                  <Check
-                    className="mt-0.5 size-4 shrink-0 text-emerald-600"
-                    aria-hidden
-                  />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
         </>
       ) : null}
 
@@ -438,33 +459,30 @@ export function RemediationOrderLifecyclePanel({
         </div>
       ) : null}
 
-      {lifecycle.edit ? (
-        <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50 p-4">
-          <div className="text-xs font-bold text-blue-900">下发规则</div>
-          <p className="mt-2 text-xs leading-5 text-blue-700">
-            Agent 在线状态只展示信息，不作为是否允许 Confirm
-            的门禁。真正的执行资格由 Prepare 返回的 ready / blocked 决定。
-          </p>
-        </div>
-      ) : null}
-
       <div className="mt-5 grid gap-2 border-t border-slate-100 pt-5">
         {lifecycle.edit ? (
           <>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-11 w-full rounded-full border-slate-300"
-              disabled={busy || !dirty}
-              onClick={onSave}
-            >
-              {working === "save" ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <Save />
-              )}
-              {dirty ? "保存草稿" : "草稿已保存"}
-            </Button>
+            {dirty ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full rounded-full border-slate-300"
+                disabled={busy}
+                onClick={onSave}
+              >
+                {working === "save" ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Save />
+                )}
+                保存草稿
+              </Button>
+            ) : (
+              <div className="flex h-10 items-center justify-center gap-2 text-xs font-medium text-slate-500">
+                <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
+                草稿已保存
+              </div>
+            )}
             <Button
               type="button"
               className="h-11 w-full rounded-full bg-teal-600 text-white hover:bg-teal-700"

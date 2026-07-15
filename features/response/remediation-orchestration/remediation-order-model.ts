@@ -59,6 +59,12 @@ export function remediationActionApplicabilityError(
   );
   if (!agentDecision) return "后台没有返回当前 Agent 的动作适用性判定。";
   if (agentDecision.status !== "unavailable") return "";
+  if (
+    agentDecision.reason_code.trim().toUpperCase() === "ACTIVE_EFFECT" &&
+    !/[\u3400-\u9fff]/.test(agentDecision.reason_message)
+  ) {
+    return "该 Agent 上已有相关处置正在执行，或上一条处置结果尚未确认，当前不能重复下发。";
+  }
   return (
     agentDecision.reason_message ||
     agentDecision.reason_code ||
