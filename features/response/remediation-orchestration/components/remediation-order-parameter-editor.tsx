@@ -225,8 +225,8 @@ function targetSnapshotRows(
     add("进程名", snapshot.process.process_name);
     add("PID", snapshot.process.pid || "");
     add("进程路径", snapshot.process.process_path, true);
-    add("进程 Hash", snapshot.process.process_hash, true);
-    add("Process GUID", snapshot.process.process_guid, true);
+    add("进程 Hash", snapshot.process.process_hash);
+    add("Process GUID", snapshot.process.process_guid);
     add("命令行", snapshot.process.command_line, true);
   } else if (snapshot.file) {
     add("文件完整路径", snapshot.file.file_path, true);
