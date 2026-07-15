@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { History, ShieldCheck } from "lucide-react";
+import { History } from "lucide-react";
 
 import type {
   RemediationActionDecision,
@@ -318,16 +318,6 @@ function TargetSnapshotPanel({
       : []),
   ];
   const rows = snapshotRows.length > 0 ? snapshotRows : fallbackRows;
-  const sourceLabel =
-    snapshot?.source === "graph_current"
-      ? "Graph 当前证据"
-      : snapshot?.source === "prepared_frozen"
-        ? "Prepare 已冻结"
-        : snapshot?.source === "history_frozen"
-          ? "历史冻结"
-          : snapshotAvailable
-            ? "目标证据"
-            : "等待解析";
   const unavailableMessage = !snapshot
     ? "当前接口未返回目标快照，PID、路径、Hash 等可信证据等待后台解析。"
     : snapshot.status !== "available"
@@ -340,19 +330,7 @@ function TargetSnapshotPanel({
 
   return (
     <div className="mt-4">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div className="text-xs font-semibold text-slate-700">目标信息</div>
-        <span
-          className={cn(
-            "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium",
-            snapshotAvailable && snapshotRows.length > 0
-              ? "bg-emerald-50 text-emerald-700"
-              : "bg-amber-50 text-amber-700",
-          )}
-        >
-          {sourceLabel}
-        </span>
-      </div>
+      <div className="mb-2 text-xs font-semibold text-slate-700">目标信息</div>
       <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
         {rows.map((row, index) => (
           <div
@@ -446,25 +424,6 @@ export function RemediationOrderParameterPanel({
 
   return (
     <div>
-      <div className="text-xs text-slate-400">当前目标</div>
-      <div className="mt-1 flex min-w-0 items-center gap-3">
-        <h3
-          className="truncate text-base font-semibold text-slate-950"
-          title={targetText(item)}
-        >
-          {targetName(item)}
-        </h3>
-        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-bold text-slate-500">
-          {entityLabel(item)}
-        </span>
-      </div>
-      <div
-        className="mt-1 truncate font-mono text-xs text-slate-500"
-        title={targetText(item)}
-      >
-        {targetText(item)}
-      </div>
-
       <TargetSnapshotPanel item={item} snapshot={item.target_snapshot} />
 
       <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2">
@@ -484,19 +443,6 @@ export function RemediationOrderParameterPanel({
             title={item.action_code}
           >
             {remediationOrderActionLabel(item)}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
-        <ShieldCheck
-          className="mt-0.5 size-5 shrink-0 text-blue-600"
-          aria-hidden
-        />
-        <div>
-          <div className="text-xs font-semibold">参数由处置页面补充</div>
-          <div className="mt-1 text-xs leading-5 text-blue-600">
-            Agent 和 Action 来自 ControlPanel 的权威选择，此处不重新推断。
           </div>
         </div>
       </div>

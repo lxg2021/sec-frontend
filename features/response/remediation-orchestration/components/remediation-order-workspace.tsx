@@ -13,7 +13,6 @@ import {
   AlertTriangle,
   Boxes,
   CalendarCheck2,
-  Check,
   ChevronRight,
   Cog,
   Database,
@@ -585,9 +584,8 @@ export function RemediationOrderWorkspace({
         id="remediation-order-parameters"
         className="min-h-[620px] min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
       >
-        <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="border-b border-slate-100 pb-4">
           <h2 className="text-base font-semibold text-slate-950">动作参数</h2>
-          <span className="text-xs text-slate-500">只编辑当前动作相关字段</span>
         </div>
         {selectedItem ? (
           <div className="pt-4">
@@ -617,26 +615,6 @@ export function RemediationOrderWorkspace({
                 updateActionInput(selectedItem.item_id, input)
               }
             />
-
-            <div
-              role="status"
-              className={cn(
-                "mt-4 flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs font-medium leading-5",
-                validationErrors[selectedItem.item_id]
-                  ? "bg-amber-50 text-amber-800"
-                  : "bg-emerald-50 text-emerald-700",
-              )}
-            >
-              {validationErrors[selectedItem.item_id] ? (
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
-              ) : (
-                <Check className="mt-0.5 size-4 shrink-0" aria-hidden />
-              )}
-              {validationErrors[selectedItem.item_id] ||
-                (dirtyItemIds.has(selectedItem.item_id)
-                  ? "当前目标参数完整，修改等待保存到草稿。"
-                  : "当前目标参数完整。")}
-            </div>
           </div>
         ) : (
           <div className="flex min-h-[480px] items-center justify-center text-sm text-slate-400">
