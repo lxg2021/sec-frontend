@@ -48,6 +48,10 @@ function agentDecision(
     required_input_fields: [],
     reverse_contexts: [],
     target_candidates: [],
+    current_effect_state: "none",
+    prepare_disposition:
+      status === "unavailable" ? "block" : "execute",
+    draft_selectable: status !== "unavailable",
     ...overrides,
   };
 }
@@ -113,13 +117,34 @@ describe("isRemediationTargetComplete", () => {
           actionDecisions: [
             decision(descriptor, [
               agentDecision("agent-1", "unavailable", {
-                reason_code: "ACTIVE_EFFECT",
+                reason_code: "CONFLICTING_ACTION_IN_FLIGHT",
               }),
             ]),
           ],
         }),
       ),
     ).toBe(false);
+  });
+
+  it("allows a same-action in-flight decision to remain draft-selectable", () => {
+    const descriptor = action({ action_code: "process.terminate" });
+    expect(
+      isRemediationTargetComplete(
+        target({
+          actions: [descriptor],
+          selectedActionCode: descriptor.action_code,
+          actionDecisions: [
+            decision(descriptor, [
+              agentDecision("agent-1", "available", {
+                current_effect_state: "same_action_in_flight",
+                prepare_disposition: "wait_existing",
+                draft_selectable: true,
+              }),
+            ]),
+          ],
+        }),
+      ),
+    ).toBe(true);
   });
 
   it("allows available and configuration-required actions into the draft", () => {

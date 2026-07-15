@@ -93,8 +93,26 @@ function itemTargetText(item: RemediationOrderItem) {
 function statusBadge(
   item: RemediationOrderItem,
   validationError: string,
+  decision: RemediationActionDecision | null | undefined,
 ) {
   const status = item.status.trim().toLowerCase();
+  const reasonCode = item.reason_code.trim().toUpperCase();
+  const agentDecision = decision?.agent_decisions.find(
+    (candidate) => candidate.agent_id === item.agent_id,
+  );
+  if (
+    reasonCode === "WAIT_EXISTING_REMEDIATION" ||
+    (agentDecision?.draft_selectable &&
+      agentDecision.current_effect_state === "same_action_in_flight")
+  ) {
+    return { label: "处理中", className: "bg-blue-50 text-blue-700" };
+  }
+  if (
+    agentDecision?.draft_selectable &&
+    agentDecision.current_effect_state === "satisfied"
+  ) {
+    return { label: "已满足", className: "bg-emerald-50 text-emerald-700" };
+  }
   if (["pending", "dispatched", "running"].includes(status)) {
     return { label: "执行中", className: "bg-blue-50 text-blue-700" };
   }
@@ -543,6 +561,7 @@ export function RemediationOrderWorkspace({
         className="grid min-w-0 gap-4 xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
       >
       <TargetListPanel
+        decisions={decisions}
         items={visibleItems}
         query={query}
         selectedItemId={selectedItem?.item_id ?? ""}
@@ -646,6 +665,7 @@ export function RemediationOrderWorkspace({
   );
 }
 function TargetListPanel({
+  decisions,
   items,
   query,
   selectedItemId,
@@ -654,6 +674,7 @@ function TargetListPanel({
   total,
   validationErrors,
 }: {
+  decisions: Record<string, RemediationActionDecision | null>;
   items: RemediationOrderItem[];
   query: string;
   selectedItemId: string;
@@ -693,7 +714,11 @@ function TargetListPanel({
           items.map((item) => {
             const selected = item.item_id === selectedItemId;
             const Icon = remediationActionIcon(item.action_code);
-            const badge = statusBadge(item, validationErrors[item.item_id]);
+            const badge = statusBadge(
+              item,
+              validationErrors[item.item_id],
+              decisions[item.item_id],
+            );
             return (
               <button
                 key={item.item_id}

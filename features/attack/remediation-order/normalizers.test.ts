@@ -291,11 +291,17 @@ describe("remediation order normalizers", () => {
               {
                 agent_id: "agent-1",
                 status: "REMEDIATION_ACTION_APPLICABILITY_STATUS_UNAVAILABLE",
-                reason_code: "ACTIVE_EFFECT",
+                reason_code: "CONFLICTING_ACTION_IN_FLIGHT",
+                current_effect_state: 4,
+                prepare_disposition: 4,
+                draft_selectable: false,
               },
               {
                 agent_id: "agent-2",
                 status: 1,
+                current_effect_state: 1,
+                prepare_disposition: 1,
+                draft_selectable: true,
               },
             ],
           },
@@ -333,9 +339,18 @@ describe("remediation order normalizers", () => {
         {
           agent_id: "agent-1",
           status: "unavailable",
-          reason_code: "ACTIVE_EFFECT",
+          reason_code: "CONFLICTING_ACTION_IN_FLIGHT",
+          current_effect_state: "conflicting_action_in_flight",
+          prepare_disposition: "block",
+          draft_selectable: false,
         },
-        { agent_id: "agent-2", status: "available" },
+        {
+          agent_id: "agent-2",
+          status: "available",
+          current_effect_state: "none",
+          prepare_disposition: "execute",
+          draft_selectable: true,
+        },
       ],
     });
     expect(result.node.actions[1].agent_decisions[0]).toMatchObject({

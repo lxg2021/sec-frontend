@@ -234,20 +234,23 @@ describe("remediation Order orchestration model", () => {
             {
               agent_id: "agent-1",
               status: "unavailable",
-              reason_code: "ACTIVE_EFFECT",
+              reason_code: "CONFLICTING_ACTION_IN_FLIGHT",
               reason_message: "该文件正在执行隔离",
               required_input_fields: [],
               reverse_contexts: [],
               target_candidates: [],
+              current_effect_state: "conflicting_action_in_flight",
+              prepare_disposition: "block",
+              draft_selectable: false,
             },
           ],
         } as import("@/features/attack/remediation-order").RemediationActionDecision,
         "agent-1",
       ),
-    ).toBe("该文件正在执行隔离");
+    ).toContain("冲突动作");
   });
 
-  it("normalizes the ACTIVE_EFFECT backend reason into actionable Chinese", () => {
+  it("separates uncertain results from active action conflicts", () => {
     expect(
       remediationActionApplicabilityError(
         {
@@ -256,20 +259,47 @@ describe("remediation Order orchestration model", () => {
             {
               agent_id: "agent-1",
               status: "unavailable",
-              reason_code: "ACTIVE_EFFECT",
-              reason_message:
-                "A related remediation effect is running or uncertain on this Agent",
+              reason_code: "REMEDIATION_RESULT_UNCERTAIN",
+              reason_message: "A previous remediation result is uncertain",
               required_input_fields: [],
               reverse_contexts: [],
               target_candidates: [],
+              current_effect_state: "uncertain",
+              prepare_disposition: "block",
+              draft_selectable: false,
             },
           ],
         } as import("@/features/attack/remediation-order").RemediationActionDecision,
         "agent-1",
       ),
     ).toBe(
-      "该 Agent 上已有相关处置正在执行，或上一条处置结果尚未确认，当前不能重复下发。",
+      "该目标上一条处置的结果尚未确认，确认结果前不能创建新的执行计划。",
     );
+  });
+
+  it("does not treat the same action in flight as a parameter error", () => {
+    expect(
+      remediationActionApplicabilityError(
+        {
+          action: { action_code: "process.terminate" },
+          agent_decisions: [
+            {
+              agent_id: "agent-1",
+              status: "available",
+              reason_code: "SAME_ACTION_IN_FLIGHT",
+              reason_message: "The same remediation is being processed",
+              required_input_fields: [],
+              reverse_contexts: [],
+              target_candidates: [],
+              current_effect_state: "same_action_in_flight",
+              prepare_disposition: "wait_existing",
+              draft_selectable: true,
+            },
+          ],
+        } as import("@/features/attack/remediation-order").RemediationActionDecision,
+        "agent-1",
+      ),
+    ).toBe("");
   });
 
   it("builds a complete Draft update from the generic parameter editor", () => {

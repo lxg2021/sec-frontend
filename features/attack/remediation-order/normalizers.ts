@@ -10,6 +10,7 @@ import type {
   RegistryInput,
   RemediationActionAgentDecision,
   RemediationActionApplicabilityStatus,
+  RemediationCurrentEffectState,
   RemediationActionDescriptor,
   RemediationActionDecision,
   RemediationActionInput,
@@ -25,6 +26,7 @@ import type {
   RemediationOrderList,
   RemediationOrderListItem,
   RemediationOrderSummary,
+  RemediationPrepareDisposition,
   RemediationSource,
   RemediationSummary,
   RemediationTargetSnapshot,
@@ -127,6 +129,47 @@ function applicabilityStatusValue(
     normalized.endsWith("_unavailable")
   ) {
     return "unavailable";
+  }
+  return "unspecified";
+}
+
+function currentEffectStateValue(
+  value: unknown,
+): RemediationCurrentEffectState {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized.endsWith("_none")) {
+    return "none";
+  }
+  if (value === 2 || normalized === "2" || normalized.endsWith("_satisfied")) {
+    return "satisfied";
+  }
+  if (value === 3 || normalized === "3" || normalized.endsWith("_same_action_in_flight")) {
+    return "same_action_in_flight";
+  }
+  if (value === 4 || normalized === "4" || normalized.endsWith("_conflicting_action_in_flight")) {
+    return "conflicting_action_in_flight";
+  }
+  if (value === 5 || normalized === "5" || normalized.endsWith("_uncertain")) {
+    return "uncertain";
+  }
+  return "unspecified";
+}
+
+function prepareDispositionValue(
+  value: unknown,
+): RemediationPrepareDisposition {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized.endsWith("_execute")) {
+    return "execute";
+  }
+  if (value === 2 || normalized === "2" || normalized.endsWith("_skip_satisfied")) {
+    return "skip_satisfied";
+  }
+  if (value === 3 || normalized === "3" || normalized.endsWith("_wait_existing")) {
+    return "wait_existing";
+  }
+  if (value === 4 || normalized === "4" || normalized.endsWith("_block")) {
+    return "block";
   }
   return "unspecified";
 }
@@ -403,6 +446,9 @@ export function normalizeRemediationActionAgentDecision(
     target_candidates: objectArray(decision.target_candidates).map(
       normalizeRemediationActionTargetCandidate,
     ),
+    current_effect_state: currentEffectStateValue(decision.current_effect_state),
+    prepare_disposition: prepareDispositionValue(decision.prepare_disposition),
+    draft_selectable: boolValue(decision.draft_selectable),
   };
 }
 

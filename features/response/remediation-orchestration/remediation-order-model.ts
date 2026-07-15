@@ -59,11 +59,15 @@ export function remediationActionApplicabilityError(
   );
   if (!agentDecision) return "后台没有返回当前 Agent 的动作适用性判定。";
   if (agentDecision.status !== "unavailable") return "";
-  if (
-    agentDecision.reason_code.trim().toUpperCase() === "ACTIVE_EFFECT" &&
-    !/[\u3400-\u9fff]/.test(agentDecision.reason_message)
-  ) {
-    return "该 Agent 上已有相关处置正在执行，或上一条处置结果尚未确认，当前不能重复下发。";
+  const reasonCode = agentDecision.reason_code.trim().toUpperCase();
+  if (reasonCode === "REMEDIATION_RESULT_UNCERTAIN") {
+    return "该目标上一条处置的结果尚未确认，确认结果前不能创建新的执行计划。";
+  }
+  if (reasonCode === "REMEDIATION_PARAMETER_CONFLICT") {
+    return "该目标已有相同动作使用不同参数执行中，请等待其结束后再准备。";
+  }
+  if (reasonCode === "CONFLICTING_ACTION_IN_FLIGHT") {
+    return "该目标已有相反或对象级冲突动作执行中，请等待其结束后再操作。";
   }
   return (
     agentDecision.reason_message ||

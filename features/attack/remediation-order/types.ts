@@ -146,6 +146,21 @@ export interface RemediationActionDescriptor {
 export type RemediationActionApplicabilityStatus =
   "unspecified" | "available" | "requires_configuration" | "unavailable";
 
+export type RemediationCurrentEffectState =
+  | "unspecified"
+  | "none"
+  | "satisfied"
+  | "same_action_in_flight"
+  | "conflicting_action_in_flight"
+  | "uncertain";
+
+export type RemediationPrepareDisposition =
+  | "unspecified"
+  | "execute"
+  | "skip_satisfied"
+  | "wait_existing"
+  | "block";
+
 export interface RemediationActionAgentDecision {
   agent_id: string;
   status: RemediationActionApplicabilityStatus;
@@ -154,6 +169,9 @@ export interface RemediationActionAgentDecision {
   required_input_fields: string[];
   reverse_contexts: RemediationReverseContextOption[];
   target_candidates: RemediationActionTargetCandidate[];
+  current_effect_state: RemediationCurrentEffectState;
+  prepare_disposition: RemediationPrepareDisposition;
+  draft_selectable: boolean;
 }
 
 export interface RemediationActionTargetCandidate {

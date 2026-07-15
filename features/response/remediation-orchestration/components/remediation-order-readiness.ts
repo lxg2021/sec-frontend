@@ -12,9 +12,35 @@ export function remediationReadinessIssuePresentation(
   const normalized = message.toLowerCase();
 
   if (
-    normalized.includes("已有相关处置") ||
-    normalized.includes("running or uncertain") ||
-    normalized.includes("active_effect")
+    normalized.includes("wait_existing_remediation") ||
+    normalized.includes("same remediation action and parameters") ||
+    normalized.includes("同一处置动作和参数") ||
+    normalized.includes("同一处置仍在处理")
+  ) {
+    return {
+      badge: "处理中",
+      badgeClassName: "bg-blue-50 text-blue-700",
+      action: "查看目标",
+      message: "相同动作和参数已由现有任务处理。等待任务结束后，请重新 Prepare。",
+    };
+  }
+  if (
+    normalized.includes("remediation_result_uncertain") ||
+    normalized.includes("结果尚未确认") ||
+    normalized.includes("uncertain")
+  ) {
+    return {
+      badge: "结果待确认",
+      badgeClassName: "bg-orange-100 text-orange-800",
+      action: "查看目标",
+      message,
+    };
+  }
+  if (
+    normalized.includes("conflicting_action_in_flight") ||
+    normalized.includes("remediation_parameter_conflict") ||
+    normalized.includes("冲突动作") ||
+    normalized.includes("不同参数")
   ) {
     return {
       badge: "动作冲突",

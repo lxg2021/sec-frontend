@@ -123,10 +123,7 @@ export function isRemediationDecisionSelectable(
     return false;
   }
   const agentDecision = getRemediationAgentDecision(decision, agentId);
-  return (
-    agentDecision?.status === "available" ||
-    agentDecision?.status === "requires_configuration"
-  );
+  return agentDecision?.draft_selectable === true;
 }
 
 export function getRemediationSelectableActions(
