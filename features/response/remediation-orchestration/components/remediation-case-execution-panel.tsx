@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronRight,
+  ListChecks,
   Loader2,
   RefreshCcw,
   Workflow,
@@ -86,7 +87,12 @@ function sourceKey(sourceType: RemediationSourceType, sourceRefId: string) {
 }
 
 function itemTargetText(item: RemediationOrderItem) {
-  return item.display_name.trim() || item.object_id.trim() || item.node_key.trim() || "未命名目标";
+  return (
+    item.display_name.trim() ||
+    item.object_id.trim() ||
+    item.node_key.trim() ||
+    "未命名目标"
+  );
 }
 
 function shortId(value: string, left = 8, right = 4) {
@@ -101,7 +107,9 @@ function numericValue(value: string) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function executionForItem(item: RemediationOrderItem): RemediationItemExecution | null {
+function executionForItem(
+  item: RemediationOrderItem,
+): RemediationItemExecution | null {
   return item.execution;
 }
 
@@ -131,7 +139,10 @@ function itemStatusPresentation(item: RemediationOrderItem) {
     case "canceled":
       return { label: "已取消", className: "bg-slate-100 text-slate-700" };
     default:
-      return { label: status || "未开始", className: "bg-slate-100 text-slate-700" };
+      return {
+        label: status || "未开始",
+        className: "bg-slate-100 text-slate-700",
+      };
   }
 }
 
@@ -145,14 +156,19 @@ function itemNeedsAttention(item: RemediationOrderItem) {
   return status === "failed" || status === "uncertain" || status === "blocked";
 }
 
-function itemMatchesFilter(item: RemediationOrderItem, filter: ExecutionFilter) {
+function itemMatchesFilter(
+  item: RemediationOrderItem,
+  filter: ExecutionFilter,
+) {
   if (filter === "active") return itemIsActive(item);
   if (filter === "attention") return itemNeedsAttention(item);
   return true;
 }
 
 function operationId(item: RemediationOrderItem) {
-  return executionForItem(item)?.operation_id.trim() || item.operation_id.trim();
+  return (
+    executionForItem(item)?.operation_id.trim() || item.operation_id.trim()
+  );
 }
 
 function dispatchId(item: RemediationOrderItem) {
@@ -193,16 +209,26 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
   const finishedAt = execution?.finished_at.trim() || item.finished_at.trim();
   const lastReportAt = execution?.last_report_at.trim() || "";
   if (finishedAt) {
-    return { primary: `完成 ${formatTimestamp(finishedAt, locale)}`, secondary: "已收到终态回执" };
+    return {
+      primary: `完成 ${formatTimestamp(finishedAt, locale)}`,
+      secondary: "已收到终态回执",
+    };
   }
   if (startedAt) {
     return {
       primary: `开始 ${formatTimestamp(startedAt, locale)}`,
-      secondary: lastReportAt ? `最后回执 ${formatTimestamp(lastReportAt, locale)}` : status === "pending" ? "等待下发" : "等待执行回执",
+      secondary: lastReportAt
+        ? `最后回执 ${formatTimestamp(lastReportAt, locale)}`
+        : status === "pending"
+          ? "等待下发"
+          : "等待执行回执",
     };
   }
   if (lastReportAt) {
-    return { primary: `最后回执 ${formatTimestamp(lastReportAt, locale)}`, secondary: "等待状态更新" };
+    return {
+      primary: `最后回执 ${formatTimestamp(lastReportAt, locale)}`,
+      secondary: "等待状态更新",
+    };
   }
   return { primary: "尚未开始", secondary: "-" };
 }
@@ -210,8 +236,13 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
 function resultPresentation(item: RemediationOrderItem) {
   const execution = executionForItem(item);
   const errorCode = execution?.error_code.trim() || item.error_code.trim();
-  const errorMessage = execution?.error_message.trim() || item.error_message.trim();
-  const reason = execution?.reason_message.trim() || item.reason_message.trim() || execution?.reason_code.trim() || item.reason_code.trim();
+  const errorMessage =
+    execution?.error_message.trim() || item.error_message.trim();
+  const reason =
+    execution?.reason_message.trim() ||
+    item.reason_message.trim() ||
+    execution?.reason_code.trim() ||
+    item.reason_code.trim();
   const status = item.status.trim().toLowerCase();
   if (errorCode || errorMessage) {
     return {
@@ -221,16 +252,32 @@ function resultPresentation(item: RemediationOrderItem) {
     };
   }
   if (status === "success") {
-    return { code: "", primary: "执行结果已确认", secondary: reason || "终端已确认处置结果" };
+    return {
+      code: "",
+      primary: "执行结果已确认",
+      secondary: reason || "终端已确认处置结果",
+    };
   }
   if (status === "uncertain") {
-    return { code: "", primary: "需人工对账", secondary: reason || "结果未能被权威确认" };
+    return {
+      code: "",
+      primary: "需人工对账",
+      secondary: reason || "结果未能被权威确认",
+    };
   }
   if (status === "failed" || status === "blocked") {
-    return { code: "", primary: reason || "当前无法执行", secondary: "请查看状态与处理原因" };
+    return {
+      code: "",
+      primary: reason || "当前无法执行",
+      secondary: "请查看状态与处理原因",
+    };
   }
   if (itemIsActive(item)) {
-    return { code: "", primary: reason || "等待 Agent 回执", secondary: "处置下发后将自动刷新" };
+    return {
+      code: "",
+      primary: reason || "等待 Agent 回执",
+      secondary: "处置下发后将自动刷新",
+    };
   }
   return { code: "", primary: reason || "尚未进入执行阶段", secondary: "-" };
 }
@@ -238,11 +285,31 @@ function resultPresentation(item: RemediationOrderItem) {
 function orderStateSummary(order: RemediationOrderListItem) {
   const summary = order.summary;
   return [
-    { label: `待下发/执行中 ${summary.pending + summary.running}`, visible: summary.pending + summary.running > 0, className: "bg-sky-50 text-sky-700" },
-    { label: `成功 ${summary.success}`, visible: summary.success > 0, className: "bg-emerald-50 text-emerald-700" },
-    { label: `失败 ${summary.failed}`, visible: summary.failed > 0, className: "bg-rose-50 text-rose-700" },
-    { label: `未确定 ${summary.uncertain}`, visible: summary.uncertain > 0, className: "bg-amber-50 text-amber-700" },
-    { label: `待确认 ${summary.ready}`, visible: summary.ready > 0, className: "bg-violet-50 text-violet-700" },
+    {
+      label: `待下发/执行中 ${summary.pending + summary.running}`,
+      visible: summary.pending + summary.running > 0,
+      className: "bg-sky-50 text-sky-700",
+    },
+    {
+      label: `成功 ${summary.success}`,
+      visible: summary.success > 0,
+      className: "bg-emerald-50 text-emerald-700",
+    },
+    {
+      label: `失败 ${summary.failed}`,
+      visible: summary.failed > 0,
+      className: "bg-rose-50 text-rose-700",
+    },
+    {
+      label: `未确定 ${summary.uncertain}`,
+      visible: summary.uncertain > 0,
+      className: "bg-amber-50 text-amber-700",
+    },
+    {
+      label: `待确认 ${summary.ready}`,
+      visible: summary.ready > 0,
+      className: "bg-violet-50 text-violet-700",
+    },
   ].filter((entry) => entry.visible);
 }
 
@@ -269,15 +336,14 @@ function groupItemsByOrder(items: RemediationOrderItem[]) {
     const key = `${item.order_id}:${item.item_id}`;
     uniqueItems.set(key, item);
   });
-  return [...uniqueItems.values()].reduce<Record<string, RemediationOrderItem[]>>(
-    (groups, item) => {
-      const orderId = item.order_id.trim();
-      if (!orderId) return groups;
-      groups[orderId] = [...(groups[orderId] ?? []), item];
-      return groups;
-    },
-    {},
-  );
+  return [...uniqueItems.values()].reduce<
+    Record<string, RemediationOrderItem[]>
+  >((groups, item) => {
+    const orderId = item.order_id.trim();
+    if (!orderId) return groups;
+    groups[orderId] = [...(groups[orderId] ?? []), item];
+    return groups;
+  }, {});
 }
 
 export function RemediationCaseExecutionPanel({
@@ -320,7 +386,10 @@ export function RemediationCaseExecutionPanel({
   }, [caseId, currentSourceRefId, currentSourceType]);
 
   const load = useCallback(
-    async ({ manual = false, silent = false }: { manual?: boolean; silent?: boolean } = {}) => {
+    async ({
+      manual = false,
+      silent = false,
+    }: { manual?: boolean; silent?: boolean } = {}) => {
       if (!summarySource) {
         setLoading(false);
         setError("当前处置单没有可查询的 Case 或图来源。");
@@ -398,7 +467,8 @@ export function RemediationCaseExecutionPanel({
     };
   }, [load]);
 
-  const pollingDelay = numericValue(data?.summary.running_count ?? "0") > 0 ? 5_000 : 15_000;
+  const pollingDelay =
+    numericValue(data?.summary.running_count ?? "0") > 0 ? 5_000 : 15_000;
   useEffect(() => {
     const timer = window.setInterval(() => {
       if (document.visibilityState === "visible") {
@@ -410,7 +480,9 @@ export function RemediationCaseExecutionPanel({
 
   const orders = useMemo(() => {
     const remoteOrders = data?.orders ?? [];
-    if (remoteOrders.some((order) => order.order_id === currentOrder.order_id)) {
+    if (
+      remoteOrders.some((order) => order.order_id === currentOrder.order_id)
+    ) {
       return remoteOrders;
     }
     return [
@@ -437,7 +509,9 @@ export function RemediationCaseExecutionPanel({
   );
   const activeCount = allItems.filter(itemIsActive).length;
   const attentionCount = allItems.filter(itemNeedsAttention).length;
-  const hostIdLabel = locale.toLowerCase().startsWith("zh") ? "主机ID" : "HostID";
+  const hostIdLabel = locale.toLowerCase().startsWith("zh")
+    ? "主机ID"
+    : "HostID";
   const sourceLabel = caseId ? "当前 Case" : "当前图来源";
   const summary = data?.summary ?? EMPTY_SUMMARY;
 
@@ -463,7 +537,12 @@ export function RemediationCaseExecutionPanel({
           <div className="min-w-0">
             <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
               处置执行情况
-              {loading ? <Loader2 className="size-3.5 animate-spin text-slate-400" aria-label="正在加载" /> : null}
+              {loading ? (
+                <Loader2
+                  className="size-3.5 animate-spin text-slate-400"
+                  aria-label="正在加载"
+                />
+              ) : null}
             </h2>
             <span
               className="mt-1 block max-w-[min(60vw,560px)] truncate font-mono text-[11px] leading-5 text-slate-500"
@@ -487,105 +566,198 @@ export function RemediationCaseExecutionPanel({
             aria-label="刷新处置执行情况"
             className="flex size-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <RefreshCcw className={cn("size-4", refreshing && "animate-spin")} aria-hidden />
+            <RefreshCcw
+              className={cn("size-4", refreshing && "animate-spin")}
+              aria-hidden
+            />
           </button>
         </div>
       </div>
 
       <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2 xl:grid-cols-5">
         <SummaryMetric label="处置单" value={summary.order_count} suffix="张" />
-        <SummaryMetric label="待下发 / 执行中" value={summary.running_count} suffix="个目标" tone="active" />
-        <SummaryMetric label="执行成功" value={summary.success_count} suffix="个目标" tone="success" />
-        <SummaryMetric label="执行失败" value={summary.failed_count} suffix="个目标" tone="danger" />
-        <SummaryMetric label="结果未确定" value={summary.uncertain_count} suffix="个目标" tone="warning" />
+        <SummaryMetric
+          label="待下发 / 执行中"
+          value={summary.running_count}
+          suffix="个目标"
+          tone="active"
+        />
+        <SummaryMetric
+          label="执行成功"
+          value={summary.success_count}
+          suffix="个目标"
+          tone="success"
+        />
+        <SummaryMetric
+          label="执行失败"
+          value={summary.failed_count}
+          suffix="个目标"
+          tone="danger"
+        />
+        <SummaryMetric
+          label="结果未确定"
+          value={summary.uncertain_count}
+          suffix="个目标"
+          tone="warning"
+        />
       </div>
 
-      <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-800">处置单明细</h3>
-          <p className="mt-1 text-xs text-slate-500">默认展开当前处置单；可展开其他处置单查看目标级执行记录。</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2" aria-label="执行状态筛选">
-          <FilterButton active={filter === "all"} onClick={() => setFilter("all")}>
-            全部 {allItems.length || numericValue(summary.item_count)}
-          </FilterButton>
-          <FilterButton active={filter === "active"} onClick={() => setFilter("active")} tone="active">
-            处理中 {activeCount}
-          </FilterButton>
-          <FilterButton active={filter === "attention"} onClick={() => setFilter("attention")} tone="danger">
-            异常 {attentionCount}
-          </FilterButton>
-        </div>
-      </div>
-
-      {error ? (
-        <div className="mt-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800" role="alert">
-          <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <div className="font-semibold">处置执行明细暂时无法刷新</div>
-            <p className="mt-1 leading-5">{error}</p>
+            <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+              <ListChecks className="size-4 text-blue-600" aria-hidden />
+              处置清单
+            </h3>
+          </div>
+          <div
+            className="flex flex-wrap items-center gap-2"
+            aria-label="执行状态筛选"
+          >
+            <FilterButton
+              active={filter === "all"}
+              onClick={() => setFilter("all")}
+            >
+              全部 {allItems.length || numericValue(summary.item_count)}
+            </FilterButton>
+            <FilterButton
+              active={filter === "active"}
+              onClick={() => setFilter("active")}
+              tone="active"
+            >
+              处理中 {activeCount}
+            </FilterButton>
+            <FilterButton
+              active={filter === "attention"}
+              onClick={() => setFilter("attention")}
+              tone="danger"
+            >
+              异常 {attentionCount}
+            </FilterButton>
           </div>
         </div>
-      ) : null}
 
-      <div className="mt-4 space-y-3">
-        {orders.map((order) => {
-          const orderItems = (data?.itemsByOrderId[order.order_id] ?? currentOrder.items.filter((item) => item.order_id === order.order_id || order.order_id === currentOrder.order_id))
-            .filter((item) => itemMatchesFilter(item, filter));
-          const expanded = expandedOrderIds.has(order.order_id);
-          const orderBadges = orderStateSummary(order);
-          return (
-            <article key={order.order_id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              <button
-                type="button"
-                aria-expanded={expanded}
-                onClick={() => toggleOrder(order.order_id)}
-                className="flex min-h-12 w-full items-center gap-3 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
+        {error ? (
+          <div
+            className="mt-3 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800"
+            role="alert"
+          >
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <div>
+              <div className="font-semibold">处置执行明细暂时无法刷新</div>
+              <p className="mt-1 leading-5">{error}</p>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-3 space-y-3">
+          {orders.map((order) => {
+            const orderItems = (
+              data?.itemsByOrderId[order.order_id] ??
+              currentOrder.items.filter(
+                (item) =>
+                  item.order_id === order.order_id ||
+                  order.order_id === currentOrder.order_id,
+              )
+            ).filter((item) => itemMatchesFilter(item, filter));
+            const expanded = expandedOrderIds.has(order.order_id);
+            const orderBadges = orderStateSummary(order);
+            return (
+              <article
+                key={order.order_id}
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
               >
-                {expanded ? <ChevronDown className="size-4 shrink-0 text-slate-500" aria-hidden /> : <ChevronRight className="size-4 shrink-0 text-slate-500" aria-hidden />}
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="text-sm font-semibold text-slate-800">{order.title.trim() || `处置单 · ${formatTimestamp(order.created_at || order.updated_at, locale)}`}</span>
-                    <span className="font-mono text-[10px] text-slate-500" title={order.order_id}>Order {shortId(order.order_id)}</span>
-                    {orderBadges.map((badge) => (
-                      <span key={badge.label} className={cn("rounded-full px-2.5 py-1 text-[10px] font-bold", badge.className)}>{badge.label}</span>
-                    ))}
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  onClick={() => toggleOrder(order.order_id)}
+                  className="flex min-h-12 w-full items-center gap-3 bg-slate-50 px-4 py-3 text-left transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500"
+                >
+                  {expanded ? (
+                    <ChevronDown
+                      className="size-4 shrink-0 text-slate-500"
+                      aria-hidden
+                    />
+                  ) : (
+                    <ChevronRight
+                      className="size-4 shrink-0 text-slate-500"
+                      aria-hidden
+                    />
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="text-sm font-semibold text-slate-800">
+                        {order.title.trim() ||
+                          `处置单 · ${formatTimestamp(order.created_at || order.updated_at, locale)}`}
+                      </span>
+                      <span
+                        className="font-mono text-[10px] text-slate-500"
+                        title={order.order_id}
+                      >
+                        Order {shortId(order.order_id)}
+                      </span>
+                      {orderBadges.map((badge) => (
+                        <span
+                          key={badge.label}
+                          className={cn(
+                            "rounded-full px-2.5 py-1 text-[10px] font-bold",
+                            badge.className,
+                          )}
+                        >
+                          {badge.label}
+                        </span>
+                      ))}
+                    </span>
                   </span>
-                </span>
-                <span className="hidden shrink-0 text-right text-[11px] text-slate-500 lg:block">
-                  最近更新 {formatTimestamp(order.updated_at || order.created_at, locale)}
-                </span>
-              </button>
-
-              {expanded ? (
-                <div className="overflow-x-auto">
-                  <div className="min-w-[1060px]">
-                    <div className="grid grid-cols-[minmax(250px,1.35fr)_minmax(180px,.8fr)_150px_minmax(220px,1fr)_190px_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 text-[11px] font-bold text-slate-500">
-                      <span>目标 / 处置动作</span>
-                      <span>{hostIdLabel}</span>
-                      <span>当前状态</span>
-                      <span>执行链路</span>
-                      <span>时间</span>
-                      <span>结果 / 原因</span>
-                    </div>
-                    {orderItems.length ? orderItems.map((item) => <ExecutionItemRow key={item.item_id} item={item} locale={locale} />) : (
-                      <div className="px-5 py-9 text-center text-xs text-slate-500">
-                        {filter === "all" ? "当前处置单暂无可展示的目标执行记录。" : "没有符合当前状态筛选的目标。"}
-                      </div>
+                  <span className="hidden shrink-0 text-right text-[11px] text-slate-500 lg:block">
+                    最近更新{" "}
+                    {formatTimestamp(
+                      order.updated_at || order.created_at,
+                      locale,
                     )}
-                  </div>
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
+                  </span>
+                </button>
 
-      {!loading && !orders.length ? (
-        <div className="mt-4 rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
-          当前 {sourceLabel} 尚未创建处置单。
+                {expanded ? (
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[1060px]">
+                      <div className="grid grid-cols-[minmax(250px,1.35fr)_minmax(180px,.8fr)_150px_minmax(220px,1fr)_190px_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 text-[11px] font-bold text-slate-500">
+                        <span>目标 / 处置动作</span>
+                        <span>{hostIdLabel}</span>
+                        <span>当前状态</span>
+                        <span>执行链路</span>
+                        <span>时间</span>
+                        <span>结果 / 原因</span>
+                      </div>
+                      {orderItems.length ? (
+                        orderItems.map((item) => (
+                          <ExecutionItemRow
+                            key={item.item_id}
+                            item={item}
+                            locale={locale}
+                          />
+                        ))
+                      ) : (
+                        <div className="px-5 py-9 text-center text-xs text-slate-500">
+                          {filter === "all"
+                            ? "当前处置单暂无可展示的目标执行记录。"
+                            : "没有符合当前状态筛选的目标。"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
         </div>
-      ) : null}
+
+        {!loading && !orders.length ? (
+          <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-10 text-center text-sm text-slate-500">
+            当前 {sourceLabel} 尚未创建处置单。
+          </div>
+        ) : null}
+      </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-[11px] text-slate-500">
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -622,7 +794,9 @@ function SummaryMetric({
     <div className="border-b border-slate-200 px-4 py-3 last:border-b-0 xl:border-b-0 xl:border-l xl:first:border-l-0">
       <div className="text-[11px] font-medium text-slate-500">{label}</div>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className={cn("text-xl font-bold tabular-nums", colors)}>{numericValue(value)}</span>
+        <span className={cn("text-xl font-bold tabular-nums", colors)}>
+          {numericValue(value)}
+        </span>
         <span className="text-[11px] text-slate-500">{suffix}</span>
       </div>
     </div>
@@ -656,14 +830,23 @@ function FilterButton({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className={cn("min-h-8 rounded-full px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2", toneClass)}
+      className={cn(
+        "min-h-8 rounded-full px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
+        toneClass,
+      )}
     >
       {children}
     </button>
   );
 }
 
-function ExecutionItemRow({ item, locale }: { item: RemediationOrderItem; locale: string }) {
+function ExecutionItemRow({
+  item,
+  locale,
+}: {
+  item: RemediationOrderItem;
+  locale: string;
+}) {
   const Icon = remediationActionIcon(item.action_code);
   const status = itemStatusPresentation(item);
   const operation = operationId(item);
@@ -673,41 +856,95 @@ function ExecutionItemRow({ item, locale }: { item: RemediationOrderItem; locale
   return (
     <div className="grid grid-cols-[minmax(250px,1.35fr)_minmax(180px,.8fr)_150px_minmax(220px,1fr)_190px_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 last:border-b-0">
       <div className="flex min-w-0 items-start gap-3">
-        <span className={cn("flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50", remediationActionIconClassName(item.action_code))}>
+        <span
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-50",
+            remediationActionIconClassName(item.action_code),
+          )}
+        >
           <Icon className="size-4" aria-hidden />
         </span>
         <div className="min-w-0">
-          <div className="truncate text-xs font-semibold text-slate-800" title={itemTargetText(item)}>{itemTargetText(item)}</div>
-          <div className="mt-1 truncate text-[11px] text-slate-500">{remediationOrderActionLabel(item)}</div>
+          <div
+            className="truncate text-xs font-semibold text-slate-800"
+            title={itemTargetText(item)}
+          >
+            {itemTargetText(item)}
+          </div>
+          <div className="mt-1 truncate text-[11px] text-slate-500">
+            {remediationOrderActionLabel(item)}
+          </div>
         </div>
       </div>
       <div className="min-w-0">
-        <div className="truncate font-mono text-[11px] text-slate-700" title={item.agent_id}>{shortId(item.agent_id)}</div>
-        <div className="mt-1 truncate text-[11px] text-slate-500">{item.entity_type || "-"}</div>
+        <div
+          className="truncate font-mono text-[11px] text-slate-700"
+          title={item.agent_id}
+        >
+          {shortId(item.agent_id)}
+        </div>
+        <div className="mt-1 truncate text-[11px] text-slate-500">
+          {item.entity_type || "-"}
+        </div>
       </div>
       <div>
-        <span className={cn("inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold", status.className)}>{status.label}</span>
+        <span
+          className={cn(
+            "inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold",
+            status.className,
+          )}
+        >
+          {status.label}
+        </span>
       </div>
       <div className="min-w-0 font-mono text-[10px] leading-5 text-slate-600">
-        <div className="truncate" title={operation}>OP&nbsp; {shortId(operation)}</div>
-        <div className="truncate" title={dispatch}>DP&nbsp; {shortId(dispatch)}</div>
+        <div className="truncate" title={operation}>
+          OP&nbsp; {shortId(operation)}
+        </div>
+        <div className="truncate" title={dispatch}>
+          DP&nbsp; {shortId(dispatch)}
+        </div>
       </div>
       <div className="min-w-0 text-[11px] leading-5">
-        <div className="truncate font-medium text-slate-700" title={time.primary}>{time.primary}</div>
-        <div className="truncate text-slate-500" title={time.secondary}>{time.secondary}</div>
+        <div
+          className="truncate font-medium text-slate-700"
+          title={time.primary}
+        >
+          {time.primary}
+        </div>
+        <div className="truncate text-slate-500" title={time.secondary}>
+          {time.secondary}
+        </div>
       </div>
       <div className="min-w-0 text-[11px] leading-5">
         <div className="flex min-w-0 items-center gap-2">
-          {result.code ? <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-700">{result.code}</span> : null}
-          <span className="truncate font-medium text-slate-700" title={result.primary}>{result.primary}</span>
+          {result.code ? (
+            <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-700">
+              {result.code}
+            </span>
+          ) : null}
+          <span
+            className="truncate font-medium text-slate-700"
+            title={result.primary}
+          >
+            {result.primary}
+          </span>
         </div>
-        <div className="truncate text-slate-500" title={result.secondary}>{result.secondary}</div>
+        <div className="truncate text-slate-500" title={result.secondary}>
+          {result.secondary}
+        </div>
       </div>
     </div>
   );
 }
 
-function StatusLegend({ className, label }: { className: string; label: string }) {
+function StatusLegend({
+  className,
+  label,
+}: {
+  className: string;
+  label: string;
+}) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className={cn("size-2 rounded-full", className)} aria-hidden />
