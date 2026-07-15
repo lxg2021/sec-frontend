@@ -54,6 +54,9 @@ import type {
 } from "@/features/attack/dgraph"
 import {
   buildRemediationOrchestrationHref,
+  RemediationOrderTitleDialog,
+  remediationOrderTitleLocale,
+  suggestRemediationOrderTitle,
   useRemediationOrderWorkspace,
 } from "@/features/attack/remediation-order"
 import {
@@ -171,6 +174,10 @@ export default function App() {
   const [controlPanelActivePluginId, setControlPanelActivePluginId] =
     useState("ioc-candidates")
   const [controlPanelExpanded, setControlPanelExpanded] = useState(false)
+  const [createRemediationOrderOpen, setCreateRemediationOrderOpen] =
+    useState(false)
+  const [suggestedRemediationOrderName, setSuggestedRemediationOrderName] =
+    useState("")
   const [iocCandidates, setIocCandidates] = useState<IocVerificationItem[]>([])
   const [iocCandidatesLoading, setIocCandidatesLoading] = useState(false)
   const [iocCandidateSyncState, setIocCandidateSyncState] =
@@ -200,6 +207,8 @@ export default function App() {
     setReturnQueuePage(routeParams.queuePage)
     setControlPanelActivePluginId("ioc-candidates")
     setControlPanelExpanded(false)
+    setCreateRemediationOrderOpen(false)
+    setSuggestedRemediationOrderName("")
     setIocCandidates([])
     setIocCandidateSyncState("loading")
     setIocExtractTaskStatus("")
@@ -467,12 +476,27 @@ export default function App() {
         ? graphModel.nodes
         : EMPTY_ATTACK_GRAPH_NODES,
   })
-  const handleOpenRemediationOrchestration = useCallback(async () => {
+  const handleOpenRemediationOrchestration = useCallback(async (title?: string) => {
+    const requestedTitle = title?.trim() || ""
+    if (!remediation.order && !requestedTitle) {
+      setSuggestedRemediationOrderName(
+        suggestRemediationOrderTitle(
+          remediation.targets,
+          remediationOrderTitleLocale(locale),
+        ),
+      )
+      setCreateRemediationOrderOpen(true)
+      return
+    }
+
     try {
       let currentOrder = remediation.order
-      if (!currentOrder || remediation.dirty) {
+      if (!currentOrder) {
+        currentOrder = await remediation.saveDraft({ title: requestedTitle })
+      } else if (remediation.dirty) {
         currentOrder = await remediation.saveDraft()
       }
+      setCreateRemediationOrderOpen(false)
       router.push(buildRemediationOrchestrationHref(currentOrder))
     } catch (error) {
       toast.error(t("controlPanel.remediation.messages.openFailed"), {
@@ -483,9 +507,11 @@ export default function App() {
       })
     }
   }, [
+    locale,
     remediation.dirty,
     remediation.order,
     remediation.saveDraft,
+    remediation.targets,
     router,
     t,
   ])
@@ -1186,6 +1212,15 @@ export default function App() {
           response={graphResponse}
           subtitle={t("subtitle")}
           title={t("graph")}
+        />
+
+        <RemediationOrderTitleDialog
+          defaultTitle={suggestedRemediationOrderName}
+          mode="create"
+          onOpenChange={setCreateRemediationOrderOpen}
+          onSubmit={handleOpenRemediationOrchestration}
+          open={createRemediationOrderOpen}
+          submitting={remediation.saving}
         />
 
       </div>

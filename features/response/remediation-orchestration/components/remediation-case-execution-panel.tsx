@@ -40,6 +40,7 @@ import {
   remediationActionIcon,
   remediationActionIconClassName,
 } from "./remediation-action-icons";
+import { remediationTargetPresentation } from "./remediation-target-presentation";
 
 type ExecutionFilter = "all" | "active" | "attention";
 
@@ -87,15 +88,6 @@ function sourceKey(sourceType: RemediationSourceType, sourceRefId: string) {
   return `${sourceType}:${sourceRefId.trim()}`;
 }
 
-function itemTargetText(item: RemediationOrderItem) {
-  return (
-    item.display_name.trim() ||
-    item.object_id.trim() ||
-    item.node_key.trim() ||
-    "未命名目标"
-  );
-}
-
 function shortId(value: string, left = 8, right = 4) {
   const normalized = value.trim();
   if (!normalized) return "-";
@@ -114,7 +106,38 @@ function executionForItem(
   return item.execution;
 }
 
+function itemExecutionCodes(item: RemediationOrderItem) {
+  const execution = executionForItem(item);
+  return [
+    execution?.error_code,
+    item.error_code,
+    execution?.reason_code,
+    item.reason_code,
+  ]
+    .map((value) => value?.trim().toUpperCase() ?? "")
+    .filter(Boolean);
+}
+
+function itemIsReportTimeout(item: RemediationOrderItem) {
+  return itemExecutionCodes(item).includes("REPORT_TIMEOUT");
+}
+
+function itemHasUncertainResult(item: RemediationOrderItem) {
+  const execution = executionForItem(item);
+  return (
+    item.status.trim().toLowerCase() === "uncertain" ||
+    Boolean(item.uncertainty_since_at.trim()) ||
+    execution?.failure_certainty.trim().toLowerCase() === "uncertain"
+  );
+}
+
 function itemStatusPresentation(item: RemediationOrderItem) {
+  if (itemIsReportTimeout(item)) {
+    return { label: "回报超时", className: "bg-orange-50 text-orange-700" };
+  }
+  if (itemHasUncertainResult(item)) {
+    return { label: "结果未确认", className: "bg-amber-50 text-amber-700" };
+  }
   const status = item.status.trim().toLowerCase();
   switch (status) {
     case "draft":
@@ -166,16 +189,6 @@ function itemMatchesFilter(
   return true;
 }
 
-function operationId(item: RemediationOrderItem) {
-  return (
-    executionForItem(item)?.operation_id.trim() || item.operation_id.trim()
-  );
-}
-
-function dispatchId(item: RemediationOrderItem) {
-  return executionForItem(item)?.dispatch_id.trim() || item.dispatch_id.trim();
-}
-
 function executionTimestamp(item: RemediationOrderItem) {
   const execution = executionForItem(item);
   return (
@@ -209,6 +222,24 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
   const startedAt = execution?.started_at.trim() || "";
   const finishedAt = execution?.finished_at.trim() || item.finished_at.trim();
   const lastReportAt = execution?.last_report_at.trim() || "";
+  if (itemIsReportTimeout(item)) {
+    const timedOutAt = finishedAt || executionTimestamp(item);
+    return {
+      primary: timedOutAt
+        ? `超时 ${formatTimestamp(timedOutAt, locale)}`
+        : "回报超时",
+      secondary: "未收到终态结果",
+    };
+  }
+  if (itemHasUncertainResult(item)) {
+    const uncertainAt = finishedAt || executionTimestamp(item);
+    return {
+      primary: uncertainAt
+        ? `待确认 ${formatTimestamp(uncertainAt, locale)}`
+        : "结果未确认",
+      secondary: "尚无权威终态结果",
+    };
+  }
   if (finishedAt) {
     return {
       primary: `完成 ${formatTimestamp(finishedAt, locale)}`,
@@ -245,6 +276,21 @@ function resultPresentation(item: RemediationOrderItem) {
     execution?.reason_code.trim() ||
     item.reason_code.trim();
   const status = item.status.trim().toLowerCase();
+  if (itemIsReportTimeout(item)) {
+    return {
+      code: "",
+      result: "未收到终态结果",
+      reason:
+        "处置请求已被接收，但在回报截止时间前未收到 Agent 的最终结果",
+    };
+  }
+  if (itemHasUncertainResult(item)) {
+    return {
+      code: "",
+      result: "等待人工确认",
+      reason: reason || errorMessage || "结果尚未被权威确认",
+    };
+  }
   if (errorCode || errorMessage) {
     return {
       code: errorCode,
@@ -287,8 +333,20 @@ function resultPresentation(item: RemediationOrderItem) {
   };
 }
 
-function orderStateSummary(order: RemediationOrderListItem) {
+function orderStateSummary(
+  order: RemediationOrderListItem,
+  items: RemediationOrderItem[],
+) {
   const summary = order.summary;
+  const reportTimeoutCount = items.filter(itemIsReportTimeout).length;
+  const uncertainCount = Math.max(
+    summary.uncertain - reportTimeoutCount,
+    0,
+  );
+  const failedCount = Math.max(
+    summary.failed - Math.max(summary.uncertain, reportTimeoutCount),
+    0,
+  );
   return [
     {
       label: `待下发/执行中 ${summary.pending + summary.running}`,
@@ -301,13 +359,18 @@ function orderStateSummary(order: RemediationOrderListItem) {
       className: "bg-emerald-50 text-emerald-700",
     },
     {
-      label: `失败 ${summary.failed}`,
-      visible: summary.failed > 0,
+      label: `回报超时 ${reportTimeoutCount}`,
+      visible: reportTimeoutCount > 0,
+      className: "bg-orange-50 text-orange-700",
+    },
+    {
+      label: `失败 ${failedCount}`,
+      visible: failedCount > 0,
       className: "bg-rose-50 text-rose-700",
     },
     {
-      label: `未确定 ${summary.uncertain}`,
-      visible: summary.uncertain > 0,
+      label: `未确定 ${uncertainCount}`,
+      visible: uncertainCount > 0,
       className: "bg-amber-50 text-amber-700",
     },
     {
@@ -505,10 +568,10 @@ export function RemediationCaseExecutionPanel({
     ];
   }, [currentOrder, data?.orders]);
 
-  const allItems = useMemo(
-    () => Object.values(data?.itemsByOrderId ?? {}).flat(),
-    [data?.itemsByOrderId],
-  );
+  const allItems = useMemo(() => {
+    const loadedItems = Object.values(data?.itemsByOrderId ?? {}).flat();
+    return loadedItems.length > 0 ? loadedItems : currentOrder.items;
+  }, [currentOrder.items, data?.itemsByOrderId]);
   const activeCount = allItems.filter(itemIsActive).length;
   const attentionCount = allItems.filter(itemNeedsAttention).length;
   const hostIdLabel = locale.toLowerCase().startsWith("zh")
@@ -516,6 +579,15 @@ export function RemediationCaseExecutionPanel({
     : "HostID";
   const sourceLabel = caseId ? "当前 Case" : "当前图来源";
   const summary = data?.summary ?? EMPTY_SUMMARY;
+  const reportTimeoutCount = allItems.filter(itemIsReportTimeout).length;
+  const uncertainCount = allItems.filter(
+    (item) => !itemIsReportTimeout(item) && itemHasUncertainResult(item),
+  ).length;
+  const failedCount = allItems.filter(
+    (item) =>
+      item.status.trim().toLowerCase() === "failed" &&
+      !itemHasUncertainResult(item),
+  ).length;
 
   function toggleOrder(orderId: string) {
     setExpandedOrderIds((current) => {
@@ -576,7 +648,7 @@ export function RemediationCaseExecutionPanel({
         </div>
       </div>
 
-      <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2 xl:grid-cols-6">
         <SummaryMetric label="处置单" value={summary.order_count} suffix="张" />
         <SummaryMetric
           label="待下发 / 执行中"
@@ -591,14 +663,20 @@ export function RemediationCaseExecutionPanel({
           tone="success"
         />
         <SummaryMetric
+          label="回报超时"
+          value={String(reportTimeoutCount)}
+          suffix="个目标"
+          tone="timeout"
+        />
+        <SummaryMetric
           label="执行失败"
-          value={summary.failed_count}
+          value={String(failedCount)}
           suffix="个目标"
           tone="danger"
         />
         <SummaryMetric
           label="结果未确定"
-          value={summary.uncertain_count}
+          value={String(uncertainCount)}
           suffix="个目标"
           tone="warning"
         />
@@ -662,16 +740,18 @@ export function RemediationCaseExecutionPanel({
               !isLegacyCaseRemediationTitle(savedOrderTitle, orderCaseId)
                 ? savedOrderTitle
                 : `处置单 · ${formatTimestamp(order.created_at || order.updated_at, locale)}`;
-            const orderItems = (
+            const allOrderItems =
               data?.itemsByOrderId[order.order_id] ??
               currentOrder.items.filter(
                 (item) =>
                   item.order_id === order.order_id ||
                   order.order_id === currentOrder.order_id,
-              )
-            ).filter((item) => itemMatchesFilter(item, filter));
+              );
+            const orderItems = allOrderItems.filter((item) =>
+              itemMatchesFilter(item, filter),
+            );
             const expanded = expandedOrderIds.has(order.order_id);
-            const orderBadges = orderStateSummary(order);
+            const orderBadges = orderStateSummary(order, allOrderItems);
             return (
               <article
                 key={order.order_id}
@@ -729,13 +809,12 @@ export function RemediationCaseExecutionPanel({
 
                 {expanded ? (
                   <div className="overflow-x-auto">
-                    <div className="min-w-[1540px]">
-                      <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_minmax(190px,.8fr)_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 text-[11px] font-bold text-slate-500">
+                    <div className="min-w-[1280px]">
+                      <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 text-[11px] font-bold text-slate-500">
                         <span>目标</span>
                         <span>处置动作</span>
                         <span>{hostIdLabel}</span>
                         <span>当前状态</span>
-                        <span>执行链路</span>
                         <span>时间</span>
                         <span>结果</span>
                         <span>原因</span>
@@ -774,10 +853,10 @@ export function RemediationCaseExecutionPanel({
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
           <StatusLegend className="bg-sky-500" label="待下发 / 执行中" />
           <StatusLegend className="bg-emerald-500" label="成功" />
-          <StatusLegend className="bg-rose-500" label="失败" />
+          <StatusLegend className="bg-orange-500" label="回报超时" />
+          <StatusLegend className="bg-rose-500" label="执行失败" />
           <StatusLegend className="bg-amber-500" label="未确定" />
         </span>
-        <span>Operation / Dispatch 完整值可通过鼠标悬停查看</span>
       </div>
     </section>
   );
@@ -791,7 +870,13 @@ function SummaryMetric({
 }: {
   label: string;
   suffix: string;
-  tone?: "default" | "active" | "success" | "danger" | "warning";
+  tone?:
+    | "default"
+    | "active"
+    | "success"
+    | "danger"
+    | "timeout"
+    | "warning";
   value: string;
 }) {
   const colors = {
@@ -799,6 +884,7 @@ function SummaryMetric({
     active: "text-sky-700",
     success: "text-emerald-700",
     danger: "text-rose-700",
+    timeout: "text-orange-700",
     warning: "text-amber-700",
   }[tone];
   return (
@@ -860,18 +946,20 @@ function ExecutionItemRow({
 }) {
   const Icon = remediationActionIcon(item.action_code);
   const status = itemStatusPresentation(item);
-  const operation = operationId(item);
-  const dispatch = dispatchId(item);
   const time = executionTimePresentation(item, locale);
   const result = resultPresentation(item);
+  const target = remediationTargetPresentation(item);
   return (
-    <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_minmax(190px,.8fr)_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 last:border-b-0">
+    <div className="grid grid-cols-[minmax(210px,1.1fr)_minmax(170px,.85fr)_minmax(160px,.7fr)_130px_190px_minmax(180px,.85fr)_minmax(260px,1.25fr)] gap-4 border-b border-slate-100 px-5 py-3 last:border-b-0">
       <div className="min-w-0">
         <div
-          className="truncate text-xs font-semibold text-slate-800"
-          title={itemTargetText(item)}
+          className={cn(
+            "truncate text-xs font-semibold",
+            target.unavailable ? "text-amber-700" : "text-slate-800",
+          )}
+          title={target.detail || target.displayName}
         >
-          {itemTargetText(item)}
+          {target.displayName}
         </div>
       </div>
       <div className="flex min-w-0 items-center gap-2.5">
@@ -907,14 +995,6 @@ function ExecutionItemRow({
         >
           {status.label}
         </span>
-      </div>
-      <div className="min-w-0 font-mono text-[10px] leading-5 text-slate-600">
-        <div className="truncate" title={operation}>
-          OP&nbsp; {shortId(operation)}
-        </div>
-        <div className="truncate" title={dispatch}>
-          DP&nbsp; {shortId(dispatch)}
-        </div>
       </div>
       <div className="min-w-0 text-[11px] leading-5">
         <div
