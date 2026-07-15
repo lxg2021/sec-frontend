@@ -481,11 +481,6 @@ export function RemediationCaseExecutionPanel({
 
   const orders = useMemo(() => {
     const remoteOrders = data?.orders ?? [];
-    if (
-      remoteOrders.some((order) => order.order_id === currentOrder.order_id)
-    ) {
-      return remoteOrders;
-    }
     return [
       {
         order_id: currentOrder.order_id,
@@ -500,7 +495,9 @@ export function RemediationCaseExecutionPanel({
         created_at: currentOrder.created_at,
         updated_at: currentOrder.updated_at,
       },
-      ...remoteOrders,
+      ...remoteOrders.filter(
+        (order) => order.order_id !== currentOrder.order_id,
+      ),
     ];
   }, [currentOrder, data?.orders]);
 
