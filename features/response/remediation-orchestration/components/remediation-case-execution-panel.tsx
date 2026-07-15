@@ -465,14 +465,13 @@ export function RemediationCaseExecutionPanel({
               处置执行情况
               {loading ? <Loader2 className="size-3.5 animate-spin text-slate-400" aria-label="正在加载" /> : null}
             </h2>
-            <p className="mt-1 text-xs text-slate-500">{sourceLabel} 的下发、执行与结果跟踪</p>
+            <span
+              className="mt-1 block max-w-[min(60vw,560px)] truncate font-mono text-[11px] leading-5 text-slate-500"
+              title={caseId || summarySource?.sourceRefId || ""}
+            >
+              {caseId || summarySource?.sourceRefId || "-"}
+            </span>
           </div>
-          <span
-            className="mt-0.5 max-w-[min(50vw,560px)] truncate rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-mono text-[11px] text-slate-600"
-            title={caseId || summarySource?.sourceRefId || ""}
-          >
-            {caseId || summarySource?.sourceRefId || "-"}
-          </span>
         </div>
         <div className="flex shrink-0 items-center gap-3 self-end xl:self-auto">
           <div aria-live="polite" className="hidden text-right sm:block">
