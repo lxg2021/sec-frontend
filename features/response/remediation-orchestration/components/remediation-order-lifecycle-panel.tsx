@@ -123,7 +123,7 @@ export function RemediationOrderLifecyclePanel({
   return (
     <aside
       id="remediation-order-prepare"
-      className="h-full min-h-0 min-w-0 overflow-y-auto rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
+      className="min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
     >
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">

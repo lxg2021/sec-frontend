@@ -616,7 +616,7 @@ export function RemediationOrderWorkspace({
     <>
       <section
         aria-label={t("workspace.ariaLabel")}
-        className="grid min-w-0 gap-4 xl:h-[620px] xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
+        className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
       >
       <TargetListPanel
         decisions={decisions}
