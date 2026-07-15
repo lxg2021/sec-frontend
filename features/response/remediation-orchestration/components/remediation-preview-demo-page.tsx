@@ -1,24 +1,13 @@
 "use client"
 
-import { useMemo, useRef, useState, type ComponentType } from "react"
+import { useMemo, useRef, useState } from "react"
 import {
   BadgeCheck,
-  Braces,
-  CalendarClock,
   Check,
   Copy,
-  Database,
-  FileCog,
-  FileStack,
-  FileWarning,
   History,
-  Network,
-  ServerCog,
   ShieldCheck,
   SlidersHorizontal,
-  TerminalSquare,
-  UserCog,
-  Workflow,
 } from "lucide-react"
 
 import { cn } from "@/shared/lib/utils"
@@ -43,24 +32,9 @@ import {
 } from "../demo-data"
 import type { RemediationActionContext, RemediationPreviewSnapshot } from "../types"
 import { CreateRemediationPreviewDialog } from "./create-remediation-preview-dialog"
+import { remediationTypeIcon } from "./remediation-action-icons"
 
 type JsonView = "request" | "target" | "snapshot" | "input" | "context"
-
-const iconByDemoId: Record<string, ComponentType<{ className?: string }>> = {
-  process: TerminalSquare,
-  file: FileWarning,
-  "scheduled-task": CalendarClock,
-  service: ServerCog,
-  account: UserCog,
-  registry: Database,
-  "wmi-class": Braces,
-  "wmi-subscription": Workflow,
-  "bits-job": FileStack,
-  "file-ea": FileCog,
-  "ntfs-ads": FileCog,
-  "proc-execute": ShieldCheck,
-  "net-quarantine": Network,
-}
 
 export function RemediationPreviewDemoPage() {
   const [selectedId, setSelectedId] = useState(remediationPreviewDemoTemplates[0].id)
@@ -470,7 +444,7 @@ function TypeSelector({
 
       <div className="mt-4 grid gap-2">
         {remediationPreviewDemoTemplates.map((item) => {
-          const Icon = iconByDemoId[item.id] ?? ShieldCheck
+          const Icon = remediationTypeIcon(item.id)
           const active = item.id === selectedId
           return (
             <button

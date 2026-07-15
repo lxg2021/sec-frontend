@@ -6,25 +6,15 @@ import {
   useMemo,
   useRef,
   useState,
-  type ComponentType,
 } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import {
   AlertTriangle,
-  Boxes,
-  CalendarCheck2,
-  Cog,
   Crosshair,
-  Cpu,
-  Database,
-  FileText,
   Loader2,
-  Network,
   Search,
-  ShieldCheck,
   SlidersHorizontal,
-  UserRound,
 } from "lucide-react";
 
 import {
@@ -57,6 +47,7 @@ import { RemediationOrderAuthorityReference } from "./remediation-order-authorit
 import { RemediationOrderLifecycleDialogs } from "./remediation-order-lifecycle-dialogs";
 import { RemediationOrderLifecyclePanel } from "./remediation-order-lifecycle-panel";
 import { remediationReadinessIssuePresentation } from "./remediation-order-readiness";
+import { remediationActionIcon } from "./remediation-action-icons";
 
 interface RemediationOrderWorkspaceProps {
   onLoadingChange?: (loading: boolean) => void;
@@ -64,8 +55,6 @@ interface RemediationOrderWorkspaceProps {
   orderId: string;
   refreshKey?: number;
 }
-
-type ItemIcon = ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
 
 function requestErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "处置草稿加载失败";
@@ -96,33 +85,6 @@ function shortId(value: string, left = 8, right = 4) {
 
 function itemTargetText(item: RemediationOrderItem) {
   return item.display_name.trim() || item.object_id.trim() || item.node_key.trim();
-}
-
-function itemIcon(entityType: string): ItemIcon {
-  const type = entityType.trim().toLowerCase();
-  if (type.includes("process")) return Cpu;
-  if (type.includes("file") || type.includes("ea") || type.includes("ads")) {
-    return FileText;
-  }
-  if (type.includes("task") || type.includes("scheduled")) return CalendarCheck2;
-  if (type.includes("service")) return Cog;
-  if (type.includes("account") || type.includes("user")) return UserRound;
-  if (type.includes("registry")) return Database;
-  if (type.includes("wmi") || type.includes("bits")) return Boxes;
-  if (type.includes("net") || type.includes("dns") || type.includes("url")) {
-    return Network;
-  }
-  return ShieldCheck;
-}
-
-function iconTone(entityType: string) {
-  const type = entityType.trim().toLowerCase();
-  if (type.includes("process")) return "bg-indigo-50 text-indigo-600";
-  if (type.includes("file")) return "bg-teal-100 text-teal-700";
-  if (type.includes("task")) return "bg-blue-50 text-blue-600";
-  if (type.includes("service")) return "bg-violet-50 text-violet-600";
-  if (type.includes("wmi")) return "bg-orange-50 text-orange-700";
-  return "bg-slate-100 text-slate-600";
 }
 
 function statusBadge(
@@ -727,7 +689,7 @@ function TargetListPanel({
         {items.length ? (
           items.map((item) => {
             const selected = item.item_id === selectedItemId;
-            const Icon = itemIcon(item.entity_type);
+            const Icon = remediationActionIcon(item.action_code);
             const badge = statusBadge(item, validationErrors[item.item_id]);
             return (
               <button
@@ -745,8 +707,15 @@ function TargetListPanel({
                 )}
               >
                 <div className="flex items-start gap-3">
-                  <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl", iconTone(item.entity_type))}>
-                    <Icon className="size-5" aria-hidden />
+                  <span
+                    className={cn(
+                      "flex size-10 shrink-0 items-center justify-center rounded-2xl transition-colors",
+                      selected
+                        ? "bg-teal-600 text-white"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-slate-200",
+                    )}
+                  >
+                    <Icon className="size-4" aria-hidden />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-start justify-between gap-2">
