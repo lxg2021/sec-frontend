@@ -37,13 +37,22 @@ export function remediationRestoreSourceDetails(
     (candidate) => candidate.item_id === sourceItemId,
   )
   if (!source) return null
-  const target =
+  const sourcePath =
     source.target_snapshot?.file?.file_path ||
     source.display_name ||
     source.node_key
+  const normalizedSourcePath = sourcePath.trim().replace(/\\/g, "/").toLowerCase()
+  const pathPair =
+    source.backup?.path_pairs.find(
+      (pair) =>
+        pair.source_path.trim().replace(/\\/g, "/").toLowerCase() ===
+        normalizedSourcePath,
+    ) ?? source.backup?.path_pairs[0]
+  const backupPath = pathPair?.backup_path?.trim() || ""
   return {
     backupFileId: source.backup?.backup_id || fallbackBackupId,
-    backupFileName: basename(target),
+    backupFileName: basename(backupPath || sourcePath),
+    backupFilePath: backupPath,
     sourceItemId: source.item_id,
   }
 }
@@ -194,7 +203,11 @@ export function RemediationOrderAuthorityReference({
                 </div>
                 <div
                   className="mt-1 truncate text-xs font-medium text-slate-700"
-                  title={selectedRestoreDetails.backupFileName || "-"}
+                  title={
+                    selectedRestoreDetails.backupFilePath ||
+                    selectedRestoreDetails.backupFileName ||
+                    "-"
+                  }
                 >
                   {selectedRestoreDetails.backupFileName || "-"}
                 </div>

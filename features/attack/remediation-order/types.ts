@@ -411,6 +411,13 @@ export interface RemediationBackupAvailability {
   updated_at: string;
   last_verified_at: string;
   expires_at: string;
+  path_pairs: RemediationBackupPathPair[];
+}
+
+export interface RemediationBackupPathPair {
+  source_path: string;
+  backup_path: string;
+  original_md5: string;
 }
 
 export interface RemediationAgentSnapshot {

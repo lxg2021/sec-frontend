@@ -568,6 +568,11 @@ export function normalizeRemediationBackupAvailability(
     updated_at: stringValue(backup.updated_at),
     last_verified_at: stringValue(backup.last_verified_at),
     expires_at: stringValue(backup.expires_at),
+    path_pairs: objectArray(backup.path_pairs).map((pair) => ({
+      source_path: stringValue(pair.source_path),
+      backup_path: stringValue(pair.backup_path),
+      original_md5: stringValue(pair.original_md5),
+    })),
   };
 }
 

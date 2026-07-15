@@ -14,6 +14,13 @@ describe("file restore parameter presentation", () => {
       node_key: "file:public:agent:c:/temp/payload.dll",
       backup: {
         backup_id: "backup-file-001",
+        path_pairs: [
+          {
+            source_path: "c:/temp/payload.dll",
+            backup_path: "c:/agent/quarantine/backup-file-001/payload.qtn",
+            original_md5: "",
+          },
+        ],
       },
       target_snapshot: {
         file: { file_path: "c:/temp/payload.dll" },
@@ -22,7 +29,8 @@ describe("file restore parameter presentation", () => {
 
     expect(remediationRestoreSourceDetails(source.item_id, [source])).toEqual({
       backupFileId: "backup-file-001",
-      backupFileName: "payload.dll",
+      backupFileName: "payload.qtn",
+      backupFilePath: "c:/agent/quarantine/backup-file-001/payload.qtn",
       sourceItemId: "quarantine-item-1",
     });
   });
