@@ -1,6 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -201,9 +209,31 @@ export function RemediationOrderWorkspace({
   );
   const [working, setWorking] = useState("");
   const [pollError, setPollError] = useState("");
+  const [lifecyclePanelHeight, setLifecyclePanelHeight] = useState(0);
+  const lifecyclePanelRef = useRef<HTMLDivElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+
+  useLayoutEffect(() => {
+    const panel = lifecyclePanelRef.current;
+    if (!panel || loading || !order) return;
+
+    const updateHeight = () => {
+      const nextHeight = Math.ceil(panel.getBoundingClientRect().height);
+      if (nextHeight > 0) {
+        setLifecyclePanelHeight((current) =>
+          current === nextHeight ? current : nextHeight,
+        );
+      }
+    };
+
+    updateHeight();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, [loading, order?.order_id]);
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState(() =>
     t("workspace.defaultCancelReason"),
@@ -740,7 +770,14 @@ export function RemediationOrderWorkspace({
     <>
       <section
         aria-label={t("workspace.ariaLabel")}
-        className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
+        className="grid min-w-0 items-stretch gap-4 xl:h-[var(--remediation-workspace-height)] xl:grid-cols-[minmax(300px,0.74fr)_minmax(460px,1.2fr)_minmax(360px,1fr)]"
+        style={
+          lifecyclePanelHeight > 0
+            ? ({
+                "--remediation-workspace-height": `${lifecyclePanelHeight}px`,
+              } as CSSProperties)
+            : undefined
+        }
       >
         <TargetListPanel
           decisions={decisions}
@@ -757,7 +794,7 @@ export function RemediationOrderWorkspace({
 
         <section
           id="remediation-order-parameters"
-          className="flex h-full min-h-0 min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
+          className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
         >
           <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
@@ -783,7 +820,7 @@ export function RemediationOrderWorkspace({
               </span>
             ) : null}
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+          <div className="min-h-0 flex-1 overscroll-contain overflow-y-auto pr-1">
             {selectedItem ? (
               <div className="pt-4">
                 {!selectedRequiresHistory ? selectedAuthorityReference : null}
@@ -808,23 +845,25 @@ export function RemediationOrderWorkspace({
           </div>
         </section>
 
-        <RemediationOrderLifecyclePanel
-          complete={complete}
-          decisionLoading={decisionLoading}
-          dirty={dirtyItemIds.size > 0}
-          firstIncomplete={firstIncomplete}
-          onCancel={() => setCancelDialogOpen(true)}
-          onConfirm={() => setConfirmDialogOpen(true)}
-          onDelete={() => setDeleteDialogOpen(true)}
-          onPrepare={() => void handlePrepare()}
-          onSave={() => void handleSaveDraft()}
-          onSelectItem={onSelectIncompleteItem}
-          order={order}
-          pollError={pollError}
-          total={total}
-          validationErrors={validationErrors}
-          working={working}
-        />
+        <div ref={lifecyclePanelRef} className="min-w-0 xl:self-start">
+          <RemediationOrderLifecyclePanel
+            complete={complete}
+            decisionLoading={decisionLoading}
+            dirty={dirtyItemIds.size > 0}
+            firstIncomplete={firstIncomplete}
+            onCancel={() => setCancelDialogOpen(true)}
+            onConfirm={() => setConfirmDialogOpen(true)}
+            onDelete={() => setDeleteDialogOpen(true)}
+            onPrepare={() => void handlePrepare()}
+            onSave={() => void handleSaveDraft()}
+            onSelectItem={onSelectIncompleteItem}
+            order={order}
+            pollError={pollError}
+            total={total}
+            validationErrors={validationErrors}
+            working={working}
+          />
+        </div>
       </section>
 
       <RemediationCaseExecutionPanel order={order} />
@@ -888,7 +927,7 @@ function TargetListPanel({
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const showHistoryItems = historyExpanded || Boolean(query.trim());
   return (
-    <aside className="flex h-full min-h-0 min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
+    <aside className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
           <Crosshair className="size-4 text-blue-600" aria-hidden />
@@ -909,7 +948,7 @@ function TargetListPanel({
         />
       </label>
 
-      <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div className="mt-4 min-h-0 flex-1 overscroll-contain overflow-y-auto pr-1">
         <div className="mb-2 flex items-center justify-between px-1 text-[11px] font-semibold text-slate-500">
           <span>{t("workspace.currentRound")}</span>
           <span className="tabular-nums">{total}</span>
