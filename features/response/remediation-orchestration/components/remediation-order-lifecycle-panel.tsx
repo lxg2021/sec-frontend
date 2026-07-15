@@ -69,48 +69,6 @@ function stageBadge(status: string) {
   return labels[normalized] || normalized || "未知阶段";
 }
 
-function itemStatusLabel(status: string) {
-  const normalized = status.trim().toLowerCase();
-  const labels: Record<string, string> = {
-    draft: "草稿",
-    ready: "待下发",
-    satisfied: "已满足",
-    blocked: "已阻止",
-    pending: "等待执行",
-    running: "执行中",
-    success: "执行成功",
-    failed: "执行失败",
-    uncertain: "结果待确认",
-    skipped: "已跳过",
-    canceled: "已取消",
-  };
-  return labels[normalized] || normalized || "未知";
-}
-
-function itemStatusClass(status: string) {
-  switch (status.trim().toLowerCase()) {
-    case "success":
-      return "bg-emerald-100 text-emerald-700";
-    case "failed":
-      return "bg-red-100 text-red-700";
-    case "uncertain":
-    case "blocked":
-      return "bg-amber-100 text-amber-800";
-    case "running":
-      return "bg-blue-100 text-blue-700";
-    default:
-      return "bg-slate-100 text-slate-600";
-  }
-}
-
-function executionTime(value: string) {
-  if (!value.trim()) return "";
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime())
-    ? value
-    : parsed.toLocaleString("zh-CN", { hour12: false });
-}
-
 export interface RemediationOrderLifecyclePanelProps {
   complete: number;
   decisionLoading: boolean;
@@ -151,10 +109,8 @@ export function RemediationOrderLifecyclePanel({
   const busy = Boolean(working);
   const normalizedStatus = order.status.trim().toLowerCase();
   const showPrepared = normalizedStatus === "prepared";
-  const showExecution =
-    order.items.some(
-      (item) => item.operation_id || item.dispatch_id || item.execution,
-    ) || stage === 3;
+  const showSubmissionReview =
+    lifecycle.edit || normalizedStatus === "confirmed" || stage === 3;
   const blocked = Math.max(total - complete, 0);
   const readinessIssue = firstIncomplete
     ? remediationReadinessIssuePresentation(
@@ -228,7 +184,7 @@ export function RemediationOrderLifecyclePanel({
         })}
       </div>
 
-      {lifecycle.edit ? (
+      {showSubmissionReview ? (
         <>
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <div className="flex items-start justify-between gap-3">
@@ -264,12 +220,12 @@ export function RemediationOrderLifecyclePanel({
             </div>
           </div>
 
-          {decisionLoading ? (
+          {lifecycle.edit && decisionLoading ? (
             <div className="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
               <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
               正在核对目标适用性与活动冲突…
             </div>
-          ) : firstIncomplete && readinessIssue ? (
+          ) : lifecycle.edit && firstIncomplete && readinessIssue ? (
             <div className="mt-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle
@@ -360,94 +316,6 @@ export function RemediationOrderLifecyclePanel({
                 个目标已满足，{order.summary.blocked} 个目标暂不可执行。
               </p>
             </div>
-          </div>
-        </div>
-      ) : null}
-
-      {showExecution ? (
-        <div className="mt-6">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-xs font-semibold text-slate-700">执行状态</div>
-            <div className="text-[10px] text-slate-500">
-              成功 {order.summary.success} · 失败 {order.summary.failed} ·
-              待确认 {order.summary.uncertain}
-            </div>
-          </div>
-          <div className="mt-3 space-y-2">
-            {order.items.map((item) => {
-              const execution = item.execution;
-              const operationId = execution?.operation_id || item.operation_id;
-              const dispatchId = execution?.dispatch_id || item.dispatch_id;
-              const errorCode = execution?.error_code || item.error_code;
-              const errorMessage =
-                execution?.error_message ||
-                item.error_message ||
-                item.reason_message;
-              const finishedAt = executionTime(
-                execution?.finished_at || item.finished_at,
-              );
-              return (
-                <div
-                  key={item.item_id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div
-                        className="truncate text-xs font-semibold text-slate-800"
-                        title={targetText(item)}
-                      >
-                        {basename(targetText(item))}
-                      </div>
-                      <div className="mt-1 text-[10px] text-slate-500">
-                        {remediationOrderActionLabel(item)}
-                      </div>
-                    </div>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold",
-                        itemStatusClass(item.status),
-                      )}
-                    >
-                      {itemStatusLabel(item.status)}
-                    </span>
-                  </div>
-                  {operationId ? (
-                    <div className="mt-3 grid grid-cols-[58px_minmax(0,1fr)] gap-x-2 text-[10px] leading-4">
-                      <span className="text-slate-500">Operation</span>
-                      <span className="break-all font-mono text-slate-700">
-                        {operationId}
-                      </span>
-                    </div>
-                  ) : null}
-                  {dispatchId ? (
-                    <div className="mt-1 grid grid-cols-[58px_minmax(0,1fr)] gap-x-2 text-[10px] leading-4">
-                      <span className="text-slate-500">Dispatch</span>
-                      <span className="break-all font-mono text-slate-700">
-                        {dispatchId}
-                      </span>
-                    </div>
-                  ) : null}
-                  {execution ? (
-                    <div className="mt-2 text-[10px] leading-4 text-slate-500">
-                      下发 {execution.publish_status || "-"} · 执行{" "}
-                      {execution.execution_status || item.status}
-                    </div>
-                  ) : null}
-                  {finishedAt ? (
-                    <div className="mt-1 text-[10px] leading-4 text-slate-500">
-                      完成时间 {finishedAt}
-                    </div>
-                  ) : null}
-                  {errorCode || errorMessage ? (
-                    <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[10px] leading-4 text-red-700">
-                      {errorCode ? `${errorCode} · ` : ""}
-                      {errorMessage}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
           </div>
         </div>
       ) : null}
@@ -550,6 +418,23 @@ export function RemediationOrderLifecyclePanel({
                 部分目标当前不可执行，状态变化后可以重新检查。
               </p>
             ) : null}
+          </>
+        ) : null}
+
+        {!lifecycle.edit && !showPrepared ? (
+          <>
+            <div className="flex h-10 items-center justify-center gap-2 text-xs font-medium text-slate-500">
+              <CheckCircle2 className="size-4 text-emerald-600" aria-hidden />
+              处置已提交
+            </div>
+            <Button
+              type="button"
+              className="h-11 w-full rounded-full bg-teal-600 text-white disabled:pointer-events-none disabled:opacity-100"
+              disabled
+            >
+              <ShieldCheck />
+              已提交处置
+            </Button>
           </>
         ) : null}
 

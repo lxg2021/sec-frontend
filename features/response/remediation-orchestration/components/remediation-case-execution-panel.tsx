@@ -121,6 +121,40 @@ function itemIsReportTimeout(item: RemediationOrderItem) {
   return itemExecutionCodes(item).includes("REPORT_TIMEOUT");
 }
 
+const ACTIVE_DISPATCH_SKIP_REASONS = new Set([
+  "ACTIVE_DISPATCH_IN_PROGRESS",
+  "ACTIVE_DISPATCH_UNCERTAIN",
+  "ACTIVE_DISPATCH_REQUIRES_RECONCILIATION",
+]);
+
+export function activeDispatchSkipPresentation(item: RemediationOrderItem) {
+  const reasonCode = itemExecutionCodes(item).find((code) =>
+    ACTIVE_DISPATCH_SKIP_REASONS.has(code),
+  );
+  if (!reasonCode) return null;
+
+  switch (reasonCode) {
+    case "ACTIVE_DISPATCH_IN_PROGRESS":
+      return {
+        label: "未重复下发",
+        result: "已有任务执行中",
+        reason: "同一目标已有处置任务正在执行，本条未重复下发。",
+      };
+    case "ACTIVE_DISPATCH_UNCERTAIN":
+      return {
+        label: "未重复下发",
+        result: "已有下发待确认",
+        reason: "同一目标已有已下发任务，但终端结果尚未确认，本条未重复下发。",
+      };
+    default:
+      return {
+        label: "未重复下发",
+        result: "已有任务待对账",
+        reason: "同一目标已有待对账任务，本条未重复下发。",
+      };
+  }
+}
+
 function itemHasUncertainResult(item: RemediationOrderItem) {
   const execution = executionForItem(item);
   return (
@@ -131,6 +165,13 @@ function itemHasUncertainResult(item: RemediationOrderItem) {
 }
 
 function itemStatusPresentation(item: RemediationOrderItem) {
+  const activeDispatchSkip = activeDispatchSkipPresentation(item);
+  if (activeDispatchSkip) {
+    return {
+      label: activeDispatchSkip.label,
+      className: "bg-slate-100 text-slate-700",
+    };
+  }
   if (itemIsReportTimeout(item)) {
     return { label: "回报超时", className: "bg-orange-50 text-orange-700" };
   }
@@ -176,7 +217,12 @@ function itemIsActive(item: RemediationOrderItem) {
 
 function itemNeedsAttention(item: RemediationOrderItem) {
   const status = item.status.trim().toLowerCase();
-  return status === "failed" || status === "uncertain" || status === "blocked";
+  return (
+    status === "failed" ||
+    status === "uncertain" ||
+    status === "blocked" ||
+    Boolean(activeDispatchSkipPresentation(item))
+  );
 }
 
 function itemMatchesFilter(
@@ -221,6 +267,16 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
   const startedAt = execution?.started_at.trim() || "";
   const finishedAt = execution?.finished_at.trim() || item.finished_at.trim();
   const lastReportAt = execution?.last_report_at.trim() || "";
+  const activeDispatchSkip = activeDispatchSkipPresentation(item);
+  if (activeDispatchSkip) {
+    const skippedAt = finishedAt || executionTimestamp(item);
+    return {
+      primary: skippedAt
+        ? `未下发 ${formatTimestamp(skippedAt, locale)}`
+        : "未重复下发",
+      secondary: "",
+    };
+  }
   if (itemIsReportTimeout(item)) {
     const timedOutAt = finishedAt || executionTimestamp(item);
     return {
@@ -275,6 +331,14 @@ function resultPresentation(item: RemediationOrderItem) {
     execution?.reason_code.trim() ||
     item.reason_code.trim();
   const status = item.status.trim().toLowerCase();
+  const activeDispatchSkip = activeDispatchSkipPresentation(item);
+  if (activeDispatchSkip) {
+    return {
+      code: "",
+      result: activeDispatchSkip.result,
+      reason: activeDispatchSkip.reason,
+    };
+  }
   if (itemIsReportTimeout(item)) {
     return {
       code: "",
@@ -338,6 +402,9 @@ function orderStateSummary(
 ) {
   const summary = order.summary;
   const reportTimeoutCount = items.filter(itemIsReportTimeout).length;
+  const activeDispatchSkipCount = items.filter((item) =>
+    Boolean(activeDispatchSkipPresentation(item)),
+  ).length;
   const uncertainCount = Math.max(
     summary.uncertain - reportTimeoutCount,
     0,
@@ -356,6 +423,11 @@ function orderStateSummary(
       label: `成功 ${summary.success}`,
       visible: summary.success > 0,
       className: "bg-emerald-50 text-emerald-700",
+    },
+    {
+      label: `未重复下发 ${activeDispatchSkipCount}`,
+      visible: activeDispatchSkipCount > 0,
+      className: "bg-slate-100 text-slate-700",
     },
     {
       label: `回报超时 ${reportTimeoutCount}`,
