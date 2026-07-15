@@ -10,6 +10,7 @@ import {
   Save,
   ShieldCheck,
   Trash2,
+  Workflow,
   XCircle,
 } from "lucide-react";
 
@@ -198,7 +199,10 @@ export function RemediationOrderLifecyclePanel({
       className="min-h-[620px] min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
     >
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-slate-950">准备与执行</h2>
+        <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
+          <Workflow className="size-4 text-teal-600" aria-hidden />
+          准备与执行
+        </h2>
         <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-bold text-white">
           {stageBadge(order.status)}
         </span>

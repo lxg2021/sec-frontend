@@ -15,12 +15,14 @@ import {
   CalendarCheck2,
   ChevronRight,
   Cog,
+  Crosshair,
   Database,
   FileText,
   Loader2,
   Network,
   Search,
   ShieldCheck,
+  SlidersHorizontal,
   UserRound,
 } from "lucide-react";
 
@@ -585,7 +587,10 @@ export function RemediationOrderWorkspace({
         className="min-h-[620px] min-w-0 rounded-[22px] border border-slate-200 bg-white p-5 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]"
       >
         <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <h2 className="text-base font-semibold text-slate-950">动作参数</h2>
+          <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
+            <SlidersHorizontal className="size-4 text-violet-600" aria-hidden />
+            动作参数
+          </h2>
           {selectedItem ? (
             <span
               className="max-w-[55%] truncate rounded-full bg-slate-950 px-3 py-1 text-[11px] font-semibold text-white"
@@ -690,7 +695,10 @@ function TargetListPanel({
   return (
     <aside className="flex min-h-[620px] min-w-0 flex-col rounded-[22px] border border-slate-200 bg-white p-4 shadow-[0_16px_45px_-36px_rgba(15,23,42,0.45)]">
       <div className="flex items-center gap-3">
-        <h2 className="text-base font-semibold text-slate-950">处置目标</h2>
+        <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
+          <Crosshair className="size-4 text-blue-600" aria-hidden />
+          处置目标
+        </h2>
         <span className="inline-flex min-w-7 items-center justify-center rounded-full bg-slate-950 px-2 py-1 text-[11px] font-bold text-white">
           {total}
         </span>
