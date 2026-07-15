@@ -60,8 +60,67 @@ function humanizeRemediationIdentifier(value: string) {
     .trim()
     .split(/[._\s-]+/)
     .filter(Boolean)
-    .map((part) => words[part.toLowerCase()] ?? `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .map(
+      (part) =>
+        words[part.toLowerCase()] ??
+        `${part.charAt(0).toUpperCase()}${part.slice(1)}`,
+    )
     .join(" ");
+}
+
+const ENGLISH_ACTION_LABELS: Record<string, string> = {
+  "process.terminate": "Terminate Process",
+  "file.quarantine": "Quarantine File",
+  "file.restore": "Restore File",
+  "scheduled_job.delete": "Delete Scheduled Job",
+  "task.delete": "Delete Scheduled Task",
+  "scheduled_task.delete": "Delete Scheduled Task",
+  "task.disable": "Disable Scheduled Task",
+  "scheduled_task.disable": "Disable Scheduled Task",
+  "scheduled_job.restore": "Restore Scheduled Job",
+  "task.restore": "Restore Scheduled Task",
+  "scheduled_task.restore": "Restore Scheduled Task",
+  "task.enable": "Enable Scheduled Task",
+  "scheduled_task.enable": "Enable Scheduled Task",
+  "service.disable": "Disable Service",
+  "service.delete": "Delete Service",
+  "service.restore": "Restore Service",
+  "service.enable": "Enable Service",
+  "account.disable": "Disable Account",
+  "account.delete": "Delete Account",
+  "account.reset_password": "Reset Password",
+  "account.enable": "Enable Account",
+  "registry.delete_key": "Delete Registry Key",
+  "registry.delete_value": "Delete Registry Value",
+  "registry.restore": "Restore Registry",
+  "wmi_class.delete": "Delete WMI Class",
+  "wmi_class.restore": "Restore WMI Class",
+  "wmi_subscription.delete": "Delete WMI Subscription",
+  "wmi_subscription.restore": "Restore WMI Subscription",
+  "bits.delete": "Delete BITS Job",
+  "bits_job.delete": "Delete BITS Job",
+  "bits.restore": "Restore BITS Job",
+  "bits_job.restore": "Restore BITS Job",
+  "file_ea.delete": "Delete File EA",
+  "file_ea.restore": "Restore File EA",
+  "ntfs_ads.delete": "Delete NTFS ADS",
+  "ntfs_ads.restore": "Restore NTFS ADS",
+  "process.block_execute": "Block Process Execution",
+  "process.block": "Block Process Execution",
+  "process.bypass_execute": "Allow Process Execution",
+  "process.bypass": "Allow Process Execution",
+  "net.block": "Block Network",
+  "network.block": "Block Network",
+  "net.bypass": "Allow Network",
+  "network.bypass": "Allow Network",
+};
+
+function englishActionLabel(actionCode: string) {
+  const normalized = actionCode.trim().toLowerCase();
+  return (
+    ENGLISH_ACTION_LABELS[normalized] ??
+    humanizeRemediationIdentifier(normalized)
+  );
 }
 
 type ParameterTextKey =
@@ -94,26 +153,50 @@ function parameterText(locale: string, key: ParameterTextKey) {
   const values: Record<ParameterTextKey, [string, string]> = {
     processTermination: ["进程结束行为", "Process Termination Behavior"],
     terminateChildren: ["终止子进程", "Terminate Child Processes"],
-    terminateChildrenDescription: ["结束目标进程时一并结束其子进程", "Terminate child processes together with the target process"],
-    forceTerminateDescription: ["使用强制方式结束目标进程", "Use forceful termination for the target process"],
+    terminateChildrenDescription: [
+      "结束目标进程时一并结束其子进程",
+      "Terminate child processes together with the target process",
+    ],
+    forceTerminateDescription: [
+      "使用强制方式结束目标进程",
+      "Use forceful termination for the target process",
+    ],
     deleteScope: ["删除范围", "Deletion Scope"],
     selectDeleteScope: ["请选择删除范围", "Select a deletion scope"],
     deleteNamedEa: ["按 EA 名称删除", "Delete by EA Name"],
     deleteAllEa: ["明确删除全部 EA", "Explicitly Delete All EAs"],
     eaNames: ["EA 名称", "EA Names"],
     eaNamesPlaceholder: ["每行填写一个 EA 名称", "Enter one EA name per line"],
-    eaNamesHint: ["最多 128 个名称，支持换行或逗号分隔。", "Up to 128 names; separate them with new lines or commas."],
-    deleteAllEaHint: ["已明确选择删除该文件上的全部 EA。", "All EAs on this file will be explicitly deleted."],
+    eaNamesHint: [
+      "最多 128 个名称，支持换行或逗号分隔。",
+      "Up to 128 names; separate them with new lines or commas.",
+    ],
+    deleteAllEaHint: [
+      "已明确选择删除该文件上的全部 EA。",
+      "All EAs on this file will be explicitly deleted.",
+    ],
     forceDelete: ["强制删除", "Force Delete"],
-    forceDeleteDescription: ["仅在普通删除失败时使用强制方式", "Use force only when normal deletion fails"],
+    forceDeleteDescription: [
+      "仅在普通删除失败时使用强制方式",
+      "Use force only when normal deletion fails",
+    ],
     quarantineBehavior: ["隔离行为", "Quarantine Behavior"],
-    deleteOriginal: ["隔离成功后删除原文件", "Delete Original File After Quarantine"],
-    deleteOriginalDescription: ["默认开启；隔离失败时不会删除原文件", "Enabled by default; the original file is retained if quarantine fails"],
+    deleteOriginal: [
+      "隔离成功后删除原文件",
+      "Delete Original File After Quarantine",
+    ],
+    deleteOriginalDescription: [
+      "默认开启；隔离失败时不会删除原文件",
+      "Enabled by default; the original file is retained if quarantine fails",
+    ],
     quarantineStorage: ["隔离存储", "Quarantine Storage"],
     localSecureStorage: ["本地安全区", "Local Secure Storage"],
     centralStorage: ["中心存储", "Central Storage"],
     encryptPackage: ["隔离包加密", "Encrypt Quarantine Package"],
-    encryptPackageDescription: ["使用 Agent 安全密钥加密", "Encrypt with the Agent security key"],
+    encryptPackageDescription: [
+      "使用 Agent 安全密钥加密",
+      "Encrypt with the Agent security key",
+    ],
     quarantineSuffix: ["隔离文件后缀", "Quarantine File Suffix"],
   };
   return values[key][zh ? 0 : 1];
@@ -158,25 +241,38 @@ function localizedFieldLabel(templateId: string, key: string, locale: string) {
   return labels[key] ?? humanizeRemediationIdentifier(key);
 }
 
-function localizedTemplate(template: RemediationPreviewTemplate, locale: string) {
+function localizedTemplate(
+  template: RemediationPreviewTemplate,
+  locale: string,
+  actionCode = template.actionCodes[0] ?? template.id,
+) {
+  const normalizedActionCode = actionCode.trim().toLowerCase();
   return {
     ...template,
     title: locale.toLowerCase().startsWith("zh")
       ? template.title
-      : humanizeRemediationIdentifier(template.id),
-    parameters: template.parameters.map((field) => ({
-      ...field,
-      label: localizedFieldLabel(template.id, field.key, locale) ?? field.label,
-      placeholder: !locale.toLowerCase().startsWith("zh") && field.placeholder
-        ? `Enter ${humanizeRemediationIdentifier(field.key)}`
-        : field.placeholder,
-      options: field.options?.map((option) => ({
-        ...option,
-        label: locale.toLowerCase().startsWith("zh")
-          ? option.label
-          : humanizeRemediationIdentifier(option.value),
+      : englishActionLabel(normalizedActionCode),
+    parameters: template.parameters
+      .filter(
+        (field) =>
+          normalizedActionCode !== "registry.delete_value" ||
+          field.key !== "recursive",
+      )
+      .map((field) => ({
+        ...field,
+        label:
+          localizedFieldLabel(template.id, field.key, locale) ?? field.label,
+        placeholder:
+          !locale.toLowerCase().startsWith("zh") && field.placeholder
+            ? `Enter ${humanizeRemediationIdentifier(field.key)}`
+            : field.placeholder,
+        options: field.options?.map((option) => ({
+          ...option,
+          label: locale.toLowerCase().startsWith("zh")
+            ? option.label
+            : humanizeRemediationIdentifier(option.value),
+        })),
       })),
-    })),
   };
 }
 
@@ -206,6 +302,18 @@ export function remediationOrderActionOption(
   };
 }
 
+export function remediationOrderDisplayTemplate(
+  item: Pick<RemediationOrderItem, "action_code" | "entity_type">,
+  locale = "zh-CN",
+) {
+  const action = remediationOrderActionOption(item);
+  return localizedTemplate(
+    getRemediationPreviewTemplate(action),
+    locale,
+    action.action_code,
+  );
+}
+
 export function remediationOrderActionLabel(
   item: Pick<RemediationOrderItem, "action_code" | "entity_type">,
   locale = "zh-CN",
@@ -213,7 +321,7 @@ export function remediationOrderActionLabel(
   const action = remediationOrderActionOption(item);
   const template = getRemediationPreviewTemplate(action);
   if (!locale.toLowerCase().startsWith("zh")) {
-    return humanizeRemediationIdentifier(item.action_code || template.id);
+    return englishActionLabel(item.action_code || template.id);
   }
   return remediationTemplateActionDisplayName(
     action,
@@ -268,30 +376,36 @@ export function validateRemediationOrderItemParameters({
   actionInput,
   decision,
   item,
+  locale = "zh-CN",
   reverseSourceItemId,
 }: {
   actionInput: OrderActionInput;
   decision?: RemediationActionDecision | null;
   item: RemediationOrderItem;
+  locale?: string;
   reverseSourceItemId: string;
 }) {
   const applicabilityError = remediationActionApplicabilityError(
     decision,
     item.agent_id,
+    locale,
   );
   if (applicabilityError) return applicabilityError;
   const normalizedActionCode = item.action_code.trim().toLowerCase();
   if (normalizedActionCode === "file_ea.delete") {
     const fileEA = actionInput.file_ea;
-    const fileEAError = validateFileEAEditor({
-      mode: fileEA?.delete_all
-        ? "all"
-        : fileEA?.ea_names?.length
-          ? "named"
-          : "",
-      eaNamesText: fileEA?.ea_names?.join("\n") ?? "",
-      force: Boolean(fileEA?.force),
-    });
+    const fileEAError = validateFileEAEditor(
+      {
+        mode: fileEA?.delete_all
+          ? "all"
+          : fileEA?.ea_names?.length
+            ? "named"
+            : "",
+        eaNamesText: fileEA?.ea_names?.join("\n") ?? "",
+        force: Boolean(fileEA?.force),
+      },
+      locale,
+    );
     if (fileEAError) return fileEAError;
   }
   if (normalizedActionCode === "wmi_subscription.delete") {
@@ -303,6 +417,7 @@ export function validateRemediationOrderItemParameters({
       },
       decision,
       item.agent_id,
+      locale,
     );
     if (wmiError) return wmiError;
   }
@@ -314,6 +429,7 @@ export function validateRemediationOrderItemParameters({
     template,
   );
   const templateError = validateRemediationTemplateValues({
+    locale,
     selectedAction: action,
     template,
     values,
@@ -323,7 +439,11 @@ export function validateRemediationOrderItemParameters({
   const missing = agentDecision?.required_input_fields.find((field) =>
     requiredFieldMissing(field, actionInput, reverseSourceItemId),
   );
-  return missing ? `缺少必要参数：${missing}` : "";
+  return missing
+    ? locale.toLowerCase().startsWith("zh")
+      ? `缺少必要参数：${missing}`
+      : `Missing required parameter: ${missing}`
+    : "";
 }
 
 function targetText(item: RemediationOrderItem) {
@@ -332,9 +452,9 @@ function targetText(item: RemediationOrderItem) {
   );
 }
 
-function targetName(item: RemediationOrderItem) {
+function targetName(item: RemediationOrderItem, unnamedTarget: string) {
   const value = targetText(item).replace(/[\\/]+$/, "");
-  return value.split(/[\\/]/).filter(Boolean).pop() || value || "未命名目标";
+  return value.split(/[\\/]/).filter(Boolean).pop() || value || unnamedTarget;
 }
 
 function entityLabel(item: RemediationOrderItem) {
@@ -348,93 +468,176 @@ interface TargetSnapshotRow {
   wide?: boolean;
 }
 
-function targetSnapshotRows(
+type ParameterTranslator = (key: string) => string;
+
+function localizedSnapshotValue(value: unknown, t: ParameterTranslator) {
+  const display = stringValue(value).trim();
+  if (!display) return "";
+  const valueKeys: Record<string, string> = {
+    enabled: "values.enabled",
+    disabled: "values.disabled",
+    locked: "values.locked",
+    unlocked: "values.unlocked",
+    present: "values.present",
+    absent: "values.absent",
+    running: "values.running",
+    stopped: "values.stopped",
+    paused: "values.paused",
+    pending: "values.pending",
+    transferring: "values.transferring",
+    transferred: "values.transferred",
+    completed: "values.completed",
+    success: "values.succeeded",
+    succeeded: "values.succeeded",
+    failed: "values.failed",
+    error: "values.error",
+    unknown: "values.unknown",
+    signed: "values.signed",
+    unsigned: "values.unsigned",
+    download: "values.download",
+    upload: "values.upload",
+    foreground: "values.foreground",
+    background: "values.background",
+  };
+  const key = valueKeys[display.toLowerCase().replace(/[\s-]+/g, "_")];
+  return key ? t(key) : display;
+}
+
+export function targetSnapshotRows(
   snapshot: RemediationTargetSnapshot,
+  t: ParameterTranslator,
+  locale = "zh-CN",
 ): TargetSnapshotRow[] {
   const rows: Array<TargetSnapshotRow | null> = [];
   const add = (label: string, value: unknown, wide = false) => {
     const display = Array.isArray(value)
-      ? value.map(stringValue).filter(Boolean).join("、")
+      ? value
+          .map(stringValue)
+          .filter(Boolean)
+          .join(locale.toLowerCase().startsWith("zh") ? "、" : ", ")
       : stringValue(value).trim();
     rows.push(display ? { label, value: display, wide } : null);
   };
 
   if (snapshot.process) {
-    add("进程名", snapshot.process.process_name);
-    add("PID", snapshot.process.pid || "");
-    add("进程路径", snapshot.process.process_path, true);
-    add("进程 Hash", snapshot.process.process_hash);
-    add("Process GUID", snapshot.process.process_guid);
-    add("命令行", snapshot.process.command_line, true);
+    add(t("snapshotFields.processName"), snapshot.process.process_name);
+    add(t("snapshotFields.pid"), snapshot.process.pid || "");
+    add(t("snapshotFields.processPath"), snapshot.process.process_path, true);
+    add(t("snapshotFields.processHash"), snapshot.process.process_hash);
+    add(t("snapshotFields.processGuid"), snapshot.process.process_guid);
+    add(t("snapshotFields.commandLine"), snapshot.process.command_line, true);
   } else if (snapshot.file) {
-    add("文件完整路径", snapshot.file.file_path, true);
-    add("文件 Hash", snapshot.file.file_hash || "暂无可信 Hash", true);
-    add("文件类型", snapshot.file.file_type);
-    add("签名状态", snapshot.file.signature);
-    add("签名厂商", snapshot.file.signer);
-    add("Stream Name", snapshot.file.stream_name, true);
-    add("已观测 EA", snapshot.file.observed_ea_names, true);
+    add(t("snapshotFields.filePath"), snapshot.file.file_path, true);
+    add(
+      t("snapshotFields.fileHash"),
+      snapshot.file.file_hash || t("fileHashUnavailable"),
+      true,
+    );
+    add(t("snapshotFields.fileType"), snapshot.file.file_type);
+    add(
+      t("snapshotFields.signatureStatus"),
+      localizedSnapshotValue(snapshot.file.signature, t),
+    );
+    add(t("snapshotFields.signer"), snapshot.file.signer);
+    add(t("snapshotFields.streamName"), snapshot.file.stream_name, true);
+    add(t("snapshotFields.observedEa"), snapshot.file.observed_ea_names, true);
   } else if (snapshot.scheduled_task) {
-    add("任务名称", snapshot.scheduled_task.task_name);
-    add("任务路径", snapshot.scheduled_task.task_path, true);
-    add("Job ID", snapshot.scheduled_task.job_id, true);
-    add("命令", snapshot.scheduled_task.command, true);
-    add("二进制路径", snapshot.scheduled_task.binary_path, true);
-    add("二进制 Hash", snapshot.scheduled_task.binary_hash, true);
-    add("运行账号", snapshot.scheduled_task.run_as);
-    add("当前状态", snapshot.scheduled_task.state);
+    add(t("snapshotFields.taskName"), snapshot.scheduled_task.task_name);
+    add(t("snapshotFields.taskPath"), snapshot.scheduled_task.task_path, true);
+    add(t("snapshotFields.jobId"), snapshot.scheduled_task.job_id, true);
+    add(t("snapshotFields.command"), snapshot.scheduled_task.command, true);
+    add(
+      t("snapshotFields.binaryPath"),
+      snapshot.scheduled_task.binary_path,
+      true,
+    );
+    add(
+      t("snapshotFields.binaryHash"),
+      snapshot.scheduled_task.binary_hash,
+      true,
+    );
+    add(t("snapshotFields.runAs"), snapshot.scheduled_task.run_as);
+    add(
+      t("snapshotFields.currentStatus"),
+      localizedSnapshotValue(snapshot.scheduled_task.state, t),
+    );
   } else if (snapshot.service) {
-    add("服务名", snapshot.service.service_name);
-    add("显示名称", snapshot.service.display_name);
-    add("二进制路径", snapshot.service.binary_path, true);
-    add("二进制 Hash", snapshot.service.binary_hash, true);
-    add("启动账号", snapshot.service.start_account);
-    add("当前状态", snapshot.service.state);
+    add(t("snapshotFields.serviceName"), snapshot.service.service_name);
+    add(t("snapshotFields.displayName"), snapshot.service.display_name);
+    add(t("snapshotFields.binaryPath"), snapshot.service.binary_path, true);
+    add(t("snapshotFields.binaryHash"), snapshot.service.binary_hash, true);
+    add(t("snapshotFields.startAccount"), snapshot.service.start_account);
+    add(
+      t("snapshotFields.currentStatus"),
+      localizedSnapshotValue(snapshot.service.state, t),
+    );
   } else if (snapshot.account) {
-    add("账号名称", snapshot.account.account_name);
-    add("域", snapshot.account.domain);
-    add("SID", snapshot.account.sid, true);
+    add(t("snapshotFields.accountName"), snapshot.account.account_name);
+    add(t("snapshotFields.domain"), snapshot.account.domain);
+    add(t("snapshotFields.sid"), snapshot.account.sid, true);
     if (snapshot.account.enabled !== undefined) {
-      add("启用状态", snapshot.account.enabled ? "已启用" : "已禁用");
+      add(
+        t("snapshotFields.enabledStatus"),
+        t(snapshot.account.enabled ? "values.enabled" : "values.disabled"),
+      );
     }
     if (snapshot.account.locked !== undefined) {
-      add("锁定状态", snapshot.account.locked ? "已锁定" : "未锁定");
+      add(
+        t("snapshotFields.lockedStatus"),
+        t(snapshot.account.locked ? "values.locked" : "values.unlocked"),
+      );
     }
   } else if (snapshot.registry) {
-    add("Hive", snapshot.registry.hive);
-    add("Key Path", snapshot.registry.key_path, true);
-    add("Value Name", snapshot.registry.value_name);
+    add(t("snapshotFields.hive"), snapshot.registry.hive);
+    add(t("snapshotFields.keyPath"), snapshot.registry.key_path, true);
+    add(t("snapshotFields.valueName"), snapshot.registry.value_name);
     if (snapshot.registry.present !== undefined) {
-      add("存在状态", snapshot.registry.present ? "存在" : "不存在");
+      add(
+        t("snapshotFields.presenceStatus"),
+        t(snapshot.registry.present ? "values.present" : "values.absent"),
+      );
     }
   } else if (snapshot.wmi_class) {
-    add("Namespace", snapshot.wmi_class.namespace);
-    add("Class Name", snapshot.wmi_class.class_name);
-    add("Class Path", snapshot.wmi_class.class_path, true);
-    add("Server", snapshot.wmi_class.server_name);
+    add(t("snapshotFields.namespace"), snapshot.wmi_class.namespace);
+    add(t("snapshotFields.className"), snapshot.wmi_class.class_name);
+    add(t("snapshotFields.classPath"), snapshot.wmi_class.class_path, true);
+    add(t("snapshotFields.server"), snapshot.wmi_class.server_name);
   } else if (snapshot.wmi_subscription) {
-    add("Namespace", snapshot.wmi_subscription.namespace);
-    add("Filter", snapshot.wmi_subscription.filter_name);
-    add("Consumer", snapshot.wmi_subscription.consumer_name);
-    add("Consumer Type", snapshot.wmi_subscription.consumer_type, true);
-    add("Filter 绑定数", snapshot.wmi_subscription.filter_binding_count || "");
+    add(t("snapshotFields.namespace"), snapshot.wmi_subscription.namespace);
+    add(t("snapshotFields.filter"), snapshot.wmi_subscription.filter_name);
+    add(t("snapshotFields.consumer"), snapshot.wmi_subscription.consumer_name);
     add(
-      "Consumer 绑定数",
+      t("snapshotFields.consumerType"),
+      snapshot.wmi_subscription.consumer_type,
+      true,
+    );
+    add(
+      t("snapshotFields.filterBindingCount"),
+      snapshot.wmi_subscription.filter_binding_count || "",
+    );
+    add(
+      t("snapshotFields.consumerBindingCount"),
       snapshot.wmi_subscription.consumer_binding_count || "",
     );
   } else if (snapshot.bits_job) {
-    add("Job ID", snapshot.bits_job.job_id, true);
-    add("Job Name", snapshot.bits_job.job_name);
-    add("Job Type", snapshot.bits_job.job_type);
-    add("Job Status", snapshot.bits_job.job_status);
-    add("Remote URL", snapshot.bits_job.remote_url, true);
-    add("Local Files", snapshot.bits_job.local_files, true);
+    add(t("snapshotFields.jobId"), snapshot.bits_job.job_id, true);
+    add(t("snapshotFields.jobName"), snapshot.bits_job.job_name);
+    add(
+      t("snapshotFields.jobType"),
+      localizedSnapshotValue(snapshot.bits_job.job_type, t),
+    );
+    add(
+      t("snapshotFields.jobStatus"),
+      localizedSnapshotValue(snapshot.bits_job.job_status, t),
+    );
+    add(t("snapshotFields.remoteUrl"), snapshot.bits_job.remote_url, true);
+    add(t("snapshotFields.localFiles"), snapshot.bits_job.local_files, true);
   } else if (snapshot.network) {
-    add("目标 IP", snapshot.network.ip);
-    add("目标端口", snapshot.network.port || "");
-    add("协议", snapshot.network.protocol);
-    add("域名", snapshot.network.domain, true);
-    add("URL", snapshot.network.url, true);
+    add(t("snapshotFields.targetIp"), snapshot.network.ip);
+    add(t("snapshotFields.targetPort"), snapshot.network.port || "");
+    add(t("snapshotFields.protocol"), snapshot.network.protocol);
+    add(t("snapshotFields.domainName"), snapshot.network.domain, true);
+    add(t("snapshotFields.url"), snapshot.network.url, true);
   }
 
   return rows.filter(Boolean) as TargetSnapshotRow[];
@@ -451,34 +654,45 @@ function TargetSnapshotPanel({
   onExpandedChange: (expanded: boolean) => void;
   snapshot: RemediationTargetSnapshot | null;
 }) {
+  const locale = useLocale();
+  const t = useTranslations("pages.collection.orchestration.parameters");
+  const translate = (key: string) => t(key);
   const snapshotAvailable = snapshot?.status === "available";
-  const snapshotRows = snapshotAvailable ? targetSnapshotRows(snapshot) : [];
+  const snapshotRows = snapshotAvailable
+    ? targetSnapshotRows(snapshot, translate, locale)
+    : [];
   const fallbackRows: TargetSnapshotRow[] = [
-    { label: "目标名称", value: targetName(item) },
-    { label: "对象类型", value: entityLabel(item) },
+    {
+      label: t("targetName"),
+      value: targetName(item, t("unnamedTarget")),
+    },
+    { label: t("entityType"), value: entityLabel(item) },
     ...(item.node_key.trim()
-      ? [{ label: "节点标识", value: item.node_key.trim(), wide: true }]
+      ? [{ label: t("nodeKey"), value: item.node_key.trim(), wide: true }]
       : []),
   ];
   const rows = snapshotRows.length > 0 ? snapshotRows : fallbackRows;
   const unavailableMessage = !snapshot
-    ? "当前接口未返回目标快照，PID、路径、Hash 等可信证据等待后台解析。"
+    ? t("snapshotUnavailable")
     : snapshot.status !== "available"
-      ? snapshot.reason_message ||
-        snapshot.reason_code ||
-        "后台暂未返回可信目标证据。"
+      ? (locale.toLowerCase().startsWith("zh")
+          ? snapshot.reason_message || snapshot.reason_code
+          : snapshot.reason_code || snapshot.reason_message) ||
+        t("snapshotNoEvidence")
       : snapshotRows.length === 0
-        ? "目标快照已返回，但未包含当前对象可展示的证据字段。"
+        ? t("snapshotNoDisplayableEvidence")
         : "";
 
   return (
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <div className="text-xs font-semibold text-slate-700">目标信息</div>
+        <div className="text-xs font-semibold text-slate-700">
+          {t("targetInfo")}
+        </div>
         <SectionCollapseButton
           expanded={expanded}
           onClick={() => onExpandedChange(!expanded)}
-          sectionName="目标信息"
+          sectionName={t("targetInfo")}
         />
       </div>
       {expanded ? (
@@ -524,8 +738,12 @@ function SectionCollapseButton({
 }) {
   const locale = useLocale();
   const label = expanded
-    ? locale.toLowerCase().startsWith("zh") ? "收起" : "Collapse"
-    : locale.toLowerCase().startsWith("zh") ? "展开" : "Expand";
+    ? locale.toLowerCase().startsWith("zh")
+      ? "收起"
+      : "Collapse"
+    : locale.toLowerCase().startsWith("zh")
+      ? "展开"
+      : "Expand";
   const Icon = expanded ? ChevronUp : ChevronDown;
   return (
     <button
@@ -577,8 +795,8 @@ export function RemediationOrderParameterPanel({
     [item.action_code, item.entity_type],
   );
   const template = useMemo(
-    () => localizedTemplate(getRemediationPreviewTemplate(selectedAction), locale),
-    [locale, selectedAction],
+    () => remediationOrderDisplayTemplate(item, locale),
+    [item.action_code, item.entity_type, locale],
   );
   const [templateValues, setTemplateValues] =
     useState<RemediationTemplateValues>(() =>
@@ -625,7 +843,9 @@ export function RemediationOrderParameterPanel({
             </div>
           </div>
           <div className="min-w-0 border-t border-slate-200 px-4 py-3 sm:border-l sm:border-t-0">
-            <div className="text-xs text-slate-400">{t("parameters.remediationAction")}</div>
+            <div className="text-xs text-slate-400">
+              {t("parameters.remediationAction")}
+            </div>
             <div
               className="mt-1 truncate text-xs font-semibold text-blue-700"
               title={item.action_code}
@@ -757,8 +977,12 @@ function WorkspaceTemplateControls({
 
   const parameterTitle =
     template.id === "process-block-execute"
-      ? locale.toLowerCase().startsWith("zh") ? "阻断参数" : "Block Parameters"
-      : `${template.title}参数`;
+      ? locale.toLowerCase().startsWith("zh")
+        ? "阻断参数"
+        : "Block Parameters"
+      : locale.toLowerCase().startsWith("zh")
+        ? `${template.title}参数`
+        : `${template.title} Parameters`;
 
   return (
     <div>
@@ -997,11 +1221,19 @@ function FileQuarantineWorkspaceControls({
       <div className="grid gap-3 sm:grid-cols-2">
         {storage ? (
           <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
-            <div className="text-xs font-semibold text-slate-700">{parameterText(locale, "quarantineStorage")}</div>
+            <div className="text-xs font-semibold text-slate-700">
+              {parameterText(locale, "quarantineStorage")}
+            </div>
             <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs">
               {[
-                { label: parameterText(locale, "localSecureStorage"), value: "local" },
-                { label: parameterText(locale, "centralStorage"), value: "central" },
+                {
+                  label: parameterText(locale, "localSecureStorage"),
+                  value: "local",
+                },
+                {
+                  label: parameterText(locale, "centralStorage"),
+                  value: "central",
+                },
               ].map((option) => {
                 const selected = storageValue === option.value;
                 return (

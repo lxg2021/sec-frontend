@@ -542,10 +542,12 @@ export function buildRemediationTemplateInput({
 }
 
 export function validateRemediationTemplateValues({
+  locale = "zh-CN",
   selectedAction,
   template,
   values,
 }: {
+  locale?: string;
   selectedAction: RemediationActionOption | null | undefined;
   template: RemediationPreviewTemplate;
   values: RemediationTemplateValues;
@@ -562,7 +564,11 @@ export function validateRemediationTemplateValues({
       field.required &&
       stringValue(values.parameterOverrides[field.key]).trim() === "",
   );
-  return missing ? `请输入${missing.label}` : "";
+  return missing
+    ? locale.toLowerCase().startsWith("zh")
+      ? `请输入${missing.label}`
+      : `Enter ${missing.label}`
+    : "";
 }
 
 export function remediationTemplateActionDisplayName(

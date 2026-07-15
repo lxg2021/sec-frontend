@@ -404,6 +404,7 @@ export function RemediationOrderWorkspace({
               actionInput: input,
               decision: decisions[item.item_id],
               item,
+              locale,
               reverseSourceItemId,
             })
           : "";
@@ -416,7 +417,7 @@ export function RemediationOrderWorkspace({
         return [item.item_id, parameterError || statusError];
       }),
     );
-  }, [actionInputs, activeItems, decisions, order, reverseSourceIds]);
+  }, [actionInputs, activeItems, decisions, locale, order, reverseSourceIds]);
 
   const visibleItems = useMemo(() => {
     if (!order) return [];

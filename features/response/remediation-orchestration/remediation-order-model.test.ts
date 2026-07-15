@@ -272,6 +272,20 @@ describe("remediation Order orchestration model", () => {
     ).toContain("冲突动作");
   });
 
+  it("returns English applicability and dynamic parameter validation messages", () => {
+    expect(remediationActionApplicabilityError(null, "agent-1", "en")).toBe(
+      "No node-level applicability evidence is available for this action yet.",
+    );
+    expect(
+      validateWmiSubscriptionEditor(
+        { targetCandidateId: "", removeBindingOnly: false },
+        null,
+        "agent-1",
+        "en",
+      ),
+    ).toContain("authoritative WMI Subscription target");
+  });
+
   it("allows an uncertain result to be retried when the backend marks it selectable", () => {
     expect(
       remediationActionApplicabilityError(
