@@ -588,7 +588,7 @@ export function RemediationOrderWorkspace({
           <h2 className="text-base font-semibold text-slate-950">动作参数</h2>
           {selectedItem ? (
             <span
-              className="max-w-[55%] truncate rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700"
+              className="max-w-[55%] truncate rounded-full bg-slate-950 px-3 py-1 text-[11px] font-semibold text-white"
               title={remediationOrderActionLabel(selectedItem)}
             >
               {remediationOrderActionLabel(selectedItem)}
@@ -695,7 +695,6 @@ function TargetListPanel({
           {total}
         </span>
       </div>
-      <p className="mt-1 text-xs text-slate-500">ControlPanel 已选择 Agent 和 Action</p>
       <label className="mt-4 flex h-10 items-center rounded-full border border-slate-200 bg-slate-50 px-3 focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-100">
         <Search className="size-4 shrink-0 text-slate-400" aria-hidden />
         <span className="sr-only">搜索处置目标</span>
@@ -763,9 +762,6 @@ function TargetListPanel({
             {query ? "没有匹配的处置目标" : "当前处置单没有目标"}
           </div>
         )}
-      </div>
-      <div className="mt-4 rounded-xl bg-slate-50 px-3 py-3 text-xs leading-5 text-slate-500">
-        仅编辑当前处置单中的 Agent、Action 对应参数
       </div>
     </aside>
   );
