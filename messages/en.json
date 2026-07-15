@@ -349,6 +349,11 @@
           "notFound": "The backend did not return the requested remediation order.",
           "ariaLabel": "Remediation draft workspace",
           "targets": "Remediation Targets",
+          "currentRound": "Current Round",
+          "historyTargets": "Remediation History",
+          "readOnly": "Read-only",
+          "roundLabel": "Round {round}",
+          "noMatchedHistory": "No historical remediation matches the search",
           "parameters": "Action Parameters",
           "searchTargets": "Search remediation targets",
           "searchPlaceholder": "Search targets, Agents, or actions",
@@ -440,8 +445,13 @@
         "reference": {
           "title": "Authoritative Execution Reference",
           "description": "Select only a historical source or concrete target returned by the backend; do not infer the Agent or action again.",
+          "restoreTitle": "Restore Parameters",
+          "restoreDescription": "Select the quarantine backup that will be used to restore the file.",
           "restoreSource": "Restore Source",
           "restoreSourcePlaceholder": "Select a historical remediation source",
+          "backupFileId": "Backup File ID",
+          "backupFileName": "Backup File Name",
+          "sourceItem": "Source Item {item}",
           "historyAction": "Historical Remediation",
           "target": "Concrete Remediation Target",
           "targetPlaceholder": "Select a concrete target"
@@ -1509,6 +1519,24 @@
               "expired": "Expired",
               "unknown": "Unknown"
             },
+            "historyActions": {
+              "fileQuarantine": "Quarantine File",
+              "fileRestore": "Restore File",
+              "processTerminate": "Terminate Process",
+              "processBlock": "Block Process Execution",
+              "processBypass": "Allow Process Execution",
+              "netBlock": "Block Network",
+              "netBypass": "Allow Network Access",
+              "scheduledTaskDelete": "Delete Scheduled Task",
+              "serviceDelete": "Delete Service",
+              "accountDisable": "Disable Account",
+              "registryDelete": "Delete Registry Entry",
+              "wmiClassDelete": "Delete WMI Class",
+              "wmiSubscriptionDelete": "Delete WMI Subscription",
+              "bitsJobDelete": "Delete BITS Job",
+              "fileEADelete": "Delete Extended Attributes",
+              "ntfsADSDelete": "Delete NTFS Data Stream"
+            },
             "risks": {
               "critical": "Critical",
               "high": "High",
@@ -1547,6 +1575,7 @@
             "saveAndOpen": "Save & Open Orchestration",
             "savingAndOpening": "Saving draft...",
             "openOrchestration": "Orchestration",
+            "viewRemediation": "View Remediation",
             "messages": {
               "missingId": "This node has no usable identifier and cannot be added to response orchestration.",
               "readOnly": "This response order is already prepared. Continue from the orchestration page to review or change it.",

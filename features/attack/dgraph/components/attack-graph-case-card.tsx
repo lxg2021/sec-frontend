@@ -20,6 +20,7 @@ import type {
   AttackGraphIocCandidateSyncState,
   AttackGraphMenuAction,
   AttackGraphNodeDrillStateByKey,
+  AttackGraphRemediationHistoryNodeStateByKey,
 } from "../model/menu/attack-graph-menu-types";
 import { Button } from "@/shared/ui/button";
 import {
@@ -50,6 +51,7 @@ export interface AttackGraphCaseCardProps {
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   onResetPositions: () => void;
   positionResetKey: number | string;
+  remediationHistoryNodeStates?: AttackGraphRemediationHistoryNodeStateByKey;
   remediationTargetKeys?: ReadonlySet<string>;
   response: GraphCaseResponseDto | null;
   subtitle?: string;
@@ -78,6 +80,7 @@ export function AttackGraphCaseCard({
   onMenuAction,
   onResetPositions,
   positionResetKey,
+  remediationHistoryNodeStates,
   remediationTargetKeys,
   response,
   subtitle,
@@ -179,6 +182,7 @@ export function AttackGraphCaseCard({
               nodeDrillStateByKey={nodeDrillStateByKey}
               onMenuAction={onMenuAction}
               positionResetKey={positionResetKey}
+              remediationHistoryNodeStates={remediationHistoryNodeStates}
               remediationTargetKeys={remediationTargetKeys}
             />
           ) : (

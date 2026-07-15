@@ -17,6 +17,7 @@ export type AttackGraphMenuActionKind =
   | "remove-ioc-candidates"
   | "add-remediation-target"
   | "remove-remediation-target"
+  | "open-remediation-order"
   | string;
 
 export type AttackGraphNodeDrillState = "idle" | "loading" | "empty" | "done";
@@ -29,6 +30,17 @@ export type AttackGraphIocCandidateSyncState =
 export type AttackGraphNodeDrillStateByKey = ReadonlyMap<
   string,
   AttackGraphNodeDrillState
+>;
+
+export type AttackGraphRemediationHistoryNodeState =
+  | "prepared"
+  | "awaiting_endpoint_report"
+  | "executing"
+  | "result_uncertain";
+
+export type AttackGraphRemediationHistoryNodeStateByKey = ReadonlyMap<
+  string,
+  AttackGraphRemediationHistoryNodeState
 >;
 
 export interface AttackGraphMenuAction {

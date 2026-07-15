@@ -229,6 +229,48 @@ export interface CreateRemediationOrderRequest {
   items: RemediationOrderDraftItemInput[];
 }
 
+export interface GetOrCreateRemediationOrderBySourceRequest {
+  request_id: string;
+  title?: string;
+  source: RemediationSource;
+}
+
+export type RemediationDraftItemUpsertDisposition =
+  | "unspecified"
+  | "created"
+  | "updated"
+  | "already_present"
+  | "already_satisfied"
+  | "in_flight";
+
+export interface UpsertRemediationDraftItemsRequest {
+  request_id: string;
+  order_id: string;
+  expected_revision: UInt64Input;
+  items: RemediationOrderDraftItemInput[];
+}
+
+export interface DeleteRemediationDraftItemRequest {
+  request_id: string;
+  order_id: string;
+  item_id: string;
+  expected_revision: UInt64Input;
+}
+
+export interface RemediationDraftItemUpsertResult {
+  input_index: number;
+  item_id: string;
+  round_no: number;
+  disposition: RemediationDraftItemUpsertDisposition;
+  reason_code: string;
+  reason_message: string;
+}
+
+export interface RemediationDraftItemsUpsertData {
+  order: RemediationOrder;
+  item_results: RemediationDraftItemUpsertResult[];
+}
+
 export interface UpdateRemediationOrderRequest {
   request_id: string;
   order_id: string;
@@ -523,6 +565,7 @@ export interface RemediationTargetSnapshot {
 
 export interface RemediationOrderItem {
   item_id: string;
+  round_no: number;
   position: number;
   node_key: string;
   entity_type: string;
@@ -589,6 +632,7 @@ export interface RemediationOrder {
   status: string;
   outcome: string;
   revision: UInt64;
+  current_round: number;
   prepared_fingerprint_version: string;
   prepared_fingerprint: string;
   prepared_at: string;

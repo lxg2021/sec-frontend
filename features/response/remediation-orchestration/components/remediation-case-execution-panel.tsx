@@ -183,7 +183,10 @@ function localized(locale: string, zh: string, en: string) {
   return locale.toLowerCase().startsWith("zh") ? zh : en;
 }
 
-function itemStatusPresentation(item: RemediationOrderItem, locale: string) {
+export function itemStatusPresentation(
+  item: RemediationOrderItem,
+  locale: string,
+) {
   const activeDispatchSkip = activeDispatchSkipPresentation(item, locale);
   if (activeDispatchSkip) {
     return {
@@ -192,35 +195,74 @@ function itemStatusPresentation(item: RemediationOrderItem, locale: string) {
     };
   }
   if (itemIsReportTimeout(item)) {
-    return { label: localized(locale, "回报超时", "Report Timed Out"), className: "bg-orange-50 text-orange-700" };
+    return {
+      label: localized(locale, "回报超时", "Report Timed Out"),
+      className: "bg-orange-50 text-orange-700",
+    };
   }
   if (itemHasUncertainResult(item)) {
-    return { label: localized(locale, "结果未确认", "Result Unconfirmed"), className: "bg-amber-50 text-amber-700" };
+    return {
+      label: localized(locale, "结果未确认", "Result Unconfirmed"),
+      className: "bg-amber-50 text-amber-700",
+    };
   }
   const status = item.status.trim().toLowerCase();
   switch (status) {
     case "draft":
-      return { label: localized(locale, "草稿", "Draft"), className: "bg-slate-100 text-slate-700" };
+      return {
+        label: localized(locale, "草稿", "Draft"),
+        className: "bg-slate-100 text-slate-700",
+      };
     case "ready":
-      return { label: localized(locale, "待确认", "Awaiting Confirmation"), className: "bg-violet-50 text-violet-700" };
+      return {
+        label: localized(locale, "待确认", "Awaiting Confirmation"),
+        className: "bg-violet-50 text-violet-700",
+      };
     case "satisfied":
-      return { label: localized(locale, "已满足", "Satisfied"), className: "bg-emerald-50 text-emerald-700" };
+      return {
+        label: localized(locale, "已满足", "Satisfied"),
+        className: "bg-emerald-50 text-emerald-700",
+      };
     case "blocked":
-      return { label: localized(locale, "已阻断", "Blocked"), className: "bg-rose-50 text-rose-700" };
+      return {
+        label: localized(locale, "已阻断", "Blocked"),
+        className: "bg-rose-50 text-rose-700",
+      };
     case "pending":
-      return { label: localized(locale, "待下发", "Pending Dispatch"), className: "bg-sky-50 text-sky-700" };
+      return {
+        label: localized(locale, "待下发", "Pending Dispatch"),
+        className: "bg-sky-50 text-sky-700",
+      };
     case "running":
-      return { label: localized(locale, "执行中", "Running"), className: "bg-sky-50 text-sky-700" };
+      return {
+        label: localized(locale, "执行中", "Running"),
+        className: "bg-sky-50 text-sky-700",
+      };
     case "success":
-      return { label: localized(locale, "成功", "Succeeded"), className: "bg-emerald-50 text-emerald-700" };
+      return {
+        label: localized(locale, "成功", "Succeeded"),
+        className: "bg-emerald-50 text-emerald-700",
+      };
     case "failed":
-      return { label: localized(locale, "失败", "Failed"), className: "bg-rose-50 text-rose-700" };
+      return {
+        label: localized(locale, "失败", "Failed"),
+        className: "bg-rose-50 text-rose-700",
+      };
     case "skipped":
-      return { label: localized(locale, "已跳过", "Skipped"), className: "bg-slate-100 text-slate-700" };
+      return {
+        label: localized(locale, "已跳过", "Skipped"),
+        className: "bg-slate-100 text-slate-700",
+      };
     case "uncertain":
-      return { label: localized(locale, "未确定", "Uncertain"), className: "bg-amber-50 text-amber-700" };
+      return {
+        label: localized(locale, "未确定", "Uncertain"),
+        className: "bg-amber-50 text-amber-700",
+      };
     case "canceled":
-      return { label: localized(locale, "已取消", "Canceled"), className: "bg-slate-100 text-slate-700" };
+      return {
+        label: localized(locale, "已取消", "Canceled"),
+        className: "bg-slate-100 text-slate-700",
+      };
     default:
       return {
         label: status || localized(locale, "未开始", "Not Started"),
@@ -352,19 +394,25 @@ function resultPresentation(item: RemediationOrderItem, locale: string) {
     return {
       code: "",
       result: localized(locale, "未收到终态结果", "No Final Result Received"),
-      reason:
-        localized(
-          locale,
-          "处置请求已被接收，但在回报截止时间前未收到 Agent 的最终结果",
-          "The remediation request was accepted, but no final Agent result was received before the reporting deadline.",
-        ),
+      reason: localized(
+        locale,
+        "处置请求已被接收，但在回报截止时间前未收到 Agent 的最终结果",
+        "The remediation request was accepted, but no final Agent result was received before the reporting deadline.",
+      ),
     };
   }
   if (itemHasUncertainResult(item)) {
     return {
       code: "",
       result: localized(locale, "等待人工确认", "Awaiting Manual Confirmation"),
-      reason: reason || errorMessage || localized(locale, "结果尚未被权威确认", "The result has not been authoritatively confirmed."),
+      reason:
+        reason ||
+        errorMessage ||
+        localized(
+          locale,
+          "结果尚未被权威确认",
+          "The result has not been authoritatively confirmed.",
+        ),
     };
   }
   if (errorCode || errorMessage) {
@@ -378,22 +426,35 @@ function resultPresentation(item: RemediationOrderItem, locale: string) {
     return {
       code: "",
       result: localized(locale, "执行结果已确认", "Execution Result Confirmed"),
-      reason: reason || localized(locale, "终端已确认处置结果", "The endpoint has confirmed the remediation result."),
+      reason:
+        reason ||
+        localized(
+          locale,
+          "终端已确认处置结果",
+          "The endpoint has confirmed the remediation result.",
+        ),
     };
   }
   if (status === "uncertain") {
     return {
       code: "",
       result: localized(locale, "需人工对账", "Manual Reconciliation Required"),
-      reason: reason || localized(locale, "结果未能被权威确认", "The result could not be authoritatively confirmed."),
+      reason:
+        reason ||
+        localized(
+          locale,
+          "结果未能被权威确认",
+          "The result could not be authoritatively confirmed.",
+        ),
     };
   }
   if (status === "failed" || status === "blocked") {
     return {
       code: "",
-      result: status === "failed"
-        ? localized(locale, "执行失败", "Execution Failed")
-        : localized(locale, "当前无法执行", "Cannot Execute Now"),
+      result:
+        status === "failed"
+          ? localized(locale, "执行失败", "Execution Failed")
+          : localized(locale, "当前无法执行", "Cannot Execute Now"),
       reason: reason || "-",
     };
   }
@@ -401,7 +462,9 @@ function resultPresentation(item: RemediationOrderItem, locale: string) {
     return {
       code: "",
       result: localized(locale, "执行中", "Running"),
-      reason: reason || localized(locale, "等待 Agent 回执", "Waiting for the Agent report."),
+      reason:
+        reason ||
+        localized(locale, "等待 Agent 回执", "Waiting for the Agent report."),
     };
   }
   return {
@@ -605,7 +668,9 @@ export function RemediationCaseExecutionPanel({
   }, [currentOrder.items, data?.itemsByOrderId]);
   const activeCount = allItems.filter(itemIsActive).length;
   const attentionCount = allItems.filter(itemNeedsAttention).length;
-  const sourceLabel = caseId ? t("execution.currentCase") : t("execution.currentGraphSource");
+  const sourceLabel = caseId
+    ? t("execution.currentCase")
+    : t("execution.currentGraphSource");
   const summary = data?.summary ?? EMPTY_SUMMARY;
   const reportTimeoutCount = allItems.filter(itemIsReportTimeout).length;
   const uncertainCount = allItems.filter(
@@ -656,7 +721,9 @@ export function RemediationCaseExecutionPanel({
         </div>
         <div className="flex shrink-0 items-center gap-3 self-end xl:self-auto">
           <div aria-live="polite" className="hidden text-right sm:block">
-            <div className="text-[11px] text-slate-400">{t("page.updatedAt")}</div>
+            <div className="text-[11px] text-slate-400">
+              {t("page.updatedAt")}
+            </div>
             <div className="mt-0.5 text-xs font-medium tabular-nums text-slate-600">
               {updatedAt ? formatTimestamp(updatedAt, locale) : "-"}
             </div>
@@ -677,7 +744,11 @@ export function RemediationCaseExecutionPanel({
       </div>
 
       <div className="mt-4 grid overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 sm:grid-cols-2 xl:grid-cols-6">
-        <SummaryMetric label={t("execution.orderCount")} value={summary.order_count} suffix={t("execution.orderSuffix")} />
+        <SummaryMetric
+          label={t("execution.orderCount")}
+          value={summary.order_count}
+          suffix={t("execution.orderSuffix")}
+        />
         <SummaryMetric
           label={t("execution.runningCount")}
           value={summary.running_count}
@@ -726,7 +797,8 @@ export function RemediationCaseExecutionPanel({
               active={filter === "all"}
               onClick={() => setFilter("all")}
             >
-              {t("execution.all")} {allItems.length || numericValue(summary.item_count)}
+              {t("execution.all")}{" "}
+              {allItems.length || numericValue(summary.item_count)}
             </FilterButton>
             <FilterButton
               active={filter === "active"}
@@ -752,7 +824,9 @@ export function RemediationCaseExecutionPanel({
           >
             <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
             <div>
-              <div className="font-semibold">{t("execution.loadUnavailable")}</div>
+              <div className="font-semibold">
+                {t("execution.loadUnavailable")}
+              </div>
               <p className="mt-1 leading-5">{error}</p>
             </div>
           </div>
@@ -768,7 +842,10 @@ export function RemediationCaseExecutionPanel({
               !isLegacyCaseRemediationTitle(savedOrderTitle, orderCaseId)
                 ? savedOrderTitle
                 : t("execution.orderFallback", {
-                    time: formatTimestamp(order.created_at || order.updated_at, locale),
+                    time: formatTimestamp(
+                      order.created_at || order.updated_at,
+                      locale,
+                    ),
                   });
             const allOrderItems =
               data?.itemsByOrderId[order.order_id] ??
@@ -866,11 +943,26 @@ export function RemediationCaseExecutionPanel({
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-[11px] text-slate-500">
         <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <StatusLegend className="bg-sky-500" label={t("execution.runningCount")} />
-          <StatusLegend className="bg-emerald-500" label={t("execution.successCount")} />
-          <StatusLegend className="bg-orange-500" label={t("execution.timeoutCount")} />
-          <StatusLegend className="bg-rose-500" label={t("execution.failedCount")} />
-          <StatusLegend className="bg-amber-500" label={t("execution.uncertainCount")} />
+          <StatusLegend
+            className="bg-sky-500"
+            label={t("execution.runningCount")}
+          />
+          <StatusLegend
+            className="bg-emerald-500"
+            label={t("execution.successCount")}
+          />
+          <StatusLegend
+            className="bg-orange-500"
+            label={t("execution.timeoutCount")}
+          />
+          <StatusLegend
+            className="bg-rose-500"
+            label={t("execution.failedCount")}
+          />
+          <StatusLegend
+            className="bg-amber-500"
+            label={t("execution.uncertainCount")}
+          />
         </span>
       </div>
     </section>
@@ -885,13 +977,7 @@ function SummaryMetric({
 }: {
   label: string;
   suffix: string;
-  tone?:
-    | "default"
-    | "active"
-    | "success"
-    | "danger"
-    | "timeout"
-    | "warning";
+  tone?: "default" | "active" | "success" | "danger" | "timeout" | "warning";
   value: string;
 }) {
   const colors = {

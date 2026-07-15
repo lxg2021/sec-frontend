@@ -185,4 +185,30 @@ describe("remediation parameter family contract", () => {
       "禁用服务",
     );
   });
+
+  it("uses the restore template and never rebuilds quarantine parameters", () => {
+    const restoreAction = {
+      ...action("file.restore"),
+      requires_history: true,
+    };
+    const template = getRemediationPreviewTemplate(restoreAction);
+
+    expect(template).toMatchObject({
+      id: "file-restore",
+      parameters: [],
+    });
+    expect(
+      buildRemediationTemplateInput({
+        baseInput: {
+          file_quarantine: {
+            delete_original: true,
+            encrypt: true,
+          },
+        },
+        selectedAction: restoreAction,
+        template,
+        values: initialRemediationTemplateValues(undefined, template),
+      }),
+    ).toBeUndefined();
+  });
 });

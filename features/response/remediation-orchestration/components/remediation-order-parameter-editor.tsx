@@ -604,6 +604,9 @@ export function RemediationOrderParameterPanel({
     );
   const [targetInfoExpanded, setTargetInfoExpanded] = useState(true);
   const [parametersExpanded, setParametersExpanded] = useState(true);
+  const showTemplateControls = shouldShowRemediationWorkspaceTemplateControls(
+    selectedAction.action_code,
+  );
 
   function updateTemplateValues(values: RemediationTemplateValues) {
     setTemplateValues(values);
@@ -651,21 +654,29 @@ export function RemediationOrderParameterPanel({
         </div>
       ) : null}
 
-      <div className="mt-4">
-        <WorkspaceTemplateControls
-          actionInput={actionInput}
-          disabled={disabled}
-          onActionInputChange={onActionInputChange}
-          onValuesChange={updateTemplateValues}
-          parametersExpanded={parametersExpanded}
-          onParametersExpandedChange={setParametersExpanded}
-          selectedAction={selectedAction}
-          template={template}
-          values={templateValues}
-        />
-      </div>
+      {showTemplateControls ? (
+        <div className="mt-4">
+          <WorkspaceTemplateControls
+            actionInput={actionInput}
+            disabled={disabled}
+            onActionInputChange={onActionInputChange}
+            onValuesChange={updateTemplateValues}
+            parametersExpanded={parametersExpanded}
+            onParametersExpandedChange={setParametersExpanded}
+            selectedAction={selectedAction}
+            template={template}
+            values={templateValues}
+          />
+        </div>
+      ) : null}
     </div>
   );
+}
+
+export function shouldShowRemediationWorkspaceTemplateControls(
+  actionCode: string,
+) {
+  return actionCode.trim().toLowerCase() !== "file.restore";
 }
 
 function WorkspaceTemplateControls({

@@ -12,6 +12,8 @@ import {
   buildRemediationOrderDraftItems,
   fileEAEditorFromItem,
   fileEAInputFromEditor,
+  getRemediationOrderCurrentRoundItems,
+  getRemediationOrderHistoricalItems,
   normalizeFileEANames,
   remediationActionApplicabilityError,
   remediationOrderLifecycleActions,
@@ -106,6 +108,24 @@ const restoreDecision = {
 } as import("@/features/attack/remediation-order").RemediationActionDecision;
 
 describe("remediation Order orchestration model", () => {
+  it("separates the current editable Round from historical execution Rounds", () => {
+    const current = {
+      current_round: 3,
+      items: [
+        { item_id: "round-3", round_no: 3 },
+        { item_id: "round-2", round_no: 2 },
+        { item_id: "round-1", round_no: 1 },
+      ],
+    } as RemediationOrder;
+
+    expect(
+      getRemediationOrderCurrentRoundItems(current).map((item) => item.item_id),
+    ).toEqual(["round-3"]);
+    expect(
+      getRemediationOrderHistoricalItems(current).map((item) => item.item_id),
+    ).toEqual(["round-2", "round-1"]);
+  });
+
   it("normalizes comma/newline EA names case-insensitively", () => {
     expect(
       normalizeFileEANames(
@@ -133,7 +153,9 @@ describe("remediation Order orchestration model", () => {
   });
 
   it("keeps named scope selected while the EA name list is empty", () => {
-    expect(fileEAEditorFromItem(fileEAItem({ file_ea: { ea_names: [] } }))).toEqual({
+    expect(
+      fileEAEditorFromItem(fileEAItem({ file_ea: { ea_names: [] } })),
+    ).toEqual({
       mode: "named",
       eaNamesText: "",
       force: false,
@@ -322,6 +344,28 @@ describe("remediation Order orchestration model", () => {
     ]);
   });
 
+  it("keeps completed Rounds out of the editable workspace", () => {
+    const historicalItem = {
+      ...fileEAItem(),
+      item_id: "item-history",
+      round_no: 2,
+    };
+    const draftItem = {
+      ...restoreItem(),
+      item_id: "item-restore-draft",
+      round_no: 3,
+    };
+    const current = {
+      ...order(draftItem),
+      current_round: 3,
+      items: [historicalItem, draftItem],
+    };
+
+    expect(
+      getRemediationOrderCurrentRoundItems(current).map((item) => item.item_id),
+    ).toEqual(["item-restore-draft"]);
+  });
+
   it("requires binding-only scope for a shared WMI Subscription candidate", () => {
     const item = wmiItem();
     const editor = wmiSubscriptionEditorFromItem(item);
@@ -366,18 +410,14 @@ describe("remediation Order orchestration model", () => {
   it("validates and persists a history source in orchestration", () => {
     const item = restoreItem();
     const current = order(item);
-    expect(applicableHistoryContexts(restoreDecision, item.agent_id)).toHaveLength(
-      1,
-    );
+    expect(
+      applicableHistoryContexts(restoreDecision, item.agent_id),
+    ).toHaveLength(1);
     expect(validateHistorySource("", restoreDecision, item.agent_id)).toContain(
       "请选择",
     );
     expect(
-      validateHistorySource(
-        "source-item-1",
-        restoreDecision,
-        item.agent_id,
-      ),
+      validateHistorySource("source-item-1", restoreDecision, item.agent_id),
     ).toBe("");
     expect(
       validateOrderForPrepare(

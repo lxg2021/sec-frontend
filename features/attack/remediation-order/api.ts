@@ -7,6 +7,7 @@ import {
   normalizeRemediationItemList,
   normalizeRemediationNodeActionsResult,
   normalizeRemediationOrder,
+  normalizeRemediationDraftItemsUpsertData,
   normalizeRemediationOrderList,
   normalizeRemediationSummary,
   normalizeResolveRemediationNodeAgents,
@@ -15,6 +16,8 @@ import type {
   CancelRemediationOrderRequest,
   ConfirmRemediationOrderRequest,
   CreateRemediationOrderRequest,
+  DeleteRemediationDraftItemRequest,
+  GetOrCreateRemediationOrderBySourceRequest,
   DeleteRemediationOrderRequest,
   PrepareRemediationOrderRequest,
   QueryEditableRemediationOrderBySourceRequest,
@@ -28,6 +31,7 @@ import type {
   ResolveRemediationNodeAgentsRequest,
   RequestWithOptionalId,
   UpdateRemediationOrderRequest,
+  UpsertRemediationDraftItemsRequest,
 } from "./types"
 
 interface ApiResult<T> {
@@ -38,6 +42,9 @@ const REMEDIATION_PATHS = {
   resolveNodeAgents: "/sensor/graph/remediation/node-agents/resolve",
   nodeActions: "/sensor/workflow/remediation/node/actions/query",
   orderCreate: "/sensor/remediation/order/create",
+  orderGetOrCreateBySource: "/sensor/remediation/order/source/get-or-create",
+  orderDraftItemsUpsert: "/sensor/remediation/order/draft/items/upsert",
+  orderDraftItemDelete: "/sensor/remediation/order/draft/item/delete",
   orderUpdate: "/sensor/remediation/order/update",
   orderDelete: "/sensor/remediation/order/delete",
   orderQuery: "/sensor/remediation/order/query",
@@ -87,6 +94,30 @@ export async function createRemediationOrder(
 ) {
   return normalizeRemediationOrder(
     await postData(REMEDIATION_PATHS.orderCreate, withRequestId(params)),
+  )
+}
+
+export async function getOrCreateRemediationOrderBySource(
+  params: RequestWithOptionalId<GetOrCreateRemediationOrderBySourceRequest>,
+) {
+  return normalizeRemediationOrder(
+    await postData(REMEDIATION_PATHS.orderGetOrCreateBySource, withRequestId(params)),
+  )
+}
+
+export async function upsertRemediationDraftItems(
+  params: RequestWithOptionalId<UpsertRemediationDraftItemsRequest>,
+) {
+  return normalizeRemediationDraftItemsUpsertData(
+    await postData(REMEDIATION_PATHS.orderDraftItemsUpsert, withRequestId(params)),
+  )
+}
+
+export async function deleteRemediationDraftItem(
+  params: RequestWithOptionalId<DeleteRemediationDraftItemRequest>,
+) {
+  return normalizeRemediationOrder(
+    await postData(REMEDIATION_PATHS.orderDraftItemDelete, withRequestId(params)),
   )
 }
 

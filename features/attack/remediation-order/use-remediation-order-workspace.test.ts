@@ -6,13 +6,22 @@ import type {
   RemediationActionAgentDecision,
   RemediationActionDecision,
   RemediationActionDescriptor,
+  RemediationDraftItemsUpsertData,
+  RemediationOrderDraftItemInput,
 } from "./types";
 import {
+  assertRemediationDraftItemsPersisted,
+  getRemediationHistoryItems,
+  getRemediationHistoryNodeStates,
   getRemediationSelectableActions,
   getRemediationSelectableAgentIds,
   isRemediationTargetComplete,
+  remediationSelectionChanged,
+  selectRemediationActionForAgent,
+  selectRemediationReverseSourceItemId,
   type RemediationTargetDraft,
 } from "./use-remediation-order-workspace";
+import type { RemediationOrder, RemediationOrderItem } from "./types";
 
 const node: AttackGraphNodeModel = {
   id: "node-1",
@@ -49,8 +58,7 @@ function agentDecision(
     reverse_contexts: [],
     target_candidates: [],
     current_effect_state: "none",
-    prepare_disposition:
-      status === "unavailable" ? "block" : "execute",
+    prepare_disposition: status === "unavailable" ? "block" : "execute",
     draft_selectable: status !== "unavailable",
     ...overrides,
   };
@@ -58,9 +66,7 @@ function agentDecision(
 
 function decision(
   descriptor: RemediationActionDescriptor,
-  agentDecisions: RemediationActionAgentDecision[] = [
-    agentDecision("agent-1"),
-  ],
+  agentDecisions: RemediationActionAgentDecision[] = [agentDecision("agent-1")],
 ): RemediationActionDecision {
   return { action: descriptor, agent_decisions: agentDecisions };
 }
@@ -201,9 +207,7 @@ describe("isRemediationTargetComplete", () => {
           actionDecisions: [
             decision(fileEA, [
               agentDecision("agent-1", "requires_configuration", {
-                required_input_fields: [
-                  "file_ea.ea_names|file_ea.delete_all",
-                ],
+                required_input_fields: ["file_ea.ea_names|file_ea.delete_all"],
               }),
             ]),
           ],
@@ -255,5 +259,183 @@ describe("ControlPanel draft choices", () => {
     expect(
       getRemediationSelectableActions(current).map((item) => item.action_code),
     ).toEqual(["file_ea.delete"]);
+  });
+});
+
+describe("ControlPanel reverse-action selection", () => {
+  it("replaces a no-longer-selectable quarantine with restore and carries its only source Item", () => {
+    const quarantine = action({ action_code: "file.quarantine" });
+    const restore = action({ action_code: "file.restore" });
+
+    const selection = selectRemediationActionForAgent({
+      agentId: "agent-1",
+      retainedActionCode: "file.quarantine",
+      actionDecisions: [
+        decision(quarantine, [
+          agentDecision("agent-1", "available", {
+            current_effect_state: "satisfied",
+            draft_selectable: false,
+          }),
+        ]),
+        decision(restore, [
+          agentDecision("agent-1", "available", {
+            reverse_contexts: [
+              {
+                source_item_id: "successful-quarantine-item",
+                source_action_code: "file.quarantine",
+              },
+            ],
+          }),
+        ]),
+      ],
+    });
+
+    expect(selection).toEqual({
+      selectedActionCode: "file.restore",
+      reverseSourceItemId: "successful-quarantine-item",
+    });
+    expect(
+      remediationSelectionChanged(
+        target({
+          selectedActionCode: "file.quarantine",
+          reverseSourceItemId: "",
+        }),
+        selection,
+      ),
+    ).toBe(true);
+  });
+
+  it("retains a valid source but leaves multiple restore sources for orchestration", () => {
+    const contexts = [
+      {
+        source_item_id: "successful-quarantine-item-1",
+        source_action_code: "file.quarantine",
+      },
+      {
+        source_item_id: "successful-quarantine-item-2",
+        source_action_code: "file.quarantine",
+      },
+    ];
+
+    expect(selectRemediationReverseSourceItemId(contexts)).toBe("");
+    expect(
+      selectRemediationReverseSourceItemId(
+        contexts,
+        "successful-quarantine-item-2",
+      ),
+    ).toBe("successful-quarantine-item-2");
+  });
+});
+
+describe("ControlPanel Draft save result", () => {
+  const requested: RemediationOrderDraftItemInput = {
+    action_code: "file.restore",
+    graph_target: { node_key: "file:node-1", agent_id: "agent-1" },
+    reverse_source_item_id: "quarantine-item-1",
+  };
+  const persistedItem = {
+    item_id: "restore-item-1",
+    round_no: 4,
+    node_key: "file:node-1",
+    agent_id: "agent-1",
+    action_code: "file.restore",
+    reverse_source_id: "quarantine-item-1",
+  } as RemediationOrderItem;
+  const response = (
+    disposition: "created" | "already_present" | "already_satisfied",
+    items: RemediationOrderItem[] = [persistedItem],
+  ) =>
+    ({
+      order: { current_round: 4, items } as RemediationOrder,
+      item_results: [
+        {
+          input_index: 0,
+          item_id: disposition === "already_satisfied" ? "" : "restore-item-1",
+          round_no: 4,
+          disposition,
+          reason_code:
+            disposition === "already_satisfied" ? "ALREADY_SATISFIED" : "",
+          reason_message:
+            disposition === "already_satisfied" ? "effect already exists" : "",
+        },
+      ],
+    }) as RemediationDraftItemsUpsertData;
+
+  it("accepts a restore target only when it exists in the returned current Draft Round", () => {
+    expect(() =>
+      assertRemediationDraftItemsPersisted(response("created"), [requested]),
+    ).not.toThrow();
+    expect(() =>
+      assertRemediationDraftItemsPersisted(response("already_present"), [
+        requested,
+      ]),
+    ).not.toThrow();
+    expect(() =>
+      assertRemediationDraftItemsPersisted(response("created", []), [
+        requested,
+      ]),
+    ).toThrow("Remediation target 1 was not added to the Draft");
+  });
+
+  it("surfaces an item-level skip instead of navigating to an empty workspace", () => {
+    expect(() =>
+      assertRemediationDraftItemsPersisted(response("already_satisfied", []), [
+        requested,
+      ]),
+    ).toThrow("ALREADY_SATISFIED: effect already exists");
+  });
+});
+
+describe("ControlPanel remediation history", () => {
+  const item = (roundNo: number, itemStatus = "success") =>
+    ({
+      item_id: `item-${roundNo}`,
+      round_no: roundNo,
+      node_key: `node-${roundNo}`,
+      status: itemStatus,
+      uncertainty_since_at: "",
+    }) as RemediationOrderItem;
+
+  const order = (
+    status: string,
+    currentRound: number,
+    items: RemediationOrderItem[],
+  ) =>
+    ({
+      status,
+      current_round: currentRound,
+      items,
+    }) as RemediationOrder;
+
+  it("keeps earlier rounds as read-only history while the current round is a Draft", () => {
+    expect(
+      getRemediationHistoryItems(
+        order("draft", 2, [item(1), item(2, "draft")]),
+      ).map((value) => value.item_id),
+    ).toEqual(["item-1"]);
+  });
+
+  it("shows a confirmed or executing current round as history", () => {
+    expect(
+      getRemediationHistoryItems(
+        order("running", 2, [item(1), item(2, "running")]),
+      ).map((value) => value.item_id),
+    ).toEqual(["item-1", "item-2"]);
+  });
+
+  it("marks unreported and uncertain history so the graph menu cannot submit it again", () => {
+    const pending = item(1, "pending");
+    const uncertain = {
+      ...item(2, "failed"),
+      uncertainty_since_at: "2026-07-15T12:00:00Z",
+    } as RemediationOrderItem;
+    const current = order("completed", 2, [pending, uncertain]);
+
+    expect(
+      Array.from(getRemediationHistoryNodeStates(current).entries()),
+    ).toEqual([
+      ["node-1", "awaiting_endpoint_report"],
+      ["node-2", "result_uncertain"],
+    ]);
   });
 });

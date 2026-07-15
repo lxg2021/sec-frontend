@@ -27,6 +27,9 @@ import type {
   RemediationOrderList,
   RemediationOrderListItem,
   RemediationOrderSummary,
+  RemediationDraftItemUpsertDisposition,
+  RemediationDraftItemUpsertResult,
+  RemediationDraftItemsUpsertData,
   RemediationPrepareDisposition,
   RemediationSource,
   RemediationSummary,
@@ -724,6 +727,7 @@ export function normalizeRemediationOrderItem(
   const item = objectValue(raw);
   return {
     item_id: stringValue(item.item_id),
+    round_no: numberValue(item.round_no),
     position: numberValue(item.position),
     node_key: stringValue(item.node_key),
     entity_type: stringValue(item.entity_type),
@@ -798,6 +802,7 @@ export function normalizeRemediationOrder(raw: unknown): RemediationOrder {
     status: stringValue(order.status),
     outcome: stringValue(order.outcome),
     revision: uint64Value(order.revision),
+    current_round: numberValue(order.current_round),
     prepared_fingerprint_version: stringValue(
       order.prepared_fingerprint_version,
     ),
@@ -815,6 +820,31 @@ export function normalizeRemediationOrder(raw: unknown): RemediationOrder {
     updated_at: stringValue(order.updated_at),
     canceled_at: stringValue(order.canceled_at),
     expires_at: stringValue(order.expires_at),
+  };
+}
+
+function draftItemUpsertDispositionValue(value: unknown): RemediationDraftItemUpsertDisposition {
+  const normalized = stringValue(value).toLowerCase();
+  if (value === 1 || normalized === "1" || normalized === "created" || normalized.endsWith("_created")) return "created";
+  if (value === 2 || normalized === "2" || normalized === "updated" || normalized.endsWith("_updated")) return "updated";
+  if (value === 3 || normalized === "3" || normalized === "already_present" || normalized.endsWith("_already_present")) return "already_present";
+  if (value === 4 || normalized === "4" || normalized === "already_satisfied" || normalized.endsWith("_already_satisfied")) return "already_satisfied";
+  if (value === 5 || normalized === "5" || normalized === "in_flight" || normalized.endsWith("_in_flight")) return "in_flight";
+  return "unspecified";
+}
+
+export function normalizeRemediationDraftItemsUpsertData(raw: unknown): RemediationDraftItemsUpsertData {
+  const data = objectValue(raw);
+  return {
+    order: normalizeRemediationOrder(data.order),
+    item_results: objectArray(data.item_results).map((result): RemediationDraftItemUpsertResult => ({
+      input_index: numberValue(result.input_index),
+      item_id: stringValue(result.item_id),
+      round_no: numberValue(result.round_no),
+      disposition: draftItemUpsertDispositionValue(result.disposition),
+      reason_code: stringValue(result.reason_code),
+      reason_message: stringValue(result.reason_message),
+    })),
   };
 }
 

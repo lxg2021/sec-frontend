@@ -6,6 +6,7 @@ import {
   Ban,
   CheckCircle2,
   CircleStop,
+  Eye,
   FileText,
   KeyRound,
   Loader2,
@@ -27,6 +28,7 @@ import { createPortal } from "react-dom"
 
 import type {
   RemediationOrder,
+  RemediationOrderItem,
   RemediationTargetDraft,
 } from "@/features/attack/remediation-order"
 import {
@@ -49,6 +51,7 @@ import { getRemediationTargetPresentation } from "./attack-graph-remediation-tar
 
 export interface AttackGraphRemediationTargetsProps {
   targets: readonly RemediationTargetDraft[]
+  historyItems: readonly RemediationOrderItem[]
   order: RemediationOrder | null
   loadingDraft: boolean
   saving: boolean
@@ -62,10 +65,12 @@ export interface AttackGraphRemediationTargetsProps {
   onAgentChange: (targetKey: string, agentId: string) => void
   onActionChange: (targetKey: string, actionCode: string) => void
   onOpenOrchestration: () => void | Promise<unknown>
+  onViewOrchestration: () => void
 }
 
 export function AttackGraphRemediationTargets({
   targets,
+  historyItems,
   order,
   loadingDraft,
   saving,
@@ -79,13 +84,22 @@ export function AttackGraphRemediationTargets({
   onAgentChange,
   onActionChange,
   onOpenOrchestration,
+  onViewOrchestration,
 }: AttackGraphRemediationTargetsProps) {
   const t = useTranslations("pages.attack.drill.controlPanel")
   const busy = saving
   const orderStatus = order?.status || ""
   const shouldSaveBeforeOpening = !order || dirty
+  const targetCount = targets.length + historyItems.length
+  const hasDispatchedHistory = historyItems.some((item) =>
+    Boolean(item.dispatch_id.trim()) ||
+    Boolean(item.execution?.dispatch_id.trim()) ||
+    ["pending", "running", "success", "failed", "uncertain"].includes(
+      item.status.trim().toLowerCase(),
+    ),
+  )
 
-  if (loadingDraft && targets.length === 0) {
+  if (loadingDraft && targetCount === 0) {
     return (
       <div className="flex h-full items-center justify-center gap-2 text-sm font-medium text-slate-600">
         <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -127,7 +141,7 @@ export function AttackGraphRemediationTargets({
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-auto">
-        {targets.length === 0 ? (
+        {targetCount === 0 ? (
           <div className="flex h-full min-h-[188px] flex-col items-center justify-center text-center">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200">
               <ShieldCheck className="h-5 w-5" aria-hidden="true" />
@@ -140,14 +154,15 @@ export function AttackGraphRemediationTargets({
             </p>
           </div>
         ) : (
-          <table className="w-full min-w-[1060px] table-fixed border-collapse text-left">
+          <table className="w-full min-w-[1100px] table-fixed border-collapse text-left">
             <caption className="sr-only">{t("remediation.caption")}</caption>
             <colgroup>
-              <col className="w-[28%]" />
-              <col className="w-[32%]" />
-              <col className="w-[22%]" />
+              <col className="w-[27%]" />
+              <col className="w-[27%]" />
+              <col className="w-[19%]" />
+              <col className="w-[10%]" />
               <col className="w-[12%]" />
-              <col className="w-[6%]" />
+              <col className="w-[5%]" />
             </colgroup>
             <thead className="sticky top-0 z-[2] bg-white">
               <tr className="border-b border-slate-200 text-[11px] font-semibold text-slate-500">
@@ -155,12 +170,16 @@ export function AttackGraphRemediationTargets({
                 <th className="px-3 py-2.5">{t("remediation.columns.agent")}</th>
                 <th className="px-3 py-2.5">{t("remediation.columns.action")}</th>
                 <th className="px-3 py-2.5">{t("remediation.columns.risk")}</th>
+                <th className="px-3 py-2.5">{t("remediation.columns.status")}</th>
                 <th className="px-2 py-2.5">
                   <span className="sr-only">{t("remediation.columns.actions")}</span>
                 </th>
               </tr>
             </thead>
             <tbody>
+              {historyItems.map((item) => (
+                <RemediationHistoryRow key={item.item_id} item={item} />
+              ))}
               {targets.map((target) => (
                 <RemediationTargetRow
                   key={target.key}
@@ -177,39 +196,54 @@ export function AttackGraphRemediationTargets({
         )}
       </div>
 
-      {targets.length > 0 || order ? (
+      {targetCount > 0 || order ? (
         <div className="flex min-h-16 shrink-0 items-center justify-between gap-4 border-t border-slate-200/80 bg-slate-50/70 px-4 py-2">
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs">
             <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
               <CheckCircle2 className="h-4 w-4 text-slate-500" aria-hidden="true" />
-              {t("remediation.selectedCount", { count: targets.length })}
+              {t("remediation.selectedCount", { count: targetCount })}
             </span>
             <OrderStageSummary dirty={dirty} order={order} />
           </div>
 
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => void onOpenOrchestration()}
-            disabled={
-              busy ||
-              (shouldSaveBeforeOpening &&
-                (workflowMissing || !allTargetsComplete))
-            }
-            className="h-10 shrink-0 rounded-xl bg-slate-900 px-3.5 pr-4 text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(15,23,42,0.75)] hover:bg-slate-800 focus-visible:ring-slate-950 disabled:shadow-none"
-          >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-              {saving && shouldSaveBeforeOpening ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-              ) : (
-                <Play
-                  className="h-3.5 w-3.5 fill-current"
-                  aria-hidden="true"
-                />
-              )}
-            </span>
-            {t("remediation.openOrchestration")}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            {order && hasDispatchedHistory ? (
+              <Button
+                type="button"
+                size="sm"
+                onClick={onViewOrchestration}
+                className="h-10 shrink-0 rounded-xl bg-slate-900 px-3.5 pr-4 text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(15,23,42,0.75)] hover:bg-slate-800 focus-visible:ring-slate-950 disabled:shadow-none"
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+                  <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                </span>
+                {t("remediation.viewRemediation")}
+              </Button>
+            ) : null}
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void onOpenOrchestration()}
+              disabled={
+                busy ||
+                (shouldSaveBeforeOpening &&
+                  (workflowMissing || !allTargetsComplete))
+              }
+              className="h-10 shrink-0 rounded-xl bg-slate-900 px-3.5 pr-4 text-xs font-semibold text-white shadow-[0_8px_18px_-10px_rgba(15,23,42,0.75)] hover:bg-slate-800 focus-visible:ring-slate-950 disabled:shadow-none"
+            >
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+                {saving && shouldSaveBeforeOpening ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Play
+                    className="h-3.5 w-3.5 fill-current"
+                    aria-hidden="true"
+                  />
+                )}
+              </span>
+              {t("remediation.openOrchestration")}
+            </Button>
+          </div>
         </div>
       ) : null}
     </div>
@@ -343,8 +377,6 @@ function RemediationTargetRow({
                 decision,
                 target.selectedAgentId,
               )
-              const applicabilityStatus =
-                agentDecision?.status || "unavailable"
               const label = candidate.display_name || candidate.action_code
               const details = []
               if (
@@ -356,11 +388,6 @@ function RemediationTargetRow({
                 agentDecision?.current_effect_state === "satisfied"
               ) {
                 details.push(t("remediation.applicability.satisfied"))
-              }
-              if (applicabilityStatus === "requires_configuration") {
-                details.push(
-                  t("remediation.applicability.requiresConfiguration"),
-                )
               }
               const detail = details.join(" · ")
               return (
@@ -383,6 +410,15 @@ function RemediationTargetRow({
       </td>
       <td className="px-3 py-1.5">
         <RiskBadge risk={risk} />
+      </td>
+      <td className="px-3 py-1.5">
+        <StatusBadge
+          status={
+            target.resolutionStatus !== "ready"
+              ? target.resolutionStatus
+              : target.itemStatus || "ready"
+          }
+        />
       </td>
       <td className="px-2 py-1.5 text-right">
         {target.resolutionStatus === "error" ||
@@ -417,6 +453,65 @@ function RemediationTargetRow({
           <X className="h-4 w-4" aria-hidden="true" />
         </Button>
       </td>
+    </tr>
+  )
+}
+
+function RemediationHistoryRow({ item }: { item: RemediationOrderItem }) {
+  const t = useTranslations("pages.attack.drill.controlPanel")
+  const config = getAttackGraphRemediationNodeConfig(item.entity_type)
+  const capability = config?.capability ?? "unknown"
+  const Icon =
+    capability === "network"
+      ? Network
+      : capability === "file"
+        ? FileText
+        : ShieldCheck
+  const targetPresentation = getRemediationTargetPresentation(
+    capability,
+    item.display_name || item.node_key,
+    {},
+  )
+
+  return (
+    <tr className="border-b border-slate-100 bg-slate-50/40 align-middle text-xs text-slate-600 last:border-b-0">
+      <td className="px-3 py-1.5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200">
+            <Icon className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <span className="min-w-0 flex-1">
+            {targetPresentation.showFullValue ? (
+              <PointerPathTooltip
+                fullValue={targetPresentation.fullValue}
+                label={targetPresentation.label}
+              />
+            ) : (
+              <span className="block truncate font-semibold text-slate-800">
+                {targetPresentation.label}
+              </span>
+            )}
+          </span>
+        </div>
+      </td>
+      <td className="px-3 py-1.5">
+        <span className="block truncate font-mono text-[11px] text-slate-600" title={item.agent_id}>
+          {item.agent_id || "-"}
+        </span>
+      </td>
+      <td className="px-3 py-1.5">
+        <RemediationActionLabel
+          actionCode={item.action_code}
+          label={getHistoryActionLabel(item.action_code, t)}
+        />
+      </td>
+      <td className="px-3 py-1.5">
+        <RiskBadge risk={item.risk_level} />
+      </td>
+      <td className="px-3 py-1.5">
+        <StatusBadge status={item.status} />
+      </td>
+      <td className="px-2 py-1.5" />
     </tr>
   )
 }
@@ -531,6 +626,79 @@ function getRemediationActionIcon(actionCode: string): LucideIcon {
     return Trash2
   }
   return Wrench
+}
+
+function getHistoryActionLabel(actionCode: string, t: Translation) {
+  switch (actionCode.trim().toLowerCase()) {
+    case "file.quarantine":
+      return t("remediation.historyActions.fileQuarantine")
+    case "file.restore":
+      return t("remediation.historyActions.fileRestore")
+    case "process.terminate":
+      return t("remediation.historyActions.processTerminate")
+    case "process.block":
+      return t("remediation.historyActions.processBlock")
+    case "process.bypass":
+      return t("remediation.historyActions.processBypass")
+    case "net.block":
+      return t("remediation.historyActions.netBlock")
+    case "net.bypass":
+      return t("remediation.historyActions.netBypass")
+    case "scheduled_task.delete":
+      return t("remediation.historyActions.scheduledTaskDelete")
+    case "service.delete":
+      return t("remediation.historyActions.serviceDelete")
+    case "account.disable":
+      return t("remediation.historyActions.accountDisable")
+    case "registry.delete":
+    case "registry.delete_key":
+    case "registry.delete_value":
+      return t("remediation.historyActions.registryDelete")
+    case "wmi_class.delete":
+      return t("remediation.historyActions.wmiClassDelete")
+    case "wmi_subscription.delete":
+      return t("remediation.historyActions.wmiSubscriptionDelete")
+    case "bits_job.delete":
+      return t("remediation.historyActions.bitsJobDelete")
+    case "file_ea.delete":
+      return t("remediation.historyActions.fileEADelete")
+    case "ntfs_ads.delete":
+      return t("remediation.historyActions.ntfsADSDelete")
+    default:
+      return actionCode || "-"
+  }
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations("pages.attack.drill.controlPanel")
+  const normalized = status.trim().toLowerCase()
+  const tone =
+    normalized === "success" ||
+    normalized === "satisfied" ||
+    normalized === "completed"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      : normalized === "failed" ||
+          normalized === "blocked" ||
+          normalized === "error"
+        ? "border-red-200 bg-red-50 text-red-800"
+        : normalized === "uncertain" || normalized === "configuration_required"
+          ? "border-amber-200 bg-amber-50 text-amber-800"
+          : normalized === "prepared" ||
+              normalized === "pending" ||
+              normalized === "running"
+            ? "border-blue-200 bg-blue-50 text-blue-800"
+            : "border-slate-200 bg-slate-50 text-slate-600"
+
+  return (
+    <span
+      className={cn(
+        "inline-flex whitespace-nowrap rounded-full border px-2 py-1 text-[10px] font-semibold",
+        tone,
+      )}
+    >
+      {getStatusLabel(normalized, t)}
+    </span>
+  )
 }
 
 function RiskBadge({ risk }: { risk: string }) {

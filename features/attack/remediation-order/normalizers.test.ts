@@ -4,6 +4,7 @@ import {
   normalizeRemediationItemList,
   normalizeRemediationNodeActionsResult,
   normalizeRemediationOrder,
+  normalizeRemediationDraftItemsUpsertData,
   normalizeRemediationOrderList,
   normalizeRemediationSummary,
   normalizeResolveRemediationNodeAgents,
@@ -39,6 +40,7 @@ describe("remediation order normalizers", () => {
       tenant_id: "",
       order_id: "",
       revision: "0",
+      current_round: 0,
       confirmable: false,
       source: {
         source_type: "",
@@ -49,6 +51,16 @@ describe("remediation order normalizers", () => {
       summary: { total: 0, ready: 0, blocked: 0, uncertain: 0 },
       items: [],
     });
+  });
+
+  it("normalizes stable-order Draft Upsert results without treating them as a second Order", () => {
+    const data = normalizeRemediationDraftItemsUpsertData({
+      order: { order_id: "order-1", revision: "7", current_round: 2, items: [{ item_id: "item-2", round_no: 2 }] },
+      item_results: [{ input_index: 0, item_id: "item-2", round_no: 2, disposition: "REMEDIATION_DRAFT_ITEM_UPSERT_DISPOSITION_CREATED" }],
+    });
+
+    expect(data.order).toMatchObject({ order_id: "order-1", revision: "7", current_round: 2 });
+    expect(data.item_results).toEqual([expect.objectContaining({ item_id: "item-2", round_no: 2, disposition: "created" })]);
   });
 
   it("normalizes a prepared order and preserves optional action-input values", () => {

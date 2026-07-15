@@ -104,6 +104,16 @@ export function buildRemediationOrderDraftItemsFromInputs(
   });
 }
 
+// An Order retains historical execution Rounds. Editing and preparing always
+// operate on the Items belonging to its current Round only.
+export function getRemediationOrderCurrentRoundItems(order: RemediationOrder) {
+  return order.items.filter((item) => item.round_no === order.current_round);
+}
+
+export function getRemediationOrderHistoricalItems(order: RemediationOrder) {
+  return order.items.filter((item) => item.round_no !== order.current_round);
+}
+
 export function fileEAEditorFromItem(
   item: RemediationOrderItem,
 ): FileEAEditorState {
@@ -282,7 +292,10 @@ function reverseSourceIdForItem(
   item: RemediationOrderItem,
   reverseSourceItemIds: Record<string, string>,
 ) {
-  return Object.prototype.hasOwnProperty.call(reverseSourceItemIds, item.item_id)
+  return Object.prototype.hasOwnProperty.call(
+    reverseSourceItemIds,
+    item.item_id,
+  )
     ? reverseSourceItemIds[item.item_id].trim()
     : item.reverse_source_id.trim();
 }
@@ -342,10 +355,8 @@ export function validateOrderForPrepare(
         item.agent_id,
       );
     } else if (
-      applicableHistoryContexts(
-        actionDecisions[item.item_id],
-        item.agent_id,
-      ).length > 0 ||
+      applicableHistoryContexts(actionDecisions[item.item_id], item.agent_id)
+        .length > 0 ||
       Boolean(item.reverse_source_id)
     ) {
       errors[item.item_id] = validateHistorySource(

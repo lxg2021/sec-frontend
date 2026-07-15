@@ -515,6 +515,10 @@ export default function App() {
     router,
     t,
   ])
+  const handleViewRemediationOrchestration = useCallback(() => {
+    if (!remediation.order) return
+    router.push(buildRemediationOrchestrationHref(remediation.order))
+  }, [remediation.order, router])
   const handleRemediationRetry = useCallback(
     async (targetKey: string) => {
       try {
@@ -601,6 +605,17 @@ export default function App() {
 
   const handleGraphMenuAction = useCallback(
     async (action: AttackGraphMenuAction) => {
+      if (action.kind === "open-remediation-order") {
+        if (!remediation.order) {
+          toast.warning(t("controlPanel.remediation.messages.openFailed"), {
+            description: t("controlPanel.remediation.messages.unknownError"),
+          })
+          return
+        }
+        router.push(buildRemediationOrchestrationHref(remediation.order))
+        return
+      }
+
       if (action.kind === "remove-ioc-candidates") {
         if (iocCandidateSyncState !== "ready") {
           toast.info(t("controlPanel.ioc.messages.syncPending"))
@@ -948,7 +963,9 @@ export default function App() {
       iocCandidateUserIdsBySourceKey,
       remediation.addTarget,
       remediation.editable,
+      remediation.order,
       remediation.removeTarget,
+      router,
       t,
       timelineCaseId,
     ],
@@ -1163,7 +1180,7 @@ export default function App() {
                   id: "remediation-targets",
                   label: t("controlPanel.plugins.remediation.label"),
                   icon: ShieldCheck,
-                  count: remediation.targets.length,
+                  count: remediation.targetCount,
                   tone: "emerald",
                   headerDescription: t(
                     "controlPanel.plugins.remediation.description",
@@ -1171,6 +1188,7 @@ export default function App() {
                   content: (
                     <AttackGraphRemediationTargets
                       targets={remediation.targets}
+                      historyItems={remediation.historyItems}
                       order={remediation.order}
                       loadingDraft={remediation.loadingDraft}
                       saving={remediation.saving}
@@ -1186,6 +1204,7 @@ export default function App() {
                       onOpenOrchestration={
                         handleOpenRemediationOrchestration
                       }
+                      onViewOrchestration={handleViewRemediationOrchestration}
                     />
                   ),
                 },
@@ -1208,6 +1227,7 @@ export default function App() {
           onMenuAction={handleGraphMenuAction}
           onResetPositions={() => setGraphPositionResetKey((key) => key + 1)}
           positionResetKey={graphPositionResetKey}
+          remediationHistoryNodeStates={remediation.historyNodeStates}
           remediationTargetKeys={remediation.targetKeys}
           response={graphResponse}
           subtitle={t("subtitle")}

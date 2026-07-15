@@ -55,6 +55,7 @@ import type {
   AttackGraphMenuAction,
   AttackGraphNodeDrillStateByKey,
   AttackGraphMenuProvider,
+  AttackGraphRemediationHistoryNodeStateByKey,
 } from "../model/menu/attack-graph-menu-types";
 import {
   ATTACK_GRAPH_NODE_FAMILY_CONFIG,
@@ -102,6 +103,7 @@ export interface AttackGraphFlowProps
   onDiagnosticsChange?: (diagnostics: AttackGraphFlowDiagnostics) => void;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
   positionResetKey?: number | string;
+  remediationHistoryNodeStates?: AttackGraphRemediationHistoryNodeStateByKey;
   remediationTargetKeys?: ReadonlySet<string>;
   showMiniMap?: boolean;
   showBackground?: boolean;
@@ -217,6 +219,7 @@ export function AttackGraphFlow({
   onDiagnosticsChange,
   onMenuAction,
   positionResetKey,
+  remediationHistoryNodeStates,
   remediationTargetKeys,
   showMiniMap = false,
   showBackground = true,
@@ -376,6 +379,7 @@ export function AttackGraphFlow({
         iocCandidateUserSourceKeys,
         iocCandidateSyncState,
         onMenuAction,
+        remediationHistoryNodeStates,
         remediationTargetKeys,
       }),
       ...(menuProviders ?? []),
@@ -389,6 +393,7 @@ export function AttackGraphFlow({
       menuProviders,
       nodeDrillStateByKey,
       onMenuAction,
+      remediationHistoryNodeStates,
       remediationTargetKeys,
     ],
   );

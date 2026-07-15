@@ -1,6 +1,8 @@
 import {
   CircleMinus,
+  Clock3,
   Copy,
+  ExternalLink,
   ScanSearch,
   ShieldMinus,
   ShieldPlus,
@@ -13,6 +15,8 @@ import type {
   AttackGraphMenuProvider,
   AttackGraphIocCandidateSyncState,
   AttackGraphNodeDrillStateByKey,
+  AttackGraphRemediationHistoryNodeState,
+  AttackGraphRemediationHistoryNodeStateByKey,
 } from "./attack-graph-menu-types";
 import { canShowAttackGraphRemediationMenu } from "../node/attack-graph-remediation-config";
 import {
@@ -29,6 +33,7 @@ export function createCommonAttackGraphNodeMenuProvider({
   iocCandidateUserSourceKeys,
   iocCandidateSyncState = "ready",
   onMenuAction,
+  remediationHistoryNodeStates,
   remediationTargetKeys,
 }: {
   drillStateByNodeKey?: AttackGraphNodeDrillStateByKey;
@@ -38,6 +43,7 @@ export function createCommonAttackGraphNodeMenuProvider({
   iocCandidateUserSourceKeys?: ReadonlySet<string>;
   iocCandidateSyncState?: AttackGraphIocCandidateSyncState;
   onMenuAction?: (action: AttackGraphMenuAction) => void | Promise<void>;
+  remediationHistoryNodeStates?: AttackGraphRemediationHistoryNodeStateByKey;
   remediationTargetKeys?: ReadonlySet<string>;
 } = {}): AttackGraphMenuProvider {
   return (context) => {
@@ -145,37 +151,69 @@ export function createCommonAttackGraphNodeMenuProvider({
     const remediationTargetKey = context.node.key || context.node.id;
     const remediationSelected =
       remediationTargetKeys?.has(remediationTargetKey) ?? false;
+    const remediationHistoryState =
+      remediationHistoryNodeStates?.get(remediationTargetKey);
     const remediationVisible =
       enableRemediationMenu &&
       canShowAttackGraphRemediationMenu(context.node.entityType);
-    const remediationItems: AttackGraphMenuGroup["items"] = remediationVisible
-      ? [
-          {
-            id: remediationSelected
-              ? "remove-remediation-target"
-              : "add-remediation-target",
-            label: remediationSelected
-              ? "\u79fb\u9664\u5904\u7f6e\u7f16\u6392"
-              : "\u52a0\u5165\u5904\u7f6e\u7f16\u6392",
-            checked: remediationSelected,
-            icon: remediationSelected ? (
-              <ShieldMinus className="h-4 w-4" />
-            ) : (
-              <ShieldPlus className="h-4 w-4" />
-            ),
-            tone: remediationSelected ? "default" : "success",
-            action: async ({ graph, node }) => {
-              await onMenuAction?.({
-                kind: remediationSelected
-                  ? "remove-remediation-target"
-                  : "add-remediation-target",
-                graph,
-                node,
-              });
+    const remediationItems: AttackGraphMenuGroup["items"] = !remediationVisible
+      ? []
+      : remediationSelected
+        ? [
+            {
+              id: "remove-remediation-target",
+              label: "\u79fb\u9664\u5904\u7f6e\u7f16\u6392",
+              checked: true,
+              icon: <ShieldMinus className="h-4 w-4" />,
+              tone: "default",
+              action: async ({ graph, node }) => {
+                await onMenuAction?.({
+                  kind: "remove-remediation-target",
+                  graph,
+                  node,
+                });
+              },
             },
-          },
-        ]
-      : [];
+          ]
+        : remediationHistoryState
+          ? [
+              {
+                id: `remediation-history-${remediationHistoryState}`,
+                label: remediationHistoryMenuLabel(remediationHistoryState),
+                disabled: true,
+                icon: <Clock3 className="h-4 w-4" />,
+                tone: "default",
+                action: () => undefined,
+              },
+              {
+                id: "open-remediation-order",
+                label: "\u67e5\u770b\u5904\u7f6e\u5355",
+                icon: <ExternalLink className="h-4 w-4" />,
+                tone: "primary",
+                action: async ({ graph, node }) => {
+                  await onMenuAction?.({
+                    kind: "open-remediation-order",
+                    graph,
+                    node,
+                  });
+                },
+              },
+            ]
+          : [
+              {
+                id: "add-remediation-target",
+                label: "\u52a0\u5165\u5904\u7f6e\u7f16\u6392",
+                icon: <ShieldPlus className="h-4 w-4" />,
+                tone: "success",
+                action: async ({ graph, node }) => {
+                  await onMenuAction?.({
+                    kind: "add-remediation-target",
+                    graph,
+                    node,
+                  });
+                },
+              },
+            ];
 
     const groups: AttackGraphMenuGroup[] = [
       {
@@ -241,6 +279,21 @@ export function createCommonAttackGraphNodeMenuProvider({
     ];
     return groups;
   };
+}
+
+function remediationHistoryMenuLabel(
+  state: AttackGraphRemediationHistoryNodeState,
+) {
+  switch (state) {
+    case "prepared":
+      return "\u5904\u7f6e\u5df2\u51c6\u5907";
+    case "awaiting_endpoint_report":
+      return "\u7b49\u5f85\u7ec8\u7aef\u4e0a\u62a5";
+    case "executing":
+      return "\u5904\u7f6e\u6267\u884c\u4e2d";
+    case "result_uncertain":
+      return "\u5904\u7f6e\u7ed3\u679c\u5f85\u786e\u8ba4";
+  }
 }
 
 export function compactAttackGraphMenuGroups(

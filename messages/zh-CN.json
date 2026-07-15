@@ -349,6 +349,11 @@
           "notFound": "后台没有返回对应的 Remediation Order。",
           "ariaLabel": "处置草稿工作区",
           "targets": "处置目标",
+          "currentRound": "当前轮次",
+          "historyTargets": "历史处置",
+          "readOnly": "只读",
+          "roundLabel": "第 {round} 轮",
+          "noMatchedHistory": "没有匹配的历史处置",
           "parameters": "动作参数",
           "searchTargets": "搜索处置目标",
           "searchPlaceholder": "搜索目标、Agent 或动作",
@@ -440,8 +445,13 @@
         "reference": {
           "title": "权威执行引用",
           "description": "这里只选择后台返回的历史来源或具体目标，不重新推断 Agent 和 Action。",
+          "restoreTitle": "恢复参数",
+          "restoreDescription": "选择用于恢复文件的隔离备份。",
           "restoreSource": "恢复来源",
           "restoreSourcePlaceholder": "请选择历史处置来源",
+          "backupFileId": "备份文件 ID",
+          "backupFileName": "备份文件名",
+          "sourceItem": "来源处置项 {item}",
           "historyAction": "历史处置",
           "target": "具体处置目标",
           "targetPlaceholder": "请选择具体目标"
@@ -1511,6 +1521,24 @@
               "expired": "已过期",
               "unknown": "未知"
             },
+            "historyActions": {
+              "fileQuarantine": "隔离文件",
+              "fileRestore": "恢复文件",
+              "processTerminate": "结束进程",
+              "processBlock": "阻断进程执行",
+              "processBypass": "允许进程执行",
+              "netBlock": "阻断网络",
+              "netBypass": "允许网络访问",
+              "scheduledTaskDelete": "删除计划任务",
+              "serviceDelete": "删除服务",
+              "accountDisable": "禁用账户",
+              "registryDelete": "删除注册表项",
+              "wmiClassDelete": "删除 WMI 类",
+              "wmiSubscriptionDelete": "删除 WMI 订阅",
+              "bitsJobDelete": "删除 BITS 任务",
+              "fileEADelete": "删除扩展属性",
+              "ntfsADSDelete": "删除 NTFS 数据流"
+            },
             "risks": {
               "critical": "严重",
               "high": "高",
@@ -1549,6 +1577,7 @@
             "saveAndOpen": "保存并前往处置编排",
             "savingAndOpening": "正在保存草稿...",
             "openOrchestration": "处置编排",
+            "viewRemediation": "查看处置",
             "messages": {
               "missingId": "当前节点缺少可用标识，无法加入处置编排。",
               "readOnly": "当前处置单已经准备，图谱面板中不能继续编辑，请前往处置编排页面处理。",
