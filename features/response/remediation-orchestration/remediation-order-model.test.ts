@@ -250,7 +250,7 @@ describe("remediation Order orchestration model", () => {
     ).toContain("冲突动作");
   });
 
-  it("separates uncertain results from active action conflicts", () => {
+  it("allows an uncertain result to be retried when the backend marks it selectable", () => {
     expect(
       remediationActionApplicabilityError(
         {
@@ -258,23 +258,21 @@ describe("remediation Order orchestration model", () => {
           agent_decisions: [
             {
               agent_id: "agent-1",
-              status: "unavailable",
+              status: "available",
               reason_code: "REMEDIATION_RESULT_UNCERTAIN",
               reason_message: "A previous remediation result is uncertain",
               required_input_fields: [],
               reverse_contexts: [],
               target_candidates: [],
               current_effect_state: "uncertain",
-              prepare_disposition: "block",
-              draft_selectable: false,
+              prepare_disposition: "execute",
+              draft_selectable: true,
             },
           ],
         } as import("@/features/attack/remediation-order").RemediationActionDecision,
         "agent-1",
       ),
-    ).toBe(
-      "该目标上一条处置的结果尚未确认，确认结果前不能创建新的执行计划。",
-    );
+    ).toBe("");
   });
 
   it("does not treat the same action in flight as a parameter error", () => {

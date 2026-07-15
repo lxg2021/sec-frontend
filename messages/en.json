@@ -1316,6 +1316,8 @@
             "applicability": {
               "available": "Available",
               "requiresConfiguration": "Configuration required",
+              "processing": "Processing",
+              "satisfied": "Already satisfied; no repeat dispatch",
               "unavailable": "Not applicable to this node"
             },
             "removeAria": "Remove response target {target}",

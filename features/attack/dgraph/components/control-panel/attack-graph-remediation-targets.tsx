@@ -346,10 +346,23 @@ function RemediationTargetRow({
               const applicabilityStatus =
                 agentDecision?.status || "unavailable"
               const label = candidate.display_name || candidate.action_code
-              const detail =
-                applicabilityStatus === "requires_configuration"
-                  ? t("remediation.applicability.requiresConfiguration")
-                  : ""
+              const details = []
+              if (
+                agentDecision?.current_effect_state ===
+                "same_action_in_flight"
+              ) {
+                details.push(t("remediation.applicability.processing"))
+              } else if (
+                agentDecision?.current_effect_state === "satisfied"
+              ) {
+                details.push(t("remediation.applicability.satisfied"))
+              }
+              if (applicabilityStatus === "requires_configuration") {
+                details.push(
+                  t("remediation.applicability.requiresConfiguration"),
+                )
+              }
+              const detail = details.join(" · ")
               return (
                 <SelectItem
                   key={candidate.action_code}

@@ -2,6 +2,8 @@
 
 import { Loader2, Play, Trash2, XCircle } from "lucide-react"
 
+import type { RemediationOrder } from "@/features/attack/remediation-order"
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +19,7 @@ export function RemediationOrderLifecycleDialogs({
   cancelOpen,
   cancelReason,
   confirmOpen,
+  confirmOrder,
   deleteOpen,
   onCancel,
   onCancelOpenChange,
@@ -30,6 +33,7 @@ export function RemediationOrderLifecycleDialogs({
   cancelOpen: boolean
   cancelReason: string
   confirmOpen: boolean
+  confirmOrder: RemediationOrder
   deleteOpen: boolean
   onCancel: () => void
   onCancelOpenChange: (open: boolean) => void
@@ -47,7 +51,7 @@ export function RemediationOrderLifecycleDialogs({
           <AlertDialogHeader>
             <AlertDialogTitle>删除处置草稿？</AlertDialogTitle>
             <AlertDialogDescription>
-              该操作只允许删除尚未 Prepare 的 Draft。删除后将从处置列表、目标查询和汇总中隐藏，但后台仍保留审计记录。
+              删除尚未提交的处置草稿。删除后将从处置列表、目标查询和汇总中隐藏，但后台仍保留审计记录。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -70,13 +74,14 @@ export function RemediationOrderLifecycleDialogs({
       <AlertDialog open={confirmOpen} onOpenChange={onConfirmOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认下发处置计划？</AlertDialogTitle>
+            <AlertDialogTitle>确认执行处置？</AlertDialogTitle>
             <AlertDialogDescription>
-              Confirm 后计划将进入 Worker 和 Agent 执行队列，不能再普通编辑或删除。Agent 当前离线不会阻止下发。
+              本次将下发 {confirmOrder.summary.ready} 个处置目标；
+              {confirmOrder.summary.satisfied} 个已满足目标将自动跳过。确认后不能再编辑或删除，Agent 当前离线不会阻止下发。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={working === "confirm"}>暂不下发</AlertDialogCancel>
+            <AlertDialogCancel disabled={working === "confirm"}>暂不执行</AlertDialogCancel>
             <AlertDialogAction
               className="bg-teal-600 text-white hover:bg-teal-700"
               disabled={working === "confirm"}
@@ -86,7 +91,7 @@ export function RemediationOrderLifecycleDialogs({
               }}
             >
               {working === "confirm" ? <Loader2 className="animate-spin" /> : <Play />}
-              确认下发
+              确认执行
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -95,9 +100,9 @@ export function RemediationOrderLifecycleDialogs({
       <AlertDialog open={cancelOpen} onOpenChange={onCancelOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>取消 Prepared 处置单？</AlertDialogTitle>
+            <AlertDialogTitle>放弃本次提交？</AlertDialogTitle>
             <AlertDialogDescription>
-              Cancel 仅适用于已经 Prepare、尚未 Confirm 的处置单。取消后该处置单不能继续下发。
+              当前处置已经完成提交前检查，但尚未执行。放弃后该处置单不能继续下发。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <label className="grid gap-2 text-sm font-medium text-slate-700">

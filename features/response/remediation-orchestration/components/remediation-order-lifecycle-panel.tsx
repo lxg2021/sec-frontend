@@ -55,10 +55,10 @@ function orderStage(status: string) {
 function stageBadge(status: string) {
   const normalized = status.trim().toLowerCase();
   const labels: Record<string, string> = {
-    draft: "草稿阶段",
-    prepared: "已准备",
-    ready: "已准备",
-    confirmed: "已确认",
+    draft: "配置中",
+    prepared: "待确认",
+    ready: "待确认",
+    confirmed: "已提交",
     running: "执行中",
     success: "执行成功",
     failed: "执行失败",
@@ -170,7 +170,7 @@ export function RemediationOrderLifecyclePanel({
       <div className="flex items-center justify-between gap-3">
         <h2 className="flex items-center gap-2 text-base font-semibold text-slate-950">
           <Workflow className="size-4 text-teal-600" aria-hidden />
-          准备与执行
+          提交与执行
         </h2>
         <span className="rounded-full bg-slate-950 px-3 py-1 text-[10px] font-bold text-white">
           {stageBadge(order.status)}
@@ -181,7 +181,7 @@ export function RemediationOrderLifecyclePanel({
         className="mt-7 flex items-center"
         aria-label={`当前处置阶段：第 ${stage} 阶段`}
       >
-        {["草稿", "准备", "执行"].map((label, index) => {
+        {["配置", "确认", "执行"].map((label, index) => {
           const step = index + 1;
           const active = step <= stage;
           return (
@@ -234,10 +234,10 @@ export function RemediationOrderLifecyclePanel({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-xs font-semibold text-slate-800">
-                  目标就绪度
+                  提交检查
                 </div>
                 <div className="mt-1 text-[11px] text-slate-500">
-                  Prepare 前的当前状态
+                  提交前的目标与参数状态
                 </div>
               </div>
               <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-bold text-white">
@@ -247,7 +247,7 @@ export function RemediationOrderLifecyclePanel({
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3">
                 <div className="text-[10px] font-medium text-emerald-700">
-                  可准备
+                  可提交
                 </div>
                 <div className="mt-1 text-lg font-bold text-emerald-800">
                   {complete}
@@ -314,9 +314,9 @@ export function RemediationOrderLifecyclePanel({
             <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
               <CheckCircle2 className="mt-0.5 size-5 shrink-0" aria-hidden />
               <div>
-                <div className="text-xs font-bold">所有目标均可准备</div>
+                <div className="text-xs font-bold">所有目标均可提交</div>
                 <p className="mt-1 text-xs leading-5 text-emerald-700">
-                  当前没有缺失参数或动作冲突，可以进入 Prepare 校验。
+                  当前没有缺失参数或动作冲突，提交后将进行最终检查。
                 </p>
               </div>
             </div>
@@ -325,24 +325,39 @@ export function RemediationOrderLifecyclePanel({
       ) : null}
 
       {showPrepared ? (
-        <div className="mt-6 rounded-2xl border border-teal-200 bg-teal-50 p-4">
+        <div
+          className={cn(
+            "mt-6 rounded-2xl border p-4",
+            order.confirmable
+              ? "border-teal-200 bg-teal-50"
+              : "border-amber-200 bg-amber-50",
+          )}
+        >
           <div className="flex items-start gap-3">
             <ShieldCheck
-              className="mt-0.5 size-5 shrink-0 text-teal-700"
+              className={cn(
+                "mt-0.5 size-5 shrink-0",
+                order.confirmable ? "text-teal-700" : "text-amber-700",
+              )}
               aria-hidden
             />
             <div className="min-w-0">
-              <div className="text-xs font-bold text-teal-900">计划已冻结</div>
-              <p className="mt-1 text-xs leading-5 text-teal-700">
-                {order.summary.ready} 个目标待下发，{order.summary.satisfied}{" "}
-                个目标已满足。
-              </p>
-              <p
-                className="mt-2 font-mono text-[10px] leading-4 text-teal-700"
-                title={order.prepared_fingerprint}
+              <div
+                className={cn(
+                  "text-xs font-bold",
+                  order.confirmable ? "text-teal-900" : "text-amber-900",
+                )}
               >
-                Fingerprint · {order.prepared_fingerprint.slice(0, 12)}…
-                {order.prepared_fingerprint.slice(-8)}
+                {order.confirmable ? "提交检查已通过" : "提交检查未通过"}
+              </div>
+              <p
+                className={cn(
+                  "mt-1 text-xs leading-5",
+                  order.confirmable ? "text-teal-700" : "text-amber-700",
+                )}
+              >
+                {order.summary.ready} 个目标待下发，{order.summary.satisfied}{" "}
+                个目标已满足，{order.summary.blocked} 个目标暂不可执行。
               </p>
             </div>
           </div>
@@ -474,7 +489,11 @@ export function RemediationOrderLifecyclePanel({
               ) : (
                 <ShieldCheck />
               )}
-              {dirty ? "保存并准备校验" : "准备校验"}
+              {working === "prepare"
+                ? "正在检查"
+                : dirty
+                  ? "保存并提交处置"
+                  : "提交处置"}
             </Button>
             <Button
               type="button"
@@ -491,29 +510,31 @@ export function RemediationOrderLifecyclePanel({
 
         {order.status.trim().toLowerCase() === "prepared" ? (
           <>
-            <Button
-              type="button"
-              className="h-11 w-full rounded-full bg-teal-600 text-white hover:bg-teal-700"
-              disabled={busy || !lifecycle.confirm}
-              onClick={onConfirm}
-            >
-              <Play />
-              确认下发
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 w-full rounded-full border-slate-300"
-              disabled={busy}
-              onClick={onPrepare}
-            >
-              {working === "prepare" ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <RotateCcw />
-              )}
-              重新权威校验
-            </Button>
+            {order.confirmable ? (
+              <Button
+                type="button"
+                className="h-11 w-full rounded-full bg-teal-600 text-white hover:bg-teal-700"
+                disabled={busy || !lifecycle.confirm}
+                onClick={onConfirm}
+              >
+                <Play />
+                确认并执行
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                className="h-11 w-full rounded-full bg-teal-600 text-white hover:bg-teal-700"
+                disabled={busy}
+                onClick={onPrepare}
+              >
+                {working === "prepare" ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <RotateCcw />
+                )}
+                {working === "prepare" ? "正在检查" : "重新检查"}
+              </Button>
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -522,11 +543,11 @@ export function RemediationOrderLifecyclePanel({
               onClick={onCancel}
             >
               <XCircle />
-              取消处置单
+              放弃本次提交
             </Button>
             {!order.confirmable ? (
               <p className="text-center text-xs leading-5 text-amber-700">
-                当前 Prepared 计划包含 blocked 目标，不能 Confirm。
+                部分目标当前不可执行，状态变化后可以重新检查。
               </p>
             ) : null}
           </>

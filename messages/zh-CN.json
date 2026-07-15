@@ -1318,6 +1318,8 @@
             "applicability": {
               "available": "可用",
               "requiresConfiguration": "需在编排页配置",
+              "processing": "处理中",
+              "satisfied": "已满足，无需重复下发",
               "unavailable": "不适用于此节点"
             },
             "removeAria": "移除处置目标 {target}",

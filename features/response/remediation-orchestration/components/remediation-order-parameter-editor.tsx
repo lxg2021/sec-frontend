@@ -577,7 +577,7 @@ function WorkspaceTemplateControls({
       <div className="mb-2 text-xs font-semibold text-slate-700">
         {template.title}参数
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
         {template.parameters.map((field) => (
           <WorkspaceParameterField
             disabled={disabled}
@@ -880,12 +880,21 @@ function WorkspaceParameterField({
 }) {
   if (field.kind === "boolean") {
     return (
-      <div className={field.span === 2 ? "sm:col-span-2" : ""}>
-        <BooleanParameterCard
+      <div
+        className={cn(
+          "flex min-h-[66px] items-center justify-between gap-4 bg-slate-50 px-4 py-2.5",
+          field.span === 2 && "sm:col-span-2",
+        )}
+      >
+        <span className="text-[11px] font-medium text-slate-500">
+          {field.label}
+        </span>
+        <Switch
+          aria-label={field.label}
           checked={booleanValue(value, Boolean(field.defaultValue))}
           disabled={disabled}
-          label={field.label}
           onCheckedChange={onChange}
+          className="data-[state=checked]:bg-teal-500"
         />
       </div>
     );
@@ -895,11 +904,11 @@ function WorkspaceParameterField({
     return (
       <label
         className={cn(
-          "block rounded-2xl border border-slate-200 bg-white px-4 py-3",
+          "block min-w-0 bg-slate-50 px-4 py-2.5",
           field.span === 2 && "sm:col-span-2",
         )}
       >
-        <span className="text-xs font-semibold text-slate-700">
+        <span className="text-[11px] font-medium text-slate-400">
           {field.label}
         </span>
         <Select
@@ -907,7 +916,7 @@ function WorkspaceParameterField({
           disabled={disabled}
           onValueChange={onChange}
         >
-          <SelectTrigger className="mt-2 h-10 rounded-xl border-slate-200 bg-slate-50 text-xs shadow-none focus:ring-teal-200">
+          <SelectTrigger className="mt-1 h-9 rounded-lg border-slate-200 bg-white text-xs shadow-none focus:ring-teal-200">
             <SelectValue placeholder={field.placeholder || field.label} />
           </SelectTrigger>
           <SelectContent>
@@ -930,11 +939,11 @@ function WorkspaceParameterField({
   return (
     <label
       className={cn(
-        "block rounded-2xl border border-slate-200 bg-white px-4 py-3",
+        "block min-w-0 bg-slate-50 px-4 py-2.5",
         field.span === 2 && "sm:col-span-2",
       )}
     >
-      <span className="text-xs font-semibold text-slate-700">
+      <span className="text-[11px] font-medium text-slate-400">
         {field.label}
         {field.required ? <span className="ml-1 text-red-500">*</span> : null}
       </span>
@@ -945,7 +954,7 @@ function WorkspaceParameterField({
         readOnly={!editable}
         placeholder={field.placeholder || field.label}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 h-10 rounded-xl border-slate-200 bg-slate-50 px-3 text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0 read-only:text-slate-500"
+        className="mt-1 h-9 rounded-lg border-slate-200 bg-white px-3 text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0 read-only:text-slate-500"
       />
     </label>
   );

@@ -113,6 +113,13 @@ function statusBadge(
   ) {
     return { label: "已满足", className: "bg-emerald-50 text-emerald-700" };
   }
+  if (
+    reasonCode === "REMEDIATION_RESULT_UNCERTAIN" ||
+    (agentDecision?.draft_selectable &&
+      agentDecision.current_effect_state === "uncertain")
+  ) {
+    return { label: "将重新执行", className: "bg-amber-50 text-amber-700" };
+  }
   if (["pending", "dispatched", "running"].includes(status)) {
     return { label: "执行中", className: "bg-blue-50 text-blue-700" };
   }
@@ -123,7 +130,7 @@ function statusBadge(
     const issue = remediationReadinessIssuePresentation(validationError);
     return { label: issue.badge, className: issue.badgeClassName };
   }
-  return { label: "可准备", className: "bg-emerald-50 text-emerald-700" };
+  return { label: "可提交", className: "bg-emerald-50 text-emerald-700" };
 }
 
 export function RemediationOrderWorkspace({
@@ -149,7 +156,7 @@ export function RemediationOrderWorkspace({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState("操作员取消已准备的处置单");
+  const [cancelReason, setCancelReason] = useState("操作员放弃本次提交");
   const mutationRequestIds = useRef<Record<string, string>>({});
 
   function mutationRequestId(operation: string) {
@@ -320,7 +327,7 @@ export function RemediationOrderWorkspace({
           : "";
         const statusError =
           item.status.trim().toLowerCase() === "blocked"
-            ? item.reason_message || item.reason_code || "Prepare 已阻止该目标。"
+            ? item.reason_message || item.reason_code || "该目标当前不可执行。"
             : "";
         return [item.item_id, parameterError || statusError];
       }),
@@ -424,18 +431,18 @@ export function RemediationOrderWorkspace({
       });
       applyOrder(nextOrder);
       clearMutationRequestId("prepare");
-      toast({
-        title: nextOrder.confirmable
-          ? "Prepare 权威校验已完成"
-          : "Prepare 已完成，存在不可执行目标",
-        description: nextOrder.confirmable
-          ? "计划已冻结，可以确认下发。"
-          : "请查看 blocked 目标；如需修改，请取消后重新建立草稿。",
-        variant: nextOrder.confirmable ? "default" : "destructive",
-      });
+      if (nextOrder.confirmable) {
+        setConfirmDialogOpen(true);
+      } else {
+        toast({
+          title: "提交前检查未通过",
+          description: "部分目标当前不可执行，请查看目标状态后重新检查。",
+          variant: "destructive",
+        });
+      }
     } catch (cause) {
       toast({
-        title: "Prepare 权威校验失败",
+        title: "提交前检查失败",
         description: requestErrorMessage(cause),
         variant: "destructive",
       });
@@ -459,7 +466,7 @@ export function RemediationOrderWorkspace({
       clearMutationRequestId("confirm");
       setConfirmDialogOpen(false);
       toast({
-        title: nextOrder.status === "completed" ? "处置已完成" : "处置已确认并进入执行队列",
+        title: nextOrder.status === "completed" ? "处置已完成" : "处置已提交",
         description: "Agent 离线不会阻止下发，页面会持续轮询执行状态。",
       });
     } catch (cause) {
@@ -486,10 +493,10 @@ export function RemediationOrderWorkspace({
       applyOrder(nextOrder);
       clearMutationRequestId("cancel");
       setCancelDialogOpen(false);
-      toast({ title: "已取消 Prepared 处置单" });
+      toast({ title: "已放弃本次提交" });
     } catch (cause) {
       toast({
-        title: "取消处置单失败",
+        title: "放弃本次提交失败",
         description: requestErrorMessage(cause),
         variant: "destructive",
       });
@@ -648,6 +655,7 @@ export function RemediationOrderWorkspace({
         cancelOpen={cancelDialogOpen}
         cancelReason={cancelReason}
         confirmOpen={confirmDialogOpen}
+        confirmOrder={order}
         deleteOpen={deleteDialogOpen}
         onCancel={() => void handleCancel()}
         onCancelOpenChange={setCancelDialogOpen}

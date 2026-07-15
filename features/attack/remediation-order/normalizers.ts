@@ -137,19 +137,19 @@ function currentEffectStateValue(
   value: unknown,
 ): RemediationCurrentEffectState {
   const normalized = stringValue(value).toLowerCase();
-  if (value === 1 || normalized === "1" || normalized.endsWith("_none")) {
+  if (value === 1 || normalized === "1" || normalized === "none" || normalized.endsWith("_none")) {
     return "none";
   }
-  if (value === 2 || normalized === "2" || normalized.endsWith("_satisfied")) {
+  if (value === 2 || normalized === "2" || normalized === "satisfied" || normalized.endsWith("_satisfied")) {
     return "satisfied";
   }
-  if (value === 3 || normalized === "3" || normalized.endsWith("_same_action_in_flight")) {
+  if (value === 3 || normalized === "3" || normalized === "same_action_in_flight" || normalized.endsWith("_same_action_in_flight")) {
     return "same_action_in_flight";
   }
-  if (value === 4 || normalized === "4" || normalized.endsWith("_conflicting_action_in_flight")) {
+  if (value === 4 || normalized === "4" || normalized === "conflicting_action_in_flight" || normalized.endsWith("_conflicting_action_in_flight")) {
     return "conflicting_action_in_flight";
   }
-  if (value === 5 || normalized === "5" || normalized.endsWith("_uncertain")) {
+  if (value === 5 || normalized === "5" || normalized === "uncertain" || normalized.endsWith("_uncertain")) {
     return "uncertain";
   }
   return "unspecified";
@@ -159,16 +159,16 @@ function prepareDispositionValue(
   value: unknown,
 ): RemediationPrepareDisposition {
   const normalized = stringValue(value).toLowerCase();
-  if (value === 1 || normalized === "1" || normalized.endsWith("_execute")) {
+  if (value === 1 || normalized === "1" || normalized === "execute" || normalized.endsWith("_execute")) {
     return "execute";
   }
-  if (value === 2 || normalized === "2" || normalized.endsWith("_skip_satisfied")) {
+  if (value === 2 || normalized === "2" || normalized === "skip_satisfied" || normalized.endsWith("_skip_satisfied")) {
     return "skip_satisfied";
   }
-  if (value === 3 || normalized === "3" || normalized.endsWith("_wait_existing")) {
+  if (value === 3 || normalized === "3" || normalized === "wait_existing" || normalized.endsWith("_wait_existing")) {
     return "wait_existing";
   }
-  if (value === 4 || normalized === "4" || normalized.endsWith("_block")) {
+  if (value === 4 || normalized === "4" || normalized === "block" || normalized.endsWith("_block")) {
     return "block";
   }
   return "unspecified";

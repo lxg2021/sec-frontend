@@ -147,6 +147,28 @@ describe("isRemediationTargetComplete", () => {
     ).toBe(true);
   });
 
+  it("allows an uncertain same action to be added for an operator-approved retry", () => {
+    const descriptor = action({ action_code: "process.terminate" });
+    expect(
+      isRemediationTargetComplete(
+        target({
+          actions: [descriptor],
+          selectedActionCode: descriptor.action_code,
+          actionDecisions: [
+            decision(descriptor, [
+              agentDecision("agent-1", "available", {
+                reason_code: "REMEDIATION_RESULT_UNCERTAIN",
+                current_effect_state: "uncertain",
+                prepare_disposition: "execute",
+                draft_selectable: true,
+              }),
+            ]),
+          ],
+        }),
+      ),
+    ).toBe(true);
+  });
+
   it("allows available and configuration-required actions into the draft", () => {
     const restore = action({ action_code: "file.restore" });
     expect(
