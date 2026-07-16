@@ -162,7 +162,7 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
 
 export function HardwareSummaryCards({ summary, isLoading = false }: HardwareSummaryCardsProps) {
   return (
-    <div className="mb-6 grid gap-6 xl:grid-cols-[minmax(420px,0.85fr)_minmax(560px,1.15fr)]">
+    <div className="grid shrink-0 gap-6 xl:grid-cols-[minmax(420px,0.85fr)_minmax(560px,1.15fr)]">
       <OverviewCard summary={summary} isLoading={isLoading} />
       <DistributionCard summary={summary} isLoading={isLoading} />
     </div>

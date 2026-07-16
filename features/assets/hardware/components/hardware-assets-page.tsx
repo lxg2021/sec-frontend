@@ -92,8 +92,8 @@ export function HardwareAssetsPage() {
   }, [loadAssets])
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="space-y-6 p-6">
+    <div className="h-full min-h-0 overflow-hidden bg-slate-50">
+      <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden p-6">
         {summaryError ? (
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {summaryError}

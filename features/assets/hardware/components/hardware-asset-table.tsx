@@ -89,7 +89,7 @@ function statusLabel(value: string) {
 
 function EmptyState({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="flex min-h-[260px] flex-col items-center justify-center border-t border-slate-200 px-6 py-12 text-center">
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-auto border-t border-slate-200 px-6 py-12 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
         <Package className="h-6 w-6" />
       </div>
@@ -105,7 +105,7 @@ function EmptyState({ onRetry }: { onRetry: () => void }) {
 
 function LoadingRows() {
   return (
-    <div className="space-y-4 border-t border-slate-200 p-6">
+    <div className="min-h-0 flex-1 space-y-4 overflow-hidden border-t border-slate-200 p-6">
       {Array.from({ length: 6 }).map((_, index) => (
         <div key={index} className="grid grid-cols-[48px_220px_1fr_180px_120px_120px_160px] items-center gap-4">
           <Skeleton className="h-4 w-4" />
@@ -272,9 +272,9 @@ export function HardwareAssetTable({
   }
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-0 flex-1">
+      <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+        <div className="flex shrink-0 flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
               <activeMeta.icon className={cn("h-5 w-5", activeMeta.color)} />
@@ -290,7 +290,7 @@ export function HardwareAssetTable({
           </Button>
         </div>
 
-        <div className="border-b border-slate-200 bg-slate-50/50 px-6 py-4">
+        <div className="shrink-0 border-b border-slate-200 bg-slate-50/50 px-6 py-4">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-slate-500">
               显示 {data.length} / {pagination.total_count} 个型号
@@ -351,7 +351,7 @@ export function HardwareAssetTable({
         </div>
 
         {error ? (
-          <div className="flex min-h-[260px] flex-col items-center justify-center border-t border-slate-200 px-6 py-12 text-center">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-auto border-t border-slate-200 px-6 py-12 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-500">
               <Package className="h-6 w-6" />
             </div>
@@ -367,9 +367,9 @@ export function HardwareAssetTable({
         ) : data.length === 0 ? (
           <EmptyState onRetry={onRetry} />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-10 bg-white">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="w-12"></TableHead>
                   <TableHead className="min-w-36">
@@ -478,7 +478,7 @@ export function HardwareAssetTable({
           </div>
         )}
 
-        <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
           <div>
             共 {pagination.total_count.toLocaleString()} 个型号
             {pagination.total_count > 0 ? `，当前显示 ${shownStart}-${shownEnd}` : ""}
