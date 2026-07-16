@@ -179,6 +179,14 @@ function itemHasUncertainResult(item: RemediationOrderItem) {
   );
 }
 
+function itemHasUnknownPublishAcceptance(item: RemediationOrderItem) {
+  return executionForItem(item)?.publish_acceptance_unknown === true;
+}
+
+function itemExecutionStatus(item: RemediationOrderItem) {
+  return executionForItem(item)?.execution_status.trim().toLowerCase() ?? "";
+}
+
 function localized(locale: string, zh: string, en: string) {
   return locale.toLowerCase().startsWith("zh") ? zh : en;
 }
@@ -204,6 +212,18 @@ export function itemStatusPresentation(
     return {
       label: localized(locale, "结果未确认", "Result Unconfirmed"),
       className: "bg-amber-50 text-amber-700",
+    };
+  }
+  if (itemHasUnknownPublishAcceptance(item)) {
+    return {
+      label: localized(locale, "投递状态待确认", "Delivery Unconfirmed"),
+      className: "bg-amber-50 text-amber-700",
+    };
+  }
+  if (itemExecutionStatus(item) === "accepted") {
+    return {
+      label: localized(locale, "已接收，等待执行", "Accepted, Awaiting Execution"),
+      className: "bg-sky-50 text-sky-700",
     };
   }
   const status = item.status.trim().toLowerCase();
@@ -273,7 +293,14 @@ export function itemStatusPresentation(
 
 function itemIsActive(item: RemediationOrderItem) {
   const status = item.status.trim().toLowerCase();
-  return status === "pending" || status === "running";
+  const executionStatus = itemExecutionStatus(item);
+  return (
+    status === "pending" ||
+    status === "running" ||
+    executionStatus === "accepted" ||
+    executionStatus === "running" ||
+    itemHasUnknownPublishAcceptance(item)
+  );
 }
 
 function itemNeedsAttention(item: RemediationOrderItem) {
@@ -282,6 +309,7 @@ function itemNeedsAttention(item: RemediationOrderItem) {
     status === "failed" ||
     status === "uncertain" ||
     status === "blocked" ||
+    itemHasUnknownPublishAcceptance(item) ||
     Boolean(activeDispatchSkipPresentation(item))
   );
 }
@@ -353,6 +381,22 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
         : localized(locale, "结果未确认", "Result Unconfirmed"),
     };
   }
+  if (itemHasUnknownPublishAcceptance(item)) {
+    const observedAt = executionTimestamp(item);
+    return {
+      primary: observedAt
+        ? `${localized(locale, "待确认", "Unconfirmed")} ${formatTimestamp(observedAt, locale)}`
+        : localized(locale, "投递状态待确认", "Delivery Unconfirmed"),
+    };
+  }
+  if (itemExecutionStatus(item) === "accepted") {
+    const acceptedAt = lastReportAt || executionTimestamp(item);
+    return {
+      primary: acceptedAt
+        ? `${localized(locale, "已接收", "Accepted")} ${formatTimestamp(acceptedAt, locale)}`
+        : localized(locale, "已接收，等待执行", "Accepted, Awaiting Execution"),
+    };
+  }
   if (finishedAt) {
     return {
       primary: `${localized(locale, "完成", "Completed")} ${formatTimestamp(finishedAt, locale)}`,
@@ -413,6 +457,28 @@ function resultPresentation(item: RemediationOrderItem, locale: string) {
           "结果尚未被权威确认",
           "The result has not been authoritatively confirmed.",
         ),
+    };
+  }
+  if (itemHasUnknownPublishAcceptance(item)) {
+    return {
+      code: "",
+      result: localized(locale, "投递状态待确认", "Delivery Unconfirmed"),
+      reason: localized(
+        locale,
+        "后台暂时无法确认任务是否已写入下发队列；终端后续回执仍会继续收敛该状态。",
+        "The server cannot yet confirm whether the assignment reached the delivery queue; a later endpoint report can still converge this state.",
+      ),
+    };
+  }
+  if (itemExecutionStatus(item) === "accepted") {
+    return {
+      code: "",
+      result: localized(locale, "终端已接收", "Accepted by Endpoint"),
+      reason: localized(
+        locale,
+        "终端已持久化接收任务，正在等待开始执行。",
+        "The endpoint has durably accepted the assignment and is waiting to start execution.",
+      ),
     };
   }
   if (errorCode || errorMessage) {

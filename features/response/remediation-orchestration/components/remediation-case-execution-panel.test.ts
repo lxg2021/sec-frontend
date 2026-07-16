@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import type { RemediationOrderItem } from "@/features/attack/remediation-order";
+import type {
+  RemediationItemExecution,
+  RemediationOrderItem,
+} from "@/features/attack/remediation-order";
 
-import { activeDispatchSkipPresentation } from "./remediation-case-execution-panel";
+import {
+  activeDispatchSkipPresentation,
+  itemStatusPresentation,
+} from "./remediation-case-execution-panel";
 
 function item(reasonCode: string) {
   return {
@@ -11,6 +17,23 @@ function item(reasonCode: string) {
     error_code: "",
     uncertainty_since_at: "",
     execution: null,
+  } as RemediationOrderItem;
+}
+
+function executionItem(
+  executionStatus: string,
+  publishAcceptanceUnknown = false,
+) {
+  return {
+    status: "pending",
+    reason_code: "",
+    error_code: "",
+    uncertainty_since_at: "",
+    execution: {
+      execution_status: executionStatus,
+      publish_acceptance_unknown: publishAcceptanceUnknown,
+      failure_certainty: "",
+    } as RemediationItemExecution,
   } as RemediationOrderItem;
 }
 
@@ -45,5 +68,25 @@ describe("activeDispatchSkipPresentation", () => {
 
   it("does not change ordinary skipped Items", () => {
     expect(activeDispatchSkipPresentation(item("SATISFIED_AT_DISPATCH"))).toBeNull();
+  });
+});
+
+describe("itemStatusPresentation", () => {
+  it("shows an accepted assignment as waiting for execution instead of pending dispatch", () => {
+    expect(itemStatusPresentation(executionItem("accepted"), "zh-CN").label).toBe(
+      "已接收，等待执行",
+    );
+    expect(itemStatusPresentation(executionItem("accepted"), "en").label).toBe(
+      "Accepted, Awaiting Execution",
+    );
+  });
+
+  it("shows an unknown publish acceptance as unconfirmed delivery instead of failure", () => {
+    expect(itemStatusPresentation(executionItem("pending", true), "zh-CN").label).toBe(
+      "投递状态待确认",
+    );
+    expect(itemStatusPresentation(executionItem("pending", true), "en").label).toBe(
+      "Delivery Unconfirmed",
+    );
   });
 });
