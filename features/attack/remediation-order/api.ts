@@ -1,7 +1,7 @@
 "use client"
 
 import { http } from "@/shared/lib/http/client"
-import { createRequestId } from "@/shared/lib/utils"
+import { createUuidRequestId } from "@/shared/lib/utils"
 
 import {
   normalizeRemediationItemList,
@@ -64,7 +64,7 @@ function withRequestId<T extends { request_id: string }>(
 ): T {
   return {
     ...params,
-    request_id: params.request_id?.trim() || createRequestId(),
+    request_id: params.request_id?.trim() || createUuidRequestId(),
   } as T
 }
 

@@ -36,7 +36,7 @@ import {
   type RemediationOrderItem,
 } from "@/features/attack/remediation-order";
 import { RemediationOrderTitleDialog } from "@/features/attack/remediation-order/remediation-order-title-dialog";
-import { cn, createRequestId } from "@/shared/lib/utils";
+import { cn, createUuidRequestId } from "@/shared/lib/utils";
 import { useToast } from "@/shared/ui/use-toast";
 
 import {
@@ -249,7 +249,7 @@ export function RemediationOrderWorkspace({
   function mutationRequestId(operation: string) {
     const current = mutationRequestIds.current[operation];
     if (current) return current;
-    const created = createRequestId();
+    const created = createUuidRequestId();
     mutationRequestIds.current[operation] = created;
     return created;
   }

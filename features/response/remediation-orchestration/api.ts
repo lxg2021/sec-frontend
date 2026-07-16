@@ -1,7 +1,7 @@
 "use client"
 
 import { http } from "@/shared/lib/http/client"
-import { createRequestId } from "@/shared/lib/utils"
+import { createUuidRequestId } from "@/shared/lib/utils"
 
 import type {
   CancelRemediationPreviewRequest,
@@ -91,7 +91,7 @@ function compactPayload<T extends Record<string, unknown>>(payload: T): T {
 
 function withRequestId<T extends Record<string, unknown>>(payload: T) {
   return compactPayload({
-    request_id: createRequestId(),
+    request_id: createUuidRequestId(),
     ...payload,
   })
 }
