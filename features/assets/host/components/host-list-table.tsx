@@ -54,9 +54,9 @@ export function HostListTable({ hosts, selectedHostId, onSelectHost }: {
   const t = useTranslations("pages.assets.hardware.host.list")
 
   return (
-    <div className="flex-1 overflow-auto rounded-lg border">
+    <div className="min-h-0 flex-1 overflow-auto rounded-lg border">
       <Table>
-        <TableHeader className="bg-muted/50">
+        <TableHeader className="sticky top-0 z-10 bg-muted">
           <TableRow>
             <TableHead className="font-medium">
               <HeaderLabel icon={Server}>{t("hostInfo")}</HeaderLabel>
