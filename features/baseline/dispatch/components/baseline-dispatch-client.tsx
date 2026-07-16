@@ -1017,8 +1017,8 @@ export function BaselineDispatchClient() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#eef3f8_100%)]">
-      <div className="space-y-6 p-6">
+    <div className="h-full min-h-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#eef3f8_100%)]">
+      <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden p-6">
         {(templatesError || hostsError) && (
             <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -1040,7 +1040,7 @@ export function BaselineDispatchClient() {
           onStepChange={handleStepChange}
         />
 
-        <div className="space-y-6">
+        <div className="min-h-0 flex-1">
           {renderCurrentStep()}
         </div>
       </div>

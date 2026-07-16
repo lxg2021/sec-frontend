@@ -35,8 +35,8 @@ export function HostSelectionStep({
 }: HostSelectionStepProps) {
   const t = useTranslations("pages.baseline.dispatch")
   return (
-    <Card className="border bg-card shadow-sm">
-      <CardHeader className="border-b border-border pb-4">
+    <Card className="flex h-full min-h-0 flex-col border bg-card shadow-sm">
+      <CardHeader className="shrink-0 border-b border-border pb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
             <Server className="h-5 w-5 text-blue-500" />
@@ -50,40 +50,42 @@ export function HostSelectionStep({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-5 p-6">
-        {error ? (
-          <Alert variant="destructive">
-            <AlertTitle>{t("hostSelection.loadFailed")}</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-5 p-6">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertTitle>{t("hostSelection.loadFailed")}</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
 
-        <HostSelector
-          key={selectorKey}
-          data={data}
-          loading={loading}
-          showHeader={false}
-          emptyText={t("hostSelection.empty")}
-          text={{
-            title: t("hostSelection.selector.title"),
-            searchPlaceholder: t("hostSelection.selector.searchPlaceholder"),
-            selectAll: t("hostSelection.selector.selectAll"),
-            clear: t("hostSelection.selector.clear"),
-            searchResults: (term, count) => t("hostSelection.selector.searchResults", { term, count }),
-            clearSearch: t("hostSelection.selector.clearSearch"),
-            selectedSummary: (total, hostCount, groupCount, deptCount, companyCount) =>
-              t("hostSelection.selector.selectedSummary", {
-                total,
-                hostCount,
-                groupCount,
-                deptCount,
-                companyCount,
-              }),
-          }}
-          onSelectionChange={onSelectionChange}
-        />
+          <HostSelector
+            key={selectorKey}
+            data={data}
+            loading={loading}
+            showHeader={false}
+            emptyText={t("hostSelection.empty")}
+            text={{
+              title: t("hostSelection.selector.title"),
+              searchPlaceholder: t("hostSelection.selector.searchPlaceholder"),
+              selectAll: t("hostSelection.selector.selectAll"),
+              clear: t("hostSelection.selector.clear"),
+              searchResults: (term, count) => t("hostSelection.selector.searchResults", { term, count }),
+              clearSearch: t("hostSelection.selector.clearSearch"),
+              selectedSummary: (total, hostCount, groupCount, deptCount, companyCount) =>
+                t("hostSelection.selector.selectedSummary", {
+                  total,
+                  hostCount,
+                  groupCount,
+                  deptCount,
+                  companyCount,
+                }),
+            }}
+            onSelectionChange={onSelectionChange}
+          />
+        </div>
 
-        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex shrink-0 flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
             <ChevronLeft className="mr-2 h-4 w-4" />
             {t("steps.schedule.title")}

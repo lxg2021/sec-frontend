@@ -104,8 +104,8 @@ export function BaselineSelectionStep({
     : []
 
   return (
-    <Card className="border bg-card shadow-sm">
-      <CardHeader className="border-b border-border pb-4">
+    <Card className="flex h-full min-h-0 flex-col border bg-card shadow-sm">
+      <CardHeader className="shrink-0 border-b border-border pb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
             <LayoutGrid className="h-5 w-5 text-blue-500" />
@@ -119,12 +119,13 @@ export function BaselineSelectionStep({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6 p-6">
-        {selector}
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-6 p-6">
+        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto pr-1">
+          {selector}
 
-        <div className="border-t pt-6">
-          {selectedTemplate ? (
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+          <div className="border-t pt-6">
+            {selectedTemplate ? (
+              <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
               <div className="grid divide-y divide-slate-200 bg-slate-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                 <div className="bg-white px-4 py-5 text-center transition-colors hover:bg-slate-50">
                   <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
@@ -183,15 +184,16 @@ export function BaselineSelectionStep({
                 </dl>
 
               </div>
-            </section>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-6 text-sm text-slate-500">
-              {t("baselineSelection.empty")}
-            </div>
-          )}
+              </section>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-6 text-sm text-slate-500">
+                {t("baselineSelection.empty")}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex justify-end border-t pt-4">
+        <div className="flex shrink-0 justify-end border-t pt-4">
           <Button onClick={onNext} disabled={!canNext} className="h-11 px-6">
             {t("steps.baselineSelection.title")}
             <ArrowRight className="ml-2 h-4 w-4" />

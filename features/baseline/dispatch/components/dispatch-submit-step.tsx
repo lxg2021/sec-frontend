@@ -37,8 +37,8 @@ export function DispatchSubmitStep({
       : null
 
   return (
-    <Card className="border bg-card shadow-sm">
-      <CardHeader className="border-b border-border pb-4">
+    <Card className="flex h-full min-h-0 flex-col border bg-card shadow-sm">
+      <CardHeader className="shrink-0 border-b border-border pb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
             <FileText className="h-5 w-5 text-blue-500" />
@@ -52,13 +52,13 @@ export function DispatchSubmitStep({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-0 p-0">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-0">
         {!data ? (
-          <div className="flex min-h-[320px] items-center justify-center px-6 py-10 text-center text-sm text-slate-500">
+          <div className="flex min-h-0 flex-1 items-center justify-center px-6 py-10 text-center text-sm text-slate-500">
             {t("dispatchSubmit.empty")}
           </div>
         ) : (
-          <div className="space-y-6 p-6">
+          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
             <ObjectSummary
               object={data.object}
               text={{
@@ -136,7 +136,7 @@ export function DispatchSubmitStep({
           </div>
         )}
 
-        <div className="border-t px-6 pb-6 pt-4">
+        <div className="shrink-0 border-t px-6 pb-6 pt-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Button variant="outline" onClick={onBack} className="h-11 px-5">
               <ChevronLeft className="mr-2 h-4 w-4" />

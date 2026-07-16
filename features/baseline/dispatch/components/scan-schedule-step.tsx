@@ -27,8 +27,8 @@ export function ScanScheduleStep({
 }: ScanScheduleStepProps) {
   const t = useTranslations("pages.baseline.dispatch")
   return (
-    <Card className="border bg-card shadow-sm">
-      <CardHeader className="border-b border-border pb-4">
+    <Card className="flex h-full min-h-0 flex-col border bg-card shadow-sm">
+      <CardHeader className="shrink-0 border-b border-border pb-4">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50">
@@ -45,9 +45,9 @@ export function ScanScheduleStep({
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6 p-6">
-        {content}
-        <div className="flex flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-6 p-6">
+        <div className="min-h-0 flex-1 overflow-y-auto pr-1">{content}</div>
+        <div className="flex shrink-0 flex-col gap-3 border-t pt-4 md:flex-row md:items-center md:justify-between">
           <Button variant="outline" onClick={onBack} className="h-11 px-5">
             <ChevronLeft className="mr-2 h-4 w-4" />
             {t("steps.baselineSelection.title")}
