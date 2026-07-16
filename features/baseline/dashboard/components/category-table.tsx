@@ -334,10 +334,12 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
 
   if (!data.length) {
     return (
-      <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 py-12 text-center">
-        <ListChecks className="mx-auto h-10 w-10 text-muted-foreground/50" />
-        <div className="mt-3 text-lg font-medium text-foreground">{t("emptyTitle")}</div>
-        <div className="mt-1 text-sm text-muted-foreground">{t("emptyDescription")}</div>
+      <div className="flex min-h-[160px] flex-1 items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-8 text-center">
+        <div>
+          <ListChecks className="mx-auto h-10 w-10 text-muted-foreground/50" />
+          <div className="mt-3 text-lg font-medium text-foreground">{t("emptyTitle")}</div>
+          <div className="mt-1 text-sm text-muted-foreground">{t("emptyDescription")}</div>
+        </div>
       </div>
     )
   }

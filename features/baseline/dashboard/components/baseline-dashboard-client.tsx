@@ -256,11 +256,9 @@ export default function BaselineDashboardClient() {
     void loadStats(selectedOption)
   }, [loadStats, selectedOption])
 
-  const hasOptions = options.length > 0
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="space-y-6 p-6">
+    <div className="h-full min-h-0 bg-gray-50">
+      <div className="flex min-h-full flex-col gap-6 p-6">
         <BaselineSelector
           actions={
             <>
@@ -313,61 +311,50 @@ export default function BaselineDashboardClient() {
           </div>
         )}
 
-        {!loadingOptions && !hasOptions ? (
-          <Card className="border-dashed bg-card shadow-sm">
-            <CardContent className="py-14 text-center">
-              <div className="text-lg font-medium text-foreground">{t("empty.title")}</div>
-              <div className="mt-2 text-sm text-muted-foreground">{t("empty.description")}</div>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <OverviewCards data={dailyStats} loading={loadingStats || loadingOptions} />
+        <OverviewCards data={dailyStats} loading={loadingStats || loadingOptions} />
 
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-              <TrendChart data={trendData} loading={loadingStats || loadingOptions} />
-              <RiskChart data={dailyStats} loading={loadingStats || loadingOptions} />
-            </div>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <TrendChart data={trendData} loading={loadingStats || loadingOptions} />
+          <RiskChart data={dailyStats} loading={loadingStats || loadingOptions} />
+        </div>
 
-            <Card className="border bg-card shadow-sm">
-              <CardHeader className="border-b border-border pb-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 p-2">
-                      <BarChart3 className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg font-semibold text-foreground">{t("categoryStats")}</CardTitle>
-                      <CardDescription className="text-sm text-muted-foreground">
-                        {t("categoryStatsDescription")}
-                      </CardDescription>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => void loadCategoryStats(selectedOption)}
-                    disabled={!selectedOption || loadingCategory}
-                    className="h-9 gap-2 border-border/70 bg-background/80 px-3 shadow-none"
-                  >
-                    <RefreshCw className={loadingCategory ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-                    <span>{t("refresh")}</span>
-                  </Button>
+        <Card className="flex min-h-[220px] flex-1 flex-col border bg-card shadow-sm">
+          <CardHeader className="border-b border-border pb-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 p-2">
+                  <BarChart3 className="h-5 w-5 text-white" />
                 </div>
-              </CardHeader>
-              <CardContent className="p-4">
-                <CategoryTable
-                  data={categoryData}
-                  baselineUUID={selectedBaselineUUID}
-                  baselineName={selectedOption?.display_name}
-                  loading={loadingCategory || loadingOptions}
-                />
-              </CardContent>
-            </Card>
-          </>
-        )}
+                <div>
+                  <CardTitle className="text-lg font-semibold text-foreground">{t("categoryStats")}</CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground">
+                    {t("categoryStatsDescription")}
+                  </CardDescription>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void loadCategoryStats(selectedOption)}
+                disabled={!selectedOption || loadingCategory}
+                className="h-9 gap-2 border-border/70 bg-background/80 px-3 shadow-none"
+              >
+                <RefreshCw className={loadingCategory ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                <span>{t("refresh")}</span>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="flex min-h-0 flex-1 flex-col p-4">
+            <CategoryTable
+              data={categoryData}
+              baselineUUID={selectedBaselineUUID}
+              baselineName={selectedOption?.display_name}
+              loading={loadingCategory || loadingOptions}
+            />
+          </CardContent>
+        </Card>
       </div>
 
     </div>

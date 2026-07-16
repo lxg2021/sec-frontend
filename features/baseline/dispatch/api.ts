@@ -12,8 +12,8 @@ interface ApiResult<T> {
   data: T
 }
 
-const CONTROL_TYPE_POLICY = 1
-const CONTROL_STATE_START = 1
+const PMC_OBJECT_TYPE_POLICY = 1
+const PMC_OPERATION_APPLY = 1
 
 interface CreateBaselineScanPolicyResponseData {
   object_id?: string
@@ -41,6 +41,24 @@ interface ListBaselineScanPoliciesResponseData {
   }> | null
 }
 
+interface OperatePMCObjectResponseData {
+  operation?: {
+    operation_id?: string
+    planning_status?: string
+    status?: string
+    outcome?: string
+    total_count?: number
+    materialized_count?: number
+    pending_count?: number
+    running_count?: number
+    success_count?: number
+    failed_count?: number
+    uncertain_count?: number
+    skipped_count?: number
+    canceled_count?: number
+  } | null
+}
+
 export interface CreateBaselineScanPolicyPayload {
   name: string
   version: string
@@ -59,6 +77,22 @@ export interface ApplyBaselineScanPolicyPayload {
   policyId: string
   version: string
   agentIds: string[]
+}
+
+export interface BaselineScanPolicyOperation {
+  operationId: string
+  planningStatus: string
+  status: string
+  outcome: string
+  totalCount: number
+  materializedCount: number
+  pendingCount: number
+  runningCount: number
+  successCount: number
+  failedCount: number
+  uncertainCount: number
+  skippedCount: number
+  canceledCount: number
 }
 
 export interface ListBaselineScanPoliciesPayload {
@@ -240,7 +274,7 @@ export async function applyBaselineScanPolicy({
   policyId,
   version,
   agentIds,
-}: ApplyBaselineScanPolicyPayload) {
+}: ApplyBaselineScanPolicyPayload): Promise<BaselineScanPolicyOperation> {
   const normalizedAgentIds = normalizeAgentIds(agentIds)
 
   if (!policyId.trim()) {
@@ -255,12 +289,34 @@ export async function applyBaselineScanPolicy({
     throw new Error("at least one target agent is required")
   }
 
-  return http.post("applyPMCObject", {
+  const result = (await http.post("operatePMCObject", {
     request_id: createRequestId(),
-    type: CONTROL_TYPE_POLICY,
-    id: policyId.trim(),
-    version: version.trim(),
+    object_type: PMC_OBJECT_TYPE_POLICY,
+    object_id: policyId.trim(),
+    object_version: version.trim(),
+    operation: PMC_OPERATION_APPLY,
     agent_ids: normalizedAgentIds,
-    control_state: CONTROL_STATE_START,
-  })
+  })) as ApiResult<OperatePMCObjectResponseData | null>
+
+  const operation = result.data?.operation
+  const operationId = stringValue(operation?.operation_id)
+  if (!operationId) {
+    throw new Error("missing PMC operation id in response")
+  }
+
+  return {
+    operationId,
+    planningStatus: stringValue(operation?.planning_status),
+    status: stringValue(operation?.status),
+    outcome: stringValue(operation?.outcome),
+    totalCount: numberValue(operation?.total_count),
+    materializedCount: numberValue(operation?.materialized_count),
+    pendingCount: numberValue(operation?.pending_count),
+    runningCount: numberValue(operation?.running_count),
+    successCount: numberValue(operation?.success_count),
+    failedCount: numberValue(operation?.failed_count),
+    uncertainCount: numberValue(operation?.uncertain_count),
+    skippedCount: numberValue(operation?.skipped_count),
+    canceledCount: numberValue(operation?.canceled_count),
+  }
 }
