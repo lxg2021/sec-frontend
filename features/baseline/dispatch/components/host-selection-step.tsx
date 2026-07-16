@@ -51,7 +51,7 @@ export function HostSelectionStep({
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col gap-5 p-6">
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto pr-1">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-hidden">
           {error ? (
             <Alert variant="destructive">
               <AlertTitle>{t("hostSelection.loadFailed")}</AlertTitle>
@@ -63,6 +63,7 @@ export function HostSelectionStep({
             key={selectorKey}
             data={data}
             loading={loading}
+            fillAvailableHeight
             showHeader={false}
             emptyText={t("hostSelection.empty")}
             text={{

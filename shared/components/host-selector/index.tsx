@@ -2,7 +2,9 @@
 
 import React, { useMemo, useRef, useState } from "react"
 import { Search, X, ReplaceAllIcon as SelectAll, Trash2, Server, Sparkles } from "lucide-react"
+import AutoSizer from "react-virtualized-auto-sizer"
 
+import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -65,6 +67,7 @@ export default function HostSelector({
   onSelectionChange,
   loading = false,
   emptyText = "No host data available.",
+  fillAvailableHeight = false,
   showHeader = true,
   text = defaultText,
 }: {
@@ -72,6 +75,7 @@ export default function HostSelector({
   onSelectionChange?: (nodes: any[], selectedIds: Set<string>) => void
   loading?: boolean
   emptyText?: string
+  fillAvailableHeight?: boolean
   showHeader?: boolean
   text?: typeof defaultText
 }) {
@@ -223,11 +227,32 @@ export default function HostSelector({
   }
 
   const hasData = data.length > 0
+  const renderTree = (height: number) => (
+    <VirtualizedTree
+      nodes={flatNodes}
+      selectedIds={selectedIds}
+      onToggleExpanded={toggleExpanded}
+      onToggleSelected={toggleSelected}
+      getNodeSelectionState={getNodeSelectionState}
+      height={height}
+      itemHeight={48}
+    />
+  )
 
   return (
-    <div className="w-full">
-      <Card className="border-0 shadow-none bg-gradient-to-br from-slate-50/80 to-blue-50/50 backdrop-blur-sm">
-        <CardHeader className="rounded-t-lg border-b border-slate-200/60 bg-gradient-to-r from-slate-50/90 to-blue-50/70 pb-4">
+    <div className={cn("w-full", fillAvailableHeight && "flex min-h-0 flex-1 flex-col")}>
+      <Card
+        className={cn(
+          "border-0 bg-gradient-to-br from-slate-50/80 to-blue-50/50 shadow-none backdrop-blur-sm",
+          fillAvailableHeight && "flex min-h-0 flex-1 flex-col",
+        )}
+      >
+        <CardHeader
+          className={cn(
+            "rounded-t-lg border-b border-slate-200/60 bg-gradient-to-r from-slate-50/90 to-blue-50/70 pb-4",
+            fillAvailableHeight && "shrink-0",
+          )}
+        >
           {showHeader ? (
             <CardTitle className="flex items-center gap-3 text-slate-700">
               <div className="rounded-md bg-gradient-to-br from-blue-50 to-indigo-100 p-1.5">
@@ -323,25 +348,45 @@ export default function HostSelector({
           )}
         </CardHeader>
 
-        <Separator className="bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+        <Separator
+          className={cn(
+            "bg-gradient-to-r from-transparent via-slate-200 to-transparent",
+            fillAvailableHeight && "shrink-0",
+          )}
+        />
 
-        <CardContent className="bg-white/60 p-0 backdrop-blur-sm">
+        <CardContent
+          className={cn(
+            "bg-white/60 p-0 backdrop-blur-sm",
+            fillAvailableHeight && "min-h-0 flex-1",
+          )}
+        >
           {loading ? (
-            <HostSelectorSkeleton />
+            <div className={cn(fillAvailableHeight && "h-full overflow-y-auto")}>
+              <HostSelectorSkeleton />
+            </div>
           ) : hasData ? (
-            <div className="w-full border-t border-slate-100/80">
-              <VirtualizedTree
-                nodes={flatNodes}
-                selectedIds={selectedIds}
-                onToggleExpanded={toggleExpanded}
-                onToggleSelected={toggleSelected}
-                getNodeSelectionState={getNodeSelectionState}
-                height={480}
-                itemHeight={48}
-              />
+            <div
+              className={cn(
+                "w-full border-t border-slate-100/80",
+                fillAvailableHeight && "h-full min-h-0",
+              )}
+            >
+              {fillAvailableHeight ? (
+                <AutoSizer disableWidth>
+                  {({ height }) => renderTree(Math.max(1, height))}
+                </AutoSizer>
+              ) : (
+                renderTree(480)
+              )}
             </div>
           ) : (
-            <div className="flex h-[320px] items-center justify-center px-6 text-center text-sm text-slate-500">
+            <div
+              className={cn(
+                "flex items-center justify-center px-6 text-center text-sm text-slate-500",
+                fillAvailableHeight ? "h-full min-h-0" : "h-[320px]",
+              )}
+            >
               {emptyText}
             </div>
           )}
