@@ -10,7 +10,7 @@ import type {
 } from "@/features/assets/approval/host-adapters"
 import type { Host, LogicGroup } from "@/features/assets/approval/types"
 import { http } from "@/shared/lib/http/client"
-import { createRequestId } from "@/shared/lib/utils"
+import { createNumericRequestId } from "@/shared/lib/utils"
 
 export interface HostPagination {
   current_page: number
@@ -28,7 +28,7 @@ export interface ListHostsResult {
 
 export async function getApprovalLogicGroups(tenantId: string): Promise<LogicGroup[]> {
   const result = await http.post("getLogicGroups", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
   })
 
@@ -47,7 +47,7 @@ export async function getApprovalHosts({
   groupId?: string
 }): Promise<ListHostsResult> {
   const result = await http.post("getAllHostsPagination", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     page,
     page_size: pageSize,
@@ -72,7 +72,7 @@ export async function getApprovalHosts({
 
 export async function approveHost(tenantId: string, host: Host) {
   return http.post("approveHost", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     ...buildApproveHostRequest(tenantId, host),
   })
 }

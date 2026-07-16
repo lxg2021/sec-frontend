@@ -1,7 +1,7 @@
 import { http } from "@/shared/lib/http/client"
 import { getAccessToken } from "@/shared/lib/http/auth"
 import { resolveApiUrl } from "@/shared/lib/http/config"
-import { createRequestId } from "@/shared/lib/utils"
+import { createNumericRequestId } from "@/shared/lib/utils"
 import {
   adaptCollectionApprovalResult,
   adaptCollectionSubmissionDetail,
@@ -30,7 +30,7 @@ export async function listCollectionSubmissions({
   keyword,
 }: ListCollectionSubmissionsParams): Promise<CollectionSubmissionListData> {
   const body = {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     page,
     page_size: pageSize,
@@ -54,7 +54,7 @@ export async function getCollectionSubmission(
   submissionId: string,
 ): Promise<CollectionSubmissionDetail> {
   const result = await http.post("getCollectionSubmission", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     submission_id: submissionId,
   })
@@ -68,7 +68,7 @@ export async function approveCollectionSubmission(
   reviewNote?: string,
 ): Promise<CollectionApprovalResult> {
   const result = await http.post("approveCollectionSubmission", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     submission_id: submissionId,
     ...(reviewNote?.trim() ? { review_note: reviewNote.trim() } : {}),
@@ -83,7 +83,7 @@ export async function rejectCollectionSubmission(
   reviewNote: string,
 ) {
   return http.post("rejectCollectionSubmission", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     submission_id: submissionId,
     review_note: reviewNote.trim(),

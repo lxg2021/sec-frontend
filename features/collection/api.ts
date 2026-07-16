@@ -1,5 +1,5 @@
 import { http } from "@/shared/lib/http/client"
-import { createRequestId } from "@/shared/lib/utils"
+import { createNumericRequestId } from "@/shared/lib/utils"
 import type {
   BackendLogicGroupCreateData,
   CollectionImportData,
@@ -9,7 +9,7 @@ import type {
 
 export async function replaceLogicTree(tenantId: string, groups: BackendLogicGroupCreateData[]) {
   return http.post("replaceLogicTree", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     groups,
   })
@@ -17,7 +17,7 @@ export async function replaceLogicTree(tenantId: string, groups: BackendLogicGro
 
 export async function importHosts(tenantId: string, hosts: RegisterAgentPayload[]) {
   return http.post("importHosts", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     hosts,
   })
@@ -25,7 +25,7 @@ export async function importHosts(tenantId: string, hosts: RegisterAgentPayload[
 
 export async function approveHost(tenantId: string, host: UiAssetData) {
   return http.post("approveHost", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
     agent_id: host.agent_id,
     group_id: host.group_id,
@@ -43,7 +43,7 @@ export async function approveHost(tenantId: string, host: UiAssetData) {
 
 export async function getLogicGroups(tenantId: string) {
   return http.post("getLogicGroups", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     tenant_id: tenantId,
   }, {
     auth: false,
@@ -52,7 +52,7 @@ export async function getLogicGroups(tenantId: string) {
 
 export async function submitCollection(data: CollectionImportData) {
   return http.post("submitCollection", {
-    request_id: createRequestId(),
+    request_id: createNumericRequestId(),
     ...data,
   }, {
     auth: false,

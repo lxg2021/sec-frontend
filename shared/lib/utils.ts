@@ -9,3 +9,10 @@ export function cn(...inputs: ClassValue[]) {
 export function createRequestId() {
   return uuidv4()
 }
+
+export function createNumericRequestId() {
+  const random = Math.floor(Math.random() * 1_000_000)
+    .toString()
+    .padStart(6, "0")
+  return `${Date.now()}${random}`
+}
