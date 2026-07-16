@@ -10,6 +10,7 @@ import {
   applyBaselineScanPolicy,
   listBaselineScanPolicies,
   createBaselineScanPolicy,
+  isSameBaselineScanSchedule,
   type BaselineScanPolicyListResult,
   type ReusableBaselineScanPolicy,
 } from "@/features/baseline/dispatch/api"
@@ -728,13 +729,54 @@ export function BaselineDispatchClient() {
       return
     }
 
+    const nextSchedule = sanitizeScanSchedule(schedule)
+    const baselineDisplayName = selectedTemplate.display_name || selectedTemplate.baseline_uuid
+    const baselineFileName =
+      selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
+    const reusePolicy = (policy: ReusableBaselineScanPolicy) => {
+      setCreatedPolicy(mapReusablePolicyToCreatedPolicy(policy, baselineDisplayName))
+      setSchedule(nextSchedule)
+      setAppliedPolicy(null)
+      setSelectedReusablePolicyKey(getReusablePolicyKey(policy))
+      toast.success(t("toast.policyReused"))
+    }
+
     setCreatingPolicy(true)
 
     try {
-      const nextSchedule = sanitizeScanSchedule(schedule)
-      const baselineDisplayName = selectedTemplate.display_name || selectedTemplate.baseline_uuid
-      const baselineFileName =
-        selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
+
+      const loadedMatch = reusablePolicies?.items.find((policy) =>
+        isSameBaselineScanSchedule(policy.scanSchedule, nextSchedule),
+      )
+
+      if (loadedMatch) {
+        reusePolicy(loadedMatch)
+        return
+      }
+
+      let latestPolicies: BaselineScanPolicyListResult | null = null
+
+      try {
+        latestPolicies = await listBaselineScanPolicies({
+          baselineUUID: selectedTemplate.uuid,
+          limit: 100,
+          offset: 0,
+        })
+      } catch {
+        // A failed preflight lookup must not prevent creation of a genuinely new policy.
+      }
+
+      const existingMatch = latestPolicies?.items.find((policy) =>
+        isSameBaselineScanSchedule(policy.scanSchedule, nextSchedule),
+      )
+
+      if (existingMatch && latestPolicies) {
+        setReusablePolicies(latestPolicies)
+        setReusablePoliciesPage(1)
+        reusePolicy(existingMatch)
+        return
+      }
+
       const created = await createBaselineScanPolicy({
         name: policyName.trim(),
         version: policyVersion.trim(),
@@ -759,6 +801,26 @@ export function BaselineDispatchClient() {
       await loadReusablePolicies(1, getReusablePolicyKey(created))
       toast.success(t("toast.policyCreated"))
     } catch (error) {
+      try {
+        const latestPolicies = await listBaselineScanPolicies({
+          baselineUUID: selectedTemplate.uuid,
+          limit: 100,
+          offset: 0,
+        })
+        const existingMatch = latestPolicies.items.find((policy) =>
+          isSameBaselineScanSchedule(policy.scanSchedule, nextSchedule),
+        )
+
+        if (existingMatch) {
+          setReusablePolicies(latestPolicies)
+          setReusablePoliciesPage(1)
+          reusePolicy(existingMatch)
+          return
+        }
+      } catch {
+        // Keep the original creation error when the conflict recovery query also fails.
+      }
+
       toast.error(
         error instanceof Error
           ? t("toast.policyCreateFailedWithReason", { reason: error.message })
@@ -767,7 +829,16 @@ export function BaselineDispatchClient() {
     } finally {
       setCreatingPolicy(false)
     }
-  }, [isZh, loadReusablePolicies, policyName, policyVersion, schedule, selectedTemplate, t])
+  }, [
+    isZh,
+    loadReusablePolicies,
+    policyName,
+    policyVersion,
+    reusablePolicies,
+    schedule,
+    selectedTemplate,
+    t,
+  ])
 
   const handleConfirmDispatch = useCallback(async () => {
     if (!previewData?.permissions?.canSubmit) {

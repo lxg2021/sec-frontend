@@ -1,6 +1,10 @@
 "use client"
 
-import { mergeScanScheduleDefaults, type ScanSchedule } from "@/shared/components/scan-schedule"
+import {
+  mergeScanScheduleDefaults,
+  sanitizeScanSchedule,
+  type ScanSchedule,
+} from "@/shared/components/scan-schedule"
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 
@@ -12,7 +16,7 @@ const CONTROL_TYPE_POLICY = 1
 const CONTROL_STATE_START = 1
 
 interface CreateBaselineScanPolicyResponseData {
-  id?: string
+  object_id?: string
   name?: string
   version?: string | null
 }
@@ -27,7 +31,7 @@ interface ListBaselineScanPoliciesResponseData {
     has_next?: boolean
   } | null
   items?: Array<{
-    policy_id?: string
+    object_id?: string
     name?: string
     version?: string
     baseline_uuid?: string
@@ -88,10 +92,30 @@ export interface BaselineScanPolicyListResult {
 }
 
 function normalizeScanSchedule(scanSchedule: ScanSchedule): ScanSchedule {
+  const normalized = sanitizeScanSchedule(scanSchedule)
+
   return {
-    ...scanSchedule,
-    specific_time: scanSchedule.specific_time?.trim() || undefined,
+    ...normalized,
+    specific_time: normalized.specific_time?.trim() || undefined,
   }
+}
+
+export function getBaselineScanScheduleKey(scanSchedule: ScanSchedule) {
+  const normalized = normalizeScanSchedule(scanSchedule)
+
+  return JSON.stringify({
+    mode: normalized.mode,
+    interval_hours: normalized.interval_hours,
+    specific_time: normalized.specific_time ?? "",
+    random_delay_minutes: normalized.random_delay_minutes,
+    retry_limit: normalized.retry_limit,
+    retry_interval_minutes: normalized.retry_interval_minutes,
+    scan_on_startup: normalized.scan_on_startup,
+  })
+}
+
+export function isSameBaselineScanSchedule(left: ScanSchedule, right: ScanSchedule) {
+  return getBaselineScanScheduleKey(left) === getBaselineScanScheduleKey(right)
 }
 
 function numberValue(value: unknown, fallback = 0) {
@@ -109,7 +133,7 @@ function normalizeReturnedScanSchedule(value?: Partial<ScanSchedule> | null): Sc
     interval_hours: numberValue(value?.interval_hours, 24),
     specific_time: stringValue(value?.specific_time) || undefined,
     random_delay_minutes: numberValue(value?.random_delay_minutes, 0),
-    retry_limit: numberValue(value?.retry_limit, 3),
+    retry_limit: numberValue(value?.retry_limit, 0),
     retry_interval_minutes: numberValue(value?.retry_interval_minutes, 5),
     scan_on_startup: Boolean(value?.scan_on_startup),
   })
@@ -147,12 +171,12 @@ export async function createBaselineScanPolicy({
     scan_schedule: normalizeScanSchedule(scanSchedule),
   })) as ApiResult<CreateBaselineScanPolicyResponseData | null>
 
-  if (!result.data?.id) {
+  if (!result.data?.object_id) {
     throw new Error("missing baseline scan policy id in response")
   }
 
   return {
-    id: result.data.id,
+    id: result.data.object_id,
     name: result.data.name?.trim() || name,
     version: result.data.version?.trim() || version,
   }
@@ -176,7 +200,7 @@ export async function listBaselineScanPolicies({
 
   const normalizedItems = items
     .map((item) => {
-      const id = stringValue(item?.policy_id)
+      const id = stringValue(item?.object_id)
       const version = stringValue(item?.version)
 
       if (!id || !version) {

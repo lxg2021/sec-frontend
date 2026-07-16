@@ -3648,6 +3648,23 @@
         "createdSuccessTitle": "自定义基线创建成功",
         "createdSuccessDescription": "{displayName} · {itemCount} 项 · {baselineUuid}",
         "createdAt": "创建时间 {createdAt}",
+        "existingList": {
+          "title": "已有自定义基线",
+          "subtitle": "创建结果独立展示，不作为新的模板源",
+          "refresh": "刷新",
+          "count": "共 {count} 条",
+          "loadFailed": "加载已有自定义基线失败",
+          "emptyTitle": "暂无自定义基线",
+          "emptyDescription": "从下方系统模板选择检查项并创建",
+          "columns": {
+            "name": "基线名称",
+            "version": "版本",
+            "items": "检查项",
+            "fileName": "CSV 文件",
+            "createdAt": "创建时间",
+            "uuid": "基线 UUID"
+          }
+        },
         "templateSelector": {
           "title": "选择系统模板",
           "subtitle": "仅展示系统模板。自定义基线属于派生产物，不作为模板源。",

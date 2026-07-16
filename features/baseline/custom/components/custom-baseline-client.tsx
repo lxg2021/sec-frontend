@@ -10,14 +10,17 @@ import { Card, CardContent } from "@/shared/ui/card"
 
 import {
   createCustomBaseline,
+  getAllBaselines,
   getAllBaselineTemplates,
   getBaselineTemplateItems,
+  type BaselineListItem,
   type BaselineTemplate,
   type BaselineTemplateItemsData,
 } from "../api"
 import { BaselineItemsPanel } from "./baseline-items-panel"
 import { BaselineTemplateSelector } from "./baseline-template-selector"
 import { CreateBaselineForm } from "./create-baseline-form"
+import { ExistingCustomBaselineList } from "./existing-custom-baseline-list"
 import { SelectedItemsSummary } from "./selected-items-summary"
 
 const BASELINE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
@@ -48,6 +51,9 @@ export default function CustomBaselineClient() {
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
   const [templatesLoading, setTemplatesLoading] = useState(true)
   const [templatesError, setTemplatesError] = useState("")
+  const [customBaselines, setCustomBaselines] = useState<BaselineListItem[]>([])
+  const [customBaselinesLoading, setCustomBaselinesLoading] = useState(true)
+  const [customBaselinesError, setCustomBaselinesError] = useState("")
   const [selectedTemplateUuid, setSelectedTemplateUuid] = useState("")
   const [itemsDataMap, setItemsDataMap] = useState<Map<string, BaselineTemplateItemsData>>(new Map())
   const [itemsLoadingTemplateUuid, setItemsLoadingTemplateUuid] = useState("")
@@ -88,9 +94,29 @@ export default function CustomBaselineClient() {
     }
   }, [t])
 
+  const loadCustomBaselines = useCallback(async () => {
+    setCustomBaselinesLoading(true)
+    setCustomBaselinesError("")
+
+    try {
+      const baselines = await getAllBaselines()
+      setCustomBaselines(
+        baselines.filter((baseline) => baseline.baseline_type.trim().toLowerCase() === "custom"),
+      )
+    } catch (error) {
+      setCustomBaselinesError(error instanceof Error ? error.message : t("existingList.loadFailed"))
+    } finally {
+      setCustomBaselinesLoading(false)
+    }
+  }, [t])
+
   useEffect(() => {
     void loadTemplates()
   }, [loadTemplates])
+
+  useEffect(() => {
+    void loadCustomBaselines()
+  }, [loadCustomBaselines])
 
   const filteredTemplates = useMemo(() => {
     return templates.filter((template) => {
@@ -328,6 +354,7 @@ export default function CustomBaselineClient() {
         selected_items: selectedPayload,
       })
       setCreateOpen(false)
+      await loadCustomBaselines()
       toast({
         title: t("createdSuccessTitle"),
         description: t("createdSuccessDescription", {
@@ -347,12 +374,19 @@ export default function CustomBaselineClient() {
     } finally {
       setSubmitting(false)
     }
-  }, [baselineVersion, description, displayName, metadataErrorMessage, osVersion, selectedItems, selectedProfile, selectedStandard, selectedTemplateMetadataState.metadata, t, toast])
+  }, [baselineVersion, description, displayName, loadCustomBaselines, metadataErrorMessage, osVersion, selectedItems, selectedProfile, selectedStandard, selectedTemplateMetadataState.metadata, t, toast])
 
   return (
     <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f8fafc_58%,#eef4ff_100%)]">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_26%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.08),transparent_22%),radial-gradient(circle_at_bottom,rgba(99,102,241,0.05),transparent_24%)]" />
       <div className="relative flex h-full min-h-0 w-full flex-col gap-6 px-6 py-6">
+        <ExistingCustomBaselineList
+          baselines={customBaselines}
+          loading={customBaselinesLoading}
+          errorMessage={customBaselinesError}
+          onRefresh={() => void loadCustomBaselines()}
+        />
+
         {templatesError ? (
           <Card className="border-destructive/20 bg-destructive/5 shadow-sm">
             <CardContent className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-destructive">

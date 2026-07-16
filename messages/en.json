@@ -3646,6 +3646,23 @@
         "createdSuccessTitle": "Custom baseline created",
         "createdSuccessDescription": "{displayName} - {itemCount} items - {baselineUuid}",
         "createdAt": "Created at {createdAt}",
+        "existingList": {
+          "title": "Existing Custom Baselines",
+          "subtitle": "Created baselines are listed separately and are not used as template sources.",
+          "refresh": "Refresh",
+          "count": "{count} total",
+          "loadFailed": "Failed to load existing custom baselines",
+          "emptyTitle": "No custom baselines",
+          "emptyDescription": "Select checks from the system templates below to create one.",
+          "columns": {
+            "name": "Baseline Name",
+            "version": "Version",
+            "items": "Checks",
+            "fileName": "CSV File",
+            "createdAt": "Created At",
+            "uuid": "Baseline UUID"
+          }
+        },
         "templateSelector": {
           "title": "Select System Template",
           "subtitle": "Only system templates are listed here. Custom baselines are derived outputs and are not used as template sources.",
