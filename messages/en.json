@@ -139,6 +139,7 @@
     "forensicTasks": "Forensic Center",
     "forensicArtifacts": "Artifact Config",
     "response": "Response",
+    "responseOverview": "Response Overview",
     "orchestration": "Orchestration",
     "dacpolicy": "DAC Control",
     "aiops": "AI Ops",

@@ -139,6 +139,7 @@
     "forensicTasks": "取证中心",
     "forensicArtifacts": "工件配置",
     "response": "处置响应",
+    "responseOverview": "处置概览",
     "orchestration": "处置编排",
     "dacpolicy": "DAC控制",
     "aiops": "AI 运维",

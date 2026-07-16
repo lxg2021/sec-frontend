@@ -97,6 +97,7 @@ export const menuItems = [
     labelKey: "response",
     path: "/frame/response",
     submenu: [
+      { id: "responseOverview", icon: LayoutDashboard, labelKey: "responseOverview", path: "/frame/response/overview" },
       { id: "orchestration", icon: Workflow, labelKey: "orchestration", path: "/frame/response/orchestration" },
       { id: "dacpolicy", icon: Activity, labelKey: "dacpolicy", path: "/frame/response/dac" },
     ],
