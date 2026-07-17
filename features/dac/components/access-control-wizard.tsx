@@ -222,8 +222,6 @@ export function AccessControlWizard() {
         <PolicyDefinitionBar
           copy={copy}
           draft={draft}
-          valid={draftValid}
-          errors={validationErrors}
           onChange={updateDraft}
           onTypeChange={changePolicyType}
         />
@@ -305,15 +303,11 @@ export function AccessControlWizard() {
 function PolicyDefinitionBar({
   copy,
   draft,
-  valid,
-  errors,
   onChange,
   onTypeChange,
 }: {
   copy: AccessControlCopy
   draft: AccessControlPolicyDraft
-  valid: boolean
-  errors: string[]
   onChange: (patch: Partial<AccessControlPolicyDraft>) => void
   onTypeChange: (type: AccessPolicyType) => void
 }) {
@@ -346,13 +340,6 @@ function PolicyDefinitionBar({
               </button>
             )
           })}
-        </div>
-        <div className={`flex w-64 shrink-0 items-center gap-2 rounded-xl border px-3 py-2 ${valid ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
-          {valid ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <CircleAlert className="h-4 w-4 shrink-0" />}
-          <div className="min-w-0">
-            <div className="truncate text-xs font-semibold">{valid ? copy.policyReady : copy.configuring}</div>
-            <div className="truncate text-[10px] opacity-80">{valid ? copy.summaryHint : validationDescription(copy, draft.type, errors)}</div>
-          </div>
         </div>
       </div>
 
@@ -600,9 +587,6 @@ function HostPanel({
       <div className="grid shrink-0 grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50 px-4 py-3">
         <Metric label={copy.targetHostCount} value={selectedHosts.length} tone="blue" />
         <Metric label={copy.offlineHostCount} value={offlineHostCount} tone="amber" />
-        {offlineHostCount > 0 ? (
-          <p className="col-span-2 truncate text-[10px] text-amber-700" title={copy.offlineHint}>{copy.offlineHint}</p>
-        ) : null}
       </div>
     </section>
   )
