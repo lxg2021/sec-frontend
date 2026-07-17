@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   ArrowRight,
   CheckCircle2,
-  CircleAlert,
   FileSliders,
   FileText,
   ListChecks,
@@ -13,7 +12,6 @@ import {
   PlaySquare,
   Plus,
   RefreshCw,
-  RotateCcw,
   Send,
   Server,
   ShieldCheck,
@@ -65,7 +63,6 @@ export function AccessControlWizard() {
   const [createdPolicy, setCreatedPolicy] = useState<CreatedAccessControlPolicy | null>(null)
   const [createdDraftFingerprint, setCreatedDraftFingerprint] = useState("")
   const [operation, setOperation] = useState<AccessControlOperation | null>(null)
-  const [dispatchError, setDispatchError] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
   const loadHosts = useCallback(async () => {
@@ -89,7 +86,6 @@ export function AccessControlWizard() {
   const updateDraft = useCallback((patch: Partial<AccessControlPolicyDraft>) => {
     setDraft((current) => ({ ...current, ...patch }))
     setOperation(null)
-    setDispatchError("")
   }, [])
 
   const changePolicyType = useCallback((type: AccessPolicyType) => {
@@ -103,14 +99,12 @@ export function AccessControlWizard() {
     setCreatedPolicy(null)
     setCreatedDraftFingerprint("")
     setOperation(null)
-    setDispatchError("")
   }, [])
 
   const handleHostSelection = useCallback((hosts: HostSelectorHostNode[]) => {
     const unique = Array.from(new Map(hosts.map((host) => [host.hostId || host.id, host])).values())
     setSelectedHosts(unique)
     setOperation(null)
-    setDispatchError("")
   }, [])
 
   const validationErrors = useMemo(() => validateAccessControlDraft(draft), [draft])
@@ -123,27 +117,6 @@ export function AccessControlWizard() {
     createdPolicy && createdDraftFingerprint && createdDraftFingerprint === currentFingerprint && !operation,
   )
   const canSubmit = draftValid && selectedHosts.length > 0 && !submitting && !operation
-
-  const configuredSubjectCount = useMemo(() => {
-    if (draft.type === "network") return 0
-    return draft.subjects.filter((subject) => {
-      if (subject.type === "process") {
-        return subject.paths.some((path) => path.trim()) || subject.hashes.some((hash) => hash.value.trim())
-      }
-      return subject.accounts.some((account) => account.sid.trim())
-    }).length
-  }, [draft.subjects, draft.type])
-
-  const objectCount = useMemo(() => {
-    if (draft.type === "network") return draft.network.programPath.trim() ? 1 : 0
-    return new Set(draft.objectPaths.map((path) => path.trim()).filter(Boolean)).size
-  }, [draft.network.programPath, draft.objectPaths, draft.type])
-
-  const ruleCount = useMemo(() => {
-    if (draft.type !== "network") return draft.rules.length
-    const networkOnlyDraft = { ...draft, name: "network", version: "1.0.0", priority: 0 }
-    return validateAccessControlDraft(networkOnlyDraft).length === 0 ? 1 : 0
-  }, [draft])
 
   const offlineHostCount = useMemo(
     () => selectedHosts.filter((host) => host.status.trim().toLowerCase() === "offline").length,
@@ -160,7 +133,6 @@ export function AccessControlWizard() {
     }
 
     setSubmitting(true)
-    setDispatchError("")
     const toastId = toast.loading(copy.submitting)
 
     try {
@@ -180,7 +152,6 @@ export function AccessControlWizard() {
       toast.success(copy.dispatchSuccess, { id: toastId })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
-      setDispatchError(message)
       toast.error(message, { id: toastId })
     } finally {
       setSubmitting(false)
@@ -197,7 +168,6 @@ export function AccessControlWizard() {
     setCreatedPolicy(null)
     setCreatedDraftFingerprint("")
     setOperation(null)
-    setDispatchError("")
   }
 
   return (
@@ -213,10 +183,40 @@ export function AccessControlWizard() {
               <p className="truncate text-xs text-slate-500">{copy.pageDescription}</p>
             </div>
           </div>
-          <Button variant="outline" onClick={reset} className="h-10 shrink-0 px-4">
-            <Plus className="mr-2 h-4 w-4" />
-            {copy.reset}
-          </Button>
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="hidden items-center gap-3 2xl:flex">
+              <FlowBadge
+                number={1}
+                title={copy.createObject}
+                description="PMC Catalog"
+                done={Boolean(createdPolicy)}
+              />
+              <ArrowRight className="h-4 w-4 shrink-0 text-slate-400" />
+              <FlowBadge
+                number={2}
+                title={`${copy.applyHosts} · ${selectedHosts.length}`}
+                description="PMC Operation"
+                done={Boolean(operation)}
+              />
+            </div>
+            <Button variant="outline" onClick={reset} className="h-10 shrink-0 px-4">
+              <Plus className="mr-2 h-4 w-4" />
+              {copy.reset}
+            </Button>
+            <Button
+              onClick={() => void handleConfirm()}
+              disabled={!canSubmit}
+              className="h-10 min-w-56 shrink-0 bg-blue-600 px-5 text-white hover:bg-blue-700"
+            >
+              {submitting ? (
+                <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />{copy.submitting}</>
+              ) : retryOnly ? (
+                <><RefreshCw className="mr-2 h-4 w-4" />{copy.retryDispatch}</>
+              ) : (
+                <><Send className="mr-2 h-4 w-4" />{copy.confirmDispatch} · {selectedHosts.length}</>
+              )}
+            </Button>
+          </div>
         </header>
 
         <PolicyDefinitionBar
@@ -277,24 +277,6 @@ export function AccessControlWizard() {
           />
         </main>
 
-        <SubmitBar
-          copy={copy}
-          draft={draft}
-          draftValid={draftValid}
-          validationErrors={validationErrors}
-          subjectCount={configuredSubjectCount}
-          objectCount={objectCount}
-          ruleCount={ruleCount}
-          hostCount={selectedHosts.length}
-          createdPolicy={createdPolicy}
-          operation={operation}
-          error={dispatchError}
-          submitting={submitting}
-          retryOnly={retryOnly}
-          canSubmit={canSubmit}
-          onReset={reset}
-          onSubmit={() => void handleConfirm()}
-        />
       </div>
     </div>
   )
@@ -588,100 +570,6 @@ function HostPanel({
         <Metric label={copy.offlineHostCount} value={offlineHostCount} tone="amber" />
       </div>
     </section>
-  )
-}
-
-function SubmitBar({
-  copy,
-  draft,
-  draftValid,
-  validationErrors,
-  subjectCount,
-  objectCount,
-  ruleCount,
-  hostCount,
-  createdPolicy,
-  operation,
-  error,
-  submitting,
-  retryOnly,
-  canSubmit,
-  onReset,
-  onSubmit,
-}: {
-  copy: AccessControlCopy
-  draft: AccessControlPolicyDraft
-  draftValid: boolean
-  validationErrors: string[]
-  subjectCount: number
-  objectCount: number
-  ruleCount: number
-  hostCount: number
-  createdPolicy: CreatedAccessControlPolicy | null
-  operation: AccessControlOperation | null
-  error: string
-  submitting: boolean
-  retryOnly: boolean
-  canSubmit: boolean
-  onReset: () => void
-  onSubmit: () => void
-}) {
-  const ready = draftValid && hostCount > 0
-  const statusTitle = operation ? copy.dispatchSuccess : ready ? copy.policyReady : copy.validationFailed
-  const statusDescription = operation
-    ? `${copy.operationId}: ${operation.operationId}`
-    : error
-      ? error
-      : ready
-        ? `${subjectCount} ${copy.subjectCount} · ${objectCount} ${copy.objectCount} · ${ruleCount} ${copy.ruleCount} · ${hostCount} ${copy.targetHostCount}`
-        : draftValid
-          ? copy.noHosts
-          : validationDescription(copy, draft.type, validationErrors)
-
-  return (
-    <footer className="flex shrink-0 items-center gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
-      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${operation || ready ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
-        {operation || ready ? <CheckCircle2 className="h-5 w-5" /> : <CircleAlert className="h-5 w-5" />}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-xs font-semibold text-slate-900">{statusTitle}</div>
-        <div className={`mt-0.5 truncate text-[11px] ${error ? "text-red-600" : "text-slate-500"}`} title={statusDescription}>
-          {statusDescription}
-        </div>
-      </div>
-
-      <FlowBadge
-        number={1}
-        title={copy.createObject}
-        description="PMC Catalog"
-        done={Boolean(createdPolicy)}
-      />
-      <ArrowRight className="h-4 w-4 shrink-0 text-slate-400" />
-      <FlowBadge
-        number={2}
-        title={`${copy.applyHosts} · ${hostCount}`}
-        description="PMC Operation"
-        done={Boolean(operation)}
-      />
-
-      <Button variant="outline" onClick={onReset} className="h-10 shrink-0 px-5">
-        <RotateCcw className="mr-2 h-4 w-4" />
-        {copy.reset}
-      </Button>
-      <Button
-        onClick={onSubmit}
-        disabled={!canSubmit}
-        className="h-11 min-w-64 shrink-0 bg-blue-600 px-6 text-white hover:bg-blue-700"
-      >
-        {submitting ? (
-          <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />{copy.submitting}</>
-        ) : retryOnly ? (
-          <><RefreshCw className="mr-2 h-4 w-4" />{copy.retryDispatch}</>
-        ) : (
-          <><Send className="mr-2 h-4 w-4" />{copy.confirmDispatch} · {hostCount}</>
-        )}
-      </Button>
-    </footer>
   )
 }
 
