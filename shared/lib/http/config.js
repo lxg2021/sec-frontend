@@ -67,6 +67,7 @@ const FALLBACK_CONFIG = {
       getPatchInstallTasks: "/sensor/patch/installtask/list",
       getPatchInstallTaskProgress: "/sensor/patch/installtask/progress",
       createPatchInstallTask: "/sensor/control/patch/installtask",
+      listPMCObjectDefinitions: "/sensor/control/pmc/object-definitions/list",
       operatePMCObject: "/sensor/control/pmc/objects/operate",
       createNetworkAccessPolicy: "/sensor/control/network/policy",
       createFileAccessPolicy: "/sensor/control/fileaccess/policy",

@@ -2,8 +2,10 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   applyAccessControlPolicy,
+  buildAccessControlDraftFromExistingPolicy,
   buildCreateAccessControlPolicyRequest,
   createAccessControlPolicy,
+  listExistingAccessControlPolicies,
   validateAccessControlDraft,
 } from "./api"
 import type { AccessControlPolicyDraft } from "./access-control-types"
@@ -211,6 +213,113 @@ describe("access control request mapping", () => {
       status: "pending",
       totalCount: 2,
       pendingCount: 2,
+    })
+  })
+
+  it("lists only active access-control Policy definitions", async () => {
+    const post = vi.spyOn(http, "post").mockResolvedValue({
+      code: 0,
+      message: "success",
+      requestId: "request-3",
+      data: {
+        definitions: [
+          {
+            type: 1,
+            object_id: "file-policy-1",
+            object_version: "1.2.0",
+            object_state: "active",
+            policy: {
+              name: "Confidential files",
+              sub_type: 90,
+              version: "1.2.0",
+              context: "{\"policy\":{}}",
+            },
+          },
+          {
+            type: 1,
+            object_id: "baseline-policy-1",
+            object_version: "1.0.0",
+            object_state: "active",
+            policy: { name: "Baseline", sub_type: 60, version: "1.0.0", context: "{}" },
+          },
+          {
+            type: 1,
+            object_id: "network-policy-1",
+            object_version: "2.0.0",
+            object_state: "active",
+            policy: { name: "Outbound control", sub_type: 20, version: "2.0.0", context: "{}" },
+          },
+        ],
+        total: 3,
+        page: 1,
+        page_size: 100,
+      },
+      raw: null,
+    })
+
+    const policies = await listExistingAccessControlPolicies()
+
+    expect(post).toHaveBeenCalledWith("listPMCObjectDefinitions", {
+      request_id: expect.stringMatching(/^[0-9a-f-]{36}$/),
+      object_type: 1,
+      lifecycle_state: "active",
+      page: 1,
+      page_size: 100,
+    })
+    expect(policies).toEqual([
+      {
+        objectId: "file-policy-1",
+        objectType: 1,
+        name: "Confidential files",
+        version: "1.2.0",
+        policyType: "file",
+        subType: 90,
+        context: "{\"policy\":{}}",
+        objectState: "active",
+      },
+      {
+        objectId: "network-policy-1",
+        objectType: 1,
+        name: "Outbound control",
+        version: "2.0.0",
+        policyType: "network",
+        subType: 20,
+        context: "{}",
+        objectState: "active",
+      },
+    ])
+  })
+
+  it("restores an existing file policy context for read-only display", () => {
+    const draft = buildAccessControlDraftFromExistingPolicy({
+      objectId: "file-policy-1",
+      objectType: 1,
+      name: "Confidential files",
+      version: "1.2.0",
+      policyType: "file",
+      subType: 90,
+      objectState: "active",
+      context: JSON.stringify({
+        policy: {
+          body: {
+            subject: [{ type: "process", path: ["C:\\Office\\*.exe"], hash: [], accounts: [] }],
+            except: [],
+            object: { type: "file", path: ["C:\\Confidential\\*.docx"] },
+            rules: [{ action: "write", effect: "block", audit: true }],
+            priority: 180,
+          },
+        },
+      }),
+    })
+
+    expect(draft).toMatchObject({
+      type: "file",
+      name: "Confidential files",
+      version: "1.2.0",
+      priority: 180,
+      subjects: [{ type: "process", paths: ["C:\\Office\\*.exe"] }],
+      objectPaths: ["C:\\Confidential\\*.docx"],
+      rules: [{ action: "write", effect: "block", audit: true }],
     })
   })
 })

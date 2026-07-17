@@ -16,6 +16,7 @@
     "features/dac/components/hash-editor.tsx",
     "features/dac/components/multi-value-input.tsx",
     "features/dac/components/network-editor.tsx",
+    "features/dac/components/policy-selector-dialog.tsx",
     "features/dac/components/rule-editor.tsx",
     "features/dac/components/subject-editor.tsx"
   ],

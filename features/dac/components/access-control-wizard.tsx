@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
   CheckCircle2,
+  FilePlus2,
   FileSliders,
   FileText,
+  LibraryBig,
   ListChecks,
   LoaderCircle,
   LockKeyhole,
@@ -22,6 +24,7 @@ import { toast } from "sonner"
 
 import {
   applyAccessControlPolicy,
+  buildAccessControlDraftFromExistingPolicy,
   createAccessControlPolicy,
   getAccessControlDraftFingerprint,
   validateAccessControlDraft,
@@ -33,10 +36,12 @@ import type {
   AccessControlPolicyDraft,
   AccessPolicyType,
   CreatedAccessControlPolicy,
+  ExistingAccessControlPolicy,
 } from "../access-control-types"
 import { HashEditor } from "./hash-editor"
 import { MultiValueInput } from "./multi-value-input"
 import { NetworkEditor } from "./network-editor"
+import { PolicySelectorDialog } from "./policy-selector-dialog"
 import { RuleEditor } from "./rule-editor"
 import { SubjectEditor } from "./subject-editor"
 import HostSelector from "@/shared/components/host-selector"
@@ -67,6 +72,8 @@ export function AccessControlWizard() {
   const [createdDraftFingerprint, setCreatedDraftFingerprint] = useState("")
   const [operation, setOperation] = useState<AccessControlOperation | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [selectedPolicy, setSelectedPolicy] = useState<ExistingAccessControlPolicy | null>(null)
+  const [policySelectorOpen, setPolicySelectorOpen] = useState(false)
 
   const loadHosts = useCallback(async () => {
     setHostsLoading(true)
@@ -100,6 +107,7 @@ export function AccessControlWizard() {
       rules: [],
     }))
     setCreatedPolicy(null)
+    setSelectedPolicy(null)
     setCreatedDraftFingerprint("")
     setOperation(null)
   }, [])
@@ -112,14 +120,7 @@ export function AccessControlWizard() {
 
   const validationErrors = useMemo(() => validateAccessControlDraft(draft), [draft])
   const draftValid = validationErrors.length === 0
-  const currentFingerprint = useMemo(
-    () => (draftValid ? getAccessControlDraftFingerprint(draft) : ""),
-    [draft, draftValid],
-  )
-  const retryOnly = Boolean(
-    createdPolicy && createdDraftFingerprint && createdDraftFingerprint === currentFingerprint && !operation,
-  )
-  const canSubmit = draftValid && selectedHosts.length > 0 && !submitting && !operation
+  const canSubmit = Boolean(selectedPolicy || draftValid) && selectedHosts.length > 0 && !submitting && !operation
 
   const offlineHostCount = useMemo(
     () => selectedHosts.filter((host) => host.status.trim().toLowerCase() === "offline").length,
@@ -128,25 +129,29 @@ export function AccessControlWizard() {
 
   const handleConfirm = useCallback(async () => {
     const errors = validateAccessControlDraft(draft)
-    if (errors.length > 0 || selectedHosts.length === 0) {
+    if ((!selectedPolicy && errors.length > 0) || selectedHosts.length === 0) {
       toast.error(copy.validationFailed, {
-        description: errors.length > 0 ? validationDescription(copy, draft.type, errors) : copy.noHosts,
+        description: !selectedPolicy && errors.length > 0 ? validationDescription(copy, draft.type, errors) : copy.noHosts,
       })
       return
     }
 
     setSubmitting(true)
-    const toastId = toast.loading(copy.submitting)
+    const toastId = toast.loading(copy.dispatching)
 
     try {
-      const fingerprint = getAccessControlDraftFingerprint(draft)
-      let policy = createdPolicy
-      if (!policy || createdDraftFingerprint !== fingerprint) {
-        policy = await createAccessControlPolicy(draft)
-        setCreatedPolicy(policy)
-        setCreatedDraftFingerprint(fingerprint)
+      let policy: CreatedAccessControlPolicy | null = selectedPolicy
+      if (!policy) policy = createdPolicy
+      if (!selectedPolicy) {
+        const fingerprint = getAccessControlDraftFingerprint(draft)
+        if (!policy || createdDraftFingerprint !== fingerprint) {
+          policy = await createAccessControlPolicy(draft)
+          setCreatedPolicy(policy)
+          setCreatedDraftFingerprint(fingerprint)
+        }
       }
 
+      if (!policy) throw new Error("no access control policy selected")
       const result = await applyAccessControlPolicy(
         policy,
         selectedHosts.map((host) => host.hostId || host.id),
@@ -159,7 +164,19 @@ export function AccessControlWizard() {
     } finally {
       setSubmitting(false)
     }
-  }, [copy, createdDraftFingerprint, createdPolicy, draft, selectedHosts])
+  }, [copy, createdDraftFingerprint, createdPolicy, draft, selectedHosts, selectedPolicy])
+
+  const selectExistingPolicy = useCallback((policy: ExistingAccessControlPolicy) => {
+    const hasUnsavedContent = !selectedPolicy && (isAccessControlDraftDirty(draft) || Boolean(createdPolicy))
+    if (hasUnsavedContent && !window.confirm(copy.resetConfirm)) return false
+
+    setSelectedPolicy(policy)
+    setDraft(buildAccessControlDraftFromExistingPolicy(policy))
+    setCreatedPolicy(null)
+    setCreatedDraftFingerprint("")
+    setOperation(null)
+    return true
+  }, [copy.resetConfirm, createdPolicy, draft, selectedPolicy])
 
   const reset = () => {
     const hasUnsavedContent = isAccessControlDraftDirty(draft) || selectedHosts.length > 0 || Boolean(createdPolicy)
@@ -169,6 +186,7 @@ export function AccessControlWizard() {
     setSelectedHosts([])
     setSelectorKey((value) => value + 1)
     setCreatedPolicy(null)
+    setSelectedPolicy(null)
     setCreatedDraftFingerprint("")
     setOperation(null)
   }
@@ -188,13 +206,13 @@ export function AccessControlWizard() {
             </div>
           </div>
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
-            <div className="hidden h-12 min-w-[480px] grid-cols-[auto_minmax(80px,1fr)_auto] items-center rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 2xl:grid">
+            <div className="hidden h-12 w-[440px] shrink-0 grid-cols-[auto_128px_auto] items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 2xl:grid">
               <FlowBadge
                 number={1}
-                title={copy.createObject}
-                done={Boolean(createdPolicy)}
+                title={selectedPolicy ? selectedPolicy.name : copy.createObject}
+                done={Boolean(selectedPolicy || createdPolicy)}
               />
-              <div className="mx-6 h-px bg-slate-300" />
+              <div className="mx-4 h-px bg-slate-300" />
               <FlowBadge
                 number={2}
                 title={`${copy.applyHosts} · ${selectedHosts.length}`}
@@ -202,21 +220,25 @@ export function AccessControlWizard() {
               />
             </div>
             <span className="hidden h-6 w-px shrink-0 bg-slate-200 2xl:block" aria-hidden="true" />
-            <Button variant="outline" onClick={reset} className="h-10 shrink-0 rounded-full border-slate-200 bg-white px-4 text-slate-800">
-              <Plus className="mr-2 h-4 w-4" />
-              {copy.reset}
+            <Button variant="ghost" onClick={() => setPolicySelectorOpen(true)} className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700">
+              <LibraryBig className="h-4 w-4" />
+              <span className="font-medium">{copy.selectPolicy}</span>
             </Button>
+            <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
+            <Button variant="ghost" onClick={reset} className="h-10 shrink-0 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700">
+              <FilePlus2 className="h-4 w-4" />
+              <span className="font-medium">{copy.reset}</span>
+            </Button>
+            <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
             <Button
               onClick={() => void handleConfirm()}
               disabled={!canSubmit}
               className="h-10 min-w-56 shrink-0 rounded-full bg-teal-600 px-5 text-white shadow-sm hover:bg-teal-700"
             >
               {submitting ? (
-                <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />{copy.submitting}</>
-              ) : retryOnly ? (
-                <><RefreshCw className="mr-2 h-4 w-4" />{copy.retryDispatch}</>
+                <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />{copy.dispatching}</>
               ) : (
-                <><Send className="mr-2 h-4 w-4" />{copy.confirmDispatch} · {selectedHosts.length}</>
+                <><Send className="mr-2 h-4 w-4" />{copy.selectHostDispatch} · {selectedHosts.length}</>
               )}
             </Button>
           </div>
@@ -226,12 +248,13 @@ export function AccessControlWizard() {
         <PolicyDefinitionBar
           copy={copy}
           draft={draft}
+          readOnly={Boolean(selectedPolicy)}
           onChange={updateDraft}
           onTypeChange={changePolicyType}
         />
 
         <main className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1.62fr)_minmax(440px,1fr)]">
-          <PolicyConfigurationPanel copy={copy} draft={draft} onChange={updateDraft} />
+          <PolicyConfigurationPanel copy={copy} draft={draft} readOnly={Boolean(selectedPolicy)} onChange={updateDraft} />
 
           <HostPanel
             copy={copy}
@@ -246,6 +269,13 @@ export function AccessControlWizard() {
           />
         </main>
       </div>
+      <PolicySelectorDialog
+        copy={copy}
+        open={policySelectorOpen}
+        selectedPolicy={selectedPolicy}
+        onOpenChange={setPolicySelectorOpen}
+        onSelect={selectExistingPolicy}
+      />
     </div>
   )
 }
@@ -253,16 +283,18 @@ export function AccessControlWizard() {
 function PolicyConfigurationPanel({
   copy,
   draft,
+  readOnly,
   onChange,
 }: {
   copy: AccessControlCopy
   draft: AccessControlPolicyDraft
+  readOnly: boolean
   onChange: (patch: Partial<AccessControlPolicyDraft>) => void
 }) {
   const PolicyIcon = POLICY_ICONS[draft.type]
 
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <fieldset disabled={readOnly} className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <header className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-3.5">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
           <PolicyIcon className="h-4.5 w-4.5" />
@@ -300,23 +332,31 @@ function PolicyConfigurationPanel({
           </div>
         )}
       </div>
-    </section>
+    </fieldset>
   )
 }
 
 function PolicyDefinitionBar({
   copy,
   draft,
+  readOnly,
   onChange,
   onTypeChange,
 }: {
   copy: AccessControlCopy
   draft: AccessControlPolicyDraft
+  readOnly: boolean
   onChange: (patch: Partial<AccessControlPolicyDraft>) => void
   onTypeChange: (type: AccessPolicyType) => void
 }) {
   return (
-    <section className="shrink-0 rounded-xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
+    <fieldset disabled={readOnly} className="shrink-0 rounded-xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
+      {readOnly ? (
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+          <span className="font-semibold">{copy.existingPolicy}</span>
+          <span className="truncate text-blue-700">{copy.selectedPolicyHint}</span>
+        </div>
+      ) : null}
       <div className="grid items-center gap-4 xl:grid-cols-[180px_minmax(0,1fr)]">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-slate-950">{copy.basicInfo}</h2>
@@ -397,7 +437,7 @@ function PolicyDefinitionBar({
           />
         </div>
       </div>
-    </section>
+    </fieldset>
   )
 }
 
@@ -628,7 +668,7 @@ function HostPanel({
 function FlowBadge({ number, title, done }: { number: number; title: string; done: boolean }) {
   return (
     <div className="flex shrink-0 items-center gap-2 px-1 py-0.5">
-      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${done ? "bg-emerald-100 text-emerald-700" : "bg-teal-100 text-teal-700"}`}>
+      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${done ? "bg-emerald-100 text-emerald-700" : "bg-slate-950 text-white"}`}>
         {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : number}
       </span>
       <div className="min-w-0 truncate text-[11px] font-semibold text-slate-800">{title}</div>

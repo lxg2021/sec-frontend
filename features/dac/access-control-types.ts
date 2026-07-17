@@ -93,6 +93,13 @@ export interface CreatedAccessControlPolicy {
   version: string
 }
 
+export interface ExistingAccessControlPolicy extends CreatedAccessControlPolicy {
+  policyType: AccessPolicyType
+  subType: number
+  context: string
+  objectState: string
+}
+
 export interface AccessControlOperation {
   operationId: string
   planningStatus: string
@@ -113,4 +120,3 @@ export interface AccessControlDispatchResult {
   policy: CreatedAccessControlPolicy
   operation: AccessControlOperation
 }
-

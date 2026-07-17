@@ -3,7 +3,7 @@
 import { http } from "@/shared/lib/http/client"
 import { createUuidRequestId } from "@/shared/lib/utils"
 
-import { ACCESS_ACTIONS } from "./access-control-options"
+import { ACCESS_ACTIONS, createInitialAccessControlDraft } from "./access-control-options"
 import type {
   AccessAccount,
   AccessControlOperation,
@@ -13,10 +13,18 @@ import type {
   AccessRuleDraft,
   AccessSubjectDraft,
   CreatedAccessControlPolicy,
+  ExistingAccessControlPolicy,
 } from "./access-control-types"
 
 const PMC_OBJECT_TYPE_POLICY = 1
 const PMC_OPERATION_APPLY = 1
+const PMC_LIST_PAGE_SIZE = 100
+const ACCESS_POLICY_TYPE_BY_SUB_TYPE: Record<number, AccessPolicyType> = {
+  20: "network",
+  90: "file",
+  91: "process",
+  92: "registry",
+}
 const POLICY_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
 const MD5_PATTERN = /^[a-fA-F0-9]{32}$/
 
@@ -47,6 +55,26 @@ interface OperatePMCObjectResponseData {
     skipped_count?: number
     canceled_count?: number
   } | null
+}
+
+interface PMCPolicyDefinitionData {
+  type?: number
+  object_id?: string
+  object_version?: string
+  object_state?: string
+  policy?: {
+    name?: string
+    sub_type?: number
+    version?: string
+    context?: string
+  } | null
+}
+
+interface ListPMCObjectDefinitionsResponseData {
+  definitions?: PMCPolicyDefinitionData[]
+  total?: number
+  page?: number
+  page_size?: number
 }
 
 interface ProtoAccessSubject {
@@ -126,6 +154,14 @@ function stringValue(value: unknown) {
 function numberValue(value: unknown, fallback = 0) {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : fallback
+}
+
+function recordValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {}
+}
+
+function arrayValue(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : []
 }
 
 function uniqueStrings(values: string[]) {
@@ -362,6 +398,181 @@ export async function createAccessControlPolicy(
     name: stringValue(data?.name) || draft.name.trim(),
     version: stringValue(data?.version) || draft.version.trim(),
   }
+}
+
+export async function listExistingAccessControlPolicies(): Promise<ExistingAccessControlPolicy[]> {
+  const definitions: PMCPolicyDefinitionData[] = []
+  let page = 1
+  let total = Number.POSITIVE_INFINITY
+
+  while (definitions.length < total) {
+    const result = (await http.post("listPMCObjectDefinitions", {
+      request_id: createUuidRequestId(),
+      object_type: PMC_OBJECT_TYPE_POLICY,
+      lifecycle_state: "active",
+      page,
+      page_size: PMC_LIST_PAGE_SIZE,
+    })) as ApiResult<ListPMCObjectDefinitionsResponseData | null>
+
+    const batch = Array.isArray(result.data?.definitions) ? result.data.definitions : []
+    definitions.push(...batch)
+    total = Math.max(0, numberValue(result.data?.total, definitions.length))
+
+    if (batch.length === 0 || batch.length < PMC_LIST_PAGE_SIZE) break
+    page += 1
+  }
+
+  const policies = definitions
+    .map(normalizeExistingAccessControlPolicy)
+    .filter((policy): policy is ExistingAccessControlPolicy => Boolean(policy))
+
+  return Array.from(new Map(policies.map((policy) => [policy.objectId, policy])).values()).sort((left, right) =>
+    left.name.localeCompare(right.name),
+  )
+}
+
+function normalizeExistingAccessControlPolicy(
+  definition: PMCPolicyDefinitionData,
+): ExistingAccessControlPolicy | null {
+  const policy = definition.policy
+  const objectId = stringValue(definition.object_id)
+  const subType = numberValue(policy?.sub_type)
+  const policyType = ACCESS_POLICY_TYPE_BY_SUB_TYPE[subType]
+  const version = stringValue(definition.object_version) || stringValue(policy?.version)
+
+  if (
+    numberValue(definition.type) !== PMC_OBJECT_TYPE_POLICY ||
+    !objectId ||
+    !policyType ||
+    !version
+  ) {
+    return null
+  }
+
+  return {
+    objectId,
+    objectType: PMC_OBJECT_TYPE_POLICY,
+    name: stringValue(policy?.name) || objectId,
+    version,
+    policyType,
+    subType,
+    context: stringValue(policy?.context),
+    objectState: stringValue(definition.object_state) || "active",
+  }
+}
+
+export function buildAccessControlDraftFromExistingPolicy(
+  policy: ExistingAccessControlPolicy,
+): AccessControlPolicyDraft {
+  const initial = createInitialAccessControlDraft()
+  const policyType = policy.policyType
+  let body: Record<string, unknown> = {}
+
+  try {
+    const envelope = recordValue(JSON.parse(policy.context))
+    body = recordValue(recordValue(envelope.policy).body)
+  } catch {
+    // The Catalog identity remains usable for dispatch even if an old context cannot be rendered.
+  }
+
+  const priority = numberValue(body.priority, initial.priority)
+  if (policyType === "network") {
+    const rule = recordValue(body.rule)
+    const protocol = recordValue(body.protocol)
+    const address = recordValue(body.address)
+    const program = recordValue(body.program)
+
+    return {
+      ...initial,
+      type: "network",
+      name: policy.name,
+      version: policy.version,
+      priority,
+      network: {
+        direction: oneOf(stringValue(rule.direction), ["in", "out"], initial.network.direction),
+        action: oneOf(stringValue(rule.action), ["allow", "block", "bypass"], initial.network.action),
+        profile: oneOf(stringValue(rule.profile), ["domain", "private", "public", "any"], initial.network.profile),
+        protocol: oneOf(stringValue(protocol.type), ["tcp", "udp", "icmp", "any"], initial.network.protocol),
+        localPort: stringValue(protocol.localport) || initial.network.localPort,
+        remotePort: stringValue(protocol.remoteport) || initial.network.remotePort,
+        localAddress: stringValue(address.local) || initial.network.localAddress,
+        remoteAddress: stringValue(address.remote) || initial.network.remoteAddress,
+        programPath: stringValue(program.path),
+        programMd5: stringValue(program.md5),
+      },
+    }
+  }
+
+  const object = recordValue(body.object)
+  const subjects = normalizeStoredSubjects(body.subject)
+
+  return {
+    ...initial,
+    type: policyType,
+    name: policy.name,
+    version: policy.version,
+    priority,
+    subjects: subjects.length > 0 ? subjects : initial.subjects,
+    exceptions: normalizeStoredSubjects(body.except),
+    objectPaths: stringArray(object.path),
+    objectHashes: normalizeStoredHashes(object.hash),
+    rules: normalizeStoredRules(body.rules, policyType),
+  }
+}
+
+function oneOf<T extends string>(value: string, values: readonly T[], fallback: T): T {
+  return values.includes(value as T) ? value as T : fallback
+}
+
+function stringArray(value: unknown) {
+  return arrayValue(value).map(stringValue).filter(Boolean)
+}
+
+function normalizeStoredHashes(value: unknown): AccessHash[] {
+  return arrayValue(value).flatMap((entry) => {
+    const hash = recordValue(entry)
+    const algo = oneOf(stringValue(hash.algo), ["md5", "sha1", "sha256"] as const, "md5")
+    const normalizedValue = stringValue(hash.value)
+    return normalizedValue ? [{ algo, value: normalizedValue }] : []
+  })
+}
+
+function normalizeStoredSubjects(value: unknown): AccessSubjectDraft[] {
+  return arrayValue(value).map((entry) => {
+    const subject = recordValue(entry)
+    const type = oneOf(stringValue(subject.type), ["windowsuser", "windowsgroup", "process"] as const, "process")
+    return {
+      id: crypto.randomUUID(),
+      type,
+      paths: stringArray(subject.path),
+      hashes: normalizeStoredHashes(subject.hash),
+      accounts: arrayValue(subject.accounts).flatMap((accountValue) => {
+        const account = recordValue(accountValue)
+        const sid = stringValue(account.sid)
+        if (!sid) return []
+        return [{
+          ...(stringValue(account.user_name) ? { user_name: stringValue(account.user_name) } : {}),
+          ...(stringValue(account.group_name) ? { group_name: stringValue(account.group_name) } : {}),
+          sid,
+        }]
+      }),
+    }
+  })
+}
+
+function normalizeStoredRules(value: unknown, type: Exclude<AccessPolicyType, "network">): AccessRuleDraft[] {
+  const allowedActions = new Set<string>(ACCESS_ACTIONS[type])
+  return arrayValue(value).flatMap((entry) => {
+    const rule = recordValue(entry)
+    const action = stringValue(rule.action)
+    if (!allowedActions.has(action)) return []
+    return [{
+      id: crypto.randomUUID(),
+      action: action as AccessRuleDraft["action"],
+      effect: oneOf(stringValue(rule.effect), ["allow", "block", "prompt"] as const, "block"),
+      audit: Boolean(rule.audit),
+    }]
+  })
 }
 
 export async function applyAccessControlPolicy(
