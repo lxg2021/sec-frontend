@@ -9,6 +9,7 @@
     "start": "next start",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "typecheck:dac": "tsc --project tsconfig.dac.json",
     "typecheck:remediation": "tsc --project tsconfig.remediation.json"
   },
   "dependencies": {

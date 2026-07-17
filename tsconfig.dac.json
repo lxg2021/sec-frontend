@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "react-window.d.ts",
+    "app/frame/response/dac/page.tsx",
+    "features/dac/access-control-copy.ts",
+    "features/dac/access-control-options.ts",
+    "features/dac/access-control-types.ts",
+    "features/dac/api.ts",
+    "features/dac/api.test.ts",
+    "features/dac/components/access-control-stepper.tsx",
+    "features/dac/components/access-control-wizard.tsx",
+    "features/dac/components/access-host-step.tsx",
+    "features/dac/components/access-review-step.tsx",
+    "features/dac/components/multi-value-input.tsx",
+    "features/dac/components/policy-basics-step.tsx",
+    "features/dac/components/policy-context-panels.tsx",
+    "features/dac/components/policy-rules-step.tsx"
+  ],
+  "exclude": ["node_modules"]
+}
