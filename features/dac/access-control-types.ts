@@ -114,5 +114,3 @@ export interface AccessControlDispatchResult {
   operation: AccessControlOperation
 }
 
-export type AccessControlWizardStep = 1 | 2 | 3 | 4
-

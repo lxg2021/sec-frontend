@@ -34,8 +34,11 @@ import type {
   AccessPolicyType,
   CreatedAccessControlPolicy,
 } from "../access-control-types"
+import { HashEditor } from "./hash-editor"
 import { MultiValueInput } from "./multi-value-input"
-import { HashEditor, NetworkEditor, RuleEditor, SubjectEditor } from "./policy-rules-step"
+import { NetworkEditor } from "./network-editor"
+import { RuleEditor } from "./rule-editor"
+import { SubjectEditor } from "./subject-editor"
 import HostSelector from "@/shared/components/host-selector"
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
 import type { HostSelectorHostNode, HostSelectorTreeNode } from "@/shared/components/host-selector/types"
