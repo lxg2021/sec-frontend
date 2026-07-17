@@ -188,18 +188,16 @@ export function AccessControlWizard() {
             </div>
           </div>
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
-            <div className="hidden h-12 min-w-[420px] items-center rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 2xl:flex">
+            <div className="hidden h-12 min-w-[480px] grid-cols-[auto_minmax(80px,1fr)_auto] items-center rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 2xl:grid">
               <FlowBadge
                 number={1}
                 title={copy.createObject}
-                description="PMC Catalog"
                 done={Boolean(createdPolicy)}
               />
-              <div className="mx-2 h-px w-7 bg-slate-300" />
+              <div className="mx-6 h-px bg-slate-300" />
               <FlowBadge
                 number={2}
                 title={`${copy.applyHosts} · ${selectedHosts.length}`}
-                description="PMC Operation"
                 done={Boolean(operation)}
               />
             </div>
@@ -627,16 +625,13 @@ function HostPanel({
   )
 }
 
-function FlowBadge({ number, title, description, done }: { number: number; title: string; description: string; done: boolean }) {
+function FlowBadge({ number, title, done }: { number: number; title: string; done: boolean }) {
   return (
-    <div className="flex w-44 shrink-0 items-center gap-2 px-1 py-0.5">
+    <div className="flex shrink-0 items-center gap-2 px-1 py-0.5">
       <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${done ? "bg-emerald-100 text-emerald-700" : "bg-teal-100 text-teal-700"}`}>
         {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : number}
       </span>
-      <div className="min-w-0">
-        <div className="truncate text-[11px] font-semibold text-slate-800">{title}</div>
-        <div className="text-[9px] text-slate-400">{description}</div>
-      </div>
+      <div className="min-w-0 truncate text-[11px] font-semibold text-slate-800">{title}</div>
     </div>
   )
 }
