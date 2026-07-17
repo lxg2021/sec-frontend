@@ -343,9 +343,9 @@ function PolicyDefinitionBar({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-[minmax(280px,1fr)_180px_170px_minmax(260px,0.75fr)] items-end gap-4 border-t border-slate-100 pt-3">
-        <div className="space-y-1.5">
-          <Label htmlFor="access-policy-name" className="text-xs font-medium text-slate-700">
+      <div className="mt-3 grid grid-cols-1 items-center gap-4 border-t border-slate-100 pt-3 xl:grid-cols-[minmax(300px,1fr)_180px_170px_minmax(240px,0.65fr)]">
+        <div className="flex min-w-0 items-center gap-2">
+          <Label htmlFor="access-policy-name" className="shrink-0 text-xs font-medium text-slate-700">
             {copy.policyName}<span className="ml-1 text-red-500">*</span>
           </Label>
           <Input
@@ -353,12 +353,12 @@ function PolicyDefinitionBar({
             value={draft.name}
             onChange={(event) => onChange({ name: event.target.value })}
             placeholder={copy.policyNamePlaceholder}
-            className="h-10"
+            className="h-10 min-w-0 flex-1"
             maxLength={128}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="access-policy-version" className="text-xs font-medium text-slate-700">
+        <div className="flex min-w-0 items-center gap-2">
+          <Label htmlFor="access-policy-version" className="shrink-0 text-xs font-medium text-slate-700">
             {copy.version}<span className="ml-1 text-red-500">*</span>
           </Label>
           <Input
@@ -366,12 +366,12 @@ function PolicyDefinitionBar({
             value={draft.version}
             onChange={(event) => onChange({ version: event.target.value })}
             placeholder="1.0.0"
-            className="h-10 font-mono"
+            className="h-10 min-w-0 flex-1 font-mono"
             maxLength={64}
           />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="access-policy-priority" className="text-xs font-medium text-slate-700">
+        <div className="flex min-w-0 items-center gap-2">
+          <Label htmlFor="access-policy-priority" className="shrink-0 text-xs font-medium text-slate-700">
             {copy.priority}<span className="ml-1 text-red-500">*</span>
           </Label>
           <Input
@@ -381,12 +381,11 @@ function PolicyDefinitionBar({
             max={255}
             value={draft.priority}
             onChange={(event) => onChange({ priority: Number(event.target.value) })}
-            className="h-10 font-mono"
+            className="h-10 min-w-0 flex-1 font-mono"
           />
         </div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-          <div className="text-[10px] text-slate-400">{copy.priority}</div>
-          <div className="mt-0.5 truncate text-xs font-medium text-slate-600">{copy.priorityHint}</div>
+        <div className="flex h-10 min-w-0 items-center rounded-lg border border-slate-200 bg-slate-50 px-3">
+          <div className="truncate text-xs font-medium text-slate-600" title={copy.priorityHint}>{copy.priorityHint}</div>
         </div>
       </div>
     </section>
