@@ -209,7 +209,12 @@ export function RemediationOrderOverviewList({
               <SelectItem value="all">{t("allSources")}</SelectItem>
               {[RemediationSourceType.CaseGraph, RemediationSourceType.DrillGraph, RemediationSourceType.LocateGraph].map((type) => (
                 <SelectItem key={type} value={String(type)}>
-                  {t(`sources.${sourceTranslationKey(type)}`)} ({formatCount(sourceCounts.get(type) ?? "0", locale)})
+                  <span className="grid w-[108px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                    <span className="truncate">{t(`sources.${sourceTranslationKey(type)}`)}</span>
+                    <span className="text-right tabular-nums text-slate-500">
+                      ({formatCount(sourceCounts.get(type) ?? "0", locale)})
+                    </span>
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -219,7 +224,14 @@ export function RemediationOrderOverviewList({
             <SelectContent>
               <SelectItem value="all">{t("allStatuses")}</SelectItem>
               {ORDER_STATUS_FILTERS.map((status) => (
-                <SelectItem key={status} value={status}>{t(`statuses.${status}`)} ({formatCount(statusCounts.get(status) ?? "0", locale)})</SelectItem>
+                <SelectItem key={status} value={status}>
+                  <span className="grid w-[108px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                    <span className="truncate">{t(`statuses.${status}`)}</span>
+                    <span className="text-right tabular-nums text-slate-500">
+                      ({formatCount(statusCounts.get(status) ?? "0", locale)})
+                    </span>
+                  </span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

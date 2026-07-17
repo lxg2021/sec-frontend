@@ -5254,7 +5254,7 @@
             "no_action": "未执行"
           },
           "sources": {
-            "caseGraph": "Case",
+            "caseGraph": "场景",
             "drillGraph": "数据钻探",
             "locateGraph": "定位图",
             "unknown": "未知来源"
