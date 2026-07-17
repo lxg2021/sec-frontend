@@ -275,6 +275,7 @@ function createDemoOrderItem({
       primary_ip: "192.168.56.20",
       ip_addresses: ["192.168.56.20"],
       mac_addresses: ["00-15-5D-01-02-03"],
+      connectivity_status: "unknown",
       observed_at: "2026-07-16T10:00:00Z",
     },
   };

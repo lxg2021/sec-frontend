@@ -415,7 +415,7 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
   return { primary: localized(locale, "尚未开始", "Not Started") };
 }
 
-function resultPresentation(item: RemediationOrderItem, locale: string) {
+export function resultPresentation(item: RemediationOrderItem, locale: string) {
   const execution = executionForItem(item);
   const errorCode = execution?.error_code.trim() || item.error_code.trim();
   const errorMessage =

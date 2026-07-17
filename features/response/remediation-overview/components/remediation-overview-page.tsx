@@ -1,23 +1,26 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Clock3, Loader2, Monitor, RefreshCcw, ShieldCheck } from "lucide-react"
+import { Clock3, Loader2, RefreshCcw, ShieldCheck } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import {
   RemediationSourceType,
+  queryRemediationHostList,
   queryRemediationOrderList,
   queryRemediationOverviewSummary,
+  type RemediationHostList,
   type RemediationOrderList,
   type RemediationOverviewSummary,
 } from "@/features/attack/remediation-order"
 import { Button } from "@/shared/ui/button"
-import { cn } from "@/shared/lib/utils"
 
-import { formatTimestamp, type OrderStatusFilter, type SourceTypeFilter } from "../presentation"
+import { formatTimestamp, type ItemStatusFilter, type OrderStatusFilter, type SourceTypeFilter } from "../presentation"
 import { OverviewMetricCards } from "./overview-metric-cards"
 import { RemediationActionDistribution } from "./remediation-action-distribution"
+import { RemediationHostOverviewList } from "./remediation-host-overview-list"
 import { RemediationOrderOverviewList } from "./remediation-order-overview-list"
+import type { RemediationOverviewViewMode } from "./remediation-overview-view-tabs"
 import { RemediationTrendChart } from "./remediation-trend-chart"
 
 const EMPTY_OVERVIEW: RemediationOverviewSummary = {
@@ -36,6 +39,7 @@ const EMPTY_OVERVIEW: RemediationOverviewSummary = {
 }
 
 const EMPTY_ORDERS: RemediationOrderList = { items: [], total: "0", page: 1, page_size: 10 }
+const EMPTY_HOSTS: RemediationHostList = { items: [], total: "0", page: 1, page_size: 10 }
 
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "request failed"
@@ -45,17 +49,25 @@ export function RemediationOverviewPage() {
   const t = useTranslations("pages.response.overview")
   const locale = useLocale()
   const summarySequence = useRef(0)
-  const listSequence = useRef(0)
+  const orderSequence = useRef(0)
+  const hostSequence = useRef(0)
   const [summary, setSummary] = useState(EMPTY_OVERVIEW)
   const [orders, setOrders] = useState(EMPTY_ORDERS)
+  const [hosts, setHosts] = useState(EMPTY_HOSTS)
   const [summaryLoading, setSummaryLoading] = useState(true)
-  const [listLoading, setListLoading] = useState(true)
+  const [orderLoading, setOrderLoading] = useState(true)
+  const [hostLoading, setHostLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [summaryError, setSummaryError] = useState("")
-  const [listError, setListError] = useState("")
-  const [status, setStatus] = useState<OrderStatusFilter>("all")
+  const [orderError, setOrderError] = useState("")
+  const [hostError, setHostError] = useState("")
+  const [viewMode, setViewMode] = useState<RemediationOverviewViewMode>("order")
+  const [orderStatus, setOrderStatus] = useState<OrderStatusFilter>("all")
+  const [hostStatus, setHostStatus] = useState<ItemStatusFilter>("all")
   const [source, setSource] = useState<SourceTypeFilter>("all")
-  const [page, setPage] = useState(1)
+  const [orderPage, setOrderPage] = useState(1)
+  const [hostPage, setHostPage] = useState(1)
+  const [hostKeyword, setHostKeyword] = useState("")
 
   const loadSummary = useCallback(async (silent = false) => {
     const sequence = ++summarySequence.current
@@ -73,24 +85,45 @@ export function RemediationOverviewPage() {
   }, [])
 
   const loadOrders = useCallback(async () => {
-    const sequence = ++listSequence.current
-    setListLoading(true)
+    const sequence = ++orderSequence.current
+    setOrderLoading(true)
     try {
       const result = await queryRemediationOrderList({
-        page,
+        page: orderPage,
         page_size: 10,
-        ...(status === "all" ? {} : { status }),
+        ...(orderStatus === "all" ? {} : { status: orderStatus }),
         ...(source === "all" ? {} : { source_type: source }),
       })
-      if (sequence !== listSequence.current) return
+      if (sequence !== orderSequence.current) return
       setOrders(result)
-      setListError("")
+      setOrderError("")
     } catch (error) {
-      if (sequence === listSequence.current) setListError(errorMessage(error))
+      if (sequence === orderSequence.current) setOrderError(errorMessage(error))
     } finally {
-      if (sequence === listSequence.current) setListLoading(false)
+      if (sequence === orderSequence.current) setOrderLoading(false)
     }
-  }, [page, source, status])
+  }, [orderPage, orderStatus, source])
+
+  const loadHosts = useCallback(async () => {
+    const sequence = ++hostSequence.current
+    setHostLoading(true)
+    try {
+      const result = await queryRemediationHostList({
+        page: hostPage,
+        page_size: 10,
+        ...(hostKeyword ? { keyword: hostKeyword } : {}),
+        ...(hostStatus === "all" ? {} : { item_status: hostStatus }),
+        ...(source === "all" ? {} : { source_type: source }),
+      })
+      if (sequence !== hostSequence.current) return
+      setHosts(result)
+      setHostError("")
+    } catch (error) {
+      if (sequence === hostSequence.current) setHostError(errorMessage(error))
+    } finally {
+      if (sequence === hostSequence.current) setHostLoading(false)
+    }
+  }, [hostKeyword, hostPage, hostStatus, source])
 
   useEffect(() => {
     void loadSummary()
@@ -99,8 +132,14 @@ export function RemediationOverviewPage() {
 
   useEffect(() => {
     void loadOrders()
-    return () => { listSequence.current += 1 }
+    return () => { orderSequence.current += 1 }
   }, [loadOrders])
+
+  useEffect(() => {
+    if (viewMode !== "host") return
+    void loadHosts()
+    return () => { hostSequence.current += 1 }
+  }, [loadHosts, viewMode])
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -111,9 +150,12 @@ export function RemediationOverviewPage() {
 
   const refreshAll = useCallback(async () => {
     setRefreshing(true)
-    await Promise.allSettled([loadSummary(), loadOrders()])
+    await Promise.allSettled([
+      loadSummary(),
+      viewMode === "order" ? loadOrders() : loadHosts(),
+    ])
     setRefreshing(false)
-  }, [loadOrders, loadSummary])
+  }, [loadHosts, loadOrders, loadSummary, viewMode])
 
   return (
     <div className="h-full min-h-0 overflow-hidden bg-slate-50">
@@ -125,11 +167,6 @@ export function RemediationOverviewPage() {
               <h1 className="truncate text-xl font-semibold text-slate-950">{t("title")}</h1>
               <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
             </div>
-          </div>
-
-          <div className="mx-4 hidden shrink-0 rounded-2xl bg-slate-100/80 p-1 lg:flex" aria-label={t("viewMode") }>
-            <button type="button" className="inline-flex h-9 items-center gap-2 rounded-xl bg-white px-4 text-sm font-medium text-slate-900 shadow-sm"><ShieldCheck className="size-4 text-blue-600" aria-hidden />{t("byOrder")}</button>
-            <button type="button" disabled title={t("hostViewPending")} className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-xl px-4 text-sm font-medium text-slate-400"><Monitor className="size-4" aria-hidden />{t("byHost")}</button>
           </div>
 
           <div className="flex shrink-0 items-center gap-3 border-l border-slate-200 pl-4">
@@ -151,19 +188,39 @@ export function RemediationOverviewPage() {
           <RemediationActionDistribution data={summary.actions} error={summaryError} loading={summaryLoading} onRetry={() => void loadSummary()} />
         </section>
 
-        <RemediationOrderOverviewList
-          data={orders}
-          error={listError}
-          loading={listLoading}
-          orderStatuses={summary.order_statuses}
-          sources={summary.sources}
-          selectedStatus={status}
-          selectedSource={source}
-          onStatusChange={(value) => { setStatus(value); setPage(1) }}
-          onSourceChange={(value) => { setSource(value); setPage(1) }}
-          onPageChange={setPage}
-          onRetry={() => void loadOrders()}
-        />
+        {viewMode === "order" ? (
+          <RemediationOrderOverviewList
+            data={orders}
+            error={orderError}
+            loading={orderLoading}
+            orderStatuses={summary.order_statuses}
+            sources={summary.sources}
+            selectedStatus={orderStatus}
+            selectedSource={source}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onStatusChange={(value) => { setOrderStatus(value); setOrderPage(1) }}
+            onSourceChange={(value) => { setSource(value); setOrderPage(1); setHostPage(1) }}
+            onPageChange={setOrderPage}
+            onRetry={() => void loadOrders()}
+          />
+        ) : (
+          <RemediationHostOverviewList
+            data={hosts}
+            error={hostError}
+            keyword={hostKeyword}
+            loading={hostLoading}
+            selectedSource={source}
+            selectedStatus={hostStatus}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            onKeywordChange={(value) => { setHostKeyword(value); setHostPage(1) }}
+            onStatusChange={(value) => { setHostStatus(value); setHostPage(1) }}
+            onSourceChange={(value) => { setSource(value); setOrderPage(1); setHostPage(1) }}
+            onPageChange={setHostPage}
+            onRetry={() => void loadHosts()}
+          />
+        )}
       </main>
     </div>
   )

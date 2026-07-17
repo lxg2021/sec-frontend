@@ -344,7 +344,17 @@ export interface ReconcileRemediationItemRequest {
 export interface QueryRemediationItemsByAgentIdRequest {
   request_id: string;
   agent_id: string;
-  status?: string;
+  source_type?: RemediationSourceType;
+  item_status?: string;
+  page?: number;
+  page_size?: number;
+}
+
+export interface QueryRemediationHostListRequest {
+  request_id: string;
+  keyword?: string;
+  source_type?: RemediationSourceType;
+  item_status?: string;
   page?: number;
   page_size?: number;
 }
@@ -471,6 +481,7 @@ export interface RemediationAgentSnapshot {
   ip_addresses: string[];
   mac_addresses: string[];
   observed_at: string;
+  connectivity_status: "online" | "offline" | "unknown";
 }
 
 export type RemediationTargetSnapshotStatus =
@@ -724,6 +735,38 @@ export interface RemediationOrderList {
 
 export interface RemediationItemList {
   items: RemediationOrderItem[];
+  total: UInt64;
+  page: number;
+  page_size: number;
+}
+
+export interface RemediationOrderReference {
+  order_id: string;
+  title: string;
+  source: RemediationSource;
+}
+
+export interface RemediationHostActionItem {
+  order: RemediationOrderReference;
+  item: RemediationOrderItem;
+}
+
+export interface RemediationHostActionList {
+  host: RemediationAgentSnapshot;
+  items: RemediationHostActionItem[];
+  total: UInt64;
+  page: number;
+  page_size: number;
+}
+
+export interface RemediationHostListItem {
+  agent_snapshot: RemediationAgentSnapshot;
+  remediation_item_count: UInt64;
+  last_activity_at: string;
+}
+
+export interface RemediationHostList {
+  items: RemediationHostListItem[];
   total: UInt64;
   page: number;
   page_size: number;

@@ -8,6 +8,8 @@ vi.mock("@/shared/lib/http/client", () => ({
 
 import {
   deleteRemediationOrder,
+  queryRemediationHostList,
+  queryRemediationItemsByAgentId,
   upsertRemediationDraftItems,
   queryRemediationOverviewSummary,
   REMEDIATION_PATHS,
@@ -29,6 +31,44 @@ describe("remediation Order API", () => {
       expect.objectContaining({ request_id: expect.stringMatching(/^[0-9a-f-]{36}$/i) }),
     )
     expect(summary.totals.order_count).toBe("2")
+  })
+
+  it("queries hosts and expands one host through the v1 remediation endpoints", async () => {
+    post
+      .mockResolvedValueOnce({
+        data: {
+          total: "1",
+          page: 1,
+          page_size: 10,
+          items: [{ agent_snapshot: { agent_id: "agent-1", connectivity_status: "online" }, remediation_item_count: "2" }],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          host: { agent_id: "agent-1", connectivity_status: "online" },
+          total: "1",
+          page: 1,
+          page_size: 20,
+          items: [{ order: { order_id: "order-1" }, item: { item_id: "item-1" } }],
+        },
+      })
+
+    const hosts = await queryRemediationHostList({ source_type: 1, item_status: "success" })
+    const actions = await queryRemediationItemsByAgentId({ agent_id: "agent-1", source_type: 1 })
+
+    expect(REMEDIATION_PATHS.hostListQuery).toBe("/sensor/remediation/host/list/query")
+    expect(post).toHaveBeenNthCalledWith(1, "/sensor/remediation/host/list/query", expect.objectContaining({
+      request_id: expect.stringMatching(/^[0-9a-f-]{36}$/i),
+      source_type: 1,
+      item_status: "success",
+    }))
+    expect(post).toHaveBeenNthCalledWith(2, "/sensor/remediation/items/agent/query", expect.objectContaining({
+      request_id: expect.stringMatching(/^[0-9a-f-]{36}$/i),
+      agent_id: "agent-1",
+      source_type: 1,
+    }))
+    expect(hosts.items[0].agent_snapshot.agent_id).toBe("agent-1")
+    expect(actions.items[0].item.order_id).toBe("order-1")
   })
 
   it("clears the current Draft through the v1-prefixed remediation endpoint", async () => {

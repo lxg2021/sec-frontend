@@ -8,6 +8,7 @@ import type {
 import {
   activeDispatchSkipPresentation,
   itemStatusPresentation,
+  resultPresentation,
 } from "./remediation-case-execution-panel";
 
 function item(reasonCode: string) {
@@ -88,5 +89,26 @@ describe("itemStatusPresentation", () => {
     expect(itemStatusPresentation(executionItem("pending", true), "en").label).toBe(
       "Delivery Unconfirmed",
     );
+  });
+
+  it("describes a report timeout as an unconfirmed terminal result instead of an execution failure", () => {
+    const reportTimeoutItem = {
+      status: "failed",
+      reason_code: "REPORT_TIMEOUT",
+      reason_message: "",
+      error_code: "",
+      error_message: "",
+      uncertainty_since_at: "",
+      execution: null,
+    } as RemediationOrderItem;
+
+    expect(itemStatusPresentation(reportTimeoutItem, "en").label).toBe(
+      "Report Timed Out",
+    );
+    expect(resultPresentation(reportTimeoutItem, "en")).toMatchObject({
+      result: "No Final Result Received",
+      reason:
+        "The remediation request was accepted, but no final Agent result was received before the reporting deadline.",
+    });
   });
 });

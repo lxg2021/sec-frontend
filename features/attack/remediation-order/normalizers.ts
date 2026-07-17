@@ -11,6 +11,8 @@ import type {
   RemediationActionAgentDecision,
   RemediationActionApplicabilityStatus,
   RemediationCurrentEffectState,
+  RemediationHostActionList,
+  RemediationHostList,
   RemediationActionDescriptor,
   RemediationActionDecision,
   RemediationActionInput,
@@ -26,6 +28,7 @@ import type {
   RemediationOrderItem,
   RemediationOrderList,
   RemediationOrderListItem,
+  RemediationOrderReference,
   RemediationOrderSummary,
   RemediationOverviewSummary,
   RemediationDraftItemUpsertDisposition,
@@ -589,6 +592,26 @@ export function normalizeRemediationAgentSnapshot(
     ip_addresses: stringArray(snapshot.ip_addresses),
     mac_addresses: stringArray(snapshot.mac_addresses),
     observed_at: stringValue(snapshot.observed_at),
+    connectivity_status: normalizedConnectivityStatus(snapshot.connectivity_status),
+  };
+}
+
+function normalizedConnectivityStatus(
+  raw: unknown,
+): RemediationAgentSnapshot["connectivity_status"] {
+  const status = stringValue(raw).toLowerCase();
+  return status === "online" || status === "offline" ? status : "unknown";
+}
+
+function emptyRemediationAgentSnapshot(): RemediationAgentSnapshot {
+  return {
+    agent_id: "",
+    host_name: "",
+    primary_ip: "",
+    ip_addresses: [],
+    mac_addresses: [],
+    observed_at: "",
+    connectivity_status: "unknown",
   };
 }
 
@@ -891,6 +914,56 @@ export function normalizeRemediationItemList(
   const list = objectValue(raw);
   return {
     items: objectArray(list.items).map(normalizeRemediationOrderItem),
+    total: uint64Value(list.total),
+    page: numberValue(list.page),
+    page_size: numberValue(list.page_size),
+  };
+}
+
+export function normalizeRemediationOrderReference(
+  raw: unknown,
+): RemediationOrderReference {
+  const order = objectValue(raw);
+  return {
+    order_id: stringValue(order.order_id),
+    title: stringValue(order.title),
+    source: normalizeRemediationSource(order.source),
+  };
+}
+
+export function normalizeRemediationHostActionList(
+  raw: unknown,
+): RemediationHostActionList {
+  const list = objectValue(raw);
+  const host = normalizeRemediationAgentSnapshot(list.host) ?? emptyRemediationAgentSnapshot();
+  return {
+    host,
+    items: objectArray(list.items).map((rawItem) => {
+      const value = objectValue(rawItem);
+      const order = normalizeRemediationOrderReference(value.order);
+      const item = normalizeRemediationOrderItem(value.item);
+      if (!item.order_id) item.order_id = order.order_id;
+      return { order, item };
+    }),
+    total: uint64Value(list.total),
+    page: numberValue(list.page),
+    page_size: numberValue(list.page_size),
+  };
+}
+
+export function normalizeRemediationHostList(raw: unknown): RemediationHostList {
+  const list = objectValue(raw);
+  return {
+    items: objectArray(list.items).map((rawItem) => {
+      const item = objectValue(rawItem);
+      return {
+        agent_snapshot:
+          normalizeRemediationAgentSnapshot(item.agent_snapshot) ??
+          emptyRemediationAgentSnapshot(),
+        remediation_item_count: uint64Value(item.remediation_item_count),
+        last_activity_at: stringValue(item.last_activity_at),
+      };
+    }),
     total: uint64Value(list.total),
     page: numberValue(list.page),
     page_size: numberValue(list.page_size),

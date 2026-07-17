@@ -5193,7 +5193,6 @@
         "viewMode": "概览维度",
         "byOrder": "按处置单",
         "byHost": "按主机",
-        "hostViewPending": "按主机聚合列表将在主机分页接口接入后开放",
         "lastActivity": "最近活动",
         "refresh": "刷新处置概览",
         "metrics": {
@@ -5237,6 +5236,72 @@
             "ntfs-ads": "NTFS ADS",
             "proc-execute": "进程阻断",
             "net-quarantine": "网络阻断"
+          }
+        },
+        "hostList": {
+          "title": "主机处置列表",
+          "description": "当前筛选共 {count} 台主机",
+          "searchPlaceholder": "搜索 HostID、主机名或 IP",
+          "allSources": "全部来源",
+          "allStatuses": "全部状态",
+          "loading": "正在加载主机处置列表",
+          "loadFailed": "主机处置列表加载失败",
+          "retry": "点击重试",
+          "empty": "当前筛选条件下暂无主机处置记录",
+          "expandHost": "展开主机处置明细：{host}",
+          "collapseHost": "收起主机处置明细：{host}",
+          "detailLoading": "正在加载该主机的处置明细",
+          "detailLoadFailed": "主机处置明细加载失败",
+          "detailEmpty": "该主机暂无处置明细",
+          "detailTotal": "共 {count} 条处置明细",
+          "untitled": "未命名处置单",
+          "view": "查看处置",
+          "sources": {
+            "caseGraph": "场景",
+            "drillGraph": "数据钻探",
+            "locateGraph": "定位图",
+            "unknown": "未知来源"
+          },
+          "connectivity": {
+            "online": "在线",
+            "offline": "离线",
+            "unknown": "未知"
+          },
+          "itemStatuses": {
+            "draft": "草稿",
+            "ready": "已就绪",
+            "satisfied": "已满足",
+            "blocked": "已阻断",
+            "pending": "等待执行",
+            "running": "执行中",
+            "success": "成功",
+            "failed": "失败",
+            "skipped": "已跳过",
+            "uncertain": "未确认",
+            "canceled": "已取消"
+          },
+          "columns": {
+            "hostId": "HostID",
+            "hostName": "主机名",
+            "connectivity": "在线状态",
+            "actions": "处置数",
+            "lastActivity": "最近活动"
+          },
+          "detailColumns": {
+            "order": "处置单",
+            "target": "处置目标",
+            "action": "处置动作",
+            "status": "状态",
+            "result": "执行结果",
+            "reason": "结果原因",
+            "updatedAt": "更新时间",
+            "operation": "操作"
+          },
+          "pagination": {
+            "total": "共 {count} 台主机",
+            "page": "第 {page} / {total} 页",
+            "previous": "上一页",
+            "next": "下一页"
           }
         },
         "list": {

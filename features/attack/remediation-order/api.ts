@@ -4,6 +4,8 @@ import { http } from "@/shared/lib/http/client"
 import { createUuidRequestId } from "@/shared/lib/utils"
 
 import {
+  normalizeRemediationHostActionList,
+  normalizeRemediationHostList,
   normalizeRemediationItemList,
   normalizeRemediationNodeActionsResult,
   normalizeRemediationOrder,
@@ -22,6 +24,7 @@ import type {
   DeleteRemediationOrderRequest,
   PrepareRemediationOrderRequest,
   QueryEditableRemediationOrderBySourceRequest,
+  QueryRemediationHostListRequest,
   QueryRemediationItemsByAgentIdRequest,
   QueryRemediationItemsBySourceRequest,
   QueryRemediationNodeActionsRequest,
@@ -57,6 +60,7 @@ const REMEDIATION_PATHS = {
   orderConfirm: "/sensor/remediation/order/confirm",
   itemReconcile: "/sensor/remediation/item/reconcile",
   itemsByAgentQuery: "/sensor/remediation/items/agent/query",
+  hostListQuery: "/sensor/remediation/host/list/query",
   itemsBySourceQuery: "/sensor/remediation/items/source/query",
   summaryQuery: "/sensor/remediation/summary/query",
   overviewSummaryQuery: "/sensor/remediation/overview/summary/query",
@@ -199,8 +203,16 @@ export async function reconcileRemediationItem(
 export async function queryRemediationItemsByAgentId(
   params: RequestWithOptionalId<QueryRemediationItemsByAgentIdRequest>,
 ) {
-  return normalizeRemediationItemList(
+  return normalizeRemediationHostActionList(
     await postData(REMEDIATION_PATHS.itemsByAgentQuery, withRequestId(params)),
+  )
+}
+
+export async function queryRemediationHostList(
+  params: RequestWithOptionalId<QueryRemediationHostListRequest> = {},
+) {
+  return normalizeRemediationHostList(
+    await postData(REMEDIATION_PATHS.hostListQuery, withRequestId(params)),
   )
 }
 

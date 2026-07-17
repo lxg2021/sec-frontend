@@ -14,6 +14,22 @@ export const ORDER_STATUS_FILTERS = [
 ] as const
 
 export type OrderStatusFilter = "all" | (typeof ORDER_STATUS_FILTERS)[number]
+
+export const ITEM_STATUS_FILTERS = [
+  "draft",
+  "ready",
+  "satisfied",
+  "blocked",
+  "pending",
+  "running",
+  "success",
+  "failed",
+  "skipped",
+  "uncertain",
+  "canceled",
+] as const
+
+export type ItemStatusFilter = "all" | (typeof ITEM_STATUS_FILTERS)[number]
 export type SourceTypeFilter = "all" | RemediationSourceType
 
 export function countNumber(value: UInt64 | number) {

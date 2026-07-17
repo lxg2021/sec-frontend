@@ -5191,7 +5191,6 @@
         "viewMode": "Overview dimension",
         "byOrder": "By Order",
         "byHost": "By Host",
-        "hostViewPending": "The host view will be enabled after the host aggregation API is available",
         "lastActivity": "Last Activity",
         "refresh": "Refresh remediation overview",
         "metrics": {
@@ -5235,6 +5234,72 @@
             "ntfs-ads": "NTFS ADS",
             "proc-execute": "Proc Block",
             "net-quarantine": "Net Block"
+          }
+        },
+        "hostList": {
+          "title": "Host Remediation List",
+          "description": "{count} hosts match the current filters",
+          "searchPlaceholder": "Search HostID, hostname, or IP",
+          "allSources": "All Sources",
+          "allStatuses": "All Statuses",
+          "loading": "Loading host remediation records",
+          "loadFailed": "Failed to load host remediation records",
+          "retry": "Click to retry",
+          "empty": "No host remediation records match the current filters",
+          "expandHost": "Expand host remediation details: {host}",
+          "collapseHost": "Collapse host remediation details: {host}",
+          "detailLoading": "Loading remediation details for this host",
+          "detailLoadFailed": "Failed to load host remediation details",
+          "detailEmpty": "This host has no remediation details",
+          "detailTotal": "{count} remediation details",
+          "untitled": "Untitled Order",
+          "view": "View Order",
+          "sources": {
+            "caseGraph": "Case",
+            "drillGraph": "Data Drilldown",
+            "locateGraph": "Location Graph",
+            "unknown": "Unknown Source"
+          },
+          "connectivity": {
+            "online": "Online",
+            "offline": "Offline",
+            "unknown": "Unknown"
+          },
+          "itemStatuses": {
+            "draft": "Draft",
+            "ready": "Ready",
+            "satisfied": "Satisfied",
+            "blocked": "Blocked",
+            "pending": "Pending",
+            "running": "Running",
+            "success": "Succeeded",
+            "failed": "Failed",
+            "skipped": "Skipped",
+            "uncertain": "Unconfirmed",
+            "canceled": "Canceled"
+          },
+          "columns": {
+            "hostId": "HostID",
+            "hostName": "Hostname",
+            "connectivity": "Connectivity",
+            "actions": "Actions",
+            "lastActivity": "Last Activity"
+          },
+          "detailColumns": {
+            "order": "Order",
+            "target": "Target",
+            "action": "Action",
+            "status": "Status",
+            "result": "Result",
+            "reason": "Reason",
+            "updatedAt": "Updated",
+            "operation": "Operation"
+          },
+          "pagination": {
+            "total": "{count} hosts total",
+            "page": "Page {page} of {total}",
+            "previous": "Previous page",
+            "next": "Next page"
           }
         },
         "list": {

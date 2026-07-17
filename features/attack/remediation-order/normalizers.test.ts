@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  normalizeRemediationHostActionList,
+  normalizeRemediationHostList,
   normalizeRemediationItemList,
   normalizeRemediationNodeActionsResult,
   normalizeRemediationOrder,
@@ -12,6 +14,73 @@ import {
 } from "./normalizers";
 
 describe("remediation order normalizers", () => {
+  it("normalizes host rows and host-scoped action details", () => {
+    expect(
+      normalizeRemediationHostList({
+        total: 1,
+        page: 1,
+        page_size: 10,
+        items: [{
+          agent_snapshot: {
+            agent_id: " agent-1 ",
+            host_name: " host-a ",
+            primary_ip: " 192.168.1.8 ",
+            connectivity_status: "ACTIVE",
+          },
+          remediation_item_count: "3",
+          last_activity_at: " 2026-07-17T08:00:00Z ",
+        }],
+      }),
+    ).toMatchObject({
+      total: "1",
+      items: [{
+        agent_snapshot: {
+          agent_id: "agent-1",
+          host_name: "host-a",
+          primary_ip: "192.168.1.8",
+          connectivity_status: "unknown",
+        },
+        remediation_item_count: "3",
+        last_activity_at: "2026-07-17T08:00:00Z",
+      }],
+    });
+
+    expect(
+      normalizeRemediationHostActionList({
+        host: { agent_id: "agent-1", connectivity_status: "online" },
+        total: "1",
+        page: 1,
+        page_size: 20,
+        items: [{
+          order: {
+            order_id: "order-1",
+            title: "Contain suspicious file",
+            source: { source_type: 1, source_ref_id: "case-1" },
+          },
+          item: {
+            item_id: "item-1",
+            action_code: "file.quarantine",
+            status: "success",
+            execution: { operation_id: "operation-1", execution_status: "success" },
+            backup: { backup_id: "backup-1", available: true },
+          },
+        }],
+      }),
+    ).toMatchObject({
+      host: { agent_id: "agent-1", connectivity_status: "online" },
+      items: [{
+        order: { order_id: "order-1", title: "Contain suspicious file" },
+        item: {
+          order_id: "order-1",
+          item_id: "item-1",
+          execution: { operation_id: "operation-1", execution_status: "success" },
+          backup: { backup_id: "backup-1", available: true },
+          agent_snapshot: null,
+        },
+      }],
+    });
+  });
+
   it("normalizes tenant-wide remediation overview values without losing uint64 precision", () => {
     expect(
       normalizeRemediationOverviewSummary({
@@ -536,6 +605,7 @@ describe("remediation order normalizers", () => {
     });
     expect(result.items[0].agent_snapshot).toEqual({
       agent_id: "agent-1",
+      connectivity_status: "unknown",
       host_name: "OFFICE-PC-023",
       primary_ip: "10.0.40.15",
       ip_addresses: ["10.0.40.15", "fe80::1"],

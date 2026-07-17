@@ -33,6 +33,10 @@ import {
   type OrderStatusFilter,
   type SourceTypeFilter,
 } from "../presentation"
+import {
+  RemediationOverviewViewTabs,
+  type RemediationOverviewViewMode,
+} from "./remediation-overview-view-tabs"
 
 interface RemediationOrderOverviewListProps {
   data: RemediationOrderList
@@ -46,6 +50,8 @@ interface RemediationOrderOverviewListProps {
   selectedSource: SourceTypeFilter
   selectedStatus: OrderStatusFilter
   sources: RemediationOverviewSourceBucket[]
+  viewMode: RemediationOverviewViewMode
+  onViewModeChange: (mode: RemediationOverviewViewMode) => void
 }
 
 const statusTone: Record<string, string> = {
@@ -103,6 +109,8 @@ export function RemediationOrderOverviewList({
   selectedSource,
   selectedStatus,
   sources,
+  viewMode,
+  onViewModeChange,
 }: RemediationOrderOverviewListProps) {
   const t = useTranslations("pages.response.overview.list")
   const locale = useLocale()
@@ -192,7 +200,7 @@ export function RemediationOrderOverviewList({
   return (
     <Card className="flex min-h-0 flex-col overflow-hidden border-0 shadow-md">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <span className="flex size-9 items-center justify-center rounded-xl bg-slate-900 text-white">
             <ListChecks className="size-4.5" aria-hidden />
           </span>
@@ -200,6 +208,7 @@ export function RemediationOrderOverviewList({
             <h2 className="text-base font-semibold text-slate-900">{t("title")}</h2>
             <p className="mt-0.5 text-xs text-slate-400">{t("description", { count: formatCount(data.total, locale) })}</p>
           </div>
+          <RemediationOverviewViewTabs mode={viewMode} onChange={onViewModeChange} />
         </div>
 
         <div className="flex items-center gap-2">
