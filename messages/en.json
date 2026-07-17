@@ -5213,12 +5213,29 @@
           "terminalTotal": "Terminal Targets"
         },
         "actions": {
-          "title": "Remediation Action Distribution",
-          "description": "Based on historical remediation targets",
+          "title": "Remediation Type Distribution",
+          "description": "Historical targets grouped into 13 remediation types",
           "loading": "Loading action data",
           "loadFailed": "Failed to load action distribution",
           "retry": "Click to retry",
-          "empty": "No remediation action data"
+          "empty": "No remediation action data",
+          "noData": "No remediation records",
+          "chartAria": "Vertical column chart of target counts across 13 remediation types",
+          "types": {
+            "process": "Process",
+            "file": "File",
+            "scheduled-task": "Task",
+            "service": "Service",
+            "account": "Account",
+            "registry": "Registry",
+            "wmi-class": "WMI Class",
+            "wmi-subscription": "WMI Sub.",
+            "bits-job": "BITS Job",
+            "file-ea": "File EA",
+            "ntfs-ads": "NTFS ADS",
+            "proc-execute": "Proc Block",
+            "net-quarantine": "Net Block"
+          }
         },
         "list": {
           "title": "Remediation Orders",

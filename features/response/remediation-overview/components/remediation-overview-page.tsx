@@ -14,7 +14,7 @@ import {
 import { Button } from "@/shared/ui/button"
 import { cn } from "@/shared/lib/utils"
 
-import { formatCount, formatTimestamp, type OrderStatusFilter, type SourceTypeFilter } from "../presentation"
+import { formatTimestamp, type OrderStatusFilter, type SourceTypeFilter } from "../presentation"
 import { OverviewMetricCards } from "./overview-metric-cards"
 import { RemediationActionDistribution } from "./remediation-action-distribution"
 import { RemediationOrderOverviewList } from "./remediation-order-overview-list"
@@ -124,7 +124,6 @@ export function RemediationOverviewPage() {
             <div className="min-w-0">
               <h1 className="truncate text-xl font-semibold text-slate-950">{t("title")}</h1>
               <p className="mt-1 text-sm text-slate-500">{t("subtitle")}</p>
-              <p className="mt-1 text-xs text-slate-400">{t("totalItems", { count: formatCount(summary.totals.item_count, locale) })}</p>
             </div>
           </div>
 

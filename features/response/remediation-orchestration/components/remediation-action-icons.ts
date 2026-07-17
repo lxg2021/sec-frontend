@@ -35,38 +35,51 @@ export const REMEDIATION_TYPE_ICONS: Record<string, RemediationIcon> = {
   "net-quarantine": Network,
 };
 
+export const REMEDIATION_ACTION_TYPE_CATALOG = [
+  { type: "process", representativeActionCode: "process.terminate" },
+  { type: "file", representativeActionCode: "file.quarantine" },
+  { type: "scheduled-task", representativeActionCode: "scheduled_job.delete" },
+  { type: "service", representativeActionCode: "service.delete" },
+  { type: "account", representativeActionCode: "account.disable" },
+  { type: "registry", representativeActionCode: "registry.delete_key" },
+  { type: "wmi-class", representativeActionCode: "wmi_class.delete" },
+  { type: "wmi-subscription", representativeActionCode: "wmi_subscription.delete" },
+  { type: "bits-job", representativeActionCode: "bits.delete" },
+  { type: "file-ea", representativeActionCode: "file_ea.delete" },
+  { type: "ntfs-ads", representativeActionCode: "ntfs_ads.delete" },
+  { type: "proc-execute", representativeActionCode: "process.block_execute" },
+  { type: "net-quarantine", representativeActionCode: "net.block" },
+] as const;
+
+export type RemediationActionType = (typeof REMEDIATION_ACTION_TYPE_CATALOG)[number]["type"];
+
+export function remediationActionType(actionCode: string): RemediationActionType | null {
+  const action = actionCode.trim().toLowerCase();
+  if (action.startsWith("process.block") || action.startsWith("process.bypass")) return "proc-execute";
+  if (action.startsWith("file_ea.")) return "file-ea";
+  if (action.startsWith("ntfs_ads.")) return "ntfs-ads";
+  if (action.startsWith("wmi_subscription.")) return "wmi-subscription";
+  if (action.startsWith("wmi_class.")) return "wmi-class";
+  if (action.startsWith("scheduled_job.") || action.startsWith("scheduled_task.") || action.startsWith("task.")) {
+    return "scheduled-task";
+  }
+  if (action.startsWith("bits.") || action.startsWith("bits_job.")) return "bits-job";
+  if (action.startsWith("file.")) return "file";
+  if (action.startsWith("service.")) return "service";
+  if (action.startsWith("account.")) return "account";
+  if (action.startsWith("registry.")) return "registry";
+  if (action.startsWith("net.") || action.startsWith("network.")) return "net-quarantine";
+  if (action.startsWith("process.")) return "process";
+  return null;
+}
+
 export function remediationTypeIcon(type: string): RemediationIcon {
   return REMEDIATION_TYPE_ICONS[type.trim().toLowerCase()] ?? ShieldCheck;
 }
 
 export function remediationActionIcon(actionCode: string): RemediationIcon {
-  const action = actionCode.trim().toLowerCase();
-  if (action.startsWith("process.block") || action.startsWith("process.bypass")) {
-    return REMEDIATION_TYPE_ICONS["proc-execute"];
-  }
-  if (action.startsWith("file_ea.")) return REMEDIATION_TYPE_ICONS["file-ea"];
-  if (action.startsWith("ntfs_ads.")) return REMEDIATION_TYPE_ICONS["ntfs-ads"];
-  if (action.startsWith("wmi_subscription.")) {
-    return REMEDIATION_TYPE_ICONS["wmi-subscription"];
-  }
-  if (action.startsWith("wmi_class.")) {
-    return REMEDIATION_TYPE_ICONS["wmi-class"];
-  }
-  if (action.startsWith("scheduled_job.") || action.startsWith("scheduled_task.") || action.startsWith("task.")) {
-    return REMEDIATION_TYPE_ICONS["scheduled-task"];
-  }
-  if (action.startsWith("bits.") || action.startsWith("bits_job.")) {
-    return REMEDIATION_TYPE_ICONS["bits-job"];
-  }
-  if (action.startsWith("file.")) return REMEDIATION_TYPE_ICONS.file;
-  if (action.startsWith("service.")) return REMEDIATION_TYPE_ICONS.service;
-  if (action.startsWith("account.")) return REMEDIATION_TYPE_ICONS.account;
-  if (action.startsWith("registry.")) return REMEDIATION_TYPE_ICONS.registry;
-  if (action.startsWith("net.") || action.startsWith("network.")) {
-    return REMEDIATION_TYPE_ICONS["net-quarantine"];
-  }
-  if (action.startsWith("process.")) return REMEDIATION_TYPE_ICONS.process;
-  return ShieldCheck;
+  const type = remediationActionType(actionCode);
+  return type ? REMEDIATION_TYPE_ICONS[type] : ShieldCheck;
 }
 
 export function remediationActionIconClassName(actionCode: string): string {

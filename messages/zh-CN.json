@@ -5215,12 +5215,29 @@
           "terminalTotal": "终态目标"
         },
         "actions": {
-          "title": "处置动作分布",
-          "description": "按历史处置目标统计",
+          "title": "处置类型分布",
+          "description": "按 13 类历史处置目标统计",
           "loading": "正在加载动作数据",
           "loadFailed": "动作分布加载失败",
           "retry": "点击重试",
-          "empty": "暂无处置动作数据"
+          "empty": "暂无处置动作数据",
+          "noData": "暂无处置记录",
+          "chartAria": "13 类处置目标数量垂直柱形图",
+          "types": {
+            "process": "进程",
+            "file": "文件",
+            "scheduled-task": "计划任务",
+            "service": "服务",
+            "account": "账号",
+            "registry": "注册表",
+            "wmi-class": "WMI Class",
+            "wmi-subscription": "WMI 订阅",
+            "bits-job": "BITS Job",
+            "file-ea": "文件 EA",
+            "ntfs-ads": "NTFS ADS",
+            "proc-execute": "进程阻断",
+            "net-quarantine": "网络阻断"
+          }
         },
         "list": {
           "title": "处置单列表",
