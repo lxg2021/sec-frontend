@@ -141,7 +141,7 @@
     "response": "处置响应",
     "responseOverview": "处置概览",
     "orchestration": "处置编排",
-    "dacpolicy": "DAC控制",
+    "dacpolicy": "访问控制",
     "aiops": "AI 运维",
     "aithreat": "威胁分析",
     "aioperations": "运营管理",

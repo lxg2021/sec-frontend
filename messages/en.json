@@ -141,7 +141,7 @@
     "response": "Response",
     "responseOverview": "Response Overview",
     "orchestration": "Orchestration",
-    "dacpolicy": "DAC Control",
+    "dacpolicy": "Access Control",
     "aiops": "AI Ops",
     "aithreat": "Threat Analysis",
     "aioperations": "Operations Management",
