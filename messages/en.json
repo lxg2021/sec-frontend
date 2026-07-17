@@ -5286,7 +5286,8 @@
             "lastActivity": "Last Activity"
           },
           "detailColumns": {
-            "order": "Order",
+            "orderName": "Order Name",
+            "orderId": "Order ID",
             "target": "Target",
             "action": "Action",
             "status": "Status",

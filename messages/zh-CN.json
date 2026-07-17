@@ -5288,7 +5288,8 @@
             "lastActivity": "最近活动"
           },
           "detailColumns": {
-            "order": "处置单",
+            "orderName": "处置单名称",
+            "orderId": "处置单 ID",
             "target": "处置目标",
             "action": "处置动作",
             "status": "状态",

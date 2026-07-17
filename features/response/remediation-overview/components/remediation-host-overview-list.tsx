@@ -358,9 +358,10 @@ function HostActionDetailTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[1280px] table-fixed border-collapse text-xs">
+      <table className="w-full min-w-[1490px] table-fixed border-collapse text-center text-xs">
         <colgroup>
-          <col className="w-[220px]" />
+          <col className="w-[190px]" />
+          <col className="w-[135px]" />
           <col className="w-[210px]" />
           <col className="w-[155px]" />
           <col className="w-[110px]" />
@@ -371,14 +372,15 @@ function HostActionDetailTable({
         </colgroup>
         <thead className="bg-slate-50 text-slate-500">
           <tr className="border-b border-slate-100">
-            <th className="h-9 px-4 text-left font-medium">{t("detailColumns.order")}</th>
-            <th className="h-9 px-3 text-left font-medium">{t("detailColumns.target")}</th>
-            <th className="h-9 px-3 text-left font-medium">{t("detailColumns.action")}</th>
+            <th className="h-9 px-4 text-center font-medium">{t("detailColumns.orderName")}</th>
+            <th className="h-9 px-3 text-center font-medium">{t("detailColumns.orderId")}</th>
+            <th className="h-9 px-3 text-center font-medium">{t("detailColumns.target")}</th>
+            <th className="h-9 px-3 text-center font-medium">{t("detailColumns.action")}</th>
             <th className="h-9 px-3 text-center font-medium">{t("detailColumns.status")}</th>
             <th className="h-9 px-3 text-center font-medium">{t("detailColumns.result")}</th>
-            <th className="h-9 px-3 text-left font-medium">{t("detailColumns.reason")}</th>
+            <th className="h-9 px-3 text-center font-medium">{t("detailColumns.reason")}</th>
             <th className="h-9 px-3 text-center font-medium">{t("detailColumns.updatedAt")}</th>
-            <th className="h-9 px-4 text-right font-medium">{t("detailColumns.operation")}</th>
+            <th className="h-9 px-4 text-center font-medium">{t("detailColumns.operation")}</th>
           </tr>
         </thead>
         <tbody>
@@ -390,24 +392,24 @@ function HostActionDetailTable({
             const actionLabel = remediationOrderActionLabel(item, locale)
             return (
               <tr key={item.item_id} className="h-12 border-b border-slate-100 text-slate-700 last:border-b-0 hover:bg-slate-50/70">
-                <td className="px-4" title={`${order.title || order.order_id}\n${order.order_id}`}>
+                <td className="px-4" title={order.title || t("untitled")}>
                   <div className="truncate font-medium text-slate-900">{order.title || t("untitled")}</div>
-                  <div className="truncate font-mono text-[10px] text-slate-400">{shortId(order.order_id)}</div>
                 </td>
+                <td className="truncate px-3 font-mono text-[11px] text-slate-500" title={order.order_id}>{shortId(order.order_id)}</td>
                 <td className="px-3" title={target.detail || target.displayName}>
                   <span className="block truncate font-medium text-slate-800">{target.displayName || "-"}</span>
                 </td>
                 <td className="px-3 font-medium text-slate-700" title={actionLabel}>
-                  <span className="flex min-w-0 items-center gap-2">
+                  <span className="flex min-w-0 items-center justify-center gap-2">
                     <ActionIcon className={cn("size-3.5 shrink-0", remediationActionIconClassName(item.action_code))} aria-hidden />
                     <span className="truncate">{actionLabel}</span>
                   </span>
                 </td>
                 <td className="px-3 text-center"><Badge variant="outline" className={cn("border-0 font-medium", status.className)}>{status.label}</Badge></td>
                 <td className="truncate px-3 text-center font-medium text-slate-700" title={result.result}>{result.result}</td>
-                <td className="truncate px-3 text-slate-500" title={result.reason}>{result.reason}</td>
+                <td className="truncate px-3 text-center text-slate-500" title={result.reason}>{result.reason}</td>
                 <td className="whitespace-nowrap px-3 text-center tabular-nums text-slate-500">{formatTimestamp(item.updated_at, locale)}</td>
-                <td className="px-4 text-right">
+                <td className="px-4 text-center">
                   <Button asChild variant="outline" size="sm" className="h-7 rounded-full border-slate-200 px-2.5 text-[11px]">
                     <Link href={`/frame/response/orchestration?order_id=${encodeURIComponent(order.order_id)}`}>
                       {t("view")}<ExternalLink className="ml-1 size-3" aria-hidden />
