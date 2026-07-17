@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import {
-  ArrowRight,
   CheckCircle2,
   FileSliders,
   FileText,
@@ -174,11 +173,11 @@ export function AccessControlWizard() {
   }
 
   return (
-    <div className="h-full min-h-0 overflow-hidden bg-slate-100/80 p-4">
+    <div className="h-full min-h-0 overflow-hidden bg-slate-100 p-4">
       <div className="flex h-full min-h-0 flex-col gap-3">
-        <header className="flex shrink-0 items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
+        <header className="flex shrink-0 items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
               <ShieldCheck className="h-5 w-5" />
             </span>
             <div className="min-w-0">
@@ -187,14 +186,14 @@ export function AccessControlWizard() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <div className="hidden items-center gap-3 2xl:flex">
+            <div className="hidden items-center rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 2xl:flex">
               <FlowBadge
                 number={1}
                 title={copy.createObject}
                 description="PMC Catalog"
                 done={Boolean(createdPolicy)}
               />
-              <ArrowRight className="h-4 w-4 shrink-0 text-slate-400" />
+              <div className="mx-2 h-px w-7 bg-slate-300" />
               <FlowBadge
                 number={2}
                 title={`${copy.applyHosts} · ${selectedHosts.length}`}
@@ -229,43 +228,8 @@ export function AccessControlWizard() {
           onTypeChange={changePolicyType}
         />
 
-        <main className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1.72fr)_minmax(410px,1fr)]">
-          <div className="flex min-h-0 flex-col gap-3">
-            {draft.type === "network" ? (
-              <WorkspaceCard
-                icon={Network}
-                title={copy.policyTypes.network[0]}
-                description={copy.objectHints.network}
-                tone="cyan"
-                className="min-h-0 flex-1"
-                bodyClassName="overflow-y-auto"
-              >
-                <NetworkEditor copy={copy} value={draft.network} onChange={(network) => updateDraft({ network })} />
-              </WorkspaceCard>
-            ) : (
-              <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,3fr)_minmax(0,2fr)] gap-3">
-                <div className="grid min-h-0 gap-3 lg:grid-cols-2">
-                  <SubjectPanel copy={copy} draft={draft} onChange={updateDraft} />
-                  <ObjectPanel copy={copy} draft={draft} onChange={updateDraft} />
-                </div>
-                <WorkspaceCard
-                  icon={FileSliders}
-                  title={copy.rules}
-                  description={copy.rulesHint}
-                  tone="violet"
-                  className="min-h-0"
-                  bodyClassName="overflow-y-auto"
-                >
-                  <RuleEditor
-                    copy={copy}
-                    type={draft.type}
-                    rules={draft.rules}
-                    onChange={(rules) => updateDraft({ rules })}
-                  />
-                </WorkspaceCard>
-              </div>
-            )}
-          </div>
+        <main className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1.62fr)_minmax(440px,1fr)]">
+          <PolicyConfigurationPanel copy={copy} draft={draft} onChange={updateDraft} />
 
           <HostPanel
             copy={copy}
@@ -279,9 +243,62 @@ export function AccessControlWizard() {
             onReload={() => void loadHosts()}
           />
         </main>
-
       </div>
     </div>
+  )
+}
+
+function PolicyConfigurationPanel({
+  copy,
+  draft,
+  onChange,
+}: {
+  copy: AccessControlCopy
+  draft: AccessControlPolicyDraft
+  onChange: (patch: Partial<AccessControlPolicyDraft>) => void
+}) {
+  const PolicyIcon = POLICY_ICONS[draft.type]
+
+  return (
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-3.5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
+          <PolicyIcon className="h-4.5 w-4.5" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-slate-950">{copy.policyTypes[draft.type][0]}</h2>
+          <p className="mt-0.5 truncate text-[11px] text-slate-500">{copy.policyTypes[draft.type][1]}</p>
+        </div>
+      </header>
+
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {draft.type === "network" ? (
+          <div className="p-5">
+            <NetworkEditor copy={copy} value={draft.network} onChange={(network) => onChange({ network })} />
+          </div>
+        ) : (
+          <div className="flex min-h-full flex-col">
+            <div className="grid lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
+              <SubjectPanel copy={copy} draft={draft} onChange={onChange} />
+              <ObjectPanel copy={copy} draft={draft} onChange={onChange} />
+            </div>
+            <section className="flex min-h-[260px] flex-1 flex-col border-t border-slate-200 p-5">
+              <ConfigurationSectionHeader
+                icon={FileSliders}
+                title={copy.rules}
+                description={copy.rulesHint}
+              />
+              <RuleEditor
+                copy={copy}
+                type={draft.type}
+                rules={draft.rules}
+                onChange={(rules) => onChange({ rules })}
+              />
+            </section>
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 
@@ -297,13 +314,13 @@ function PolicyDefinitionBar({
   onTypeChange: (type: AccessPolicyType) => void
 }) {
   return (
-    <section className="shrink-0 rounded-2xl border border-slate-200 bg-white px-5 py-3 shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="w-48 shrink-0">
+    <section className="shrink-0 rounded-xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
+      <div className="grid items-center gap-4 xl:grid-cols-[180px_minmax(0,1fr)]">
+        <div className="min-w-0">
           <h2 className="text-sm font-semibold text-slate-950">{copy.basicInfo}</h2>
           <p className="mt-0.5 text-[11px] text-slate-500">{copy.policyTypeHint}</p>
         </div>
-        <div className="grid min-w-0 flex-1 grid-cols-4 rounded-xl bg-slate-100 p-1">
+        <div className="grid min-w-0 grid-cols-4 rounded-lg border border-slate-200 bg-slate-50 p-1">
           {(Object.keys(copy.policyTypes) as AccessPolicyType[]).map((type) => {
             const Icon = POLICY_ICONS[type]
             const active = draft.type === type
@@ -314,10 +331,10 @@ function PolicyDefinitionBar({
                 aria-pressed={active}
                 title={copy.policyTypes[type][1]}
                 onClick={() => onTypeChange(type)}
-                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                   active
-                    ? "border border-blue-200 bg-white text-blue-700 shadow-sm"
-                    : "border border-transparent text-slate-600 hover:bg-white/70 hover:text-slate-900"
+                    ? "bg-white text-blue-700 shadow-sm ring-1 ring-slate-200"
+                    : "text-slate-600 hover:bg-white hover:text-slate-900"
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -328,37 +345,45 @@ function PolicyDefinitionBar({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 items-center gap-4 border-t border-slate-100 pt-3 xl:grid-cols-[minmax(300px,1fr)_180px_170px_minmax(240px,0.65fr)]">
-        <div className="flex min-w-0 items-center gap-2">
-          <Label htmlFor="access-policy-name" className="shrink-0 text-xs font-medium text-slate-700">
-            {copy.policyName}<span className="ml-1 text-red-500">*</span>
+      <div className="mt-3 grid grid-cols-1 gap-4 border-t border-slate-200 pt-3 xl:grid-cols-[minmax(320px,1.5fr)_180px_minmax(240px,0.75fr)]">
+        <div className="min-w-0 space-y-1.5">
+          <Label htmlFor="access-policy-name" className="text-xs font-medium text-slate-700">
+            {copy.policyName}
+            <span className="ml-1 text-red-500">*</span>
           </Label>
           <Input
             id="access-policy-name"
             value={draft.name}
             onChange={(event) => onChange({ name: event.target.value })}
             placeholder={copy.policyNamePlaceholder}
-            className="h-10 min-w-0 flex-1"
+            className="h-9 min-w-0"
             maxLength={128}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2">
-          <Label htmlFor="access-policy-version" className="shrink-0 text-xs font-medium text-slate-700">
-            {copy.version}<span className="ml-1 text-red-500">*</span>
+        <div className="min-w-0 space-y-1.5">
+          <Label htmlFor="access-policy-version" className="text-xs font-medium text-slate-700">
+            {copy.version}
+            <span className="ml-1 text-red-500">*</span>
           </Label>
           <Input
             id="access-policy-version"
             value={draft.version}
             onChange={(event) => onChange({ version: event.target.value })}
             placeholder="1.0.0"
-            className="h-10 min-w-0 flex-1 font-mono"
+            className="h-9 min-w-0 font-mono"
             maxLength={64}
           />
         </div>
-        <div className="flex min-w-0 items-center gap-2">
-          <Label htmlFor="access-policy-priority" className="shrink-0 text-xs font-medium text-slate-700">
-            {copy.priority}<span className="ml-1 text-red-500">*</span>
-          </Label>
+        <div className="min-w-0 space-y-1.5">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <Label htmlFor="access-policy-priority" className="shrink-0 text-xs font-medium text-slate-700">
+              {copy.priority}
+              <span className="ml-1 text-red-500">*</span>
+            </Label>
+            <span className="truncate text-[10px] text-slate-400" title={copy.priorityHint}>
+              {copy.priorityHint}
+            </span>
+          </div>
           <Input
             id="access-policy-priority"
             type="number"
@@ -366,11 +391,8 @@ function PolicyDefinitionBar({
             max={255}
             value={draft.priority}
             onChange={(event) => onChange({ priority: Number(event.target.value) })}
-            className="h-10 min-w-0 flex-1 font-mono"
+            className="h-9 min-w-0 font-mono"
           />
-        </div>
-        <div className="flex h-10 min-w-0 items-center rounded-lg border border-slate-200 bg-slate-50 px-3">
-          <div className="truncate text-xs font-medium text-slate-600" title={copy.priorityHint}>{copy.priorityHint}</div>
         </div>
       </div>
     </section>
@@ -387,25 +409,24 @@ function SubjectPanel({
   onChange: (patch: Partial<AccessControlPolicyDraft>) => void
 }) {
   return (
-    <WorkspaceCard
-      icon={Users}
-      title={copy.subject}
-      description={copy.subjectHint}
-      tone="blue"
-      bodyClassName="overflow-y-auto"
-      action={(
+    <section className="min-w-0 p-5">
+      <ConfigurationSectionHeader
+        icon={Users}
+        title={copy.subject}
+        description={copy.subjectHint}
+        action={
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 border-blue-200 bg-blue-50 text-xs text-blue-700 hover:bg-blue-100"
+          className="h-8 border-slate-200 bg-white text-xs text-blue-700 shadow-sm hover:border-blue-200 hover:bg-blue-50"
           onClick={() => onChange({ subjects: [...draft.subjects, createEmptySubject()] })}
         >
           <Plus className="mr-1 h-3.5 w-3.5" />
           {copy.addSubject}
         </Button>
-      )}
-    >
+        }
+      />
       <div className="space-y-2">
         {draft.subjects.map((subject, index) => (
           <SubjectEditor
@@ -448,7 +469,7 @@ function SubjectPanel({
           </div>
         </details>
       </div>
-    </WorkspaceCard>
+    </section>
   )
 }
 
@@ -464,13 +485,12 @@ function ObjectPanel({
   if (draft.type === "network") return null
 
   return (
-    <WorkspaceCard
-      icon={ShieldCheck}
-      title={copy.object}
-      description={copy.objectHints[draft.type]}
-      tone="orange"
-      bodyClassName="overflow-y-auto"
-    >
+    <section className="min-w-0 p-5">
+      <ConfigurationSectionHeader
+        icon={ShieldCheck}
+        title={copy.object}
+        description={copy.objectHints[draft.type]}
+      />
       <Label className="mb-2 block text-xs font-medium text-slate-700">{copy.objectLabels[draft.type]}</Label>
       <MultiValueInput
         value={draft.objectPaths}
@@ -491,7 +511,34 @@ function ObjectPanel({
           />
         </details>
       ) : null}
-    </WorkspaceCard>
+    </section>
+  )
+}
+
+function ConfigurationSectionHeader({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: typeof Users
+  title: string
+  description: string
+  action?: React.ReactNode
+}) {
+  return (
+    <header className="mb-4 flex min-w-0 items-start justify-between gap-3">
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-blue-600">
+          <Icon className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
+          <p className="mt-0.5 truncate text-[11px] text-slate-500">{description}</p>
+        </div>
+      </div>
+      {action}
+    </header>
   )
 }
 
@@ -517,10 +564,10 @@ function HostPanel({
   onReload: () => void
 }) {
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <header className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-5 py-3.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
             <Server className="h-4.5 w-4.5" />
           </span>
           <div className="min-w-0">
@@ -529,7 +576,7 @@ function HostPanel({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-semibold text-cyan-700">
+          <span className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
             {copy.selectedHosts(selectedHosts.length)}
           </span>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onReload} disabled={loading} aria-label={copy.retry}>
@@ -538,7 +585,7 @@ function HostPanel({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col p-3">
+      <div className="flex min-h-0 flex-1 flex-col bg-slate-50/50 p-3">
         {error ? (
           <Alert variant="destructive" className="mb-3 shrink-0 py-2">
             <AlertTitle>{copy.loadHostsFailed}</AlertTitle>
@@ -568,7 +615,7 @@ function HostPanel({
         />
       </div>
 
-      <div className="grid shrink-0 grid-cols-2 gap-3 border-t border-slate-100 bg-slate-50 px-4 py-3">
+      <div className="grid shrink-0 grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 bg-white px-4 py-3">
         <Metric label={copy.targetHostCount} value={selectedHosts.length} tone="blue" />
         <Metric label={copy.offlineHostCount} value={offlineHostCount} tone="amber" />
       </div>
@@ -576,53 +623,9 @@ function HostPanel({
   )
 }
 
-function WorkspaceCard({
-  icon: Icon,
-  title,
-  description,
-  tone,
-  action,
-  children,
-  className = "",
-  bodyClassName = "",
-}: {
-  icon: typeof Users
-  title: string
-  description: string
-  tone: "blue" | "orange" | "violet" | "cyan"
-  action?: React.ReactNode
-  children: React.ReactNode
-  className?: string
-  bodyClassName?: string
-}) {
-  const tones = {
-    blue: "bg-blue-50 text-blue-600",
-    orange: "bg-orange-50 text-orange-600",
-    violet: "bg-violet-50 text-violet-600",
-    cyan: "bg-cyan-50 text-cyan-600",
-  }
-  return (
-    <section className={`flex min-h-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}>
-      <header className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${tones[tone]}`}>
-            <Icon className="h-4.5 w-4.5" />
-          </span>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-slate-950">{title}</h2>
-            <p className="mt-0.5 truncate text-[11px] text-slate-500">{description}</p>
-          </div>
-        </div>
-        {action}
-      </header>
-      <div className={`min-h-0 flex-1 p-4 ${bodyClassName}`}>{children}</div>
-    </section>
-  )
-}
-
 function FlowBadge({ number, title, description, done }: { number: number; title: string; description: string; done: boolean }) {
   return (
-    <div className="flex w-52 shrink-0 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+    <div className="flex w-44 shrink-0 items-center gap-2 px-1 py-0.5">
       <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${done ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"}`}>
         {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : number}
       </span>
@@ -636,8 +639,8 @@ function FlowBadge({ number, title, description, done }: { number: number; title
 
 function Metric({ label, value, tone }: { label: string; value: number; tone: "blue" | "amber" }) {
   return (
-    <div className="flex items-baseline gap-2">
-      <span className={`text-xl font-bold tabular-nums ${tone === "blue" ? "text-blue-700" : "text-amber-700"}`}>{value}</span>
+    <div className="flex items-baseline justify-center gap-2 px-3">
+      <span className={`text-lg font-bold tabular-nums ${tone === "blue" ? "text-blue-700" : "text-amber-700"}`}>{value}</span>
       <span className="truncate text-[11px] text-slate-500">{label}</span>
     </div>
   )

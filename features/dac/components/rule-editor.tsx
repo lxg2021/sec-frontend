@@ -22,7 +22,7 @@ export function RuleEditor({ copy, type, rules, onChange }: RuleEditorProps) {
   const nextAction = actions.find((action) => !usedActions.has(action))
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200">
+    <div className="flex min-h-[210px] flex-1 flex-col overflow-hidden rounded-xl border border-slate-200">
       <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(140px,0.8fr)_110px_48px] items-center gap-3 bg-slate-50 px-4 py-2.5 text-xs font-medium text-slate-500">
         <span>{copy.action}</span>
         <span>{copy.effect}</span>
@@ -30,7 +30,9 @@ export function RuleEditor({ copy, type, rules, onChange }: RuleEditorProps) {
         <span />
       </div>
       {rules.length === 0 ? (
-        <div className="px-4 py-8 text-center text-sm text-slate-400">{copy.noRules}</div>
+        <div className="flex flex-1 items-center justify-center px-4 py-8 text-center text-sm text-slate-400">
+          {copy.noRules}
+        </div>
       ) : null}
       {rules.map((rule, index) => (
         <div
@@ -98,7 +100,7 @@ export function RuleEditor({ copy, type, rules, onChange }: RuleEditorProps) {
           </Button>
         </div>
       ))}
-      <div className="border-t border-slate-100 p-3">
+      <div className="mt-auto border-t border-slate-100 p-3">
         <Button
           type="button"
           variant="outline"
