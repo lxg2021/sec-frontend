@@ -27,6 +27,7 @@ import type {
   RemediationOrderList,
   RemediationOrderListItem,
   RemediationOrderSummary,
+  RemediationOverviewSummary,
   RemediationDraftItemUpsertDisposition,
   RemediationDraftItemUpsertResult,
   RemediationDraftItemsUpsertData,
@@ -905,5 +906,42 @@ export function normalizeRemediationSummary(raw: unknown): RemediationSummary {
     success_count: uint64Value(summary.success_count),
     failed_count: uint64Value(summary.failed_count),
     uncertain_count: uint64Value(summary.uncertain_count),
+  };
+}
+
+export function normalizeRemediationOverviewSummary(
+  raw: unknown,
+): RemediationOverviewSummary {
+  const summary = objectValue(raw);
+  const totals = objectValue(summary.totals);
+
+  return {
+    totals: {
+      order_count: uint64Value(totals.order_count),
+      host_count: uint64Value(totals.host_count),
+      active_order_count: uint64Value(totals.active_order_count),
+      attention_order_count: uint64Value(totals.attention_order_count),
+      item_count: uint64Value(totals.item_count),
+      last_activity_at: stringValue(totals.last_activity_at),
+    },
+    order_statuses: objectArray(summary.order_statuses).map((bucket) => ({
+      status: stringValue(bucket.status).toLowerCase(),
+      count: uint64Value(bucket.count),
+    })),
+    sources: objectArray(summary.sources).map((bucket) => ({
+      source_type: enumValue(bucket.source_type),
+      order_count: uint64Value(bucket.order_count),
+    })),
+    actions: objectArray(summary.actions).map((bucket) => ({
+      action_code: stringValue(bucket.action_code).toLowerCase(),
+      item_count: uint64Value(bucket.item_count),
+    })),
+    trend: objectArray(summary.trend).map((point) => ({
+      bucket_start_at: stringValue(point.bucket_start_at),
+      terminal_item_count: uint64Value(point.terminal_item_count),
+      success_count: uint64Value(point.success_count),
+      failed_count: uint64Value(point.failed_count),
+      uncertain_count: uint64Value(point.uncertain_count),
+    })),
   };
 }

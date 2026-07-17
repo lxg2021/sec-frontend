@@ -9,7 +9,10 @@
     "features/attack/dgraph/components/control-panel/attack-graph-control-panel.tsx",
     "features/attack/dgraph/components/control-panel/attack-graph-remediation-targets.tsx",
     "features/response/remediation-orchestration/remediation-order-model.ts",
+    "features/response/remediation-overview/**/*.ts",
+    "features/response/remediation-overview/**/*.tsx",
     "app/frame/response/orchestration/page.tsx",
+    "app/frame/response/overview/page.tsx",
     "shared/lib/utils.ts",
     "vitest.config.ts"
   ],

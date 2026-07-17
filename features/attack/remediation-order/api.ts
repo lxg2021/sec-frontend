@@ -9,6 +9,7 @@ import {
   normalizeRemediationOrder,
   normalizeRemediationDraftItemsUpsertData,
   normalizeRemediationOrderList,
+  normalizeRemediationOverviewSummary,
   normalizeRemediationSummary,
   normalizeResolveRemediationNodeAgents,
 } from "./normalizers"
@@ -26,6 +27,7 @@ import type {
   QueryRemediationNodeActionsRequest,
   QueryRemediationOrderByIdRequest,
   QueryRemediationOrderListRequest,
+  QueryRemediationOverviewSummaryRequest,
   QueryRemediationSummaryRequest,
   ReconcileRemediationItemRequest,
   ResolveRemediationNodeAgentsRequest,
@@ -57,6 +59,7 @@ const REMEDIATION_PATHS = {
   itemsByAgentQuery: "/sensor/remediation/items/agent/query",
   itemsBySourceQuery: "/sensor/remediation/items/source/query",
   summaryQuery: "/sensor/remediation/summary/query",
+  overviewSummaryQuery: "/sensor/remediation/overview/summary/query",
 } as const
 
 function withRequestId<T extends { request_id: string }>(
@@ -214,6 +217,14 @@ export async function queryRemediationSummary(
 ) {
   return normalizeRemediationSummary(
     await postData(REMEDIATION_PATHS.summaryQuery, withRequestId(params)),
+  )
+}
+
+export async function queryRemediationOverviewSummary(
+  params: RequestWithOptionalId<QueryRemediationOverviewSummaryRequest> = {},
+) {
+  return normalizeRemediationOverviewSummary(
+    await postData(REMEDIATION_PATHS.overviewSummaryQuery, withRequestId(params)),
   )
 }
 

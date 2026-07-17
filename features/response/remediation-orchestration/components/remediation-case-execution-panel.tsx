@@ -963,37 +963,14 @@ export function RemediationCaseExecutionPanel({
                 </button>
 
                 {expanded ? (
-                  <div className="overflow-x-auto">
-                    <div className="min-w-[1810px]">
-                      <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
-                        <span>{t("execution.target")}</span>
-                        <span>{t("execution.action")}</span>
-                        <span>{t("execution.orderId")}</span>
-                        <span>{t("execution.hostId")}</span>
-                        <span>{t("execution.hostName")}</span>
-                        <span>IP</span>
-                        <span>{t("execution.status")}</span>
-                        <span>{t("execution.time")}</span>
-                        <span>{t("execution.result")}</span>
-                        <span>{t("execution.reason")}</span>
-                      </div>
-                      {orderItems.length ? (
-                        orderItems.map((item) => (
-                          <ExecutionItemRow
-                            key={item.item_id}
-                            item={item}
-                            locale={locale}
-                          />
-                        ))
-                      ) : (
-                        <div className="px-5 py-9 text-center text-xs text-slate-500">
-                          {filter === "all"
-                            ? t("execution.noItems")
-                            : t("execution.noFilteredItems")}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <RemediationExecutionItemsTable
+                    items={orderItems}
+                    emptyText={
+                      filter === "all"
+                        ? t("execution.noItems")
+                        : t("execution.noFilteredItems")
+                    }
+                  />
                 ) : null}
               </article>
             );
@@ -1193,6 +1170,45 @@ function ExecutionItemRow({
         <span className="block truncate" title={result.reason}>
           {result.reason}
         </span>
+      </div>
+    </div>
+  );
+}
+
+export function RemediationExecutionItemsTable({
+  emptyText,
+  items,
+}: {
+  emptyText?: string;
+  items: RemediationOrderItem[];
+}) {
+  const locale = useLocale();
+  const t = useTranslations("pages.collection.orchestration");
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[1810px]">
+        <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
+          <span>{t("execution.target")}</span>
+          <span>{t("execution.action")}</span>
+          <span>{t("execution.orderId")}</span>
+          <span>{t("execution.hostId")}</span>
+          <span>{t("execution.hostName")}</span>
+          <span>IP</span>
+          <span>{t("execution.status")}</span>
+          <span>{t("execution.time")}</span>
+          <span>{t("execution.result")}</span>
+          <span>{t("execution.reason")}</span>
+        </div>
+        {items.length ? (
+          items.map((item) => (
+            <ExecutionItemRow key={item.item_id} item={item} locale={locale} />
+          ))
+        ) : (
+          <div className="px-5 py-9 text-center text-xs text-slate-500">
+            {emptyText ?? t("execution.noItems")}
+          </div>
+        )}
       </div>
     </div>
   );

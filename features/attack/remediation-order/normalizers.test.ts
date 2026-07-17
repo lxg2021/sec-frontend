@@ -6,11 +6,44 @@ import {
   normalizeRemediationOrder,
   normalizeRemediationDraftItemsUpsertData,
   normalizeRemediationOrderList,
+  normalizeRemediationOverviewSummary,
   normalizeRemediationSummary,
   normalizeResolveRemediationNodeAgents,
 } from "./normalizers";
 
 describe("remediation order normalizers", () => {
+  it("normalizes tenant-wide remediation overview values without losing uint64 precision", () => {
+    expect(
+      normalizeRemediationOverviewSummary({
+        totals: {
+          order_count: "9007199254740993",
+          host_count: 12,
+          active_order_count: "3",
+          attention_order_count: "2",
+          item_count: "48",
+          last_activity_at: " 2026-07-17T08:00:00Z ",
+        },
+        order_statuses: [{ status: " RUNNING ", count: "3" }],
+        sources: [{ source_type: "REMEDIATION_SOURCE_TYPE_CASE_GRAPH", order_count: 9 }],
+        actions: [{ action_code: " FILE.QUARANTINE ", item_count: "6" }],
+        trend: [{ bucket_start_at: "2026-07-17T00:00:00Z", terminal_item_count: 4, success_count: 2, failed_count: 1, uncertain_count: 1 }],
+      }),
+    ).toEqual({
+      totals: {
+        order_count: "9007199254740993",
+        host_count: "12",
+        active_order_count: "3",
+        attention_order_count: "2",
+        item_count: "48",
+        last_activity_at: "2026-07-17T08:00:00Z",
+      },
+      order_statuses: [{ status: "running", count: "3" }],
+      sources: [{ source_type: "REMEDIATION_SOURCE_TYPE_CASE_GRAPH", order_count: "9" }],
+      actions: [{ action_code: "file.quarantine", item_count: "6" }],
+      trend: [{ bucket_start_at: "2026-07-17T00:00:00Z", terminal_item_count: "4", success_count: "2", failed_count: "1", uncertain_count: "1" }],
+    });
+  });
+
   it("normalizes graph Agent resolution responses", () => {
     expect(
       normalizeResolveRemediationNodeAgents({

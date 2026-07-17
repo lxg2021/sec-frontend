@@ -5186,6 +5186,100 @@
       }
     },
     "response": {
+      "overview": {
+        "title": "处置概览",
+        "subtitle": "查看租户下的处置单与主机执行情况",
+        "totalItems": "累计处置目标 {count} 个",
+        "viewMode": "概览维度",
+        "byOrder": "按处置单",
+        "byHost": "按主机",
+        "hostViewPending": "按主机聚合列表将在主机分页接口接入后开放",
+        "lastActivity": "最近活动",
+        "refresh": "刷新处置概览",
+        "metrics": {
+          "orders": { "title": "处置单总数", "description": "租户下全部有效处置单" },
+          "hosts": { "title": "涉及主机", "description": "按 HostID 去重统计" },
+          "active": { "title": "执行中", "description": "仍有执行工作的处置单" },
+          "attention": { "title": "需关注", "description": "阻断、失败或结果未确认" }
+        },
+        "trend": {
+          "title": "近 30 天处置结果趋势",
+          "description": "按终态形成日期统计",
+          "loading": "正在加载趋势数据",
+          "loadFailed": "趋势数据加载失败",
+          "retry": "点击重试",
+          "empty": "暂无处置结果数据",
+          "success": "成功",
+          "failed": "失败",
+          "uncertain": "未确认",
+          "terminalTotal": "终态目标"
+        },
+        "actions": {
+          "title": "处置动作分布",
+          "description": "按历史处置目标统计",
+          "loading": "正在加载动作数据",
+          "loadFailed": "动作分布加载失败",
+          "retry": "点击重试",
+          "empty": "暂无处置动作数据"
+        },
+        "list": {
+          "title": "处置单列表",
+          "description": "当前筛选共 {count} 条",
+          "allSources": "全部来源",
+          "allStatuses": "全部状态",
+          "loading": "正在加载处置单",
+          "loadFailed": "处置单加载失败",
+          "retry": "点击重试",
+          "empty": "当前筛选条件下暂无处置单",
+          "untitled": "未命名处置单",
+          "view": "查看处置",
+          "expandOrder": "展开处置单：{title}",
+          "collapseOrder": "收起处置单：{title}",
+          "detailLoading": "正在加载处置目标明细",
+          "detailLoadFailed": "处置目标明细加载失败",
+          "detailRetry": "点击重新加载",
+          "detailEmpty": "该处置单暂无目标明细",
+          "statuses": {
+            "draft": "草稿",
+            "prepared": "已准备",
+            "running": "执行中",
+            "completed": "已完成",
+            "canceled": "已取消",
+            "expired": "已过期"
+          },
+          "outcomes": {
+            "success": "成功",
+            "partial_success": "部分成功",
+            "failed": "失败",
+            "no_action": "未执行"
+          },
+          "sources": {
+            "caseGraph": "Case",
+            "drillGraph": "数据钻探",
+            "locateGraph": "定位图",
+            "unknown": "未知来源"
+          },
+          "columns": {
+            "name": "处置单名称",
+            "orderId": "处置单 ID",
+            "source": "业务来源",
+            "status": "状态",
+            "targets": "目标数",
+            "success": "成功",
+            "failed": "失败",
+            "uncertain": "未确认",
+            "result": "执行结果",
+            "updatedAt": "更新时间",
+            "action": "操作"
+          },
+          "pagination": {
+            "total": "共 {count} 条",
+            "page": "第 {page} / {total} 页",
+            "previous": "上一页",
+            "next": "下一页"
+          }
+        }
+      },
       "dac": {
         "title": "访问控制",
         "subtitle": "自主访问控制",

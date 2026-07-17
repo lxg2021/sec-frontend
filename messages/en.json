@@ -5184,6 +5184,100 @@
       }
     },
     "response": {
+      "overview": {
+        "title": "Remediation Overview",
+        "subtitle": "Review remediation orders and host execution across the tenant",
+        "totalItems": "{count} remediation targets in total",
+        "viewMode": "Overview dimension",
+        "byOrder": "By Order",
+        "byHost": "By Host",
+        "hostViewPending": "The host view will be enabled after the host aggregation API is available",
+        "lastActivity": "Last Activity",
+        "refresh": "Refresh remediation overview",
+        "metrics": {
+          "orders": { "title": "Remediation Orders", "description": "All active tenant orders" },
+          "hosts": { "title": "Affected Hosts", "description": "Distinct HostIDs" },
+          "active": { "title": "Active", "description": "Orders with active execution work" },
+          "attention": { "title": "Needs Attention", "description": "Blocked, failed, or unconfirmed" }
+        },
+        "trend": {
+          "title": "30-Day Remediation Results",
+          "description": "Grouped by terminal result date",
+          "loading": "Loading trend data",
+          "loadFailed": "Failed to load trend data",
+          "retry": "Click to retry",
+          "empty": "No remediation result data",
+          "success": "Succeeded",
+          "failed": "Failed",
+          "uncertain": "Unconfirmed",
+          "terminalTotal": "Terminal Targets"
+        },
+        "actions": {
+          "title": "Remediation Action Distribution",
+          "description": "Based on historical remediation targets",
+          "loading": "Loading action data",
+          "loadFailed": "Failed to load action distribution",
+          "retry": "Click to retry",
+          "empty": "No remediation action data"
+        },
+        "list": {
+          "title": "Remediation Orders",
+          "description": "{count} orders match the current filters",
+          "allSources": "All Sources",
+          "allStatuses": "All Statuses",
+          "loading": "Loading remediation orders",
+          "loadFailed": "Failed to load remediation orders",
+          "retry": "Click to retry",
+          "empty": "No remediation orders match the current filters",
+          "untitled": "Untitled Order",
+          "view": "View Order",
+          "expandOrder": "Expand remediation order: {title}",
+          "collapseOrder": "Collapse remediation order: {title}",
+          "detailLoading": "Loading remediation target details",
+          "detailLoadFailed": "Failed to load remediation target details",
+          "detailRetry": "Click to reload",
+          "detailEmpty": "This remediation order has no target details",
+          "statuses": {
+            "draft": "Draft",
+            "prepared": "Prepared",
+            "running": "Running",
+            "completed": "Completed",
+            "canceled": "Canceled",
+            "expired": "Expired"
+          },
+          "outcomes": {
+            "success": "Succeeded",
+            "partial_success": "Partially Succeeded",
+            "failed": "Failed",
+            "no_action": "No Action"
+          },
+          "sources": {
+            "caseGraph": "Case",
+            "drillGraph": "Data Drilldown",
+            "locateGraph": "Location Graph",
+            "unknown": "Unknown Source"
+          },
+          "columns": {
+            "name": "Order Name",
+            "orderId": "Order ID",
+            "source": "Source",
+            "status": "Status",
+            "targets": "Targets",
+            "success": "Succeeded",
+            "failed": "Failed",
+            "uncertain": "Unconfirmed",
+            "result": "Result",
+            "updatedAt": "Updated",
+            "action": "Action"
+          },
+          "pagination": {
+            "total": "{count} total",
+            "page": "Page {page} of {total}",
+            "previous": "Previous page",
+            "next": "Next page"
+          }
+        }
+      },
       "dac": {
         "title": "Access Control",
         "subtitle": "Discretionary Access Control",

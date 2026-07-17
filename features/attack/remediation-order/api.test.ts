@@ -9,12 +9,26 @@ vi.mock("@/shared/lib/http/client", () => ({
 import {
   deleteRemediationOrder,
   upsertRemediationDraftItems,
+  queryRemediationOverviewSummary,
   REMEDIATION_PATHS,
 } from "./api"
 
 describe("remediation Order API", () => {
   beforeEach(() => {
     post.mockReset()
+  })
+
+  it("queries the tenant remediation overview with a UUID request ID", async () => {
+    post.mockResolvedValue({ data: { totals: { order_count: "2" }, trend: [] } })
+
+    const summary = await queryRemediationOverviewSummary()
+
+    expect(REMEDIATION_PATHS.overviewSummaryQuery).toBe("/sensor/remediation/overview/summary/query")
+    expect(post).toHaveBeenCalledWith(
+      "/sensor/remediation/overview/summary/query",
+      expect.objectContaining({ request_id: expect.stringMatching(/^[0-9a-f-]{36}$/i) }),
+    )
+    expect(summary.totals.order_count).toBe("2")
   })
 
   it("clears the current Draft through the v1-prefixed remediation endpoint", async () => {

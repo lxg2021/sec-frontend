@@ -364,6 +364,50 @@ export interface QueryRemediationSummaryRequest {
   source_ref_id: string;
 }
 
+export interface QueryRemediationOverviewSummaryRequest {
+  request_id: string;
+}
+
+export interface RemediationOverviewTotals {
+  order_count: UInt64;
+  host_count: UInt64;
+  active_order_count: UInt64;
+  attention_order_count: UInt64;
+  item_count: UInt64;
+  last_activity_at: string;
+}
+
+export interface RemediationOverviewOrderStatusBucket {
+  status: string;
+  count: UInt64;
+}
+
+export interface RemediationOverviewSourceBucket {
+  source_type: ProtoEnum;
+  order_count: UInt64;
+}
+
+export interface RemediationOverviewActionBucket {
+  action_code: string;
+  item_count: UInt64;
+}
+
+export interface RemediationOverviewTrendPoint {
+  bucket_start_at: string;
+  terminal_item_count: UInt64;
+  success_count: UInt64;
+  failed_count: UInt64;
+  uncertain_count: UInt64;
+}
+
+export interface RemediationOverviewSummary {
+  totals: RemediationOverviewTotals;
+  order_statuses: RemediationOverviewOrderStatusBucket[];
+  sources: RemediationOverviewSourceBucket[];
+  actions: RemediationOverviewActionBucket[];
+  trend: RemediationOverviewTrendPoint[];
+}
+
 export interface RemediationItemExecution {
   operation_id: string;
   operation: string;
