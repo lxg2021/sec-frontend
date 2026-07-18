@@ -52,7 +52,7 @@ export function createInitialAccessControlDraft(): AccessControlPolicyDraft {
       remotePort: "any",
       localAddress: "any",
       remoteAddress: "any",
-      programPath: "",
+      programPath: "*",
       programMd5: "",
     },
   }
