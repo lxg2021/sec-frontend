@@ -71,6 +71,7 @@ export function AccessControlWizard() {
   const [createdPolicy, setCreatedPolicy] = useState<CreatedAccessControlPolicy | null>(null)
   const [createdDraftFingerprint, setCreatedDraftFingerprint] = useState("")
   const [operation, setOperation] = useState<AccessControlOperation | null>(null)
+  const [creating, setCreating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [selectedPolicy, setSelectedPolicy] = useState<ExistingAccessControlPolicy | null>(null)
   const [policySelectorOpen, setPolicySelectorOpen] = useState(false)
@@ -95,6 +96,8 @@ export function AccessControlWizard() {
 
   const updateDraft = useCallback((patch: Partial<AccessControlPolicyDraft>) => {
     setDraft((current) => ({ ...current, ...patch }))
+    setCreatedPolicy(null)
+    setCreatedDraftFingerprint("")
     setOperation(null)
   }, [])
 
@@ -120,18 +123,61 @@ export function AccessControlWizard() {
 
   const validationErrors = useMemo(() => validateAccessControlDraft(draft), [draft])
   const draftValid = validationErrors.length === 0
-  const canSubmit = Boolean(selectedPolicy || draftValid) && selectedHosts.length > 0 && !submitting && !operation
+  const currentFingerprint = useMemo(
+    () => (draftValid ? getAccessControlDraftFingerprint(draft) : ""),
+    [draft, draftValid],
+  )
+  const policyCreatedFromCurrentDraft = Boolean(
+    createdPolicy && createdDraftFingerprint && createdDraftFingerprint === currentFingerprint,
+  )
+  const canSubmit = Boolean(selectedPolicy || createdPolicy) && selectedHosts.length > 0 && !submitting && !operation
 
   const offlineHostCount = useMemo(
     () => selectedHosts.filter((host) => host.status.trim().toLowerCase() === "offline").length,
     [selectedHosts],
   )
 
-  const handleConfirm = useCallback(async () => {
+  const handleCreatePolicy = useCallback(async () => {
+    if (selectedPolicy) {
+      setDraft(createInitialAccessControlDraft())
+      setSelectedPolicy(null)
+      setCreatedPolicy(null)
+      setCreatedDraftFingerprint("")
+      setSelectedHosts([])
+      setSelectorKey((value) => value + 1)
+      setOperation(null)
+      return
+    }
+
     const errors = validateAccessControlDraft(draft)
-    if ((!selectedPolicy && errors.length > 0) || selectedHosts.length === 0) {
+    if (errors.length > 0) {
       toast.error(copy.validationFailed, {
-        description: !selectedPolicy && errors.length > 0 ? validationDescription(copy, draft.type, errors) : copy.noHosts,
+        description: validationDescription(copy, draft.type, errors),
+      })
+      return
+    }
+
+    setCreating(true)
+    const toastId = toast.loading(copy.submitting)
+    try {
+      const policy = await createAccessControlPolicy(draft)
+      setCreatedPolicy(policy)
+      setCreatedDraftFingerprint(getAccessControlDraftFingerprint(draft))
+      setOperation(null)
+      toast.success(copy.createSuccess, { id: toastId })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      toast.error(message, { id: toastId })
+    } finally {
+      setCreating(false)
+    }
+  }, [copy, draft, selectedPolicy])
+
+  const handleConfirm = useCallback(async () => {
+    const policy: CreatedAccessControlPolicy | null = selectedPolicy ?? createdPolicy
+    if (!policy || selectedHosts.length === 0) {
+      toast.error(copy.validationFailed, {
+        description: !policy ? copy.createObjectHint : copy.noHosts,
       })
       return
     }
@@ -140,18 +186,6 @@ export function AccessControlWizard() {
     const toastId = toast.loading(copy.dispatching)
 
     try {
-      let policy: CreatedAccessControlPolicy | null = selectedPolicy
-      if (!policy) policy = createdPolicy
-      if (!selectedPolicy) {
-        const fingerprint = getAccessControlDraftFingerprint(draft)
-        if (!policy || createdDraftFingerprint !== fingerprint) {
-          policy = await createAccessControlPolicy(draft)
-          setCreatedPolicy(policy)
-          setCreatedDraftFingerprint(fingerprint)
-        }
-      }
-
-      if (!policy) throw new Error("no access control policy selected")
       const result = await applyAccessControlPolicy(
         policy,
         selectedHosts.map((host) => host.hostId || host.id),
@@ -164,7 +198,7 @@ export function AccessControlWizard() {
     } finally {
       setSubmitting(false)
     }
-  }, [copy, createdDraftFingerprint, createdPolicy, draft, selectedHosts, selectedPolicy])
+  }, [copy, createdPolicy, selectedHosts, selectedPolicy])
 
   const selectExistingPolicy = useCallback((policy: ExistingAccessControlPolicy) => {
     const hasUnsavedContent = !selectedPolicy && (isAccessControlDraftDirty(draft) || Boolean(createdPolicy))
@@ -177,19 +211,6 @@ export function AccessControlWizard() {
     setOperation(null)
     return true
   }, [copy.resetConfirm, createdPolicy, draft, selectedPolicy])
-
-  const reset = () => {
-    const hasUnsavedContent = isAccessControlDraftDirty(draft) || selectedHosts.length > 0 || Boolean(createdPolicy)
-    if (hasUnsavedContent && !window.confirm(copy.resetConfirm)) return
-
-    setDraft(createInitialAccessControlDraft())
-    setSelectedHosts([])
-    setSelectorKey((value) => value + 1)
-    setCreatedPolicy(null)
-    setSelectedPolicy(null)
-    setCreatedDraftFingerprint("")
-    setOperation(null)
-  }
 
   return (
     <div className="h-full min-h-0 overflow-hidden bg-slate-100 p-4">
@@ -209,7 +230,7 @@ export function AccessControlWizard() {
             <div className="hidden h-12 w-[440px] shrink-0 grid-cols-[auto_128px_auto] items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 2xl:grid">
               <FlowBadge
                 number={1}
-                title={selectedPolicy ? selectedPolicy.name : copy.createObject}
+                title={selectedPolicy?.name ?? createdPolicy?.name ?? copy.createObject}
                 done={Boolean(selectedPolicy || createdPolicy)}
               />
               <div className="mx-4 h-px bg-slate-300" />
@@ -225,9 +246,14 @@ export function AccessControlWizard() {
               <span className="font-medium">{copy.selectPolicy}</span>
             </Button>
             <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
-            <Button variant="ghost" onClick={reset} className="h-10 shrink-0 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700">
-              <FilePlus2 className="h-4 w-4" />
-              <span className="font-medium">{copy.reset}</span>
+            <Button
+              variant="ghost"
+              onClick={() => void handleCreatePolicy()}
+              disabled={creating || (!selectedPolicy && policyCreatedFromCurrentDraft)}
+              className="h-10 shrink-0 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+            >
+              {creating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <FilePlus2 className="h-4 w-4" />}
+              <span className="font-medium">{creating ? copy.submitting : copy.reset}</span>
             </Button>
             <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
             <Button
