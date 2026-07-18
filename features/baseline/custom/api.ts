@@ -289,11 +289,10 @@ export async function getAllBaselines(): Promise<BaselineListItem[]> {
   return items
 }
 
-export async function getBaselineTemplateItems(templateUuid: string): Promise<BaselineTemplateItemsData | null> {
+export async function getBaselineTemplateItems(baselineDefinitionUuid: string): Promise<BaselineTemplateItemsData | null> {
   const result = (await http.post("getBaselineTemplateItems", {
     request_id: createRequestId(),
-    template_uuid: templateUuid,
-    baseline_uuid: templateUuid,
+    template_uuid: baselineDefinitionUuid,
   })) as ApiResult<unknown>
 
   if (!result.data) return null

@@ -25,7 +25,12 @@ import {
   type BaselineScanPolicyListResult,
   type ReusableBaselineScanPolicy,
 } from "@/features/baseline/dispatch/api"
-import { getAllBaselines, type BaselineTemplate } from "@/features/baseline/custom/api"
+import {
+  getAllBaselines,
+  getBaselineTemplateItems,
+  type BaselineTemplate,
+  type BaselineTemplateItemsData,
+} from "@/features/baseline/custom/api"
 import {
   type DispatchGroup,
   type DispatchHost,
@@ -55,6 +60,7 @@ import { Label } from "@/shared/ui/label"
 import { BaselineDispatchConfirmDialog } from "./baseline-dispatch-confirm-dialog"
 import { BaselineDispatchSelector, type BaselineDispatchSelectorItem } from "./baseline-dispatch-selector"
 import { BaselinePolicySelectorDialog } from "./baseline-policy-selector-dialog"
+import { BaselineSummary } from "./baseline-summary"
 import {
   getDispatchProfileLabel,
   getDispatchStandardKey,
@@ -166,6 +172,8 @@ export function BaselineDispatchClient() {
   const [templatesLoading, setTemplatesLoading] = useState(true)
   const [templatesError, setTemplatesError] = useState("")
   const [selectedTemplateUuid, setSelectedTemplateUuid] = useState("")
+  const [templateItems, setTemplateItems] = useState<BaselineTemplateItemsData | null>(null)
+  const [templateItemsLoading, setTemplateItemsLoading] = useState(false)
 
   const [schedule, setSchedule] = useState<ScanSchedule>(DEFAULT_SCAN_SCHEDULE)
   const [policyName, setPolicyName] = useState("")
@@ -285,6 +293,46 @@ export function BaselineDispatchClient() {
   useEffect(() => {
     void loadReusablePolicies(reusablePoliciesPage)
   }, [loadReusablePolicies, reusablePoliciesPage])
+
+  useEffect(() => {
+    let active = true
+
+    if (!selectedTemplateUuid.trim()) {
+      setTemplateItems(null)
+      setTemplateItemsLoading(false)
+      return () => {
+        active = false
+      }
+    }
+
+    if (!getAccessToken()) {
+      setTemplateItems(null)
+      setTemplateItemsLoading(false)
+      return () => {
+        active = false
+      }
+    }
+
+    setTemplateItems(null)
+    setTemplateItemsLoading(true)
+
+    void getBaselineTemplateItems(selectedTemplateUuid)
+      .then((data) => {
+        if (!active) return
+        setTemplateItems(data)
+      })
+      .catch(() => {
+        if (!active) return
+        setTemplateItems(null)
+      })
+      .finally(() => {
+        if (active) setTemplateItemsLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [selectedTemplateUuid])
 
   useEffect(() => {
     if (!selectedTemplateUuid && templates.length > 0) {
@@ -589,6 +637,8 @@ export function BaselineDispatchClient() {
 
   const handleTemplateChange = useCallback((value: string) => {
     setSelectedTemplateUuid(value)
+    setTemplateItems(null)
+    setTemplateItemsLoading(Boolean(value.trim()))
     setAppliedPolicy(null)
     setReusablePoliciesPage(1)
     setSelectedReusablePolicyKey(null)
@@ -950,8 +1000,8 @@ export function BaselineDispatchClient() {
         </section>
 
         <main className="grid min-h-0 flex-1 gap-3 overflow-y-auto xl:grid-cols-[minmax(0,1.62fr)_minmax(440px,1fr)] xl:overflow-hidden">
-          <div className="min-h-0 space-y-3 xl:overflow-y-auto xl:pr-1">
-            <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+          <div className="flex min-h-0 flex-col gap-3 xl:overflow-y-auto xl:pr-1">
+            <section className="shrink-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
               <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-3.5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
                   <FileText className="h-4 w-4" />
@@ -974,36 +1024,11 @@ export function BaselineDispatchClient() {
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-3.5">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                  <ShieldCheck className="h-4 w-4" />
-                </span>
-                <div className="min-w-0">
-                  <h2 className="text-sm font-semibold text-slate-950">{workspace("baselineOverview")}</h2>
-                  <p className="mt-0.5 truncate text-[11px] text-slate-500">{workspace("baselineOverviewDescription")}</p>
-                </div>
-              </div>
-
-              <div className="p-5">
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  <RiskMetric label={workspace("totalChecks")} value={selectedTemplate?.item_count ?? 0} tone="slate" />
-                  <RiskMetric label={workspace("highRisk")} value={selectedTemplate?.high_count ?? 0} tone="rose" />
-                  <RiskMetric label={workspace("mediumRisk")} value={selectedTemplate?.medium_count ?? 0} tone="amber" />
-                  <RiskMetric label={workspace("lowRisk")} value={selectedTemplate?.low_count ?? 0} tone="emerald" />
-                </div>
-
-                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-[10px] text-slate-500">{workspace("summary")}</p>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600">
-                    <span className="font-semibold text-slate-900">{selectedTemplate?.display_name || selectedTemplate?.baseline_uuid || "-"}</span>
-                    <span>· {buildScheduleSummary(effectiveSchedule, t)}</span>
-                    <span>· {workspace("selectedHosts", { count: deduplicatedHosts.length })}</span>
-                    <span>· {workspace("previewHint")}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
+            <BaselineSummary
+              template={selectedTemplate}
+              itemsData={templateItems}
+              loading={templateItemsLoading}
+            />
           </div>
 
           <section className="flex min-h-[520px] flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm xl:min-h-0">
@@ -1091,22 +1116,6 @@ function FlowBadge({ number, title, done }: { number: number; title: string; don
         {number}
       </span>
       <span className={cn("truncate text-[11px] font-semibold", done ? "text-slate-900" : "text-slate-500")}>{title}</span>
-    </div>
-  )
-}
-
-function RiskMetric({ label, value, tone }: { label: string; value: number; tone: "slate" | "rose" | "amber" | "emerald" }) {
-  const styles = {
-    slate: "border-slate-200 bg-slate-50 text-slate-950",
-    rose: "border-rose-200 bg-rose-50 text-rose-600",
-    amber: "border-amber-200 bg-amber-50 text-amber-600",
-    emerald: "border-emerald-200 bg-emerald-50 text-emerald-600",
-  }
-
-  return (
-    <div className={cn("rounded-xl border px-4 py-3", styles[tone])}>
-      <p className="text-[11px] text-slate-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
     </div>
   )
 }
