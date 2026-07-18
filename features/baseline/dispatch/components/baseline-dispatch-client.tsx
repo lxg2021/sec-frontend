@@ -4,8 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
   AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
   FilePlus2,
   FileText,
   Hash,
@@ -951,61 +949,48 @@ export function BaselineDispatchClient() {
           </div>
         </section>
 
-        <main className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1.62fr)_minmax(440px,1fr)]">
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
-            <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-3.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
-                <FileText className="h-4 w-4" />
-              </span>
-              <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-slate-950">{workspace("scanPlanTitle")}</h2>
-                <p className="mt-0.5 truncate text-[11px] text-slate-500">{workspace("scanPlanDescription")}</p>
-              </div>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto p-5">
-              <ScanScheduleForm
-                value={schedule}
-                onChange={handleScheduleChange}
-                title={null}
-                description={null}
-                text={scanScheduleFormText}
-                className="max-w-none border-0 bg-transparent shadow-none [&>div]:px-0"
-              />
-
-              <div className="mt-5 border-t border-slate-200 pt-5">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-sm font-semibold text-slate-950">{workspace("baselineOverview")}</h3>
-                  <p className="text-[11px] text-slate-500">{workspace("baselineOverviewDescription")}</p>
+        <main className="grid min-h-0 flex-1 gap-3 overflow-y-auto xl:grid-cols-[minmax(0,1.62fr)_minmax(440px,1fr)] xl:overflow-hidden">
+          <div className="min-h-0 space-y-3 xl:overflow-y-auto xl:pr-1">
+            <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-3.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
+                  <FileText className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold text-slate-950">{workspace("scanPlanTitle")}</h2>
+                  <p className="mt-0.5 truncate text-[11px] text-slate-500">{workspace("scanPlanDescription")}</p>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              </div>
+
+              <div className="p-5">
+                <ScanScheduleForm
+                  value={schedule}
+                  onChange={handleScheduleChange}
+                  title={null}
+                  description={null}
+                  text={scanScheduleFormText}
+                  className="max-w-none border-0 bg-transparent shadow-none [&>div]:px-0"
+                />
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+              <div className="flex items-center gap-3 border-b border-slate-200 px-5 py-3.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <ShieldCheck className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-semibold text-slate-950">{workspace("baselineOverview")}</h2>
+                  <p className="mt-0.5 truncate text-[11px] text-slate-500">{workspace("baselineOverviewDescription")}</p>
+                </div>
+              </div>
+
+              <div className="p-5">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                   <RiskMetric label={workspace("totalChecks")} value={selectedTemplate?.item_count ?? 0} tone="slate" />
                   <RiskMetric label={workspace("highRisk")} value={selectedTemplate?.high_count ?? 0} tone="rose" />
                   <RiskMetric label={workspace("mediumRisk")} value={selectedTemplate?.medium_count ?? 0} tone="amber" />
                   <RiskMetric label={workspace("lowRisk")} value={selectedTemplate?.low_count ?? 0} tone="emerald" />
-                </div>
-              </div>
-
-              <div className="mt-5 border-t border-slate-200 pt-5">
-                <h3 className="text-sm font-semibold text-slate-950">{workspace("preflight")}</h3>
-                <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                  <PreflightItem
-                    ok={Boolean(selectedTemplate)}
-                    label={selectedTemplate ? workspace("baselineReady") : workspace("baselineNotReady")}
-                  />
-                  <PreflightItem ok={Boolean(appliedPolicy)} label={appliedPolicy ? workspace("taskReady") : workspace("taskNotReady")} />
-                  <PreflightItem ok={deduplicatedHosts.length > 0} label={deduplicatedHosts.length > 0 ? workspace("hostsReady", { count: deduplicatedHosts.length }) : workspace("hostsNotReady")} />
-                  <PreflightItem
-                    ok={invalidHostCount === 0}
-                    warning={invalidHostCount === 0 && offlineHostCount > 0}
-                    label={
-                      invalidHostCount > 0
-                        ? workspace("invalidWarning", { count: invalidHostCount })
-                        : offlineHostCount > 0
-                          ? workspace("offlineWarning", { count: offlineHostCount })
-                          : workspace("hostStatusReady")
-                    }
-                  />
                 </div>
 
                 <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -1018,10 +1003,10 @@ export function BaselineDispatchClient() {
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
 
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+          <section className="flex min-h-[520px] flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm xl:min-h-0">
             <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-3.5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
                 <Server className="h-4 w-4" />
@@ -1122,21 +1107,6 @@ function RiskMetric({ label, value, tone }: { label: string; value: number; tone
     <div className={cn("rounded-xl border px-4 py-3", styles[tone])}>
       <p className="text-[11px] text-slate-500">{label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-    </div>
-  )
-}
-
-function PreflightItem({ label, ok, warning = false }: { label: string; ok: boolean; warning?: boolean }) {
-  return (
-    <div className={cn("flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-[11px]", ok ? warning ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-slate-50 text-slate-600")}>
-      {warning ? (
-        <AlertTriangle className="h-4 w-4 shrink-0" />
-      ) : ok ? (
-        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-      ) : (
-        <AlertCircle className="h-4 w-4 shrink-0 text-slate-400" />
-      )}
-      <span>{label}</span>
     </div>
   )
 }
