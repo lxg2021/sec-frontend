@@ -94,7 +94,7 @@ export function BaselineSummary({ itemsData, loading, template }: BaselineSummar
                 <Layers3 className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-violet-600">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-900">
                   {workspace("summaryCurrentBaseline")}
                 </p>
                 <div className="mt-1 flex min-w-0 items-center gap-2">
@@ -223,13 +223,9 @@ function SummaryMetric({
   const styles = {
     cyan: {
       icon: "bg-cyan-50 text-cyan-600",
-      label: "text-cyan-700",
-      value: "text-cyan-700",
     },
     amber: {
       icon: "bg-amber-50 text-amber-600",
-      label: "text-amber-700",
-      value: "text-amber-700",
     },
   }[tone]
 
@@ -239,11 +235,11 @@ function SummaryMetric({
         {icon}
       </span>
       <div className="min-w-0">
-        <p className={cn("truncate text-[10px] font-medium", styles.label)}>{label}</p>
+        <p className="truncate text-[10px] font-medium text-slate-900">{label}</p>
         {loading ? (
           <Skeleton className="mt-1 h-5 w-10 rounded" />
         ) : (
-          <p className={cn("mt-0.5 text-lg font-semibold leading-none tabular-nums", styles.value)}>
+          <p className="mt-0.5 text-lg font-semibold leading-none tabular-nums text-slate-950">
             {value ?? "-"}
           </p>
         )}
