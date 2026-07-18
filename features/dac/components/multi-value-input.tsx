@@ -15,6 +15,7 @@ interface MultiValueInputProps {
 
 export function MultiValueInput({ value, onChange, placeholder, className }: MultiValueInputProps) {
   const [draft, setDraft] = useState("")
+  const isEmpty = value.length === 0
 
   const addValue = () => {
     const nextValues = draft
@@ -27,7 +28,13 @@ export function MultiValueInput({ value, onChange, placeholder, className }: Mul
   }
 
   return (
-    <div className={cn("rounded-xl border border-slate-200 bg-white p-2 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100", className)}>
+    <div
+      className={cn(
+        "border border-slate-200 bg-white focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100",
+        isEmpty ? "h-10 rounded-lg p-0" : "rounded-xl p-2",
+        className,
+      )}
+    >
       {value.length > 0 ? (
         <div className="mb-2 flex flex-wrap gap-2">
           {value.map((item) => (
@@ -45,7 +52,7 @@ export function MultiValueInput({ value, onChange, placeholder, className }: Mul
           ))}
         </div>
       ) : null}
-      <div className="flex items-center gap-2">
+      <div className={cn("flex items-center gap-2", isEmpty && "h-full px-2")}>
         <Input
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
