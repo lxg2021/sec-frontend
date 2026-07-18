@@ -356,7 +356,6 @@ function PolicyConfigurationPanel({
               <ConfigurationSectionHeader
                 icon={FileSliders}
                 title={copy.rules}
-                description={copy.rulesHint}
               />
               <RuleEditor
                 copy={copy}
@@ -505,7 +504,6 @@ function SubjectPanel({
       <ConfigurationSectionHeader
         icon={Users}
         title={copy.subject}
-        description={copy.subjectHint}
         action={
         <Button
           type="button"
@@ -580,7 +578,6 @@ function ObjectPanel({
       <ConfigurationSectionHeader
         icon={ShieldCheck}
         title={copy.object}
-        description={copy.objectHints[draft.type]}
       />
       <Label className="mb-2 block text-xs font-medium text-slate-700">{copy.objectLabels[draft.type]}</Label>
       <MultiValueInput
@@ -609,12 +606,10 @@ function ObjectPanel({
 function ConfigurationSectionHeader({
   icon: Icon,
   title,
-  description,
   action,
 }: {
   icon: typeof Users
   title: string
-  description: string
   action?: React.ReactNode
 }) {
   return (
@@ -625,7 +620,6 @@ function ConfigurationSectionHeader({
         </span>
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-          <p className="mt-0.5 truncate text-[11px] text-slate-500">{description}</p>
         </div>
       </div>
       {action}
