@@ -60,6 +60,13 @@ const POLICY_ICONS = {
   network: Network,
 }
 
+const POLICY_ICON_COLORS: Record<AccessPolicyType, string> = {
+  file: "text-blue-600",
+  registry: "text-violet-600",
+  process: "text-amber-600",
+  network: "text-cyan-600",
+}
+
 export function AccessControlWizard() {
   const locale = useLocale()
   const copy = useMemo(() => getAccessControlCopy(locale), [locale])
@@ -391,7 +398,7 @@ function PolicyDefinitionBar({
           <h2 className="text-sm font-semibold text-slate-950">{copy.basicInfo}</h2>
           <p className="mt-0.5 text-[11px] text-slate-500">{copy.policyTypeHint}</p>
         </div>
-        <div className="grid min-w-0 grid-cols-4 rounded-lg border border-slate-200 bg-slate-50 p-1">
+        <div className="grid h-11 min-w-0 grid-cols-4 gap-1 rounded-2xl bg-slate-100/80 p-1">
           {(Object.keys(copy.policyTypes) as AccessPolicyType[]).map((type) => {
             const Icon = POLICY_ICONS[type]
             const active = draft.type === type
@@ -402,13 +409,13 @@ function PolicyDefinitionBar({
                 aria-pressed={active}
                 title={copy.policyTypes[type][1]}
                 onClick={() => onTypeChange(type)}
-                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
                   active
-                    ? "bg-white text-blue-700 shadow-sm ring-1 ring-slate-200"
-                    : "text-slate-600 hover:bg-white hover:text-slate-900"
+                    ? "bg-white text-slate-950 shadow-sm ring-1 ring-inset ring-slate-200/80"
+                    : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className={`h-4 w-4 shrink-0 ${POLICY_ICON_COLORS[type]}`} />
                 <span className="truncate">{copy.policyTypes[type][0]}</span>
               </button>
             )
