@@ -418,7 +418,7 @@ function PolicyDefinitionBar({
 
       <div className="mt-3 grid grid-cols-1 gap-4 border-t border-slate-200 pt-3 xl:grid-cols-[minmax(320px,1.5fr)_180px_minmax(240px,0.75fr)]">
         <div className="min-w-0 space-y-1.5">
-          <Label htmlFor="access-policy-name" className="text-xs font-medium text-slate-700">
+          <Label htmlFor="access-policy-name" className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
             {copy.policyName}
             <span className="ml-1 text-red-500">*</span>
           </Label>
@@ -432,7 +432,7 @@ function PolicyDefinitionBar({
           />
         </div>
         <div className="min-w-0 space-y-1.5">
-          <Label htmlFor="access-policy-version" className="text-xs font-medium text-slate-700">
+          <Label htmlFor="access-policy-version" className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
             {copy.version}
             <span className="ml-1 text-red-500">*</span>
           </Label>
@@ -446,8 +446,8 @@ function PolicyDefinitionBar({
           />
         </div>
         <div className="min-w-0 space-y-1.5">
-          <div className="flex min-w-0 items-center justify-between gap-3">
-            <Label className="shrink-0 text-xs font-medium text-slate-700">
+          <div className="flex h-4 min-w-0 items-center justify-between gap-3">
+            <Label className="flex h-4 shrink-0 items-center text-xs font-medium leading-none text-slate-700">
               {copy.priority}
               <span className="ml-1 text-red-500">*</span>
             </Label>
@@ -473,7 +473,7 @@ function PolicyDefinitionBar({
               step={1}
               onValueChange={([priority]) => onChange({ priority })}
               aria-label={copy.priority}
-              className="min-w-0 [&>span:first-child]:bg-slate-200 [&>span:first-child>span]:bg-blue-600 [&_[role=slider]]:border-blue-600 [&_[role=slider]]:focus-visible:ring-blue-200"
+              className="min-w-0 translate-y-0.5 [&>span:first-child]:bg-slate-200 [&>span:first-child>span]:bg-blue-600 [&_[role=slider]]:border-blue-600 [&_[role=slider]]:focus-visible:ring-blue-200"
             />
           </div>
         </div>
