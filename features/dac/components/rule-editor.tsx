@@ -1,10 +1,31 @@
 "use client"
 
-import { Ban, CircleCheck, MessageSquareWarning, Plus, Trash2 } from "lucide-react"
+import {
+  Ban,
+  Boxes,
+  CircleCheck,
+  CirclePlus,
+  CircleStop,
+  Eye,
+  FilePenLine,
+  FilePlus2,
+  FolderOpen,
+  List,
+  MessageSquareWarning,
+  MoveRight,
+  Pencil,
+  Play,
+  Plus,
+  Search,
+  Settings2,
+  ShieldCheck,
+  Trash2,
+  type LucideIcon,
+} from "lucide-react"
 
 import type { AccessControlCopy } from "../access-control-copy"
 import { ACCESS_ACTIONS } from "../access-control-options"
-import type { AccessPolicyType, AccessRuleDraft } from "../access-control-types"
+import type { AccessAction, AccessPolicyType, AccessRuleDraft } from "../access-control-types"
 import { Button } from "@/shared/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { Switch } from "@/shared/ui/switch"
@@ -28,6 +49,37 @@ const EFFECT_ICON_COLORS = {
   allow: "text-emerald-600",
   block: "text-red-600",
   prompt: "text-amber-600",
+}
+
+const ACTION_ICONS: Record<AccessAction, LucideIcon> = {
+  new: FilePlus2,
+  delete: Trash2,
+  rename: Pencil,
+  move: MoveRight,
+  write: FilePenLine,
+  set: Settings2,
+  open: FolderOpen,
+  read: Eye,
+  execute: Play,
+  query: Search,
+  enum: List,
+  create: CirclePlus,
+  terminate: CircleStop,
+  allocate: Boxes,
+  protect: ShieldCheck,
+}
+
+const ACTION_ICON_COLORS: Partial<Record<AccessAction, string>> = {
+  new: "text-emerald-600",
+  create: "text-emerald-600",
+  delete: "text-red-600",
+  terminate: "text-red-600",
+  write: "text-amber-600",
+  set: "text-amber-600",
+  execute: "text-violet-600",
+  protect: "text-teal-600",
+  query: "text-cyan-700",
+  read: "text-cyan-700",
 }
 
 export function RuleEditor({ copy, type, rules, onChange }: RuleEditorProps) {
@@ -62,16 +114,19 @@ export function RuleEditor({ copy, type, rules, onChange }: RuleEditorProps) {
             }}
           >
             <SelectTrigger className="h-9 border-0 bg-transparent px-0 font-medium shadow-none focus:ring-0">
-              <SelectValue />
+              <ActionLabel action={rule.action} label={copy.actions[rule.action]} trigger>
+                <SelectValue>{copy.actions[rule.action]}</SelectValue>
+              </ActionLabel>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl border-slate-200 p-1 shadow-lg">
               {actions.map((action) => (
                 <SelectItem
                   key={action}
                   value={action}
                   disabled={usedActions.has(action) && action !== rule.action}
+                  className="h-9 cursor-pointer rounded-lg"
                 >
-                  {copy.actions[action]}
+                  <ActionLabel action={action} label={copy.actions[action]} />
                 </SelectItem>
               ))}
             </SelectContent>
@@ -138,6 +193,29 @@ export function RuleEditor({ copy, type, rules, onChange }: RuleEditorProps) {
       </div>
     </div>
   )
+}
+
+function ActionLabel({
+  action,
+  label,
+  children,
+  trigger = false,
+}: {
+  action: AccessAction
+  label: string
+  children?: React.ReactNode
+  trigger?: boolean
+}) {
+  const Icon = ACTION_ICONS[action]
+  const content = (
+    <>
+      <Icon className={`h-4 w-4 shrink-0 ${ACTION_ICON_COLORS[action] ?? "text-slate-500"}`} />
+      {children ?? <span>{label}</span>}
+    </>
+  )
+  return trigger
+    ? <div className="flex min-w-0 items-center gap-2">{content}</div>
+    : <span className="flex min-w-0 items-center gap-2">{content}</span>
 }
 
 function EffectLabel({
