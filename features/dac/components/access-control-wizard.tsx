@@ -540,7 +540,6 @@ function SubjectPanel({
             <span className="font-normal text-slate-400">{draft.exceptions.length || copy.exceptionsHint}</span>
           </summary>
           <div className="mt-3 space-y-2 border-t border-slate-200 pt-3">
-            {draft.exceptions.length === 0 ? <p className="text-xs text-slate-400">{copy.noExceptions}</p> : null}
             {draft.exceptions.map((subject, index) => (
               <SubjectEditor
                 key={subject.id}
