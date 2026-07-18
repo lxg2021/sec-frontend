@@ -228,11 +228,13 @@ describe("access control request mapping", () => {
             object_id: "file-policy-1",
             object_version: "1.2.0",
             object_state: "active",
-            policy: {
-              name: "Confidential files",
-              sub_type: 90,
-              version: "1.2.0",
-              context: "{\"policy\":{}}",
+            Content: {
+              policy: {
+                name: "Confidential files",
+                sub_type: 90,
+                version: "1.2.0",
+                context: "{\"policy\":{}}",
+              },
             },
           },
           {
@@ -240,14 +242,18 @@ describe("access control request mapping", () => {
             object_id: "baseline-policy-1",
             object_version: "1.0.0",
             object_state: "active",
-            policy: { name: "Baseline", sub_type: 60, version: "1.0.0", context: "{}" },
+            Content: {
+              policy: { name: "Baseline", sub_type: 60, version: "1.0.0", context: "{}" },
+            },
           },
           {
             type: 1,
             object_id: "network-policy-1",
             object_version: "2.0.0",
             object_state: "active",
-            policy: { name: "Outbound control", sub_type: 20, version: "2.0.0", context: "{}" },
+            Content: {
+              policy: { name: "Outbound control", sub_type: 20, version: "2.0.0", context: "{}" },
+            },
           },
         ],
         total: 3,

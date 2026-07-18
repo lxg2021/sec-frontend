@@ -57,11 +57,21 @@ interface OperatePMCObjectResponseData {
   } | null
 }
 
+interface PMCPolicyData {
+  name?: string
+  sub_type?: number
+  version?: string
+  context?: string
+}
+
 interface PMCPolicyDefinitionData {
   type?: number
   object_id?: string
   object_version?: string
   object_state?: string
+  Content?: {
+    policy?: PMCPolicyData | null
+  } | null
   policy?: {
     name?: string
     sub_type?: number
@@ -434,7 +444,7 @@ export async function listExistingAccessControlPolicies(): Promise<ExistingAcces
 function normalizeExistingAccessControlPolicy(
   definition: PMCPolicyDefinitionData,
 ): ExistingAccessControlPolicy | null {
-  const policy = definition.policy
+  const policy = definition.Content?.policy ?? definition.policy
   const objectId = stringValue(definition.object_id)
   const subType = numberValue(policy?.sub_type)
   const policyType = ACCESS_POLICY_TYPE_BY_SUB_TYPE[subType]
