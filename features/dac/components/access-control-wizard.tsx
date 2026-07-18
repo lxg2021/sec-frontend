@@ -140,6 +140,14 @@ export function AccessControlWizard() {
     () => selectedHosts.filter((host) => host.status.trim().toLowerCase() === "offline").length,
     [selectedHosts],
   )
+  const onlineHostCount = useMemo(
+    () => selectedHosts.filter((host) => host.status.trim().toLowerCase() === "online").length,
+    [selectedHosts],
+  )
+  const invalidHostCount = useMemo(
+    () => selectedHosts.filter((host) => !(host.hostId || "").trim()).length,
+    [selectedHosts],
+  )
 
   const handleCreatePolicy = useCallback(async () => {
     if (selectedPolicy) {
@@ -293,7 +301,9 @@ export function AccessControlWizard() {
             error={hostsError}
             selectorKey={selectorKey}
             selectedHosts={selectedHosts}
+            onlineHostCount={onlineHostCount}
             offlineHostCount={offlineHostCount}
+            invalidHostCount={invalidHostCount}
             onSelectionChange={handleHostSelection}
             onReload={() => void loadHosts()}
           />
@@ -634,7 +644,9 @@ function HostPanel({
   error,
   selectorKey,
   selectedHosts,
+  onlineHostCount,
   offlineHostCount,
+  invalidHostCount,
   onSelectionChange,
   onReload,
 }: {
@@ -644,7 +656,9 @@ function HostPanel({
   error: string
   selectorKey: number
   selectedHosts: HostSelectorHostNode[]
+  onlineHostCount: number
   offlineHostCount: number
+  invalidHostCount: number
   onSelectionChange: (nodes: HostSelectorHostNode[]) => void
   onReload: () => void
 }) {
@@ -701,9 +715,11 @@ function HostPanel({
         />
       </div>
 
-      <div className="grid shrink-0 grid-cols-2 divide-x divide-slate-200 border-t border-slate-200 bg-white px-4 py-3">
-        <Metric label={copy.targetHostCount} value={selectedHosts.length} tone="blue" />
+      <div className="grid shrink-0 grid-cols-4 divide-x divide-slate-200 border-t border-slate-200 bg-white px-4 py-3">
+        <Metric label={copy.targetHostCount} value={selectedHosts.length} tone="slate" />
+        <Metric label={copy.onlineHostCount} value={onlineHostCount} tone="emerald" />
         <Metric label={copy.offlineHostCount} value={offlineHostCount} tone="amber" />
+        <Metric label={copy.invalidHostCount} value={invalidHostCount} tone={invalidHostCount > 0 ? "rose" : "slate"} />
       </div>
     </section>
   )
@@ -720,11 +736,26 @@ function FlowBadge({ number, title, done }: { number: number; title: string; don
   )
 }
 
-function Metric({ label, value, tone }: { label: string; value: number; tone: "blue" | "amber" }) {
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: number
+  tone: "slate" | "emerald" | "amber" | "rose"
+}) {
+  const valueClassName = {
+    slate: "text-slate-950",
+    emerald: "text-emerald-600",
+    amber: "text-amber-600",
+    rose: "text-rose-600",
+  }[tone]
+
   return (
-    <div className="flex items-baseline justify-center gap-2 px-3">
-      <span className={`text-lg font-bold tabular-nums ${tone === "blue" ? "text-blue-700" : "text-amber-700"}`}>{value}</span>
-      <span className="truncate text-[11px] text-slate-500">{label}</span>
+    <div className="min-w-0 px-3 text-center">
+      <p className="truncate text-[10px] text-slate-500">{label}</p>
+      <p className={`mt-1 text-lg font-semibold leading-none tabular-nums ${valueClassName}`}>{value}</p>
     </div>
   )
 }
