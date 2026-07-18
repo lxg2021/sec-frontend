@@ -2,7 +2,20 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { AlertCircle, FileText, Hash, Plus, RefreshCw } from "lucide-react"
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  FilePlus2,
+  FileText,
+  Hash,
+  LibraryBig,
+  ListChecks,
+  LoaderCircle,
+  Send,
+  Server,
+  ShieldCheck,
+} from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -26,36 +39,36 @@ import {
   ScanScheduleForm,
   sanitizeScanSchedule,
   type ScanSchedule,
-  type ScanScheduleFormField,
   type ScanScheduleFormText,
 } from "@/shared/components/scan-schedule"
+import HostSelector from "@/shared/components/host-selector"
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
+import type {
+  HostSelectorHostNode,
+  HostSelectorTreeNode,
+} from "@/shared/components/host-selector/types"
 import { getAccessToken } from "@/shared/lib/http/auth"
+import { cn } from "@/shared/lib/utils"
 import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
 
+import { BaselineDispatchConfirmDialog } from "./baseline-dispatch-confirm-dialog"
 import { BaselineDispatchSelector, type BaselineDispatchSelectorItem } from "./baseline-dispatch-selector"
-import { BaselineSelectionStep } from "./baseline-selection-step"
-import { BaselineTableList } from "./baseline-table-list"
-import { DispatchStepper, type DispatchStepItem } from "./dispatch-stepper"
-import { DispatchSubmitStep } from "./dispatch-submit-step"
-import { HostSelectionStep } from "./host-selection-step"
-import { ScanScheduleStep } from "./scan-schedule-step"
+import { BaselinePolicySelectorDialog } from "./baseline-policy-selector-dialog"
 import {
   getDispatchProfileLabel,
   getDispatchStandardKey,
   getDispatchStandardLabel,
 } from "./value-mapping"
 
-interface HostTreeNode {
-  id: string
-  name?: string
-  type?: string
-  parentId?: string
-  hostId?: string
-  hostname?: string
-  ip?: string
-  status?: string
+type DispatchHostTreeNode = HostSelectorTreeNode & {
+  valid?: boolean
+  invalidReason?: string
+}
+
+type DispatchHostNode = HostSelectorHostNode & {
   valid?: boolean
   invalidReason?: string
 }
@@ -85,6 +98,11 @@ function mapReusablePolicyToCreatedPolicy(
 
 function getReusablePolicyKey(policy: Pick<ReusableBaselineScanPolicy, "id" | "version">) {
   return `${policy.id}::${policy.version}`
+}
+
+function isPolicyConflict(error: unknown) {
+  if (!(error instanceof Error)) return false
+  return /already exists|duplicate|conflict|\u5df2\u5b58\u5728|\u91cd\u590d/i.test(error.message)
 }
 
 function buildAutoPolicyName(template: BaselineTemplate) {
@@ -140,9 +158,11 @@ const REUSABLE_POLICY_PAGE_SIZE = 8
 
 export function BaselineDispatchClient() {
   const t = useTranslations("pages.baseline.dispatch")
+  const workspace = useTranslations("pages.baseline.dispatch.workspace")
   const locale = useLocale()
   const isZh = locale.toLowerCase().startsWith("zh")
-  const [currentStep, setCurrentStep] = useState(1)
+  const [policySelectorOpen, setPolicySelectorOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const [templates, setTemplates] = useState<BaselineTemplate[]>([])
   const [templatesLoading, setTemplatesLoading] = useState(true)
@@ -152,7 +172,6 @@ export function BaselineDispatchClient() {
   const [schedule, setSchedule] = useState<ScanSchedule>(DEFAULT_SCAN_SCHEDULE)
   const [policyName, setPolicyName] = useState("")
   const [policyVersion, setPolicyVersion] = useState("")
-  const [createdPolicy, setCreatedPolicy] = useState<CreatedPolicy | null>(null)
   const [appliedPolicy, setAppliedPolicy] = useState<CreatedPolicy | null>(null)
   const [creatingPolicy, setCreatingPolicy] = useState(false)
   const [reusablePolicies, setReusablePolicies] = useState<BaselineScanPolicyListResult | null>(null)
@@ -161,12 +180,11 @@ export function BaselineDispatchClient() {
   const [reusablePoliciesPage, setReusablePoliciesPage] = useState(1)
   const [selectedReusablePolicyKey, setSelectedReusablePolicyKey] = useState<string | null>(null)
 
-  const [hostTree, setHostTree] = useState<HostTreeNode[]>([])
+  const [hostTree, setHostTree] = useState<DispatchHostTreeNode[]>([])
   const [hostsLoading, setHostsLoading] = useState(true)
   const [hostsError, setHostsError] = useState("")
   const selectorVersion = 0
-  const [selectedNodes, setSelectedNodes] = useState<HostTreeNode[]>([])
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectedNodes, setSelectedNodes] = useState<DispatchHostTreeNode[]>([])
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -205,7 +223,7 @@ export function BaselineDispatchClient() {
 
     try {
       const data = await getHostSelectorTree()
-      setHostTree(data as HostTreeNode[])
+      setHostTree(data)
     } catch (error) {
       setHostTree([])
       setHostsError(error instanceof Error ? error.message : t("errors.hosts.loadFailed"))
@@ -382,49 +400,8 @@ export function BaselineDispatchClient() {
       ? (isZh ? "\u7248\u672c\u53f7\u683c\u5f0f\u9700\u4e3a 0.0.0" : "Version must use the 0.0.0 format")
       : undefined
 
-  const scanScheduleFields = useMemo<ScanScheduleFormField[]>(() => {
-      return [
-        {
-          id: "policy-name",
-          icon: <FileText className="size-3.5 text-sky-600" />,
-          label: isZh ? "\u7b56\u7565\u540d\u79f0" : "Policy Name",
-          value: policyName,
-          inputClassName: "bg-slate-50",
-        onChange: (value) => {
-          setPolicyName(value)
-          setAppliedPolicy(null)
-          setCreatedPolicy(null)
-        },
-      },
-        {
-          id: "policy-version",
-          icon: <Hash className="size-3.5 text-amber-500" />,
-          label: isZh ? "\u7248\u672c\u53f7" : "Version",
-          value: policyVersion,
-          error: policyVersionError,
-          inputClassName: "bg-slate-50",
-        onChange: (value) => {
-          setPolicyVersion(value)
-          setAppliedPolicy(null)
-          setCreatedPolicy(null)
-        },
-      },
-    ]
-  }, [isZh, policyName, policyVersion, policyVersionError])
-
-  const candidatePolicy = useMemo(() => {
-    if (selectedReusablePolicy && selectedTemplate) {
-      return mapReusablePolicyToCreatedPolicy(
-        selectedReusablePolicy,
-        selectedTemplate.display_name || selectedTemplate.baseline_uuid,
-      )
-    }
-
-    return createdPolicy
-  }, [createdPolicy, selectedReusablePolicy, selectedTemplate])
-
   const selectedHosts = useMemo(() => {
-    return selectedNodes.filter((node) => node?.type === "host")
+    return selectedNodes.filter((node): node is DispatchHostNode => node.type === "host")
   }, [selectedNodes])
 
   const selectedGroups = useMemo(() => {
@@ -436,7 +413,7 @@ export function BaselineDispatchClient() {
   }, [selectedNodes])
 
   const deduplicatedHosts = useMemo(() => {
-    const map = new Map<string, HostTreeNode>()
+    const map = new Map<string, DispatchHostNode>()
 
     for (const host of selectedHosts) {
       const agentId = host.hostId || host.id
@@ -491,18 +468,17 @@ export function BaselineDispatchClient() {
     return deduplicatedHosts.filter((host) => host.valid === false).length
   }, [deduplicatedHosts])
 
+  const onlineHostCount = Math.max(0, deduplicatedHosts.length - offlineHostCount)
+
   const ungroupedHostCount = useMemo(() => {
     return deduplicatedHosts.filter(
       (host) => !host.parentId || host.parentId === "__ungrouped__",
     ).length
   }, [deduplicatedHosts])
 
-  const canEnterStep2 = Boolean(selectedTemplateUuid)
   const isPolicyVersionValid = POLICY_VERSION_PATTERN.test(policyVersion.trim())
   const canCreatePolicy = Boolean(selectedTemplate && policyName.trim() && isPolicyVersionValid)
-  const canApplyPolicy = Boolean(candidatePolicy)
-  const canEnterStep3 = canEnterStep2 && Boolean(appliedPolicy)
-  const canEnterStep4 = canEnterStep3 && deduplicatedHosts.length > 0
+  const canOpenConfirm = Boolean(appliedPolicy && deduplicatedHosts.length > 0 && invalidHostCount === 0)
   const effectiveSchedule = appliedPolicy?.schedule ?? schedule
 
   const previewValidations = useMemo<DispatchValidation[]>(() => {
@@ -613,90 +589,24 @@ export function BaselineDispatchClient() {
     ungroupedHostCount,
   ])
 
-  const stepItems = useMemo<DispatchStepItem[]>(() => {
-    const statuses = [1, 2, 3, 4].map((step) => {
-      if (step < currentStep) return "completed" as const
-      if (step === currentStep) return "current" as const
-      return "upcoming" as const
-    })
-
-    return [
-      {
-        key: 1,
-        title: t("steps.baselineSelection.title"),
-        description: t("steps.baselineSelection.description"),
-        status: statuses[0],
-      },
-      {
-        key: 2,
-        title: t("steps.schedule.title"),
-        description: t("steps.schedule.description"),
-        status: statuses[1],
-        disabled: !canEnterStep2,
-      },
-      {
-        key: 3,
-        title: t("steps.hostSelection.title"),
-        description: t("steps.hostSelection.description"),
-        status: statuses[2],
-        disabled: !canEnterStep3,
-      },
-      {
-        key: 4,
-        title: t("steps.dispatchSubmit.title"),
-        description: t("steps.dispatchSubmit.description"),
-        status: statuses[3],
-        disabled: !canEnterStep4,
-      },
-    ]
-  }, [canEnterStep2, canEnterStep3, canEnterStep4, currentStep, t])
-
-  const handleStepChange = useCallback(
-    (step: number) => {
-      if (step === 1) {
-        setCurrentStep(1)
-        return
-      }
-
-      if (step === 2 && canEnterStep2) {
-        setCurrentStep(2)
-        return
-      }
-
-      if (step === 3 && canEnterStep3) {
-        setCurrentStep(3)
-        return
-      }
-
-      if (step === 4 && canEnterStep4) {
-        setCurrentStep(4)
-      }
-    },
-    [canEnterStep2, canEnterStep3, canEnterStep4],
-  )
-
   const handleTemplateChange = useCallback((value: string) => {
     setSelectedTemplateUuid(value)
     setAppliedPolicy(null)
-    setCreatedPolicy(null)
     setReusablePoliciesPage(1)
     setSelectedReusablePolicyKey(null)
-    setCurrentStep(1)
   }, [])
 
-  const handleSelectionChange = useCallback((nodes: HostTreeNode[], ids: Set<string>) => {
+  const handleSelectionChange = useCallback((nodes: DispatchHostTreeNode[]) => {
     setSelectedNodes(nodes)
-    setSelectedIds(new Set(ids))
   }, [])
 
   const handleScheduleChange = useCallback((value: ScanSchedule) => {
     setSchedule(sanitizeScanSchedule(value))
     setAppliedPolicy(null)
-    setCreatedPolicy(null)
+    setSelectedReusablePolicyKey(null)
   }, [])
 
   const handleReusablePolicySelectionChange = useCallback((selectedKey: string | null) => {
-    setAppliedPolicy(null)
     setSelectedReusablePolicyKey(selectedKey)
   }, [])
 
@@ -704,15 +614,21 @@ export function BaselineDispatchClient() {
     setSelectedReusablePolicyKey(getReusablePolicyKey(item))
   }, [])
 
-  const handleApplyTask = useCallback(() => {
-    if (!candidatePolicy) {
-      toast.error(t("validation.policyNotCreated.suggestion"))
-      return
-    }
+  const handleUseSelectedPolicy = useCallback(() => {
+    if (!selectedReusablePolicy || !selectedTemplate) return
 
-    setAppliedPolicy(candidatePolicy)
-    setCurrentStep(3)
-  }, [candidatePolicy, t])
+    const nextPolicy = mapReusablePolicyToCreatedPolicy(
+      selectedReusablePolicy,
+      selectedTemplate.display_name || selectedTemplate.baseline_uuid,
+    )
+
+    setSchedule(nextPolicy.schedule)
+    setPolicyName(nextPolicy.name)
+    setPolicyVersion(nextPolicy.version)
+    setAppliedPolicy(nextPolicy)
+    setPolicySelectorOpen(false)
+    toast.success(t("toast.policyReused"))
+  }, [selectedReusablePolicy, selectedTemplate, t])
 
   const handleCreatePolicy = useCallback(async () => {
     if (!selectedTemplate) return
@@ -734,9 +650,9 @@ export function BaselineDispatchClient() {
     const baselineFileName =
       selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
     const reusePolicy = (policy: ReusableBaselineScanPolicy) => {
-      setCreatedPolicy(mapReusablePolicyToCreatedPolicy(policy, baselineDisplayName))
-      setSchedule(nextSchedule)
-      setAppliedPolicy(null)
+      const nextPolicy = mapReusablePolicyToCreatedPolicy(policy, baselineDisplayName)
+      setSchedule(nextPolicy.schedule)
+      setAppliedPolicy(nextPolicy)
       setSelectedReusablePolicyKey(getReusablePolicyKey(policy))
       toast.success(t("toast.policyReused"))
     }
@@ -744,39 +660,6 @@ export function BaselineDispatchClient() {
     setCreatingPolicy(true)
 
     try {
-
-      const loadedMatch = reusablePolicies?.items.find((policy) =>
-        isSameBaselineScanSchedule(policy.scanSchedule, nextSchedule),
-      )
-
-      if (loadedMatch) {
-        reusePolicy(loadedMatch)
-        return
-      }
-
-      let latestPolicies: BaselineScanPolicyListResult | null = null
-
-      try {
-        latestPolicies = await listBaselineScanPolicies({
-          baselineUUID: selectedTemplate.uuid,
-          limit: 100,
-          offset: 0,
-        })
-      } catch {
-        // A failed preflight lookup must not prevent creation of a genuinely new policy.
-      }
-
-      const existingMatch = latestPolicies?.items.find((policy) =>
-        isSameBaselineScanSchedule(policy.scanSchedule, nextSchedule),
-      )
-
-      if (existingMatch && latestPolicies) {
-        setReusablePolicies(latestPolicies)
-        setReusablePoliciesPage(1)
-        reusePolicy(existingMatch)
-        return
-      }
-
       const created = await createBaselineScanPolicy({
         name: policyName.trim(),
         version: policyVersion.trim(),
@@ -785,40 +668,42 @@ export function BaselineDispatchClient() {
         scanSchedule: nextSchedule,
       })
 
-      setCreatedPolicy({
+      const nextCreatedPolicy = {
         id: created.id,
         name: created.name,
         version: created.version,
         baselineUuid: selectedTemplate.uuid,
         baselineName: baselineDisplayName,
         schedule: nextSchedule,
-      })
+      }
       setSchedule(nextSchedule)
 
-      setAppliedPolicy(null)
+      setAppliedPolicy(nextCreatedPolicy)
       setReusablePoliciesPage(1)
       setSelectedReusablePolicyKey(getReusablePolicyKey(created))
       await loadReusablePolicies(1, getReusablePolicyKey(created))
       toast.success(t("toast.policyCreated"))
     } catch (error) {
-      try {
-        const latestPolicies = await listBaselineScanPolicies({
-          baselineUUID: selectedTemplate.uuid,
-          limit: 100,
-          offset: 0,
-        })
-        const existingMatch = latestPolicies.items.find((policy) =>
-          isSameBaselineScanSchedule(policy.scanSchedule, nextSchedule),
-        )
+      if (isPolicyConflict(error)) {
+        try {
+          const latestPolicies = await listBaselineScanPolicies({
+            baselineUUID: selectedTemplate.uuid,
+            limit: 100,
+            offset: 0,
+          })
+          const existingMatch = latestPolicies.items.find((policy) =>
+            isSameBaselineScanSchedule(policy.scanSchedule, nextSchedule),
+          )
 
-        if (existingMatch) {
-          setReusablePolicies(latestPolicies)
-          setReusablePoliciesPage(1)
-          reusePolicy(existingMatch)
-          return
+          if (existingMatch) {
+            setReusablePolicies(latestPolicies)
+            setReusablePoliciesPage(1)
+            reusePolicy(existingMatch)
+            return
+          }
+        } catch {
+          // Preserve the original creation error if conflict recovery cannot load the existing task.
         }
-      } catch {
-        // Keep the original creation error when the conflict recovery query also fails.
       }
 
       toast.error(
@@ -834,7 +719,6 @@ export function BaselineDispatchClient() {
     loadReusablePolicies,
     policyName,
     policyVersion,
-    reusablePolicies,
     schedule,
     selectedTemplate,
     t,
@@ -870,6 +754,7 @@ export function BaselineDispatchClient() {
         agentIds,
       })
       toast.success(t("toast.dispatchSuccess"), { id: toastId })
+      setConfirmOpen(false)
     } catch (error) {
       toast.error(
         error instanceof Error ? t("toast.dispatchFailedWithReason", { reason: error.message }) : t("toast.dispatchFailed"),
@@ -886,145 +771,88 @@ export function BaselineDispatchClient() {
     t,
   ])
 
-  const scheduleContent = (
-    <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
-        <BaselineTableList
-          data={reusablePolicies}
-          error={reusablePoliciesError}
-          loading={reusablePoliciesLoading}
-          onPageChange={setReusablePoliciesPage}
-          onRefresh={() => void loadReusablePolicies(reusablePoliciesPage)}
-          onRowClick={handleReusablePolicyRowClick}
-          onSelectionChange={handleReusablePolicySelectionChange}
-          selectedKey={selectedReusablePolicyKey}
-        />
-      </section>
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-5">
-        <div className="space-y-5">
-          <div className="flex items-center gap-4 pb-1">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-slate-900">
-              <Plus className="size-4 text-sky-600" />
-              {isZh ? "\u521b\u5efa\u4efb\u52a1" : "Create Task"}
-            </h3>
-          </div>
-
-          <ScanScheduleForm
-            fields={scanScheduleFields}
-            value={schedule}
-            onChange={handleScheduleChange}
-            title={null}
-            description={null}
-            action={
-              <Button
-                type="button"
-                onClick={() => void handleCreatePolicy()}
-                disabled={!canCreatePolicy || creatingPolicy}
-                className="h-10 w-full text-base font-medium"
-              >
-                <Plus className="h-4 w-4" />
-                {creatingPolicy
-                  ? (isZh ? "\u521b\u5efa\u4e2d..." : "Creating...")
-                  : (isZh ? "\u65b0\u5efa\u4efb\u52a1" : "New Task")}
-              </Button>
-            }
-            text={scanScheduleFormText}
-            className="max-w-none border-0 bg-transparent shadow-none"
-          />
-        </div>
-      </section>
-
-    </div>
-  )
-
-  const scheduleHeaderAction = (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => void loadReusablePolicies(reusablePoliciesPage)}
-      disabled={reusablePoliciesLoading}
-      className="h-11 rounded-2xl px-5"
-    >
-      <RefreshCw className={reusablePoliciesLoading ? "mr-2 size-4 animate-spin" : "mr-2 size-4"} />
-      {isZh ? "\u5237\u65b0" : "Refresh"}
-    </Button>
-  )
-
-  const renderCurrentStep = () => {
-    const selector = (
-      <BaselineDispatchSelector
-        items={baselineItems}
-        value={selectedTemplateUuid}
-        onValueChange={handleTemplateChange}
-        loading={templatesLoading}
-        className="w-full"
-        text={baselineSelectorText}
-      />
-    )
-
-    if (currentStep === 1) {
-      return (
-        <BaselineSelectionStep
-          selector={selector}
-          selectedTemplate={selectedTemplate}
-          canNext={canEnterStep2}
-          onNext={() => setCurrentStep(2)}
-        />
-      )
+  const handleOpenConfirm = useCallback(() => {
+    if (!appliedPolicy) {
+      toast.error(t("permissions.createPolicyFirst"))
+      return
     }
 
-    if (currentStep === 2) {
-      return (
-        <ScanScheduleStep
-          creating={creatingPolicy}
-          canProceed={canApplyPolicy}
-          content={scheduleContent}
-          headerAction={scheduleHeaderAction}
-          onBack={() => setCurrentStep(1)}
-          onPrimaryAction={handleApplyTask}
-          primaryLabel={isZh ? "\u5e94\u7528\u4efb\u52a1" : "Apply Task"}
-        />
-      )
+    if (deduplicatedHosts.length === 0) {
+      toast.error(t("permissions.selectHostsFirst"))
+      return
     }
 
-    if (currentStep === 3) {
-      return (
-        <HostSelectionStep
-          selectorKey={selectorVersion}
-          data={hostTree}
-          loading={hostsLoading}
-          error={hostsError}
-          selectedHostCount={deduplicatedHosts.length}
-          selectedNodeCount={selectedIds.size}
-          canNext={canEnterStep4}
-          onSelectionChange={handleSelectionChange}
-          onBack={() => setCurrentStep(2)}
-          onNext={() => setCurrentStep(4)}
-        />
-      )
+    if (invalidHostCount > 0) {
+      toast.error(t("permissions.invalidHosts"))
+      return
     }
 
-    return (
-      <DispatchSubmitStep
-        data={previewData}
-        submitting={submitting}
-        dangerConfirmRequired={offlineHostCount > 0}
-        onBack={() => setCurrentStep(3)}
-        onConfirm={() => void handleConfirmDispatch()}
-      />
-    )
-  }
+    setConfirmOpen(true)
+  }, [appliedPolicy, deduplicatedHosts.length, invalidHostCount, t])
 
   return (
-    <div className="h-full min-h-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_24%),linear-gradient(180deg,#f8fbff_0%,#eef3f8_100%)]">
-      <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden p-6">
-        {(templatesError || hostsError) && (
-            <Alert variant="destructive">
+    <div className="h-full min-h-0 overflow-hidden bg-slate-100 p-4">
+      <div className="flex h-full min-h-0 flex-col gap-3">
+        <header className="w-full shrink-0 rounded-[28px] border border-slate-200/80 bg-white px-5 py-[13px] shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+          <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center">
+            <div className="flex min-w-0 items-center gap-4 xl:w-[430px] xl:flex-none 2xl:w-[500px]">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-700">
+                <ShieldCheck className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 space-y-1.5">
+                <h1 className="truncate text-lg font-semibold leading-tight text-slate-950">{workspace("pageTitle")}</h1>
+                <p className="truncate text-sm text-slate-500">{workspace("pageDescription")}</p>
+              </div>
+            </div>
+
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
+              <div className="hidden h-12 w-[410px] shrink-0 grid-cols-[auto_116px_auto] items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 2xl:grid">
+                <FlowBadge number={1} title={workspace("flowTask")} done={Boolean(appliedPolicy)} />
+                <div className="mx-4 h-px bg-slate-300" />
+                <FlowBadge number={2} title={workspace("flowHosts")} done={deduplicatedHosts.length > 0} />
+              </div>
+              <span className="hidden h-6 w-px shrink-0 bg-slate-200 2xl:block" aria-hidden="true" />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setPolicySelectorOpen(true)}
+                disabled={!selectedTemplate}
+                className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+              >
+                <LibraryBig className="h-4 w-4" />
+                <span className="font-medium">{workspace("selectExisting")}</span>
+              </Button>
+              <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => void handleCreatePolicy()}
+                disabled={!canCreatePolicy || creatingPolicy}
+                className="h-10 shrink-0 gap-2 rounded-full px-3 text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+              >
+                {creatingPolicy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <FilePlus2 className="h-4 w-4" />}
+                <span className="font-medium">{creatingPolicy ? workspace("creatingTask") : workspace("createTask")}</span>
+              </Button>
+              <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
+              <Button
+                type="button"
+                onClick={handleOpenConfirm}
+                disabled={!canOpenConfirm || submitting}
+                className="h-10 min-w-56 shrink-0 rounded-full bg-teal-600 px-5 text-white shadow-sm hover:bg-teal-700"
+              >
+                {submitting ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                {submitting ? workspace("dispatching") : workspace("dispatchToHosts", { count: deduplicatedHosts.length })}
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {templatesError && (
+          <Alert variant="destructive" className="shrink-0">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t("errors.loadDataTitle")}</AlertTitle>
             <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span>{templatesError || hostsError}</span>
+              <span>{templatesError}</span>
               {!getAccessToken() ? (
                 <Button asChild size="sm" variant="outline" className="shrink-0">
                   <Link href="/login">{t("errors.goLogin")}</Link>
@@ -1034,16 +862,297 @@ export function BaselineDispatchClient() {
           </Alert>
         )}
 
-        <DispatchStepper
-          currentStep={currentStep}
-          items={stepItems}
-          onStepChange={handleStepChange}
+        <section className="shrink-0 rounded-[24px] border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
+          <div className="flex items-center gap-3 border-b border-slate-200 pb-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+              <ListChecks className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="text-sm font-semibold text-slate-950">{workspace("definitionTitle")}</h2>
+              <p className="mt-0.5 text-[11px] text-slate-500">{workspace("definitionDescription")}</p>
+            </div>
+          </div>
+
+          <div className="mt-3 grid items-end gap-4 xl:grid-cols-[minmax(360px,1.45fr)_minmax(260px,0.9fr)_150px_minmax(260px,0.8fr)]">
+            <div className="min-w-0 space-y-1.5">
+              <Label className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
+                {workspace("targetBaseline")}<span className="ml-1 text-red-500">*</span>
+              </Label>
+              <BaselineDispatchSelector
+                items={baselineItems}
+                value={selectedTemplateUuid}
+                onValueChange={handleTemplateChange}
+                loading={templatesLoading}
+                className="h-[62px] w-full border border-slate-200 bg-slate-50 py-1.5 pl-2 shadow-none"
+                text={baselineSelectorText}
+              />
+            </div>
+
+            <div className="min-w-0 space-y-1.5">
+              <Label htmlFor="baseline-policy-name" className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
+                <FileText className="mr-1.5 h-3.5 w-3.5 text-sky-600" />
+                {workspace("taskName")}<span className="ml-1 text-red-500">*</span>
+              </Label>
+              <Input
+                id="baseline-policy-name"
+                value={policyName}
+                onChange={(event) => {
+                  setPolicyName(event.target.value)
+                  setAppliedPolicy(null)
+                  setSelectedReusablePolicyKey(null)
+                }}
+                className="h-[62px] bg-white"
+                maxLength={128}
+              />
+            </div>
+
+            <div className="min-w-0 space-y-1.5">
+              <Label htmlFor="baseline-policy-version" className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
+                <Hash className="mr-1.5 h-3.5 w-3.5 text-amber-500" />
+                {workspace("version")}<span className="ml-1 text-red-500">*</span>
+              </Label>
+              <div>
+                <Input
+                  id="baseline-policy-version"
+                  value={policyVersion}
+                  onChange={(event) => {
+                    setPolicyVersion(event.target.value)
+                    setAppliedPolicy(null)
+                    setSelectedReusablePolicyKey(null)
+                  }}
+                  aria-invalid={Boolean(policyVersionError)}
+                  className={cn("h-[62px] font-mono", policyVersionError && "border-rose-400")}
+                  maxLength={64}
+                />
+                {policyVersionError ? <p className="mt-1 text-[10px] text-rose-500">{policyVersionError}</p> : null}
+              </div>
+            </div>
+
+            <div className="min-w-0 space-y-1.5">
+              <Label className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">{workspace("status")}</Label>
+              <div className="flex h-[62px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4">
+                <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", appliedPolicy || canCreatePolicy ? "bg-emerald-500" : "bg-amber-500")} />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-slate-800">
+                    {appliedPolicy
+                      ? workspace("statusReady")
+                      : !selectedTemplate
+                        ? workspace("statusNeedBaseline")
+                        : canCreatePolicy
+                          ? workspace("statusDraftReady")
+                          : workspace("statusNeedTask")}
+                  </p>
+                  <p className="mt-1 truncate text-[10px] text-slate-500">
+                    {appliedPolicy ? `${appliedPolicy.name} · ${appliedPolicy.version}` : buildScheduleSummary(schedule, t)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <main className="grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(0,1.62fr)_minmax(440px,1fr)]">
+          <section className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+            <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-3.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
+                <FileText className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-slate-950">{workspace("scanPlanTitle")}</h2>
+                <p className="mt-0.5 truncate text-[11px] text-slate-500">{workspace("scanPlanDescription")}</p>
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto p-5">
+              <ScanScheduleForm
+                value={schedule}
+                onChange={handleScheduleChange}
+                title={null}
+                description={null}
+                text={scanScheduleFormText}
+                className="max-w-none border-0 bg-transparent shadow-none [&>div]:px-0"
+              />
+
+              <div className="mt-5 border-t border-slate-200 pt-5">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-sm font-semibold text-slate-950">{workspace("baselineOverview")}</h3>
+                  <p className="text-[11px] text-slate-500">{workspace("baselineOverviewDescription")}</p>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                  <RiskMetric label={workspace("totalChecks")} value={selectedTemplate?.item_count ?? 0} tone="slate" />
+                  <RiskMetric label={workspace("highRisk")} value={selectedTemplate?.high_count ?? 0} tone="rose" />
+                  <RiskMetric label={workspace("mediumRisk")} value={selectedTemplate?.medium_count ?? 0} tone="amber" />
+                  <RiskMetric label={workspace("lowRisk")} value={selectedTemplate?.low_count ?? 0} tone="emerald" />
+                </div>
+              </div>
+
+              <div className="mt-5 border-t border-slate-200 pt-5">
+                <h3 className="text-sm font-semibold text-slate-950">{workspace("preflight")}</h3>
+                <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <PreflightItem
+                    ok={Boolean(selectedTemplate)}
+                    label={selectedTemplate ? workspace("baselineReady") : workspace("baselineNotReady")}
+                  />
+                  <PreflightItem ok={Boolean(appliedPolicy)} label={appliedPolicy ? workspace("taskReady") : workspace("taskNotReady")} />
+                  <PreflightItem ok={deduplicatedHosts.length > 0} label={deduplicatedHosts.length > 0 ? workspace("hostsReady", { count: deduplicatedHosts.length }) : workspace("hostsNotReady")} />
+                  <PreflightItem
+                    ok={invalidHostCount === 0}
+                    warning={invalidHostCount === 0 && offlineHostCount > 0}
+                    label={
+                      invalidHostCount > 0
+                        ? workspace("invalidWarning", { count: invalidHostCount })
+                        : offlineHostCount > 0
+                          ? workspace("offlineWarning", { count: offlineHostCount })
+                          : workspace("hostStatusReady")
+                    }
+                  />
+                </div>
+
+                <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-[10px] text-slate-500">{workspace("summary")}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600">
+                    <span className="font-semibold text-slate-900">{selectedTemplate?.display_name || selectedTemplate?.baseline_uuid || "-"}</span>
+                    <span>· {buildScheduleSummary(effectiveSchedule, t)}</span>
+                    <span>· {workspace("selectedHosts", { count: deduplicatedHosts.length })}</span>
+                    <span>· {workspace("previewHint")}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+            <div className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-3.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                <Server className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-slate-950">{workspace("targetTitle")}</h2>
+                <p className="mt-0.5 truncate text-[11px] text-slate-500">{workspace("targetDescription")}</p>
+              </div>
+              <span className="ml-auto shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                {workspace("selectedHosts", { count: deduplicatedHosts.length })}
+              </span>
+            </div>
+
+            <div className="flex min-h-0 flex-1 flex-col bg-slate-50/50 p-3">
+              {hostsError ? (
+                <Alert variant="destructive" className="mb-3 shrink-0">
+                  <AlertTitle>{t("hostSelection.loadFailed")}</AlertTitle>
+                  <AlertDescription>{hostsError}</AlertDescription>
+                </Alert>
+              ) : null}
+              <HostSelector
+                key={selectorVersion}
+                data={hostTree}
+                loading={hostsLoading}
+                fillAvailableHeight
+                showHeader={false}
+                compactHostRows
+                emptyText={t("hostSelection.empty")}
+                text={{
+                  title: t("hostSelection.selector.title"),
+                  searchPlaceholder: t("hostSelection.selector.searchPlaceholder"),
+                  selectAll: t("hostSelection.selector.selectAll"),
+                  clear: t("hostSelection.selector.clear"),
+                  searchResults: (term, count) => t("hostSelection.selector.searchResults", { term, count }),
+                  clearSearch: t("hostSelection.selector.clearSearch"),
+                  selectedSummary: (total, hostCount, groupCount, deptCount, companyCount) =>
+                    t("hostSelection.selector.selectedSummary", { total, hostCount, groupCount, deptCount, companyCount }),
+                }}
+                onSelectionChange={handleSelectionChange}
+              />
+            </div>
+
+            <div className="grid shrink-0 grid-cols-4 divide-x divide-slate-200 border-t border-slate-200 bg-white px-4 py-3">
+              <TargetMetric label={workspace("targetTitle")} value={deduplicatedHosts.length} />
+              <TargetMetric label={workspace("onlineHosts")} value={onlineHostCount} tone="emerald" />
+              <TargetMetric label={workspace("offlineHosts")} value={offlineHostCount} tone="amber" />
+              <TargetMetric label={workspace("invalidHosts")} value={invalidHostCount} tone={invalidHostCount > 0 ? "rose" : "slate"} />
+            </div>
+          </section>
+        </main>
+
+        <BaselinePolicySelectorDialog
+          data={reusablePolicies}
+          error={reusablePoliciesError}
+          loading={reusablePoliciesLoading}
+          open={policySelectorOpen}
+          selectedKey={selectedReusablePolicyKey}
+          onOpenChange={setPolicySelectorOpen}
+          onPageChange={setReusablePoliciesPage}
+          onRefresh={() => void loadReusablePolicies(reusablePoliciesPage)}
+          onRowClick={handleReusablePolicyRowClick}
+          onSelectionChange={handleReusablePolicySelectionChange}
+          onSelect={handleUseSelectedPolicy}
         />
 
-        <div className="min-h-0 flex-1">
-          {renderCurrentStep()}
-        </div>
+        <BaselineDispatchConfirmDialog
+          data={previewData}
+          open={confirmOpen}
+          submitting={submitting}
+          onOpenChange={setConfirmOpen}
+          onConfirm={() => void handleConfirmDispatch()}
+        />
       </div>
+    </div>
+  )
+}
+
+function FlowBadge({ number, title, done }: { number: number; title: string; done: boolean }) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <span className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold", done ? "bg-slate-950 text-white" : "bg-slate-200 text-slate-500")}>
+        {number}
+      </span>
+      <span className={cn("truncate text-[11px] font-semibold", done ? "text-slate-900" : "text-slate-500")}>{title}</span>
+    </div>
+  )
+}
+
+function RiskMetric({ label, value, tone }: { label: string; value: number; tone: "slate" | "rose" | "amber" | "emerald" }) {
+  const styles = {
+    slate: "border-slate-200 bg-slate-50 text-slate-950",
+    rose: "border-rose-200 bg-rose-50 text-rose-600",
+    amber: "border-amber-200 bg-amber-50 text-amber-600",
+    emerald: "border-emerald-200 bg-emerald-50 text-emerald-600",
+  }
+
+  return (
+    <div className={cn("rounded-xl border px-4 py-3", styles[tone])}>
+      <p className="text-[11px] text-slate-500">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+    </div>
+  )
+}
+
+function PreflightItem({ label, ok, warning = false }: { label: string; ok: boolean; warning?: boolean }) {
+  return (
+    <div className={cn("flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-[11px]", ok ? warning ? "border-amber-200 bg-amber-50 text-amber-800" : "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-slate-50 text-slate-600")}>
+      {warning ? (
+        <AlertTriangle className="h-4 w-4 shrink-0" />
+      ) : ok ? (
+        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+      ) : (
+        <AlertCircle className="h-4 w-4 shrink-0 text-slate-400" />
+      )}
+      <span>{label}</span>
+    </div>
+  )
+}
+
+function TargetMetric({ label, value, tone = "slate" }: { label: string; value: number; tone?: "slate" | "rose" | "amber" | "emerald" }) {
+  const valueClassName = {
+    slate: "text-slate-950",
+    rose: "text-rose-600",
+    amber: "text-amber-600",
+    emerald: "text-emerald-600",
+  }[tone]
+
+  return (
+    <div className="text-center">
+      <p className="text-[10px] text-slate-500">{label}</p>
+      <p className={cn("mt-1 text-lg font-semibold tabular-nums", valueClassName)}>{value}</p>
     </div>
   )
 }
