@@ -67,7 +67,7 @@ const POLICY_ICON_COLORS: Record<AccessPolicyType, string> = {
   network: "text-teal-600",
 }
 
-const POLICY_ACTIVE_COLOR = "bg-emerald-50 text-emerald-800 ring-emerald-100"
+const POLICY_ACTIVE_COLOR = "bg-slate-950 text-white ring-slate-950"
 
 export function AccessControlWizard() {
   const locale = useLocale()
@@ -417,7 +417,7 @@ function PolicyDefinitionBar({
                     : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
                 }`}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-emerald-600" : POLICY_ICON_COLORS[type]}`} />
+                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-white" : POLICY_ICON_COLORS[type]}`} />
                 <span className="truncate">{copy.policyTypes[type][0]}</span>
               </button>
             )
