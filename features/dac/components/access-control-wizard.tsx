@@ -51,6 +51,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
+import { Slider } from "@/shared/ui/slider"
 
 const POLICY_ICONS = {
   file: FileText,
@@ -375,6 +376,8 @@ function PolicyDefinitionBar({
   onChange: (patch: Partial<AccessControlPolicyDraft>) => void
   onTypeChange: (type: AccessPolicyType) => void
 }) {
+  const priorityPosition = Math.min(100, Math.max(0, (draft.priority / 255) * 100))
+
   return (
     <fieldset disabled={readOnly} className="shrink-0 rounded-[24px] border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
       {readOnly ? (
@@ -444,7 +447,7 @@ function PolicyDefinitionBar({
         </div>
         <div className="min-w-0 space-y-1.5">
           <div className="flex min-w-0 items-center justify-between gap-3">
-            <Label htmlFor="access-policy-priority" className="shrink-0 text-xs font-medium text-slate-700">
+            <Label className="shrink-0 text-xs font-medium text-slate-700">
               {copy.priority}
               <span className="ml-1 text-red-500">*</span>
             </Label>
@@ -452,15 +455,27 @@ function PolicyDefinitionBar({
               {copy.priorityHint}
             </span>
           </div>
-          <Input
-            id="access-policy-priority"
-            type="number"
-            min={0}
-            max={255}
-            value={draft.priority}
-            onChange={(event) => onChange({ priority: Number(event.target.value) })}
-            className="h-9 min-w-0 font-mono"
-          />
+          <div className="relative h-9 min-w-0 pt-5">
+            <span
+              className="pointer-events-none absolute -top-2 z-10 min-w-8 rounded-md bg-slate-950 px-2 py-0.5 text-center font-mono text-[10px] font-semibold leading-4 tabular-nums text-white shadow-sm"
+              style={{
+                left: `${priorityPosition}%`,
+                transform: `translateX(-${priorityPosition}%)`,
+              }}
+              aria-hidden="true"
+            >
+              {draft.priority}
+            </span>
+            <Slider
+              value={[draft.priority]}
+              min={0}
+              max={255}
+              step={1}
+              onValueChange={([priority]) => onChange({ priority })}
+              aria-label={copy.priority}
+              className="min-w-0 [&>span:first-child]:bg-slate-200 [&>span:first-child>span]:bg-blue-600 [&_[role=slider]]:border-blue-600 [&_[role=slider]]:focus-visible:ring-blue-200"
+            />
+          </div>
         </div>
       </div>
     </fieldset>
