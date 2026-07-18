@@ -190,16 +190,28 @@ function SummaryField({
   value: string
 }) {
   const styles = {
-    violet: "border-violet-100 bg-violet-50/70 text-violet-600",
-    cyan: "border-cyan-100 bg-cyan-50/70 text-cyan-600",
-    emerald: "border-emerald-100 bg-emerald-50/70 text-emerald-600",
-    amber: "border-amber-100 bg-amber-50/70 text-amber-600",
+    violet: {
+      container: "border-violet-100 bg-violet-50/70",
+      dot: "bg-violet-600",
+    },
+    cyan: {
+      container: "border-cyan-100 bg-cyan-50/70",
+      dot: "bg-cyan-600",
+    },
+    emerald: {
+      container: "border-emerald-100 bg-emerald-50/70",
+      dot: "bg-emerald-600",
+    },
+    amber: {
+      container: "border-amber-100 bg-amber-50/70",
+      dot: "bg-amber-600",
+    },
   }[tone]
 
   return (
-    <div className={cn("min-w-0 rounded-lg border px-3 py-2.5", styles)}>
-      <dt className="flex items-center gap-1.5 text-[10px] font-medium">
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" aria-hidden="true" />
+    <div className={cn("min-w-0 rounded-lg border px-3 py-2.5", styles.container)}>
+      <dt className="flex items-center gap-1.5 text-[10px] font-medium text-slate-900">
+        <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", styles.dot)} aria-hidden="true" />
         {label}
       </dt>
       <dd className="mt-1 truncate text-xs font-semibold text-slate-900" title={value}>{value}</dd>
