@@ -579,26 +579,30 @@ function ObjectPanel({
         icon={ShieldCheck}
         title={copy.object}
       />
-      <Label className="mb-2 block text-xs font-medium text-slate-700">{copy.objectLabels[draft.type]}</Label>
-      <MultiValueInput
-        value={draft.objectPaths}
-        onChange={(objectPaths) => onChange({ objectPaths })}
-        placeholder={copy.objectPlaceholders[draft.type]}
-      />
-      {draft.type === "process" ? (
-        <details className="mt-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-2">
-          <summary className="cursor-pointer list-none text-xs font-medium text-slate-600">
-            {copy.hashes}
-            <span className="ml-2 font-normal text-slate-400">{draft.objectHashes.length || ""}</span>
-          </summary>
-          <HashEditor
-            copy={copy}
-            hashes={draft.objectHashes}
-            onChange={(objectHashes) => onChange({ objectHashes })}
-            className="mt-3"
+      <div className="min-h-[142px] rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+        <div className="space-y-1.5">
+          <Label className="block text-xs text-slate-600">{copy.objectLabels[draft.type]}</Label>
+          <MultiValueInput
+            value={draft.objectPaths}
+            onChange={(objectPaths) => onChange({ objectPaths })}
+            placeholder={copy.objectPlaceholders[draft.type]}
           />
-        </details>
-      ) : null}
+        </div>
+        {draft.type === "process" ? (
+          <details className="mt-3 rounded-lg border border-dashed border-slate-200 bg-white/70 px-3 py-2">
+            <summary className="cursor-pointer list-none text-xs font-medium text-slate-600">
+              {copy.hashes}
+              <span className="ml-2 font-normal text-slate-400">{draft.objectHashes.length || ""}</span>
+            </summary>
+            <HashEditor
+              copy={copy}
+              hashes={draft.objectHashes}
+              onChange={(objectHashes) => onChange({ objectHashes })}
+              className="mt-3"
+            />
+          </details>
+        ) : null}
+      </div>
     </section>
   )
 }
