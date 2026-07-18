@@ -102,14 +102,14 @@ describe("access control request mapping", () => {
   it("maps process object hashes and the protect action", () => {
     const draft = baseDraft("process")
     draft.objectPaths = ["C:\\Windows\\System32\\target.exe"]
-    draft.objectHashes = [{ algo: "sha256", value: "abc123" }]
+    draft.objectHashes = [{ algo: "sha256", value: "a".repeat(64) }]
     draft.rules = [{ id: "rule-1", action: "protect", effect: "prompt", audit: false }]
 
     const request = buildCreateAccessControlPolicyRequest(draft, "request-3")
     expect("policy_info" in request && request.policy_info.object).toEqual({
       type: "process",
       path: ["C:\\Windows\\System32\\target.exe"],
-      hash: [{ algo: "sha256", value: "abc123" }],
+      hash: [{ algo: "sha256", value: "a".repeat(64) }],
     })
     expect("policy_info" in request && request.policy_info.rules).toEqual([
       { action: "protect", effect: "prompt", audit: false },
@@ -144,6 +144,41 @@ describe("access control request mapping", () => {
     const networkDraft = baseDraft("network")
     networkDraft.network.remotePort = "70000"
     expect(validateAccessControlDraft(networkDraft)).toContain("NETWORK_PORT_INVALID")
+
+    networkDraft.network.remotePort = "0"
+    expect(validateAccessControlDraft(networkDraft)).toContain("NETWORK_PORT_INVALID")
+  })
+
+  it("rejects malformed paths, addresses, hashes, SIDs, and versions before calling the API", () => {
+    const fileDraft = baseDraft("file")
+    fileDraft.version = "1.0"
+    fileDraft.objectPaths = ["relative\\file.txt"]
+    fileDraft.subjects[0].hashes = [{ algo: "sha256", value: "abc123" }]
+    expect(validateAccessControlDraft(fileDraft)).toEqual(expect.arrayContaining([
+      "POLICY_VERSION_INVALID",
+      "SUBJECT_INVALID",
+      "OBJECT_PATH_INVALID",
+    ]))
+
+    const registryDraft = baseDraft("registry")
+    registryDraft.objectPaths = ["Software\\WatchPoint"]
+    registryDraft.exceptions[0].accounts = [{ sid: "Administrator" }]
+    expect(validateAccessControlDraft(registryDraft)).toEqual(expect.arrayContaining([
+      "EXCEPTION_INVALID",
+      "OBJECT_PATH_INVALID",
+    ]))
+
+    const processDraft = baseDraft("process")
+    processDraft.objectHashes = [{ algo: "md5", value: "not-a-hash" }]
+    expect(validateAccessControlDraft(processDraft)).toContain("OBJECT_HASH_INVALID")
+
+    const networkDraft = baseDraft("network")
+    networkDraft.network.remoteAddress = "999.1.1.1/33"
+    networkDraft.network.programPath = "app.exe"
+    expect(validateAccessControlDraft(networkDraft)).toEqual(expect.arrayContaining([
+      "NETWORK_ADDRESS_INVALID",
+      "NETWORK_PROGRAM_INVALID",
+    ]))
   })
 
   it("uses the exact v1 endpoint key and normalizes the created Policy Object", async () => {

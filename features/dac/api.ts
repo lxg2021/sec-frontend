@@ -27,6 +27,13 @@ const ACCESS_POLICY_TYPE_BY_SUB_TYPE: Record<number, AccessPolicyType> = {
 }
 const POLICY_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
 const MD5_PATTERN = /^[a-fA-F0-9]{32}$/
+const HASH_PATTERNS: Record<AccessHash["algo"], RegExp> = {
+  md5: /^[a-fA-F0-9]{32}$/,
+  sha1: /^[a-fA-F0-9]{40}$/,
+  sha256: /^[a-fA-F0-9]{64}$/,
+}
+const SID_PATTERN = /^S-\d-\d+(?:-\d+)+$/i
+const REGISTRY_PATH_PATTERN = /^(?:HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER|HKEY_CLASSES_ROOT|HKEY_USERS|HKEY_CURRENT_CONFIG|HKLM|HKCU|HKCR|HKU|HKCC)(?:\\.*)?$/i
 
 interface ApiResult<T> {
   data: T
@@ -209,16 +216,36 @@ function normalizeSubject(subject: AccessSubjectDraft): ProtoAccessSubject {
   }
 }
 
+export function isValidWindowsPathPattern(value: string) {
+  const normalized = value.trim()
+  if (!normalized || normalized.length > 4096 || /[\u0000-\u001f]/.test(normalized)) return false
+  if (["*", "#", "?"].includes(normalized)) return true
+  return /^[a-z]:\\/i.test(normalized) || /^\\\\[^\\]+\\[^\\]+/.test(normalized)
+}
+
+export function isValidRegistryPath(value: string) {
+  const normalized = value.trim()
+  return normalized.length > 0 && normalized.length <= 4096 && !/[\u0000-\u001f]/.test(normalized) && REGISTRY_PATH_PATTERN.test(normalized)
+}
+
+function isValidAccessHash(hash: AccessHash) {
+  return HASH_PATTERNS[hash.algo].test(hash.value.trim())
+}
+
+function isValidSid(value: string) {
+  return SID_PATTERN.test(value.trim())
+}
+
 function validateSubject(subject: AccessSubjectDraft) {
   if (subject.type === "process") {
     const paths = uniqueStrings(subject.paths)
     const hashes = normalizeHashes(subject.hashes)
     if (paths.length === 0 && hashes.length === 0) return false
-    return hashes.every((hash) => hash.value.length > 0)
+    return paths.every(isValidWindowsPathPattern) && hashes.every(isValidAccessHash)
   }
 
   const accounts = normalizeAccounts(subject.accounts)
-  return accounts.length > 0 && accounts.every((account) => account.sid.length > 0)
+  return accounts.length > 0 && accounts.every((account) => isValidSid(account.sid))
 }
 
 function validatePortExpression(value: string) {
@@ -230,9 +257,37 @@ function validatePortExpression(value: string) {
     const parts = token.trim().split("-")
     if (parts.length > 2 || parts.some((part) => !/^\d+$/.test(part))) return false
     const numbers = parts.map(Number)
-    if (numbers.some((port) => port < 0 || port > 65535)) return false
+    if (numbers.some((port) => port < 1 || port > 65535)) return false
     return numbers.length === 1 || numbers[0] <= numbers[1]
   })
+}
+
+function isValidIPv4(value: string) {
+  const parts = value.split(".")
+  return parts.length === 4 && parts.every((part) => /^\d{1,3}$/.test(part) && Number(part) <= 255)
+}
+
+function isValidIPv6(value: string) {
+  if (!value.includes(":")) return false
+  try {
+    return new URL(`http://[${value}]/`).hostname.length > 2
+  } catch {
+    return false
+  }
+}
+
+function isValidNetworkAddress(value: string) {
+  const normalized = value.trim().toLowerCase()
+  if (normalized === "any") return true
+  const [address, prefix, ...rest] = normalized.split("/")
+  if (rest.length > 0) return false
+  const ipv4 = isValidIPv4(address)
+  const ipv6 = isValidIPv6(address)
+  if (!ipv4 && !ipv6) return false
+  if (prefix === undefined) return true
+  if (!/^\d+$/.test(prefix)) return false
+  const prefixNumber = Number(prefix)
+  return prefixNumber >= 0 && prefixNumber <= (ipv4 ? 32 : 128)
 }
 
 export function validateAccessControlDraft(draft: AccessControlPolicyDraft) {
@@ -248,10 +303,10 @@ export function validateAccessControlDraft(draft: AccessControlPolicyDraft) {
     if (!validatePortExpression(network.localPort) || !validatePortExpression(network.remotePort)) {
       errors.push("NETWORK_PORT_INVALID")
     }
-    if (!network.localAddress.trim() || !network.remoteAddress.trim()) {
-      errors.push("NETWORK_ADDRESS_REQUIRED")
+    if (!isValidNetworkAddress(network.localAddress) || !isValidNetworkAddress(network.remoteAddress)) {
+      errors.push("NETWORK_ADDRESS_INVALID")
     }
-    if (!network.programPath.trim()) errors.push("NETWORK_PROGRAM_REQUIRED")
+    if (!isValidWindowsPathPattern(network.programPath)) errors.push("NETWORK_PROGRAM_INVALID")
     if (network.programMd5.trim() && !MD5_PATTERN.test(network.programMd5.trim())) {
       errors.push("NETWORK_PROGRAM_MD5_INVALID")
     }
@@ -262,8 +317,11 @@ export function validateAccessControlDraft(draft: AccessControlPolicyDraft) {
     errors.push("SUBJECT_INVALID")
   }
   if (!draft.exceptions.every(validateSubject)) errors.push("EXCEPTION_INVALID")
-  if (uniqueStrings(draft.objectPaths).length === 0) errors.push("OBJECT_PATH_REQUIRED")
-  if (draft.objectHashes.some((hash) => !hash.value.trim())) errors.push("OBJECT_HASH_INVALID")
+  const objectPaths = uniqueStrings(draft.objectPaths)
+  const objectPathValid = draft.type === "registry" ? isValidRegistryPath : isValidWindowsPathPattern
+  if (objectPaths.length === 0) errors.push("OBJECT_PATH_REQUIRED")
+  else if (!objectPaths.every(objectPathValid)) errors.push("OBJECT_PATH_INVALID")
+  if (!draft.objectHashes.every(isValidAccessHash)) errors.push("OBJECT_HASH_INVALID")
 
   const allowedActions = new Set(ACCESS_ACTIONS[draft.type])
   if (draft.rules.length === 0 || draft.rules.some((rule) => !allowedActions.has(rule.action))) {
