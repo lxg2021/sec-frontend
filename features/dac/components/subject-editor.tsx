@@ -1,6 +1,6 @@
 "use client"
 
-import { Trash2 } from "lucide-react"
+import { AppWindow, Trash2, UserRound, UsersRound } from "lucide-react"
 
 import type { AccessControlCopy } from "../access-control-copy"
 import type { AccessSubjectDraft, AccessSubjectType } from "../access-control-types"
@@ -19,8 +19,21 @@ interface SubjectEditorProps {
   onRemove: () => void
 }
 
+const SUBJECT_TYPE_ICONS = {
+  process: AppWindow,
+  windowsuser: UserRound,
+  windowsgroup: UsersRound,
+}
+
+const SUBJECT_TYPE_ICON_COLORS: Record<AccessSubjectType, string> = {
+  process: "text-amber-600",
+  windowsuser: "text-emerald-600",
+  windowsgroup: "text-violet-600",
+}
+
 export function SubjectEditor({ copy, subject, canRemove, onChange, onRemove }: SubjectEditorProps) {
   const account = subject.accounts[0] || { sid: "" }
+  const CurrentTypeIcon = SUBJECT_TYPE_ICONS[subject.type]
   const changeType = (type: AccessSubjectType) => {
     onChange({ ...subject, type, paths: [], hashes: [], accounts: type === "process" ? [] : [{ sid: "" }] })
   }
@@ -32,14 +45,23 @@ export function SubjectEditor({ copy, subject, canRemove, onChange, onRemove }: 
           <Label className="text-xs text-slate-600">{copy.subjectType}</Label>
           <Select value={subject.type} onValueChange={(value) => changeType(value as AccessSubjectType)}>
             <SelectTrigger className="h-10 rounded-lg bg-white">
-              <SelectValue />
+              <div className="flex min-w-0 items-center gap-2">
+                <CurrentTypeIcon className={`h-4 w-4 shrink-0 ${SUBJECT_TYPE_ICON_COLORS[subject.type]}`} />
+                <SelectValue>{copy.subjectTypes[subject.type]}</SelectValue>
+              </div>
             </SelectTrigger>
-            <SelectContent>
-              {(Object.keys(copy.subjectTypes) as AccessSubjectType[]).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {copy.subjectTypes[type]}
-                </SelectItem>
-              ))}
+            <SelectContent className="rounded-xl border-slate-200 p-1 shadow-lg">
+              {(Object.keys(copy.subjectTypes) as AccessSubjectType[]).map((type) => {
+                const TypeIcon = SUBJECT_TYPE_ICONS[type]
+                return (
+                  <SelectItem key={type} value={type} className="h-9 cursor-pointer rounded-lg">
+                    <span className="flex items-center gap-2">
+                      <TypeIcon className={`h-4 w-4 shrink-0 ${SUBJECT_TYPE_ICON_COLORS[type]}`} />
+                      <span>{copy.subjectTypes[type]}</span>
+                    </span>
+                  </SelectItem>
+                )
+              })}
             </SelectContent>
           </Select>
         </div>
