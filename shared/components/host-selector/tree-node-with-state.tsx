@@ -75,21 +75,25 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
   checkboxState,
   onToggleExpanded,
   onToggleSelected,
+  compactHostRows = false,
 }: {
   node: any
   isSelected: boolean
   checkboxState: "checked" | "unchecked" | "indeterminate"
   onToggleExpanded: (nodeId: string) => void
   onToggleSelected: (nodeId: string, node: any) => void
+  compactHostRows?: boolean
 }) {
   const Icon = getIcon(node.type)
   const isHost = node.type === "host"
-  const paddingLeft = node.level * 24 + 12
+  const displayName = isHost ? node.hostname || node.name : node.name
+  const paddingLeft = node.level * (compactHostRows ? 16 : 24) + (compactHostRows ? 8 : 12)
 
   return (
     <div
       className={cn(
-        "group flex min-w-0 cursor-pointer items-center gap-3 border-b border-slate-100/60 px-3 py-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/60",
+        "group flex min-w-0 cursor-pointer items-center border-b border-slate-100/60 px-3 py-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/60",
+        compactHostRows && isHost ? "gap-2 overflow-hidden" : "gap-3",
       )}
       style={{ paddingLeft }}
     >
@@ -122,7 +126,8 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
 
       <div
         className={cn(
-          "flex-shrink-0 rounded-lg p-1.5 transition-all duration-200",
+          "flex-shrink-0 rounded-lg transition-all duration-200",
+          compactHostRows && isHost ? "p-1" : "p-1.5",
           checkboxState === "checked" && "bg-white/80 shadow-sm",
           checkboxState === "indeterminate" && "bg-white/60",
         )}
@@ -133,15 +138,16 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-sm font-medium transition-colors duration-200",
+          compactHostRows && isHost && "min-w-[7.5rem]",
           checkboxState === "checked"
             ? "text-slate-700"
             : checkboxState === "indeterminate"
               ? "text-slate-600"
               : "text-slate-600 group-hover:text-slate-700",
         )}
-        title={node.name}
+        title={displayName}
       >
-        {node.name}
+        {displayName}
       </span>
 
       {!isHost && typeof node.hostCount === "number" && (
@@ -155,13 +161,26 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
       )}
 
       {isHost && (
-        <div className="flex flex-shrink-0 items-center gap-3">
-          <div className="min-w-[16rem] rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs tabular-nums text-slate-500">
-            {node.ip}
+        <div
+          className={cn(
+            "flex flex-shrink-0 items-center",
+            compactHostRows ? "w-[12.25rem] justify-end gap-2" : "gap-3",
+          )}
+        >
+          <div
+            className={cn(
+              "truncate rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs tabular-nums text-slate-500",
+              compactHostRows ? "w-40" : "min-w-[16rem]",
+            )}
+            title={node.ip || undefined}
+          >
+            {node.ip || "-"}
           </div>
-          <div className="min-w-[20rem] rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs tabular-nums text-slate-500">
-            {node.hostId}
-          </div>
+          {!compactHostRows ? (
+            <div className="min-w-[20rem] rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs tabular-nums text-slate-500">
+              {node.hostId}
+            </div>
+          ) : null}
           <HostInfoPopover node={node}>
             <Button
               variant="ghost"

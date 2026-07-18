@@ -69,6 +69,7 @@ export default function HostSelector({
   emptyText = "No host data available.",
   fillAvailableHeight = false,
   showHeader = true,
+  compactHostRows = false,
   text = defaultText,
 }: {
   data?: any[]
@@ -77,6 +78,7 @@ export default function HostSelector({
   emptyText?: string
   fillAvailableHeight?: boolean
   showHeader?: boolean
+  compactHostRows?: boolean
   text?: typeof defaultText
 }) {
   const [searchTerm, setSearchTerm] = useState("")
@@ -236,6 +238,7 @@ export default function HostSelector({
       getNodeSelectionState={getNodeSelectionState}
       height={height}
       itemHeight={48}
+      compactHostRows={compactHostRows}
     />
   )
 

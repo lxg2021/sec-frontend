@@ -14,7 +14,7 @@ const TreeItem = memo(function TreeItem({
   style: React.CSSProperties
   data: any
 }) {
-  const { nodes, selectedIds, onToggleExpanded, onToggleSelected, getNodeSelectionState } = data
+  const { nodes, selectedIds, onToggleExpanded, onToggleSelected, getNodeSelectionState, compactHostRows } = data
   const node = nodes[index]
 
   if (!node) return null
@@ -30,6 +30,7 @@ const TreeItem = memo(function TreeItem({
         checkboxState={selectionState}
         onToggleExpanded={onToggleExpanded}
         onToggleSelected={onToggleSelected}
+        compactHostRows={compactHostRows}
       />
     </div>
   )
@@ -43,6 +44,7 @@ export const VirtualizedTree = memo(function VirtualizedTree({
   getNodeSelectionState,
   height,
   itemHeight,
+  compactHostRows = false,
 }: {
   nodes: any[]
   selectedIds: Set<string>
@@ -51,6 +53,7 @@ export const VirtualizedTree = memo(function VirtualizedTree({
   getNodeSelectionState: (nodeId: string) => "checked" | "unchecked" | "indeterminate"
   height: number
   itemHeight: number
+  compactHostRows?: boolean
 }) {
   const itemData = useMemo(
     () => ({
@@ -59,8 +62,9 @@ export const VirtualizedTree = memo(function VirtualizedTree({
       onToggleExpanded,
       onToggleSelected,
       getNodeSelectionState,
+      compactHostRows,
     }),
-    [nodes, selectedIds, onToggleExpanded, onToggleSelected, getNodeSelectionState],
+    [nodes, selectedIds, onToggleExpanded, onToggleSelected, getNodeSelectionState, compactHostRows],
   )
 
   return (

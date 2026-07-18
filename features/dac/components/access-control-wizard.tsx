@@ -687,6 +687,7 @@ function HostPanel({
           loading={loading}
           fillAvailableHeight
           showHeader={false}
+          compactHostRows
           emptyText={loading ? copy.loadingHosts : copy.noHosts}
           onSelectionChange={(nodes) => {
             const hosts = nodes.filter((node): node is HostSelectorHostNode => node.type === "host")
