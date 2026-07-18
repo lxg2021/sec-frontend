@@ -61,11 +61,13 @@ const POLICY_ICONS = {
 }
 
 const POLICY_ICON_COLORS: Record<AccessPolicyType, string> = {
-  file: "text-blue-600",
+  file: "text-emerald-600",
   registry: "text-violet-600",
   process: "text-amber-600",
-  network: "text-cyan-600",
+  network: "text-teal-600",
 }
+
+const POLICY_ACTIVE_COLOR = "bg-emerald-50 text-emerald-800 ring-emerald-100"
 
 export function AccessControlWizard() {
   const locale = useLocale()
@@ -409,13 +411,13 @@ function PolicyDefinitionBar({
                 aria-pressed={active}
                 title={copy.policyTypes[type][1]}
                 onClick={() => onTypeChange(type)}
-                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 ${
+                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 ${
                   active
-                    ? "bg-white text-slate-950 shadow-sm ring-1 ring-inset ring-slate-200/80"
+                    ? `${POLICY_ACTIVE_COLOR} shadow-sm ring-1 ring-inset`
                     : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
                 }`}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${POLICY_ICON_COLORS[type]}`} />
+                <Icon className={`h-4 w-4 shrink-0 ${active ? "text-emerald-600" : POLICY_ICON_COLORS[type]}`} />
                 <span className="truncate">{copy.policyTypes[type][0]}</span>
               </button>
             )
