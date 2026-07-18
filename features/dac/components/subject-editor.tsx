@@ -40,12 +40,12 @@ export function SubjectEditor({ copy, subject, canRemove, onChange, onRemove }: 
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="w-36 shrink-0 space-y-1.5">
+      <div className="grid grid-cols-[10rem_minmax(0,1fr)_auto] items-start gap-3">
+        <div className="w-40 shrink-0 space-y-1.5">
           <Label className="text-xs text-slate-600">{copy.subjectType}</Label>
           <Select value={subject.type} onValueChange={(value) => changeType(value as AccessSubjectType)}>
             <SelectTrigger className="h-10 rounded-lg bg-white">
-              <div className="flex min-w-0 items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2 whitespace-nowrap">
                 <CurrentTypeIcon className={`h-4 w-4 shrink-0 ${SUBJECT_TYPE_ICON_COLORS[subject.type]}`} />
                 <SelectValue>{copy.subjectTypes[subject.type]}</SelectValue>
               </div>
@@ -65,7 +65,7 @@ export function SubjectEditor({ copy, subject, canRemove, onChange, onRemove }: 
             </SelectContent>
           </Select>
         </div>
-        <div className="min-w-52 flex-1">
+        <div className="min-w-0 pt-[30px]">
           {subject.type === "process" ? (
             <MultiValueInput
               value={subject.paths}
@@ -118,7 +118,7 @@ export function SubjectEditor({ copy, subject, canRemove, onChange, onRemove }: 
             type="button"
             variant="ghost"
             size="icon"
-            className="h-10 w-10 shrink-0 text-slate-400 hover:text-red-600"
+            className="mt-[30px] h-10 w-10 shrink-0 text-slate-400 hover:text-red-600"
             onClick={onRemove}
             aria-label={copy.remove}
           >

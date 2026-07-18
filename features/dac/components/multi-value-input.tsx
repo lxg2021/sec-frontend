@@ -56,7 +56,7 @@ export function MultiValueInput({ value, onChange, placeholder, className }: Mul
             }
           }}
           placeholder={placeholder}
-          className="h-9 border-0 bg-transparent px-1 font-mono text-xs shadow-none focus-visible:ring-0"
+          className="h-9 border-0 bg-transparent px-1 font-mono text-xs shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         />
         <button
           type="button"
