@@ -4,7 +4,7 @@ export function getAccessControlCopy(locale: string) {
   return zh
     ? {
         pageTitle: "访问控制中心",
-        pageDescription: "定义访问主体、保护对象和行为规则，并将策略安全应用到目标主机",
+        pageDescription: "定义访问规则并安全应用到目标主机",
         backToList: "返回列表",
         selectPolicy: "选择策略",
         selectPolicyTitle: "选择已有策略",
@@ -190,7 +190,7 @@ export function getAccessControlCopy(locale: string) {
       }
     : {
         pageTitle: "Access Control Center",
-        pageDescription: "Define subjects, protected objects and behavior rules, then safely apply the policy to target hosts",
+        pageDescription: "Define access rules and safely apply them to target hosts",
         backToList: "Back to list",
         selectPolicy: "Select policy",
         selectPolicyTitle: "Select Existing Policy",
