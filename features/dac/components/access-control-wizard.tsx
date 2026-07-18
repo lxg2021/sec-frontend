@@ -320,7 +320,7 @@ function PolicyConfigurationPanel({
   const PolicyIcon = POLICY_ICONS[draft.type]
 
   return (
-    <fieldset disabled={readOnly} className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <fieldset disabled={readOnly} className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
       <header className="flex shrink-0 items-center gap-3 border-b border-slate-200 px-5 py-3.5">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
           <PolicyIcon className="h-4.5 w-4.5" />
@@ -376,7 +376,7 @@ function PolicyDefinitionBar({
   onTypeChange: (type: AccessPolicyType) => void
 }) {
   return (
-    <fieldset disabled={readOnly} className="shrink-0 rounded-xl border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
+    <fieldset disabled={readOnly} className="shrink-0 rounded-[24px] border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
       {readOnly ? (
         <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800">
           <span className="font-semibold">{copy.existingPolicy}</span>
@@ -632,7 +632,7 @@ function HostPanel({
   onReload: () => void
 }) {
   return (
-    <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
       <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-5 py-3.5">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
