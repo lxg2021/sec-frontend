@@ -112,13 +112,7 @@ export function AccessControlWizard() {
   }, [])
 
   const changePolicyType = useCallback((type: AccessPolicyType) => {
-    setDraft((current) => ({
-      ...current,
-      type,
-      objectPaths: [],
-      objectHashes: [],
-      rules: [],
-    }))
+    setDraft({ ...createInitialAccessControlDraft(), type })
     setCreatedPolicy(null)
     setSelectedPolicy(null)
     setCreatedDraftFingerprint("")
@@ -387,7 +381,7 @@ function PolicyDefinitionBar({
   const priorityPosition = Math.min(100, Math.max(0, (draft.priority / 255) * 100))
 
   return (
-    <fieldset disabled={readOnly} className="shrink-0 rounded-[24px] border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
+    <div className="shrink-0 rounded-[24px] border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
       {readOnly ? (
         <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800">
           <span className="font-semibold">{copy.existingPolicy}</span>
@@ -409,7 +403,9 @@ function PolicyDefinitionBar({
                 type="button"
                 aria-pressed={active}
                 title={copy.policyTypes[type][1]}
-                onClick={() => onTypeChange(type)}
+                onClick={() => {
+                  if (!active) onTypeChange(type)
+                }}
                 className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 ${
                   active
                     ? `${POLICY_ACTIVE_COLOR} shadow-sm ring-1 ring-inset`
@@ -424,7 +420,7 @@ function PolicyDefinitionBar({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 gap-4 border-t border-slate-200 pt-3 xl:grid-cols-[minmax(320px,1.5fr)_180px_minmax(240px,0.75fr)]">
+      <fieldset disabled={readOnly} className="mt-3 grid grid-cols-1 gap-4 border-t border-slate-200 pt-3 xl:grid-cols-[minmax(320px,1.5fr)_180px_minmax(240px,0.75fr)]">
         <div className="min-w-0 space-y-1.5">
           <Label htmlFor="access-policy-name" className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
             {copy.policyName}
@@ -485,8 +481,8 @@ function PolicyDefinitionBar({
             />
           </div>
         </div>
-      </div>
-    </fieldset>
+      </fieldset>
+    </div>
   )
 }
 
