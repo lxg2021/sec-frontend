@@ -150,9 +150,6 @@ export function BaselineTemplateSelector({
                           </Badge>
                         )}
                       </div>
-                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-zinc-500">
-                        {template.description || `${template.standard.toUpperCase()} - ${template.product} - ${template.os_version}`}
-                      </p>
                     </div>
                     <Badge
                       variant="outline"

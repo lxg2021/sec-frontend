@@ -5,7 +5,7 @@ import { AlertCircle, Search, SquareCheckBig, SquareDashedMousePointer, ShieldCh
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
 import { Skeleton } from "@/shared/ui/skeleton"
 
@@ -105,8 +105,8 @@ export function BaselineItemsPanel({
   return (
     <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-start gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
               <SquareCheckBig className="h-5 w-5" />
             </div>
@@ -114,9 +114,6 @@ export function BaselineItemsPanel({
               <CardTitle className="truncate text-sm font-semibold text-slate-950">
                 {template?.display_name || t("itemsPanel.chooseTemplateTitle")}
               </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                {template ? t("itemsPanel.selectedSubtitle") : t("itemsPanel.emptySubtitle")}
-              </CardDescription>
             </div>
           </div>
 
