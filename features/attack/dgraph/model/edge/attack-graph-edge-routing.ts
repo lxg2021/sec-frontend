@@ -1,6 +1,5 @@
 import type {
   AttackGraphEdgeModel,
-  AttackGraphPoint,
 } from "../core/attack-graph-data";
 
 export interface AttackGraphRect {

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl"
 import { Switch } from "@/shared/ui/switch"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/shared/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import {
   RotateCcw,
@@ -17,8 +17,6 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  Check,
-  SquareCheckBig,
   SquareCheck,
   Square,
   Globe,
@@ -36,11 +34,8 @@ import {
   Database,
   Bell,
   PlayCircle,
-  Power,
-  Cpu,
   Users,
   Cog,
-  Radar,
   SlidersHorizontal,
 } from "lucide-react"
 import type { ConfigCategory } from "@/features/sensor-config/types/config-item"

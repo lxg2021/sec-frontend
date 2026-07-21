@@ -2,9 +2,9 @@
 
 import type React from "react"
 import { useState, useCallback } from "react"
-import { Upload, FileJson, FileText, Download, CheckCircle2, AlertCircle, X } from "lucide-react"
+import { Upload, FileText, Download, CheckCircle2, AlertCircle, X } from "lucide-react"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Progress } from "@/shared/ui/progress"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { parseAssetFile } from "@/features/collection/lib/file-parser"

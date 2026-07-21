@@ -7,7 +7,6 @@ import { ConfigTable } from "@/features/sensor-config/config-table"
 import { defaultConfigCategory } from "@/features/sensor-config/data/default-config-category"
 import type { ConfigCategory } from "@/features/sensor-config/types/config-item"
 import { Toaster } from "@/shared/ui/toaster"
-import { SlidersHorizontal } from "lucide-react"
 
 export default function ConfigManagementPage() {
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)

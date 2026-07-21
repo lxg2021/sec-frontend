@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Download, CheckCircle2 } from "lucide-react"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Badge } from "@/shared/ui/badge"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { useTranslations } from "next-intl"

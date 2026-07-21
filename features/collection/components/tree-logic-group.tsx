@@ -24,7 +24,6 @@ import {
   ChevronRight,
   ChevronDown,
   Plus,
-  Edit2,
   Trash2,
   Save,
   Search,

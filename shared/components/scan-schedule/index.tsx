@@ -23,7 +23,6 @@ import { Switch } from "@/shared/ui/switch"
 import {
   MAX_INTERVAL_HOURS,
   MAX_RANDOM_DELAY_MINUTES,
-  mergeScanScheduleDefaults,
   sanitizeScanSchedule,
 } from "./defaults"
 import type { ScanScheduleFormField, ScanScheduleFormProps } from "./types"

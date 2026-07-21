@@ -15,7 +15,7 @@ import {
 
 import { listExistingAccessControlPolicies } from "../api"
 import type { AccessControlCopy } from "../access-control-copy"
-import type { AccessPolicyType, ExistingAccessControlPolicy } from "../access-control-types"
+import type { ExistingAccessControlPolicy } from "../access-control-types"
 import { Button } from "@/shared/ui/button"
 import {
   Dialog,

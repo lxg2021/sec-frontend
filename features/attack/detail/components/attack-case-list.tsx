@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import {
   ChevronLeft,
   ChevronRight,
-  FileSearch,
   ListTree,
   ShieldCheck,
   Target,

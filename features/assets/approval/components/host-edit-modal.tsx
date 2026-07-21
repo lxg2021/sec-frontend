@@ -16,7 +16,7 @@ import { Label } from "@/shared/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { Badge } from "@/shared/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
-import { validateHostData, validateField } from "@/features/assets/approval/utils"
+import { validateHostData } from "@/features/assets/approval/utils"
 import { Edit3, Server, Users, User } from "lucide-react";
 import { useTranslations } from "next-intl"
 

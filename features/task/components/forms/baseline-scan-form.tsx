@@ -24,13 +24,11 @@ import {
   Calendar,
   Clock,
   Shield,
-  CheckCircle,
   Globe,
   Save,
   X,
   Plus,
   RotateCcw,
-  ListChecks,
   Zap,
   CalendarClock,
   Repeat

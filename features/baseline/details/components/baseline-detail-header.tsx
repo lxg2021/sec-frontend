@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   Info,
   Monitor,
-  Shield,
   TrendingUp,
   XCircle,
 } from "lucide-react"

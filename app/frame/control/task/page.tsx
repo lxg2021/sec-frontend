@@ -4,10 +4,10 @@ import { useState } from "react"
 import { TaskCreator } from "@/features/task/components/task-creator"
 import { TaskList } from "@/features/task/components/task-list"
 import type { Task, TaskType } from "@/features/task/types"
-import { createTask, mockCreateTask, mockUpdateTask, updateTask } from "@/features/task/api"
+import { mockCreateTask, mockUpdateTask } from "@/features/task/api"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Toaster } from "@/shared/ui/toaster"
-import { ClipboardList, Clock } from "lucide-react"
+import { ClipboardList } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 export default function Home() {

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader } from "@/shared/ui/card"
 import { VulnerabilityScanForm } from "./forms/vulnerability-scan-form"
 import { AttckScanForm } from "./forms/attck-scan-form"
 import { BaselineScanForm } from "./forms/baseline-scan-form"

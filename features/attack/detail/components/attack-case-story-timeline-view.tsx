@@ -31,7 +31,6 @@ import { getHardwareInfo, getSingleHostDetail } from "@/features/assets/host/api
 import { HostInfoCard } from "@/features/assets/host/components/host-info-card"
 import type { AgentHardwareInfo } from "@/features/assets/host/types/hardware"
 import type { AgentInfo } from "@/features/assets/host/types/system-info"
-import type { AttackIocEvidence } from "@/features/attack/dashboard/types"
 import type { AttackRuleMeta } from "@/features/attack/utils/attck-utils"
 import type { HostSelectorHostNode } from "@/shared/components/host-selector/types"
 import { RuleInfoPopover } from "@/features/baseline/rules/components/rule-info-popover"

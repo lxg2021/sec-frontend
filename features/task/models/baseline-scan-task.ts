@@ -1,6 +1,6 @@
 // baseline-scan-task.ts
 
-import { type ScanSchedule, type TaskStatus, validatePeriod, ScheduledConfig } from "./task-base"
+import { type TaskStatus, validatePeriod, ScheduledConfig } from "./task-base"
 
 /** 基线策略类型 */
 export type BaselinePolicyType = "SECURITY_CONFIG" | "PATCH_COMPLIANCE" | "ACCOUNT_POLICY" | "ATTCK_POLICY" | "SYSTEM_COMPLIANCE" | "PREEXECUTION_CHECK"
