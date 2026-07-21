@@ -1259,28 +1259,6 @@ function buttonText(state: CreateState) {
   return "创建预览";
 }
 
-function actionContextTypeLabel(value: string | number | undefined) {
-  const key = String(value ?? "").trim();
-  const normalized = key.toLowerCase();
-  if (key === "1" || normalized.includes("restore")) return "恢复";
-  if (key === "2" || normalized.includes("bypass")) return "放行";
-  if (key === "3" || normalized.includes("enable")) return "启用";
-  return "上下文";
-}
-
-function entityTypeLabel(entityType: string) {
-  const normalized = entityType.trim().toLowerCase();
-  if (normalized.includes("file")) return "文件";
-  if (normalized.includes("process")) return "进程";
-  if (normalized.includes("net")) return "网络";
-  if (normalized.includes("dns")) return "域名";
-  if (normalized.includes("url")) return "URL";
-  if (normalized.includes("account")) return "账号";
-  if (normalized.includes("service")) return "服务";
-  if (normalized.includes("registry")) return "注册表";
-  return entityType || "-";
-}
-
 function sourceTypeLabel(sourceType: string) {
   const normalized = sourceType.trim().toLowerCase();
   if (normalized === "case_graph") return "案件图谱";

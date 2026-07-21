@@ -352,7 +352,6 @@ function formatTimestamp(value: string, locale: string) {
 
 function executionTimePresentation(item: RemediationOrderItem, locale: string) {
   const execution = executionForItem(item);
-  const status = item.status.trim().toLowerCase();
   const startedAt = execution?.started_at.trim() || "";
   const finishedAt = execution?.finished_at.trim() || item.finished_at.trim();
   const lastReportAt = execution?.last_report_at.trim() || "";
