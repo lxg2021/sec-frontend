@@ -72,7 +72,7 @@ export function CreatedBaselineTemplatesPanel({
       </CardHeader>
 
       <CardContent className="min-h-0 flex-1 p-3">
-        <div className="h-full space-y-2 overflow-y-auto pr-1">
+        <div className="h-full space-y-2 overflow-y-auto px-1 py-2">
           {loading && baselines.length === 0 ? (
             Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-36 rounded-xl" />)
           ) : errorMessage ? (
@@ -92,7 +92,7 @@ export function CreatedBaselineTemplatesPanel({
             </div>
           ) : (
             baselines.map((baseline) => (
-              <div key={baseline.uuid} className="rounded-xl border border-slate-200 bg-white p-3 transition-colors hover:border-cyan-200 hover:bg-cyan-50/40">
+              <div key={baseline.uuid} className="transform-gpu rounded-xl border border-slate-200 bg-white p-3 transition-[transform,border-color,box-shadow] duration-200 ease-out hover:relative hover:z-10 origin-center hover:-translate-y-0.5 hover:scale-[1.008] hover:border-cyan-200 hover:shadow-[0_14px_28px_-10px_rgba(8,145,178,0.35),0_8px_16px_-12px_rgba(15,23,42,0.28)]">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-950" title={baseline.display_name || baseline.uuid}>
