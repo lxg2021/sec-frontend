@@ -21,6 +21,7 @@ import {
 import { BaselineItemsPanel } from "./baseline-items-panel"
 import { BaselineTemplateSelector } from "./baseline-template-selector"
 import { CreateBaselineForm } from "./create-baseline-form"
+import { CreatedBaselineTemplatesPanel } from "./created-baseline-templates-panel"
 import { CustomBaselineWorkspaceHeader } from "./custom-baseline-workspace-header"
 import { ExistingCustomBaselineList } from "./existing-custom-baseline-list"
 import { SelectedItemsSummary } from "./selected-items-summary"
@@ -425,18 +426,26 @@ export default function CustomBaselineClient() {
         ) : null}
 
         <main className="grid min-h-0 flex-1 items-stretch gap-3 overflow-y-auto xl:grid-cols-[minmax(280px,0.82fr)_minmax(440px,1.45fr)_minmax(300px,0.88fr)] xl:overflow-hidden">
-          <BaselineTemplateSelector
-            templates={filteredTemplates}
-            loading={templatesLoading}
-            selectedTemplateUuid={selectedTemplateUuid}
-            selectedCountMap={selectedCountMap}
-            standardFilter={standardFilter}
-            profileFilter={profileFilter}
-            onStandardFilterChange={setStandardFilter}
-            onProfileFilterChange={setProfileFilter}
-            onSelectTemplate={(template) => setSelectedTemplateUuid(template.uuid)}
-            onRefresh={() => void loadTemplates()}
-          />
+          <div className="grid h-full min-h-[680px] min-w-0 grid-rows-[minmax(300px,0.9fr)_minmax(260px,1.1fr)] gap-3 xl:min-h-0">
+            <BaselineTemplateSelector
+              templates={filteredTemplates}
+              loading={templatesLoading}
+              selectedTemplateUuid={selectedTemplateUuid}
+              selectedCountMap={selectedCountMap}
+              standardFilter={standardFilter}
+              profileFilter={profileFilter}
+              onStandardFilterChange={setStandardFilter}
+              onProfileFilterChange={setProfileFilter}
+              onSelectTemplate={(template) => setSelectedTemplateUuid(template.uuid)}
+              onRefresh={() => void loadTemplates()}
+            />
+            <CreatedBaselineTemplatesPanel
+              baselines={customBaselines}
+              loading={customBaselinesLoading}
+              errorMessage={customBaselinesError}
+              onRefresh={() => void loadCustomBaselines()}
+            />
+          </div>
 
           <BaselineItemsPanel
             template={visibleSelectedTemplate}
