@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { CheckCircle2, Layers3, Trash2, X } from "lucide-react"
+import { AlertCircle, CheckCircle2, Layers3, Plus, Trash2, X } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -21,6 +21,10 @@ interface SelectedItemsSummaryProps {
   onClearAll: () => void
   onRemoveTemplate: (templateUuid: string) => void
   onRemoveItem: (templateUuid: string, itemId: string) => void
+  onCreateBaseline: () => void
+  createDisabled: boolean
+  metadataValid: boolean
+  metadataMessage?: string
 }
 
 export function SelectedItemsSummary({
@@ -30,6 +34,10 @@ export function SelectedItemsSummary({
   onClearAll,
   onRemoveTemplate,
   onRemoveItem,
+  onCreateBaseline,
+  createDisabled,
+  metadataValid,
+  metadataMessage,
 }: SelectedItemsSummaryProps) {
   const locale = useLocale()
   const useZh = isZhLocale(locale)
@@ -115,17 +123,16 @@ export function SelectedItemsSummary({
   }
 
   return (
-    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-shadow duration-200 hover:shadow-xl">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-violet-500" />
-      <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm shadow-blue-200/70">
-              <CheckCircle2 className="h-5 w-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <CardTitle className="text-base font-semibold text-zinc-950">{t("summary.title")}</CardTitle>
-              <CardDescription className="text-sm text-zinc-500">{t("summary.fromTemplates", { count: selectedItems.size })}</CardDescription>
+              <CardTitle className="text-sm font-semibold text-slate-950">{t("summary.title")}</CardTitle>
+              <CardDescription className="text-xs text-slate-500">{t("summary.fromTemplates", { count: selectedItems.size })}</CardDescription>
             </div>
           </div>
           <Button
@@ -153,7 +160,7 @@ export function SelectedItemsSummary({
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white via-slate-50 to-blue-50/60 p-4 shadow-sm">
+            <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white via-slate-50 to-teal-50/60 p-4 shadow-sm">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
@@ -294,6 +301,28 @@ export function SelectedItemsSummary({
           </div>
         )}
       </CardContent>
+      <div className="shrink-0 space-y-2 border-t border-slate-200 bg-white p-4">
+        {hasSelections ? (
+          <div className={metadataValid ? "flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5" : "flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5"}>
+            {metadataValid ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />}
+            <div className="min-w-0">
+              <p className={metadataValid ? "text-xs font-semibold text-emerald-800" : "text-xs font-semibold text-amber-800"}>
+                {metadataValid ? t("createForm.selectedDescription", { selectedItemCount: summary.totalSelected, selectedTemplateCount: selectedItems.size }) : metadataMessage}
+              </p>
+            </div>
+          </div>
+        ) : null}
+        <Button
+          type="button"
+          onClick={onCreateBaseline}
+          disabled={createDisabled}
+          className="h-11 w-full gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-600 text-white shadow-sm shadow-teal-900/10 hover:from-teal-800 hover:to-cyan-700"
+        >
+          <Plus className="h-4 w-4" />
+          <span>{t("createBaseline")}</span>
+          {summary.totalSelected > 0 ? <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs tabular-nums">{summary.totalSelected}</span> : null}
+        </Button>
+      </div>
     </Card>
   )
 }

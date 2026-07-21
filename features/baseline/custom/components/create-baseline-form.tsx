@@ -204,7 +204,7 @@ export function CreateBaselineForm({
             type="button"
             onClick={onSubmit}
             disabled={submitDisabled || submitting || selectedItemCount === 0}
-            className="rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 shadow-sm shadow-zinc-300/40 hover:from-zinc-900 hover:to-zinc-700"
+            className="rounded-xl bg-gradient-to-r from-teal-700 to-cyan-600 text-white shadow-sm shadow-teal-900/10 hover:from-teal-800 hover:to-cyan-700"
           >
             {submitting && <RefreshCw className="mr-2 h-4 w-4 animate-spin" />}
             {t("createForm.create")}

@@ -7,6 +7,7 @@ import { RefreshCw } from "lucide-react"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent } from "@/shared/ui/card"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
 
 import {
   createCustomBaseline,
@@ -20,6 +21,7 @@ import {
 import { BaselineItemsPanel } from "./baseline-items-panel"
 import { BaselineTemplateSelector } from "./baseline-template-selector"
 import { CreateBaselineForm } from "./create-baseline-form"
+import { CustomBaselineWorkspaceHeader } from "./custom-baseline-workspace-header"
 import { ExistingCustomBaselineList } from "./existing-custom-baseline-list"
 import { SelectedItemsSummary } from "./selected-items-summary"
 
@@ -71,6 +73,7 @@ export default function CustomBaselineClient() {
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  const [existingOpen, setExistingOpen] = useState(false)
 
   const loadTemplates = useCallback(async () => {
     setTemplatesLoading(true)
@@ -185,6 +188,27 @@ export default function CustomBaselineClient() {
   )
 
   const selectedTemplateCount = selectedItems.size
+  const selectedRiskCounts = useMemo(() => {
+    let high = 0
+    let medium = 0
+    let low = 0
+
+    selectedItems.forEach((itemIds, templateUuid) => {
+      const itemsData = itemsDataMap.get(templateUuid)
+      if (!itemsData) return
+
+      itemsData.category_groups.forEach((group) => {
+        group.items.forEach((item) => {
+          if (!itemIds.has(item.id)) return
+          if (item.severity === "High") high += 1
+          else if (item.severity === "Medium") medium += 1
+          else low += 1
+        })
+      })
+    })
+
+    return { high, medium, low }
+  }, [itemsDataMap, selectedItems])
   const templateMap = useMemo(() => new Map(templates.map((template) => [template.uuid, template])), [templates])
   const selectedProfileDefault = useMemo(() => {
     const firstSelectedTemplateUuid = selectedItems.keys().next().value
@@ -377,18 +401,21 @@ export default function CustomBaselineClient() {
   }, [baselineVersion, description, displayName, loadCustomBaselines, metadataErrorMessage, osVersion, selectedItems, selectedProfile, selectedStandard, selectedTemplateMetadataState.metadata, t, toast])
 
   return (
-    <div className="relative h-full overflow-hidden bg-[linear-gradient(180deg,#f8fafc_0%,#f8fafc_58%,#eef4ff_100%)]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_26%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.08),transparent_22%),radial-gradient(circle_at_bottom,rgba(99,102,241,0.05),transparent_24%)]" />
-      <div className="relative flex h-full min-h-0 w-full flex-col gap-6 px-6 py-6">
-        <ExistingCustomBaselineList
-          baselines={customBaselines}
-          loading={customBaselinesLoading}
-          errorMessage={customBaselinesError}
-          onRefresh={() => void loadCustomBaselines()}
+    <div className="h-full min-h-0 overflow-hidden bg-slate-100">
+      <div className="flex h-full min-h-0 w-full flex-col gap-3 p-4">
+        <CustomBaselineWorkspaceHeader
+          templateCount={templates.length}
+          selectedTemplateCount={selectedTemplateCount}
+          selectedItemCount={totalSelectedCount}
+          highRiskCount={selectedRiskCounts.high}
+          existingBaselineCount={customBaselines.length}
+          canCreate={totalSelectedCount > 0 && Boolean(selectedTemplateMetadataState.metadata)}
+          onOpenExisting={() => setExistingOpen(true)}
+          onCreate={handleOpenCreate}
         />
 
         {templatesError ? (
-          <Card className="border-destructive/20 bg-destructive/5 shadow-sm">
+          <Card className="shrink-0 border-destructive/20 bg-destructive/5 shadow-sm">
             <CardContent className="flex items-center justify-between gap-3 px-4 py-3 text-sm text-destructive">
               <span>{templatesError}</span>
               <Button type="button" variant="outline" size="sm" onClick={loadTemplates} className="h-8 gap-2 border-destructive/30 bg-background px-3 text-destructive">
@@ -399,7 +426,7 @@ export default function CustomBaselineClient() {
           </Card>
         ) : null}
 
-        <div className="grid min-h-0 flex-1 items-stretch gap-6 xl:grid-cols-[460px_minmax(0,1fr)_minmax(0,0.9fr)]">
+        <main className="grid min-h-0 flex-1 items-stretch gap-3 overflow-y-auto xl:grid-cols-[minmax(280px,0.82fr)_minmax(440px,1.45fr)_minmax(300px,0.88fr)] xl:overflow-hidden">
           <BaselineTemplateSelector
             templates={filteredTemplates}
             loading={templatesLoading}
@@ -411,8 +438,6 @@ export default function CustomBaselineClient() {
             onProfileFilterChange={setProfileFilter}
             onSelectTemplate={(template) => setSelectedTemplateUuid(template.uuid)}
             onRefresh={() => void loadTemplates()}
-            onCreateBaseline={handleOpenCreate}
-            createSelectedCount={totalSelectedCount}
           />
 
           <BaselineItemsPanel
@@ -433,9 +458,29 @@ export default function CustomBaselineClient() {
             onClearAll={handleClearAll}
             onRemoveTemplate={handleRemoveTemplate}
             onRemoveItem={handleRemoveItem}
+            onCreateBaseline={handleOpenCreate}
+            createDisabled={totalSelectedCount === 0 || !selectedTemplateMetadataState.metadata}
+            metadataValid={Boolean(selectedTemplateMetadataState.metadata)}
+            metadataMessage={metadataErrorMessage}
           />
-        </div>
+        </main>
       </div>
+
+      <Dialog open={existingOpen} onOpenChange={setExistingOpen}>
+        <DialogContent className="h-[min(76vh,720px)] w-[min(1180px,calc(100vw-32px))] max-w-none gap-0 overflow-hidden border-0 bg-transparent p-0 shadow-none">
+          <DialogHeader className="sr-only">
+            <DialogTitle>{t("existingList.title")}</DialogTitle>
+            <DialogDescription>{t("existingList.subtitle")}</DialogDescription>
+          </DialogHeader>
+          <ExistingCustomBaselineList
+            baselines={customBaselines}
+            loading={customBaselinesLoading}
+            errorMessage={customBaselinesError}
+            onRefresh={() => void loadCustomBaselines()}
+            className="h-full rounded-[24px] shadow-2xl"
+          />
+        </DialogContent>
+      </Dialog>
 
       <CreateBaselineForm
         open={createOpen}

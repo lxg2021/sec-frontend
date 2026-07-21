@@ -1,8 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import { useTranslations } from "next-intl"
-import { ArrowRight, LayoutGrid, Plus, RefreshCw, SlidersHorizontal } from "lucide-react"
+import { LayoutGrid, RefreshCw, SlidersHorizontal } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -25,8 +24,6 @@ interface BaselineTemplateSelectorProps {
   onProfileFilterChange: (value: string) => void
   onSelectTemplate: (template: BaselineTemplate) => void
   onRefresh: () => void
-  onCreateBaseline: () => void
-  createSelectedCount: number
 }
 
 export function BaselineTemplateSelector({
@@ -40,8 +37,6 @@ export function BaselineTemplateSelector({
   onProfileFilterChange,
   onSelectTemplate,
   onRefresh,
-  onCreateBaseline,
-  createSelectedCount,
 }: BaselineTemplateSelectorProps) {
   const t = useTranslations("pages.baseline.custom")
 
@@ -62,17 +57,16 @@ export function BaselineTemplateSelector({
   ]
 
   return (
-    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-shadow duration-200 hover:shadow-xl">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-sky-500 to-emerald-400" />
-      <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm shadow-blue-200/70">
-              <LayoutGrid className="h-5 w-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+              <LayoutGrid className="h-5 w-5" />
             </div>
             <div className="space-y-1">
-              <CardTitle className="text-base font-semibold text-zinc-950">{t("templateSelector.title")}</CardTitle>
-              <CardDescription className="text-sm text-zinc-500">{t("templateSelector.subtitle")}</CardDescription>
+              <CardTitle className="text-sm font-semibold text-slate-950">{t("templateSelector.title")}</CardTitle>
+              <CardDescription className="text-xs text-slate-500">{t("templateSelector.subtitle")}</CardDescription>
             </div>
           </div>
           <Button
@@ -80,7 +74,7 @@ export function BaselineTemplateSelector({
             variant="outline"
             size="sm"
             onClick={onRefresh}
-            className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+            className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
             <span>{t("templateSelector.refresh")}</span>
@@ -118,7 +112,7 @@ export function BaselineTemplateSelector({
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-3">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-4">
         <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
           {loading ? (
             Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
@@ -143,7 +137,7 @@ export function BaselineTemplateSelector({
                   className={cn(
                     "group w-full rounded-2xl border p-3 text-left transition-all duration-200",
                     isSelected
-                      ? "border-blue-300 bg-blue-50/80 shadow-sm ring-1 ring-blue-100"
+                      ? "border-teal-300 bg-teal-50/80 shadow-sm ring-1 ring-teal-100"
                       : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-sm",
                   )}
                 >
@@ -152,7 +146,7 @@ export function BaselineTemplateSelector({
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-950">{getTemplateLabel(template)}</span>
                         {isSelected && (
-                          <Badge className="h-5 shrink-0 rounded-full bg-blue-600 px-2 text-[11px] text-white shadow-sm">
+                          <Badge className="h-5 shrink-0 rounded-full bg-teal-700 px-2 text-[11px] text-white shadow-sm">
                             {t("templateSelector.current")}
                           </Badge>
                         )}
@@ -170,17 +164,17 @@ export function BaselineTemplateSelector({
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
-                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
+                    <Badge variant="secondary" className="h-6 rounded-full bg-slate-100 px-2 text-xs font-normal text-slate-700">
                       {t("templateSelector.standardLabel")}: {template.standard || "STANDARD"}
                     </Badge>
-                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
+                    <Badge variant="secondary" className="h-6 rounded-full bg-slate-100 px-2 text-xs font-normal text-slate-700">
                       {t("templateSelector.profileLabel")}: {template.profile || "profile"}
                     </Badge>
-                    <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
+                    <Badge variant="secondary" className="h-6 rounded-full bg-slate-100 px-2 text-xs font-normal text-slate-700">
                       {t("templateSelector.versionLabel")}: {template.os_version || template.baseline_version || "--"}
                     </Badge>
                     {selectedCount > 0 && (
-                      <Badge variant="secondary" className="h-6 rounded-full bg-zinc-100 px-2 text-xs font-normal text-zinc-700">
+                      <Badge variant="secondary" className="h-6 rounded-full bg-slate-100 px-2 text-xs font-normal text-slate-700">
                         {t("templateSelector.selected")} {selectedCount}
                       </Badge>
                     )}
@@ -191,31 +185,6 @@ export function BaselineTemplateSelector({
           )}
         </div>
 
-        <div className="mt-2 border-t border-zinc-200/80 pt-2">
-          <div className="mx-auto grid w-full max-w-[320px] grid-cols-2 gap-3">
-            <Button
-              type="button"
-              onClick={onCreateBaseline}
-              disabled={createSelectedCount === 0}
-              className="h-11 w-full gap-3 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 px-5 text-base font-semibold text-white shadow-sm shadow-zinc-300/40 transition-transform hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700 disabled:cursor-not-allowed disabled:opacity-100 disabled:hover:scale-100 disabled:hover:from-zinc-950 disabled:hover:to-zinc-800"
-            >
-              <Plus className="h-5 w-5" />
-              <span>{t("createBaseline")}</span>
-              <span className="rounded-md bg-white/20 px-2 py-0.5 text-sm tabular-nums">
-                {createSelectedCount}
-              </span>
-            </Button>
-            <Button
-              asChild
-              className="h-11 w-full gap-3 rounded-xl bg-gradient-to-r from-zinc-950 to-zinc-800 px-5 text-base font-semibold text-white shadow-sm shadow-zinc-300/40 transition-transform hover:scale-[1.01] hover:from-zinc-900 hover:to-zinc-700"
-            >
-              <Link href="/frame/baseline/dispatch">
-                <ArrowRight className="h-5 w-5" />
-                <span>{t("goToRules")}</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
       </CardContent>
     </Card>
   )

@@ -17,6 +17,7 @@ interface ExistingCustomBaselineListProps {
   loading: boolean
   errorMessage: string
   onRefresh: () => void
+  className?: string
 }
 
 function formatCreatedAt(value: string, locale: string) {
@@ -41,12 +42,13 @@ export function ExistingCustomBaselineList({
   loading,
   errorMessage,
   onRefresh,
+  className,
 }: ExistingCustomBaselineListProps) {
   const t = useTranslations("pages.baseline.custom.existingList")
   const locale = useLocale()
 
   return (
-    <Card className="relative flex h-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg">
+    <Card className={cn("relative flex h-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg", className)}>
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500" />
       <CardHeader className="flex shrink-0 flex-row items-center justify-between gap-4 border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 px-5 py-3.5">
         <div className="flex min-w-0 items-center gap-3">

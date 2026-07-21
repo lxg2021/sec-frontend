@@ -103,19 +103,18 @@ export function BaselineItemsPanel({
   const severityStats = itemsData?.severity_statistics ?? []
 
   return (
-    <Card className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg transition-shadow duration-200 hover:shadow-xl">
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 via-cyan-500 to-violet-500" />
-      <CardHeader className="border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 pb-4">
+    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-sm shadow-blue-200/70">
-              <SquareCheckBig className="h-5 w-5 text-white" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+              <SquareCheckBig className="h-5 w-5" />
             </div>
             <div className="min-w-0 space-y-1">
-              <CardTitle className="truncate text-base font-semibold text-zinc-950">
+              <CardTitle className="truncate text-sm font-semibold text-slate-950">
                 {template?.display_name || t("itemsPanel.chooseTemplateTitle")}
               </CardTitle>
-              <CardDescription className="text-sm text-zinc-500">
+              <CardDescription className="text-xs text-slate-500">
                 {template ? t("itemsPanel.selectedSubtitle") : t("itemsPanel.emptySubtitle")}
               </CardDescription>
             </div>
@@ -128,7 +127,7 @@ export function BaselineItemsPanel({
               size="sm"
               onClick={handleSelectAll}
               disabled={!template || !itemsData}
-              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
             >
               <SquareCheckBig className="h-4 w-4" />
               <span>{t("itemsPanel.selectAll")}</span>
@@ -153,7 +152,7 @@ export function BaselineItemsPanel({
               {severityStats.map((stat) => (
                 <span
                   key={stat.severity}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm text-zinc-700 shadow-sm"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700"
                 >
                   <span className={stat.severity === "High" ? "text-red-500" : stat.severity === "Medium" ? "text-amber-500" : "text-emerald-500"}>
                     {stat.severity === "High" ? t("itemsPanel.high") : stat.severity === "Medium" ? t("itemsPanel.medium") : t("itemsPanel.low")}:
@@ -172,11 +171,11 @@ export function BaselineItemsPanel({
                   value={searchTerm}
                   onChange={(event) => onSearchTermChange(event.target.value)}
                   placeholder={t("itemsPanel.searchPlaceholder")}
-                  className="h-10 rounded-xl border-zinc-200 bg-white pl-9 shadow-none transition-colors hover:border-zinc-300 focus-visible:border-blue-300"
+                  className="h-10 rounded-xl border-zinc-200 bg-white pl-9 shadow-none transition-colors hover:border-zinc-300 focus-visible:border-teal-300"
                   disabled={!template}
                 />
               </div>
-              <Badge variant="secondary" className="h-10 rounded-xl bg-blue-50 px-3 text-sm font-medium tabular-nums text-blue-700">
+              <Badge variant="secondary" className="h-10 rounded-xl bg-teal-50 px-3 text-xs font-semibold tabular-nums text-teal-700">
                 {selectedCount} / {totalCount} {t("itemsPanel.itemsSuffix")}
               </Badge>
             </div>
@@ -191,7 +190,7 @@ export function BaselineItemsPanel({
               <div>
                 <ShieldCheck className="mx-auto h-12 w-12 text-zinc-300" />
                 <p className="mt-3 text-lg font-medium text-zinc-950">{t("itemsPanel.chooseTemplateTitle")}</p>
-                <p className="mt-1 text-sm text-zinc-500">{t("itemsPanel.chooseTemplateDescription")}</p>
+                <p className="mt-1 text-xs text-slate-500">{t("itemsPanel.chooseTemplateDescription")}</p>
               </div>
             </div>
           ) : loading ? (
