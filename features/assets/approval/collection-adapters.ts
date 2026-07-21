@@ -11,6 +11,12 @@ interface AdaptPaginationFallback {
   pageSize: number
 }
 
+type UnknownRecord = Record<string, unknown>
+
+function asRecord(value: unknown): UnknownRecord {
+  return typeof value === "object" && value !== null ? (value as UnknownRecord) : {}
+}
+
 function toNumber(value: unknown, fallback: number) {
   const numberValue = Number(value)
   return Number.isFinite(numberValue) ? numberValue : fallback
@@ -43,27 +49,30 @@ function adaptStatus(value: unknown): CollectionSubmissionStatus {
   return 1
 }
 
-export function adaptCollectionSubmissionSummary(summary: any): CollectionSubmissionSummary {
+export function adaptCollectionSubmissionSummary(value: unknown): CollectionSubmissionSummary {
+  const summary = asRecord(value)
+
   return {
     submission_id: String(summary?.submission_id || ""),
     tenant_id: String(summary?.tenant_id || ""),
     status: adaptStatus(summary?.status),
     host_count: toNumber(summary?.host_count, 0),
     logic_group_count: toNumber(summary?.logic_group_count, 0),
-    submitter: summary?.submitter || undefined,
-    source_ip: summary?.source_ip || undefined,
+    submitter: (summary.submitter || undefined) as CollectionSubmissionSummary["submitter"],
+    source_ip: (summary.source_ip || undefined) as string | undefined,
     created_at: toNumber(summary?.created_at, 0),
     updated_at: toNumber(summary?.updated_at, 0),
-    reviewed_by: summary?.reviewed_by || undefined,
+    reviewed_by: (summary.reviewed_by || undefined) as string | undefined,
     reviewed_at: toOptionalNumber(summary?.reviewed_at),
   }
 }
 
 export function adaptCollectionSubmissionListData(
-  data: any,
+  value: unknown,
   fallback: AdaptPaginationFallback,
 ): CollectionSubmissionListData {
-  const items = Array.isArray(data?.items) ? data.items.map(adaptCollectionSubmissionSummary) : []
+  const data = asRecord(value)
+  const items = Array.isArray(data.items) ? data.items.map(adaptCollectionSubmissionSummary) : []
 
   return {
     items,
@@ -73,7 +82,8 @@ export function adaptCollectionSubmissionListData(
   }
 }
 
-export function adaptCollectionSubmissionDetail(data: any): CollectionSubmissionDetail {
+export function adaptCollectionSubmissionDetail(value: unknown): CollectionSubmissionDetail {
+  const data = asRecord(value)
   const summary = adaptCollectionSubmissionSummary({
     ...data,
     host_count: data?.host_count ?? (Array.isArray(data?.hosts) ? data.hosts.length : 0),
@@ -82,22 +92,24 @@ export function adaptCollectionSubmissionDetail(data: any): CollectionSubmission
 
   return {
     ...summary,
-    logic_groups: Array.isArray(data?.logic_groups) ? data.logic_groups : [],
-    hosts: Array.isArray(data?.hosts) ? data.hosts : [],
-    review_note: data?.review_note || undefined,
-    import_result_json: data?.import_result_json || undefined,
-    error_msg: data?.error_msg || undefined,
+    logic_groups: (Array.isArray(data.logic_groups) ? data.logic_groups : []) as CollectionSubmissionDetail["logic_groups"],
+    hosts: (Array.isArray(data.hosts) ? data.hosts : []) as CollectionSubmissionDetail["hosts"],
+    review_note: (data.review_note || undefined) as string | undefined,
+    import_result_json: (data.import_result_json || undefined) as string | undefined,
+    error_msg: (data.error_msg || undefined) as string | undefined,
   }
 }
 
-export function adaptCollectionApprovalResult(data: any): CollectionApprovalResult {
+export function adaptCollectionApprovalResult(value: unknown): CollectionApprovalResult {
+  const data = asRecord(value)
+
   return {
     submission_id: String(data?.submission_id || ""),
     status: adaptStatus(data?.status),
     host_total: toNumber(data?.host_total, 0),
     host_success_count: toNumber(data?.host_success_count, 0),
     host_failure_count: toNumber(data?.host_failure_count, 0),
-    host_results: Array.isArray(data?.host_results) ? data.host_results : [],
+    host_results: (Array.isArray(data.host_results) ? data.host_results : []) as CollectionApprovalResult["host_results"],
   }
 }
 

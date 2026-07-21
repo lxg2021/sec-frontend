@@ -11,7 +11,13 @@ import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import { Card, CardContent } from "@/shared/ui/card"
 import { Label } from "@/shared/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
-import type { CollectionImportData, UiAssetData, UserInfo } from "@/features/collection/types"
+import type {
+  CollectionImportData,
+  LogicGroupType,
+  UiAssetData,
+  UserInfo,
+  UserLogicGroup,
+} from "@/features/collection/types"
 import { defaultCollectionTemplate, platformDownloads, PUBLIC_TENANT_ID } from "@/features/collection/lib/collection-template"
 import { ensureLogicGroupIds, findLogicGroupIdByPath } from "@/features/collection/lib/logic-group-utils"
 import { getLogicGroups, submitCollection } from "@/features/collection/api"
@@ -288,22 +294,28 @@ export default function AssetCollectorPage() {
   )
 }
 
-function logicGroupsFromBackend(groups: any[]): ReturnType<typeof ensureLogicGroupIds> {
-  const items = Array.isArray(groups) ? groups : []
-  const byParent = new Map<string, any[]>()
+type BackendLogicGroup = Record<string, unknown>
 
-  items.forEach((item) => {
+function isBackendLogicGroup(value: unknown): value is BackendLogicGroup {
+  return typeof value === "object" && value !== null
+}
+
+function logicGroupsFromBackend(groups: unknown): ReturnType<typeof ensureLogicGroupIds> {
+  const items = Array.isArray(groups) ? groups : []
+  const byParent = new Map<string, BackendLogicGroup[]>()
+
+  items.filter(isBackendLogicGroup).forEach((item) => {
     const parentId = String(item.parent_id || "")
     byParent.set(parentId, [...(byParent.get(parentId) || []), item])
   })
 
-  const build = (parentId = ""): any[] => {
+  const build = (parentId = ""): UserLogicGroup[] => {
     return (byParent.get(parentId) || []).map((item) => ({
       id: String(item.id || ""),
       name: String(item.name || ""),
       path: String(item.full_path || item.name || ""),
       type: logicGroupTypeFromBackend(item),
-      parentId: item.parent_id || undefined,
+      parentId: item.parent_id ? String(item.parent_id) : undefined,
       children: build(String(item.id || "")),
     }))
   }
@@ -311,7 +323,7 @@ function logicGroupsFromBackend(groups: any[]): ReturnType<typeof ensureLogicGro
   return ensureLogicGroupIds(build())
 }
 
-function logicGroupTypeFromBackend(item: any) {
+function logicGroupTypeFromBackend(item: BackendLogicGroup): LogicGroupType {
   const type = item.type ?? item.group_type
   if (type === "company" || type === "department" || type === "group") {
     return type
