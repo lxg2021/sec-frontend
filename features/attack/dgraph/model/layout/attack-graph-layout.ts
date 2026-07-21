@@ -72,7 +72,6 @@ export async function layoutAttackGraph(
       nodeHeight,
       nodeSep,
       nodeWidth,
-      previousSession,
       rankSep,
       strategy,
       topologyDiagnostics: topology.diagnostics,
@@ -154,7 +153,6 @@ function layoutLayeredAttackGraph({
       nextLayout,
       nodeHeight,
       nodeWidth,
-      previousSession,
       strategy,
       topologyDiagnostics: topology.diagnostics,
       topologyKind: topology.kind,
@@ -176,7 +174,6 @@ function layoutLayeredAttackGraph({
       nextLayout,
       nodeHeight,
       nodeWidth,
-      previousSession,
       strategy,
       topologyDiagnostics: topology.diagnostics,
       topologyKind: topology.kind,
@@ -198,7 +195,6 @@ function layoutLayeredAttackGraph({
       nextLayout,
       nodeHeight,
       nodeWidth,
-      previousSession,
       strategy,
       topologyDiagnostics: topology.diagnostics,
       topologyKind: topology.kind,
@@ -220,7 +216,6 @@ function layoutLayeredAttackGraph({
       nextLayout,
       nodeHeight,
       nodeWidth,
-      previousSession,
       strategy,
       topologyDiagnostics: topology.diagnostics,
       topologyKind: topology.kind,
@@ -242,7 +237,6 @@ function layoutLayeredAttackGraph({
     nextLayout,
     nodeHeight,
     nodeWidth,
-    previousSession,
     strategy,
     topologyDiagnostics: topology.diagnostics,
     topologyKind: topology.kind,
@@ -256,7 +250,6 @@ async function layoutStressAttackGraph({
   nodeHeight,
   nodeSep,
   nodeWidth,
-  previousSession,
   rankSep,
   strategy,
   topologyDiagnostics,
@@ -268,7 +261,6 @@ async function layoutStressAttackGraph({
   nodeHeight: number;
   nodeSep: number;
   nodeWidth: number;
-  previousSession: AttackGraphLayoutSession | null;
   rankSep: number;
   strategy: AttackGraphLayoutSession["strategy"];
   topologyDiagnostics: AttackGraphTopologyDiagnostics;
@@ -321,7 +313,6 @@ async function layoutStressAttackGraph({
     },
     nodeHeight,
     nodeWidth,
-    previousSession,
     strategy,
     topologyDiagnostics,
     topologyKind,
@@ -746,7 +737,6 @@ function buildAttackGraphLayoutResult({
   nextLayout,
   nodeHeight,
   nodeWidth,
-  previousSession,
   strategy,
   topologyDiagnostics,
   topologyKind,
@@ -761,7 +751,6 @@ function buildAttackGraphLayoutResult({
   };
   nodeHeight: number;
   nodeWidth: number;
-  previousSession: AttackGraphLayoutSession | null;
   strategy: AttackGraphLayoutSession["strategy"];
   topologyDiagnostics: AttackGraphTopologyDiagnostics;
   topologyKind: string;
@@ -816,131 +805,6 @@ function normalizeLayoutNodes(nodes: AttackGraphNodeModel[]) {
       y: (node.position?.y ?? 0) - offset.y,
     },
   }));
-}
-
-function spreadLargeGraphRanks(
-  nodes: AttackGraphNodeModel[],
-  options: {
-    maxRowsPerRank: number;
-    nodeHeight: number;
-    nodeWidth: number;
-    rankTolerance: number;
-    rowGap: number;
-    subColumnGap: number;
-  },
-) {
-  if (nodes.length === 0) {
-    return nodes;
-  }
-
-  const rankGroups = groupNodesByRank(nodes, options.rankTolerance);
-  const subColumnStep = options.nodeWidth + options.subColumnGap;
-  const rowStep = options.nodeHeight + options.rowGap;
-  const positionedById = new Map<string, AttackGraphPoint>();
-  const layoutCenterY = getLayoutCenterY(nodes, options.nodeHeight);
-  let accumulatedXShift = 0;
-
-  for (const rank of rankGroups) {
-    const sortedRankNodes = [...rank.nodes].sort(compareNodesByRankOrder);
-    const rankX = rank.baseX + accumulatedXShift;
-    const columnCount = Math.ceil(
-      sortedRankNodes.length / options.maxRowsPerRank,
-    );
-    const rowCount = Math.ceil(sortedRankNodes.length / columnCount);
-    const packedHeight =
-      rowCount * options.nodeHeight + Math.max(0, rowCount - 1) * options.rowGap;
-    const rankTop = layoutCenterY - packedHeight / 2;
-
-    sortedRankNodes.forEach((node, index) => {
-      const columnIndex = index % columnCount;
-      const rowIndex = Math.floor(index / columnCount);
-      positionedById.set(node.id, {
-        x: rankX + columnIndex * subColumnStep,
-        y: rankTop + rowIndex * rowStep,
-      });
-    });
-
-    accumulatedXShift += (columnCount - 1) * subColumnStep;
-  }
-
-  return nodes.map((node) => {
-    const position = positionedById.get(node.id);
-    if (!position) {
-      return node;
-    }
-
-    return {
-      ...node,
-      position: {
-        x: Math.round(position.x),
-        y: Math.round(position.y),
-      },
-    };
-  });
-}
-
-function groupNodesByRank(
-  nodes: AttackGraphNodeModel[],
-  rankTolerance: number,
-) {
-  const sortedNodes = [...nodes].sort((left, right) => {
-    const leftPosition = left.position ?? { x: 0, y: 0 };
-    const rightPosition = right.position ?? { x: 0, y: 0 };
-    return (
-      leftPosition.x - rightPosition.x ||
-      leftPosition.y - rightPosition.y ||
-      left.id.localeCompare(right.id)
-    );
-  });
-  const rankGroups: Array<{
-    baseX: number;
-    nodes: AttackGraphNodeModel[];
-  }> = [];
-
-  for (const node of sortedNodes) {
-    const x = node.position?.x ?? 0;
-    const currentRank = rankGroups[rankGroups.length - 1];
-    if (!currentRank || Math.abs(x - currentRank.baseX) > rankTolerance) {
-      rankGroups.push({
-        baseX: x,
-        nodes: [node],
-      });
-      continue;
-    }
-
-    currentRank.nodes.push(node);
-    currentRank.baseX =
-      currentRank.nodes.reduce(
-        (total, rankNode) => total + (rankNode.position?.x ?? x),
-        0,
-      ) / currentRank.nodes.length;
-  }
-
-  return rankGroups.map((rank) => ({
-    ...rank,
-    baseX: Math.min(...rank.nodes.map((node) => node.position?.x ?? rank.baseX)),
-  }));
-}
-
-function compareNodesByRankOrder(
-  left: AttackGraphNodeModel,
-  right: AttackGraphNodeModel,
-) {
-  const leftPosition = left.position ?? { x: 0, y: 0 };
-  const rightPosition = right.position ?? { x: 0, y: 0 };
-  return (
-    leftPosition.y - rightPosition.y ||
-    leftPosition.x - rightPosition.x ||
-    compareNodesForLayout(left, right)
-  );
-}
-
-function getLayoutCenterY(
-  nodes: AttackGraphNodeModel[],
-  nodeHeight: number,
-) {
-  const centers = nodes.map((node) => (node.position?.y ?? 0) + nodeHeight / 2);
-  return (Math.min(...centers) + Math.max(...centers)) / 2;
 }
 
 function groupRelationEdgesByNodePair(graph: AttackGraphModel) {
