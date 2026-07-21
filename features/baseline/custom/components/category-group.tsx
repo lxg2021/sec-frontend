@@ -34,7 +34,7 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
   const CategoryIcon = () => (
     <span
       aria-hidden="true"
-      className="inline-block h-6 w-6 shrink-0 text-sky-500 transition-colors duration-200 group-hover:text-slate-700"
+      className="inline-block h-6 w-6 shrink-0 text-sky-500 drop-shadow-sm transition-[transform,filter] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:drop-shadow-[0_5px_4px_rgba(14,165,233,0.35)]"
       style={{
         backgroundColor: "currentColor",
         WebkitMaskImage: `url(/icons/baseline/${iconName}.svg)`,
@@ -69,7 +69,7 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
               <span className="text-zinc-400 transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-slate-700">
                 {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </span>
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50 transition-colors duration-200 group-hover:bg-sky-100/70">
+              <div className="flex h-9 w-9 transform-gpu items-center justify-center rounded-xl bg-sky-50 shadow-sm transition-[transform,box-shadow] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-105 group-hover:shadow-[0_8px_16px_-8px_rgba(15,23,42,0.35)]">
                 <CategoryIcon />
               </div>
 

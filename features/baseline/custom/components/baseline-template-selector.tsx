@@ -134,12 +134,15 @@ export function BaselineTemplateSelector({
                   type="button"
                   onClick={() => onSelectTemplate(template)}
                   className={cn(
-                    "group w-full rounded-2xl border p-3 text-left transition-all duration-200",
+                    "group relative w-full overflow-hidden rounded-2xl border p-3 text-left transition-all duration-200",
                     isSelected
                       ? "border-teal-300 bg-teal-50/80 shadow-sm ring-1 ring-teal-100"
                       : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-sm",
                   )}
                 >
+                  {isSelected ? (
+                    <span aria-hidden="true" className="absolute inset-y-3 left-0 w-1 rounded-r-full bg-teal-600" />
+                  ) : null}
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
