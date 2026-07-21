@@ -4,6 +4,15 @@ import { memo, useMemo } from "react"
 import { FixedSizeList as List } from "react-window"
 
 import { TreeNodeWithState } from "./tree-node-with-state"
+import type { HostSelectorFlatNode, HostSelectorSelectionState } from "./types"
+
+interface TreeItemData {
+  nodes: HostSelectorFlatNode[]
+  onToggleExpanded: (nodeId: string) => void
+  onToggleSelected: (nodeId: string, node: HostSelectorFlatNode) => void
+  getNodeSelectionState: (nodeId: string) => HostSelectorSelectionState
+  compactHostRows: boolean
+}
 
 const TreeItem = memo(function TreeItem({
   index,
@@ -12,7 +21,7 @@ const TreeItem = memo(function TreeItem({
 }: {
   index: number
   style: React.CSSProperties
-  data: any
+  data: TreeItemData
 }) {
   const { nodes, onToggleExpanded, onToggleSelected, getNodeSelectionState, compactHostRows } = data
   const node = nodes[index]
@@ -43,10 +52,10 @@ export const VirtualizedTree = memo(function VirtualizedTree({
   itemHeight,
   compactHostRows = false,
 }: {
-  nodes: any[]
+  nodes: HostSelectorFlatNode[]
   onToggleExpanded: (nodeId: string) => void
-  onToggleSelected: (nodeId: string, node: any) => void
-  getNodeSelectionState: (nodeId: string) => "checked" | "unchecked" | "indeterminate"
+  onToggleSelected: (nodeId: string, node: HostSelectorFlatNode) => void
+  getNodeSelectionState: (nodeId: string) => HostSelectorSelectionState
   height: number
   itemHeight: number
   compactHostRows?: boolean

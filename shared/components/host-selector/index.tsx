@@ -15,6 +15,7 @@ import { badgeBaseClass, badgeButtonClass } from "@/shared/styles/badge-class"
 
 import { useTreeData } from "./hooks/use-tree-data"
 import { VirtualizedTree } from "./virtualized-tree"
+import type { HostSelectorTreeNode } from "./types"
 
 const defaultText = {
   title: "Host Selector",
@@ -37,7 +38,7 @@ const defaultText = {
     }${companyCount > 0 ? ` / ${companyCount} companie(s)` : ""}`,
 }
 
-function findNodeById(nodes: any[], id: string): any | null {
+function findNodeById(nodes: HostSelectorTreeNode[], id: string): HostSelectorTreeNode | null {
   for (const node of nodes) {
     if (node.id === id) return node
     if (node.children) {
@@ -46,6 +47,15 @@ function findNodeById(nodes: any[], id: string): any | null {
     }
   }
   return null
+}
+
+function nodeMatchesSearch(node: HostSelectorTreeNode, searchTerm: string) {
+  const values =
+    node.type === "host"
+      ? [node.name, node.hostname, node.hostId, node.ip, node.mac, node.os]
+      : [node.name]
+
+  return values.some((value) => value.toLowerCase().includes(searchTerm))
 }
 
 function HostSelectorSkeleton() {
@@ -72,8 +82,8 @@ export default function HostSelector({
   compactHostRows = false,
   text = defaultText,
 }: {
-  data?: any[]
-  onSelectionChange?: (nodes: any[], selectedIds: Set<string>) => void
+  data?: HostSelectorTreeNode[]
+  onSelectionChange?: (nodes: HostSelectorTreeNode[], selectedIds: Set<string>) => void
   loading?: boolean
   emptyText?: string
   fillAvailableHeight?: boolean
@@ -95,15 +105,9 @@ export default function HostSelector({
     const searchLower = searchTerm.toLowerCase().trim()
     const matchingIds = new Set<string>()
 
-    const searchNodes = (nodes: any[]) => {
+    const searchNodes = (nodes: HostSelectorTreeNode[]) => {
       nodes.forEach((node) => {
-        const matches =
-          node.name?.toLowerCase().includes(searchLower) ||
-          node.hostname?.toLowerCase().includes(searchLower) ||
-          node.hostId?.toLowerCase().includes(searchLower) ||
-          node.ip?.toLowerCase().includes(searchLower) ||
-          node.mac?.toLowerCase().includes(searchLower) ||
-          node.os?.toLowerCase().includes(searchLower)
+        const matches = nodeMatchesSearch(node, searchLower)
 
         if (matches) {
           matchingIds.add(node.id)
@@ -123,24 +127,25 @@ export default function HostSelector({
 
     searchNodes(data)
 
-    const filterNodes = (nodes: any[]): any[] => {
-      return nodes.reduce((acc, node) => {
+    const filterNodes = (nodes: HostSelectorTreeNode[]): HostSelectorTreeNode[] => {
+      return nodes.reduce<HostSelectorTreeNode[]>((acc, node) => {
         const shouldInclude = matchingIds.has(node.id)
-        const filteredChildren = node.children ? filterNodes(node.children) : undefined
 
-        if (shouldInclude || (filteredChildren && filteredChildren.length > 0)) {
-          acc.push(
-            filteredChildren
-              ? {
-                  ...node,
-                  children: filteredChildren,
-                }
-              : node,
-          )
+        if (node.type === "host") {
+          if (shouldInclude) acc.push(node)
+          return acc
+        }
+
+        const filteredChildren = filterNodes(node.children)
+        if (shouldInclude || filteredChildren.length > 0) {
+          acc.push({
+            ...node,
+            children: filteredChildren,
+          })
         }
 
         return acc
-      }, [] as any[])
+      }, [])
     }
 
     return filterNodes(data)
@@ -163,15 +168,9 @@ export default function HostSelector({
     const matchingIds = new Set<string>()
     const searchLower = searchTerm.toLowerCase().trim()
 
-    const findMatches = (nodes: any[]) => {
+    const findMatches = (nodes: HostSelectorTreeNode[]) => {
       nodes.forEach((node) => {
-        const matches =
-          node.name?.toLowerCase().includes(searchLower) ||
-          node.hostname?.toLowerCase().includes(searchLower) ||
-          node.hostId?.toLowerCase().includes(searchLower) ||
-          node.ip?.toLowerCase().includes(searchLower) ||
-          node.mac?.toLowerCase().includes(searchLower) ||
-          node.os?.toLowerCase().includes(searchLower)
+        const matches = nodeMatchesSearch(node, searchLower)
 
         if (matches) {
           matchingIds.add(node.id)
@@ -198,7 +197,7 @@ export default function HostSelector({
     if (hasChanged && onSelectionChangeRef.current) {
       const selectedNodes = Array.from(selectedIds)
         .map((id) => findNodeById(data, id))
-        .filter(Boolean)
+        .filter((node): node is HostSelectorTreeNode => node !== null)
 
       setTimeout(() => {
         onSelectionChangeRef.current?.(selectedNodes, selectedIds)

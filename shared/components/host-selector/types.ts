@@ -19,6 +19,7 @@ export interface HostSelectorGroupNode extends HostSelectorBaseNode {
 
 export interface HostSelectorHostNode extends HostSelectorBaseNode {
   type: "host"
+  children?: never
   hostname: string
   hostId: string
   ip: string
@@ -33,3 +34,13 @@ export interface HostSelectorHostNode extends HostSelectorBaseNode {
 }
 
 export type HostSelectorTreeNode = HostSelectorGroupNode | HostSelectorHostNode
+
+export type HostSelectorSelectionState = "checked" | "unchecked" | "indeterminate"
+
+export type HostSelectorFlatNode = HostSelectorTreeNode & {
+  level: number
+  hasChildren: boolean
+  isLastChild: boolean
+  path: string[]
+  isExpanded: boolean
+}

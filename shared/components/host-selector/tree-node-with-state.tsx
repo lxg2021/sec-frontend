@@ -7,8 +7,13 @@ import { HostInfoPopover } from "@/features/assets/host/components/host-info-pop
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 import { Checkbox } from "@/shared/ui/checkbox"
+import type {
+  HostSelectorFlatNode,
+  HostSelectorNodeType,
+  HostSelectorSelectionState,
+} from "./types"
 
-function getIcon(type: string) {
+function getIcon(type: HostSelectorNodeType) {
   switch (type) {
     case "company":
       return Building2
@@ -23,7 +28,7 @@ function getIcon(type: string) {
   }
 }
 
-function getIconColor(type: string, checkboxState: string) {
+function getIconColor(type: HostSelectorNodeType, checkboxState: HostSelectorSelectionState) {
   const baseColors: Record<string, string> = {
     company: "text-purple-500",
     department: "text-blue-500",
@@ -76,10 +81,10 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
   onToggleSelected,
   compactHostRows = false,
 }: {
-  node: any
-  checkboxState: "checked" | "unchecked" | "indeterminate"
+  node: HostSelectorFlatNode
+  checkboxState: HostSelectorSelectionState
   onToggleExpanded: (nodeId: string) => void
-  onToggleSelected: (nodeId: string, node: any) => void
+  onToggleSelected: (nodeId: string, node: HostSelectorFlatNode) => void
   compactHostRows?: boolean
 }) {
   const Icon = getIcon(node.type)
