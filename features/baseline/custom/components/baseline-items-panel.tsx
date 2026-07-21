@@ -212,15 +212,17 @@ export function BaselineItemsPanel({
               </div>
             </div>
           ) : (
-            filteredGroups.map((group) => (
-              <CategoryGroup
-                key={`${group.category_zh || group.category}-${group.item_count}`}
-                group={group}
-                selectedItems={selectedItems}
-                onToggleItem={handleToggleItem}
-                onToggleCategory={handleToggleCategory}
-              />
-            ))
+            <div className="divide-y divide-slate-200 overflow-hidden rounded-xl border border-slate-200 bg-white">
+              {filteredGroups.map((group) => (
+                <CategoryGroup
+                  key={`${group.category_zh || group.category}-${group.item_count}`}
+                  group={group}
+                  selectedItems={selectedItems}
+                  onToggleItem={handleToggleItem}
+                  onToggleCategory={handleToggleCategory}
+                />
+              ))}
+            </div>
           )}
         </div>
       </CardContent>

@@ -34,7 +34,7 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
   const CategoryIcon = () => (
     <span
       aria-hidden="true"
-      className="inline-block h-6 w-6 shrink-0 text-sky-500 drop-shadow-sm transition-[transform,filter] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:drop-shadow-[0_5px_4px_rgba(14,165,233,0.35)]"
+      className="inline-block h-6 w-6 shrink-0 text-sky-500 drop-shadow-sm transition-[transform,filter] duration-200 ease-out group-hover:scale-105 group-hover:drop-shadow-[0_2px_2px_rgba(14,165,233,0.2)]"
       style={{
         backgroundColor: "currentColor",
         WebkitMaskImage: `url(/icons/baseline/${iconName}.svg)`,
@@ -51,9 +51,9 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
 
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
-      <div className="group relative overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-slate-300 hover:shadow-[0_8px_22px_-16px_rgba(15,23,42,0.45)]">
-        <span aria-hidden="true" className="absolute inset-y-3 left-0 w-0.5 rounded-r-full bg-sky-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-        <div className="flex min-h-14 items-center gap-3 bg-white px-4 py-3 transition-colors duration-200 group-hover:bg-slate-50/40">
+      <div className="group relative bg-white transition-colors duration-200">
+        <span aria-hidden="true" className={expanded ? "absolute inset-y-3 left-0 w-0.5 rounded-r-full bg-sky-500 opacity-100" : "absolute inset-y-3 left-0 w-0.5 rounded-r-full bg-sky-500 opacity-0 transition-opacity duration-200 group-hover:opacity-100"} />
+        <div className={expanded ? "flex min-h-14 items-center gap-3 bg-sky-50/40 px-4 py-3" : "flex min-h-14 items-center gap-3 bg-white px-4 py-3 transition-colors duration-200 group-hover:bg-slate-50/60"}>
           <Checkbox
             checked={isPartialSelected ? "indeterminate" : isAllSelected}
             onCheckedChange={(checked) => onToggleCategory(itemIds, checked === true)}
@@ -69,7 +69,7 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
               <span className="text-zinc-400 transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-slate-700">
                 {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </span>
-              <div className="flex h-9 w-9 transform-gpu items-center justify-center rounded-xl bg-sky-50 shadow-sm transition-[transform,box-shadow] duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-105 group-hover:shadow-[0_8px_16px_-8px_rgba(15,23,42,0.35)]">
+              <div className="flex h-9 w-9 transform-gpu items-center justify-center rounded-xl bg-sky-50 shadow-sm transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_4px_10px_-7px_rgba(15,23,42,0.22)]">
                 <CategoryIcon />
               </div>
 
@@ -87,7 +87,7 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
         </div>
 
         <CollapsibleContent>
-          <div className="space-y-2 border-t border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/50 p-3">
+          <div className="space-y-2 border-t border-slate-200 bg-slate-50/50 p-3">
             {group.items.map((item) => (
               <BaselineItemRow key={item.id} item={item} isSelected={selectedItems.has(item.id)} onToggle={onToggleItem} />
             ))}
