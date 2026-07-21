@@ -76,7 +76,7 @@ export interface AttackTopHostItem {
   total_cases: number
 }
 
-export interface AttackTrendPoint extends AttackOverview {}
+export type AttackTrendPoint = AttackOverview
 
 export interface AttackCaseTimelineSummary {
   case_id: string
