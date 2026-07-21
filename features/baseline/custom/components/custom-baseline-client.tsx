@@ -404,10 +404,8 @@ export default function CustomBaselineClient() {
     <div className="h-full min-h-0 overflow-hidden bg-slate-100">
       <div className="flex h-full min-h-0 w-full flex-col gap-3 p-4">
         <CustomBaselineWorkspaceHeader
-          templateCount={templates.length}
           selectedTemplateCount={selectedTemplateCount}
           selectedItemCount={totalSelectedCount}
-          highRiskCount={selectedRiskCounts.high}
           existingBaselineCount={customBaselines.length}
           canCreate={totalSelectedCount > 0 && Boolean(selectedTemplateMetadataState.metadata)}
           onOpenExisting={() => setExistingOpen(true)}

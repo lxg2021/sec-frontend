@@ -6,10 +6,8 @@ import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
 
 interface CustomBaselineWorkspaceHeaderProps {
-  templateCount: number
   selectedTemplateCount: number
   selectedItemCount: number
-  highRiskCount: number
   existingBaselineCount: number
   canCreate: boolean
   onOpenExisting: () => void
@@ -17,10 +15,8 @@ interface CustomBaselineWorkspaceHeaderProps {
 }
 
 export function CustomBaselineWorkspaceHeader({
-  templateCount,
   selectedTemplateCount,
   selectedItemCount,
-  highRiskCount,
   existingBaselineCount,
   canCreate,
   onOpenExisting,
@@ -51,57 +47,46 @@ export function CustomBaselineWorkspaceHeader({
 
   return (
     <div className="shrink-0 space-y-3">
-      <section className="overflow-hidden rounded-[24px] border border-teal-100/80 bg-[linear-gradient(110deg,#ffffff_0%,#ffffff_58%,#ecfdf8_100%)] shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-        <div className="flex flex-col gap-5 px-5 py-5 2xl:flex-row 2xl:items-center 2xl:justify-between">
-          <div className="flex min-w-0 items-start gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-100 text-teal-700">
-              <ShieldCheck className="h-6 w-6" />
+      <header className="w-full shrink-0 rounded-[28px] border border-slate-200/80 bg-white px-5 py-[13px] shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+        <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center">
+          <div className="flex min-w-0 items-center gap-4 xl:w-[430px] xl:flex-none 2xl:w-[500px]">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-700">
+              <ShieldCheck className="h-5 w-5" />
             </span>
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold tracking-tight text-slate-950">{t("title")}</h1>
-              <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">{t("subtitle")}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold">
-                <span className="inline-flex h-7 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-emerald-700">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  {t("templateSelector.title")} {templateCount}
-                </span>
-                <span className="inline-flex h-7 items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 text-blue-700">
-                  <span className="h-2 w-2 rounded-full bg-blue-500" />
-                  {t("summary.totalSelected")} {selectedItemCount}
-                </span>
-                <span className="inline-flex h-7 items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 text-orange-700">
-                  <span className="h-2 w-2 rounded-full bg-orange-500" />
-                  {t("summary.high")} {highRiskCount}
-                </span>
-              </div>
+            <div className="min-w-0 space-y-1.5">
+              <h1 className="truncate text-lg font-semibold leading-tight text-slate-950">{t("title")}</h1>
+              <p className="truncate text-sm text-slate-500">{t("subtitle")}</p>
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:flex-row 2xl:items-center">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
+
+            <span className="hidden h-6 w-px shrink-0 bg-slate-200 2xl:block" aria-hidden="true" />
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={onOpenExisting}
-              className="h-11 gap-2 rounded-xl border-slate-200 bg-white px-4 text-slate-700 shadow-none hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
+              className="h-10 shrink-0 gap-2 rounded-full px-3 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
             >
               <Database className="h-4 w-4" />
-              <span>{t("existingList.title")}</span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] tabular-nums text-slate-600">
+              <span className="font-medium">{t("existingList.title")}</span>
+              <span className="rounded-full bg-cyan-50 px-2 py-0.5 text-[11px] tabular-nums text-cyan-700">
                 {existingBaselineCount}
               </span>
             </Button>
+            <span className="h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
             <Button
               type="button"
               onClick={onCreate}
               disabled={!canCreate}
-              className="h-11 gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-600 px-5 text-white shadow-sm shadow-teal-900/10 hover:from-teal-800 hover:to-cyan-700"
+              className="h-10 min-w-36 shrink-0 gap-2 rounded-full bg-teal-600 px-5 text-white shadow-sm hover:bg-teal-700"
             >
               <Plus className="h-4 w-4" />
               <span>{t("createBaseline")}</span>
             </Button>
           </div>
         </div>
-      </section>
+      </header>
 
       <section className="rounded-[20px] border border-slate-200 bg-white px-5 py-3.5 shadow-sm">
         <div className="grid gap-3 lg:grid-cols-[1fr_auto_1fr_auto_1fr] lg:items-center">
