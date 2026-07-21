@@ -4853,7 +4853,17 @@
       },
       "operations": {
         "title": "Operations Management",
-        "subtitle": "AI-assisted workflows, task orchestration, and service insights"
+        "subtitle": "AI-assisted workflows, task orchestration, and service insights",
+        "notFound": {
+          "title": "Page not found",
+          "description": "The page you requested does not exist, has moved, or is not available yet.",
+          "suggestion": "Check the address or choose an option below to continue.",
+          "back": "Go back",
+          "dashboard": "Back to dashboard",
+          "hint": "If you believe this is an error, contact your system administrator.",
+          "notFoundBadge": "Not found",
+          "watchPointNormal": "WatchPoint services operational"
+        }
       }
     },
     "iocAnalysis": {

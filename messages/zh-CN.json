@@ -4855,7 +4855,17 @@
       },
       "operations": {
         "title": "运营管理",
-        "subtitle": "基于 AI 的工作流、任务编排与运营洞察"
+        "subtitle": "基于 AI 的工作流、任务编排与运营洞察",
+        "notFound": {
+          "title": "页面未找到",
+          "description": "你访问的页面不存在、已被移动，或当前功能尚未开放。",
+          "suggestion": "请检查访问地址，或选择下方操作继续。",
+          "back": "返回上一页",
+          "dashboard": "返回控制台",
+          "hint": "如果你认为这是一个错误，请联系系统管理员。",
+          "notFoundBadge": "未找到",
+          "watchPointNormal": "WatchPoint 服务状态正常"
+        }
       }
     },
     "iocAnalysis": {
