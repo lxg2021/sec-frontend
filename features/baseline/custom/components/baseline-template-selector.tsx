@@ -112,7 +112,7 @@ export function BaselineTemplateSelector({
       </CardHeader>
 
       <CardContent className="flex min-h-0 flex-1 flex-col p-4">
-        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-1 py-2">
           {loading ? (
             Array.from({ length: 5 }).map((_, index) => <Skeleton key={index} className="h-28 rounded-2xl" />)
           ) : templates.length === 0 ? (
@@ -134,10 +134,10 @@ export function BaselineTemplateSelector({
                   type="button"
                   onClick={() => onSelectTemplate(template)}
                   className={cn(
-                    "group relative w-full overflow-hidden rounded-2xl border p-3 text-left transition-all duration-200",
+                    "group relative w-full transform-gpu overflow-hidden rounded-2xl border p-3 text-left transition-[transform,border-color,box-shadow] duration-200 ease-out hover:z-10 hover:-translate-y-px hover:scale-[1.003] hover:border-cyan-200 hover:shadow-[0_8px_18px_-10px_rgba(8,145,178,0.22),0_4px_10px_-8px_rgba(15,23,42,0.18)]",
                     isSelected
-                      ? "border-teal-300 bg-teal-50/80 shadow-sm ring-1 ring-teal-100"
-                      : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-sm",
+                      ? "border-slate-300 bg-teal-50/50 shadow-sm"
+                      : "border-zinc-200 bg-white",
                   )}
                 >
                   {isSelected ? (
