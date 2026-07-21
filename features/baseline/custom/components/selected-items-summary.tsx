@@ -174,30 +174,32 @@ export function SelectedItemsSummary({
                 <span className="bg-emerald-50/80 px-2 py-1.5 text-emerald-600">{t("summary.low")} {summary.lowCount}</span>
               </div>
             </div>
-            {summary.categoryStats.length > 0 && (
-              <div>
+            {summary.categoryStats.length > 0 ? (
+              <div className="min-w-0">
                 <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-500">
                   <Layers3 className="h-3.5 w-3.5" />
                   <span>{t("summary.categories")}</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {summary.categoryStats.slice(0, 5).map(([category, count]) => (
-                    <Badge key={category} variant="secondary" className="h-6 rounded-full border border-slate-200 bg-slate-50 px-2 text-xs font-normal text-slate-600">
-                      {category}
-                      <span className="ml-1 font-medium tabular-nums text-zinc-950">{count}</span>
-                    </Badge>
-                  ))}
-                  {summary.categoryStats.length > 5 && (
+                <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+                    {summary.categoryStats.slice(0, 3).map(([category, count]) => (
+                      <Badge key={category} variant="secondary" className="flex h-6 min-w-0 flex-1 rounded-full border border-slate-200 bg-slate-50 px-2 text-xs font-normal text-slate-600">
+                        <span className="min-w-0 flex-1 truncate">{category}</span>
+                        <span className="ml-1 shrink-0 font-medium tabular-nums text-zinc-950">{count}</span>
+                      </Badge>
+                    ))}
+                  </div>
+                  {summary.categoryStats.length > 3 ? (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Badge variant="outline" className="h-6 cursor-help rounded-full border-slate-200 bg-slate-50 px-2 text-xs font-normal text-slate-700">
-                            +{summary.categoryStats.length - 5}
+                          <Badge variant="outline" className="h-6 shrink-0 cursor-help rounded-full border-slate-200 bg-slate-50 px-2 text-xs font-normal text-slate-700">
+                            +{summary.categoryStats.length - 3}
                           </Badge>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="max-w-[220px]">
                           <div className="flex flex-wrap gap-1.5">
-                            {summary.categoryStats.slice(5).map(([category, count]) => (
+                            {summary.categoryStats.slice(3).map(([category, count]) => (
                               <span key={category} className="text-xs text-zinc-500">
                                 {category}({count})
                               </span>
@@ -206,10 +208,10 @@ export function SelectedItemsSummary({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                  )}
+                  ) : null}
                 </div>
               </div>
-            )}
+            ) : null}
 
             <ScrollArea className="min-h-0 min-w-0 max-w-full flex-1 overflow-hidden pr-2">
               <div className="w-full min-w-0 max-w-full space-y-2 overflow-hidden">
