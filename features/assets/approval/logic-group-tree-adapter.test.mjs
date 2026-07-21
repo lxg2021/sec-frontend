@@ -18,10 +18,10 @@ function loadLogicGroupTreeAdapterModule() {
     },
   })
 
-  const module = { exports: {} }
+  const commonJsModule = { exports: {} }
   const fn = new Function("exports", "module", outputText)
-  fn(module.exports, module)
-  return module.exports
+  fn(commonJsModule.exports, commonJsModule)
+  return commonJsModule.exports
 }
 
 test("returns an empty user tree when backend logic groups are empty", () => {

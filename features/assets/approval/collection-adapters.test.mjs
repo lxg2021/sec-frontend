@@ -18,10 +18,10 @@ function loadCollectionAdaptersModule() {
     },
   })
 
-  const module = { exports: {} }
+  const commonJsModule = { exports: {} }
   const fn = new Function("exports", "module", outputText)
-  fn(module.exports, module)
-  return module.exports
+  fn(commonJsModule.exports, commonJsModule)
+  return commonJsModule.exports
 }
 
 test("adapts collection submission list data from backend response", () => {

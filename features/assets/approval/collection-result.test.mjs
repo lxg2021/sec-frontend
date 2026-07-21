@@ -18,10 +18,10 @@ function loadCollectionResultModule() {
     },
   })
 
-  const module = { exports: {} }
+  const commonJsModule = { exports: {} }
   const fn = new Function("exports", "module", outputText)
-  fn(module.exports, module)
-  return module.exports
+  fn(commonJsModule.exports, commonJsModule)
+  return commonJsModule.exports
 }
 
 test("recognizes pending and failed collection submissions as approvable", () => {
