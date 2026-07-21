@@ -506,15 +506,7 @@ export default function App() {
             : t("controlPanel.remediation.messages.unknownError"),
       })
     }
-  }, [
-    locale,
-    remediation.dirty,
-    remediation.order,
-    remediation.saveDraft,
-    remediation.targets,
-    router,
-    t,
-  ])
+  }, [locale, remediation, router, t])
   const handleViewRemediationOrchestration = useCallback(() => {
     if (!remediation.order) return
     router.push(buildRemediationOrchestrationHref(remediation.order))
@@ -532,7 +524,7 @@ export default function App() {
         })
       }
     },
-    [remediation.retryTarget, t],
+    [remediation, t],
   )
   const graphLayoutOptions = useMemo<AttackGraphLayoutOptions | undefined>(
     () =>
@@ -961,10 +953,7 @@ export default function App() {
       iocCandidateIdentityKeys,
       iocCandidateSyncState,
       iocCandidateUserIdsBySourceKey,
-      remediation.addTarget,
-      remediation.editable,
-      remediation.order,
-      remediation.removeTarget,
+      remediation,
       router,
       t,
       timelineCaseId,
@@ -1110,7 +1099,7 @@ export default function App() {
     return () => {
       cancelled = true
     }
-  }, [refreshKey, timelineCaseId])
+  }, [refreshKey, t, timelineCaseId])
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -590,7 +590,6 @@ export function RemediationCaseExecutionPanel({
   const [updatedAt, setUpdatedAt] = useState("");
 
   const caseId = currentOrder.source.case_id.trim();
-  const currentOrderId = currentOrder.order_id.trim();
   const currentSourceRefId = currentOrder.source.source_ref_id.trim();
   const currentSourceType = sourceTypeValue(currentOrder.source.source_type);
   useEffect(() => {
@@ -684,7 +683,7 @@ export function RemediationCaseExecutionPanel({
         }
       }
     },
-    [caseId, currentOrderId, summarySource],
+    [caseId, summarySource],
   );
 
   useEffect(() => {

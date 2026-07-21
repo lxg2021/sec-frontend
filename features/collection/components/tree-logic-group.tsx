@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import type React from "react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -562,7 +562,7 @@ export function TreeLogicGroup({
   }
 
   // 保存并转换
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     // 验证数据
     const errors = validateUserLogicGroups(groups)
     if (errors.length > 0) {
@@ -577,7 +577,7 @@ export function TreeLogicGroup({
     // 调用回调
     onSave?.(tableGroups)
     setValidationErrors([])
-  }
+  }, [createdBy, groups, onSave, tenantId])
 
   useEffect(() => {
     if (saveRequestVersion === undefined) return
@@ -591,7 +591,7 @@ export function TreeLogicGroup({
       previousSaveRequestVersion.current = saveRequestVersion
       handleSave()
     }
-  }, [saveRequestVersion])
+  }, [handleSave, saveRequestVersion])
 
   // 渲染树节点
   const renderNode = (node: UserLogicGroup, level = 0) => {

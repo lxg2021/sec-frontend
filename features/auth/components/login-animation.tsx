@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef } from "react"
 
 interface LoginAnimationProps {
   className?: string
@@ -61,7 +61,7 @@ export default function LoginAnimation({ className = "" }: LoginAnimationProps) 
   }
 
   // 动画循环
-  const animate = () => {
+  const animate = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -134,10 +134,10 @@ export default function LoginAnimation({ className = "" }: LoginAnimationProps) 
     })
 
     animationRef.current = requestAnimationFrame(animate)
-  }
+  }, [])
 
   // 处理画布大小调整
-  const handleResize = () => {
+  const handleResize = useCallback(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
@@ -145,14 +145,14 @@ export default function LoginAnimation({ className = "" }: LoginAnimationProps) 
     canvas.height = window.innerHeight
 
     nodesRef.current = initNodes(canvas.width, canvas.height)
-  }
+  }, [])
 
   // 清理动画
-  const cleanup = () => {
+  const cleanup = useCallback(() => {
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current)
     }
-  }
+  }, [])
 
   useEffect(() => {
     handleResize()
@@ -164,12 +164,12 @@ export default function LoginAnimation({ className = "" }: LoginAnimationProps) 
       window.removeEventListener("resize", handleResize)
       cleanup()
     }
-  }, [])
+  }, [animate, cleanup, handleResize])
 
   // 组件卸载时清理
   useEffect(() => {
     return cleanup
-  }, [])
+  }, [cleanup])
 
   return (
     <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full ${className}`} style={{ background: "black" }} />

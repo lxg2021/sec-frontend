@@ -792,11 +792,11 @@ export function RemediationOrderParameterPanel({
   const hostIdLabel = t("workspace.hostId");
   const selectedAction = useMemo(
     () => remediationOrderActionOption(item),
-    [item.action_code, item.entity_type],
+    [item],
   );
   const template = useMemo(
     () => remediationOrderDisplayTemplate(item, locale),
-    [item.action_code, item.entity_type, locale],
+    [item, locale],
   );
   const [templateValues, setTemplateValues] =
     useState<RemediationTemplateValues>(() =>

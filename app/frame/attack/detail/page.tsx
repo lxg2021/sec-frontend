@@ -150,6 +150,8 @@ export default function AttackDetailPage() {
     setAnchorCaseId(initialTargetCaseId)
     setSourceSnapshotId(initialSnapshotId)
     void loadDetail(undefined, casePageSize, initialTargetCaseId, initialSnapshotId)
+    // Initial URL hydration must run once; all request inputs are passed explicitly.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

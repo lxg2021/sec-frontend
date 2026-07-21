@@ -82,7 +82,7 @@ export function SoftInventoryTable({
       ...(vendorFilter !== "all" ? [vendorFilter] : []),
     ]))
     return uniqueVendors.sort()
-  }, [data, searchTerm, vendorFilter])
+  }, [data, vendorFilter])
 
   const toggleRowExpansion = useCallback((hash: string) => {
     setExpandedRows(prev => {

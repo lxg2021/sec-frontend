@@ -40,34 +40,7 @@ export function LogicGroupUploader({
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [fileName, setFileName] = useState<string>("")
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      handleFile(files[0])
-    }
-  }, [])
-
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      handleFile(files[0])
-    }
-  }, [])
-
-  const handleFile = async (file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     setFileName(file.name)
     setErrorMessage("")
 
@@ -120,7 +93,34 @@ export function LogicGroupUploader({
       setUploadStatus("error")
       setErrorMessage(error instanceof Error ? error.message : t("parseFailed"))
     }
-  }
+  }, [onBeforeUpload, onGroupsUploaded, t])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+
+    const files = Array.from(e.dataTransfer.files)
+    if (files.length > 0) {
+      handleFile(files[0])
+    }
+  }, [handleFile])
+
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      handleFile(files[0])
+    }
+  }, [handleFile])
 
   const handleDownloadTemplate = () => {
     const template = generateLogicGroupTemplate()

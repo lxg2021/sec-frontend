@@ -620,8 +620,8 @@ export function AttackWorkflowControlCenter({
   }
 
   const workflow = detail?.workflow ?? null
-  const actions = detail?.actions ?? []
-  const events = detail?.events ?? []
+  const actions = useMemo(() => detail?.actions ?? [], [detail?.actions])
+  const events = useMemo(() => detail?.events ?? [], [detail?.events])
   const activeCaseId = workflow?.case_id || normalizedCaseId
   const activeWorkflowId = workflow?.workflow_id || normalizedWorkflowId
   const currentStatus = workflow?.status ?? ""

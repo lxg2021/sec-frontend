@@ -233,7 +233,7 @@ export function RemediationOrderWorkspace({
     const observer = new ResizeObserver(updateHeight);
     observer.observe(panel);
     return () => observer.disconnect();
-  }, [loading, order?.order_id]);
+  }, [loading, order]);
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState(() =>
     t("workspace.defaultCancelReason"),
@@ -324,7 +324,7 @@ export function RemediationOrderWorkspace({
     return () => {
       cancelled = true;
     };
-  }, [applyOrder, onLoadingChange, orderId, refreshKey]);
+  }, [applyOrder, onLoadingChange, orderId, refreshKey, t]);
 
   useEffect(() => {
     if (!remediationOrderLifecycleActions(order).poll || !order?.order_id)
@@ -354,7 +354,7 @@ export function RemediationOrderWorkspace({
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [applyOrder, order]);
+  }, [applyOrder, order, t]);
 
   useEffect(() => {
     if (!activeItems.length || order?.status.trim().toLowerCase() !== "draft") {
@@ -419,7 +419,7 @@ export function RemediationOrderWorkspace({
       return;
     }
     setTitleDialogOpen(true);
-  }, [dirtyItemIds.size, order?.status, titleEditRequestKey, toast]);
+  }, [dirtyItemIds.size, order?.status, t, titleEditRequestKey, toast]);
 
   const validationErrors = useMemo(() => {
     if (!order) return {};
@@ -447,7 +447,7 @@ export function RemediationOrderWorkspace({
         return [item.item_id, parameterError || statusError];
       }),
     );
-  }, [actionInputs, activeItems, decisions, locale, order, reverseSourceIds]);
+  }, [actionInputs, activeItems, decisions, locale, order, reverseSourceIds, t]);
 
   const visibleItems = useMemo(() => {
     if (!order) return [];

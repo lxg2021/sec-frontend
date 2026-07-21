@@ -83,7 +83,7 @@ export function HostDetailsDialog({
   }, [host, softwarePage, softwarePageSize])
 
   useEffect(() => {
-    if (!isOpen || !host) return
+    if (!isOpen || !host?.hostId) return
 
     setActiveTab("basic")
     setHardware(null)
