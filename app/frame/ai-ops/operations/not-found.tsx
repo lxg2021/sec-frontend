@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, CirclePlus, Home, X } from "lucide-react"
+import { ArrowLeft, CirclePlus, Home } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 
@@ -25,9 +25,6 @@ export default function OperationsNotFoundPage() {
         <div className="relative mx-auto w-fit select-none" aria-hidden="true">
           <span className="bg-gradient-to-r from-teal-700 via-cyan-600 to-blue-600 bg-clip-text text-[132px] font-black leading-none tracking-[-0.08em] text-transparent sm:text-[184px] lg:text-[210px]">
             404
-          </span>
-          <span className="absolute left-1/2 top-[48%] flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-cyan-100 bg-white text-cyan-600 shadow-[0_0_0_9px_rgba(34,211,238,0.1)] sm:h-14 sm:w-14 dark:border-cyan-900 dark:bg-slate-900 dark:text-cyan-400">
-            <X className="h-6 w-6 sm:h-7 sm:w-7" strokeWidth={2.2} />
           </span>
         </div>
 
