@@ -3800,7 +3800,8 @@
           "categories": "分类",
           "itemsSuffix": "项",
           "itemsLabel": "项",
-          "templateItems": "{count} 项"
+          "templateItems": "{count} 项",
+          "removeItem": "移除此项"
         },
         "createForm": {
           "title": "创建自定义基线",

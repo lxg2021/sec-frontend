@@ -3798,7 +3798,8 @@
           "categories": "Categories",
           "itemsSuffix": "items",
           "itemsLabel": "items",
-          "templateItems": "{count} items"
+          "templateItems": "{count} items",
+          "removeItem": "Remove item"
         },
         "createForm": {
           "title": "Create Custom Baseline",

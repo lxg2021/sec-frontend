@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { AlertCircle, CheckCircle2, Layers3, Plus, Trash2, X } from "lucide-react"
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronRight, Layers3, Plus, Trash2, X } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -123,7 +123,7 @@ export function SelectedItemsSummary({
   }
 
   return (
-    <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+    <Card className="flex h-full min-h-0 min-w-0 max-w-full flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
       <CardHeader className="bg-slate-50/70 px-5 py-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
@@ -149,7 +149,7 @@ export function SelectedItemsSummary({
         </div>
       </CardHeader>
 
-      <CardContent className="flex min-h-0 flex-1 flex-col p-4">
+      <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden p-4">
         {!hasSelections ? (
           <div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-gradient-to-b from-zinc-50 to-white text-center">
             <div>
@@ -159,43 +159,21 @@ export function SelectedItemsSummary({
             </div>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white via-slate-50 to-teal-50/60 p-4 shadow-sm">
-              <div className="flex items-center justify-between gap-4">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-4 overflow-hidden">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-zinc-900" />
-                    <span className="text-sm font-medium text-zinc-950">{t("summary.totalSelected")}</span>
-                  </div>
-                  <div className="mt-1 text-xs text-zinc-500">{t("summary.fromTemplates", { count: selectedItems.size })}</div>
+                  <p className="text-xs font-medium text-slate-500">{t("summary.totalSelected")}</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">{t("summary.fromTemplates", { count: selectedItems.size })}</p>
                 </div>
-                <span className="text-4xl font-semibold tabular-nums text-zinc-950">{summary.totalSelected}</span>
+                <span className="text-2xl font-semibold tabular-nums text-slate-950">{summary.totalSelected}</span>
               </div>
-
-              <div className="mt-4 h-3 overflow-hidden rounded-full bg-white shadow-inner">
-                <div className="flex h-full">
-                  <div className="bg-red-500" style={{ width: `${summary.totalSelected ? (summary.highCount / summary.totalSelected) * 100 : 0}%` }} />
-                  <div className="bg-amber-500" style={{ width: `${summary.totalSelected ? (summary.mediumCount / summary.totalSelected) * 100 : 0}%` }} />
-                  <div className="bg-emerald-500" style={{ width: `${summary.totalSelected ? (summary.lowCount / summary.totalSelected) * 100 : 0}%` }} />
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-zinc-600">
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                  {t("summary.high")} <span className="font-semibold tabular-nums text-zinc-950">{summary.highCount}</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                  {t("summary.medium")} <span className="font-semibold tabular-nums text-zinc-950">{summary.mediumCount}</span>
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                  {t("summary.low")} <span className="font-semibold tabular-nums text-zinc-950">{summary.lowCount}</span>
-                </span>
+              <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-lg border border-slate-200 text-center text-[11px] font-semibold">
+                <span className="border-r border-red-100 bg-red-50/80 px-2 py-1.5 text-red-600">{t("summary.high")} {summary.highCount}</span>
+                <span className="border-r border-amber-100 bg-amber-50/80 px-2 py-1.5 text-amber-600">{t("summary.medium")} {summary.mediumCount}</span>
+                <span className="bg-emerald-50/80 px-2 py-1.5 text-emerald-600">{t("summary.low")} {summary.lowCount}</span>
               </div>
             </div>
-
             {summary.categoryStats.length > 0 && (
               <div>
                 <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-zinc-500">
@@ -204,7 +182,7 @@ export function SelectedItemsSummary({
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {summary.categoryStats.slice(0, 5).map(([category, count]) => (
-                    <Badge key={category} variant="secondary" className="h-6 rounded-full border border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-700 shadow-sm">
+                    <Badge key={category} variant="secondary" className="h-6 rounded-full border border-slate-200 bg-slate-50 px-2 text-xs font-normal text-slate-600">
                       {category}
                       <span className="ml-1 font-medium tabular-nums text-zinc-950">{count}</span>
                     </Badge>
@@ -213,7 +191,7 @@ export function SelectedItemsSummary({
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Badge variant="outline" className="h-6 cursor-help rounded-full border-zinc-200 bg-white px-2 text-xs font-normal text-zinc-900 shadow-sm">
+                          <Badge variant="outline" className="h-6 cursor-help rounded-full border-slate-200 bg-slate-50 px-2 text-xs font-normal text-slate-700">
                             +{summary.categoryStats.length - 5}
                           </Badge>
                         </TooltipTrigger>
@@ -233,66 +211,67 @@ export function SelectedItemsSummary({
               </div>
             )}
 
-            <ScrollArea className="min-h-0 flex-1 pr-2">
-              <div className="space-y-2">
+            <ScrollArea className="min-h-0 min-w-0 max-w-full flex-1 overflow-hidden pr-2">
+              <div className="w-full min-w-0 max-w-full space-y-2 overflow-hidden">
                 {summary.templateStats.map(({ templateUuid, template, items, high, medium, low }) => {
                   const isExpanded = expandedTemplates.has(templateUuid)
 
                   return (
-                    <div key={templateUuid} className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-                      <div className="flex items-start gap-3 bg-gradient-to-r from-white to-zinc-50/80 px-3 py-3">
+                    <div key={templateUuid} className="w-full min-w-0 max-w-full overflow-hidden rounded-xl border border-slate-200 bg-white">
+                      <div className="flex items-center gap-2 px-3 py-2.5">
                         <button
                           type="button"
                           onClick={() => toggleTemplate(templateUuid)}
-                          className="min-w-0 flex-1 text-left transition-colors hover:text-zinc-950"
+                          className="flex min-w-0 flex-1 items-center gap-2 text-left"
                         >
-                          <div className="flex items-center gap-2">
-                            <span className="truncate text-sm font-semibold text-zinc-950">{template.display_name}</span>
-                            <Badge variant="outline" className="h-5 rounded-full border-zinc-200 bg-white px-1.5 text-[11px] font-normal text-zinc-700">
-                              {t("summary.templateItems", { count: items.length })}
-                            </Badge>
-                          </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                            {high > 0 && <span className="text-red-600">{t("summary.high")} {high}</span>}
-                            {medium > 0 && <span className="text-amber-600">{t("summary.medium")} {medium}</span>}
-                            {low > 0 && <span className="text-emerald-600">{t("summary.low")} {low}</span>}
+                          <span className="shrink-0 text-slate-400">
+                            {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span className="truncate text-sm font-semibold text-slate-950">{template.display_name}</span>
+                              <Badge variant="secondary" className="h-5 shrink-0 rounded-full bg-slate-100 px-1.5 text-[11px] font-normal text-slate-600">
+                                {items.length}
+                              </Badge>
+                            </div>
+                            <div className="mt-1 flex items-center gap-2 text-[11px]">
+                              {high > 0 ? <span className="text-red-600">{t("summary.high")} {high}</span> : null}
+                              {medium > 0 ? <span className="text-amber-600">{t("summary.medium")} {medium}</span> : null}
+                              {low > 0 ? <span className="text-emerald-600">{t("summary.low")} {low}</span> : null}
+                            </div>
                           </div>
                         </button>
                         <Button
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 flex-shrink-0 rounded-xl text-zinc-400 hover:bg-red-50 hover:text-red-600"
+                          className="h-8 w-8 shrink-0 rounded-full text-slate-400 hover:bg-red-50 hover:text-red-600"
                           onClick={() => onRemoveTemplate(templateUuid)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
 
-                      {isExpanded && (
-                        <div className="border-t border-zinc-200 bg-zinc-50/70 p-2">
-                          <div className="space-y-1.5">
-                            {items.map((item) => (
+                      {isExpanded ? (
+                        <div className="min-w-0 max-w-full divide-y divide-slate-200 overflow-hidden border-t border-slate-200 bg-slate-50/40">
+                          {items.map((item) => {
+                            const itemLabel = getItemLabel(item, useZh)
+
+                            return (
                               <button
                                 key={item.id}
                                 type="button"
                                 onClick={() => onRemoveItem(templateUuid, item.id)}
-                                title={getItemLabel(item, useZh)}
-                                className={cn(
-                                  "group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-left transition-colors hover:border-zinc-300 hover:bg-zinc-50",
-                                )}
+                                title={`${t("summary.removeItem")}: ${itemLabel}`}
+                                aria-label={`${t("summary.removeItem")}: ${itemLabel}`}
+                                className="group flex w-full min-w-0 max-w-full items-center gap-3 overflow-hidden px-3 py-2 text-left transition-colors hover:bg-red-50/50 focus-visible:bg-red-50/50 focus-visible:outline-none"
                               >
-                                <span className="min-w-0 truncate text-sm text-zinc-900">
-                                  {getItemLabel(item, useZh)}
-                                </span>
-                                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors group-hover:bg-zinc-100 group-hover:text-zinc-700">
-                                  <X className="h-3.5 w-3.5" />
-                                </span>
+                                <span className="min-w-0 flex-1 truncate text-xs text-slate-700 group-hover:text-red-700">{itemLabel}</span>
                               </button>
-                            ))}
-                          </div>
+                            )
+                          })}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   )
                 })}
