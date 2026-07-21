@@ -1,5 +1,7 @@
 "use client"
 
+import type { FC } from "react"
+
 import type { AttackWorkflowItem } from "@/features/attack/workflow/types"
 
 interface AttackWorkflowImpactSurfaceProps {
@@ -8,8 +10,5 @@ interface AttackWorkflowImpactSurfaceProps {
   className?: string
 }
 
-export function AttackWorkflowImpactSurface(
-  _props: AttackWorkflowImpactSurfaceProps,
-) {
-  return null
-}
+export const AttackWorkflowImpactSurface: FC<AttackWorkflowImpactSurfaceProps> =
+  () => null
