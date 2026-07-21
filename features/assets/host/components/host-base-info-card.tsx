@@ -4,6 +4,7 @@ import { Badge } from "@/shared/ui/badge"
 import type { AgentInfo } from "@/features/assets/host/types/system-info"
 import { cn } from "@/shared/lib/utils"
 import { useTranslations } from "next-intl"
+import Image from "next/image"
 interface HostBaseInfoCardProps {
   host: AgentInfo
 }
@@ -17,9 +18,12 @@ const systemIcons: Record<string, string> = {
 function getSystemIcon(osType: string) {
   const src = systemIcons[osType] || systemIcons["windows"]
   return (
-    <img
+    <Image
       src={src}
       alt={osType}
+      width={12}
+      height={12}
+      unoptimized
       className="inline-block w-3 h-3"
       style={{ display: "inline-block", verticalAlign: "middle" }}
     />

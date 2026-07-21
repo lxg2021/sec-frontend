@@ -10,10 +10,11 @@ import { useLoginHandlers } from "@/features/auth/hooks/use-login-handlers"
 import LoginAnimation from "@/features/auth/components/login-animation"
 import { LanguageSwitch } from "@/shared/i18n/language-switch"
 import Link from 'next/link'
+import Image from 'next/image'
 
 // 使用图片的Cypher LOGO组件
 const CypherLogo = ({ className = "w-8 h-8", alt = "WatchPoint logo" }) => {
-  return <img src="/logo.svg?height=64&width=64" alt={alt} className={className} />
+  return <Image src="/logo.svg" alt={alt} width={32} height={32} unoptimized className={className} />
 }
 
 export default function LoginForm() {

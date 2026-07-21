@@ -11,6 +11,7 @@ import type { AttckScanTask } from "@/features/task/models/attck-scan-task"
 import type { BaselineScanTask } from "@/features/task/models/baseline-scan-task"
 import type { Task, TaskType } from "@/features/task/types"
 import { useTranslations } from "next-intl"
+import Image from "next/image"
 
 interface TaskCreatorProps {
   onTaskCreated: (task: Task) => void
@@ -40,9 +41,12 @@ export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCr
               value="vulnerability"
               className="flex items-center justify-center gap-2"
             >
-              <img
+              <Image
                 src="/icons/system/vulnerability.svg"
                 alt={t("vulnerabilityScan")}
+                width={16}
+                height={16}
+                unoptimized
                 className="w-4 h-4"
               />
               {t("vulnerabilityScan")}
@@ -52,9 +56,12 @@ export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCr
               value="attck"
               className="flex items-center justify-center gap-2"
             >
-              <img
+              <Image
                 src="/icons/system/attack.svg"
                 alt={t("attckScan")}
+                width={16}
+                height={16}
+                unoptimized
                 className="w-4 h-4"
               />
               {t("attckScan")}
@@ -64,9 +71,12 @@ export function TaskCreator({ onTaskCreated, editingTask, onCancelEdit }: TaskCr
               value="baseline"
               className="flex items-center justify-center gap-2"
             >
-              <img
+              <Image
                 src="/icons/system/baseline.svg"
                 alt={t("baselineScan")}
+                width={16}
+                height={16}
+                unoptimized
                 className="w-4 h-4"
               />
               {t("baselineScan")}

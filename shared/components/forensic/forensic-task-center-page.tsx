@@ -764,7 +764,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                         <div
                           key={task.task_id}
                           role="button"
-                          aria-selected={selected}
+                          aria-pressed={selected}
                           tabIndex={0}
                           onClick={() => setSelectedTaskId(task.task_id)}
                           onDoubleClick={() => router.push(taskDetailHref(task))}

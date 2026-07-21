@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useLocale, useTranslations } from "next-intl"
 import { useSearchParams } from "next/navigation"
 import {
@@ -527,9 +528,12 @@ function PlatformOptionLabel({
 }) {
   const content = (
     <>
-      <img
+      <Image
         src={getPlatformIconSrc(value)}
         alt=""
+        width={16}
+        height={16}
+        unoptimized
         aria-hidden="true"
         className="h-4 w-4 shrink-0 object-contain"
       />

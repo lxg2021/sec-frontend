@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { AlertTriangle, Bot, RotateCcw } from "lucide-react"
+import Image from "next/image"
 
 import { previewAIInvestigation } from "@/features/investigation-assistant/api"
 import { InvestigationAssistant } from "@/features/investigation-assistant/components/investigation-assistant"
@@ -136,9 +137,12 @@ function InvestigationAssistantStateCard({
 
       {isLoading ? (
         <div className="flex min-h-[320px] flex-col items-center justify-center bg-slate-50/70 px-5 py-8">
-          <img
+          <Image
             src={aiInvestigationLoaderSrc[language]}
             alt=""
+            width={320}
+            height={220}
+            unoptimized
             aria-hidden="true"
             className="h-[220px] w-[320px] max-w-full select-none"
             draggable={false}

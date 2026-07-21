@@ -848,7 +848,7 @@ function QueueItemCard({
   return (
     <button
       type="button"
-      aria-selected={selected}
+      aria-pressed={selected}
       onClick={() => onSelect(item)}
       className={cn(
         "group relative w-full overflow-hidden rounded-xl border text-left transition-all duration-150",

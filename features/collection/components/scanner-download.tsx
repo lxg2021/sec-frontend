@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Badge } from "@/shared/ui/badge"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { useTranslations } from "next-intl"
+import Image from "next/image"
 
 interface Platform {
   name: string
@@ -72,9 +73,12 @@ export function ScannerDownload({ platforms }: ScannerDownloadProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {/* ✅ 用 <img> 渲染本地图标 */}
-                      <img
+                      <Image
                         src={platform.icon}
                         alt={platform.name}
+                        width={20}
+                        height={20}
+                        unoptimized
                         className="h-5 w-5"
                       />
                       <span className="font-semibold">{platform.name}</span>
