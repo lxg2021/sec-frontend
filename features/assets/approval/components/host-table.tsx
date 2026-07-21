@@ -64,7 +64,6 @@ export function HostTable({
   totalPages = 1,
   onPageChange,
   sortField,
-  sortDirection,
   onSort,
 }: HostTableProps) {
   const t = useTranslations("pages.computers.approve")

@@ -574,7 +574,7 @@ export function IocSearchPage() {
   const [localPageTokens, setLocalPageTokens] = useState<string[]>([""])
   const [localEventDescriptions, setLocalEventDescriptions] = useState<IocLocalEventDescriptionMap>({})
   const [activeTab, setActiveTab] = useState("detail")
-  const [selectedEvent, setSelectedEvent] = useState<IocLocalEventSource | null>(null)
+  const [, setSelectedEvent] = useState<IocLocalEventSource | null>(null)
   const [selectedEventKey, setSelectedEventKey] = useState("")
   const [graphLoadingEventKey, setGraphLoadingEventKey] = useState("")
   const [graphStatus, setGraphStatus] = useState<GraphLocateStatus>("idle")

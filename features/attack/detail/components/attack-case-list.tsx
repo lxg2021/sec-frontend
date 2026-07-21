@@ -291,7 +291,7 @@ export function AttackCaseList({
         />
         <CardContent className="px-4 py-3">
           <div className="space-y-3">
-            {visibleItems.map((item, index) => (
+            {visibleItems.map((item) => (
               <AttackCaseRow
                 key={item.case_id}
                 item={item}

@@ -18,7 +18,7 @@ interface KillChainNodeProps {
  * /param isFirst 是否为第一个节点
  * /param isLast 是否为最后一个节点
  */
-export function KillChainNode({ stage, onClick, isFirst, isLast }: KillChainNodeProps) {
+export function KillChainNode({ stage, onClick }: KillChainNodeProps) {
 
   /**
    * 根据阶段状态返回对应的 TailwindCSS 样式类，从而在 UI 上动态显示不同的颜色、边框和效果

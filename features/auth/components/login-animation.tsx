@@ -41,7 +41,7 @@ export default function LoginAnimation({ className = "" }: LoginAnimationProps) 
     }
 
     // 为每个节点找到最近的几个节点作为连接
-    nodes.forEach((node, i) => {
+    nodes.forEach((node) => {
       const distances = nodes.map((otherNode, j) => ({
         index: j,
         distance: Math.sqrt(Math.pow(node.x - otherNode.x, 2) + Math.pow(node.y - otherNode.y, 2)),

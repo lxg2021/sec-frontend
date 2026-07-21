@@ -266,7 +266,7 @@ export default function KibanaDatePicker({
         setCurrentRange(range)
         setSelectedQuick("") // 清除快捷选择
       }
-    } catch (err) {
+    } catch {
       setError(t("errorTimeFormat"))
     }
 

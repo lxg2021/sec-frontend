@@ -148,7 +148,7 @@ export function useTreeData(initialData) {
   )
 
   const toggleSelected = useCallback(
-    (nodeId, node) => {
+    (nodeId) => {
       setSelectedIds((prev) => {
         const newSet = new Set(prev)
 

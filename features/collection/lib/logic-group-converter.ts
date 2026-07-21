@@ -84,7 +84,7 @@ export function validateUserLogicGroup(group: UserLogicGroup): string[] {
 
   if (group.children && group.children.length > 0) {
     const childNames = new Set<string>()
-    group.children.forEach((child, index) => {
+    group.children.forEach((child) => {
       if (childNames.has(child.name)) {
         errors.push(`重复的子节点名称: ${child.name}`)
       }

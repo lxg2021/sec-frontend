@@ -45,7 +45,7 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
         ),
         description: t("deleteSuccess", { name }),
       })
-    } catch (error) {
+    } catch {
       toast({
         className: "bg-white/90 backdrop-blur-sm text-slate-700 shadow-md rounded-xl flex items-center gap-3 p-4 border border-rose-200",
         title: (

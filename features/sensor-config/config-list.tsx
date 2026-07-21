@@ -261,7 +261,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
 
         {/* 配置列表区域 */}
         <div className="space-y-4">
-          {filteredCategories.map((category, categoryIndex) => {
+          {filteredCategories.map((category) => {
             /* 找到当前分类在原始 categories 数据中的索引，方便操作原始数据 */
             const originalCategoryIndex = categories.findIndex((cat) => cat.label === category.label)
 
@@ -329,7 +329,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
                     </div>
 
                     <div className="space-y-2">
-                      {category.items.map((item, itemIndex) => {
+                      {category.items.map((item) => {
                         const originalItemIndex = categories[originalCategoryIndex].items.findIndex(
                           (origItem) => origItem.key === item.key,
                         )

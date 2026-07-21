@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
         setMessageType("error")
         setMessage(response.code === 522 ? t("resetEmailNotFound") : getResponseMessage(response, "resetFailed"))
       }
-    } catch (error) {
+    } catch {
       setMessageType("error")
       setMessage(t("resetFailed"))
     } finally {
