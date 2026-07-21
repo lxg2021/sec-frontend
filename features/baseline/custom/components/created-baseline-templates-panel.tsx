@@ -114,30 +114,31 @@ export function CreatedBaselineTemplatesPanel({
                   </div>
                 </div>
 
-                <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
-                  <div className="min-w-0 rounded-lg bg-indigo-50 px-2 py-1.5 text-center text-indigo-700">
-                    <p className="truncate">{t("existingList.columns.version")}</p>
-                    <p className="mt-0.5 truncate font-semibold">{baseline.baseline_version || "-"}</p>
-                  </div>
-                  <div className="min-w-0 rounded-lg bg-blue-50 px-2 py-1.5 text-center text-blue-700">
-                    <p className="truncate">{t("existingList.columns.items")}</p>
-                    <p className="mt-0.5 truncate font-semibold">{baseline.item_count}</p>
-                  </div>
-                  <div className="min-w-0 rounded-lg bg-slate-100 px-2 py-1.5 text-center text-slate-600">
-                    <p className="truncate">{baseline.product || "-"}</p>
-                    <p className="mt-0.5 truncate font-semibold">{baseline.os_version || "-"}</p>
-                  </div>
+
+                <div className="mt-2 grid grid-cols-3 overflow-hidden rounded-lg border border-slate-200 text-center text-[11px] font-semibold">
+                  <span className="border-r border-red-100 bg-red-50/70 px-2 py-1.5 text-red-600">{t("itemsPanel.high")} {baseline.high_count}</span>
+                  <span className="border-r border-amber-100 bg-amber-50/70 px-2 py-1.5 text-amber-600">{t("itemsPanel.medium")} {baseline.medium_count}</span>
+                  <span className="bg-emerald-50/70 px-2 py-1.5 text-emerald-600">{t("itemsPanel.low")} {baseline.low_count}</span>
                 </div>
 
-                <div className="mt-2 grid grid-cols-3 gap-2 text-center text-[11px] font-semibold">
-                  <span className="rounded-lg bg-red-50 px-2 py-1.5 text-red-600">{t("itemsPanel.high")} {baseline.high_count}</span>
-                  <span className="rounded-lg bg-amber-50 px-2 py-1.5 text-amber-600">{t("itemsPanel.medium")} {baseline.medium_count}</span>
-                  <span className="rounded-lg bg-emerald-50 px-2 py-1.5 text-emerald-600">{t("itemsPanel.low")} {baseline.low_count}</span>
-                </div>
-
-                <div className="mt-2 flex items-center gap-1.5 border-t border-slate-100 pt-2 text-[11px] text-slate-500">
-                  <CalendarDays className="h-3.5 w-3.5" />
-                  <span>{t("existingList.columns.createdAt")}: {formatCreatedAt(baseline.created_at, locale)}</span>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-slate-100 pt-2 text-[11px] text-slate-500">
+                  <span className="flex shrink-0 items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    {t("existingList.columns.createdAt")}: {formatCreatedAt(baseline.created_at, locale)}
+                  </span>
+                  <div className="ml-auto flex min-w-0 items-center gap-2">
+                    <span className="whitespace-nowrap">
+                      {t("existingList.columns.version")} <strong className="font-semibold text-slate-700">{baseline.baseline_version || "-"}</strong>
+                    </span>
+                    <span className="h-3 w-px shrink-0 bg-slate-200" aria-hidden="true" />
+                    <span className="whitespace-nowrap">
+                      {t("existingList.columns.items")} <strong className="font-semibold text-slate-700">{baseline.item_count}</strong>
+                    </span>
+                    <span className="h-3 w-px shrink-0 bg-slate-200" aria-hidden="true" />
+                    <span className="min-w-0 truncate">
+                      <strong className="font-semibold text-slate-700">{baseline.product || "-"}</strong> / {baseline.os_version || "-"}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))
