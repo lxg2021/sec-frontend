@@ -43,7 +43,7 @@ export function CreatedBaselineTemplatesPanel({
 
   return (
     <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-      <CardHeader className="shrink-0 border-b border-slate-200 bg-slate-50/70 px-4 py-3.5">
+      <CardHeader className="shrink-0 bg-slate-50/70 px-4 py-3.5">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700">
@@ -104,13 +104,13 @@ export function CreatedBaselineTemplatesPanel({
                 </div>
 
                 <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="rounded-lg bg-slate-50 px-2.5 py-2">
-                    <p className="text-slate-400">{t("templateSelector.standardLabel")}</p>
-                    <p className="mt-0.5 truncate font-semibold text-slate-700">{baseline.standard || "-"}</p>
+                  <div className="rounded-lg border border-cyan-100 bg-cyan-50/70 px-2.5 py-2">
+                    <p className="text-cyan-600">{t("templateSelector.standardLabel")}</p>
+                    <p className="mt-0.5 truncate font-semibold text-cyan-800">{baseline.standard || "-"}</p>
                   </div>
-                  <div className="rounded-lg bg-slate-50 px-2.5 py-2">
-                    <p className="text-slate-400">{t("templateSelector.profileLabel")}</p>
-                    <p className="mt-0.5 truncate font-semibold text-slate-700">{baseline.profile || "-"}</p>
+                  <div className="rounded-lg border border-indigo-100 bg-indigo-50/70 px-2.5 py-2">
+                    <p className="text-indigo-600">{t("templateSelector.profileLabel")}</p>
+                    <p className="mt-0.5 truncate font-semibold text-indigo-800">{baseline.profile || "-"}</p>
                   </div>
                 </div>
 
@@ -122,7 +122,7 @@ export function CreatedBaselineTemplatesPanel({
                     {t("existingList.columns.items")}: {baseline.item_count}
                   </Badge>
                   <Badge variant="secondary" className="h-5 max-w-full rounded-full bg-slate-100 px-2 text-[11px] font-normal text-slate-600">
-                    <span className="truncate">{[baseline.product, baseline.os_version].filter(Boolean).join(" · ") || "-"}</span>
+                    <span className="truncate">{[baseline.product, baseline.os_version].filter(Boolean).join(" 鐠?") || "-"}</span>
                   </Badge>
                 </div>
 
