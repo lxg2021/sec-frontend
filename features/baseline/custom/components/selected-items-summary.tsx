@@ -9,7 +9,6 @@ import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { ScrollArea } from "@/shared/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
-import { cn } from "@/shared/lib/utils"
 
 import type { BaselineTemplate, BaselineTemplateItem, BaselineTemplateItemsData } from "../api"
 import { getItemLabel, isZhLocale } from "./locale-utils"

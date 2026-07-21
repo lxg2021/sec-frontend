@@ -1,7 +1,6 @@
 ﻿import { Monitor, Calendar, Building, Users, Cloud, Fingerprint, Grid } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Badge } from "@/shared/ui/badge"
-import { Separator } from "@/shared/ui/separator"
 import type { AgentInfo } from "@/features/assets/host/types/system-info"
 import { cn } from "@/shared/lib/utils"
 import { useTranslations } from "next-intl"

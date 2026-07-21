@@ -16,7 +16,7 @@ import {
 } from "@/shared/ui/alert-dialog"
 import { Pencil, Trash2, Clock, CheckCircle2, XCircle, Loader2, Server, Shield, Database, Calendar } from "lucide-react"
 import { type Task, type TaskType, getTaskType } from "@/features/task/types"
-import { deleteTask, mockDeleteTask } from "@/features/task/api"
+import { mockDeleteTask } from "@/features/task/api"
 import { useToast } from "@/shared/hooks/use-toast"
 import type { BaselinePolicyType } from "@/features/task/models/baseline-scan-task"
 import { ClipboardList } from "lucide-react"
