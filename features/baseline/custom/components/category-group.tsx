@@ -69,7 +69,7 @@ export function CategoryGroup({ group, selectedItems, onToggleItem, onToggleCate
               <span className="text-zinc-400 transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-slate-700">
                 {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </span>
-              <div className="flex h-9 w-9 transform-gpu items-center justify-center rounded-xl bg-sky-50 shadow-sm transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_4px_10px_-7px_rgba(15,23,42,0.22)]">
+              <div className="flex h-9 w-9 transform-gpu items-center justify-center rounded-full bg-sky-50 shadow-sm transition-[transform,box-shadow] duration-200 ease-out group-hover:scale-[1.02] group-hover:shadow-[0_4px_10px_-7px_rgba(15,23,42,0.22)]">
                 <CategoryIcon />
               </div>
 
