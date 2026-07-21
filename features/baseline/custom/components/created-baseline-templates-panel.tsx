@@ -64,7 +64,7 @@ export function CreatedBaselineTemplatesPanel({
             disabled={loading}
             aria-label={t("existingList.refresh")}
             title={t("existingList.refresh")}
-            className="h-8 w-8 shrink-0 rounded-lg text-slate-500 hover:bg-cyan-50 hover:text-cyan-700"
+            className="h-8 w-8 shrink-0 rounded-full text-slate-500 hover:bg-cyan-50 hover:text-cyan-700"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
           </Button>

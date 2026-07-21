@@ -5,7 +5,7 @@ import { LayoutGrid, RefreshCw, SlidersHorizontal } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { cn } from "@/shared/lib/utils"
@@ -59,25 +59,24 @@ export function BaselineTemplateSelector({
   return (
     <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
       <CardHeader className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
               <LayoutGrid className="h-5 w-5" />
             </div>
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-semibold text-slate-950">{t("templateSelector.title")}</CardTitle>
-              <CardDescription className="text-xs text-slate-500">{t("templateSelector.subtitle")}</CardDescription>
-            </div>
+            <CardTitle className="text-sm font-semibold text-slate-950">{t("templateSelector.title")}</CardTitle>
           </div>
           <Button
             type="button"
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
             onClick={onRefresh}
-            className="h-9 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none transition-colors hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700"
+            disabled={loading}
+            aria-label={t("templateSelector.refresh")}
+            title={t("templateSelector.refresh")}
+            className="h-8 w-8 shrink-0 rounded-full text-slate-500 hover:bg-cyan-50 hover:text-cyan-700"
           >
             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-            <span>{t("templateSelector.refresh")}</span>
           </Button>
         </div>
 
@@ -141,7 +140,7 @@ export function BaselineTemplateSelector({
                       : "border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50 hover:shadow-sm",
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="truncate text-sm font-semibold text-zinc-950">{getTemplateLabel(template)}</span>
