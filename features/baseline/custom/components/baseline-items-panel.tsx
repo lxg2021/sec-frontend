@@ -66,7 +66,11 @@ export function BaselineItemsPanel({
     if (!template) return
 
     const next = new Set(selectedItems)
-    next.has(itemId) ? next.delete(itemId) : next.add(itemId)
+    if (next.has(itemId)) {
+      next.delete(itemId)
+    } else {
+      next.add(itemId)
+    }
     onSelectionChange(template.uuid, next)
   }
 

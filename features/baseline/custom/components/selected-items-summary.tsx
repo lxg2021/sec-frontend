@@ -132,7 +132,11 @@ export function SelectedItemsSummary({
   const toggleTemplate = (templateUuid: string) => {
     setExpandedTemplates((current) => {
       const next = new Set(current)
-      next.has(templateUuid) ? next.delete(templateUuid) : next.add(templateUuid)
+      if (next.has(templateUuid)) {
+        next.delete(templateUuid)
+      } else {
+        next.add(templateUuid)
+      }
       return next
     })
   }
