@@ -1,12 +1,16 @@
 // configStorage.ts - 配置文件存储逻辑
+import type { ConfigCategory } from "@/features/sensor-config/types/config-item"
+
 export interface SavedConfig {
   id: string
   name: string
   version: string
   date: string
   filePath: string
-  categories: any[]
+  categories: ConfigCategory[]
 }
+
+export type ConfigContent = Omit<SavedConfig, "id" | "filePath">
 
 const STORAGE_KEY = "saved_configs"
 
@@ -61,9 +65,9 @@ export const configStorage = {
   },
 
   // 获取配置文件内容
-  getConfigContent: (id: string): any => {
+  getConfigContent: (id: string): ConfigContent | null => {
     const content = localStorage.getItem(`config_${id}`)
-    return content ? JSON.parse(content) : null
+    return content ? (JSON.parse(content) as ConfigContent) : null
   },
 
   // 获取配置文件路径（用于后端传递）

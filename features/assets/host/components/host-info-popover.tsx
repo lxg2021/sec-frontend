@@ -6,13 +6,14 @@ import {
   PopoverTrigger,
 } from '@/shared/ui/popover'
 import { HostInfoCard } from './host-info-card'
+import type { HostSelectorHostNode } from '@/shared/components/host-selector/types'
 import React from 'react'
 
 export function HostInfoPopover({
   node,
   children,
 }: {
-  node: any
+  node: (HostSelectorHostNode & { name?: string }) | null | undefined
   children: React.ReactNode
 }) {
   if (!node || node.type !== 'host') return null

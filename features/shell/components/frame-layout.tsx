@@ -25,7 +25,11 @@ import {
   logout,
 } from "@/features/user/api"
 import { SidebarUser } from "@/features/shell/components/sidebar-user"
-import { menuItems } from "@/features/shell/navigation"
+import {
+  menuItems,
+  type NavigationItem,
+  type NavigationSubItem,
+} from "@/features/shell/navigation"
 import { useLocaleSwitch } from "@/shared/i18n/use-locale-switch"
 
 const SIDEBAR_WIDTH = {
@@ -115,7 +119,7 @@ export function FrameLayout({ children }: { children: ReactNode }) {
     })
   }
 
-  const handleMenuItemClick = (item: any) => {
+  const handleMenuItemClick = (item: NavigationItem) => {
     if (item.submenu) {
       setExpandedMenu(expandedMenu === item.id ? null : item.id)
     } else if (item.path) {
@@ -123,7 +127,7 @@ export function FrameLayout({ children }: { children: ReactNode }) {
     }
   }
 
-  const handleSubMenuItemClick = (subItem: any) => {
+  const handleSubMenuItemClick = (subItem: NavigationSubItem) => {
     if (subItem.path) {
       router.push(subItem.path)
     }

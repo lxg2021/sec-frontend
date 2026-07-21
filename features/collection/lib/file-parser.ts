@@ -54,7 +54,7 @@ export function parseAssetFile(content: string, messages: AssetParserMessages = 
       throw new Error(messages.emptyAssets)
     }
 
-    const validatedHosts = hosts.map((host: any, index: number) => {
+    const validatedHosts = hosts.map((host, index: number) => {
       const row = index + 1
 
       if (!host.agent_id || typeof host.agent_id !== "string" || host.agent_id.trim() === "") {

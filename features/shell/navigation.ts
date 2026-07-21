@@ -27,8 +27,24 @@ import {
   Timer,
   Workflow,
 } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
 
-export const menuItems = [
+export interface NavigationSubItem {
+  id: string
+  icon: LucideIcon
+  labelKey: string
+  path: string
+}
+
+export interface NavigationItem {
+  id: string
+  icon: LucideIcon
+  labelKey: string
+  path?: string
+  submenu?: NavigationSubItem[]
+}
+
+export const menuItems: NavigationItem[] = [
   { id: "dashboard", icon: LayoutDashboard, labelKey: "dashboard", path: "/frame/dashboard" },
   {
     id: "computers",

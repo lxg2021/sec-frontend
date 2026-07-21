@@ -6,7 +6,7 @@ import { Button } from "@/shared/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Trash2, Eye } from "lucide-react"
-import { configStorage, type SavedConfig } from "@/features/sensor-config/data/config-storage"
+import { configStorage, type ConfigContent, type SavedConfig } from "@/features/sensor-config/data/config-storage"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Archive, CheckCircle2, AlertCircle } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -18,7 +18,7 @@ interface ConfigTableProps {
 export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
   const t = useTranslations("pages.sensorConfig.table")
   const [configs, setConfigs] = useState<SavedConfig[]>([])
-  const [selectedConfig, setSelectedConfig] = useState<any>(null)
+  const [selectedConfig, setSelectedConfig] = useState<ConfigContent | null>(null)
   const [detailsOpen, setDetailsOpen] = useState(false)
   const { toast } = useToast()
 
