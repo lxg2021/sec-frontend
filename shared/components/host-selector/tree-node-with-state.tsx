@@ -71,14 +71,12 @@ function getStatusColor(status: string) {
 
 export const TreeNodeWithState = memo(function TreeNodeWithState({
   node,
-  isSelected,
   checkboxState,
   onToggleExpanded,
   onToggleSelected,
   compactHostRows = false,
 }: {
   node: any
-  isSelected: boolean
   checkboxState: "checked" | "unchecked" | "indeterminate"
   onToggleExpanded: (nodeId: string) => void
   onToggleSelected: (nodeId: string, node: any) => void

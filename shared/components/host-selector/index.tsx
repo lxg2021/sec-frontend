@@ -232,7 +232,6 @@ export default function HostSelector({
   const renderTree = (height: number) => (
     <VirtualizedTree
       nodes={flatNodes}
-      selectedIds={selectedIds}
       onToggleExpanded={toggleExpanded}
       onToggleSelected={toggleSelected}
       getNodeSelectionState={getNodeSelectionState}
