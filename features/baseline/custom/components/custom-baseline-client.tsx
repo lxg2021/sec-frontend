@@ -465,8 +465,6 @@ export default function CustomBaselineClient() {
             onClearAll={handleClearAll}
             onRemoveTemplate={handleRemoveTemplate}
             onRemoveItem={handleRemoveItem}
-            onCreateBaseline={handleOpenCreate}
-            createDisabled={totalSelectedCount === 0 || !selectedTemplateMetadataState.metadata}
             metadataValid={Boolean(selectedTemplateMetadataState.metadata)}
             metadataMessage={metadataErrorMessage}
           />

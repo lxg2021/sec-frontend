@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { AlertCircle, CheckCircle2, ChevronDown, ChevronRight, Layers3, Plus, Trash2, X } from "lucide-react"
+import { AlertCircle, CheckCircle2, ChevronDown, ChevronRight, Layers3, Trash2, X } from "lucide-react"
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -21,8 +21,6 @@ interface SelectedItemsSummaryProps {
   onClearAll: () => void
   onRemoveTemplate: (templateUuid: string) => void
   onRemoveItem: (templateUuid: string, itemId: string) => void
-  onCreateBaseline: () => void
-  createDisabled: boolean
   metadataValid: boolean
   metadataMessage?: string
 }
@@ -34,8 +32,6 @@ export function SelectedItemsSummary({
   onClearAll,
   onRemoveTemplate,
   onRemoveItem,
-  onCreateBaseline,
-  createDisabled,
   metadataValid,
   metadataMessage,
 }: SelectedItemsSummaryProps) {
@@ -282,7 +278,7 @@ export function SelectedItemsSummary({
           </div>
         )}
       </CardContent>
-      <div className="shrink-0 space-y-2 border-t border-slate-200 bg-white p-4">
+      <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3">
         {hasSelections ? (
           <div className={metadataValid ? "flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5" : "flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5"}>
             {metadataValid ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />}
@@ -293,16 +289,6 @@ export function SelectedItemsSummary({
             </div>
           </div>
         ) : null}
-        <Button
-          type="button"
-          onClick={onCreateBaseline}
-          disabled={createDisabled}
-          className="h-11 w-full gap-2 rounded-xl bg-gradient-to-r from-teal-700 to-cyan-600 text-white shadow-sm shadow-teal-900/10 hover:from-teal-800 hover:to-cyan-700"
-        >
-          <Plus className="h-4 w-4" />
-          <span>{t("createBaseline")}</span>
-          {summary.totalSelected > 0 ? <span className="rounded-md bg-white/20 px-2 py-0.5 text-xs tabular-nums">{summary.totalSelected}</span> : null}
-        </Button>
       </div>
     </Card>
   )
