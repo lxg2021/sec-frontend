@@ -145,22 +145,25 @@ export function BaselineItemsPanel({
 
         {itemsData && (
           <div className="space-y-3 pt-3">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {severityStats.map((stat) => (
-                <span
+                <div
                   key={stat.severity}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-700"
+                  className={
+                    stat.severity === "High"
+                      ? "flex items-center justify-center gap-1.5 rounded-lg border border-red-100 bg-red-50/80 px-3 py-2 text-xs text-red-600"
+                      : stat.severity === "Medium"
+                        ? "flex items-center justify-center gap-1.5 rounded-lg border border-amber-100 bg-amber-50/80 px-3 py-2 text-xs text-amber-600"
+                        : "flex items-center justify-center gap-1.5 rounded-lg border border-emerald-100 bg-emerald-50/80 px-3 py-2 text-xs text-emerald-600"
+                  }
                 >
-                  <span className={stat.severity === "High" ? "text-red-500" : stat.severity === "Medium" ? "text-amber-500" : "text-emerald-500"}>
-                    {stat.severity === "High" ? t("itemsPanel.high") : stat.severity === "Medium" ? t("itemsPanel.medium") : t("itemsPanel.low")}:
-                  </span>
-                  <span className="font-medium tabular-nums text-zinc-950">
+                  <span>{stat.severity === "High" ? t("itemsPanel.high") : stat.severity === "Medium" ? t("itemsPanel.medium") : t("itemsPanel.low")}</span>
+                  <span className="font-semibold tabular-nums">
                     {stat.count} ({stat.percentage.toFixed(1)}%)
                   </span>
-                </span>
+                </div>
               ))}
             </div>
-
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
