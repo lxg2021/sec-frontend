@@ -473,7 +473,11 @@ export default function CustomBaselineClient() {
 
       <Dialog open={existingOpen} onOpenChange={setExistingOpen}>
         <DialogContent
-          className="h-[min(62vh,560px)] min-h-[360px] w-[min(1180px,calc(100vw-32px))] max-w-none gap-0 overflow-hidden border-0 bg-transparent p-0 shadow-none [&>button]:right-4 [&>button]:top-4 [&>button]:z-30 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:bg-white [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-zinc-100"
+          className="h-[min(62vh,560px)] min-h-[360px] w-[min(1180px,calc(100vw-32px))] max-w-none gap-0 overflow-hidden border-0 bg-transparent p-0 shadow-none focus:outline-none [&>button]:right-4 [&>button]:top-4 [&>button]:z-30 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:shadow-none [&>button]:hover:border-slate-300 [&>button]:hover:bg-slate-100 [&>button]:hover:text-slate-700 [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-cyan-500/30 [&>button]:focus-visible:ring-offset-1"
+          onOpenAutoFocus={(event) => {
+            event.preventDefault()
+            ;(event.currentTarget as HTMLElement | null)?.focus({ preventScroll: true })
+          }}
         >
           <DialogHeader className="sr-only">
             <DialogTitle>{t("existingList.title")}</DialogTitle>
