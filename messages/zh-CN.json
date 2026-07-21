@@ -3702,7 +3702,7 @@
         "createdSuccessDescription": "{displayName} · {itemCount} 项 · {baselineUuid}",
         "createdAt": "创建时间 {createdAt}",
         "existingList": {
-          "title": "已有自定义基线",
+          "title": "用户自定义基线",
           "subtitle": "创建结果独立展示，不作为新的模板源",
           "refresh": "刷新",
           "count": "共 {count} 条",
