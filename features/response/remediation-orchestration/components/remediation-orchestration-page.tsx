@@ -53,15 +53,6 @@ import {
   queryRemediationNodeActions,
   resolveRemediationNodeAgents,
 } from "../api";
-import {
-  MOCK_ACTION_OPTIONS,
-  MOCK_DETAIL,
-  MOCK_EXECUTION,
-  MOCK_NODES,
-  MOCK_REMEDIATION_ACTION,
-  MOCK_STATS,
-  MOCK_WORKFLOW,
-} from "../mock";
 import type {
   RemediationActionInput,
   RemediationActionOption,
@@ -353,10 +344,6 @@ function nodeIcon(entityType: string): ComponentType<{ className?: string }> {
   return Square;
 }
 
-function isMockContext(context: RemediationOrchestrationContext) {
-  return !context.case_id?.trim() && !context.workflow_id?.trim();
-}
-
 function statusBadge(status: string | number | undefined, className?: string) {
   const tone = statusTone(status);
   return (
@@ -400,14 +387,13 @@ function normalizeNodeFromContext(
   if (!nodeKey) return null;
   const entityType = context.entity_type?.trim() || "File";
   const displayName = context.display_name?.trim() || nodeKey;
-  const agentId = context.workflow_id ? "" : MOCK_WORKFLOW.primary_agent_id;
   return {
     node_key: nodeKey,
     entity_type: entityType,
     display_name: displayName,
     description: "来自图谱入口参数",
-    resolve_status: agentId ? "resolved" : "unresolved",
-    agent_ids: agentId ? [agentId] : [],
+    resolve_status: "unresolved",
+    agent_ids: [],
     snapshot: entityType.toLowerCase().includes("process")
       ? { process: { process_name: displayName, command_line: displayName } }
       : entityType.toLowerCase().includes("net")
@@ -434,22 +420,17 @@ export function RemediationOrchestrationPage({
   const [preview, setPreview] = useState<RemediationPreviewSnapshot | null>(
     null,
   );
-  const [nodes, setNodes] = useState<RemediationCandidateNode[]>(MOCK_NODES);
-  const [selectedNodeKey, setSelectedNodeKey] = useState(
-    MOCK_NODES[0]?.node_key ?? "",
-  );
+  const [nodes, setNodes] = useState<RemediationCandidateNode[]>([]);
+  const [selectedNodeKey, setSelectedNodeKey] = useState("");
   const [actionOptions, setActionOptions] =
-    useState<RemediationActionOption[]>(MOCK_ACTION_OPTIONS);
-  const [selectedActionCode, setSelectedActionCode] = useState(
-    MOCK_ACTION_OPTIONS[0]?.action_code ?? "",
-  );
+    useState<RemediationActionOption[]>([]);
+  const [selectedActionCode, setSelectedActionCode] = useState("");
   const [agentResolve, setAgentResolve] =
     useState<ResolveRemediationNodeAgentsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [working, setWorking] = useState("");
   const [error, setError] = useState("");
-  const [mockMode, setMockMode] = useState(isMockContext(context));
   const [headerCaseInput, setHeaderCaseInput] = useState(
     context.case_id?.trim() || "",
   );
@@ -471,12 +452,9 @@ export function RemediationOrchestrationPage({
   const routeWorkflowId = context.workflow_id?.trim() || "";
   const routeActionId = context.workflow_action_id?.trim() || "";
   const tenantId = context.tenant_id?.trim() || "";
-  const currentCaseId =
-    workflow?.case_id || routeCaseId || (mockMode ? MOCK_WORKFLOW.case_id : "");
-  const currentWorkflowId =
-    workflow?.workflow_id ||
-    routeWorkflowId ||
-    (mockMode ? MOCK_WORKFLOW.workflow_id : "");
+  const hasLookupContext = Boolean(routeCaseId || routeWorkflowId);
+  const currentCaseId = workflow?.case_id || routeCaseId;
+  const currentWorkflowId = workflow?.workflow_id || routeWorkflowId;
   const scopeType = context.scope_type?.trim() || "case";
   const scopeId = context.scope_id?.trim() || currentCaseId;
   const sourceType = context.source_type?.trim() || "case_graph";
@@ -504,42 +482,37 @@ export function RemediationOrchestrationPage({
       setError("");
 
       try {
-        const demoMode = isMockContext(context);
-        let nextWorkflow: AttackWorkflowItem | null = null;
-        let nextActions: AttackWorkflowActionItem[] = [];
+        const detailResult = routeWorkflowId
+          ? await getAttackWorkflow({
+              tenantId,
+              workflowId: routeWorkflowId,
+              includeActions: true,
+              includeEvents: false,
+            })
+          : await getAttackWorkflowByCaseId({
+              tenantId,
+              caseId: routeCaseId,
+              includeActions: true,
+              includeEvents: false,
+            });
+        const nextWorkflow = detailResult?.workflow ?? null;
+        const nextActions = detailResult?.actions ?? [];
+        const contextNode = normalizeNodeFromContext(context);
 
-        if (!demoMode) {
-          const detailResult = routeWorkflowId
-            ? await getAttackWorkflow({
-                tenantId,
-                workflowId: routeWorkflowId,
-                includeActions: true,
-                includeEvents: false,
-              })
-            : routeCaseId
-              ? await getAttackWorkflowByCaseId({
-                  tenantId,
-                  caseId: routeCaseId,
-                  includeActions: true,
-                  includeEvents: false,
-                })
-              : null;
-
-          nextWorkflow = detailResult?.workflow ?? null;
-          nextActions = detailResult?.actions ?? [];
-        }
+        setStats(null);
+        setDetail(null);
+        setExecution(null);
+        setPreview(null);
+        setNodes(contextNode ? [contextNode] : []);
+        setSelectedNodeKey(contextNode?.node_key ?? "");
+        setActionOptions([]);
+        setSelectedActionCode("");
 
         if (!nextWorkflow) {
-          setMockMode(true);
-          nextWorkflow = {
-            ...MOCK_WORKFLOW,
-            case_id: routeCaseId || MOCK_WORKFLOW.case_id,
-            root_id: routeCaseId || MOCK_WORKFLOW.root_id,
-            workflow_id: routeWorkflowId || MOCK_WORKFLOW.workflow_id,
-          };
-          nextActions = [MOCK_REMEDIATION_ACTION];
-        } else {
-          setMockMode(false);
+          setWorkflow(null);
+          setAction(null);
+          setError(t("page.notFound"));
+          return;
         }
 
         const nextCaseId = nextWorkflow.case_id || routeCaseId;
@@ -548,57 +521,31 @@ export function RemediationOrchestrationPage({
               (item) => item.workflow_action_id === routeActionId,
             ) ?? null)
           : null;
-        const nextAction =
-          routeAction ?? canonicalRemediationAction(nextActions, nextCaseId);
 
         setWorkflow(nextWorkflow);
         setAction(
-          nextAction ??
-            (demoMode
-              ? {
-                  ...MOCK_REMEDIATION_ACTION,
-                  workflow_id: nextWorkflow.workflow_id,
-                  case_id: nextWorkflow.case_id,
-                  target_key: nextWorkflow.case_id,
-                }
-              : null),
+          routeAction ?? canonicalRemediationAction(nextActions, nextCaseId),
         );
-
-        const contextNode = normalizeNodeFromContext(context);
-        if (contextNode) {
-          setNodes([contextNode, ...MOCK_NODES]);
-          setSelectedNodeKey(contextNode.node_key);
-        }
-
-        if (demoMode) {
-          setStats(MOCK_STATS);
-          setDetail(MOCK_DETAIL);
-          setExecution(MOCK_EXECUTION);
-        } else {
-          setStats(null);
-          setDetail(null);
-          setExecution(null);
-        }
         setBatchesRefreshKey((current) => current + 1);
       } catch (err) {
-        setMockMode(true);
-        setWorkflow(MOCK_WORKFLOW);
-        setAction(MOCK_REMEDIATION_ACTION);
-        setStats(MOCK_STATS);
-        setDetail(MOCK_DETAIL);
-        setExecution(MOCK_EXECUTION);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "处置编排数据加载失败，当前展示演示数据",
-        );
+        setWorkflow(null);
+        setAction(null);
+        setStats(null);
+        setDetail(null);
+        setExecution(null);
+        setPreview(null);
+        setNodes([]);
+        setSelectedNodeKey("");
+        setActionOptions([]);
+        setSelectedActionCode("");
+        setError(err instanceof Error ? err.message : t("page.loadFailed"));
       } finally {
         setRefreshedAt(new Date());
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [context, routeActionId, routeCaseId, routeWorkflowId, tenantId],
+    [context, routeActionId, routeCaseId, routeWorkflowId, t, tenantId],
   );
 
   useEffect(() => {
@@ -608,8 +555,14 @@ export function RemediationOrchestrationPage({
       setRefreshedAt(new Date());
       return;
     }
+    if (!hasLookupContext) {
+      setLoading(false);
+      setRefreshing(false);
+      setRefreshedAt(null);
+      return;
+    }
     void loadPage(false);
-  }, [loadPage, orderMode]);
+  }, [hasLookupContext, loadPage, orderMode]);
 
   useEffect(() => {
     setHeaderCaseInput(routeCaseId || loadedOrderCaseId);
@@ -743,7 +696,7 @@ export function RemediationOrchestrationPage({
   }
 
   async function resolveSelectedNode() {
-    if (!selectedNode || mockMode) return;
+    if (!selectedNode) return;
     setWorking("resolve-node");
     try {
       const resolved = await resolveRemediationNodeAgents({
@@ -777,7 +730,7 @@ export function RemediationOrchestrationPage({
   }
 
   async function querySelectedNodeActions() {
-    if (!selectedNode || mockMode) return;
+    if (!selectedNode) return;
     setWorking("query-actions");
     try {
       const result = await queryRemediationNodeActions({
@@ -807,12 +760,6 @@ export function RemediationOrchestrationPage({
 
   function handleCreatePreview() {
     if (workflowClosed) return;
-    if (mockMode) {
-      setPreview(MOCK_DETAIL.preview);
-      toast({ title: "演示模式已生成预览示例" });
-      return;
-    }
-
     setCreatePreviewOpen(true);
   }
 
@@ -842,14 +789,6 @@ export function RemediationOrchestrationPage({
   async function handleConfirmPreview() {
     const previewId = preview?.preview_id;
     if (!previewId || workflowClosed) return;
-    if (mockMode) {
-      setExecution(MOCK_EXECUTION);
-      setDetail(MOCK_DETAIL);
-      setBatchesRefreshKey((current) => current + 1);
-      toast({ title: "演示模式已确认执行示例" });
-      return;
-    }
-
     setWorking("confirm-preview");
     try {
       const nextExecution = await confirmRemediationPreview({
@@ -875,13 +814,6 @@ export function RemediationOrchestrationPage({
   async function handleCancelPreview() {
     const previewId = preview?.preview_id;
     if (!previewId || workflowClosed) return;
-    if (mockMode) {
-      setPreview(null);
-      setBatchesRefreshKey((current) => current + 1);
-      toast({ title: "演示预览已取消" });
-      return;
-    }
-
     setWorking("cancel-preview");
     try {
       const nextPreview = await cancelRemediationPreview({
@@ -906,7 +838,7 @@ export function RemediationOrchestrationPage({
   const selectRemediationNode = useCallback(
     (node: RemediationCandidateNode) => {
       setSelectedNodeKey(node.node_key);
-      const nextActions = MOCK_ACTION_OPTIONS.filter((option) => {
+      const nextActions = actionOptions.filter((option) => {
         const entity = node.entity_type.toLowerCase();
         if (entity.includes("file"))
           return option.action_code.startsWith("file.");
@@ -920,7 +852,7 @@ export function RemediationOrchestrationPage({
       setSelectedActionCode(nextActions[0]?.action_code ?? "");
       setPreview(null);
     },
-    [],
+    [actionOptions],
   );
 
   const canCreatePreview = Boolean(
@@ -1555,6 +1487,8 @@ export function RemediationOrchestrationPage({
               </Button>
             </section>
         */}
+
+
       </div>
       {loading ? (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-white/55 backdrop-blur-sm">

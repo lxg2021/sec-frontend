@@ -303,7 +303,8 @@
           "refresh": "Refresh",
           "orderMode": "Order mode",
           "loading": "Loading remediation orchestration context",
-          "loadFailed": "Failed to load remediation orchestration data; showing demonstration data"
+          "loadFailed": "Failed to load remediation orchestration data",
+          "notFound": "No remediation workflow was found for this context"
         },
         "status": {
           "detected": "Detected",
