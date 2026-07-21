@@ -146,17 +146,6 @@ function localizedText(value: LocalizedText, locale: string): string {
   return value[key] || value.en || value["zh-CN"] || ""
 }
 
-function localizedArray(value: Record<string, string[]> | string[] | undefined, locale: string): string[] {
-  if (!value) {
-    return []
-  }
-  if (Array.isArray(value)) {
-    return value.map((item) => String(item)).filter(Boolean)
-  }
-  const key = localeKey(locale)
-  return value[key] || value.en || value["zh-CN"] || []
-}
-
 function toPrettyJson(value: unknown) {
   if (value === undefined || value === null || value === "") {
     return ""

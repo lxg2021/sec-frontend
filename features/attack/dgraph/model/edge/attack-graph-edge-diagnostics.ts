@@ -696,18 +696,6 @@ function normalizeVector(x: number, y: number): AttackGraphPoint {
   };
 }
 
-function getStressEdgeNormal(
-  vector: AttackGraphPoint,
-  fanoutIndex: number,
-) {
-  const normal = { x: -vector.y, y: vector.x };
-  if (fanoutIndex < 0) {
-    return { x: -normal.x, y: -normal.y };
-  }
-
-  return normal;
-}
-
 function getStressBendAmount(
   edgeDistance: number,
   route: Extract<AttackGraphEdgeRouteData, { kind: "stress" }>,

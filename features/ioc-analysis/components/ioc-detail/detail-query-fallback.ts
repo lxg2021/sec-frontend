@@ -34,11 +34,6 @@ const HASH_ALGORITHMS = new Set([
   "sha3_384",
 ])
 
-function displayValue(value: string | number | undefined | null) {
-  if (typeof value === "number") return String(value)
-  return value?.trim() || ""
-}
-
 function compactStrings(values: string[]) {
   const seen = new Set<string>()
   const out: string[] = []

@@ -189,27 +189,6 @@ export default function CustomBaselineClient() {
   )
 
   const selectedTemplateCount = selectedItems.size
-  const selectedRiskCounts = useMemo(() => {
-    let high = 0
-    let medium = 0
-    let low = 0
-
-    selectedItems.forEach((itemIds, templateUuid) => {
-      const itemsData = itemsDataMap.get(templateUuid)
-      if (!itemsData) return
-
-      itemsData.category_groups.forEach((group) => {
-        group.items.forEach((item) => {
-          if (!itemIds.has(item.id)) return
-          if (item.severity === "High") high += 1
-          else if (item.severity === "Medium") medium += 1
-          else low += 1
-        })
-      })
-    })
-
-    return { high, medium, low }
-  }, [itemsDataMap, selectedItems])
   const templateMap = useMemo(() => new Map(templates.map((template) => [template.uuid, template])), [templates])
   const selectedProfileDefault = useMemo(() => {
     const firstSelectedTemplateUuid = selectedItems.keys().next().value

@@ -441,8 +441,6 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
   if (isLoading) return <SkeletonCard />
   if (!item) return <EmptyState label={labels.empty} />
 
-  const title = (useZh ? item.name_zh : item.name) || item.name || item.name_zh || ""
-
   const handleCopy = async (key: string, value: string) => {
     if (!value) return
     try {

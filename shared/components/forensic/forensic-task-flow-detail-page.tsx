@@ -769,8 +769,6 @@ export function ForensicTaskFlowDetailPage({ taskId, fallbackTargetHost }: Props
   const resultTotalRows = numberValue(firstPath(collectionFlow, [["total_collected_rows"], ["TotalCollectedRows"]]))
   const target = useMemo(() => mergeTargetHost(task, fallbackTargetHost), [fallbackTargetHost, task])
   const ip = cleanList(target?.ip).join(", ")
-  const mac = cleanList(target?.macs).join(", ")
-
   const load = useCallback(async () => {
     if (!taskId?.trim()) return
     setLoading(true)

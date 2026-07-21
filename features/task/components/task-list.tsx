@@ -114,10 +114,6 @@ export function TaskList({ tasks, onEdit, onDelete }: TaskListProps) {
     })
   }
 
-  const formatPolicies = (policies: BaselinePolicyType[]) => {
-    return policies.map((p) => POLICY_LABELS[p]).join(", ")
-  }
-
   if (tasks.length === 0) {
     return (
       <Card className="border-0 shadow-lg w-full">

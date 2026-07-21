@@ -358,13 +358,6 @@ function getSymmetricFanoutIndex(index: number, fanoutCount: number) {
   return adjustedIndex % 2 === 0 ? magnitude : -magnitude;
 }
 
-function getFanoutStep(fanoutCount: number) {
-  if (fanoutCount <= 1) return 0;
-  if (fanoutCount <= 3) return 22;
-  if (fanoutCount <= 6) return 19;
-  return 16;
-}
-
 function getFanoutOffset(fanoutIndex: number, fanoutCount: number) {
   if (fanoutCount <= 1) {
     return 0;
