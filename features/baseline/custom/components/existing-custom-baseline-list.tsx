@@ -1,10 +1,9 @@
 "use client"
 
-import { Database, FileText, Hash, RefreshCw, ShieldCheck } from "lucide-react"
+import { Database, FileText, Hash, ShieldCheck } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { Badge } from "@/shared/ui/badge"
-import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table"
@@ -16,7 +15,6 @@ interface ExistingCustomBaselineListProps {
   baselines: BaselineListItem[]
   loading: boolean
   errorMessage: string
-  onRefresh: () => void
   className?: string
 }
 
@@ -41,7 +39,6 @@ export function ExistingCustomBaselineList({
   baselines,
   loading,
   errorMessage,
-  onRefresh,
   className,
 }: ExistingCustomBaselineListProps) {
   const t = useTranslations("pages.baseline.custom.existingList")
@@ -49,8 +46,7 @@ export function ExistingCustomBaselineList({
 
   return (
     <Card className={cn("relative flex h-[190px] shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg", className)}>
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500" />
-      <CardHeader className="flex shrink-0 flex-row items-center justify-between gap-4 border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 px-5 py-3.5">
+      <CardHeader className="flex shrink-0 flex-row items-center justify-between gap-4 border-b border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/60 py-3.5 pl-5 pr-16">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 shadow-sm shadow-emerald-200/70">
             <Database className="h-[18px] w-[18px] text-white" />
@@ -65,17 +61,6 @@ export function ExistingCustomBaselineList({
             <CardDescription className="mt-0.5 truncate text-xs text-zinc-500">{t("subtitle")}</CardDescription>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onRefresh}
-          disabled={loading}
-          className="h-9 shrink-0 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-zinc-950 shadow-none hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-        >
-          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-          <span>{t("refresh")}</span>
-        </Button>
       </CardHeader>
 
       <CardContent className="min-h-0 flex-1 p-0">
@@ -101,25 +86,25 @@ export function ExistingCustomBaselineList({
             </div>
           </div>
         ) : (
-          <div className="h-full overflow-auto overscroll-contain">
-            <Table className="min-w-[1180px] [&_td]:py-2 [&_th]:h-9">
+          <div className="h-full overflow-y-auto overscroll-contain [&>div]:overflow-x-hidden">
+            <Table className="w-full table-fixed [&_td]:py-2 [&_th]:h-9">
               <TableHeader className="sticky top-0 z-10 bg-zinc-50 shadow-[0_1px_0_0_rgba(228,228,231,1)]">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="min-w-52">{t("columns.name")}</TableHead>
-                  <TableHead className="w-28">{t("columns.version")}</TableHead>
-                  <TableHead className="w-28 text-center">{t("columns.items")}</TableHead>
-                  <TableHead className="min-w-80">{t("columns.fileName")}</TableHead>
-                  <TableHead className="min-w-44">{t("columns.createdAt")}</TableHead>
-                  <TableHead className="min-w-80">{t("columns.uuid")}</TableHead>
+                  <TableHead className="w-[18%]">{t("columns.name")}</TableHead>
+                  <TableHead className="w-[8%]">{t("columns.version")}</TableHead>
+                  <TableHead className="w-[8%] text-center">{t("columns.items")}</TableHead>
+                  <TableHead className="w-[30%]">{t("columns.fileName")}</TableHead>
+                  <TableHead className="w-[16%]">{t("columns.createdAt")}</TableHead>
+                  <TableHead className="w-[20%]">{t("columns.uuid")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {baselines.map((baseline) => (
                   <TableRow key={baseline.uuid} className="hover:bg-emerald-50/40">
-                    <TableCell>
+                    <TableCell className="overflow-hidden">
                       <div className="flex min-w-0 items-center gap-2">
                         <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-600" />
-                        <span className="truncate font-medium text-zinc-950" title={baseline.display_name}>
+                        <span className="min-w-0 flex-1 truncate font-medium text-zinc-950" title={baseline.display_name || baseline.uuid}>
                           {baseline.display_name || baseline.uuid}
                         </span>
                       </div>
@@ -130,10 +115,10 @@ export function ExistingCustomBaselineList({
                         {baseline.item_count}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="overflow-hidden">
                       <div className="flex min-w-0 items-center gap-2 text-xs text-zinc-600">
                         <FileText className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
-                        <span className="truncate font-mono" title={baseline.original_filename || undefined}>
+                        <span className="min-w-0 flex-1 truncate font-mono" title={baseline.original_filename || undefined}>
                           {baseline.original_filename || "-"}
                         </span>
                       </div>
@@ -141,10 +126,10 @@ export function ExistingCustomBaselineList({
                     <TableCell className="whitespace-nowrap text-xs text-zinc-600">
                       {formatCreatedAt(baseline.created_at, locale)}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="overflow-hidden">
                       <div className="flex min-w-0 items-center gap-2 text-xs text-zinc-600">
                         <Hash className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
-                        <code className="truncate" title={baseline.uuid}>{baseline.uuid}</code>
+                        <code className="block min-w-0 flex-1 truncate" title={baseline.uuid}>{baseline.uuid}</code>
                       </div>
                     </TableCell>
                   </TableRow>

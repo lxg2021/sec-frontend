@@ -409,7 +409,7 @@ export default function CustomBaselineClient() {
           selectedItemCount={totalSelectedCount}
           existingBaselineCount={customBaselines.length}
           canCreate={totalSelectedCount > 0 && Boolean(selectedTemplateMetadataState.metadata)}
-          onOpenExisting={() => setExistingOpen(true)}
+          onOpenExisting={() => { setExistingOpen(true); void loadCustomBaselines() }}
           onCreate={handleOpenCreate}
         />
 
@@ -472,7 +472,9 @@ export default function CustomBaselineClient() {
       </div>
 
       <Dialog open={existingOpen} onOpenChange={setExistingOpen}>
-        <DialogContent className="h-[min(76vh,720px)] w-[min(1180px,calc(100vw-32px))] max-w-none gap-0 overflow-hidden border-0 bg-transparent p-0 shadow-none">
+        <DialogContent
+          className="h-[min(62vh,560px)] min-h-[360px] w-[min(1180px,calc(100vw-32px))] max-w-none gap-0 overflow-hidden border-0 bg-transparent p-0 shadow-none [&>button]:right-4 [&>button]:top-4 [&>button]:z-30 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:bg-white [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-zinc-100"
+        >
           <DialogHeader className="sr-only">
             <DialogTitle>{t("existingList.title")}</DialogTitle>
             <DialogDescription>{t("existingList.subtitle")}</DialogDescription>
@@ -481,8 +483,7 @@ export default function CustomBaselineClient() {
             baselines={customBaselines}
             loading={customBaselinesLoading}
             errorMessage={customBaselinesError}
-            onRefresh={() => void loadCustomBaselines()}
-            className="h-full rounded-[24px] shadow-2xl"
+            className="h-full min-h-0 rounded-[24px] shadow-2xl"
           />
         </DialogContent>
       </Dialog>

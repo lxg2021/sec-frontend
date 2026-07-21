@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useLocale, useTranslations } from "next-intl"
 import { AlertCircle, CheckCircle2, ChevronDown, ChevronRight, Layers3, Trash2, X } from "lucide-react"
 
@@ -39,6 +39,7 @@ export function SelectedItemsSummary({
   const useZh = isZhLocale(locale)
   const t = useTranslations("pages.baseline.custom")
   const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set())
+  const defaultExpandedTemplateRef = useRef<string | null>(null)
 
   const summary = useMemo(() => {
     let totalSelected = 0
@@ -109,6 +110,25 @@ export function SelectedItemsSummary({
   }, [itemsDataMap, selectedItems, templates, useZh])
 
   const hasSelections = summary.totalSelected > 0
+  const firstSelectedTemplateUuid = summary.templateStats[0]?.templateUuid
+
+  useEffect(() => {
+    if (!firstSelectedTemplateUuid) {
+      defaultExpandedTemplateRef.current = null
+      return
+    }
+
+    if (defaultExpandedTemplateRef.current === firstSelectedTemplateUuid) return
+
+    defaultExpandedTemplateRef.current = firstSelectedTemplateUuid
+    setExpandedTemplates((current) => {
+      if (current.has(firstSelectedTemplateUuid)) return current
+
+      const next = new Set(current)
+      next.add(firstSelectedTemplateUuid)
+      return next
+    })
+  }, [firstSelectedTemplateUuid])
 
   const toggleTemplate = (templateUuid: string) => {
     setExpandedTemplates((current) => {
