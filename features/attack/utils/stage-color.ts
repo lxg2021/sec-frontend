@@ -42,7 +42,7 @@ export function getStageColor(stageSlug: string): string {
   return color
 }
 
-export function slugify(text) {
+export function slugify(text: string) {
   return String(text)
     .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, "-")

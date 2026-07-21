@@ -34,7 +34,6 @@ function TruncateCopyable({ value }: { value?: string }) {
                 e.stopPropagation()
                 handleCopy()
               }}
-              title="点击复制"
               style={{ cursor: "pointer" }}
             />
           </div>

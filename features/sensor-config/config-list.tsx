@@ -172,7 +172,7 @@ export function ConfigList({ categories, onConfigChange, onCreateConfig, onReset
       items: category.items.filter(
         (item) =>
           item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.description.toLowerCase().includes(searchTerm.toLowerCase()),
+          (item.description ?? "").toLowerCase().includes(searchTerm.toLowerCase()),
       ),
     }))
     .filter(

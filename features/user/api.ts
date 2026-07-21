@@ -425,7 +425,7 @@ export async function deleteAccount(): Promise<ApiResponse> {
 }
 
 export async function logout(): Promise<ApiResponse> {
-  let result: ApiResponse | null = null
+  let result: Awaited<ReturnType<typeof http.post>> | null = null
   let logoutError: unknown = null
 
   try {

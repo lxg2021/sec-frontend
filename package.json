@@ -13,8 +13,6 @@
     "typecheck:remediation": "tsc --project tsconfig.remediation.json"
   },
   "dependencies": {
-    "@fluentui/react-components": "^9.74.2",
-    "@fluentui/react-icons": "^2.0.331",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",

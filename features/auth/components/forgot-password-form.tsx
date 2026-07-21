@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useState, type FormEvent } from "react"
+import { useState, type CSSProperties, type FormEvent } from "react"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Input } from "@/shared/ui/input"
@@ -149,7 +149,7 @@ export default function ForgotPasswordPage() {
                         className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-slate-400"
                         style={{
                           "--tw-ring-color": `rgb(var(--focus-color))`,
-                        }}
+                        } as CSSProperties & { "--tw-ring-color": string }}
                         onFocus={(e) => {
                           e.target.style.borderColor = `rgb(var(--focus-color))`
                         }}
@@ -176,10 +176,10 @@ export default function ForgotPasswordPage() {
                       background: `linear-gradient(135deg, rgb(var(--theme-primary)), rgb(var(--theme-primary) / 0.8))`,
                     }}
                     onMouseEnter={(e) => {
-                      e.target.style.background = `linear-gradient(135deg, rgb(var(--theme-primary) / 0.9), rgb(var(--theme-primary) / 0.7))`
+                      e.currentTarget.style.background = `linear-gradient(135deg, rgb(var(--theme-primary) / 0.9), rgb(var(--theme-primary) / 0.7))`
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.background = `linear-gradient(135deg, rgb(var(--theme-primary)), rgb(var(--theme-primary) / 0.8))`
+                      e.currentTarget.style.background = `linear-gradient(135deg, rgb(var(--theme-primary)), rgb(var(--theme-primary) / 0.8))`
                     }}
                     disabled={isLoading || !email.trim()}
                   >

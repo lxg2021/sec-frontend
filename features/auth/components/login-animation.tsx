@@ -2,14 +2,29 @@
 
 import { useEffect, useRef } from "react"
 
-export default function LoginAnimation({ className = "" }) {
-  const canvasRef = useRef(null)
-  const animationRef = useRef()
-  const nodesRef = useRef([])
+interface LoginAnimationProps {
+  className?: string
+}
+
+interface AnimationNode {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  radius: number
+  pulse: number
+  pulseSpeed: number
+  connections: number[]
+}
+
+export default function LoginAnimation({ className = "" }: LoginAnimationProps) {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const animationRef = useRef<number | null>(null)
+  const nodesRef = useRef<AnimationNode[]>([])
 
   // 初始化节点
-  const initNodes = (width, height) => {
-    const nodes = []
+  const initNodes = (width: number, height: number): AnimationNode[] => {
+    const nodes: AnimationNode[] = []
     const nodeCount = Math.floor((width * height) / 15000)
 
     for (let i = 0; i < nodeCount; i++) {

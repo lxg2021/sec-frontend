@@ -7,6 +7,15 @@ import {
   initialRemediationTemplateValues,
 } from "./remediation-preview-templates";
 
+interface ParameterFamilyCase {
+  name: string;
+  actionCode: string;
+  branch: keyof RemediationActionInput;
+  defaults: Record<string, unknown>;
+  overrides: Record<string, unknown>;
+  baseBranch?: Record<string, unknown>;
+}
+
 function action(actionCode: string): RemediationActionOption {
   return {
     action_code: actionCode,
@@ -19,7 +28,7 @@ function action(actionCode: string): RemediationActionOption {
   };
 }
 
-const PARAMETER_FAMILIES = [
+const PARAMETER_FAMILIES: readonly ParameterFamilyCase[] = [
   {
     name: "file quarantine",
     actionCode: "file.quarantine",
@@ -121,7 +130,7 @@ const PARAMETER_FAMILIES = [
     defaults: { direction: "out" },
     overrides: { direction: "both" },
   },
-] as const;
+];
 
 describe("remediation parameter family contract", () => {
   for (const testCase of PARAMETER_FAMILIES) {

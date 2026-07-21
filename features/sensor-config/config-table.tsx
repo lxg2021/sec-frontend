@@ -47,8 +47,6 @@ export function ConfigTable({ refreshTrigger }: ConfigTableProps) {
       })
     } catch (error) {
       toast({
-        title: t("error"),
-        description: t("deleteFailed"),
         className: "bg-white/90 backdrop-blur-sm text-slate-700 shadow-md rounded-xl flex items-center gap-3 p-4 border border-rose-200",
         title: (
           <div className="flex items-center gap-2">

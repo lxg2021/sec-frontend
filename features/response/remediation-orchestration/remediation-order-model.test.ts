@@ -251,7 +251,12 @@ describe("remediation Order orchestration model", () => {
     expect(
       remediationActionApplicabilityError(
         {
-          action: { action_code: "file.quarantine" },
+          action: {
+            action_code: "file.quarantine",
+            display_name: "Quarantine file",
+            risk_level: "high",
+            reversible: true,
+          },
           agent_decisions: [
             {
               agent_id: "agent-1",
@@ -290,7 +295,12 @@ describe("remediation Order orchestration model", () => {
     expect(
       remediationActionApplicabilityError(
         {
-          action: { action_code: "process.terminate" },
+          action: {
+            action_code: "process.terminate",
+            display_name: "Terminate process",
+            risk_level: "high",
+            reversible: false,
+          },
           agent_decisions: [
             {
               agent_id: "agent-1",
@@ -315,7 +325,12 @@ describe("remediation Order orchestration model", () => {
     expect(
       remediationActionApplicabilityError(
         {
-          action: { action_code: "process.terminate" },
+          action: {
+            action_code: "process.terminate",
+            display_name: "Terminate process",
+            risk_level: "high",
+            reversible: false,
+          },
           agent_decisions: [
             {
               agent_id: "agent-1",

@@ -176,7 +176,7 @@ export function validateField(
 
   if (!rules || !fieldMessages) return null
 
-  if (rules.required && !value.trim()) {
+  if (rules.required && !value.trim() && "required" in fieldMessages) {
     return fieldMessages.required
   }
 
