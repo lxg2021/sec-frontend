@@ -100,7 +100,6 @@ export function RemediationHostOverviewList({
   selectedStatus,
   viewMode,
 }: RemediationHostOverviewListProps) {
-  const t = useTranslations("pages.response.overview")
   const hostT = useTranslations("pages.response.overview.hostList")
   const locale = useLocale()
   const detailRequests = useRef(new Set<string>())

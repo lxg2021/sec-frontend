@@ -264,6 +264,14 @@ function toVerificationItem(candidate: IocCandidate | IocVerificationItem): IocV
   }
 }
 
+function toIocCandidate(item: IocVerificationItem): IocCandidate {
+  const candidate = { ...item }
+  Reflect.deleteProperty(candidate, "status")
+  Reflect.deleteProperty(candidate, "result")
+  Reflect.deleteProperty(candidate, "error")
+  return candidate
+}
+
 function mergeCandidateItem(
   existing: IocVerificationItem,
   next: IocVerificationItem,
@@ -1049,10 +1057,7 @@ export function IocVerificationPage() {
   }
 
   function verifyAll() {
-    const candidates = items.map(
-      ({ status: _status, result: _result, error: _error, ...candidate }) =>
-        candidate,
-    )
+    const candidates = items.map(toIocCandidate)
     void verifyCandidates(candidates)
   }
 

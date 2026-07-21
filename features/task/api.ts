@@ -1,7 +1,7 @@
 import type { Task } from "@/features/task/types"
 
 /* 模拟的任务存储池（可以放在全局或单例模块中) */
-let mockTasks: Task[] = []
+const mockTasks: Task[] = []
 const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms))
 
 
@@ -64,7 +64,6 @@ export async function updateTask(id: string, task: Task): Promise<Task> {
   })
 
   if (!response.ok) {
-    const errorText = await response.text()
     throw new Error(`Failed to update task: ${response.statusText}`)
   }
 
