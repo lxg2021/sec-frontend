@@ -6,7 +6,7 @@ import { AlertCircle, CheckCircle2, Layers3, Plus, Trash2, X } from "lucide-reac
 
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { ScrollArea } from "@/shared/ui/scroll-area"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
@@ -124,28 +124,28 @@ export function SelectedItemsSummary({
 
   return (
     <Card className="flex h-full min-h-0 flex-col overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+      <CardHeader className="bg-slate-50/70 px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
               <CheckCircle2 className="h-5 w-5" />
             </div>
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-semibold text-slate-950">{t("summary.title")}</CardTitle>
-              <CardDescription className="text-xs text-slate-500">{t("summary.fromTemplates", { count: selectedItems.size })}</CardDescription>
-            </div>
+            <CardTitle className="truncate text-sm font-semibold text-slate-950">{t("summary.title")}</CardTitle>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onClearAll}
-            disabled={!hasSelections}
-            className="h-9 gap-2 rounded-xl px-3 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>{t("summary.clear")}</span>
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="whitespace-nowrap text-xs text-slate-500">{t("summary.fromTemplates", { count: selectedItems.size })}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClearAll}
+              disabled={!hasSelections}
+              className="h-9 gap-2 rounded-xl px-3 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>{t("summary.clear")}</span>
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
