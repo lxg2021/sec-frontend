@@ -33,14 +33,14 @@ export function AuditCategoryTabs({ value, onChange }: AuditCategoryTabsProps) {
             onClick={() => onChange(category)}
             className={cn(
               "inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-sm font-medium transition-colors duration-150",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-1",
               active
-                ? "bg-white text-blue-600 shadow-sm ring-1 ring-slate-200/80"
+                ? "bg-white text-cyan-600 shadow-sm ring-1 ring-cyan-100"
                 : "text-slate-500 hover:bg-white/70 hover:text-slate-700",
             )}
           >
             <Icon
-              className={cn("h-4 w-4 shrink-0", active ? "text-blue-500" : "text-slate-400")}
+              className={cn("h-4 w-4 shrink-0", active ? "text-cyan-500" : "text-slate-400")}
               strokeWidth={1.9}
               aria-hidden="true"
             />
@@ -51,3 +51,5 @@ export function AuditCategoryTabs({ value, onChange }: AuditCategoryTabsProps) {
     </div>
   )
 }
+
+
