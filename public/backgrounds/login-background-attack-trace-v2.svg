@@ -35,11 +35,13 @@
     .traceFlow2{fill:none;stroke:url(#trace2);stroke-width:1.7;opacity:.68;stroke-linecap:round;stroke-dasharray:9 18;animation:flow2 6.5s linear infinite}
     .traceFlowHot2{fill:none;stroke:url(#traceHot);stroke-width:1.6;opacity:.64;stroke-linecap:round;stroke-dasharray:8 17;animation:flow2 5.3s linear infinite reverse}
     .fade2{animation:fade2 4.6s ease-in-out infinite}
+    .twinkle2{transform-box:fill-box;transform-origin:center;animation-name:twinkle2;animation-timing-function:linear;animation-iteration-count:infinite}
     .label2{font:500 11px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.04em;fill:#7f9aac;opacity:.72}
     .meta2{font:500 9px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.06em;fill:#58768a;opacity:.62}
     @keyframes flow2{to{stroke-dashoffset:-81}}
     @keyframes fade2{0%,100%{opacity:.22}50%{opacity:.48}}
-    @media(prefers-reduced-motion:reduce){.traceFlow2,.traceFlowHot2,.fade2{animation:none!important}}
+    @keyframes twinkle2{0%,61%,100%{opacity:.38}65%{opacity:.92}69%{opacity:.44}73%{opacity:.76}78%{opacity:.38}}
+    @media(prefers-reduced-motion:reduce){.traceFlow2,.traceFlowHot2,.fade2,.twinkle2{animation:none!important}}
   </style>
 </defs>
 <rect width="1600" height="1000" fill="url(#bg2)"/>
@@ -116,23 +118,23 @@
 
 <!-- restrained peripheral nodes -->
 <g opacity=".78">
-  <g transform="translate(154 118)"><circle r="7" fill="#07141e" stroke="#279de1" stroke-width="1.8"/></g>
-  <g transform="translate(305 116)"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
-  <g transform="translate(446 101)"><circle r="6" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
-  <g transform="translate(109 365)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
-  <g transform="translate(184 410)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
-  <g transform="translate(257 371)"><rect x="-5" y="-5" width="10" height="10" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.6" transform="rotate(45)"/></g>
-  <g transform="translate(155 746)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
-  <g transform="translate(238 792)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
-  <g transform="translate(310 717)"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
-  <g transform="translate(1182 117)"><circle r="7" fill="#07141e" stroke="#279de1" stroke-width="1.8"/></g>
-  <g transform="translate(1254 61)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.8"/></g>
-  <g transform="translate(1320 138)"><rect x="-7" y="-7" width="14" height="14" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.8" transform="rotate(45)"/></g>
-  <g transform="translate(1420 81)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
-  <g transform="translate(1232 772)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
-  <g transform="translate(1321 841)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
-  <g transform="translate(1406 786)"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
-  <g transform="translate(1497 866)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(154 118)" class="twinkle2" style="animation-duration:4.1s;animation-delay:-0.6s"><circle r="7" fill="#07141e" stroke="#279de1" stroke-width="1.8"/></g>
+  <g transform="translate(305 116)" class="twinkle2" style="animation-duration:5.8s;animation-delay:-2.1s"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
+  <g transform="translate(446 101)" class="twinkle2" style="animation-duration:6.3s;animation-delay:-4.7s"><circle r="6" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(109 365)" class="twinkle2" style="animation-duration:4.8s;animation-delay:-1.3s"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(184 410)" class="twinkle2" style="animation-duration:7.1s;animation-delay:-5.2s"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(257 371)" class="twinkle2" style="animation-duration:5.2s;animation-delay:-3.4s"><rect x="-5" y="-5" width="10" height="10" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.6" transform="rotate(45)"/></g>
+  <g transform="translate(155 746)" class="twinkle2" style="animation-duration:6.8s;animation-delay:-0.9s"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(238 792)" class="twinkle2" style="animation-duration:4.4s;animation-delay:-3.1s"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(310 717)" class="twinkle2" style="animation-duration:7.6s;animation-delay:-6.2s"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
+  <g transform="translate(1182 117)" class="twinkle2" style="animation-duration:5.9s;animation-delay:-1.8s"><circle r="7" fill="#07141e" stroke="#279de1" stroke-width="1.8"/></g>
+  <g transform="translate(1254 61)" class="twinkle2" style="animation-duration:6.1s;animation-delay:-4.1s"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.8"/></g>
+  <g transform="translate(1320 138)" class="twinkle2" style="animation-duration:4.6s;animation-delay:-2.7s"><rect x="-7" y="-7" width="14" height="14" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.8" transform="rotate(45)"/></g>
+  <g transform="translate(1420 81)" class="twinkle2" style="animation-duration:7.3s;animation-delay:-6.5s"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(1232 772)" class="twinkle2" style="animation-duration:5.4s;animation-delay:-0.4s"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(1321 841)" class="twinkle2" style="animation-duration:6.6s;animation-delay:-5.6s"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(1406 786)" class="twinkle2" style="animation-duration:4.9s;animation-delay:-2.3s"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
+  <g transform="translate(1497 866)" class="twinkle2" style="animation-duration:7.8s;animation-delay:-7.1s"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
 </g>
 
 <!-- subtle telemetry ticks -->
@@ -142,5 +144,6 @@
   <rect x="686" y="52" width="42" height="1"/><rect x="735" y="52" width="13" height="1"/>
 </g>
 </svg>
+
 
 
