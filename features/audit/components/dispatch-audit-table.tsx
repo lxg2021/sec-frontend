@@ -36,18 +36,23 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
         <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{events.length} 条结果</span>
       </div>
 
-      <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden">
-        <table className="w-full table-fixed text-left text-sm">
+      <div className="min-h-0 min-w-0 flex-1 overflow-auto">
+        <table className="w-full table-fixed text-left text-sm 2xl:min-w-[1280px]">
           <thead className="sticky top-0 z-10 bg-slate-50 text-xs font-semibold text-slate-500">
             <tr>
-              <th className="w-[104px] px-4 py-3">下发时间</th>
-              <th className="w-[108px] px-3 py-3">下发类型</th>
-              <th className="px-3 py-3">下发对象</th>
-              <th className="hidden w-[130px] px-3 py-3 2xl:table-cell">下发任务</th>
-              <th className="hidden w-[96px] px-3 py-3 2xl:table-cell">操作者</th>
-              <th className="hidden w-[150px] px-3 py-3 2xl:table-cell">目标范围</th>
-              <th className="w-[88px] px-3 py-3">状态</th>
-              <th className="w-[62px] px-3 py-3 text-right">详情</th>
+              <th className="w-[104px] px-4 py-3 2xl:w-[96px]">下发时间</th>
+              <th className="w-[108px] px-3 py-3 2xl:w-[104px]">下发类型</th>
+              <th className="px-3 py-3 2xl:w-[145px]">下发对象</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[74px]">版本</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[112px]">下发任务</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[112px]">任务ID</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[82px]">操作者</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[94px]">操作者ID</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[145px]">目标范围</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[82px]">Agent</th>
+              <th className="w-[88px] px-3 py-3 2xl:w-[82px]">状态</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[98px]">执行结果</th>
+              <th className="w-[62px] px-3 py-3 text-right 2xl:w-[58px]">详情</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -63,30 +68,41 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
                       <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       <span className="truncate">{dispatchTypeLabels[event.dispatchType]}</span>
                     </span>
-                    <div className="mt-1 truncate text-[11px] text-slate-400">{event.eventType}</div>
                   </td>
                   <td className="min-w-0 px-3 py-3">
                     <div className="truncate font-medium text-slate-800" title={event.objectName}>{event.objectName}</div>
-                    <div className="mt-1 truncate text-xs text-slate-400">{event.objectVersion}</div>
+                    <div className="mt-1 truncate text-xs text-slate-400 2xl:hidden">{event.objectVersion}</div>
+                  </td>
+                  <td className="hidden px-3 py-3 text-xs text-slate-500 2xl:table-cell">
+                    <div className="truncate" title={event.objectVersion}>{event.objectVersion || "-"}</div>
                   </td>
                   <td className="hidden px-3 py-3 2xl:table-cell">
                     <div className="truncate font-mono text-xs text-slate-600" title={event.taskId}>{event.taskId}</div>
-                    <div className="mt-1 truncate text-[11px] text-slate-400" title={event.operationId}>{event.operationId}</div>
                   </td>
                   <td className="hidden px-3 py-3 2xl:table-cell">
-                    <div className="truncate font-medium text-slate-700">{event.actorName}</div>
-                    <div className="mt-1 truncate font-mono text-[11px] text-slate-400">{event.actorId}</div>
+                    <div className="truncate font-mono text-xs text-slate-600" title={event.operationId}>{event.operationId}</div>
+                  </td>
+                  <td className="hidden px-3 py-3 2xl:table-cell">
+                    <div className="truncate font-medium text-slate-700" title={event.actorName}>{event.actorName}</div>
+                  </td>
+                  <td className="hidden px-3 py-3 2xl:table-cell">
+                    <div className="truncate font-mono text-xs text-slate-500" title={event.actorId}>{event.actorId}</div>
                   </td>
                   <td className="hidden px-3 py-3 2xl:table-cell">
                     <div className="truncate text-xs text-slate-700" title={event.targetSummary}>{event.targetSummary}</div>
-                    <div className="mt-1 truncate text-[11px] text-slate-400">{event.agentSummary}</div>
+                  </td>
+                  <td className="hidden px-3 py-3 2xl:table-cell">
+                    <div className="truncate text-xs text-slate-500" title={event.agentSummary}>{event.agentSummary}</div>
                   </td>
                   <td className="px-3 py-3">
                     <span className={"inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold " + resultStyles[event.result]}>
                       <ResultIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       {auditResultLabels[event.result]}
                     </span>
-                    <div className="mt-1 truncate text-[11px] text-slate-400">{event.successCount}/{event.totalCount} 成功</div>
+                    <div className="mt-1 truncate text-[11px] text-slate-400 2xl:hidden">{event.successCount}/{event.totalCount} 成功</div>
+                  </td>
+                  <td className="hidden px-3 py-3 text-xs text-slate-600 2xl:table-cell">
+                    <div className="truncate">{event.successCount}/{event.totalCount} 成功</div>
                   </td>
                   <td className="px-3 py-3 text-right">
                     <button
@@ -110,3 +126,5 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
     </div>
   )
 }
+
+
