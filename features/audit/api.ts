@@ -157,17 +157,6 @@ function parseManualActor(sourceRefId: string) {
   if (!sourceRefId.startsWith("manual:")) return ""
   return sourceRefId.split(":", 3)[1] || ""
 }
-
-function safePayload(value: string) {
-  if (!value) return {}
-  try {
-    const parsed = JSON.parse(value)
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {}
-  } catch {
-    return { raw_payload: value }
-  }
-}
-
 async function listRecentOperations(cutoffUnixMs: number) {
   const operations: PMCOperationSnapshot[] = []
 

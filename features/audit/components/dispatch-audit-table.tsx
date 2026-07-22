@@ -11,8 +11,8 @@ interface DispatchAuditTableProps {
 }
 
 const typeIcons = { policy: FileOutput, command: Copy, config: Settings2 }
-const typeStyles = { policy: "bg-blue-50 text-blue-700", command: "bg-cyan-50 text-cyan-700", config: "bg-indigo-50 text-indigo-700" }
-const resultStyles = { success: "bg-emerald-50 text-emerald-700", failed: "bg-red-50 text-red-700", pending: "bg-sky-50 text-sky-700", timeout: "bg-amber-50 text-amber-700" }
+const typeIconStyles = { policy: "text-blue-600", command: "text-cyan-600", config: "text-indigo-600" }
+const resultIconStyles = { success: "text-emerald-600", failed: "text-red-600", pending: "text-sky-600", timeout: "text-amber-600" }
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("zh-CN", {
@@ -63,8 +63,8 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
                 <tr key={event.id} className={selectedId === event.id ? "bg-blue-50/60" : "hover:bg-slate-50/80"}>
                   <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatDate(event.occurredAt)}</td>
                   <td className="px-3 py-3">
-                    <span className={"inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold " + typeStyles[event.dispatchType]}>
-                      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700">
+                      <Icon className={`h-3.5 w-3.5 shrink-0 ${typeIconStyles[event.dispatchType]}`} aria-hidden="true" />
                       <span className="truncate">{dispatchTypeLabels[event.dispatchType]}</span>
                     </span>
                   </td>
@@ -91,8 +91,8 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
                     <div className="truncate text-xs text-slate-700" title={event.targetSummary}>{event.targetSummary}</div>
                   </td>
                   <td className="px-3 py-3">
-                    <span className={"inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold " + resultStyles[event.result]}>
-                      <ResultIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700">
+                      <ResultIcon className={`h-3.5 w-3.5 shrink-0 ${resultIconStyles[event.result]}`} aria-hidden="true" />
                       {auditResultLabels[event.result]}
                     </span>
                     <div className="mt-1 truncate text-xs text-slate-400 2xl:hidden">{event.successCount}/{event.totalCount} 成功</div>
@@ -122,7 +122,3 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
     </div>
   )
 }
-
-
-
-
