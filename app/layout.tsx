@@ -9,9 +9,9 @@ export const metadata: Metadata = {
   description: 'endpoint security',
   generator: 'lxg',
   icons: {
-    icon: '/logo.svg',
-    shortcut: '/logo.svg',
-    apple: '/logo.svg',
+    icon: '/watchpoint-mark.svg',
+    shortcut: '/watchpoint-mark.svg',
+    apple: '/watchpoint-mark.svg',
   },
 }
 

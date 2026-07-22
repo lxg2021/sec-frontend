@@ -188,7 +188,7 @@ export function FrameLayout({ children }: { children: ReactNode }) {
             <div className={`${sidebarCollapsed ? "hidden" : "flex items-center gap-3"}`}>
               <div className="relative">
                 <Image
-                  src="/logo.svg?height=36&width=36"
+                  src="/watchpoint-mark.svg"
                   alt="WatchPoint Logo"
                   width={36}
                   height={36}
