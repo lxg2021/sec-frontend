@@ -1,8 +1,23 @@
 ﻿"use client"
 
-import { CalendarDays, RotateCcw, Search, SlidersHorizontal } from "lucide-react"
+import {
+  CalendarDays,
+  CircleCheck,
+  CircleX,
+  Clock3,
+  FileOutput,
+  Layers3,
+  ListFilter,
+  LoaderCircle,
+  RotateCcw,
+  Search,
+  Settings2,
+  SlidersHorizontal,
+  TerminalSquare,
+} from "lucide-react"
 import type { AuditResult, DispatchType } from "@/features/audit/types"
 import { auditResultLabels, dispatchTypeLabels } from "@/features/audit/types"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@/shared/ui/select"
 
 interface DispatchAuditFiltersProps {
   dispatchType: DispatchType
@@ -19,6 +34,21 @@ interface DispatchAuditFiltersProps {
 const fieldClass =
   "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm font-normal text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
 
+const dispatchOptions = [
+  { value: "all" as const, label: dispatchTypeLabels.all, icon: Layers3 },
+  { value: "policy" as const, label: dispatchTypeLabels.policy, icon: FileOutput },
+  { value: "command" as const, label: dispatchTypeLabels.command, icon: TerminalSquare },
+  { value: "config" as const, label: dispatchTypeLabels.config, icon: Settings2 },
+]
+
+const resultOptions = [
+  { value: "all" as const, label: auditResultLabels.all, icon: ListFilter },
+  { value: "success" as const, label: auditResultLabels.success, icon: CircleCheck },
+  { value: "failed" as const, label: auditResultLabels.failed, icon: CircleX },
+  { value: "pending" as const, label: auditResultLabels.pending, icon: LoaderCircle },
+  { value: "timeout" as const, label: auditResultLabels.timeout, icon: Clock3 },
+]
+
 export function DispatchAuditFilters({
   dispatchType,
   result,
@@ -30,6 +60,11 @@ export function DispatchAuditFilters({
   onKeywordChange,
   onReset,
 }: DispatchAuditFiltersProps) {
+  const selectedDispatch = dispatchOptions.find((option) => option.value === dispatchType) ?? dispatchOptions[0]
+  const selectedResult = resultOptions.find((option) => option.value === result) ?? resultOptions[0]
+  const SelectedDispatchIcon = selectedDispatch.icon
+  const SelectedResultIcon = selectedResult.icon
+
   return (
     <section
       className="shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
@@ -68,31 +103,49 @@ export function DispatchAuditFilters({
           </span>
         </label>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="sr-only">下发类型</span>
-          <select
-            value={dispatchType}
-            onChange={(event) => onDispatchTypeChange(event.target.value as DispatchType)}
-            className={fieldClass}
-          >
-            {Object.entries(dispatchTypeLabels).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-col gap-1.5">
+          <span className="sr-only" id="dispatch-type-label">下发类型</span>
+          <Select value={dispatchType} onValueChange={(value) => onDispatchTypeChange(value as DispatchType)}>
+            <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="dispatch-type-label">
+              <div className="flex min-w-0 items-center gap-2">
+                <SelectedDispatchIcon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                <span className="truncate">{dispatchTypeLabels[dispatchType]}</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {dispatchOptions.map(({ value, label, icon: Icon }) => (
+                <SelectItem key={value} value={value} textValue={label} className="py-2.5">
+                  <span className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                    <span>{label}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="sr-only">执行状态</span>
-          <select
-            value={result}
-            onChange={(event) => onResultChange(event.target.value as AuditResult)}
-            className={fieldClass}
-          >
-            {Object.entries(auditResultLabels).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
+        <div className="flex flex-col gap-1.5">
+          <span className="sr-only" id="result-label">执行状态</span>
+          <Select value={result} onValueChange={(value) => onResultChange(value as AuditResult)}>
+            <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="result-label">
+              <div className="flex min-w-0 items-center gap-2">
+                <SelectedResultIcon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                <span className="truncate">{auditResultLabels[result]}</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {resultOptions.map(({ value, label, icon: Icon }) => (
+                <SelectItem key={value} value={value} textValue={label} className="py-2.5">
+                  <span className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                    <span>{label}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <label className="flex flex-col gap-1.5">
           <span className="sr-only">操作者</span>
@@ -123,6 +176,5 @@ export function DispatchAuditFilters({
     </section>
   )
 }
-
 
 
