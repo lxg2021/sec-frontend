@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+<title id="title">WatchPoint 攻击溯源动态登录背景</title>
+<desc id="desc">非对称安全拓扑展示攻击路径，中心区域保持低干扰。</desc>
+<defs>
+  <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#02060b"/><stop offset=".52" stop-color="#07111b"/><stop offset="1" stop-color="#02070d"/>
+  </linearGradient>
+  <radialGradient id="ambient2" cx="82%" cy="12%" r="72%">
+    <stop offset="0" stop-color="#0a3950" stop-opacity=".28"/><stop offset=".46" stop-color="#061c2b" stop-opacity=".12"/><stop offset="1" stop-color="#02060b" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="trace2" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#1aa99f"/><stop offset=".48" stop-color="#287fc2"/><stop offset=".72" stop-color="#c98638"/><stop offset="1" stop-color="#c34556"/>
+  </linearGradient>
+  <linearGradient id="traceHot" x1="1" y1="0" x2="0" y2="0">
+    <stop offset="0" stop-color="#c84455"/><stop offset=".48" stop-color="#c77736"/><stop offset="1" stop-color="#2a88b8"/>
+  </linearGradient>
+  <pattern id="microGrid2" width="56" height="56" patternUnits="userSpaceOnUse">
+    <path d="M56 0H0V56" fill="none" stroke="#69a8c3" stroke-width=".45" opacity=".045"/>
+    <circle cx="1.5" cy="1.5" r="1" fill="#83bad1" opacity=".08"/>
+  </pattern>
+  <filter id="nodeShadow2" x="-80%" y="-80%" width="260%" height="260%">
+    <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".62"/>
+    <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#20bde6" flood-opacity=".14"/>
+  </filter>
+  <filter id="traceGlow2" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="2.2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <path id="primaryRoute2" d="M0 174 C86 166 111 238 196 250 S317 204 376 282 S401 431 486 474 S472 643 559 704 S729 748 838 804 S1042 817 1154 739 S1267 620 1374 654 S1514 726 1600 662"/>
+  <path id="hotRoute2" d="M1600 288 C1510 263 1468 351 1372 353 S1236 310 1164 390 S1086 534 1003 583"/>
+  <style>
+    .link2{fill:none;stroke:#5d91aa;stroke-width:1.2;opacity:.14}
+    .link2b{fill:none;stroke:#56abc4;stroke-width:1.25;opacity:.22}
+    .traceBase2{fill:none;stroke:#153c50;stroke-width:3.2;opacity:.3;stroke-linecap:round}
+    .traceFlow2{fill:none;stroke:url(#trace2);stroke-width:1.7;opacity:.68;stroke-linecap:round;stroke-dasharray:9 18;animation:flow2 6.5s linear infinite}
+    .traceFlowHot2{fill:none;stroke:url(#traceHot);stroke-width:1.6;opacity:.64;stroke-linecap:round;stroke-dasharray:8 17;animation:flow2 5.3s linear infinite reverse}
+    .fade2{animation:fade2 4.6s ease-in-out infinite}
+    .label2{font:500 11px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.04em;fill:#7f9aac;opacity:.72}
+    .meta2{font:500 9px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.06em;fill:#58768a;opacity:.62}
+    @keyframes flow2{to{stroke-dashoffset:-81}}
+    @keyframes fade2{0%,100%{opacity:.22}50%{opacity:.48}}
+    @media(prefers-reduced-motion:reduce){.traceFlow2,.traceFlowHot2,.fade2{animation:none!important}}
+  </style>
+</defs>
+<rect width="1600" height="1000" fill="url(#bg2)"/>
+<rect width="1600" height="1000" fill="url(#ambient2)"/>
+<rect width="1600" height="1000" fill="url(#microGrid2)"/>
+
+<!-- dim environmental topology, intentionally irregular -->
+<g>
+  <path class="link2" d="M74 74L154 118L227 69L305 116L362 61L446 101"/>
+  <path class="link2" d="M154 118L196 250L305 116L376 282L446 101L532 176"/>
+  <path class="link2" d="M36 404L109 365L184 410L257 371L329 421"/>
+  <path class="link2" d="M74 805L155 746L238 792L310 717L395 768L486 704"/>
+  <path class="link2" d="M20 927L91 875L155 932L238 873L335 928L395 768"/>
+  <path class="link2" d="M1104 74L1182 117L1254 61L1320 138L1420 81L1518 126"/>
+  <path class="link2" d="M1055 215L1142 180L1218 238L1320 138L1372 353L1518 126"/>
+  <path class="link2" d="M1170 833L1232 772L1321 841L1406 786L1497 866L1570 807"/>
+  <path class="link2" d="M1082 943L1170 833L1241 938L1321 841L1414 949L1497 866"/>
+  <path class="link2" d="M1428 451L1506 403L1580 448"/>
+</g>
+
+<!-- central reading lane is created by deliberately reducing graph density -->
+
+<!-- primary attack trace -->
+<use href="#primaryRoute2" class="traceBase2"/>
+<use href="#primaryRoute2" class="traceFlow2" filter="url(#traceGlow2)"/>
+
+<!-- ingress -->
+<g transform="translate(72 184)"><circle r="6" fill="#061a21" stroke="#22a89d" stroke-width="1.6"/></g>
+<text x="102" y="172" class="label2">INTERNET</text><text x="102" y="188" class="meta2">185.73.44.19 路 ingress</text>
+
+<!-- gateway -->
+<g transform="translate(196 250)"><circle r="6" fill="#071923" stroke="#2a8db7" stroke-width="1.6"/></g>
+<text x="220" y="242" class="label2">vpn-gw-02</text><text x="220" y="258" class="meta2">remote access gateway</text>
+
+<!-- endpoint -->
+<g transform="translate(376 282)"><circle r="6" fill="#071724" stroke="#287fbd" stroke-width="1.6"/></g>
+<text x="404" y="274" class="label2">WIN-EP-24</text><text x="404" y="290" class="meta2">endpoint 路 initial access</text>
+
+<!-- process -->
+<g transform="translate(486 474)"><circle r="6" fill="#081621" stroke="#2d8bbd" stroke-width="1.6"/></g>
+<text x="510" y="466" class="label2">powershell.exe</text><text x="510" y="482" class="meta2">encoded command 路 pid 6428</text>
+
+<!-- credential node -->
+<g transform="translate(559 704)"><circle r="6" fill="#21171a" stroke="#c77736" stroke-width="1.6"/></g>
+<text x="588" y="697" class="label2" fill="#d6a068">credential-token</text><text x="588" y="713" class="meta2">privilege escalation</text>
+
+<!-- lateral movement -->
+<g transform="translate(838 804)"><circle r="6" fill="#071923" stroke="#27a69e" stroke-width="1.6"/></g>
+<text x="866" y="797" class="label2">SMB / lateral move</text><text x="866" y="813" class="meta2">east-west connection</text>
+
+<!-- server -->
+<g transform="translate(1154 739)"><circle r="6" fill="#071724" stroke="#287fbd" stroke-width="1.6"/></g>
+<text x="1182" y="732" class="label2">APP-SRV-07</text><text x="1182" y="748" class="meta2">service account abuse</text>
+
+<!-- crown jewel -->
+<g transform="translate(1374 654)"><circle r="6" fill="#211319" stroke="#c34556" stroke-width="1.6"/></g>
+<text x="1403" y="647" class="label2">DB-CORE-01</text><text x="1403" y="663" class="meta2">protected asset 路 impact</text>
+
+<!-- moving evidence packets -->
+<circle r="2.4" fill="#a8c9cf" opacity=".82" filter="url(#traceGlow2)"><animateMotion dur="6.5s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
+<circle r="2" fill="#3aaea6" opacity=".78" filter="url(#traceGlow2)"><animateMotion dur="6.5s" begin="-2.15s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
+<circle r="2.1" fill="#d49147" opacity=".8" filter="url(#traceGlow2)"><animateMotion dur="6.5s" begin="-4.3s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
+
+<!-- secondary suspicious route on right, shorter and quieter -->
+<use href="#hotRoute2" class="traceBase2" opacity=".55"/>
+<use href="#hotRoute2" class="traceFlowHot2" filter="url(#traceGlow2)"/>
+<g transform="translate(1536 286)"><circle r="6" fill="#071923" stroke="#2a88b8" stroke-width="1.6"/></g>
+<text x="1430" y="264" class="label2">api-edge-03</text>
+<g transform="translate(1372 353)"><circle r="6" fill="#20151a" stroke="#c77736" stroke-width="1.6"/></g>
+<text x="1398" y="349" class="label2">unsigned module</text>
+<g transform="translate(1164 390)"><circle r="6" fill="#251318" stroke="#c34556" stroke-width="1.6"/></g>
+<text x="1190" y="385" class="label2">behavior alert</text>
+<circle r="2.2" fill="#d0b37b" opacity=".78" filter="url(#traceGlow2)"><animateMotion dur="5.3s" repeatCount="indefinite"><mpath href="#hotRoute2"/></animateMotion></circle>
+
+<!-- restrained peripheral nodes -->
+<g opacity=".78">
+  <g transform="translate(154 118)"><circle r="7" fill="#07141e" stroke="#279de1" stroke-width="1.8"/></g>
+  <g transform="translate(305 116)"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
+  <g transform="translate(446 101)"><circle r="6" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(109 365)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(184 410)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(257 371)"><rect x="-5" y="-5" width="10" height="10" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.6" transform="rotate(45)"/></g>
+  <g transform="translate(155 746)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(238 792)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(310 717)"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
+  <g transform="translate(1182 117)"><circle r="7" fill="#07141e" stroke="#279de1" stroke-width="1.8"/></g>
+  <g transform="translate(1254 61)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.8"/></g>
+  <g transform="translate(1320 138)"><rect x="-7" y="-7" width="14" height="14" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.8" transform="rotate(45)"/></g>
+  <g transform="translate(1420 81)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(1232 772)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+  <g transform="translate(1321 841)"><circle r="6" fill="#07141e" stroke="#279de1" stroke-width="1.7"/></g>
+  <g transform="translate(1406 786)"><rect x="-6" y="-6" width="12" height="12" rx="2" fill="#101522" stroke="#7779d8" stroke-width="1.7" transform="rotate(45)"/></g>
+  <g transform="translate(1497 866)"><circle r="7" fill="#071b20" stroke="#25c7bc" stroke-width="1.7"/></g>
+</g>
+
+<!-- subtle telemetry ticks -->
+<g class="fade2" opacity=".35" fill="#4b8ca8">
+  <rect x="31" y="560" width="34" height="1"/><rect x="72" y="560" width="12" height="1"/>
+  <rect x="1498" y="544" width="48" height="1"/><rect x="1553" y="544" width="17" height="1"/>
+  <rect x="686" y="52" width="42" height="1"/><rect x="735" y="52" width="13" height="1"/>
+</g>
+</svg>
+
+
