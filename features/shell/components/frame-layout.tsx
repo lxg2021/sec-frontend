@@ -186,13 +186,14 @@ export function FrameLayout({ children }: { children: ReactNode }) {
           {/* Logo */}
           <div className={`flex items-center justify-between mb-8 pb-4 ${isClassicStyle ? "border-b border-slate-200" : "border-b border-slate-700/30"}`}>
             <div className={`${sidebarCollapsed ? "hidden" : "flex items-center gap-3"}`}>
-              <div className="relative">
+              <div className="flex h-9 w-11 shrink-0 items-center justify-center">
                 <Image
-                  src="/watchpoint-mark.svg"
+                  src="/color-eye-logo-transparent.svg"
                   alt="WatchPoint Logo"
-                  width={36}
-                  height={36}
-                  className="rounded-lg shadow-lg"
+                  width={44}
+                  height={28}
+                  unoptimized
+                  className="h-7 w-11 object-contain"
                 />
               </div>
               <div>
@@ -391,3 +392,4 @@ export function FrameLayout({ children }: { children: ReactNode }) {
     </div>
   )
 }
+

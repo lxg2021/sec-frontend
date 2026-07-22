@@ -14,7 +14,7 @@ import Image from 'next/image'
 
 // 使用图片的Cypher LOGO组件
 const CypherLogo = ({ className = "w-20 h-20", alt = "WatchPoint logo" }) => {
-  return <Image src="/color-eye-logo-transparent.svg" alt={alt} width={80} height={80} priority unoptimized className={`${className} object-contain`} />
+  return <Image src="/color-eye-logo-animated.svg?v=20260722-3" alt={alt} width={80} height={80} priority unoptimized className={`${className} object-contain`} />
 }
 
 export default function LoginForm() {
@@ -208,6 +208,8 @@ export default function LoginForm() {
     </div>
   )
 }
+
+
 
 
 
