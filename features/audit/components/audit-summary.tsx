@@ -32,4 +32,3 @@ export function AuditSummary({ total, policy, command, config, abnormal }: Audit
     </div>
   )
 }
-

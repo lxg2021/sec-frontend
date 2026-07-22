@@ -16,4 +16,3 @@ export function AuditEventDetail({ event, onClose }: AuditEventDetailProps) {
     </div>
   </aside>
 }
-
