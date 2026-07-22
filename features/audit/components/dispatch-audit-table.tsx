@@ -37,7 +37,7 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
       </div>
 
       <div className="min-h-0 min-w-0 flex-1 overflow-auto">
-        <table className="w-full table-fixed text-left text-sm 2xl:min-w-[1280px]">
+        <table className="w-full table-fixed text-left text-xs 2xl:min-w-[1280px]">
           <thead className="sticky top-0 z-10 bg-slate-50 text-xs font-semibold text-slate-500">
             <tr>
               <th className="w-[104px] px-4 py-3 2xl:w-[96px]">下发时间</th>
@@ -99,7 +99,7 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
                       <ResultIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                       {auditResultLabels[event.result]}
                     </span>
-                    <div className="mt-1 truncate text-[11px] text-slate-400 2xl:hidden">{event.successCount}/{event.totalCount} 成功</div>
+                    <div className="mt-1 truncate text-xs text-slate-400 2xl:hidden">{event.successCount}/{event.totalCount} 成功</div>
                   </td>
                   <td className="hidden px-3 py-3 text-xs text-slate-600 2xl:table-cell">
                     <div className="truncate">{event.successCount}/{event.totalCount} 成功</div>
@@ -126,5 +126,6 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
     </div>
   )
 }
+
 
 
