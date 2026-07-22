@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
 <title id="title">WatchPoint 攻击溯源动态登录背景</title>
 <desc id="desc">非对称安全拓扑展示攻击路径，中心区域保持低干扰。</desc>
@@ -23,10 +23,7 @@
     <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".62"/>
     <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#20bde6" flood-opacity=".14"/>
   </filter>
-  <filter id="traceGlow2" x="-50%" y="-50%" width="200%" height="200%">
-    <feGaussianBlur stdDeviation="2.2" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
-  </filter>
-  <path id="primaryRoute2" d="M0 174 C86 166 111 238 196 250 S317 204 376 282 S401 431 486 474 S472 643 559 704 S729 748 838 804 S1042 817 1154 739 S1267 620 1374 654 S1514 726 1600 662"/>
+<path id="primaryRoute2" d="M0 174 C86 166 111 238 196 250 S317 204 376 282 S401 431 486 474 S472 643 559 704 S729 748 838 804 S1042 817 1154 739 S1267 620 1374 654 S1514 726 1600 662"/>
   <path id="hotRoute2" d="M1600 288 C1510 263 1468 351 1372 353 S1236 310 1164 390 S1086 534 1003 583"/>
   <style>
     .link2{fill:none;stroke:#5d91aa;stroke-width:1.2;opacity:.14}
@@ -66,7 +63,7 @@
 
 <!-- primary attack trace -->
 <use href="#primaryRoute2" class="traceBase2"/>
-<use href="#primaryRoute2" class="traceFlow2" filter="url(#traceGlow2)"/>
+<use href="#primaryRoute2" class="traceFlow2"/>
 
 <!-- ingress -->
 <g transform="translate(72 184)"><circle r="6" fill="#061a21" stroke="#22a89d" stroke-width="1.6"/></g>
@@ -101,20 +98,20 @@
 <text x="1403" y="647" class="label2">DB-CORE-01</text><text x="1403" y="663" class="meta2">protected asset 路 impact</text>
 
 <!-- moving evidence packets -->
-<circle r="2.4" fill="#a8c9cf" opacity=".82" filter="url(#traceGlow2)"><animateMotion dur="6.5s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
-<circle r="2" fill="#3aaea6" opacity=".78" filter="url(#traceGlow2)"><animateMotion dur="6.5s" begin="-2.15s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
-<circle r="2.1" fill="#d49147" opacity=".8" filter="url(#traceGlow2)"><animateMotion dur="6.5s" begin="-4.3s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
+<circle r="2.4" fill="#a8c9cf" opacity=".82"><animateMotion dur="6.5s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
+<circle r="2" fill="#3aaea6" opacity=".78"><animateMotion dur="6.5s" begin="-2.15s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
+<circle r="2.1" fill="#d49147" opacity=".8"><animateMotion dur="6.5s" begin="-4.3s" repeatCount="indefinite"><mpath href="#primaryRoute2"/></animateMotion></circle>
 
 <!-- secondary suspicious route on right, shorter and quieter -->
 <use href="#hotRoute2" class="traceBase2" opacity=".55"/>
-<use href="#hotRoute2" class="traceFlowHot2" filter="url(#traceGlow2)"/>
+<use href="#hotRoute2" class="traceFlowHot2"/>
 <g transform="translate(1536 286)"><circle r="6" fill="#071923" stroke="#2a88b8" stroke-width="1.6"/></g>
 <text x="1430" y="264" class="label2">api-edge-03</text>
 <g transform="translate(1372 353)"><circle r="6" fill="#20151a" stroke="#c77736" stroke-width="1.6"/></g>
 <text x="1398" y="349" class="label2">unsigned module</text>
 <g transform="translate(1164 390)"><circle r="6" fill="#251318" stroke="#c34556" stroke-width="1.6"/></g>
 <text x="1190" y="385" class="label2">behavior alert</text>
-<circle r="2.2" fill="#d0b37b" opacity=".78" filter="url(#traceGlow2)"><animateMotion dur="5.3s" repeatCount="indefinite"><mpath href="#hotRoute2"/></animateMotion></circle>
+<circle r="2.2" fill="#d0b37b" opacity=".78"><animateMotion dur="5.3s" repeatCount="indefinite"><mpath href="#hotRoute2"/></animateMotion></circle>
 
 <!-- restrained peripheral nodes -->
 <g opacity=".78">
