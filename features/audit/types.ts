@@ -7,6 +7,7 @@ export type { UserActionType, UserActivityAudit } from "./models/user-audit"
 export type AuditCategory = "dispatch" | "user" | "change"
 export type DispatchType = "all" | "policy" | "command" | "config"
 export type AuditResult = "all" | "success" | "failed" | "pending" | "timeout"
+export type DispatchExecutionStatus = "pending" | "accepted" | "running" | "success" | "failed" | "skipped" | "canceled" | "unknown"
 
 export interface DispatchAuditEvent {
   id: string
@@ -30,7 +31,27 @@ export interface DispatchAuditEvent {
   payload: Record<string, string | number | boolean | null>
 }
 
-export const dispatchTypeLabels: Record<DispatchType, string> = {
+
+export interface DispatchExecutionResult {
+  id: string
+  operationId: string
+  dispatchId: string
+  agentId: string
+  publishStatus: string
+  executionStatus: DispatchExecutionStatus
+  failureCertainty: "definitive" | "uncertain" | "unknown"
+  taskVisibility: "fresh" | "unknown" | string
+  reasonCode?: string
+  reasonMessage?: string
+  errorCode?: string
+  errorMessage?: string
+  createdAt?: string
+  updatedAt?: string
+  publishedAt?: string
+  startedAt?: string
+  lastReportAt?: string
+  finishedAt?: string
+}export const dispatchTypeLabels: Record<DispatchType, string> = {
   all: "全部下发",
   policy: "策略下发",
   command: "命令下发",

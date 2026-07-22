@@ -8,6 +8,7 @@ interface DispatchAuditTableProps {
   events: DispatchAuditEvent[]
   selectedId?: string
   onSelect: (event: DispatchAuditEvent) => void
+  onView: (event: DispatchAuditEvent) => void
 }
 
 const typeIcons = { policy: FileOutput, command: Copy, config: Settings2 }
@@ -25,7 +26,7 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
-export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAuditTableProps) {
+export function DispatchAuditTable({ events, selectedId, onSelect, onView }: DispatchAuditTableProps) {
   return (
     <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -37,21 +38,21 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
       </div>
 
       <div className="min-h-0 min-w-0 flex-1 overflow-auto">
-        <table className="w-full table-fixed text-left text-xs 2xl:min-w-[1280px]">
+        <table className="w-full table-fixed text-left text-xs 2xl:min-w-[1700px]">
           <thead className="sticky top-0 z-10 bg-slate-50 text-xs font-semibold text-slate-500">
             <tr>
-              <th className="w-[104px] px-4 py-3 2xl:w-[96px]">下发时间</th>
-              <th className="w-[108px] px-3 py-3 2xl:w-[104px]">下发类型</th>
-              <th className="px-3 py-3 2xl:w-[145px]">下发对象</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[74px]">版本</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[112px]">下发任务</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[112px]">任务ID</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[82px]">操作者</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[94px]">操作者ID</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[160px]">目标范围</th>
-              <th className="w-[88px] px-3 py-3 2xl:w-[82px]">状态</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[98px]">执行结果</th>
-              <th className="w-[62px] px-3 py-3 text-right 2xl:w-[58px]">详情</th>
+              <th className="w-[104px] px-4 py-3 2xl:w-[120px]">下发时间</th>
+              <th className="w-[108px] px-3 py-3 2xl:w-[120px]">下发类型</th>
+              <th className="px-3 py-3 2xl:w-[240px]">下发对象</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[80px]">版本</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[220px]">下发任务</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[220px]">任务ID</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[90px]">操作者</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[220px]">操作者ID</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[110px]">目标范围</th>
+              <th className="w-[88px] px-3 py-3 2xl:w-[100px]">状态</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[110px]">执行结果</th>
+              <th className="w-[62px] px-3 py-3 text-right 2xl:w-[70px]">详情</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -60,8 +61,28 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
               const ResultIcon = event.result === "success" ? CircleCheck : event.result === "failed" || event.result === "timeout" ? TriangleAlert : Clock3
 
               return (
-                <tr key={event.id} className={selectedId === event.id ? "bg-blue-50/60" : "hover:bg-slate-50/80"}>
-                  <td className="whitespace-nowrap px-4 py-3 text-xs text-slate-500">{formatDate(event.occurredAt)}</td>
+                <tr
+                  key={event.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selectedId === event.id}
+                  onClick={() => onSelect(event)}
+                  onKeyDown={(keyboardEvent) => {
+                    if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+                      keyboardEvent.preventDefault()
+                      onSelect(event)
+                    }
+                  }}
+                  className={selectedId === event.id
+                    ? "cursor-pointer bg-blue-50/60 outline-none"
+                    : "cursor-pointer outline-none hover:bg-slate-50/80 focus-visible:bg-sky-50/70"}
+                >
+                  <td className="relative whitespace-nowrap px-4 py-3 text-xs text-slate-500">
+                    {selectedId === event.id && (
+                      <span className="absolute inset-y-1 left-0 w-1 rounded-r-full bg-cyan-500" aria-hidden="true" />
+                    )}
+                    {formatDate(event.occurredAt)}
+                  </td>
                   <td className="px-3 py-3">
                     <span className="inline-flex items-center gap-1 rounded-md bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700">
                       <Icon className={`h-3.5 w-3.5 shrink-0 ${typeIconStyles[event.dispatchType]}`} aria-hidden="true" />
@@ -103,7 +124,10 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
                   <td className="px-3 py-3 text-right">
                     <button
                       type="button"
-                      onClick={() => onSelect(event)}
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation()
+                        onView(event)
+                      }}
                       aria-label={"查看 " + event.objectName + " 下发详情"}
                       className="inline-flex min-h-9 items-center gap-0.5 rounded-lg px-2 text-xs font-medium text-blue-600 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                     >

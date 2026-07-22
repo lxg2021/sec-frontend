@@ -25,6 +25,7 @@ export function AuditCenter() {
   const [actor, setActor] = useState("")
   const [keyword, setKeyword] = useState("")
   const [selectedId, setSelectedId] = useState<string>()
+  const [detailOpen, setDetailOpen] = useState(false)
   const [dispatchEvents, setDispatchEvents] = useState<DispatchAuditEvent[]>([])
   const [dispatchLoading, setDispatchLoading] = useState(true)
   const [dispatchError, setDispatchError] = useState("")
@@ -85,6 +86,7 @@ export function AuditCenter() {
     setActor("")
     setKeyword("")
     setSelectedId(undefined)
+    setDetailOpen(false)
   }
 
   return (
@@ -108,6 +110,7 @@ export function AuditCenter() {
                 onChange={(category) => {
                   setActiveCategory(category)
                   setSelectedId(undefined)
+                  setDetailOpen(false)
                 }}
               />
               <div className="flex items-center gap-1 xl:border-l xl:border-slate-200 xl:pl-4">
@@ -163,10 +166,18 @@ export function AuditCenter() {
                 config={filteredEvents.filter((event) => event.dispatchType === "config").length}
                 abnormal={abnormalCount}
               />
-              <div className="grid min-h-0 flex-1 gap-4 overflow-hidden xl:grid-cols-[minmax(0,1fr)_360px]">
-                <DispatchAuditTable events={filteredEvents} selectedId={selectedEvent?.id} onSelect={(event) => setSelectedId(event.id)} />
-                <AuditEventDetail event={selectedEvent} onClose={() => setSelectedId(undefined)} />
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <DispatchAuditTable
+                  events={filteredEvents}
+                  selectedId={selectedEvent?.id}
+                  onSelect={(event) => setSelectedId(event.id)}
+                  onView={(event) => {
+                    setSelectedId(event.id)
+                    setDetailOpen(true)
+                  }}
+                />
               </div>
+              <AuditEventDetail event={selectedEvent} open={detailOpen} onClose={() => setDetailOpen(false)} />
             </div>
           )}
 
@@ -204,18 +215,3 @@ export function AuditCenter() {
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

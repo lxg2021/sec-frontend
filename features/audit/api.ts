@@ -2,7 +2,7 @@
 
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
-import type { AuditResult, DispatchAuditEvent, DispatchType } from "@/features/audit/types"
+import type { AuditResult, DispatchAuditEvent, DispatchExecutionResult, DispatchExecutionStatus, DispatchType } from "@/features/audit/types"
 
 const PAGE_SIZE = 100
 const MAX_PAGES = 20
@@ -72,6 +72,30 @@ interface ListAuditEventsData {
   total?: number | string
 }
 
+interface PMCExecutionResultData {
+  operation_id?: string
+  dispatch_id?: string
+  agent_id?: string
+  publish_status?: string
+  execution_status?: number | string
+  failure_certainty?: number | string
+  reason_code?: string
+  reason_message?: string
+  error_code?: string
+  error_message?: string
+  created_at_unix_ms?: number | string
+  updated_at_unix_ms?: number | string
+  published_at_unix_ms?: number | string
+  started_at_unix_ms?: number | string
+  last_report_at_unix_ms?: number | string
+  finished_at_unix_ms?: number | string
+  task_visibility?: string
+}
+
+interface QueryExecutionResultsData {
+  results?: PMCExecutionResultData[]
+  total?: number | string
+}
 interface ListObjectDefinitionsData {
   definitions?: PMCObjectDefinitionData[]
   total?: number | string
@@ -144,6 +168,47 @@ function resultValue(operation: PMCOperationSnapshot): Exclude<AuditResult, "all
   return "pending"
 }
 
+function executionStatusValue(value: unknown): DispatchExecutionStatus {
+  if (typeof value === "number" || /^\d+$/.test(stringValue(value))) {
+    switch (numberValue(value)) {
+      case 1: return "pending"
+      case 2: return "running"
+      case 3: return "success"
+      case 4: return "failed"
+      case 5: return "skipped"
+      case 6: return "canceled"
+      case 7: return "accepted"
+      default: return "unknown"
+    }
+  }
+
+  const normalized = stringValue(value).toLowerCase()
+  if (normalized.includes("accepted")) return "accepted"
+  if (normalized.includes("pending")) return "pending"
+  if (normalized.includes("running")) return "running"
+  if (normalized.includes("success")) return "success"
+  if (normalized.includes("failed")) return "failed"
+  if (normalized.includes("skipped")) return "skipped"
+  if (normalized.includes("canceled") || normalized.includes("cancelled")) return "canceled"
+  return "unknown"
+}
+
+function failureCertaintyValue(value: unknown): DispatchExecutionResult["failureCertainty"] {
+  if (typeof value === "number" || /^\d+$/.test(stringValue(value))) {
+    if (numberValue(value) === 1) return "definitive"
+    if (numberValue(value) === 2) return "uncertain"
+    return "unknown"
+  }
+  const normalized = stringValue(value).toLowerCase()
+  if (normalized.includes("definitive")) return "definitive"
+  if (normalized.includes("uncertain")) return "uncertain"
+  return "unknown"
+}
+
+function optionalIsoDate(value: unknown) {
+  const unixMs = numberValue(value)
+  return unixMs > 0 ? new Date(unixMs).toISOString() : undefined
+}
 function actorName(identity?: ActorIdentity) {
   const type = identity?.type.toLowerCase()
   if (type === "operator") return "操作员"
@@ -305,4 +370,48 @@ export async function listDispatchAuditEvents(): Promise<DispatchAuditEvent[]> {
       },
     }]
   }).sort((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt))
+}
+export async function listDispatchExecutionResults(operationId: string): Promise<DispatchExecutionResult[]> {
+  const normalizedOperationId = operationId.trim()
+  if (!normalizedOperationId) return []
+
+  const items: DispatchExecutionResult[] = []
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const result = await http.post("queryPMCExecutionResults", {
+      request_id: createRequestId(),
+      operation_id: normalizedOperationId,
+      page,
+      page_size: PAGE_SIZE,
+    }) as ApiResult<QueryExecutionResultsData>
+    const batch = Array.isArray(result.data?.results) ? result.data.results : []
+
+    batch.forEach((item, index) => {
+      const dispatchId = stringValue(item.dispatch_id)
+      const agentId = stringValue(item.agent_id)
+      items.push({
+        id: dispatchId || `${normalizedOperationId}:${agentId}:${page}:${index}`,
+        operationId: stringValue(item.operation_id) || normalizedOperationId,
+        dispatchId,
+        agentId,
+        publishStatus: stringValue(item.publish_status) || "-",
+        executionStatus: executionStatusValue(item.execution_status),
+        failureCertainty: failureCertaintyValue(item.failure_certainty),
+        taskVisibility: stringValue(item.task_visibility) || "unknown",
+        reasonCode: stringValue(item.reason_code) || undefined,
+        reasonMessage: stringValue(item.reason_message) || undefined,
+        errorCode: stringValue(item.error_code) || undefined,
+        errorMessage: stringValue(item.error_message) || undefined,
+        createdAt: optionalIsoDate(item.created_at_unix_ms),
+        updatedAt: optionalIsoDate(item.updated_at_unix_ms),
+        publishedAt: optionalIsoDate(item.published_at_unix_ms),
+        startedAt: optionalIsoDate(item.started_at_unix_ms),
+        lastReportAt: optionalIsoDate(item.last_report_at_unix_ms),
+        finishedAt: optionalIsoDate(item.finished_at_unix_ms),
+      })
+    })
+
+    if (batch.length < PAGE_SIZE) break
+  }
+
+  return items
 }

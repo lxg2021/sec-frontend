@@ -69,6 +69,7 @@ const FALLBACK_CONFIG = {
       createPatchInstallTask: "/sensor/control/patch/installtask",
       listPMCObjectDefinitions: "/sensor/control/pmc/object-definitions/list",
       listPMCOperations: "/sensor/control/pmc/operations/list",
+      queryPMCExecutionResults: "/sensor/control/pmc/execution-results/query-by-filter",
       listPMCAuditEvents: "/sensor/control/pmc/audit-events/list",
       operatePMCObject: "/sensor/control/pmc/objects/operate",
       createNetworkAccessPolicy: "/sensor/control/network/policy",
@@ -181,5 +182,3 @@ export async function resolveApiUrl(pathOrEndpoint) {
 
   return joinUrl(api.baseUrl, api.prefix, endpointPath)
 }
-
-
