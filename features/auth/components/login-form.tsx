@@ -61,7 +61,7 @@ export default function LoginForm() {
           </div>
 
           {/* 登录卡片 */}
-          <Card className="backdrop-blur-xl bg-white/10 border-white/20 shadow-2xl">
+          <Card className="bg-slate-900/90 border-slate-600/50 shadow-2xl">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl text-center text-white">{t("loginTitle")}</CardTitle>
             </CardHeader>
