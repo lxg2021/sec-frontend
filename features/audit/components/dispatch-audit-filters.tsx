@@ -67,7 +67,7 @@ export function DispatchAuditFilters({
 
   return (
     <section
-      className="shrink-0 overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+      className="shrink-0 overflow-hidden rounded-2xl bg-card"
       aria-labelledby="dispatch-filter-title"
     >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-5 py-4">
@@ -176,6 +176,7 @@ export function DispatchAuditFilters({
     </section>
   )
 }
+
 
 
 
