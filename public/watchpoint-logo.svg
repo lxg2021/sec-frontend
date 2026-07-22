@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="140 220 1000 700" role="img" aria-labelledby="title desc">
+  <title id="title">WatchPoint EDR</title>
+  <desc id="desc">红色锐利猫头鹰眼部图形、中心鸟喙与红色点连接 WatchPoint 字标</desc>
+  <defs>
+    <linearGradient id="redLeft" x1="175" y1="285" x2="625" y2="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff4a18"/>
+      <stop offset="0.7" stop-color="#f20d16"/>
+      <stop offset="1" stop-color="#e60012"/>
+    </linearGradient>
+    <linearGradient id="redRight" x1="1105" y1="285" x2="625" y2="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff4a18"/>
+      <stop offset="0.7" stop-color="#f20d16"/>
+      <stop offset="1" stop-color="#e60012"/>
+    </linearGradient>
+    <linearGradient id="wordRed" x1="680" y1="760" x2="1045" y2="860" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ed1718"/>
+      <stop offset="1" stop-color="#dd201c"/>
+    </linearGradient>
+  </defs>
+
+  <path fill="url(#redLeft)" d="M174 284C254 334 337 376 439 418C517 450 573 493 626 539C529 506 431 477 349 441C282 411 229 356 174 284Z"/>
+  <path fill="url(#redRight)" d="M1106 284C1026 334 943 376 841 418C763 450 707 493 626 539C751 503 849 477 931 441C998 411 1051 356 1106 284Z"/>
+
+  <path fill="url(#redLeft)" d="M279 449L397 490C389 524 403 561 439 606L538 704L279 449Z"/>
+  <path fill="url(#redRight)" d="M1001 449L883 490C891 524 877 561 841 606L742 704L1001 449Z"/>
+
+  <path fill="#f00e19" fill-rule="evenodd" d="M430 497C426 551 456 585 500 585C532 585 560 569 579 546C557 560 536 567 515 567C477 567 453 543 451 503L430 497Z"/>
+  <path fill="#f00e19" fill-rule="evenodd" d="M850 497C854 551 824 585 780 585C748 585 720 569 701 546C723 560 744 567 765 567C803 567 827 543 829 503L850 497Z"/>
+
+  <path fill="url(#wordRed)" d="M626 539L662 579L626 641L590 579Z"/>
+
+  <text x="190" y="862" fill="#ef1718" font-family="Arial, Helvetica, sans-serif" font-size="146" font-weight="600" letter-spacing="-8">Watch</text>
+  <circle cx="652" cy="814" r="14" fill="#ef1718"/>
+  <circle cx="652" cy="814" r="5" fill="#ff6040"/>
+  <text x="682" y="862" fill="#ef1718" font-family="Arial, Helvetica, sans-serif" font-size="146" font-weight="600" letter-spacing="-8">Point</text>
+</svg>
