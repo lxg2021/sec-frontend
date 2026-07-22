@@ -37,7 +37,7 @@ export function DispatchAuditFilters({
     >
       <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
             <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           </span>
           <div className="min-w-0">
@@ -54,7 +54,7 @@ export function DispatchAuditFilters({
           onClick={onReset}
           className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
         >
-          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+          <RotateCcw className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />
           重置
         </button>
       </header>
@@ -63,7 +63,7 @@ export function DispatchAuditFilters({
         <label className="flex flex-col gap-1.5">
           <span className="sr-only">时间范围</span>
           <span className={`${fieldClass} flex cursor-default items-center gap-2`}>
-            <CalendarDays className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+            <CalendarDays className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
             <span className="truncate">最近 7 天</span>
           </span>
         </label>
@@ -108,7 +108,7 @@ export function DispatchAuditFilters({
           <span className="sr-only">关键字</span>
           <span className="relative block">
             <Search
-              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-500"
               aria-hidden="true"
             />
             <input
@@ -123,5 +123,6 @@ export function DispatchAuditFilters({
     </section>
   )
 }
+
 
 
