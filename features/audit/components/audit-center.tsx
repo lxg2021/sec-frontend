@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { ClipboardList, Download, RefreshCw } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
@@ -11,9 +11,9 @@ import { DispatchAuditFilters } from "./dispatch-audit-filters"
 import { DispatchAuditTable } from "./dispatch-audit-table"
 import { GlobalFilters } from "./global-filters"
 import { UserActivityAudit } from "./user-activity-audit"
-import { mockDispatchAuditEvents } from "@/features/audit/mock/dispatch-audit-events"
+import { listDispatchAuditEvents } from "@/features/audit/api"
 import { mockUserAuditData } from "@/features/audit/mock/user-audit"
-import type { AuditCategory, AuditResult, DispatchType } from "@/features/audit/types"
+import type { AuditCategory, AuditResult, DispatchAuditEvent, DispatchType } from "@/features/audit/types"
 
 export type AuditTab = "task" | "user" | "defense" | "disposition"
 
@@ -25,11 +25,31 @@ export function AuditCenter() {
   const [actor, setActor] = useState("")
   const [keyword, setKeyword] = useState("")
   const [selectedId, setSelectedId] = useState<string>()
+  const [dispatchEvents, setDispatchEvents] = useState<DispatchAuditEvent[]>([])
+  const [dispatchLoading, setDispatchLoading] = useState(true)
+  const [dispatchError, setDispatchError] = useState("")
   const [globalSearch, setGlobalSearch] = useState("")
   const [dateRange, setDateRange] = useState("7d")
   const [customDateFrom, setCustomDateFrom] = useState<Date>()
   const [customDateTo, setCustomDateTo] = useState<Date>()
 
+  const loadDispatchEvents = useCallback(async () => {
+    setDispatchLoading(true)
+    setDispatchError("")
+    try {
+      const events = await listDispatchAuditEvents()
+      setDispatchEvents(events)
+      setSelectedId((current) => current && events.some((event) => event.id === current) ? current : undefined)
+    } catch (error) {
+      setDispatchError(error instanceof Error ? error.message : "下发审计数据加载失败")
+    } finally {
+      setDispatchLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadDispatchEvents()
+  }, [loadDispatchEvents])
   useEffect(() => {
     const previousHtmlOverflow = document.documentElement.style.overflow
     const previousBodyOverflow = document.body.style.overflow
@@ -46,17 +66,17 @@ export function AuditCenter() {
     const normalizedKeyword = keyword.trim().toLowerCase()
     const normalizedActor = actor.trim().toLowerCase()
 
-    return mockDispatchAuditEvents.filter((event) => {
+    return dispatchEvents.filter((event) => {
       const typeMatched = dispatchType === "all" || event.dispatchType === dispatchType
       const resultMatched = result === "all" || event.result === result
       const actorMatched = !normalizedActor || `${event.actorName} ${event.actorId}`.toLowerCase().includes(normalizedActor)
       const keywordMatched = !normalizedKeyword || [event.objectName, event.taskId, event.operationId, event.targetSummary, event.agentSummary].join(" ").toLowerCase().includes(normalizedKeyword)
       return typeMatched && resultMatched && actorMatched && keywordMatched
     })
-  }, [actor, dispatchType, keyword, result])
+  }, [actor, dispatchEvents, dispatchType, keyword, result])
 
   const selectedEvent = filteredEvents.find((event) => event.id === selectedId)
-    ?? mockDispatchAuditEvents.find((event) => event.id === selectedId)
+    ?? dispatchEvents.find((event) => event.id === selectedId)
   const abnormalCount = filteredEvents.filter((event) => event.result === "failed" || event.result === "timeout").length
 
   const resetFilters = () => {
@@ -104,11 +124,13 @@ export function AuditCenter() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label="自动刷新"
-                  title="自动刷新"
+                  aria-label="刷新审计数据"
+                  title="刷新审计数据"
+                  disabled={dispatchLoading}
+                  onClick={() => void loadDispatchEvents()}
                   className="h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
                 >
-                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                  <RefreshCw className={`h-4 w-4 ${dispatchLoading ? "animate-spin" : ""}`} aria-hidden="true" />
                 </Button>
               </div>
             </div>
@@ -129,6 +151,11 @@ export function AuditCenter() {
                 onKeywordChange={setKeyword}
                 onReset={resetFilters}
               />
+              {dispatchError && (
+                <div className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                  真实审计数据加载失败：{dispatchError}
+                </div>
+              )}
               <AuditSummary
                 total={filteredEvents.length}
                 policy={filteredEvents.filter((event) => event.dispatchType === "policy").length}
@@ -177,6 +204,7 @@ export function AuditCenter() {
     </div>
   )
 }
+
 
 
 

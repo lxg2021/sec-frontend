@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 const FALLBACK_CONFIG = {
   api: {
@@ -68,6 +68,8 @@ const FALLBACK_CONFIG = {
       getPatchInstallTaskProgress: "/sensor/patch/installtask/progress",
       createPatchInstallTask: "/sensor/control/patch/installtask",
       listPMCObjectDefinitions: "/sensor/control/pmc/object-definitions/list",
+      listPMCOperations: "/sensor/control/pmc/operations/list",
+      listPMCAuditEvents: "/sensor/control/pmc/audit-events/list",
       operatePMCObject: "/sensor/control/pmc/objects/operate",
       createNetworkAccessPolicy: "/sensor/control/network/policy",
       createFileAccessPolicy: "/sensor/control/fileaccess/policy",
@@ -179,3 +181,5 @@ export async function resolveApiUrl(pathOrEndpoint) {
 
   return joinUrl(api.baseUrl, api.prefix, endpointPath)
 }
+
+

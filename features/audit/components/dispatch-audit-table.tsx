@@ -48,8 +48,7 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
               <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[112px]">任务ID</th>
               <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[82px]">操作者</th>
               <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[94px]">操作者ID</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[145px]">目标范围</th>
-              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[82px]">Agent</th>
+              <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[160px]">目标范围</th>
               <th className="w-[88px] px-3 py-3 2xl:w-[82px]">状态</th>
               <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[98px]">执行结果</th>
               <th className="w-[62px] px-3 py-3 text-right 2xl:w-[58px]">详情</th>
@@ -91,9 +90,6 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
                   <td className="hidden px-3 py-3 2xl:table-cell">
                     <div className="truncate text-xs text-slate-700" title={event.targetSummary}>{event.targetSummary}</div>
                   </td>
-                  <td className="hidden px-3 py-3 2xl:table-cell">
-                    <div className="truncate text-xs text-slate-500" title={event.agentSummary}>{event.agentSummary}</div>
-                  </td>
                   <td className="px-3 py-3">
                     <span className={"inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold " + resultStyles[event.result]}>
                       <ResultIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -126,6 +122,7 @@ export function DispatchAuditTable({ events, selectedId, onSelect }: DispatchAud
     </div>
   )
 }
+
 
 
 
