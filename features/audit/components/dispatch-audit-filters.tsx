@@ -35,18 +35,18 @@ const fieldClass =
   "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm font-normal text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
 
 const dispatchOptions = [
-  { value: "all" as const, label: dispatchTypeLabels.all, icon: Layers3 },
-  { value: "policy" as const, label: dispatchTypeLabels.policy, icon: FileOutput },
-  { value: "command" as const, label: dispatchTypeLabels.command, icon: TerminalSquare },
-  { value: "config" as const, label: dispatchTypeLabels.config, icon: Settings2 },
+  { value: "all" as const, label: dispatchTypeLabels.all, icon: Layers3, iconClass: "text-sky-500" },
+  { value: "policy" as const, label: dispatchTypeLabels.policy, icon: FileOutput, iconClass: "text-blue-500" },
+  { value: "command" as const, label: dispatchTypeLabels.command, icon: TerminalSquare, iconClass: "text-cyan-500" },
+  { value: "config" as const, label: dispatchTypeLabels.config, icon: Settings2, iconClass: "text-violet-500" },
 ]
 
 const resultOptions = [
-  { value: "all" as const, label: auditResultLabels.all, icon: ListFilter },
-  { value: "success" as const, label: auditResultLabels.success, icon: CircleCheck },
-  { value: "failed" as const, label: auditResultLabels.failed, icon: CircleX },
-  { value: "pending" as const, label: auditResultLabels.pending, icon: LoaderCircle },
-  { value: "timeout" as const, label: auditResultLabels.timeout, icon: Clock3 },
+  { value: "all" as const, label: auditResultLabels.all, icon: ListFilter, iconClass: "text-sky-500" },
+  { value: "success" as const, label: auditResultLabels.success, icon: CircleCheck, iconClass: "text-emerald-500" },
+  { value: "failed" as const, label: auditResultLabels.failed, icon: CircleX, iconClass: "text-rose-500" },
+  { value: "pending" as const, label: auditResultLabels.pending, icon: LoaderCircle, iconClass: "text-sky-500" },
+  { value: "timeout" as const, label: auditResultLabels.timeout, icon: Clock3, iconClass: "text-amber-500" },
 ]
 
 export function DispatchAuditFilters({
@@ -108,15 +108,15 @@ export function DispatchAuditFilters({
           <Select value={dispatchType} onValueChange={(value) => onDispatchTypeChange(value as DispatchType)}>
             <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="dispatch-type-label">
               <div className="flex min-w-0 items-center gap-2">
-                <SelectedDispatchIcon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                <SelectedDispatchIcon className={`h-4 w-4 shrink-0 ${selectedDispatch.iconClass}`} aria-hidden="true" />
                 <span className="truncate">{dispatchTypeLabels[dispatchType]}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              {dispatchOptions.map(({ value, label, icon: Icon }) => (
+              {dispatchOptions.map(({ value, label, icon: Icon, iconClass }) => (
                 <SelectItem key={value} value={value} textValue={label} className="py-2.5">
                   <span className="flex items-center gap-2.5">
-                    <Icon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                    <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} aria-hidden="true" />
                     <span>{label}</span>
                   </span>
                 </SelectItem>
@@ -130,15 +130,15 @@ export function DispatchAuditFilters({
           <Select value={result} onValueChange={(value) => onResultChange(value as AuditResult)}>
             <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="result-label">
               <div className="flex min-w-0 items-center gap-2">
-                <SelectedResultIcon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                <SelectedResultIcon className={`h-4 w-4 shrink-0 ${selectedResult.iconClass}`} aria-hidden="true" />
                 <span className="truncate">{auditResultLabels[result]}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              {resultOptions.map(({ value, label, icon: Icon }) => (
+              {resultOptions.map(({ value, label, icon: Icon, iconClass }) => (
                 <SelectItem key={value} value={value} textValue={label} className="py-2.5">
                   <span className="flex items-center gap-2.5">
-                    <Icon className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+                    <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} aria-hidden="true" />
                     <span>{label}</span>
                   </span>
                 </SelectItem>
@@ -176,5 +176,7 @@ export function DispatchAuditFilters({
     </section>
   )
 }
+
+
 
 
