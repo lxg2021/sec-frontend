@@ -75,14 +75,9 @@ export function DispatchAuditFilters({
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
             <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           </span>
-          <div className="min-w-0">
-            <h2 id="dispatch-filter-title" className="text-sm font-semibold text-foreground">
-              下发审计筛选
-            </h2>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              按下发类型、执行状态、操作者和目标范围查询
-            </p>
-          </div>
+          <h2 id="dispatch-filter-title" className="text-sm font-semibold text-foreground">
+            下发审计筛选
+          </h2>
         </div>
         <button
           type="button"
