@@ -1,8 +1,9 @@
 ﻿"use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Download, RefreshCw, ShieldCheck } from "lucide-react"
+import { ClipboardList, Download, RefreshCw } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { Button } from "@/shared/ui/button"
 import { AuditCategoryTabs } from "./audit-category-tabs"
 import { AuditEventDetail } from "./audit-event-detail"
 import { AuditSummary } from "./audit-summary"
@@ -73,11 +74,11 @@ export function AuditCenter() {
           <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center">
             <div className="flex min-w-0 items-center gap-4 xl:w-[260px] xl:flex-none 2xl:w-[430px]">
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-100 text-blue-600">
-                <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                <ClipboardList className="h-5 w-5" aria-hidden="true" />
               </span>
               <div className="min-w-0 space-y-1.5">
                 <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">{t("title")}</h1>
-                <p className="min-w-0 truncate text-sm text-slate-500">下发审计 · 用户审计 · 变更审计</p>
+                <p className="min-w-0 truncate text-sm text-slate-500">追踪下发、用户与系统变更记录</p>
               </div>
             </div>
 
@@ -89,16 +90,27 @@ export function AuditCenter() {
                   setSelectedId(undefined)
                 }}
               />
-              <span className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block" aria-hidden="true" />
-              <button type="button" className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
-                <Download className="h-4 w-4" aria-hidden="true" />
-                导出记录
-              </button>
-              <span className="hidden h-6 w-px shrink-0 bg-slate-200 xl:block" aria-hidden="true" />
-              <button type="button" className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-blue-600 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
-                <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                自动刷新
-              </button>
+              <div className="flex items-center gap-1 xl:border-l xl:border-slate-200 xl:pl-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-10 shrink-0 gap-2 rounded-full px-3.5 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+                >
+                  <Download className="h-4 w-4" aria-hidden="true" />
+                  <span className="font-medium">导出记录</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="自动刷新"
+                  title="自动刷新"
+                  className="h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
+                >
+                  <RefreshCw className="h-4 w-4" aria-hidden="true" />
+                </Button>
+              </div>
             </div>
           </div>
         </header>
@@ -165,6 +177,12 @@ export function AuditCenter() {
     </div>
   )
 }
+
+
+
+
+
+
 
 
 
