@@ -4570,7 +4570,8 @@
     },
     "reports": {
       "title": "Audit Center",
-      "subtitle": "Audit Center"
+      "subtitle": "Audit Center",
+      "hostId": "HostID"
     },
     "aiops": {
       "threatAnalysis": {

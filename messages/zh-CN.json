@@ -4570,7 +4570,8 @@
     },
     "reports": {
       "title": "审计中心",
-      "subtitle": "审计中心"
+      "subtitle": "审计中心",
+      "hostId": "主机ID"
     },
     "aiops": {
       "threatAnalysis": {

@@ -218,6 +218,10 @@ function actorName(identity?: ActorIdentity) {
   return identity?.type || "未知"
 }
 
+function displaySourceReference(sourceRefId: string) {
+  const separatorIndex = sourceRefId.indexOf(":")
+  return separatorIndex > 0 ? sourceRefId.slice(0, separatorIndex) : sourceRefId
+}
 function parseManualActor(sourceRefId: string) {
   if (!sourceRefId.startsWith("manual:")) return ""
   return sourceRefId.split(":", 3)[1] || ""
@@ -337,7 +341,7 @@ export async function listDispatchAuditEvents(): Promise<DispatchAuditEvent[]> {
       eventType: "pmc.operation.created",
       objectName: name || "未命名对象",
       objectVersion: objectVersion || undefined,
-      taskId: sourceRefId || operationId,
+      taskId: displaySourceReference(sourceRefId) || operationId,
       operationId,
       actorName: actorName(identity),
       actorId: identity.id || "-",
@@ -371,47 +375,50 @@ export async function listDispatchAuditEvents(): Promise<DispatchAuditEvent[]> {
     }]
   }).sort((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt))
 }
-export async function listDispatchExecutionResults(operationId: string): Promise<DispatchExecutionResult[]> {
+export async function listDispatchExecutionResults(operationId: string, page = 1, pageSize = 10) {
   const normalizedOperationId = operationId.trim()
-  if (!normalizedOperationId) return []
-
-  const items: DispatchExecutionResult[] = []
-  for (let page = 1; page <= MAX_PAGES; page += 1) {
-    const result = await http.post("queryPMCExecutionResults", {
-      request_id: createRequestId(),
-      operation_id: normalizedOperationId,
-      page,
-      page_size: PAGE_SIZE,
-    }) as ApiResult<QueryExecutionResultsData>
-    const batch = Array.isArray(result.data?.results) ? result.data.results : []
-
-    batch.forEach((item, index) => {
-      const dispatchId = stringValue(item.dispatch_id)
-      const agentId = stringValue(item.agent_id)
-      items.push({
-        id: dispatchId || `${normalizedOperationId}:${agentId}:${page}:${index}`,
-        operationId: stringValue(item.operation_id) || normalizedOperationId,
-        dispatchId,
-        agentId,
-        publishStatus: stringValue(item.publish_status) || "-",
-        executionStatus: executionStatusValue(item.execution_status),
-        failureCertainty: failureCertaintyValue(item.failure_certainty),
-        taskVisibility: stringValue(item.task_visibility) || "unknown",
-        reasonCode: stringValue(item.reason_code) || undefined,
-        reasonMessage: stringValue(item.reason_message) || undefined,
-        errorCode: stringValue(item.error_code) || undefined,
-        errorMessage: stringValue(item.error_message) || undefined,
-        createdAt: optionalIsoDate(item.created_at_unix_ms),
-        updatedAt: optionalIsoDate(item.updated_at_unix_ms),
-        publishedAt: optionalIsoDate(item.published_at_unix_ms),
-        startedAt: optionalIsoDate(item.started_at_unix_ms),
-        lastReportAt: optionalIsoDate(item.last_report_at_unix_ms),
-        finishedAt: optionalIsoDate(item.finished_at_unix_ms),
-      })
-    })
-
-    if (batch.length < PAGE_SIZE) break
+  const normalizedPage = Math.max(1, Math.trunc(page))
+  const normalizedPageSize = Math.min(100, Math.max(1, Math.trunc(pageSize)))
+  if (!normalizedOperationId) {
+    return { items: [] as DispatchExecutionResult[], total: 0, page: normalizedPage, pageSize: normalizedPageSize }
   }
 
-  return items
+  const result = await http.post("queryPMCExecutionResults", {
+    request_id: createRequestId(),
+    operation_id: normalizedOperationId,
+    page: normalizedPage,
+    page_size: normalizedPageSize,
+  }) as ApiResult<QueryExecutionResultsData>
+  const batch = Array.isArray(result.data?.results) ? result.data.results : []
+  const items = batch.map((item, index): DispatchExecutionResult => {
+    const dispatchId = stringValue(item.dispatch_id)
+    const agentId = stringValue(item.agent_id)
+    return {
+      id: dispatchId || `${normalizedOperationId}:${agentId}:${normalizedPage}:${index}`,
+      operationId: stringValue(item.operation_id) || normalizedOperationId,
+      dispatchId,
+      agentId,
+      publishStatus: stringValue(item.publish_status) || "-",
+      executionStatus: executionStatusValue(item.execution_status),
+      failureCertainty: failureCertaintyValue(item.failure_certainty),
+      taskVisibility: stringValue(item.task_visibility) || "unknown",
+      reasonCode: stringValue(item.reason_code) || undefined,
+      reasonMessage: stringValue(item.reason_message) || undefined,
+      errorCode: stringValue(item.error_code) || undefined,
+      errorMessage: stringValue(item.error_message) || undefined,
+      createdAt: optionalIsoDate(item.created_at_unix_ms),
+      updatedAt: optionalIsoDate(item.updated_at_unix_ms),
+      publishedAt: optionalIsoDate(item.published_at_unix_ms),
+      startedAt: optionalIsoDate(item.started_at_unix_ms),
+      lastReportAt: optionalIsoDate(item.last_report_at_unix_ms),
+      finishedAt: optionalIsoDate(item.finished_at_unix_ms),
+    }
+  })
+
+  return {
+    items,
+    total: numberValue(result.data?.total, items.length),
+    page: normalizedPage,
+    pageSize: normalizedPageSize,
+  }
 }
