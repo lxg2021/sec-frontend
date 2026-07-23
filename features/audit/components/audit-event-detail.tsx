@@ -158,34 +158,34 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
               </div>
             </DialogHeader>
 
-            <div className="shrink-0 border-b border-slate-100 px-6 py-4">
+            <div className="shrink-0 border-b border-slate-100 px-6 py-3">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_440px]">
-                <dl className="grid min-w-0 grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-[110px_minmax(0,1fr)_minmax(0,1fr)]">
-                  <div className="min-w-0">
-                    <dt className="flex items-center gap-1.5 text-xs text-slate-400"><FileOutput className="h-3.5 w-3.5 text-cyan-500" aria-hidden="true" />下发类型</dt>
-                    <dd className="mt-1 truncate font-medium text-slate-700">{dispatchTypeLabels[event.dispatchType]}</dd>
+                <dl className="grid min-w-0 grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40 text-sm">
+                  <div className="flex min-w-0 items-center border-b border-r border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><FileOutput className="h-3.5 w-3.5 text-cyan-500" aria-hidden="true" />下发类型：</dt>
+                    <dd className="min-w-0 truncate font-medium text-slate-700">{dispatchTypeLabels[event.dispatchType]}</dd>
                   </div>
-                  <div className="min-w-0">
-                    <dt className="flex items-center gap-1.5 text-xs text-slate-400"><CalendarClock className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />发生时间</dt>
-                    <dd className="mt-1 truncate text-slate-700">{formatDateTime(event.occurredAt)}</dd>
+                  <div className="flex min-w-0 items-center border-b border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><CalendarClock className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />发生时间：</dt>
+                    <dd className="min-w-0 truncate text-slate-700">{formatDateTime(event.occurredAt)}</dd>
                   </div>
-                  <div className="min-w-0">
-                    <dt className="flex items-center gap-1.5 text-xs text-slate-400"><UserRound className="h-3.5 w-3.5 text-violet-500" aria-hidden="true" />操作者</dt>
-                    <dd className="mt-1 truncate text-slate-700" title={`${event.actorName} / ${event.actorId}`}>
+                  <div className="flex min-w-0 items-center border-b border-r border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><UserRound className="h-3.5 w-3.5 text-violet-500" aria-hidden="true" />操作者：</dt>
+                    <dd className="min-w-0 truncate text-slate-700" title={`${event.actorName} / ${event.actorId}`}>
                       {event.actorName} / {event.actorId}
                     </dd>
                   </div>
-                  <div className="min-w-0">
-                    <dt className="flex items-center gap-1.5 text-xs text-slate-400"><Tag className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />对象版本</dt>
-                    <dd className="mt-1 truncate font-mono text-slate-700">{event.objectVersion || "-"}</dd>
+                  <div className="flex min-w-0 items-center border-b border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><ClipboardList className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />下发任务：</dt>
+                    <dd className="min-w-0 truncate font-mono text-slate-700" title={event.taskId}>{event.taskId}</dd>
                   </div>
-                  <div className="min-w-0">
-                    <dt className="flex items-center gap-1.5 text-xs text-slate-400"><ClipboardList className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />下发任务</dt>
-                    <dd className="mt-1 truncate font-mono text-slate-700" title={event.taskId}>{event.taskId}</dd>
+                  <div className="flex min-w-0 items-center border-r border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><Tag className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />对象版本：</dt>
+                    <dd className="min-w-0 truncate font-mono text-slate-700">{event.objectVersion || "-"}</dd>
                   </div>
-                  <div className="min-w-0">
-                    <dt className="flex items-center gap-1.5 text-xs text-slate-400"><Activity className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />整体状态</dt>
-                    <dd className="mt-1 font-medium text-slate-700">{auditResultLabels[event.result]}</dd>
+                  <div className="flex min-w-0 items-center px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><Activity className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />整体状态：</dt>
+                    <dd className="min-w-0 truncate font-medium text-slate-700">{auditResultLabels[event.result]}</dd>
                   </div>
                 </dl>
 
