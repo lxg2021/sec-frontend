@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronLeft, ChevronRight, ClipboardList, ListChecks } from "lucide-react"
+import { ChevronLeft, ChevronRight, ClipboardList } from "lucide-react"
 import { useTranslations } from "next-intl"
 import type { UserActivityAudit } from "@/features/audit/types"
 import { Button } from "@/shared/ui/button"
@@ -30,18 +30,13 @@ export function UserActivityList({
   const endItem = Math.min(page * pageSize, total)
 
   return (
-    <section className="flex min-h-[320px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white xl:min-h-0" aria-labelledby="user-audit-list-title">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-            <ListChecks className="h-4 w-4" aria-hidden="true" />
-          </span>
-          <div className="min-w-0">
-            <h2 id="user-audit-list-title" className="text-sm font-semibold text-slate-900">{t("listTitle")}</h2>
-            <p className="mt-0.5 text-xs text-slate-500">{t("listDescription")}</p>
-          </div>
+    <section className="flex min-h-[320px] min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm xl:min-h-0" aria-labelledby="user-audit-list-title">
+      <header className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <ClipboardList className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
+          <h2 id="user-audit-list-title" className="truncate text-sm font-semibold text-foreground">{t("listTitle")}</h2>
         </div>
-        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium tabular-nums text-slate-600">
+        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
           {t("resultCount", { count: total })}
         </span>
       </header>
