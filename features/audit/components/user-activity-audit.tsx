@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl"
 
 interface UserActivityAuditProps {
   data: UserActivityAuditType[]
+  loading?: boolean
   globalSearch: string
   dateRange: string
   customDateFrom?: Date
@@ -19,6 +20,7 @@ interface UserActivityAuditProps {
 
 export function UserActivityAudit({
   data,
+  loading = false,
   globalSearch,
   dateRange,
   customDateFrom,
@@ -39,6 +41,7 @@ export function UserActivityAudit({
         const matchesSearch =
           audit.username.toLowerCase().includes(searchLower) ||
           audit.userId.toLowerCase().includes(searchLower) ||
+          audit.targetName?.toLowerCase().includes(searchLower) ||
           audit.sourceIp?.toLowerCase().includes(searchLower) ||
           audit.targetId?.toLowerCase().includes(searchLower)
         if (!matchesSearch) return false
@@ -125,16 +128,10 @@ export function UserActivityAudit({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("all")}</SelectItem>
-                  <SelectItem value="LOGIN">{t("login")}</SelectItem>
-                  <SelectItem value="LOGOUT">{t("logout")}</SelectItem>
-                  <SelectItem value="FAILED_LOGIN">{t("failedLogin")}</SelectItem>
-                  <SelectItem value="CREATE_TASK">{t("createTask")}</SelectItem>
-                  <SelectItem value="UPDATE_TASK">{t("updateTask")}</SelectItem>
-                  <SelectItem value="DISPATCH_TASK">{t("dispatchTask")}</SelectItem>
-                  <SelectItem value="CREATE_CONFIG">{t("createConfig")}</SelectItem>
-                  <SelectItem value="UPDATE_CONFIG">{t("updateConfig")}</SelectItem>
-                  <SelectItem value="MANUAL_BLOCK">{t("manualBlock")}</SelectItem>
                   <SelectItem value="ADD_USER">{t("addUser")}</SelectItem>
+                  <SelectItem value="UPDATE_USER">{t("updateUser")}</SelectItem>
+                  <SelectItem value="PASSWORD_CHANGE">{t("passwordChange")}</SelectItem>
+                  <SelectItem value="STATUS_CHANGE">{t("statusChange")}</SelectItem>
                   <SelectItem value="DELETE_USER">{t("deleteUser")}</SelectItem>
                   <SelectItem value="ROLE_CHANGE">{t("roleChange")}</SelectItem>
                 </SelectContent>
@@ -163,11 +160,7 @@ export function UserActivityAudit({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("all")}</SelectItem>
-                  <SelectItem value="TASK">{t("task")}</SelectItem>
-                  <SelectItem value="POLICY">{t("policy")}</SelectItem>
-                  <SelectItem value="HOST">{t("host")}</SelectItem>
                   <SelectItem value="USER">{t("user")}</SelectItem>
-                  <SelectItem value="SYSTEM">{t("system")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -183,7 +176,9 @@ export function UserActivityAudit({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {filteredAudits.length === 0 ? (
+          {loading && data.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground">{t("loading")}</div>
+          ) : filteredAudits.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">{t("empty")}</div>
           ) : (
             <>

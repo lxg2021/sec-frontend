@@ -1,60 +1,60 @@
 // user-audit.ts
 
 export type UserActionType =
-  // 身份与用户管理
+  // Identity and user management
   | "LOGIN"
   | "LOGOUT"
   | "FAILED_LOGIN"
   | "PASSWORD_CHANGE"
   | "ROLE_CHANGE"
   | "ADD_USER"
+  | "UPDATE_USER"
+  | "STATUS_CHANGE"
   | "DELETE_USER"
-  // 任务 / 策略 / 配置管理
+  // Task, policy, and configuration management
   | "CREATE_TASK"
   | "UPDATE_TASK"
   | "DISPATCH_TASK"
   | "CREATE_CONFIG"
   | "UPDATE_CONFIG"
   | "DISPATCH_CONFIG"
-  // 防御操作
+  // Defense operations
   | "MANUAL_BLOCK"
-  // 其他
+  // Other
   | "OTHER"
 
 /**
- * 控制台用户行为审计（User Activity Audit）
- *
- * 用于记录管理员或安全人员在 EDR 管理平台上的关键操作，
- * 例如登录、下发任务、修改策略、执行防御动作等。
+ * User activity audit records shown in the management console.
  */
 export interface UserActivityAudit {
-  /** 审计事件唯一ID */
+  /** Unique audit event ID. */
   eventId: string
 
-  /** 操作用户ID */
+  /** ID of the user that performed the action. */
   userId: string
 
-  /** 用户名 */
+  /** Display name of the user that performed the action. */
   username: string
 
-  /** 操作时间（ISO 8601 格式） */
+  /** Event time in ISO 8601 format. */
   timestamp: string
 
-  /** 操作来源IP地址 */
+  /** Optional source IP address. */
   sourceIp?: string
 
-  /** 操作类型 */
+  /** Normalized action type. */
   actionType: UserActionType
 
-  /** 操作结果 */
+  /** Action result. */
   result: "SUCCESS" | "FAILED"
 
-  /** 操作对象标识（如任务ID、策略ID、规则ID等） */
+  /** Target object identity. */
   targetId?: string
+  targetName?: string
 
-  /** 操作对象类型 */
+  /** Target object type. */
   targetType?: "TASK" | "POLICY" | "HOST" | "USER" | "SYSTEM" | "OTHER"
 
-  /** 额外详情等 */
-  details?: Record<string, any>
+  /** Backend-specific audit details. */
+  details?: Record<string, unknown>
 }

@@ -15,6 +15,7 @@ const FALLBACK_CONFIG = {
       getUserByUsername: "/sensor/users/get-by-username",
       getUserInfo: "/sensor/users/get-by-id",
       listUsers: "/sensor/users/list",
+      listUserPermissionAuditEvents: "/sensor/users/permission-audit/list",
       updateUser: "/sensor/users/update",
       changePassword: "/sensor/users/update-password",
       softDeleteUser: "/sensor/users/soft-delete",

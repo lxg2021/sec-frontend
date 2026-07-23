@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ClipboardList, Download, RefreshCw } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Button } from "@/shared/ui/button"
@@ -11,11 +11,40 @@ import { DispatchAuditFilters } from "./dispatch-audit-filters"
 import { DispatchAuditTable } from "./dispatch-audit-table"
 import { GlobalFilters } from "./global-filters"
 import { UserActivityAudit } from "./user-activity-audit"
-import { listDispatchAuditEvents } from "@/features/audit/api"
-import { mockUserAuditData } from "@/features/audit/mock/user-audit"
-import type { AuditCategory, AuditResult, DispatchAuditEvent, DispatchTimeRange, DispatchType } from "@/features/audit/types"
+import { listDispatchAuditEvents, listUserActivityAudits } from "@/features/audit/api"
+import type {
+  AuditCategory,
+  AuditResult,
+  DispatchAuditEvent,
+  DispatchTimeRange,
+  DispatchType,
+  UserActivityAudit as UserActivityAuditData,
+} from "@/features/audit/types"
 
 export type AuditTab = "task" | "user" | "defense" | "disposition"
+
+function userAuditTimeBounds(dateRange: string, customDateFrom?: Date, customDateTo?: Date) {
+  if (dateRange === "custom") {
+    const from = customDateFrom ? new Date(customDateFrom) : undefined
+    const to = customDateTo ? new Date(customDateTo) : undefined
+    from?.setHours(0, 0, 0, 0)
+    to?.setHours(23, 59, 59, 999)
+    return {
+      occurredAfterUnixMs: from?.getTime(),
+      occurredBeforeUnixMs: to?.getTime(),
+    }
+  }
+
+  const days = Number.parseInt(dateRange, 10)
+  if (!Number.isFinite(days) || days <= 0) return {}
+  const from = new Date()
+  from.setDate(from.getDate() - days)
+  from.setHours(0, 0, 0, 0)
+  return {
+    occurredAfterUnixMs: from.getTime(),
+    occurredBeforeUnixMs: Date.now(),
+  }
+}
 
 export function AuditCenter() {
   const t = useTranslations("pages.reports")
@@ -36,6 +65,11 @@ export function AuditCenter() {
   const [dateRange, setDateRange] = useState("7d")
   const [customDateFrom, setCustomDateFrom] = useState<Date>()
   const [customDateTo, setCustomDateTo] = useState<Date>()
+  const [userAuditEvents, setUserAuditEvents] = useState<UserActivityAuditData[]>([])
+  const [userAuditLoading, setUserAuditLoading] = useState(false)
+  const [userAuditError, setUserAuditError] = useState("")
+  const [userAuditTruncated, setUserAuditTruncated] = useState(false)
+  const userAuditRequestRef = useRef(0)
 
   const loadDispatchEvents = useCallback(async () => {
     setDispatchLoading(true)
@@ -54,6 +88,29 @@ export function AuditCenter() {
   useEffect(() => {
     void loadDispatchEvents()
   }, [loadDispatchEvents])
+
+  const loadUserAuditEvents = useCallback(async () => {
+    const requestVersion = ++userAuditRequestRef.current
+    setUserAuditLoading(true)
+    setUserAuditError("")
+    setUserAuditTruncated(false)
+    try {
+      const response = await listUserActivityAudits(userAuditTimeBounds(dateRange, customDateFrom, customDateTo))
+      if (requestVersion !== userAuditRequestRef.current) return
+      setUserAuditEvents(response.items)
+      setUserAuditTruncated(response.truncated)
+    } catch (error) {
+      if (requestVersion !== userAuditRequestRef.current) return
+      setUserAuditError(error instanceof Error ? error.message : "用户审计数据加载失败")
+    } finally {
+      if (requestVersion === userAuditRequestRef.current) setUserAuditLoading(false)
+    }
+  }, [customDateFrom, customDateTo, dateRange])
+
+  useEffect(() => {
+    if (activeCategory === "user") void loadUserAuditEvents()
+  }, [activeCategory, loadUserAuditEvents])
+
   useEffect(() => {
     const previousHtmlOverflow = document.documentElement.style.overflow
     const previousBodyOverflow = document.body.style.overflow
@@ -146,11 +203,17 @@ export function AuditCenter() {
                   size="icon"
                   aria-label="刷新审计数据"
                   title="刷新审计数据"
-                  disabled={dispatchLoading}
-                  onClick={() => void loadDispatchEvents()}
+                  disabled={activeCategory === "change" || (activeCategory === "user" ? userAuditLoading : dispatchLoading)}
+                  onClick={() => {
+                    if (activeCategory === "dispatch") void loadDispatchEvents()
+                    if (activeCategory === "user") void loadUserAuditEvents()
+                  }}
                   className="h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
                 >
-                  <RefreshCw className={`h-4 w-4 ${dispatchLoading ? "animate-spin" : ""}`} aria-hidden="true" />
+                  <RefreshCw
+                    className={`h-4 w-4 ${(activeCategory === "user" ? userAuditLoading : dispatchLoading) ? "animate-spin" : ""}`}
+                    aria-hidden="true"
+                  />
                 </Button>
               </div>
             </div>
@@ -221,8 +284,19 @@ export function AuditCenter() {
                 customDateTo={customDateTo}
                 setCustomDateTo={setCustomDateTo}
               />
+              {userAuditError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                  真实用户审计数据加载失败：{userAuditError}
+                </div>
+              )}
+              {userAuditTruncated && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
+                  审计记录较多，当前仅显示最近 {userAuditEvents.length} 条，请缩小时间范围后重试。
+                </div>
+              )}
               <UserActivityAudit
-                data={mockUserAuditData}
+                data={userAuditEvents}
+                loading={userAuditLoading}
                 globalSearch={globalSearch}
                 dateRange={dateRange}
                 customDateFrom={customDateFrom}

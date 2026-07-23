@@ -71,7 +71,7 @@ export function UserActivityCard({ audit }: UserActivityCardProps) {
             </div>
             {audit.targetId && (
               <p className="text-sm text-muted-foreground">
-                操作对象: {audit.targetType}: {audit.targetId}
+                操作对象: {audit.targetType}: {audit.targetName ? `${audit.targetName} (${audit.targetId})` : audit.targetId}
               </p>
             )}
           </div>

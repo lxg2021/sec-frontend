@@ -2,10 +2,20 @@
 
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
-import type { AuditResult, DispatchAuditEvent, DispatchExecutionResult, DispatchExecutionStatus, DispatchTimeRange, DispatchType } from "@/features/audit/types"
+import type {
+  AuditResult,
+  DispatchAuditEvent,
+  DispatchExecutionResult,
+  DispatchExecutionStatus,
+  DispatchTimeRange,
+  DispatchType,
+  UserActionType,
+  UserActivityAudit,
+} from "@/features/audit/types"
 
 const PAGE_SIZE = 100
 const MAX_PAGES = 20
+const USER_AUDIT_PAGE_SIZE = 200
 const TIME_RANGE_DAYS: Record<DispatchTimeRange, number> = {
   "24h": 1,
   "7d": 7,
@@ -15,6 +25,40 @@ const TIME_RANGE_DAYS: Record<DispatchTimeRange, number> = {
 
 interface ApiResult<T> {
   data?: T
+}
+
+interface UserPermissionAuditEventData {
+  id?: number | string
+  event_key?: string
+  request_id?: string
+  event_type?: string
+  actor_type?: string
+  actor_id?: string
+  target_user_id?: string
+  target_username?: string
+  old_role?: string
+  new_role?: string
+  old_status?: string
+  new_status?: string
+  payload_json?: string
+  occurred_at_unix_ms?: number | string
+  created_at_unix_ms?: number | string
+}
+
+interface ListUserPermissionAuditEventsData {
+  events?: UserPermissionAuditEventData[]
+  total?: number | string
+}
+
+export interface UserAuditQuery {
+  occurredAfterUnixMs?: number
+  occurredBeforeUnixMs?: number
+}
+
+export interface UserAuditListResult {
+  items: UserActivityAudit[]
+  total: number
+  truncated: boolean
 }
 
 interface PMCOperationSnapshot {
@@ -118,6 +162,86 @@ function numberValue(value: unknown, fallback = 0) {
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value.trim() : ""
+}
+
+function userActionType(eventType: unknown): UserActionType {
+  switch (stringValue(eventType).toLowerCase()) {
+    case "user.created":
+      return "ADD_USER"
+    case "user.profile.updated":
+      return "UPDATE_USER"
+    case "user.password.updated":
+      return "PASSWORD_CHANGE"
+    case "user.status.updated":
+      return "STATUS_CHANGE"
+    case "user.role.updated":
+      return "ROLE_CHANGE"
+    case "user.soft_deleted":
+    case "user.hard_deleted":
+      return "DELETE_USER"
+    default:
+      return "OTHER"
+  }
+}
+
+function parseAuditPayload(value: unknown): Record<string, unknown> {
+  const payload = stringValue(value)
+  if (!payload) return {}
+
+  try {
+    const parsed = JSON.parse(payload)
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>
+    }
+    return { payload: parsed }
+  } catch {
+    return { payload }
+  }
+}
+
+function compactAuditDetails(details: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(details).filter(([, value]) => value !== "" && value !== undefined),
+  )
+}
+
+function userActivityAudit(event: UserPermissionAuditEventData): UserActivityAudit | null {
+  const occurredAtUnixMs = numberValue(event.occurred_at_unix_ms)
+    || numberValue(event.created_at_unix_ms)
+  if (occurredAtUnixMs <= 0) return null
+
+  const actorType = stringValue(event.actor_type)
+  const actorId = stringValue(event.actor_id)
+  const targetUserId = stringValue(event.target_user_id)
+  const eventType = stringValue(event.event_type)
+  const eventKey = stringValue(event.event_key)
+  const requestId = stringValue(event.request_id)
+  const numericId = stringValue(String(event.id ?? ""))
+  const timestamp = new Date(occurredAtUnixMs).toISOString()
+
+  return {
+    eventId: eventKey || (numericId ? `user-audit-${numericId}` : requestId || `${eventType}:${targetUserId}:${occurredAtUnixMs}`),
+    userId: actorId || "-",
+    username: actorId || actorType || "system",
+    timestamp,
+    actionType: userActionType(eventType),
+    // These rows are committed with successful user mutations; failed mutations do not produce permission-audit rows.
+    result: "SUCCESS",
+    targetId: targetUserId || undefined,
+    targetName: stringValue(event.target_username) || undefined,
+    targetType: "USER",
+    details: compactAuditDetails({
+      ...parseAuditPayload(event.payload_json),
+      eventType,
+      requestId,
+      actorType,
+      targetUsername: stringValue(event.target_username),
+      oldRole: stringValue(event.old_role),
+      newRole: stringValue(event.new_role),
+      oldStatus: stringValue(event.old_status),
+      newStatus: stringValue(event.new_status),
+    }),
+  }
 }
 
 function objectTypeValue(value: unknown) {
@@ -308,6 +432,43 @@ async function listObjectNames() {
   }))
 
   return names
+}
+
+export async function listUserActivityAudits(query: UserAuditQuery = {}): Promise<UserAuditListResult> {
+  const occurredAfterUnixMs = Math.max(0, Math.trunc(query.occurredAfterUnixMs ?? 0))
+  const occurredBeforeUnixMs = Math.max(0, Math.trunc(query.occurredBeforeUnixMs ?? 0))
+  if (occurredAfterUnixMs > 0 && occurredBeforeUnixMs > 0 && occurredAfterUnixMs > occurredBeforeUnixMs) {
+    throw new Error("用户审计的结束时间不能早于开始时间")
+  }
+
+  const events: UserPermissionAuditEventData[] = []
+  let total = 0
+
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const result = await http.post("listUserPermissionAuditEvents", {
+      request_id: createRequestId(),
+      ...(occurredAfterUnixMs > 0 ? { occurred_after_unix_ms: occurredAfterUnixMs } : {}),
+      ...(occurredBeforeUnixMs > 0 ? { occurred_before_unix_ms: occurredBeforeUnixMs } : {}),
+      page,
+      page_size: USER_AUDIT_PAGE_SIZE,
+    }) as ApiResult<ListUserPermissionAuditEventsData>
+    const batch = Array.isArray(result.data?.events) ? result.data.events : []
+    events.push(...batch)
+    total = numberValue(result.data?.total, events.length)
+
+    if (batch.length === 0 || events.length >= total) break
+  }
+
+  const items = events
+    .map(userActivityAudit)
+    .filter((event): event is UserActivityAudit => event !== null)
+    .sort((left, right) => Date.parse(right.timestamp) - Date.parse(left.timestamp))
+
+  return {
+    items,
+    total,
+    truncated: events.length < total,
+  }
 }
 
 export async function listDispatchAuditEvents(timeRange: DispatchTimeRange = "7d"): Promise<DispatchAuditEvent[]> {
