@@ -1,12 +1,18 @@
 ﻿"use client"
 
-import { ChevronRight, CircleCheck, Clock3, Copy, FileOutput, Settings2, TriangleAlert } from "lucide-react"
+import { ChevronLeft, ChevronRight, CircleCheck, Clock3, Copy, FileOutput, Settings2, TriangleAlert } from "lucide-react"
 import type { DispatchAuditEvent } from "@/features/audit/types"
 import { auditResultLabels, dispatchTypeLabels } from "@/features/audit/types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
 
 interface DispatchAuditTableProps {
   events: DispatchAuditEvent[]
+  total: number
+  page: number
+  pageSize: number
   selectedId?: string
+  onPageChange: (page: number) => void
+  onPageSizeChange: (pageSize: number) => void
   onSelect: (event: DispatchAuditEvent) => void
   onView: (event: DispatchAuditEvent) => void
 }
@@ -26,15 +32,28 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
-export function DispatchAuditTable({ events, selectedId, onSelect, onView }: DispatchAuditTableProps) {
+export function DispatchAuditTable({
+  events,
+  total,
+  page,
+  pageSize,
+  selectedId,
+  onPageChange,
+  onPageSizeChange,
+  onSelect,
+  onView,
+}: DispatchAuditTableProps) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1
+  const endItem = Math.min(page * pageSize, total)
   return (
     <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
         <div className="min-w-0">
           <h2 className="text-base font-semibold text-slate-900">下发记录</h2>
-          <p className="mt-1 truncate text-xs text-slate-500">共 {events.length.toLocaleString()} 条 · 按下发时间倒序</p>
+          <p className="mt-1 truncate text-xs text-slate-500">共 {total.toLocaleString()} 条 · 按下发时间倒序</p>
         </div>
-        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{events.length} 条结果</span>
+        <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">{total} 条结果</span>
       </div>
 
       <div className="min-h-0 min-w-0 flex-1 overflow-auto">
@@ -143,6 +162,37 @@ export function DispatchAuditTable({ events, selectedId, onSelect, onView }: Dis
       </div>
 
       {events.length === 0 && <div className="px-5 py-12 text-center text-sm text-slate-500">没有匹配的下发审计记录</div>}
+
+      {total > 0 && (
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-white px-4 py-3 text-xs text-slate-500">
+          <span className="tabular-nums">显示 {startItem}-{endItem} 条，共 {total.toLocaleString()} 条</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <span>每页</span>
+              <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange(Number(value))}>
+                <SelectTrigger
+                  className="h-8 w-[88px] rounded-full border-slate-300 bg-white px-3 text-xs text-black shadow-none hover:border-black focus:border-black focus:text-black focus:ring-1 focus:ring-black focus:ring-offset-0 data-[state=open]:border-black data-[state=open]:text-black data-[state=open]:ring-1 data-[state=open]:ring-black [&>svg]:text-black [&>svg]:opacity-100"
+                  aria-label="每页显示条数"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="end" className="min-w-[88px] rounded-xl border-slate-200">
+                  <SelectItem value="10" className="rounded-lg text-xs focus:bg-slate-100 focus:text-black data-[state=checked]:text-black">10 条</SelectItem>
+                  <SelectItem value="20" className="rounded-lg text-xs focus:bg-slate-100 focus:text-black data-[state=checked]:text-black">20 条</SelectItem>
+                  <SelectItem value="50" className="rounded-lg text-xs focus:bg-slate-100 focus:text-black data-[state=checked]:text-black">50 条</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <button type="button" onClick={() => onPageChange(page - 1)} disabled={page <= 1} className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-cyan-50 hover:text-cyan-700 disabled:pointer-events-none disabled:opacity-35" aria-label="上一页">
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <span className="min-w-[72px] text-center tabular-nums text-slate-600">{page} / {totalPages}</span>
+            <button type="button" onClick={() => onPageChange(page + 1)} disabled={page >= totalPages} className="inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-cyan-50 hover:text-cyan-700 disabled:pointer-events-none disabled:opacity-35" aria-label="下一页">
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

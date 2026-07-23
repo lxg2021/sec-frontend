@@ -26,6 +26,8 @@ export function AuditCenter() {
   const [keyword, setKeyword] = useState("")
   const [selectedId, setSelectedId] = useState<string>()
   const [detailOpen, setDetailOpen] = useState(false)
+  const [dispatchPage, setDispatchPage] = useState(1)
+  const [dispatchPageSize, setDispatchPageSize] = useState(10)
   const [dispatchEvents, setDispatchEvents] = useState<DispatchAuditEvent[]>([])
   const [dispatchLoading, setDispatchLoading] = useState(true)
   const [dispatchError, setDispatchError] = useState("")
@@ -76,6 +78,19 @@ export function AuditCenter() {
     })
   }, [actor, dispatchEvents, dispatchType, keyword, result])
 
+  const dispatchTotalPages = Math.max(1, Math.ceil(filteredEvents.length / dispatchPageSize))
+  const paginatedEvents = useMemo(() => {
+    const start = (dispatchPage - 1) * dispatchPageSize
+    return filteredEvents.slice(start, start + dispatchPageSize)
+  }, [dispatchPage, dispatchPageSize, filteredEvents])
+
+  useEffect(() => {
+    setDispatchPage(1)
+  }, [actor, dispatchType, keyword, result])
+
+  useEffect(() => {
+    setDispatchPage((current) => Math.min(current, dispatchTotalPages))
+  }, [dispatchTotalPages])
   const selectedEvent = filteredEvents.find((event) => event.id === selectedId)
     ?? dispatchEvents.find((event) => event.id === selectedId)
   const abnormalCount = filteredEvents.filter((event) => event.result === "failed" || event.result === "timeout").length
@@ -168,8 +183,16 @@ export function AuditCenter() {
               />
               <div className="min-h-0 flex-1 overflow-hidden">
                 <DispatchAuditTable
-                  events={filteredEvents}
+                  events={paginatedEvents}
+                  total={filteredEvents.length}
+                  page={dispatchPage}
+                  pageSize={dispatchPageSize}
                   selectedId={selectedEvent?.id}
+                  onPageChange={setDispatchPage}
+                  onPageSizeChange={(pageSize) => {
+                    setDispatchPageSize(pageSize)
+                    setDispatchPage(1)
+                  }}
                   onSelect={(event) => setSelectedId(event.id)}
                   onView={(event) => {
                     setSelectedId(event.id)
