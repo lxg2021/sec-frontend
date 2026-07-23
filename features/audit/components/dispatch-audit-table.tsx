@@ -52,7 +52,7 @@ export function DispatchAuditTable({ events, selectedId, onSelect, onView }: Dis
               <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[110px]">目标范围</th>
               <th className="w-[88px] px-3 py-3 2xl:w-[100px]">状态</th>
               <th className="hidden px-3 py-3 2xl:table-cell 2xl:w-[110px]">执行结果</th>
-              <th className="w-[62px] px-3 py-3 text-right 2xl:w-[70px]">详情</th>
+              <th className="w-[88px] px-3 py-3 text-center 2xl:w-[96px]">详情</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -121,7 +121,7 @@ export function DispatchAuditTable({ events, selectedId, onSelect, onView }: Dis
                   <td className="hidden px-3 py-3 text-xs text-slate-600 2xl:table-cell">
                     <div className="truncate">{event.successCount}/{event.totalCount} 成功</div>
                   </td>
-                  <td className="px-3 py-3 text-right">
+                  <td className="px-3 py-3 text-center">
                     <button
                       type="button"
                       onClick={(clickEvent) => {
@@ -129,7 +129,7 @@ export function DispatchAuditTable({ events, selectedId, onSelect, onView }: Dis
                         onView(event)
                       }}
                       aria-label={"查看 " + event.objectName + " 下发详情"}
-                      className="inline-flex min-h-9 items-center gap-0.5 rounded-lg px-2 text-xs font-medium text-blue-600 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
                     >
                       查看
                       <ChevronRight className="h-4 w-4" aria-hidden="true" />
