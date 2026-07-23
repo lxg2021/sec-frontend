@@ -5664,7 +5664,16 @@
           "newRole": "New role",
           "oldStatus": "Previous status",
           "newStatus": "New status",
-          "changedFields": "Changed fields"
+          "changedFields": "Updated fields",
+          "fields": {
+            "username": "User name",
+            "email": "Email",
+            "phone": "Phone",
+            "avatar": "Avatar",
+            "role": "Role",
+            "status": "Status",
+            "password": "Password"
+          }
         }
       },
       "defense": {

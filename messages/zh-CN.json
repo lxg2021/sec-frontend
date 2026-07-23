@@ -5664,7 +5664,16 @@
           "newRole": "新角色",
           "oldStatus": "原状态",
           "newStatus": "新状态",
-          "changedFields": "变更字段"
+          "changedFields": "更新字段",
+          "fields": {
+            "username": "用户名",
+            "email": "邮箱",
+            "phone": "手机号",
+            "avatar": "头像",
+            "role": "角色",
+            "status": "状态",
+            "password": "密码"
+          }
         }
       },
       "defense": {
