@@ -147,7 +147,7 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
       <DialogContent className="flex h-[calc(100vh-32px)] max-h-[820px] w-[calc(100vw-32px)] max-w-none flex-col gap-0 overflow-hidden border-slate-200 bg-white p-0 shadow-2xl sm:max-w-[1440px]">
         {event && (
           <>
-            <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-5 pr-14 text-left">
+            <DialogHeader className="shrink-0 px-6 py-5 pr-14 text-left">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
                   <Monitor className="h-5 w-5" aria-hidden="true" />
@@ -158,7 +158,7 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
               </div>
             </DialogHeader>
 
-            <div className="shrink-0 border-b border-slate-100 px-6 py-3">
+            <div className="shrink-0 px-6 py-3">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_440px]">
                 <dl className="grid min-w-0 grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40 text-sm">
                   <div className="flex min-w-0 items-center border-b border-r border-slate-200 px-3 py-2">
