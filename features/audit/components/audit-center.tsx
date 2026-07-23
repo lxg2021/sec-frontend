@@ -13,13 +13,14 @@ import { GlobalFilters } from "./global-filters"
 import { UserActivityAudit } from "./user-activity-audit"
 import { listDispatchAuditEvents } from "@/features/audit/api"
 import { mockUserAuditData } from "@/features/audit/mock/user-audit"
-import type { AuditCategory, AuditResult, DispatchAuditEvent, DispatchType } from "@/features/audit/types"
+import type { AuditCategory, AuditResult, DispatchAuditEvent, DispatchTimeRange, DispatchType } from "@/features/audit/types"
 
 export type AuditTab = "task" | "user" | "defense" | "disposition"
 
 export function AuditCenter() {
   const t = useTranslations("pages.reports")
   const [activeCategory, setActiveCategory] = useState<AuditCategory>("dispatch")
+  const [dispatchTimeRange, setDispatchTimeRange] = useState<DispatchTimeRange>("7d")
   const [dispatchType, setDispatchType] = useState<DispatchType>("all")
   const [result, setResult] = useState<AuditResult>("all")
   const [actor, setActor] = useState("")
@@ -40,7 +41,7 @@ export function AuditCenter() {
     setDispatchLoading(true)
     setDispatchError("")
     try {
-      const events = await listDispatchAuditEvents()
+      const events = await listDispatchAuditEvents(dispatchTimeRange)
       setDispatchEvents(events)
       setSelectedId((current) => current && events.some((event) => event.id === current) ? current : undefined)
     } catch (error) {
@@ -48,7 +49,7 @@ export function AuditCenter() {
     } finally {
       setDispatchLoading(false)
     }
-  }, [])
+  }, [dispatchTimeRange])
 
   useEffect(() => {
     void loadDispatchEvents()
@@ -86,7 +87,7 @@ export function AuditCenter() {
 
   useEffect(() => {
     setDispatchPage(1)
-  }, [actor, dispatchType, keyword, result])
+  }, [actor, dispatchTimeRange, dispatchType, keyword, result])
 
   useEffect(() => {
     setDispatchPage((current) => Math.min(current, dispatchTotalPages))
@@ -96,6 +97,7 @@ export function AuditCenter() {
   const abnormalCount = filteredEvents.filter((event) => event.result === "failed" || event.result === "timeout").length
 
   const resetFilters = () => {
+    setDispatchTimeRange("7d")
     setDispatchType("all")
     setResult("all")
     setActor("")
@@ -159,10 +161,12 @@ export function AuditCenter() {
           {activeCategory === "dispatch" && (
             <div className="flex min-h-0 flex-1 flex-col gap-4">
               <DispatchAuditFilters
+                timeRange={dispatchTimeRange}
                 dispatchType={dispatchType}
                 result={result}
                 actor={actor}
                 keyword={keyword}
+                onTimeRangeChange={setDispatchTimeRange}
                 onDispatchTypeChange={setDispatchType}
                 onResultChange={setResult}
                 onActorChange={setActor}

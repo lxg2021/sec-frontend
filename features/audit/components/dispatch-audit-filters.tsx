@@ -2,6 +2,7 @@
 
 import {
   CalendarDays,
+  CalendarRange,
   CircleCheck,
   CircleX,
   Clock3,
@@ -15,15 +16,17 @@ import {
   SlidersHorizontal,
   TerminalSquare,
 } from "lucide-react"
-import type { AuditResult, DispatchType } from "@/features/audit/types"
-import { auditResultLabels, dispatchTypeLabels } from "@/features/audit/types"
+import type { AuditResult, DispatchTimeRange, DispatchType } from "@/features/audit/types"
+import { auditResultLabels, dispatchTimeRangeLabels, dispatchTypeLabels } from "@/features/audit/types"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/shared/ui/select"
 
 interface DispatchAuditFiltersProps {
+  timeRange: DispatchTimeRange
   dispatchType: DispatchType
   result: AuditResult
   actor: string
   keyword: string
+  onTimeRangeChange: (value: DispatchTimeRange) => void
   onDispatchTypeChange: (value: DispatchType) => void
   onResultChange: (value: AuditResult) => void
   onActorChange: (value: string) => void
@@ -49,19 +52,30 @@ const resultOptions = [
   { value: "timeout" as const, label: auditResultLabels.timeout, icon: Clock3, iconClass: "text-amber-500" },
 ]
 
+const timeRangeOptions = [
+  { value: "24h" as const, label: dispatchTimeRangeLabels["24h"], icon: Clock3, iconClass: "text-cyan-500" },
+  { value: "7d" as const, label: dispatchTimeRangeLabels["7d"], icon: CalendarDays, iconClass: "text-sky-500" },
+  { value: "30d" as const, label: dispatchTimeRangeLabels["30d"], icon: CalendarRange, iconClass: "text-blue-500" },
+  { value: "90d" as const, label: dispatchTimeRangeLabels["90d"], icon: CalendarRange, iconClass: "text-indigo-500" },
+]
+
 export function DispatchAuditFilters({
+  timeRange,
   dispatchType,
   result,
   actor,
   keyword,
+  onTimeRangeChange,
   onDispatchTypeChange,
   onResultChange,
   onActorChange,
   onKeywordChange,
   onReset,
 }: DispatchAuditFiltersProps) {
+  const selectedTimeRange = timeRangeOptions.find((option) => option.value === timeRange) ?? timeRangeOptions[1]
   const selectedDispatch = dispatchOptions.find((option) => option.value === dispatchType) ?? dispatchOptions[0]
   const selectedResult = resultOptions.find((option) => option.value === result) ?? resultOptions[0]
+  const SelectedTimeRangeIcon = selectedTimeRange.icon
   const SelectedDispatchIcon = selectedDispatch.icon
   const SelectedResultIcon = selectedResult.icon
 
@@ -90,13 +104,27 @@ export function DispatchAuditFilters({
       </header>
 
       <div className="grid gap-x-4 gap-y-4 py-5 sm:grid-cols-2 xl:grid-cols-[160px_160px_160px_160px_minmax(280px,1fr)] 2xl:grid-cols-[180px_180px_180px_180px_minmax(360px,1fr)]">
-        <label className="flex flex-col gap-1.5">
-          <span className="sr-only">时间范围</span>
-          <span className={`${fieldClass} flex cursor-default items-center gap-2`}>
-            <CalendarDays className="h-4 w-4 shrink-0 text-sky-500" aria-hidden="true" />
-            <span className="truncate">最近 7 天</span>
-          </span>
-        </label>
+        <div className="flex flex-col gap-1.5">
+          <span className="sr-only" id="dispatch-time-range-label">时间范围</span>
+          <Select value={timeRange} onValueChange={(value) => onTimeRangeChange(value as DispatchTimeRange)}>
+            <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="dispatch-time-range-label">
+              <div className="flex min-w-0 items-center gap-2">
+                <SelectedTimeRangeIcon className={`h-4 w-4 shrink-0 ${selectedTimeRange.iconClass}`} aria-hidden="true" />
+                <span className="truncate">{selectedTimeRange.label}</span>
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              {timeRangeOptions.map(({ value, label, icon: Icon, iconClass }) => (
+                <SelectItem key={value} value={value} textValue={label} className="py-2.5">
+                  <span className="flex items-center gap-2.5">
+                    <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} aria-hidden="true" />
+                    <span>{label}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="flex flex-col gap-1.5">
           <span className="sr-only" id="dispatch-type-label">下发类型</span>

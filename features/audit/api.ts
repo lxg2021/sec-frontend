@@ -2,11 +2,16 @@
 
 import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
-import type { AuditResult, DispatchAuditEvent, DispatchExecutionResult, DispatchExecutionStatus, DispatchType } from "@/features/audit/types"
+import type { AuditResult, DispatchAuditEvent, DispatchExecutionResult, DispatchExecutionStatus, DispatchTimeRange, DispatchType } from "@/features/audit/types"
 
 const PAGE_SIZE = 100
 const MAX_PAGES = 20
-const RECENT_DAYS = 7
+const TIME_RANGE_DAYS: Record<DispatchTimeRange, number> = {
+  "24h": 1,
+  "7d": 7,
+  "30d": 30,
+  "90d": 90,
+}
 
 interface ApiResult<T> {
   data?: T
@@ -246,7 +251,7 @@ async function listRecentOperations(cutoffUnixMs: number) {
   return operations.filter((operation) => numberValue(operation.created_at_unix_ms) >= cutoffUnixMs)
 }
 
-async function listOperationActors(cutoffUnixMs: number) {
+async function listOperationActors(cutoffUnixMs: number, nowUnixMs: number) {
   const actors = new Map<string, ActorIdentity>()
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -254,7 +259,7 @@ async function listOperationActors(cutoffUnixMs: number) {
       request_id: createRequestId(),
       event_type: "pmc.operation.created",
       occurred_after_unix_ms: cutoffUnixMs,
-      occurred_before_unix_ms: Date.now(),
+      occurred_before_unix_ms: nowUnixMs,
       page,
       page_size: PAGE_SIZE,
     }) as ApiResult<ListAuditEventsData>
@@ -305,11 +310,12 @@ async function listObjectNames() {
   return names
 }
 
-export async function listDispatchAuditEvents(): Promise<DispatchAuditEvent[]> {
-  const cutoffUnixMs = Date.now() - RECENT_DAYS * 24 * 60 * 60 * 1000
+export async function listDispatchAuditEvents(timeRange: DispatchTimeRange = "7d"): Promise<DispatchAuditEvent[]> {
+  const nowUnixMs = Date.now()
+  const cutoffUnixMs = nowUnixMs - TIME_RANGE_DAYS[timeRange] * 24 * 60 * 60 * 1000
   const [operations, actors, objectNames] = await Promise.all([
     listRecentOperations(cutoffUnixMs),
-    listOperationActors(cutoffUnixMs),
+    listOperationActors(cutoffUnixMs, nowUnixMs),
     listObjectNames(),
   ])
 
