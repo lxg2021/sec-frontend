@@ -34,6 +34,8 @@ interface UserPermissionAuditEventData {
   event_type?: string
   actor_type?: string
   actor_id?: string
+  actor_username?: string
+  source_ip?: string
   target_user_id?: string
   target_username?: string
   old_role?: string
@@ -212,6 +214,8 @@ function userActivityAudit(event: UserPermissionAuditEventData): UserActivityAud
 
   const actorType = stringValue(event.actor_type)
   const actorId = stringValue(event.actor_id)
+  const actorUsername = stringValue(event.actor_username)
+  const sourceIp = stringValue(event.source_ip)
   const targetUserId = stringValue(event.target_user_id)
   const eventType = stringValue(event.event_type)
   const eventKey = stringValue(event.event_key)
@@ -222,7 +226,8 @@ function userActivityAudit(event: UserPermissionAuditEventData): UserActivityAud
   return {
     eventId: eventKey || (numericId ? `user-audit-${numericId}` : requestId || `${eventType}:${targetUserId}:${occurredAtUnixMs}`),
     userId: actorId || "-",
-    username: actorId || actorType || "system",
+    username: actorUsername || (actorType === "system" ? actorId || "system" : "-"),
+    sourceIp: sourceIp || undefined,
     timestamp,
     actionType: userActionType(eventType),
     // These rows are committed with successful user mutations; failed mutations do not produce permission-audit rows.
@@ -235,6 +240,7 @@ function userActivityAudit(event: UserPermissionAuditEventData): UserActivityAud
       eventType,
       requestId,
       actorType,
+      actorUsername,
       targetUsername: stringValue(event.target_username),
       oldRole: stringValue(event.old_role),
       newRole: stringValue(event.new_role),
