@@ -187,9 +187,11 @@ export function UserActivityDetailDialog({ audit, open, onClose }: UserActivityD
   contextFields.forEach(([key, label]) => {
     if (hasDetailValue(details[key])) {
       const rawValue = userAuditDetailValue(details[key])
-      const value = key === "actorType" && ["user", "system"].includes(rawValue.toLowerCase())
-        ? t(rawValue.toLowerCase() === "user" ? "user" : "system")
-        : rawValue
+      const value = key === "eventType" && audit.actionType !== "OTHER"
+        ? t(userActionLabelKey(audit.actionType))
+        : key === "actorType" && ["user", "system"].includes(rawValue.toLowerCase())
+          ? t(rawValue.toLowerCase() === "user" ? "user" : "system")
+          : rawValue
       contextRows.push({ key, label, value })
     }
   })
