@@ -141,7 +141,7 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
                 <div className="min-w-0">
                   <DialogTitle className="truncate text-lg font-semibold text-slate-950">下发执行详情</DialogTitle>
                   <DialogDescription className="mt-1 truncate text-sm text-slate-500">
-                    {event.objectName} · {event.operationId}
+                    {event.objectName}
                   </DialogDescription>
                 </div>
               </div>
