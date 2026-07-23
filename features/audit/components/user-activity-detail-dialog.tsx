@@ -182,7 +182,6 @@ export function UserActivityDetailDialog({ audit, open, onClose }: UserActivityD
   const contextRows: AuditDetailRow[] = []
   const contextFields = [
     ["eventType", t("details.eventType")],
-    ["requestId", t("details.requestId")],
     ["actorType", t("details.actorType")],
   ] as const
   contextFields.forEach(([key, label]) => {
@@ -247,19 +246,11 @@ export function UserActivityDetailDialog({ audit, open, onClose }: UserActivityD
                 className="border-b border-slate-200 sm:border-r"
               />
               <InfoField
-                label={t("details.eventId")}
-                value={audit.eventId}
-                icon={Hash}
-                iconClass="text-sky-500"
-                mono
-                className="border-b border-slate-200"
-              />
-              <InfoField
                 label={t("targetName")}
                 value={audit.targetName || audit.targetId || t("unknownTarget")}
                 icon={Target}
                 iconClass="text-cyan-500"
-                className="border-b border-slate-200 sm:border-r"
+                className="border-b border-slate-200"
               />
               <InfoField
                 label={t("targetId")}
@@ -267,14 +258,14 @@ export function UserActivityDetailDialog({ audit, open, onClose }: UserActivityD
                 icon={Hash}
                 iconClass="text-slate-500"
                 mono
-                className="border-b border-slate-200"
+                className="border-b border-slate-200 sm:border-r"
               />
               <InfoField
                 label={t("targetType")}
                 value={t(userTargetTypeLabelKey(audit.targetType))}
                 icon={Tag}
                 iconClass="text-indigo-500"
-                className="border-b border-slate-200 sm:border-r"
+                className="border-b border-slate-200"
               />
               <InfoField
                 label={t("sourceIp")}
@@ -282,7 +273,7 @@ export function UserActivityDetailDialog({ audit, open, onClose }: UserActivityD
                 icon={Network}
                 iconClass="text-cyan-500"
                 mono
-                className="border-b border-slate-200"
+                className="border-b border-slate-200 sm:border-r"
               />
               {detailRows.map(({ key, label, value }) => (
                 <InfoField
@@ -300,8 +291,8 @@ export function UserActivityDetailDialog({ audit, open, onClose }: UserActivityD
                   key={key}
                   label={label}
                   value={value}
-                  icon={key === "requestId" ? Hash : Braces}
-                  iconClass={key === "requestId" ? "text-slate-500" : "text-blue-600"}
+                  icon={Braces}
+                  iconClass="text-blue-600"
                   mono={key !== "actorType"}
                   className="border-b border-slate-200 sm:odd:border-r"
                 />
