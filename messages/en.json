@@ -5676,6 +5676,71 @@
           }
         }
       },
+      "changeAudit": {
+        "filterTitle": "Change audit filters",
+        "reset": "Reset",
+        "actionType": "Change type",
+        "objectType": "Object type",
+        "keyword": "Keyword",
+        "keywordPlaceholder": "Search object name, object ID, actor, or operation ID",
+        "all": "All",
+        "allObjects": "All objects",
+        "created": "Created",
+        "updated": "Version updated",
+        "ensured": "Command ensured",
+        "deleted": "Deletion accepted",
+        "deleteAborted": "Deletion aborted",
+        "policy": "Policy",
+        "command": "Command",
+        "config": "Configuration",
+        "listTitle": "Change Audit Records",
+        "resultCount": "{count} results",
+        "loadFailed": "Failed to load change audit data: {error}",
+        "retry": "Retry",
+        "truncated": "There are many records. Only the latest {count} are shown; narrow the time range and retry.",
+        "empty": "No data",
+        "emptyDescription": "No change audit records match the current filters",
+        "view": "View",
+        "viewAria": "View change audit details for {object}",
+        "detailTitle": "Change Audit Details",
+        "eventType": "Backend event type",
+        "operationId": "Operation ID",
+        "requestId": "Request ID",
+        "payloadTitle": "Change details",
+        "noPayload": "No additional change fields to display",
+        "previousPage": "Previous page",
+        "nextPage": "Next page",
+        "pageSummary": "Showing {start}-{end} of {total}",
+        "actions": {
+          "created": "Created",
+          "updated": "Version updated",
+          "ensured": "Command ensured",
+          "deleted": "Deletion accepted",
+          "deleteAborted": "Deletion aborted"
+        },
+        "objects": {
+          "policy": "Policy",
+          "command": "Command",
+          "config": "Configuration"
+        },
+        "actorTypes": {
+          "operator": "Operator",
+          "system": "System",
+          "publisher": "Publisher",
+          "reconciler": "Reconciler"
+        },
+        "columns": {
+          "time": "Time",
+          "action": "Change type",
+          "objectType": "Object type",
+          "objectName": "Object name",
+          "objectId": "Object ID",
+          "version": "Object version",
+          "actor": "Actor ID",
+          "actorType": "Actor type",
+          "details": "Details"
+        }
+      },
       "defense": {
         "filterTitle": "Defense Action Filters",
         "actionType": "Defense Type:",

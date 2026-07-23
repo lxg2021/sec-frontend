@@ -9,11 +9,13 @@ import { AuditEventDetail } from "./audit-event-detail"
 import { AuditSummary } from "./audit-summary"
 import { DispatchAuditFilters } from "./dispatch-audit-filters"
 import { DispatchAuditTable } from "./dispatch-audit-table"
+import { ChangeAudit } from "./change-audit"
 import { UserActivityAudit } from "./user-activity-audit"
-import { listDispatchAuditEvents, listUserActivityAudits } from "@/features/audit/api"
+import { listChangeAuditEvents, listDispatchAuditEvents, listUserActivityAudits } from "@/features/audit/api"
 import type {
   AuditCategory,
   AuditResult,
+  ChangeAuditEvent,
   DispatchAuditEvent,
   DispatchTimeRange,
   DispatchType,
@@ -57,6 +59,20 @@ function customAuditTimeBounds(customDateFrom?: Date, customDateTo?: Date) {
   }
 }
 
+function relativeAuditTimeBounds(timeRange: Exclude<DispatchTimeRange, "custom">) {
+  const daysByRange: Record<Exclude<DispatchTimeRange, "custom">, number> = {
+    "24h": 1,
+    "7d": 7,
+    "30d": 30,
+    "90d": 90,
+  }
+  const nowUnixMs = Date.now()
+  return {
+    occurredAfterUnixMs: nowUnixMs - daysByRange[timeRange] * 24 * 60 * 60 * 1000,
+    occurredBeforeUnixMs: nowUnixMs,
+  }
+}
+
 export function AuditCenter() {
   const t = useTranslations("pages.reports")
   const [activeCategory, setActiveCategory] = useState<AuditCategory>("dispatch")
@@ -81,8 +97,16 @@ export function AuditCenter() {
   const [userAuditLoading, setUserAuditLoading] = useState(false)
   const [userAuditError, setUserAuditError] = useState("")
   const [userAuditTruncated, setUserAuditTruncated] = useState(false)
+  const [changeTimeRange, setChangeTimeRange] = useState<DispatchTimeRange>("7d")
+  const [changeCustomDateFrom, setChangeCustomDateFrom] = useState<Date>()
+  const [changeCustomDateTo, setChangeCustomDateTo] = useState<Date>()
+  const [changeAuditEvents, setChangeAuditEvents] = useState<ChangeAuditEvent[]>([])
+  const [changeAuditLoading, setChangeAuditLoading] = useState(false)
+  const [changeAuditError, setChangeAuditError] = useState("")
+  const [changeAuditTruncated, setChangeAuditTruncated] = useState(false)
   const dispatchAuditRequestRef = useRef(0)
   const userAuditRequestRef = useRef(0)
+  const changeAuditRequestRef = useRef(0)
 
   const loadDispatchEvents = useCallback(async () => {
     const requestVersion = ++dispatchAuditRequestRef.current
@@ -140,6 +164,40 @@ export function AuditCenter() {
   useEffect(() => {
     if (activeCategory === "user") void loadUserAuditEvents()
   }, [activeCategory, loadUserAuditEvents])
+
+  const loadChangeAuditEvents = useCallback(async () => {
+    const requestVersion = ++changeAuditRequestRef.current
+    if (changeTimeRange === "custom" && (!changeCustomDateFrom || !changeCustomDateTo)) {
+      setChangeAuditEvents([])
+      setChangeAuditLoading(false)
+      setChangeAuditError("")
+      setChangeAuditTruncated(false)
+      return
+    }
+
+    setChangeAuditLoading(true)
+    setChangeAuditError("")
+    setChangeAuditTruncated(false)
+    try {
+      const response = await listChangeAuditEvents(
+        changeTimeRange === "custom"
+          ? customAuditTimeBounds(changeCustomDateFrom, changeCustomDateTo)
+          : relativeAuditTimeBounds(changeTimeRange),
+      )
+      if (requestVersion !== changeAuditRequestRef.current) return
+      setChangeAuditEvents(response.items)
+      setChangeAuditTruncated(response.truncated)
+    } catch (error) {
+      if (requestVersion !== changeAuditRequestRef.current) return
+      setChangeAuditError(error instanceof Error ? error.message : "变更审计数据加载失败")
+    } finally {
+      if (requestVersion === changeAuditRequestRef.current) setChangeAuditLoading(false)
+    }
+  }, [changeCustomDateFrom, changeCustomDateTo, changeTimeRange])
+
+  useEffect(() => {
+    if (activeCategory === "change") void loadChangeAuditEvents()
+  }, [activeCategory, loadChangeAuditEvents])
 
   useEffect(() => {
     const previousHtmlOverflow = document.documentElement.style.overflow
@@ -235,15 +293,16 @@ export function AuditCenter() {
                   size="icon"
                   aria-label="刷新审计数据"
                   title="刷新审计数据"
-                  disabled={activeCategory === "change" || (activeCategory === "user" ? userAuditLoading : dispatchLoading)}
+                  disabled={activeCategory === "user" ? userAuditLoading : activeCategory === "change" ? changeAuditLoading : dispatchLoading}
                   onClick={() => {
                     if (activeCategory === "dispatch") void loadDispatchEvents()
                     if (activeCategory === "user") void loadUserAuditEvents()
+                    if (activeCategory === "change") void loadChangeAuditEvents()
                   }}
                   className="h-10 w-10 shrink-0 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
                 >
                   <RefreshCw
-                    className={`h-4 w-4 ${(activeCategory === "user" ? userAuditLoading : dispatchLoading) ? "animate-spin" : ""}`}
+                    className={`h-4 w-4 ${(activeCategory === "user" ? userAuditLoading : activeCategory === "change" ? changeAuditLoading : dispatchLoading) ? "animate-spin" : ""}`}
                     aria-hidden="true"
                   />
                 </Button>
@@ -326,9 +385,20 @@ export function AuditCenter() {
           )}
 
           {activeCategory === "change" && (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center">
-              <h2 className="text-base font-semibold text-slate-800">变更审计</h2>
-              <p className="mt-2 text-sm text-slate-500">用于展示策略、命令和配置对象的创建、更新、删除及版本变化。</p>
+            <div className="flex min-h-0 flex-1 flex-col">
+              <ChangeAudit
+                data={changeAuditEvents}
+                loading={changeAuditLoading}
+                error={changeAuditError}
+                truncated={changeAuditTruncated}
+                onRetry={() => void loadChangeAuditEvents()}
+                timeRange={changeTimeRange}
+                setTimeRange={setChangeTimeRange}
+                customDateFrom={changeCustomDateFrom}
+                setCustomDateFrom={setChangeCustomDateFrom}
+                customDateTo={changeCustomDateTo}
+                setCustomDateTo={setChangeCustomDateTo}
+              />
             </div>
           )}
         </main>

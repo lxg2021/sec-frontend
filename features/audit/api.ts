@@ -4,6 +4,8 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 import type {
   AuditResult,
+  ChangeAuditAction,
+  ChangeAuditEvent,
   DispatchAuditEvent,
   DispatchExecutionResult,
   DispatchExecutionStatus,
@@ -68,6 +70,26 @@ export interface DispatchAuditQuery {
   occurredBeforeUnixMs?: number
 }
 
+export interface ChangeAuditQuery {
+  occurredAfterUnixMs?: number
+  occurredBeforeUnixMs?: number
+}
+
+export interface ChangeAuditListResult {
+  items: ChangeAuditEvent[]
+  total: number
+  truncated: boolean
+}
+
+const CHANGE_EVENT_ACTIONS: Record<string, ChangeAuditAction> = {
+  "pmc.catalog.object.created": "created",
+  "pmc.catalog.command.ensured": "ensured",
+  "pmc.catalog.object.version_updated": "updated",
+  "pmc.catalog.delete.accepted": "deleted",
+  "pmc.catalog.delete.retry.accepted": "deleted",
+  "pmc.catalog.delete.aborted": "deleteAborted",
+}
+
 interface PMCOperationSnapshot {
   operation_id?: string
   source_type?: string
@@ -99,12 +121,19 @@ interface PMCOperationSnapshot {
 
 interface PMCAuditEventData {
   id?: number | string
+  event_key?: string
   event_type?: string
   operation_id?: string
+  dispatch_id?: string
+  object_type?: number | string
+  object_id?: string
+  agent_id?: string
+  result_version?: number | string
   actor_type?: string
   actor_id?: string
   payload_json?: string
   occurred_at_unix_ms?: number | string
+  created_at_unix_ms?: number | string
 }
 
 interface PMCObjectDefinitionData {
@@ -570,6 +599,96 @@ export async function listDispatchAuditEvents(
     }]
   }).sort((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt))
 }
+
+export async function listChangeAuditEvents(query: ChangeAuditQuery = {}): Promise<ChangeAuditListResult> {
+  const occurredAfterUnixMs = Math.max(0, Math.trunc(query.occurredAfterUnixMs ?? 0))
+  const occurredBeforeUnixMs = Math.max(0, Math.trunc(query.occurredBeforeUnixMs ?? 0))
+  if (occurredAfterUnixMs > 0 && occurredBeforeUnixMs > 0 && occurredAfterUnixMs > occurredBeforeUnixMs) {
+    throw new Error("变更审计的结束时间不能早于开始时间")
+  }
+
+  const eventTypes = Object.keys(CHANGE_EVENT_ACTIONS)
+  const pages = await Promise.all(eventTypes.map(async (eventType) => {
+    const events: PMCAuditEventData[] = []
+    let completed = false
+
+    for (let page = 1; page <= MAX_PAGES; page += 1) {
+      const result = await http.post("listPMCAuditEvents", {
+        request_id: createRequestId(),
+        event_type: eventType,
+        ...(occurredAfterUnixMs > 0 ? { occurred_after_unix_ms: occurredAfterUnixMs } : {}),
+        ...(occurredBeforeUnixMs > 0 ? { occurred_before_unix_ms: occurredBeforeUnixMs } : {}),
+        page,
+        page_size: PAGE_SIZE,
+      }) as ApiResult<ListAuditEventsData>
+      const batch = Array.isArray(result.data?.events) ? result.data.events : []
+      events.push(...batch)
+      const backendTotal = numberValue(result.data?.total, events.length)
+
+      if (batch.length === 0 || batch.length < PAGE_SIZE || events.length >= backendTotal) {
+        completed = true
+        break
+      }
+    }
+
+    return { events, truncated: !completed }
+  }))
+  const events = pages.flatMap((page) => page.events)
+  const truncated = pages.some((page) => page.truncated)
+
+  const changeEvents = events
+    .map((event): ChangeAuditEvent | null => {
+      const eventType = stringValue(event.event_type)
+      const action = CHANGE_EVENT_ACTIONS[eventType]
+      const objectType = dispatchTypeValue(event.object_type)
+      const objectId = stringValue(event.object_id)
+      const occurredAtUnixMs = numberValue(event.occurred_at_unix_ms) || numberValue(event.created_at_unix_ms)
+      if (!action || !objectType || !objectId || occurredAtUnixMs <= 0) return null
+
+      const payload = parseAuditPayload(event.payload_json)
+      const version = stringValue(payload.version) || stringValue(payload.previous_version) || stringValue(event.result_version)
+      const actorType = stringValue(event.actor_type) || "system"
+      const actorId = stringValue(event.actor_id) || "-"
+      const eventId = stringValue(event.event_key) || stringValue(event.id == null ? "" : String(event.id))
+
+      return {
+        id: eventId || ("pmc-change:" + eventType + ":" + objectType + ":" + objectId + ":" + occurredAtUnixMs),
+        occurredAt: new Date(occurredAtUnixMs).toISOString(),
+        eventType,
+        action,
+        objectType,
+        objectId,
+        objectName: objectId,
+        objectVersion: version || undefined,
+        actorType,
+        actorId,
+        operationId: stringValue(event.operation_id) || undefined,
+        requestId: stringValue(payload.request_id) || undefined,
+        payload,
+      }
+    })
+    .filter((event): event is ChangeAuditEvent => event !== null)
+
+  if (changeEvents.length === 0) {
+    return { items: [], total: 0, truncated }
+  }
+
+  const objectNames = await listObjectNames()
+  changeEvents.forEach((event) => {
+    const objectTypeCode = objectTypeValue(event.objectType)
+    event.objectName = objectNames.get(objectTypeCode + ":" + event.objectId + ":" + (event.objectVersion ?? ""))
+      ?? objectNames.get(objectTypeCode + ":" + event.objectId + ":")
+      ?? event.objectId
+  })
+
+  changeEvents.sort((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt))
+  return {
+    items: changeEvents,
+    total: changeEvents.length,
+    truncated,
+  }
+}
+
 export async function listDispatchExecutionResults(operationId: string, page = 1, pageSize = 10) {
   const normalizedOperationId = operationId.trim()
   const normalizedPage = Math.max(1, Math.trunc(page))

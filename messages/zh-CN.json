@@ -5676,6 +5676,71 @@
           }
         }
       },
+      "changeAudit": {
+        "filterTitle": "变更审计筛选",
+        "reset": "重置",
+        "actionType": "变更类型",
+        "objectType": "对象类型",
+        "keyword": "关键字",
+        "keywordPlaceholder": "搜索对象名称、对象 ID、操作者或操作 ID",
+        "all": "全部",
+        "allObjects": "全部对象",
+        "created": "创建",
+        "updated": "版本更新",
+        "ensured": "命令确认",
+        "deleted": "删除受理",
+        "deleteAborted": "终止删除",
+        "policy": "策略",
+        "command": "命令",
+        "config": "配置",
+        "listTitle": "变更审计记录",
+        "resultCount": "{count} 条结果",
+        "loadFailed": "变更审计数据加载失败：{error}",
+        "retry": "重试",
+        "truncated": "记录较多，当前仅显示最近 {count} 条，请缩小时间范围后重试。",
+        "empty": "暂无数据",
+        "emptyDescription": "当前筛选条件下没有匹配的变更审计记录",
+        "view": "查看",
+        "viewAria": "查看 {object} 的变更审计详情",
+        "detailTitle": "变更审计详情",
+        "eventType": "后台事件类型",
+        "operationId": "操作 ID",
+        "requestId": "请求 ID",
+        "payloadTitle": "变更内容",
+        "noPayload": "暂无可展示的变更字段",
+        "previousPage": "上一页",
+        "nextPage": "下一页",
+        "pageSummary": "显示 {start}-{end} 条，共 {total} 条",
+        "actions": {
+          "created": "创建",
+          "updated": "版本更新",
+          "ensured": "命令确认",
+          "deleted": "删除受理",
+          "deleteAborted": "终止删除"
+        },
+        "objects": {
+          "policy": "策略",
+          "command": "命令",
+          "config": "配置"
+        },
+        "actorTypes": {
+          "operator": "操作员",
+          "system": "系统",
+          "publisher": "发布器",
+          "reconciler": "协调器"
+        },
+        "columns": {
+          "time": "发生时间",
+          "action": "变更类型",
+          "objectType": "对象类型",
+          "objectName": "对象名称",
+          "objectId": "对象 ID",
+          "version": "对象版本",
+          "actor": "操作者 ID",
+          "actorType": "操作者类型",
+          "details": "详情"
+        }
+      },
       "defense": {
         "filterTitle": "防御动作筛选",
         "actionType": "防御类型:",
