@@ -110,7 +110,6 @@ export function UserActivityFilters({
           </span>
           <div className="min-w-0">
             <h2 id="user-audit-filter-title" className="text-sm font-semibold text-slate-900">{t("filterTitle")}</h2>
-            <p className="mt-0.5 text-xs text-slate-500">{t("filterDescription")}</p>
           </div>
         </div>
         <Button
@@ -127,7 +126,7 @@ export function UserActivityFilters({
 
       <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-[170px_190px_160px_minmax(200px,1fr)_minmax(220px,1fr)]">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span id="user-audit-time-label" className="text-xs font-medium text-slate-500">{rangeT("timeRange")}</span>
+          <span id="user-audit-time-label" className="sr-only">{rangeT("timeRange")}</span>
           <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as UserAuditDateRange)}>
             <SelectTrigger className={fieldClass} aria-labelledby="user-audit-time-label">
               <span className="!flex min-w-0 items-center gap-2">
@@ -149,7 +148,7 @@ export function UserActivityFilters({
         </div>
 
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span id="user-audit-action-label" className="text-xs font-medium text-slate-500">{t("actionType")}</span>
+          <span id="user-audit-action-label" className="sr-only">{t("actionType")}</span>
           <Select value={actionType} onValueChange={(value) => onActionTypeChange(value as UserAuditActionFilter)}>
             <SelectTrigger className={fieldClass} aria-labelledby="user-audit-action-label">
               <span className="!flex min-w-0 items-center gap-2">
@@ -171,7 +170,7 @@ export function UserActivityFilters({
         </div>
 
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span id="user-audit-result-label" className="text-xs font-medium text-slate-500">{t("result")}</span>
+          <span id="user-audit-result-label" className="sr-only">{t("result")}</span>
           <Select value={result} onValueChange={(value) => onResultChange(value as UserAuditResultFilter)}>
             <SelectTrigger className={fieldClass} aria-labelledby="user-audit-result-label">
               <span className="!flex min-w-0 items-center gap-2">
@@ -193,7 +192,7 @@ export function UserActivityFilters({
         </div>
 
         <label className="flex min-w-0 flex-col gap-1.5">
-          <span className="text-xs font-medium text-slate-500">{t("actor")}</span>
+          <span className="sr-only">{t("actor")}</span>
           <span className="relative block">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-600" aria-hidden="true" />
             <input
@@ -206,7 +205,7 @@ export function UserActivityFilters({
         </label>
 
         <label className="flex min-w-0 flex-col gap-1.5 sm:col-span-2 xl:col-span-1">
-          <span className="text-xs font-medium text-slate-500">{t("targetUser")}</span>
+          <span className="sr-only">{t("targetUser")}</span>
           <span className="relative block">
             <Target className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-600" aria-hidden="true" />
             <input
