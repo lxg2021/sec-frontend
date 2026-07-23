@@ -37,9 +37,9 @@ export function UserActivityListItem({ audit, onView }: UserActivityListItemProp
         <div className="truncate font-mono text-xs text-slate-500" title={audit.userId}>{audit.userId || "-"}</div>
       </td>
       <td className="px-3 py-3">
-        <span className={`inline-flex max-w-full items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${visual.badgeClass}`}>
+        <span className="inline-flex max-w-full items-center gap-1 text-xs font-semibold">
           <ActionIcon className={`h-3.5 w-3.5 shrink-0 ${visual.iconClass}`} aria-hidden="true" />
-          <span className="truncate">{t(userActionLabelKey(audit.actionType))}</span>
+          <span className="truncate !text-black">{t(userActionLabelKey(audit.actionType))}</span>
         </span>
       </td>
       <td className="min-w-0 px-3 py-3">
@@ -58,9 +58,9 @@ export function UserActivityListItem({ audit, onView }: UserActivityListItemProp
         <span className="block truncate" title={audit.sourceIp}>{audit.sourceIp || "-"}</span>
       </td>
       <td className="px-3 py-3">
-        <span className="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-700">
+        <span className="inline-flex items-center gap-1 text-xs font-semibold">
           <ResultIcon className={`h-3.5 w-3.5 shrink-0 ${audit.result === "SUCCESS" ? "text-emerald-600" : "text-rose-600"}`} aria-hidden="true" />
-          {audit.result === "SUCCESS" ? t("success") : t("failed")}
+          <span className="!text-black">{audit.result === "SUCCESS" ? t("success") : t("failed")}</span>
         </span>
       </td>
       <td className="px-3 py-3 text-center">

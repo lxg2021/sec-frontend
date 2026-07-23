@@ -63,13 +63,13 @@ export function UserActivityList({
               <tr>
                 <th className="px-4 py-3">{t("columns.actor")}</th>
                 <th className="px-3 py-3">{t("columns.actorId")}</th>
-                <th className="px-3 py-3">{t("columns.action")}</th>
+                <th className="px-3 py-3 !text-black">{t("columns.action")}</th>
                 <th className="px-3 py-3">{t("columns.target")}</th>
                 <th className="px-3 py-3">{t("columns.targetId")}</th>
                 <th className="px-3 py-3">{t("columns.targetType")}</th>
                 <th className="px-3 py-3">{t("columns.time")}</th>
                 <th className="px-3 py-3">{t("columns.sourceIp")}</th>
-                <th className="px-3 py-3">{t("columns.result")}</th>
+                <th className="px-3 py-3 !text-black">{t("columns.result")}</th>
                 <th className="px-3 py-3 text-center">{t("columns.details")}</th>
               </tr>
             </thead>

@@ -17,39 +17,38 @@ import type { UserActionType } from "@/features/audit/types"
 interface UserActionPresentation {
   icon: LucideIcon
   iconClass: string
-  badgeClass: string
 }
 
 export function userActionPresentation(actionType: UserActionType): UserActionPresentation {
   switch (actionType) {
     case "ADD_USER":
-      return { icon: UserPlus, iconClass: "text-emerald-600", badgeClass: "bg-emerald-50 text-emerald-800" }
+      return { icon: UserPlus, iconClass: "text-emerald-600" }
     case "UPDATE_USER":
-      return { icon: UserCog, iconClass: "text-blue-600", badgeClass: "bg-blue-50 text-blue-800" }
+      return { icon: UserCog, iconClass: "text-blue-600" }
     case "PASSWORD_CHANGE":
-      return { icon: KeyRound, iconClass: "text-violet-600", badgeClass: "bg-violet-50 text-violet-800" }
+      return { icon: KeyRound, iconClass: "text-violet-600" }
     case "STATUS_CHANGE":
-      return { icon: ShieldCheck, iconClass: "text-cyan-600", badgeClass: "bg-cyan-50 text-cyan-800" }
+      return { icon: ShieldCheck, iconClass: "text-cyan-600" }
     case "ROLE_CHANGE":
-      return { icon: BadgeCheck, iconClass: "text-indigo-600", badgeClass: "bg-indigo-50 text-indigo-800" }
+      return { icon: BadgeCheck, iconClass: "text-indigo-600" }
     case "DELETE_USER":
-      return { icon: UserMinus, iconClass: "text-rose-600", badgeClass: "bg-rose-50 text-rose-800" }
+      return { icon: UserMinus, iconClass: "text-rose-600" }
     case "LOGIN":
-      return { icon: LogIn, iconClass: "text-emerald-600", badgeClass: "bg-emerald-50 text-emerald-800" }
+      return { icon: LogIn, iconClass: "text-emerald-600" }
     case "LOGOUT":
-      return { icon: LogOut, iconClass: "text-slate-600", badgeClass: "bg-slate-100 text-slate-700" }
+      return { icon: LogOut, iconClass: "text-slate-600" }
     case "FAILED_LOGIN":
     case "MANUAL_BLOCK":
-      return { icon: ShieldAlert, iconClass: "text-rose-600", badgeClass: "bg-rose-50 text-rose-800" }
+      return { icon: ShieldAlert, iconClass: "text-rose-600" }
     case "CREATE_TASK":
     case "UPDATE_TASK":
     case "DISPATCH_TASK":
     case "CREATE_CONFIG":
     case "UPDATE_CONFIG":
     case "DISPATCH_CONFIG":
-      return { icon: FileCog, iconClass: "text-sky-600", badgeClass: "bg-sky-50 text-sky-800" }
+      return { icon: FileCog, iconClass: "text-sky-600" }
     default:
-      return { icon: CircleEllipsis, iconClass: "text-slate-600", badgeClass: "bg-slate-100 text-slate-700" }
+      return { icon: CircleEllipsis, iconClass: "text-slate-600" }
   }
 }
 
