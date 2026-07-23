@@ -281,7 +281,7 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
 
 function SummaryMetric({ label, value, valueClass, cardClass }: { label: string; value: number; valueClass: string; cardClass: string }) {
   return (
-    <div className={`rounded-xl border px-3 py-3 ${cardClass}`}>
+    <div className={`flex min-h-0 flex-col items-center justify-center rounded-xl border px-3 py-3 text-center ${cardClass}`}>
       <div className={`text-lg font-semibold ${valueClass}`}>{value}</div>
       <div className="mt-1 text-xs text-slate-500">{label}</div>
     </div>
