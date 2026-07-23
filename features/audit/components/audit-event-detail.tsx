@@ -1,7 +1,7 @@
 ﻿"use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   Activity,
   Ban,
@@ -21,6 +21,7 @@ import {
   UserRound,
 } from "lucide-react"
 import { listDispatchExecutionResults } from "@/features/audit/api"
+import { dispatchExecutionErrorPresentation } from "@/features/audit/error-presentation"
 import type { DispatchAuditEvent, DispatchExecutionResult, DispatchExecutionStatus } from "@/features/audit/types"
 import { auditResultLabels, dispatchTypeLabels } from "@/features/audit/types"
 import { Button } from "@/shared/ui/button"
@@ -97,6 +98,7 @@ function publishStatusLabel(value: string) {
 
 export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps) {
   const t = useTranslations("pages.reports")
+  const locale = useLocale()
   const [items, setItems] = useState<DispatchExecutionResult[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -233,15 +235,15 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
                 ) : (
                   <>
                     <div className="min-h-0 flex-1 overflow-auto">
-                      <table className="w-full min-w-[1060px] table-fixed text-left text-xs">
+                      <table className="w-full min-w-[1200px] table-fixed text-left text-xs">
                         <colgroup>
                           <col className="w-[240px]" />
                           <col className="w-[100px]" />
                           <col className="w-[130px]" />
-                          <col className="w-[190px]" />
-                          <col className="w-[110px]" />
-                          <col className="w-[90px]" />
-                          <col className="w-[190px]" />
+                          <col className="w-[150px]" />
+                          <col className="w-[150px]" />
+                          <col className="w-[100px]" />
+                          <col className="w-[330px]" />
                         </colgroup>
                         <thead className="sticky top-0 z-10 bg-slate-50 font-semibold text-slate-500">
                           <tr>
@@ -250,13 +252,13 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
                             <th className="px-3 py-3 text-center">执行状态</th>
                             <th className="px-3 py-3">最后回执</th>
                             <th className="px-3 py-3">完成时间</th>
-                            <th className="px-3 py-3">错误码</th>
-                            <th className="px-3 py-3">错误描述</th>
+                            <th className="px-3 py-3">{locale.toLowerCase().startsWith("zh") ? "错误码" : "Error code"}</th>
+                            <th className="px-3 py-3">{locale.toLowerCase().startsWith("zh") ? "错误描述" : "Error description"}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                           {items.map((item) => (
-                            <ExecutionRow key={item.id} item={item} />
+                            <ExecutionRow key={item.id} item={item} locale={locale} />
                           ))}
                         </tbody>
                       </table>
@@ -342,8 +344,9 @@ function ExecutionPagination({
     </div>
   )
 }
-function ExecutionRow({ item }: { item: DispatchExecutionResult }) {
+function ExecutionRow({ item, locale }: { item: DispatchExecutionResult; locale: string }) {
   const StatusIcon = executionStatusIcons[item.executionStatus]
+  const errorPresentation = dispatchExecutionErrorPresentation(item.errorCode, item.errorMessage, locale)
 
   return (
     <tr className="hover:bg-slate-50/80">
@@ -357,13 +360,13 @@ function ExecutionRow({ item }: { item: DispatchExecutionResult }) {
           {executionStatusLabels[item.executionStatus]}
         </span>
       </td>
-      <td className="whitespace-nowrap px-3 py-3 text-slate-600">{formatDateTime(item.lastReportAt || item.updatedAt)}</td>
-      <td className="whitespace-nowrap px-3 py-3 text-slate-600">{formatDateTime(item.finishedAt)}</td>
+      <td className="truncate whitespace-nowrap px-3 py-3 text-slate-600" title={formatDateTime(item.lastReportAt || item.updatedAt)}>{formatDateTime(item.lastReportAt || item.updatedAt)}</td>
+      <td className="truncate whitespace-nowrap px-3 py-3 text-slate-600" title={formatDateTime(item.finishedAt)}>{formatDateTime(item.finishedAt)}</td>
       <td className="px-3 py-3">
-        <div className="truncate font-mono text-slate-600" title={item.errorCode || "-"}>{item.errorCode || "-"}</div>
+        <div className="truncate text-slate-700" title={errorPresentation.codeTitle}>{errorPresentation.code}</div>
       </td>
       <td className="px-3 py-3">
-        <div className="truncate text-slate-600" title={item.errorMessage || "-"}>{item.errorMessage || "-"}</div>
+        <div className="truncate text-slate-600" title={errorPresentation.descriptionTitle}>{errorPresentation.description}</div>
       </td>
     </tr>
   )
