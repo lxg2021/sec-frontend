@@ -102,8 +102,8 @@ export function UserActivityFilters({
   const SelectedResultIcon = selectedResult.icon
 
   return (
-    <section className="shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white" aria-labelledby="user-audit-filter-title">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/80 px-4 py-3">
+    <section className="shrink-0 overflow-hidden rounded-2xl bg-card" aria-labelledby="user-audit-filter-title">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/40 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
             <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
@@ -124,7 +124,7 @@ export function UserActivityFilters({
         </Button>
       </header>
 
-      <div className="grid gap-4 p-4 sm:grid-cols-2 xl:grid-cols-[170px_190px_160px_minmax(200px,1fr)_minmax(220px,1fr)]">
+      <div className="grid gap-x-4 gap-y-4 py-5 sm:grid-cols-2 xl:grid-cols-[170px_190px_160px_minmax(200px,1fr)_minmax(220px,1fr)]">
         <div className="flex min-w-0 flex-col gap-1.5">
           <span id="user-audit-time-label" className="sr-only">{rangeT("timeRange")}</span>
           <Select value={dateRange} onValueChange={(value) => onDateRangeChange(value as UserAuditDateRange)}>
