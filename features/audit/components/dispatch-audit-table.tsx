@@ -47,7 +47,7 @@ export function DispatchAuditTable({
   const startItem = total === 0 ? 0 : (page - 1) * pageSize + 1
   const endItem = Math.min(page * pageSize, total)
   return (
-    <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-5 py-4">
         <div className="min-w-0">
           <h2 className="text-base font-semibold text-slate-900">下发记录</h2>
