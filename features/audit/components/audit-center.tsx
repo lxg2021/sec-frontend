@@ -46,10 +46,23 @@ function userAuditTimeBounds(dateRange: UserAuditDateRange, customDateFrom?: Dat
   }
 }
 
+function customAuditTimeBounds(customDateFrom?: Date, customDateTo?: Date) {
+  const from = customDateFrom ? new Date(customDateFrom) : undefined
+  const to = customDateTo ? new Date(customDateTo) : undefined
+  from?.setHours(0, 0, 0, 0)
+  to?.setHours(23, 59, 59, 999)
+  return {
+    occurredAfterUnixMs: from?.getTime(),
+    occurredBeforeUnixMs: to?.getTime(),
+  }
+}
+
 export function AuditCenter() {
   const t = useTranslations("pages.reports")
   const [activeCategory, setActiveCategory] = useState<AuditCategory>("dispatch")
   const [dispatchTimeRange, setDispatchTimeRange] = useState<DispatchTimeRange>("7d")
+  const [dispatchCustomDateFrom, setDispatchCustomDateFrom] = useState<Date>()
+  const [dispatchCustomDateTo, setDispatchCustomDateTo] = useState<Date>()
   const [dispatchType, setDispatchType] = useState<DispatchType>("all")
   const [result, setResult] = useState<AuditResult>("all")
   const [actor, setActor] = useState("")
@@ -68,21 +81,39 @@ export function AuditCenter() {
   const [userAuditLoading, setUserAuditLoading] = useState(false)
   const [userAuditError, setUserAuditError] = useState("")
   const [userAuditTruncated, setUserAuditTruncated] = useState(false)
+  const dispatchAuditRequestRef = useRef(0)
   const userAuditRequestRef = useRef(0)
 
   const loadDispatchEvents = useCallback(async () => {
+    const requestVersion = ++dispatchAuditRequestRef.current
+    if (dispatchTimeRange === "custom" && (!dispatchCustomDateFrom || !dispatchCustomDateTo)) {
+      setDispatchEvents([])
+      setSelectedId(undefined)
+      setDetailOpen(false)
+      setDispatchLoading(false)
+      setDispatchError("")
+      return
+    }
+
     setDispatchLoading(true)
     setDispatchError("")
     try {
-      const events = await listDispatchAuditEvents(dispatchTimeRange)
+      const events = await listDispatchAuditEvents(
+        dispatchTimeRange,
+        dispatchTimeRange === "custom"
+          ? customAuditTimeBounds(dispatchCustomDateFrom, dispatchCustomDateTo)
+          : {},
+      )
+      if (requestVersion !== dispatchAuditRequestRef.current) return
       setDispatchEvents(events)
       setSelectedId((current) => current && events.some((event) => event.id === current) ? current : undefined)
     } catch (error) {
+      if (requestVersion !== dispatchAuditRequestRef.current) return
       setDispatchError(error instanceof Error ? error.message : "下发审计数据加载失败")
     } finally {
-      setDispatchLoading(false)
+      if (requestVersion === dispatchAuditRequestRef.current) setDispatchLoading(false)
     }
-  }, [dispatchTimeRange])
+  }, [dispatchCustomDateFrom, dispatchCustomDateTo, dispatchTimeRange])
 
   useEffect(() => {
     void loadDispatchEvents()
@@ -143,7 +174,7 @@ export function AuditCenter() {
 
   useEffect(() => {
     setDispatchPage(1)
-  }, [actor, dispatchTimeRange, dispatchType, keyword, result])
+  }, [actor, dispatchCustomDateFrom, dispatchCustomDateTo, dispatchTimeRange, dispatchType, keyword, result])
 
   useEffect(() => {
     setDispatchPage((current) => Math.min(current, dispatchTotalPages))
@@ -154,6 +185,8 @@ export function AuditCenter() {
 
   const resetFilters = () => {
     setDispatchTimeRange("7d")
+    setDispatchCustomDateFrom(undefined)
+    setDispatchCustomDateTo(undefined)
     setDispatchType("all")
     setResult("all")
     setActor("")
@@ -224,11 +257,15 @@ export function AuditCenter() {
             <div className="flex min-h-0 flex-1 flex-col gap-4">
               <DispatchAuditFilters
                 timeRange={dispatchTimeRange}
+                customDateFrom={dispatchCustomDateFrom}
+                customDateTo={dispatchCustomDateTo}
                 dispatchType={dispatchType}
                 result={result}
                 actor={actor}
                 keyword={keyword}
                 onTimeRangeChange={setDispatchTimeRange}
+                onCustomDateFromChange={setDispatchCustomDateFrom}
+                onCustomDateToChange={setDispatchCustomDateTo}
                 onDispatchTypeChange={setDispatchType}
                 onResultChange={setResult}
                 onActorChange={setActor}

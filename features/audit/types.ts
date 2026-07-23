@@ -7,7 +7,7 @@ export type { UserActionType, UserActivityAudit, UserAuditDateRange } from "./mo
 export type AuditCategory = "dispatch" | "user" | "change"
 export type DispatchType = "all" | "policy" | "command" | "config"
 export type AuditResult = "all" | "success" | "failed" | "pending" | "timeout"
-export type DispatchTimeRange = "24h" | "7d" | "30d" | "90d"
+export type DispatchTimeRange = "24h" | "7d" | "30d" | "90d" | "custom"
 export type DispatchExecutionStatus = "pending" | "accepted" | "running" | "success" | "failed" | "skipped" | "canceled" | "unknown"
 
 export interface DispatchAuditEvent {
@@ -72,4 +72,5 @@ export const dispatchTimeRangeLabels: Record<DispatchTimeRange, string> = {
   "7d": "最近 7 天",
   "30d": "最近 30 天",
   "90d": "最近 90 天",
+  custom: "自定义",
 }

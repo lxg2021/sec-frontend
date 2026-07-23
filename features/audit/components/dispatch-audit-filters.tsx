@@ -1,5 +1,6 @@
 ﻿"use client"
 
+import { format } from "date-fns"
 import {
   CalendarDays,
   CalendarRange,
@@ -18,15 +19,22 @@ import {
 } from "lucide-react"
 import type { AuditResult, DispatchTimeRange, DispatchType } from "@/features/audit/types"
 import { auditResultLabels, dispatchTimeRangeLabels, dispatchTypeLabels } from "@/features/audit/types"
+import { Button } from "@/shared/ui/button"
+import { Calendar } from "@/shared/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/shared/ui/select"
 
 interface DispatchAuditFiltersProps {
   timeRange: DispatchTimeRange
+  customDateFrom?: Date
+  customDateTo?: Date
   dispatchType: DispatchType
   result: AuditResult
   actor: string
   keyword: string
   onTimeRangeChange: (value: DispatchTimeRange) => void
+  onCustomDateFromChange: (value: Date | undefined) => void
+  onCustomDateToChange: (value: Date | undefined) => void
   onDispatchTypeChange: (value: DispatchType) => void
   onResultChange: (value: AuditResult) => void
   onActorChange: (value: string) => void
@@ -57,15 +65,20 @@ const timeRangeOptions = [
   { value: "7d" as const, label: dispatchTimeRangeLabels["7d"], icon: CalendarDays, iconClass: "text-sky-500" },
   { value: "30d" as const, label: dispatchTimeRangeLabels["30d"], icon: CalendarRange, iconClass: "text-blue-500" },
   { value: "90d" as const, label: dispatchTimeRangeLabels["90d"], icon: CalendarRange, iconClass: "text-indigo-500" },
+  { value: "custom" as const, label: dispatchTimeRangeLabels.custom, icon: CalendarRange, iconClass: "text-violet-500" },
 ]
 
 export function DispatchAuditFilters({
   timeRange,
+  customDateFrom,
+  customDateTo,
   dispatchType,
   result,
   actor,
   keyword,
   onTimeRangeChange,
+  onCustomDateFromChange,
+  onCustomDateToChange,
   onDispatchTypeChange,
   onResultChange,
   onActorChange,
@@ -196,6 +209,51 @@ export function DispatchAuditFilters({
           </span>
         </label>
       </div>
+
+      {timeRange === "custom" && (
+        <div className="flex flex-wrap items-end gap-4 border-t border-slate-100 bg-slate-50/50 px-4 py-3">
+          <div className="flex min-w-[200px] flex-col gap-1.5">
+            <span className="text-xs font-medium text-slate-500">开始日期</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-11 justify-start gap-2 rounded-lg bg-white px-3.5 text-left font-normal">
+                  <CalendarDays className="h-4 w-4 text-sky-600" aria-hidden="true" />
+                  {customDateFrom ? format(customDateFrom, "yyyy-MM-dd") : "选择日期"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customDateFrom}
+                  onSelect={onCustomDateFromChange}
+                  disabled={customDateTo ? { after: customDateTo } : undefined}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div className="flex min-w-[200px] flex-col gap-1.5">
+            <span className="text-xs font-medium text-slate-500">结束日期</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-11 justify-start gap-2 rounded-lg bg-white px-3.5 text-left font-normal">
+                  <CalendarRange className="h-4 w-4 text-indigo-600" aria-hidden="true" />
+                  {customDateTo ? format(customDateTo, "yyyy-MM-dd") : "选择日期"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customDateTo}
+                  onSelect={onCustomDateToChange}
+                  disabled={customDateFrom ? { before: customDateFrom } : undefined}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

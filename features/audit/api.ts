@@ -16,7 +16,7 @@ import type {
 const PAGE_SIZE = 100
 const MAX_PAGES = 20
 const USER_AUDIT_PAGE_SIZE = 200
-const TIME_RANGE_DAYS: Record<DispatchTimeRange, number> = {
+const TIME_RANGE_DAYS: Record<Exclude<DispatchTimeRange, "custom">, number> = {
   "24h": 1,
   "7d": 7,
   "30d": 30,
@@ -61,6 +61,11 @@ export interface UserAuditListResult {
   items: UserActivityAudit[]
   total: number
   truncated: boolean
+}
+
+export interface DispatchAuditQuery {
+  occurredAfterUnixMs?: number
+  occurredBeforeUnixMs?: number
 }
 
 interface PMCOperationSnapshot {
@@ -361,7 +366,7 @@ function parseManualActor(sourceRefId: string) {
   if (!sourceRefId.startsWith("manual:")) return ""
   return sourceRefId.split(":", 3)[1] || ""
 }
-async function listRecentOperations(cutoffUnixMs: number) {
+async function listRecentOperations(cutoffUnixMs: number, occurredBeforeUnixMs: number) {
   const operations: PMCOperationSnapshot[] = []
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -378,7 +383,10 @@ async function listRecentOperations(cutoffUnixMs: number) {
     if (batch.length < PAGE_SIZE || reachedCutoff) break
   }
 
-  return operations.filter((operation) => numberValue(operation.created_at_unix_ms) >= cutoffUnixMs)
+  return operations.filter((operation) => {
+    const occurredAtUnixMs = numberValue(operation.created_at_unix_ms)
+    return occurredAtUnixMs >= cutoffUnixMs && occurredAtUnixMs <= occurredBeforeUnixMs
+  })
 }
 
 async function listOperationActors(cutoffUnixMs: number, nowUnixMs: number) {
@@ -477,12 +485,26 @@ export async function listUserActivityAudits(query: UserAuditQuery = {}): Promis
   }
 }
 
-export async function listDispatchAuditEvents(timeRange: DispatchTimeRange = "7d"): Promise<DispatchAuditEvent[]> {
+export async function listDispatchAuditEvents(
+  timeRange: DispatchTimeRange = "7d",
+  query: DispatchAuditQuery = {},
+): Promise<DispatchAuditEvent[]> {
   const nowUnixMs = Date.now()
-  const cutoffUnixMs = nowUnixMs - TIME_RANGE_DAYS[timeRange] * 24 * 60 * 60 * 1000
+  const customAfterUnixMs = Math.max(0, Math.trunc(query.occurredAfterUnixMs ?? 0))
+  const customBeforeUnixMs = Math.max(0, Math.trunc(query.occurredBeforeUnixMs ?? 0))
+  if (customAfterUnixMs > 0 && customBeforeUnixMs > 0 && customAfterUnixMs > customBeforeUnixMs) {
+    throw new Error("下发审计的结束时间不能早于开始时间")
+  }
+
+  const cutoffUnixMs = timeRange === "custom"
+    ? customAfterUnixMs
+    : nowUnixMs - TIME_RANGE_DAYS[timeRange] * 24 * 60 * 60 * 1000
+  const occurredBeforeUnixMs = timeRange === "custom" && customBeforeUnixMs > 0
+    ? customBeforeUnixMs
+    : nowUnixMs
   const [operations, actors, objectNames] = await Promise.all([
-    listRecentOperations(cutoffUnixMs),
-    listOperationActors(cutoffUnixMs, nowUnixMs),
+    listRecentOperations(cutoffUnixMs, occurredBeforeUnixMs),
+    listOperationActors(cutoffUnixMs, occurredBeforeUnixMs),
     listObjectNames(),
   ])
 
