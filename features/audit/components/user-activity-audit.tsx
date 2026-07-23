@@ -1,63 +1,65 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
-import type { UserActivityAudit as UserActivityAuditType } from "@/features/audit/types"
-import { UserActivityCard } from "./user-activity-card"
-import { Pagination } from "./pagination"
-import { Filter, ClipboardList } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { TriangleAlert } from "lucide-react"
+import type { UserActivityAudit as UserActivityAuditType, UserAuditDateRange } from "@/features/audit/types"
+import { Button } from "@/shared/ui/button"
 import { useTranslations } from "next-intl"
+import {
+  UserActivityFilters,
+  type UserAuditActionFilter,
+  type UserAuditResultFilter,
+} from "./user-activity-filters"
+import { UserActivityList } from "./user-activity-list"
 
 interface UserActivityAuditProps {
   data: UserActivityAuditType[]
   loading?: boolean
-  globalSearch: string
-  dateRange: string
+  error?: string
+  truncated?: boolean
+  onRetry: () => void
+  dateRange: UserAuditDateRange
+  setDateRange: (value: UserAuditDateRange) => void
   customDateFrom?: Date
+  setCustomDateFrom: (value: Date | undefined) => void
   customDateTo?: Date
+  setCustomDateTo: (value: Date | undefined) => void
 }
+
+const ITEMS_PER_PAGE = 10
 
 export function UserActivityAudit({
   data,
   loading = false,
-  globalSearch,
+  error = "",
+  truncated = false,
+  onRetry,
   dateRange,
+  setDateRange,
   customDateFrom,
+  setCustomDateFrom,
   customDateTo,
+  setCustomDateTo,
 }: UserActivityAuditProps) {
   const t = useTranslations("pages.audit.userActivity")
-  const [actionType, setActionType] = useState<string>("all")
-  const [result, setResult] = useState<string>("all")
-  const [targetType, setTargetType] = useState<string>("all")
+  const [actionType, setActionType] = useState<UserAuditActionFilter>("all")
+  const [result, setResult] = useState<UserAuditResultFilter>("all")
+  const [actorQuery, setActorQuery] = useState("")
+  const [targetQuery, setTargetQuery] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5
 
   const filteredAudits = useMemo(() => {
+    const normalizedActor = actorQuery.trim().toLowerCase()
+    const normalizedTarget = targetQuery.trim().toLowerCase()
+
     return data.filter((audit) => {
-      // Global search filter
-      if (globalSearch) {
-        const searchLower = globalSearch.toLowerCase()
-        const matchesSearch =
-          audit.username.toLowerCase().includes(searchLower) ||
-          audit.userId.toLowerCase().includes(searchLower) ||
-          audit.targetName?.toLowerCase().includes(searchLower) ||
-          audit.sourceIp?.toLowerCase().includes(searchLower) ||
-          audit.targetId?.toLowerCase().includes(searchLower)
-        if (!matchesSearch) return false
-      }
+      if (normalizedActor && !`${audit.username} ${audit.userId}`.toLowerCase().includes(normalizedActor)) return false
+      if (normalizedTarget && !`${audit.targetName ?? ""} ${audit.targetId ?? ""}`.toLowerCase().includes(normalizedTarget)) return false
 
-      // Date range filter
       const auditDate = new Date(audit.timestamp)
-
-      // Validate date
-      if (isNaN(auditDate.getTime())) {
-        console.error("Invalid timestamp:", audit.timestamp)
-        return false
-      }
+      if (Number.isNaN(auditDate.getTime())) return false
 
       if (dateRange === "custom") {
-        // Custom date range filtering
         if (customDateFrom) {
           const startOfDay = new Date(customDateFrom)
           startOfDay.setHours(0, 0, 0, 0)
@@ -68,134 +70,87 @@ export function UserActivityAudit({
           endOfDay.setHours(23, 59, 59, 999)
           if (auditDate > endOfDay) return false
         }
-      } else if (dateRange !== "all") {
-        // Preset date range filtering
-        const daysMap: Record<string, number> = {
-          "1d": 1,
-          "7d": 7,
-          "30d": 30,
-          "90d": 90,
-        }
-        const days = daysMap[dateRange]
-        if (days) {
-          const now = new Date()
-          const cutoffDate = new Date(now)
-          cutoffDate.setDate(cutoffDate.getDate() - days)
-          cutoffDate.setHours(0, 0, 0, 0)
-          if (auditDate < cutoffDate) return false
-        }
+      } else {
+        const days = Number.parseInt(dateRange, 10)
+        const cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - days)
+        cutoffDate.setHours(0, 0, 0, 0)
+        if (auditDate < cutoffDate) return false
       }
 
-      // Action type filter
       if (actionType !== "all" && audit.actionType !== actionType) return false
-
-      // Result filter
       if (result !== "all" && audit.result !== result) return false
-
-      // Target type filter
-      if (targetType !== "all" && audit.targetType !== targetType) return false
-
       return true
     })
-  }, [data, globalSearch, dateRange, customDateFrom, customDateTo, actionType, result, targetType])
+  }, [actionType, actorQuery, customDateFrom, customDateTo, data, dateRange, result, targetQuery])
+
+  const totalPages = Math.max(1, Math.ceil(filteredAudits.length / ITEMS_PER_PAGE))
+  const paginatedAudits = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    return filteredAudits.slice(startIndex, startIndex + ITEMS_PER_PAGE)
+  }, [currentPage, filteredAudits])
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [data, globalSearch, dateRange, customDateFrom, customDateTo, actionType, result, targetType])
+  }, [actionType, actorQuery, customDateFrom, customDateTo, data, dateRange, result, targetQuery])
 
-  const totalPages = Math.ceil(filteredAudits.length / itemsPerPage)
-  const paginatedAudits = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    return filteredAudits.slice(startIndex, startIndex + itemsPerPage)
-  }, [filteredAudits, currentPage, itemsPerPage])
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages))
+  }, [totalPages])
+
+  const resetFilters = () => {
+    setDateRange("7d")
+    setCustomDateFrom(undefined)
+    setCustomDateTo(undefined)
+    setActionType("all")
+    setResult("all")
+    setActorQuery("")
+    setTargetQuery("")
+  }
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Filter className="h-4 w-4 text-blue-500" />
-            {t("filterTitle")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">{t("actionType")}</label>
-              <Select value={actionType} onValueChange={setActionType}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder={t("actionTypePlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("all")}</SelectItem>
-                  <SelectItem value="ADD_USER">{t("addUser")}</SelectItem>
-                  <SelectItem value="UPDATE_USER">{t("updateUser")}</SelectItem>
-                  <SelectItem value="PASSWORD_CHANGE">{t("passwordChange")}</SelectItem>
-                  <SelectItem value="STATUS_CHANGE">{t("statusChange")}</SelectItem>
-                  <SelectItem value="DELETE_USER">{t("deleteUser")}</SelectItem>
-                  <SelectItem value="ROLE_CHANGE">{t("roleChange")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">{t("result")}</label>
-              <Select value={result} onValueChange={setResult}>
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder={t("resultPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("all")}</SelectItem>
-                  <SelectItem value="SUCCESS">{t("success")}</SelectItem>
-                  <SelectItem value="FAILED">{t("failed")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium whitespace-nowrap">{t("target")}</label>
-              <Select value={targetType} onValueChange={setTargetType}>
-                <SelectTrigger className="w-[130px]">
-                  <SelectValue placeholder={t("targetPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("all")}</SelectItem>
-                  <SelectItem value="USER">{t("user")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <ClipboardList className="h-5 w-5 text-blue-500" />
-            {t("listTitle")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {loading && data.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">{t("loading")}</div>
-          ) : filteredAudits.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">{t("empty")}</div>
-          ) : (
-            <>
-              {paginatedAudits.map((audit) => (
-                <UserActivityCard key={audit.eventId} audit={audit} />
-              ))}
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                setPage={setCurrentPage}
-                totalItems={filteredAudits.length}
-                itemsPerPage={itemsPerPage}
-              />
-            </>
-          )}
-        </CardContent>
-      </Card>
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto xl:overflow-hidden">
+      <UserActivityFilters
+        dateRange={dateRange}
+        customDateFrom={customDateFrom}
+        customDateTo={customDateTo}
+        actionType={actionType}
+        result={result}
+        actorQuery={actorQuery}
+        targetQuery={targetQuery}
+        onDateRangeChange={setDateRange}
+        onCustomDateFromChange={setCustomDateFrom}
+        onCustomDateToChange={setCustomDateTo}
+        onActionTypeChange={setActionType}
+        onResultChange={setResult}
+        onActorQueryChange={setActorQuery}
+        onTargetQueryChange={setTargetQuery}
+        onReset={resetFilters}
+      />
+      {error && (
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" role="alert">
+          <span className="flex min-w-0 items-center gap-2">
+            <TriangleAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="break-words">{t("loadFailed", { error })}</span>
+          </span>
+          <Button type="button" variant="outline" size="sm" onClick={onRetry} className="h-9 border-rose-200 bg-white text-rose-800 hover:bg-rose-100">
+            {t("retry")}
+          </Button>
+        </div>
+      )}
+      {truncated && (
+        <div className="shrink-0 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs text-amber-900" role="status">
+          {t("truncated", { count: data.length })}
+        </div>
+      )}
+      <UserActivityList
+        events={paginatedAudits}
+        total={filteredAudits.length}
+        page={currentPage}
+        pageSize={ITEMS_PER_PAGE}
+        loading={loading}
+        onPageChange={setCurrentPage}
+      />
     </div>
   )
 }

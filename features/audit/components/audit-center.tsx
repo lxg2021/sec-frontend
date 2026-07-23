@@ -9,7 +9,6 @@ import { AuditEventDetail } from "./audit-event-detail"
 import { AuditSummary } from "./audit-summary"
 import { DispatchAuditFilters } from "./dispatch-audit-filters"
 import { DispatchAuditTable } from "./dispatch-audit-table"
-import { GlobalFilters } from "./global-filters"
 import { UserActivityAudit } from "./user-activity-audit"
 import { listDispatchAuditEvents, listUserActivityAudits } from "@/features/audit/api"
 import type {
@@ -18,12 +17,13 @@ import type {
   DispatchAuditEvent,
   DispatchTimeRange,
   DispatchType,
+  UserAuditDateRange,
   UserActivityAudit as UserActivityAuditData,
 } from "@/features/audit/types"
 
 export type AuditTab = "task" | "user" | "defense" | "disposition"
 
-function userAuditTimeBounds(dateRange: string, customDateFrom?: Date, customDateTo?: Date) {
+function userAuditTimeBounds(dateRange: UserAuditDateRange, customDateFrom?: Date, customDateTo?: Date) {
   if (dateRange === "custom") {
     const from = customDateFrom ? new Date(customDateFrom) : undefined
     const to = customDateTo ? new Date(customDateTo) : undefined
@@ -61,8 +61,7 @@ export function AuditCenter() {
   const [dispatchEvents, setDispatchEvents] = useState<DispatchAuditEvent[]>([])
   const [dispatchLoading, setDispatchLoading] = useState(true)
   const [dispatchError, setDispatchError] = useState("")
-  const [globalSearch, setGlobalSearch] = useState("")
-  const [dateRange, setDateRange] = useState("7d")
+  const [dateRange, setDateRange] = useState<UserAuditDateRange>("7d")
   const [customDateFrom, setCustomDateFrom] = useState<Date>()
   const [customDateTo, setCustomDateTo] = useState<Date>()
   const [userAuditEvents, setUserAuditEvents] = useState<UserActivityAuditData[]>([])
@@ -272,35 +271,19 @@ export function AuditCenter() {
           )}
 
           {activeCategory === "user" && (
-            <div className="min-h-0 flex-1 space-y-5 overflow-auto pr-1">
-              <GlobalFilters
-                activeTab="user"
-                globalSearch={globalSearch}
-                setGlobalSearch={setGlobalSearch}
+            <div className="flex min-h-0 flex-1 flex-col">
+              <UserActivityAudit
+                data={userAuditEvents}
+                loading={userAuditLoading}
+                error={userAuditError}
+                truncated={userAuditTruncated}
+                onRetry={() => void loadUserAuditEvents()}
                 dateRange={dateRange}
                 setDateRange={setDateRange}
                 customDateFrom={customDateFrom}
                 setCustomDateFrom={setCustomDateFrom}
                 customDateTo={customDateTo}
                 setCustomDateTo={setCustomDateTo}
-              />
-              {userAuditError && (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-                  真实用户审计数据加载失败：{userAuditError}
-                </div>
-              )}
-              {userAuditTruncated && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">
-                  审计记录较多，当前仅显示最近 {userAuditEvents.length} 条，请缩小时间范围后重试。
-                </div>
-              )}
-              <UserActivityAudit
-                data={userAuditEvents}
-                loading={userAuditLoading}
-                globalSearch={globalSearch}
-                dateRange={dateRange}
-                customDateFrom={customDateFrom}
-                customDateTo={customDateTo}
               />
             </div>
           )}

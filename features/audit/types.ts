@@ -2,7 +2,7 @@
 export type { DefenseActionType, DefenseAudit, DefenseAuditType } from "./models/defense-audit"
 export type { DispositionActionType, DispositionAudit, DispositionAuditType } from "./models/disposition-audit"
 export type { HostDispatchStatus, TaskDispatchReport } from "./models/task-dispatch-report"
-export type { UserActionType, UserActivityAudit } from "./models/user-audit"
+export type { UserActionType, UserActivityAudit, UserAuditDateRange } from "./models/user-audit"
 
 export type AuditCategory = "dispatch" | "user" | "change"
 export type DispatchType = "all" | "policy" | "command" | "config"

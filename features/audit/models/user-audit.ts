@@ -23,6 +23,8 @@ export type UserActionType =
   // Other
   | "OTHER"
 
+export type UserAuditDateRange = "1d" | "7d" | "30d" | "90d" | "custom"
+
 /**
  * User activity audit records shown in the management console.
  */
