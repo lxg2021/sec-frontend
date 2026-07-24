@@ -23,7 +23,6 @@ import {
 import { listDispatchExecutionResults } from "@/features/audit/api"
 import { dispatchExecutionErrorPresentation } from "@/features/audit/error-presentation"
 import type { DispatchAuditEvent, DispatchExecutionResult, DispatchExecutionStatus } from "@/features/audit/types"
-import { auditResultLabels, dispatchTypeLabels } from "@/features/audit/types"
 import { Button } from "@/shared/ui/button"
 import {
   Dialog,
@@ -39,17 +38,6 @@ interface AuditEventDetailProps {
 }
 
 const EXECUTION_PAGE_SIZE = 10
-
-const executionStatusLabels: Record<DispatchExecutionStatus, string> = {
-  pending: "待执行",
-  accepted: "已接收",
-  running: "执行中",
-  success: "成功",
-  failed: "失败",
-  skipped: "已跳过",
-  canceled: "已取消",
-  unknown: "未确认",
-}
 
 const executionStatusIcons = {
   pending: Clock3,
@@ -73,9 +61,9 @@ const executionStatusIconStyles: Record<DispatchExecutionStatus, string> = {
   unknown: "text-amber-600",
 }
 
-function formatDateTime(value?: string) {
+function formatDateTime(value: string | undefined, locale: string) {
   if (!value) return "-"
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -86,14 +74,14 @@ function formatDateTime(value?: string) {
   }).format(new Date(value))
 }
 
-function publishStatusLabel(value: string) {
+function publishStatusKey(value: string) {
   const normalized = value.toLowerCase()
-  if (normalized === "published") return "已发布"
-  if (normalized === "publishing") return "发布中"
-  if (normalized === "pending") return "待发布"
-  if (normalized.includes("fail")) return "发布失败"
-  if (normalized.includes("retry")) return "等待重试"
-  return value || "-"
+  if (normalized === "published") return "published"
+  if (normalized === "publishing") return "publishing"
+  if (normalized === "pending") return "pending"
+  if (normalized.includes("fail")) return "failed"
+  if (normalized.includes("retry")) return "retry"
+  return undefined
 }
 
 export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps) {
@@ -117,11 +105,11 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
     } catch (loadError) {
       setItems([])
       setTotalItems(0)
-      setError(loadError instanceof Error ? loadError.message : "逐机执行明细加载失败")
+      setError(loadError instanceof Error && loadError.message.trim() ? loadError.message : t("errors.executionLoadFallback"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     setPage(1)
@@ -143,6 +131,10 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
     failed: event?.failedCount || 0,
     pending: event?.pendingCount || 0,
   }), [event, totalItems])
+  const numberFormatter = useMemo(() => new Intl.NumberFormat(locale), [locale])
+  const actorType = (["operator", "system", "publisher", "reconciler", "unknown"] as const)
+    .find((type) => type === event?.actorName.toLowerCase())
+  const actorDisplayName = actorType ? t(`dispatch.actorTypes.${actorType}`) : event?.actorName || t("dispatch.actorTypes.unknown")
 
   return (
     <Dialog open={open && Boolean(event)} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
@@ -155,7 +147,7 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
                   <Monitor className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0">
-                  <DialogTitle className="truncate text-lg font-semibold text-slate-950">下发执行详情</DialogTitle>
+                  <DialogTitle className="truncate text-lg font-semibold text-slate-950">{t("dispatch.detail.title")}</DialogTitle>
                 </div>
               </div>
             </DialogHeader>
@@ -163,39 +155,39 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
             <div className="shrink-0 px-6 py-3">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_440px]">
                 <dl className="grid min-w-0 grid-cols-2 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40 text-sm">
-                  <div className="flex min-w-0 items-center border-b border-r border-slate-200 px-3 py-2">
-                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><FileOutput className="h-3.5 w-3.5 text-cyan-500" aria-hidden="true" />下发类型：</dt>
-                    <dd className="min-w-0 truncate font-medium text-slate-700">{dispatchTypeLabels[event.dispatchType]}</dd>
+                  <div className="flex min-w-0 items-center gap-1 border-b border-r border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><FileOutput className="h-3.5 w-3.5 text-cyan-500" aria-hidden="true" />{t("dispatch.detail.dispatchType")}</dt>
+                    <dd className="min-w-0 truncate font-medium text-slate-700">{t(`dispatch.types.${event.dispatchType}`)}</dd>
                   </div>
-                  <div className="flex min-w-0 items-center border-b border-slate-200 px-3 py-2">
-                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><CalendarClock className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />发生时间：</dt>
-                    <dd className="min-w-0 truncate text-slate-700">{formatDateTime(event.occurredAt)}</dd>
+                  <div className="flex min-w-0 items-center gap-1 border-b border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><CalendarClock className="h-3.5 w-3.5 text-blue-500" aria-hidden="true" />{t("dispatch.detail.occurredAt")}</dt>
+                    <dd className="min-w-0 truncate text-slate-700">{formatDateTime(event.occurredAt, locale)}</dd>
                   </div>
-                  <div className="flex min-w-0 items-center border-b border-r border-slate-200 px-3 py-2">
-                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><UserRound className="h-3.5 w-3.5 text-violet-500" aria-hidden="true" />操作者：</dt>
-                    <dd className="min-w-0 truncate text-slate-700" title={`${event.actorName} / ${event.actorId}`}>
-                      {event.actorName} / {event.actorId}
+                  <div className="flex min-w-0 items-center gap-1 border-b border-r border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><UserRound className="h-3.5 w-3.5 text-violet-500" aria-hidden="true" />{t("dispatch.detail.actor")}</dt>
+                    <dd className="min-w-0 truncate text-slate-700" title={`${actorDisplayName} / ${event.actorId}`}>
+                      {actorDisplayName} / {event.actorId}
                     </dd>
                   </div>
-                  <div className="flex min-w-0 items-center border-b border-slate-200 px-3 py-2">
-                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><ClipboardList className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />下发任务：</dt>
+                  <div className="flex min-w-0 items-center gap-1 border-b border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><ClipboardList className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />{t("dispatch.detail.task")}</dt>
                     <dd className="min-w-0 truncate font-mono text-slate-700" title={event.taskId}>{event.taskId}</dd>
                   </div>
-                  <div className="flex min-w-0 items-center border-r border-slate-200 px-3 py-2">
-                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><Tag className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />对象版本：</dt>
+                  <div className="flex min-w-0 items-center gap-1 border-r border-slate-200 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><Tag className="h-3.5 w-3.5 text-indigo-500" aria-hidden="true" />{t("dispatch.detail.objectVersion")}</dt>
                     <dd className="min-w-0 truncate font-mono text-slate-700">{event.objectVersion || "-"}</dd>
                   </div>
-                  <div className="flex min-w-0 items-center px-3 py-2">
-                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><Activity className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />整体状态：</dt>
-                    <dd className="min-w-0 truncate font-medium text-slate-700">{auditResultLabels[event.result]}</dd>
+                  <div className="flex min-w-0 items-center gap-1 px-3 py-2">
+                    <dt className="flex shrink-0 items-center gap-1.5 text-xs text-slate-400"><Activity className="h-3.5 w-3.5 text-emerald-500" aria-hidden="true" />{t("dispatch.detail.overallStatus")}</dt>
+                    <dd className="min-w-0 truncate font-medium text-slate-700">{t(`dispatch.results.${event.result}`)}</dd>
                   </div>
                 </dl>
 
                 <div className="grid grid-cols-4 gap-2">
-                  <SummaryMetric label="目标" value={counts.total} valueClass="text-blue-700" cardClass="border-blue-100 bg-blue-50/70" />
-                  <SummaryMetric label="成功" value={counts.success} valueClass="text-emerald-700" cardClass="border-emerald-100 bg-emerald-50/70" />
-                  <SummaryMetric label="失败" value={counts.failed} valueClass="text-red-700" cardClass="border-red-100 bg-red-50/70" />
-                  <SummaryMetric label="待确认" value={counts.pending} valueClass="text-sky-700" cardClass="border-sky-100 bg-sky-50/70" />
+                  <SummaryMetric label={t("dispatch.detail.metrics.target")} value={numberFormatter.format(counts.total)} valueClass="text-blue-700" cardClass="border-blue-100 bg-blue-50/70" />
+                  <SummaryMetric label={t("dispatch.detail.metrics.success")} value={numberFormatter.format(counts.success)} valueClass="text-emerald-700" cardClass="border-emerald-100 bg-emerald-50/70" />
+                  <SummaryMetric label={t("dispatch.detail.metrics.failed")} value={numberFormatter.format(counts.failed)} valueClass="text-red-700" cardClass="border-red-100 bg-red-50/70" />
+                  <SummaryMetric label={t("dispatch.detail.metrics.pending")} value={numberFormatter.format(counts.pending)} valueClass="text-sky-700" cardClass="border-sky-100 bg-sky-50/70" />
                 </div>
               </div>
             </div>
@@ -203,7 +195,7 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
             <div className="flex min-h-0 flex-1 flex-col px-6 pb-6 pt-4">
               <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900">主机执行详情</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">{t("dispatch.detail.hostExecutionTitle")}</h3>
                 </div>
                 <Button
                   type="button"
@@ -214,24 +206,24 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
                   className="h-9 gap-2 text-slate-600"
                 >
                   <RefreshCw className={`h-4 w-4 text-sky-600 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
-                  刷新
+                  {t("dispatch.detail.refresh")}
                 </Button>
               </div>
 
               <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200">
                 {loading && items.length === 0 ? (
-                  <div className="flex min-h-0 flex-1 items-center justify-center gap-2 text-sm text-slate-500">
+                  <div className="flex min-h-0 flex-1 items-center justify-center gap-2 text-sm text-slate-500" role="status" aria-live="polite">
                     <LoaderCircle className="h-5 w-5 animate-spin text-sky-600" aria-hidden="true" />
-                    正在加载逐机执行明细
+                    {t("dispatch.detail.loading")}
                   </div>
                 ) : error ? (
-                  <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+                  <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center" role="alert">
                     <CircleAlert className="h-7 w-7 text-red-500" aria-hidden="true" />
                     <p className="text-sm text-red-700">{error}</p>
-                    <Button type="button" variant="outline" size="sm" onClick={() => void loadItems(event.operationId, page)}>重新加载</Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => void loadItems(event.operationId, page)}>{t("dispatch.detail.reload")}</Button>
                   </div>
                 ) : items.length === 0 ? (
-                  <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-slate-500">暂无逐机执行记录</div>
+                  <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-slate-500" role="status">{t("dispatch.detail.empty")}</div>
                 ) : (
                   <>
                     <div className="min-h-0 flex-1 overflow-auto">
@@ -248,12 +240,12 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
                         <thead className="sticky top-0 z-10 bg-slate-50 font-semibold text-slate-500">
                           <tr>
                             <th className="px-4 py-3">{t("hostId")}</th>
-                            <th className="px-3 py-3 text-center">发布状态</th>
-                            <th className="px-3 py-3 text-center">执行状态</th>
-                            <th className="px-3 py-3">最后回执</th>
-                            <th className="px-3 py-3">完成时间</th>
-                            <th className="px-3 py-3">{locale.toLowerCase().startsWith("zh") ? "错误码" : "Error code"}</th>
-                            <th className="px-3 py-3">{locale.toLowerCase().startsWith("zh") ? "错误描述" : "Error description"}</th>
+                            <th className="px-3 py-3 text-center">{t("dispatch.detail.columns.publishStatus")}</th>
+                            <th className="px-3 py-3 text-center">{t("dispatch.detail.columns.executionStatus")}</th>
+                            <th className="px-3 py-3">{t("dispatch.detail.columns.lastReport")}</th>
+                            <th className="px-3 py-3">{t("dispatch.detail.columns.finishedAt")}</th>
+                            <th className="px-3 py-3">{t("dispatch.detail.columns.errorCode")}</th>
+                            <th className="px-3 py-3">{t("dispatch.detail.columns.errorDescription")}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -281,7 +273,7 @@ export function AuditEventDetail({ event, open, onClose }: AuditEventDetailProps
   )
 }
 
-function SummaryMetric({ label, value, valueClass, cardClass }: { label: string; value: number; valueClass: string; cardClass: string }) {
+function SummaryMetric({ label, value, valueClass, cardClass }: { label: string; value: string; valueClass: string; cardClass: string }) {
   return (
     <div className={`flex min-h-0 flex-col items-center justify-center rounded-xl border px-3 py-3 text-center ${cardClass}`}>
       <div className={`text-lg font-semibold ${valueClass}`}>{value}</div>
@@ -303,6 +295,9 @@ function ExecutionPagination({
   loading: boolean
   onPageChange: (page: number) => void
 }) {
+  const t = useTranslations("pages.reports.dispatch.detail")
+  const locale = useLocale()
+  const numberFormatter = new Intl.NumberFormat(locale)
   if (totalPages <= 1) return null
 
   const startItem = (currentPage - 1) * EXECUTION_PAGE_SIZE + 1
@@ -311,7 +306,7 @@ function ExecutionPagination({
   return (
     <div className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-white px-4 py-3">
       <span className="text-xs text-slate-500">
-        显示 {startItem}-{endItem} 条，共 {totalItems} 条
+        {t("pageSummary", { start: numberFormatter.format(startItem), end: numberFormatter.format(endItem), total: numberFormatter.format(totalItems) })}
       </span>
       <div className="flex items-center gap-2">
         <Button
@@ -323,7 +318,7 @@ function ExecutionPagination({
           onClick={() => onPageChange(currentPage - 1)}
         >
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          上一页
+          {t("previousPage")}
         </Button>
         <span className="flex h-8 min-w-8 items-center justify-center rounded-md bg-slate-950 px-2 text-xs font-medium text-white">
           {currentPage}
@@ -337,7 +332,7 @@ function ExecutionPagination({
           disabled={loading || currentPage >= totalPages}
           onClick={() => onPageChange(currentPage + 1)}
         >
-          下一页
+          {t("nextPage")}
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </Button>
       </div>
@@ -345,23 +340,26 @@ function ExecutionPagination({
   )
 }
 function ExecutionRow({ item, locale }: { item: DispatchExecutionResult; locale: string }) {
+  const t = useTranslations("pages.reports.dispatch.detail")
   const StatusIcon = executionStatusIcons[item.executionStatus]
   const errorPresentation = dispatchExecutionErrorPresentation(item.errorCode, item.errorMessage, locale)
+  const statusKey = publishStatusKey(item.publishStatus)
+  const publishStatus = statusKey ? t(`publishStatuses.${statusKey}`) : item.publishStatus || "-"
 
   return (
     <tr className="hover:bg-slate-50/80">
       <td className="px-4 py-3">
         <div className="truncate font-mono text-xs font-medium text-slate-700" title={item.agentId}>{item.agentId || "-"}</div>
       </td>
-      <td className="px-3 py-3 text-center text-slate-700">{publishStatusLabel(item.publishStatus)}</td>
+      <td className="px-3 py-3 text-center text-slate-700">{publishStatus}</td>
       <td className="px-3 py-3 text-center">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2 py-1 font-medium text-slate-700">
           <StatusIcon className={`h-3.5 w-3.5 shrink-0 ${executionStatusIconStyles[item.executionStatus]} ${item.executionStatus === "running" ? "animate-spin" : ""}`} aria-hidden="true" />
-          {executionStatusLabels[item.executionStatus]}
+          {t(`executionStatuses.${item.executionStatus}`)}
         </span>
       </td>
-      <td className="truncate whitespace-nowrap px-3 py-3 text-slate-600" title={formatDateTime(item.lastReportAt || item.updatedAt)}>{formatDateTime(item.lastReportAt || item.updatedAt)}</td>
-      <td className="truncate whitespace-nowrap px-3 py-3 text-slate-600" title={formatDateTime(item.finishedAt)}>{formatDateTime(item.finishedAt)}</td>
+      <td className="truncate whitespace-nowrap px-3 py-3 text-slate-600" title={formatDateTime(item.lastReportAt || item.updatedAt, locale)}>{formatDateTime(item.lastReportAt || item.updatedAt, locale)}</td>
+      <td className="truncate whitespace-nowrap px-3 py-3 text-slate-600" title={formatDateTime(item.finishedAt, locale)}>{formatDateTime(item.finishedAt, locale)}</td>
       <td className="px-3 py-3">
         <div className="truncate text-slate-700" title={errorPresentation.codeTitle}>{errorPresentation.code}</div>
       </td>

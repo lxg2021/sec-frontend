@@ -29,8 +29,8 @@ export interface DispatchAuditEvent {
   operationId: string
   actorName: string
   actorId: string
-  targetSummary: string
-  agentSummary: string
+  targetSummary?: string
+  agentSummary?: string
   result: Exclude<AuditResult, "all">
   successCount: number
   failedCount: number
@@ -81,25 +81,4 @@ export interface DispatchExecutionResult {
   startedAt?: string
   lastReportAt?: string
   finishedAt?: string
-}export const dispatchTypeLabels: Record<DispatchType, string> = {
-  all: "全部下发",
-  policy: "策略下发",
-  command: "命令下发",
-  config: "配置下发",
-}
-
-export const auditResultLabels: Record<AuditResult, string> = {
-  all: "全部状态",
-  success: "成功",
-  failed: "失败",
-  pending: "执行中",
-  timeout: "超时",
-}
-
-export const dispatchTimeRangeLabels: Record<DispatchTimeRange, string> = {
-  "24h": "最近 24 小时",
-  "7d": "最近 7 天",
-  "30d": "最近 30 天",
-  "90d": "最近 90 天",
-  custom: "自定义",
 }

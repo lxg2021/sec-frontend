@@ -4570,8 +4570,164 @@
     },
     "reports": {
       "title": "审计中心",
-      "subtitle": "审计中心",
-      "hostId": "主机ID"
+      "subtitle": "追踪下发、用户与系统变更记录",
+      "hostId": "主机 ID",
+      "actions": {
+        "export": "导出记录",
+        "refresh": "刷新审计数据"
+      },
+      "categories": {
+        "label": "审计分类",
+        "dispatch": "下发审计",
+        "user": "用户审计",
+        "change": "变更审计"
+      },
+      "errors": {
+        "dispatchLoadFallback": "下发审计数据加载失败",
+        "userLoadFallback": "用户审计数据加载失败",
+        "changeLoadFallback": "变更审计数据加载失败",
+        "dispatchLoadFailed": "真实审计数据加载失败：{error}",
+        "executionLoadFallback": "逐机执行明细加载失败",
+        "userDateRangeInvalid": "用户审计的结束时间不能早于开始时间。",
+        "dispatchDateRangeInvalid": "下发审计的结束时间不能早于开始时间。",
+        "changeDateRangeInvalid": "变更审计的结束时间不能早于开始时间。"
+      },
+      "dispatch": {
+        "filters": {
+          "title": "下发审计筛选",
+          "reset": "重置",
+          "timeRange": "时间范围",
+          "dispatchType": "下发类型",
+          "result": "执行状态",
+          "actor": "操作者",
+          "actorPlaceholder": "用户 / ID",
+          "keyword": "关键字",
+          "keywordPlaceholder": "对象名称、任务 ID、主机或 Agent",
+          "startDate": "开始日期",
+          "endDate": "结束日期",
+          "chooseDate": "选择日期"
+        },
+        "timeRanges": {
+          "last24Hours": "最近 24 小时",
+          "last7Days": "最近 7 天",
+          "last30Days": "最近 30 天",
+          "last90Days": "最近 90 天",
+          "custom": "自定义"
+        },
+        "types": {
+          "all": "全部下发",
+          "policy": "策略下发",
+          "command": "命令下发",
+          "config": "配置下发"
+        },
+        "results": {
+          "all": "全部状态",
+          "success": "成功",
+          "failed": "失败",
+          "pending": "执行中",
+          "timeout": "超时"
+        },
+        "summary": {
+          "label": "下发审计统计",
+          "total": "下发事件总数",
+          "totalHelper": "按当前筛选条件统计",
+          "policy": "策略下发",
+          "policyHelper": "策略对象发布记录",
+          "command": "命令下发",
+          "commandHelper": "命令投递与回执记录",
+          "config": "配置下发",
+          "configHelper": "配置版本发布记录",
+          "abnormal": "异常事件",
+          "abnormalHelper": "失败、超时和拒绝"
+        },
+        "table": {
+          "title": "下发记录",
+          "resultCount": "{count} 条结果",
+          "columns": {
+            "time": "下发时间",
+            "type": "下发类型",
+            "object": "下发对象",
+            "version": "版本",
+            "task": "下发任务",
+            "taskId": "任务 ID",
+            "actor": "操作者",
+            "actorId": "操作者 ID",
+            "target": "目标范围",
+            "status": "状态",
+            "result": "执行结果",
+            "details": "详情"
+          },
+          "successSummary": "{success}/{total} 成功",
+          "view": "查看",
+          "viewAria": "查看 {object} 的下发详情",
+          "empty": "没有匹配的下发审计记录",
+          "pageSummary": "显示 {start}-{end} 条，共 {total} 条",
+          "pageSizeLabel": "每页",
+          "pageSizeAria": "每页显示条数",
+          "pageSizeOption": "{count} 条",
+          "previousPage": "上一页",
+          "nextPage": "下一页"
+        },
+        "detail": {
+          "title": "下发执行详情",
+          "dispatchType": "下发类型：",
+          "occurredAt": "发生时间：",
+          "actor": "操作者：",
+          "task": "下发任务：",
+          "objectVersion": "对象版本：",
+          "overallStatus": "整体状态：",
+          "metrics": {
+            "target": "目标",
+            "success": "成功",
+            "failed": "失败",
+            "pending": "待确认"
+          },
+          "hostExecutionTitle": "主机执行详情",
+          "refresh": "刷新",
+          "loading": "正在加载逐机执行明细",
+          "reload": "重新加载",
+          "empty": "暂无逐机执行记录",
+          "columns": {
+            "publishStatus": "发布状态",
+            "executionStatus": "执行状态",
+            "lastReport": "最后回执",
+            "finishedAt": "完成时间",
+            "errorCode": "错误码",
+            "errorDescription": "错误描述"
+          },
+          "executionStatuses": {
+            "pending": "待执行",
+            "accepted": "已接收",
+            "running": "执行中",
+            "success": "成功",
+            "failed": "失败",
+            "skipped": "已跳过",
+            "canceled": "已取消",
+            "unknown": "未确认"
+          },
+          "publishStatuses": {
+            "published": "已发布",
+            "publishing": "发布中",
+            "pending": "待发布",
+            "failed": "发布失败",
+            "retry": "等待重试"
+          },
+          "pageSummary": "显示 {start}-{end} 条，共 {total} 条",
+          "previousPage": "上一页",
+          "nextPage": "下一页"
+        },
+        "actorTypes": {
+          "operator": "操作员",
+          "system": "系统",
+          "publisher": "发布器",
+          "reconciler": "协调器",
+          "unknown": "未知"
+        },
+        "generated": {
+          "unnamedObject": "未命名对象",
+          "targetCount": "{count} 个目标"
+        }
+      }
     },
     "aiops": {
       "threatAnalysis": {

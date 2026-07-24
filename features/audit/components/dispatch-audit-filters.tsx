@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import { format } from "date-fns"
+import { useTranslations } from "next-intl"
 import {
   CalendarDays,
   CalendarRange,
@@ -18,7 +19,6 @@ import {
   TerminalSquare,
 } from "lucide-react"
 import type { AuditResult, DispatchTimeRange, DispatchType } from "@/features/audit/types"
-import { auditResultLabels, dispatchTimeRangeLabels, dispatchTypeLabels } from "@/features/audit/types"
 import { Button } from "@/shared/ui/button"
 import { Calendar } from "@/shared/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover"
@@ -46,26 +46,26 @@ const fieldClass =
   "h-11 w-full rounded-lg border border-input bg-background px-3.5 text-sm font-normal text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/10"
 
 const dispatchOptions = [
-  { value: "all" as const, label: dispatchTypeLabels.all, icon: Layers3, iconClass: "text-sky-500" },
-  { value: "policy" as const, label: dispatchTypeLabels.policy, icon: FileOutput, iconClass: "text-blue-500" },
-  { value: "command" as const, label: dispatchTypeLabels.command, icon: TerminalSquare, iconClass: "text-cyan-500" },
-  { value: "config" as const, label: dispatchTypeLabels.config, icon: Settings2, iconClass: "text-violet-500" },
+  { value: "all" as const, labelKey: "all", icon: Layers3, iconClass: "text-sky-500" },
+  { value: "policy" as const, labelKey: "policy", icon: FileOutput, iconClass: "text-blue-500" },
+  { value: "command" as const, labelKey: "command", icon: TerminalSquare, iconClass: "text-cyan-500" },
+  { value: "config" as const, labelKey: "config", icon: Settings2, iconClass: "text-violet-500" },
 ]
 
 const resultOptions = [
-  { value: "all" as const, label: auditResultLabels.all, icon: ListFilter, iconClass: "text-sky-500" },
-  { value: "success" as const, label: auditResultLabels.success, icon: CircleCheck, iconClass: "text-emerald-500" },
-  { value: "failed" as const, label: auditResultLabels.failed, icon: CircleX, iconClass: "text-rose-500" },
-  { value: "pending" as const, label: auditResultLabels.pending, icon: LoaderCircle, iconClass: "text-sky-500" },
-  { value: "timeout" as const, label: auditResultLabels.timeout, icon: Clock3, iconClass: "text-amber-500" },
+  { value: "all" as const, labelKey: "all", icon: ListFilter, iconClass: "text-sky-500" },
+  { value: "success" as const, labelKey: "success", icon: CircleCheck, iconClass: "text-emerald-500" },
+  { value: "failed" as const, labelKey: "failed", icon: CircleX, iconClass: "text-rose-500" },
+  { value: "pending" as const, labelKey: "pending", icon: LoaderCircle, iconClass: "text-sky-500" },
+  { value: "timeout" as const, labelKey: "timeout", icon: Clock3, iconClass: "text-amber-500" },
 ]
 
 const timeRangeOptions = [
-  { value: "24h" as const, label: dispatchTimeRangeLabels["24h"], icon: Clock3, iconClass: "text-cyan-500" },
-  { value: "7d" as const, label: dispatchTimeRangeLabels["7d"], icon: CalendarDays, iconClass: "text-sky-500" },
-  { value: "30d" as const, label: dispatchTimeRangeLabels["30d"], icon: CalendarRange, iconClass: "text-blue-500" },
-  { value: "90d" as const, label: dispatchTimeRangeLabels["90d"], icon: CalendarRange, iconClass: "text-indigo-500" },
-  { value: "custom" as const, label: dispatchTimeRangeLabels.custom, icon: CalendarRange, iconClass: "text-violet-500" },
+  { value: "24h" as const, labelKey: "last24Hours", icon: Clock3, iconClass: "text-cyan-500" },
+  { value: "7d" as const, labelKey: "last7Days", icon: CalendarDays, iconClass: "text-sky-500" },
+  { value: "30d" as const, labelKey: "last30Days", icon: CalendarRange, iconClass: "text-blue-500" },
+  { value: "90d" as const, labelKey: "last90Days", icon: CalendarRange, iconClass: "text-indigo-500" },
+  { value: "custom" as const, labelKey: "custom", icon: CalendarRange, iconClass: "text-violet-500" },
 ]
 
 export function DispatchAuditFilters({
@@ -85,6 +85,7 @@ export function DispatchAuditFilters({
   onKeywordChange,
   onReset,
 }: DispatchAuditFiltersProps) {
+  const t = useTranslations("pages.reports.dispatch")
   const selectedTimeRange = timeRangeOptions.find((option) => option.value === timeRange) ?? timeRangeOptions[1]
   const selectedDispatch = dispatchOptions.find((option) => option.value === dispatchType) ?? dispatchOptions[0]
   const selectedResult = resultOptions.find((option) => option.value === result) ?? resultOptions[0]
@@ -103,7 +104,7 @@ export function DispatchAuditFilters({
             <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
           </span>
           <h2 id="dispatch-filter-title" className="text-sm font-semibold text-foreground">
-            下发审计筛选
+            {t("filters.title")}
           </h2>
         </div>
         <button
@@ -112,26 +113,26 @@ export function DispatchAuditFilters({
           className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-medium text-muted-foreground shadow-sm transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
         >
           <RotateCcw className="h-3.5 w-3.5 text-sky-500" aria-hidden="true" />
-          重置
+          {t("filters.reset")}
         </button>
       </header>
 
       <div className="grid gap-x-4 gap-y-4 py-5 sm:grid-cols-2 xl:grid-cols-[160px_160px_160px_160px_minmax(280px,1fr)] 2xl:grid-cols-[180px_180px_180px_180px_minmax(360px,1fr)]">
         <div className="flex flex-col gap-1.5">
-          <span className="sr-only" id="dispatch-time-range-label">时间范围</span>
+          <span className="sr-only" id="dispatch-time-range-label">{t("filters.timeRange")}</span>
           <Select value={timeRange} onValueChange={(value) => onTimeRangeChange(value as DispatchTimeRange)}>
             <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="dispatch-time-range-label">
               <div className="flex min-w-0 items-center gap-2">
                 <SelectedTimeRangeIcon className={`h-4 w-4 shrink-0 ${selectedTimeRange.iconClass}`} aria-hidden="true" />
-                <span className="truncate">{selectedTimeRange.label}</span>
+                <span className="truncate">{t(`timeRanges.${selectedTimeRange.labelKey}`)}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              {timeRangeOptions.map(({ value, label, icon: Icon, iconClass }) => (
-                <SelectItem key={value} value={value} textValue={label} className="py-2.5">
+              {timeRangeOptions.map(({ value, labelKey, icon: Icon, iconClass }) => (
+                <SelectItem key={value} value={value} textValue={t(`timeRanges.${labelKey}`)} className="py-2.5">
                   <span className="flex items-center gap-2.5">
                     <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} aria-hidden="true" />
-                    <span>{label}</span>
+                    <span>{t(`timeRanges.${labelKey}`)}</span>
                   </span>
                 </SelectItem>
               ))}
@@ -140,20 +141,20 @@ export function DispatchAuditFilters({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="sr-only" id="dispatch-type-label">下发类型</span>
+          <span className="sr-only" id="dispatch-type-label">{t("filters.dispatchType")}</span>
           <Select value={dispatchType} onValueChange={(value) => onDispatchTypeChange(value as DispatchType)}>
             <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="dispatch-type-label">
               <div className="flex min-w-0 items-center gap-2">
                 <SelectedDispatchIcon className={`h-4 w-4 shrink-0 ${selectedDispatch.iconClass}`} aria-hidden="true" />
-                <span className="truncate">{dispatchTypeLabels[dispatchType]}</span>
+                <span className="truncate">{t(`types.${dispatchType}`)}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              {dispatchOptions.map(({ value, label, icon: Icon, iconClass }) => (
-                <SelectItem key={value} value={value} textValue={label} className="py-2.5">
+              {dispatchOptions.map(({ value, labelKey, icon: Icon, iconClass }) => (
+                <SelectItem key={value} value={value} textValue={t(`types.${labelKey}`)} className="py-2.5">
                   <span className="flex items-center gap-2.5">
                     <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} aria-hidden="true" />
-                    <span>{label}</span>
+                    <span>{t(`types.${labelKey}`)}</span>
                   </span>
                 </SelectItem>
               ))}
@@ -162,20 +163,20 @@ export function DispatchAuditFilters({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <span className="sr-only" id="result-label">执行状态</span>
+          <span className="sr-only" id="result-label">{t("filters.result")}</span>
           <Select value={result} onValueChange={(value) => onResultChange(value as AuditResult)}>
             <SelectTrigger className={`${fieldClass} focus:ring-offset-0`} aria-labelledby="result-label">
               <div className="flex min-w-0 items-center gap-2">
                 <SelectedResultIcon className={`h-4 w-4 shrink-0 ${selectedResult.iconClass}`} aria-hidden="true" />
-                <span className="truncate">{auditResultLabels[result]}</span>
+                <span className="truncate">{t(`results.${result}`)}</span>
               </div>
             </SelectTrigger>
             <SelectContent>
-              {resultOptions.map(({ value, label, icon: Icon, iconClass }) => (
-                <SelectItem key={value} value={value} textValue={label} className="py-2.5">
+              {resultOptions.map(({ value, labelKey, icon: Icon, iconClass }) => (
+                <SelectItem key={value} value={value} textValue={t(`results.${labelKey}`)} className="py-2.5">
                   <span className="flex items-center gap-2.5">
                     <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} aria-hidden="true" />
-                    <span>{label}</span>
+                    <span>{t(`results.${labelKey}`)}</span>
                   </span>
                 </SelectItem>
               ))}
@@ -184,17 +185,17 @@ export function DispatchAuditFilters({
         </div>
 
         <label className="flex flex-col gap-1.5">
-          <span className="sr-only">操作者</span>
+          <span className="sr-only">{t("filters.actor")}</span>
           <input
             value={actor}
             onChange={(event) => onActorChange(event.target.value)}
-            placeholder="用户 / ID"
+            placeholder={t("filters.actorPlaceholder")}
             className={fieldClass}
           />
         </label>
 
         <label className="flex flex-col gap-1.5 sm:col-span-2 xl:col-span-1">
-          <span className="sr-only">关键字</span>
+          <span className="sr-only">{t("filters.keyword")}</span>
           <span className="relative block">
             <Search
               className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sky-500"
@@ -203,7 +204,7 @@ export function DispatchAuditFilters({
             <input
               value={keyword}
               onChange={(event) => onKeywordChange(event.target.value)}
-              placeholder="对象名称、任务 ID、主机或 Agent"
+              placeholder={t("filters.keywordPlaceholder")}
               className={`${fieldClass} pl-10`}
             />
           </span>
@@ -213,12 +214,12 @@ export function DispatchAuditFilters({
       {timeRange === "custom" && (
         <div className="flex flex-wrap items-end gap-4 border-t border-slate-100 bg-slate-50/50 px-4 py-3">
           <div className="flex min-w-[200px] flex-col gap-1.5">
-            <span className="text-xs font-medium text-slate-500">开始日期</span>
+            <span className="text-xs font-medium text-slate-500">{t("filters.startDate")}</span>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="h-11 justify-start gap-2 rounded-lg bg-white px-3.5 text-left font-normal">
                   <CalendarDays className="h-4 w-4 text-sky-600" aria-hidden="true" />
-                  {customDateFrom ? format(customDateFrom, "yyyy-MM-dd") : "选择日期"}
+                  {customDateFrom ? format(customDateFrom, "yyyy-MM-dd") : t("filters.chooseDate")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -233,12 +234,12 @@ export function DispatchAuditFilters({
             </Popover>
           </div>
           <div className="flex min-w-[200px] flex-col gap-1.5">
-            <span className="text-xs font-medium text-slate-500">结束日期</span>
+            <span className="text-xs font-medium text-slate-500">{t("filters.endDate")}</span>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="h-11 justify-start gap-2 rounded-lg bg-white px-3.5 text-left font-normal">
                   <CalendarRange className="h-4 w-4 text-indigo-600" aria-hidden="true" />
-                  {customDateTo ? format(customDateTo, "yyyy-MM-dd") : "选择日期"}
+                  {customDateTo ? format(customDateTo, "yyyy-MM-dd") : t("filters.chooseDate")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">

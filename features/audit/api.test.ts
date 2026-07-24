@@ -95,7 +95,7 @@ describe("user activity audit API", () => {
 
   it("rejects an inverted time range before sending a request", async () => {
     await expect(listUserActivityAudits({ occurredAfterUnixMs: 200, occurredBeforeUnixMs: 100 }))
-      .rejects.toThrow("结束时间不能早于开始时间")
+      .rejects.toThrow("USER_AUDIT_DATE_RANGE_INVALID")
     expect(post).not.toHaveBeenCalled()
   })
 })

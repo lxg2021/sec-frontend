@@ -402,12 +402,7 @@ function optionalIsoDate(value: unknown) {
   return unixMs > 0 ? new Date(unixMs).toISOString() : undefined
 }
 function actorName(identity?: ActorIdentity) {
-  const type = identity?.type.toLowerCase()
-  if (type === "operator") return "操作员"
-  if (type === "system") return "系统"
-  if (type === "publisher") return "发布器"
-  if (type === "reconciler") return "协调器"
-  return identity?.type || "未知"
+  return identity?.type?.toLowerCase() || "unknown"
 }
 
 function displaySourceReference(sourceRefId: string) {
@@ -504,7 +499,7 @@ export async function listUserActivityAudits(query: UserAuditQuery = {}): Promis
   const occurredAfterUnixMs = Math.max(0, Math.trunc(query.occurredAfterUnixMs ?? 0))
   const occurredBeforeUnixMs = Math.max(0, Math.trunc(query.occurredBeforeUnixMs ?? 0))
   if (occurredAfterUnixMs > 0 && occurredBeforeUnixMs > 0 && occurredAfterUnixMs > occurredBeforeUnixMs) {
-    throw new Error("用户审计的结束时间不能早于开始时间")
+    throw new Error("USER_AUDIT_DATE_RANGE_INVALID")
   }
 
   const events: UserPermissionAuditEventData[] = []
@@ -545,7 +540,7 @@ export async function listDispatchAuditEvents(
   const customAfterUnixMs = Math.max(0, Math.trunc(query.occurredAfterUnixMs ?? 0))
   const customBeforeUnixMs = Math.max(0, Math.trunc(query.occurredBeforeUnixMs ?? 0))
   if (customAfterUnixMs > 0 && customBeforeUnixMs > 0 && customAfterUnixMs > customBeforeUnixMs) {
-    throw new Error("下发审计的结束时间不能早于开始时间")
+    throw new Error("DISPATCH_AUDIT_DATE_RANGE_INVALID")
   }
 
   const cutoffUnixMs = timeRange === "custom"
@@ -586,20 +581,18 @@ export async function listDispatchAuditEvents(
       occurredAt: new Date(occurredAtUnixMs).toISOString(),
       dispatchType,
       eventType: "pmc.operation.created",
-      objectName: name || "未命名对象",
+      objectName: name || "",
       objectVersion: objectVersion || undefined,
       taskId: displaySourceReference(sourceRefId) || operationId,
       operationId,
       actorName: actorName(identity),
       actorId: identity.id || "-",
-      targetSummary: `${totalCount} 个目标`,
-      agentSummary: `${totalCount} 个 Agent`,
       result,
       successCount: numberValue(operation.success_count),
       failedCount: numberValue(operation.failed_count) + numberValue(operation.canceled_count),
       pendingCount,
       totalCount,
-      reason: stringValue(operation.cancel_reason) || (result === "timeout" ? "存在结果未确认的 Agent" : undefined),
+      reason: stringValue(operation.cancel_reason) || undefined,
       payload: {
         operation_id: operationId,
         source_type: stringValue(operation.source_type),
@@ -627,7 +620,7 @@ export async function listChangeAuditEvents(query: ChangeAuditQuery = {}): Promi
   const occurredAfterUnixMs = Math.max(0, Math.trunc(query.occurredAfterUnixMs ?? 0))
   const occurredBeforeUnixMs = Math.max(0, Math.trunc(query.occurredBeforeUnixMs ?? 0))
   if (occurredAfterUnixMs > 0 && occurredBeforeUnixMs > 0 && occurredAfterUnixMs > occurredBeforeUnixMs) {
-    throw new Error("变更审计的结束时间不能早于开始时间")
+    throw new Error("CHANGE_AUDIT_DATE_RANGE_INVALID")
   }
 
   const eventTypes = CHANGE_EVENT_TYPES

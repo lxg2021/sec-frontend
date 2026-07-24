@@ -4570,8 +4570,164 @@
     },
     "reports": {
       "title": "Audit Center",
-      "subtitle": "Audit Center",
-      "hostId": "HostID"
+      "subtitle": "Track dispatch, user, and system change records",
+      "hostId": "Host ID",
+      "actions": {
+        "export": "Export records",
+        "refresh": "Refresh audit data"
+      },
+      "categories": {
+        "label": "Audit categories",
+        "dispatch": "Dispatch audit",
+        "user": "User audit",
+        "change": "Change audit"
+      },
+      "errors": {
+        "dispatchLoadFallback": "Failed to load dispatch audit data",
+        "userLoadFallback": "Failed to load user audit data",
+        "changeLoadFallback": "Failed to load change audit data",
+        "dispatchLoadFailed": "Failed to load audit data: {error}",
+        "executionLoadFallback": "Failed to load per-Agent execution details",
+        "userDateRangeInvalid": "The end time for user audit cannot be earlier than the start time.",
+        "dispatchDateRangeInvalid": "The end time for dispatch audit cannot be earlier than the start time.",
+        "changeDateRangeInvalid": "The end time for change audit cannot be earlier than the start time."
+      },
+      "dispatch": {
+        "filters": {
+          "title": "Dispatch audit filters",
+          "reset": "Reset",
+          "timeRange": "Time range",
+          "dispatchType": "Dispatch type",
+          "result": "Execution status",
+          "actor": "Actor",
+          "actorPlaceholder": "User / ID",
+          "keyword": "Keyword",
+          "keywordPlaceholder": "Object name, task ID, host, or Agent",
+          "startDate": "Start date",
+          "endDate": "End date",
+          "chooseDate": "Select date"
+        },
+        "timeRanges": {
+          "last24Hours": "Last 24 hours",
+          "last7Days": "Last 7 days",
+          "last30Days": "Last 30 days",
+          "last90Days": "Last 90 days",
+          "custom": "Custom"
+        },
+        "types": {
+          "all": "All dispatches",
+          "policy": "Policy dispatch",
+          "command": "Command dispatch",
+          "config": "Configuration dispatch"
+        },
+        "results": {
+          "all": "All statuses",
+          "success": "Succeeded",
+          "failed": "Failed",
+          "pending": "In progress",
+          "timeout": "Timed out"
+        },
+        "summary": {
+          "label": "Dispatch audit summary",
+          "total": "Total dispatch events",
+          "totalHelper": "Based on the current filters",
+          "policy": "Policy dispatches",
+          "policyHelper": "Policy object publication records",
+          "command": "Command dispatches",
+          "commandHelper": "Command delivery and receipt records",
+          "config": "Configuration dispatches",
+          "configHelper": "Configuration version publication records",
+          "abnormal": "Abnormal events",
+          "abnormalHelper": "Failures, timeouts, and rejections"
+        },
+        "table": {
+          "title": "Dispatch records",
+          "resultCount": "{count, plural, =0 {0 results} one {# result} other {# results}}",
+          "columns": {
+            "time": "Dispatch time",
+            "type": "Dispatch type",
+            "object": "Dispatch object",
+            "version": "Version",
+            "task": "Dispatch task",
+            "taskId": "Task ID",
+            "actor": "Actor",
+            "actorId": "Actor ID",
+            "target": "Target scope",
+            "status": "Status",
+            "result": "Execution result",
+            "details": "Details"
+          },
+          "successSummary": "{success}/{total} successful",
+          "view": "View",
+          "viewAria": "View dispatch details for {object}",
+          "empty": "No dispatch audit records match the current filters",
+          "pageSummary": "Showing {start}-{end} of {total}",
+          "pageSizeLabel": "Per page",
+          "pageSizeAria": "Rows per page",
+          "pageSizeOption": "{count} rows",
+          "previousPage": "Previous page",
+          "nextPage": "Next page"
+        },
+        "detail": {
+          "title": "Dispatch execution details",
+          "dispatchType": "Dispatch type:",
+          "occurredAt": "Occurred at:",
+          "actor": "Actor:",
+          "task": "Dispatch task:",
+          "objectVersion": "Object version:",
+          "overallStatus": "Overall status:",
+          "metrics": {
+            "target": "Targets",
+            "success": "Succeeded",
+            "failed": "Failed",
+            "pending": "Unconfirmed"
+          },
+          "hostExecutionTitle": "Host execution details",
+          "refresh": "Refresh",
+          "loading": "Loading per-Agent execution details",
+          "reload": "Reload",
+          "empty": "No per-Agent execution records",
+          "columns": {
+            "publishStatus": "Publication status",
+            "executionStatus": "Execution status",
+            "lastReport": "Last report",
+            "finishedAt": "Finished at",
+            "errorCode": "Error code",
+            "errorDescription": "Error description"
+          },
+          "executionStatuses": {
+            "pending": "Pending",
+            "accepted": "Accepted",
+            "running": "Running",
+            "success": "Succeeded",
+            "failed": "Failed",
+            "skipped": "Skipped",
+            "canceled": "Canceled",
+            "unknown": "Unconfirmed"
+          },
+          "publishStatuses": {
+            "published": "Published",
+            "publishing": "Publishing",
+            "pending": "Pending publication",
+            "failed": "Publication failed",
+            "retry": "Waiting to retry"
+          },
+          "pageSummary": "Showing {start}-{end} of {total}",
+          "previousPage": "Previous page",
+          "nextPage": "Next page"
+        },
+        "actorTypes": {
+          "operator": "Operator",
+          "system": "System",
+          "publisher": "Publisher",
+          "reconciler": "Reconciler",
+          "unknown": "Unknown"
+        },
+        "generated": {
+          "unnamedObject": "Unnamed object",
+          "targetCount": "{count, plural, one {# target} other {# targets}}"
+        }
+      }
     },
     "aiops": {
       "threatAnalysis": {

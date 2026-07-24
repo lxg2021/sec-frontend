@@ -1,6 +1,7 @@
 ﻿"use client"
 
 import { History, SendHorizontal, UserRound } from "lucide-react"
+import { useTranslations } from "next-intl"
 import type { AuditCategory } from "@/features/audit/types"
 import { cn } from "@/shared/lib/utils"
 
@@ -10,19 +11,21 @@ interface AuditCategoryTabsProps {
 }
 
 const categories = [
-  { value: "dispatch" as const, label: "下发审计", icon: SendHorizontal },
-  { value: "user" as const, label: "用户审计", icon: UserRound },
-  { value: "change" as const, label: "变更审计", icon: History },
+  { value: "dispatch" as const, labelKey: "dispatch", icon: SendHorizontal },
+  { value: "user" as const, labelKey: "user", icon: UserRound },
+  { value: "change" as const, labelKey: "change", icon: History },
 ]
 
 export function AuditCategoryTabs({ value, onChange }: AuditCategoryTabsProps) {
+  const t = useTranslations("pages.reports.categories")
+
   return (
     <div
       className="inline-flex max-w-full shrink-0 gap-0.5 overflow-x-auto rounded-full border border-slate-200 bg-slate-100/80 p-1"
       role="tablist"
-      aria-label="审计分类"
+      aria-label={t("label")}
     >
-      {categories.map(({ value: category, label, icon: Icon }) => {
+      {categories.map(({ value: category, labelKey, icon: Icon }) => {
         const active = value === category
         return (
           <button
@@ -44,7 +47,7 @@ export function AuditCategoryTabs({ value, onChange }: AuditCategoryTabsProps) {
               strokeWidth={1.9}
               aria-hidden="true"
             />
-            <span>{label}</span>
+            <span>{t(labelKey)}</span>
           </button>
         )
       })}

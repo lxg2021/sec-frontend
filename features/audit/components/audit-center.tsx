@@ -108,6 +108,14 @@ export function AuditCenter() {
   const userAuditRequestRef = useRef(0)
   const changeAuditRequestRef = useRef(0)
 
+  const translateAuditError = useCallback((error: unknown, fallback: string) => {
+    const message = error instanceof Error ? error.message.trim() : ""
+    if (message === "USER_AUDIT_DATE_RANGE_INVALID") return t("errors.userDateRangeInvalid")
+    if (message === "DISPATCH_AUDIT_DATE_RANGE_INVALID") return t("errors.dispatchDateRangeInvalid")
+    if (message === "CHANGE_AUDIT_DATE_RANGE_INVALID") return t("errors.changeDateRangeInvalid")
+    return message || fallback
+  }, [t])
+
   const loadDispatchEvents = useCallback(async () => {
     const requestVersion = ++dispatchAuditRequestRef.current
     if (dispatchTimeRange === "custom" && (!dispatchCustomDateFrom || !dispatchCustomDateTo)) {
@@ -133,11 +141,11 @@ export function AuditCenter() {
       setSelectedId((current) => current && events.some((event) => event.id === current) ? current : undefined)
     } catch (error) {
       if (requestVersion !== dispatchAuditRequestRef.current) return
-      setDispatchError(error instanceof Error ? error.message : "下发审计数据加载失败")
+      setDispatchError(translateAuditError(error, t("errors.dispatchLoadFallback")))
     } finally {
       if (requestVersion === dispatchAuditRequestRef.current) setDispatchLoading(false)
     }
-  }, [dispatchCustomDateFrom, dispatchCustomDateTo, dispatchTimeRange])
+  }, [dispatchCustomDateFrom, dispatchCustomDateTo, dispatchTimeRange, t, translateAuditError])
 
   useEffect(() => {
     void loadDispatchEvents()
@@ -155,11 +163,11 @@ export function AuditCenter() {
       setUserAuditTruncated(response.truncated)
     } catch (error) {
       if (requestVersion !== userAuditRequestRef.current) return
-      setUserAuditError(error instanceof Error ? error.message : "用户审计数据加载失败")
+      setUserAuditError(translateAuditError(error, t("errors.userLoadFallback")))
     } finally {
       if (requestVersion === userAuditRequestRef.current) setUserAuditLoading(false)
     }
-  }, [customDateFrom, customDateTo, dateRange])
+  }, [customDateFrom, customDateTo, dateRange, t, translateAuditError])
 
   useEffect(() => {
     if (activeCategory === "user") void loadUserAuditEvents()
@@ -189,11 +197,11 @@ export function AuditCenter() {
       setChangeAuditTruncated(response.truncated)
     } catch (error) {
       if (requestVersion !== changeAuditRequestRef.current) return
-      setChangeAuditError(error instanceof Error ? error.message : "变更审计数据加载失败")
+      setChangeAuditError(translateAuditError(error, t("errors.changeLoadFallback")))
     } finally {
       if (requestVersion === changeAuditRequestRef.current) setChangeAuditLoading(false)
     }
-  }, [changeCustomDateFrom, changeCustomDateTo, changeTimeRange])
+  }, [changeCustomDateFrom, changeCustomDateTo, changeTimeRange, t, translateAuditError])
 
   useEffect(() => {
     if (activeCategory === "change") void loadChangeAuditEvents()
@@ -264,7 +272,7 @@ export function AuditCenter() {
               </span>
               <div className="min-w-0 space-y-1.5">
                 <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">{t("title")}</h1>
-                <p className="min-w-0 truncate text-sm text-slate-500">追踪下发、用户与系统变更记录</p>
+                <p className="min-w-0 truncate text-sm text-slate-500">{t("subtitle")}</p>
               </div>
             </div>
 
@@ -285,14 +293,14 @@ export function AuditCenter() {
                   className="h-10 shrink-0 gap-2 rounded-full px-3.5 text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
                 >
                   <Download className="h-4 w-4" aria-hidden="true" />
-                  <span className="font-medium">导出记录</span>
+                  <span className="font-medium">{t("actions.export")}</span>
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  aria-label="刷新审计数据"
-                  title="刷新审计数据"
+                  aria-label={t("actions.refresh")}
+                  title={t("actions.refresh")}
                   disabled={activeCategory === "user" ? userAuditLoading : activeCategory === "change" ? changeAuditLoading : dispatchLoading}
                   onClick={() => {
                     if (activeCategory === "dispatch") void loadDispatchEvents()
@@ -332,8 +340,8 @@ export function AuditCenter() {
                 onReset={resetFilters}
               />
               {dispatchError && (
-                <div className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
-                  真实审计数据加载失败：{dispatchError}
+                <div className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700" role="alert">
+                  {t("errors.dispatchLoadFailed", { error: dispatchError })}
                 </div>
               )}
               <AuditSummary
