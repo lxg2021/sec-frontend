@@ -4,6 +4,7 @@ import { format } from "date-fns"
 import {
   CalendarDays,
   CalendarRange,
+  CircleCheck,
   FileCheck2,
   FileOutput,
   FilePenLine,
@@ -23,7 +24,7 @@ import { Calendar } from "@/shared/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/shared/ui/select"
 
-export type ChangeAuditActionFilter = ChangeAuditAction | "all"
+export type ChangeAuditActionFilter = Exclude<ChangeAuditAction, "legacyCommand"> | "all"
 
 interface ChangeAuditFiltersProps {
   timeRange: DispatchTimeRange
@@ -55,9 +56,10 @@ const timeRangeOptions = [
 const actionOptions = [
   { value: "all" as const, labelKey: "all", icon: ListFilter, iconClass: "text-slate-600" },
   { value: "created" as const, labelKey: "created", icon: FilePlus2, iconClass: "text-emerald-600" },
+  { value: "reused" as const, labelKey: "reused", icon: FileCheck2, iconClass: "text-cyan-600" },
   { value: "updated" as const, labelKey: "updated", icon: FilePenLine, iconClass: "text-blue-600" },
-  { value: "ensured" as const, labelKey: "ensured", icon: FileCheck2, iconClass: "text-cyan-600" },
-  { value: "deleted" as const, labelKey: "deleted", icon: Trash2, iconClass: "text-rose-600" },
+  { value: "deleteAccepted" as const, labelKey: "deleteAccepted", icon: Trash2, iconClass: "text-rose-600" },
+  { value: "deleteCompleted" as const, labelKey: "deleteCompleted", icon: CircleCheck, iconClass: "text-emerald-600" },
   { value: "deleteAborted" as const, labelKey: "deleteAborted", icon: RotateCcw, iconClass: "text-amber-600" },
 ]
 

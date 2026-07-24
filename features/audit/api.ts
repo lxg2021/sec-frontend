@@ -81,13 +81,36 @@ export interface ChangeAuditListResult {
   truncated: boolean
 }
 
-const CHANGE_EVENT_ACTIONS: Record<string, ChangeAuditAction> = {
-  "pmc.catalog.object.created": "created",
-  "pmc.catalog.command.ensured": "ensured",
-  "pmc.catalog.object.version_updated": "updated",
-  "pmc.catalog.delete.accepted": "deleted",
-  "pmc.catalog.delete.retry.accepted": "deleted",
-  "pmc.catalog.delete.aborted": "deleteAborted",
+const CHANGE_EVENT_TYPES = [
+  "pmc.catalog.object.created",
+  "pmc.catalog.command.ensured",
+  "pmc.catalog.object.version_updated",
+  "pmc.catalog.delete.accepted",
+  "pmc.catalog.delete.retry.accepted",
+  "pmc.catalog.delete.aborted",
+  "pmc.catalog.object.deleted",
+] as const
+
+function changeAuditActionValue(eventType: string, outcome: string): ChangeAuditAction | undefined {
+  switch (eventType) {
+    case "pmc.catalog.object.created":
+      return "created"
+    case "pmc.catalog.command.ensured":
+      if (outcome === "created") return "created"
+      if (outcome === "reused") return "reused"
+      return "legacyCommand"
+    case "pmc.catalog.object.version_updated":
+      return "updated"
+    case "pmc.catalog.delete.accepted":
+    case "pmc.catalog.delete.retry.accepted":
+      return "deleteAccepted"
+    case "pmc.catalog.object.deleted":
+      return "deleteCompleted"
+    case "pmc.catalog.delete.aborted":
+      return "deleteAborted"
+    default:
+      return undefined
+  }
 }
 
 interface PMCOperationSnapshot {
@@ -607,7 +630,7 @@ export async function listChangeAuditEvents(query: ChangeAuditQuery = {}): Promi
     throw new Error("变更审计的结束时间不能早于开始时间")
   }
 
-  const eventTypes = Object.keys(CHANGE_EVENT_ACTIONS)
+  const eventTypes = CHANGE_EVENT_TYPES
   const pages = await Promise.all(eventTypes.map(async (eventType) => {
     const events: PMCAuditEventData[] = []
     let completed = false
@@ -639,14 +662,21 @@ export async function listChangeAuditEvents(query: ChangeAuditQuery = {}): Promi
   const changeEvents = events
     .map((event): ChangeAuditEvent | null => {
       const eventType = stringValue(event.event_type)
-      const action = CHANGE_EVENT_ACTIONS[eventType]
       const objectType = dispatchTypeValue(event.object_type)
       const objectId = stringValue(event.object_id)
       const occurredAtUnixMs = numberValue(event.occurred_at_unix_ms) || numberValue(event.created_at_unix_ms)
-      if (!action || !objectType || !objectId || occurredAtUnixMs <= 0) return null
+      if (!objectType || !objectId || occurredAtUnixMs <= 0) return null
 
       const payload = parseAuditPayload(event.payload_json)
-      const version = stringValue(payload.version) || stringValue(payload.previous_version) || stringValue(event.result_version)
+      const outcome = stringValue(payload.outcome)
+      const action = changeAuditActionValue(eventType, outcome)
+      if (!action) return null
+      const previousVersion = stringValue(payload.previous_version)
+      const newVersion = stringValue(payload.new_version)
+        || stringValue(payload.version)
+        || stringValue(payload.object_version)
+        || stringValue(event.result_version)
+      const version = newVersion || previousVersion
       const actorType = stringValue(event.actor_type) || "system"
       const actorId = stringValue(event.actor_id) || "-"
       const eventId = stringValue(event.event_key) || stringValue(event.id == null ? "" : String(event.id))
@@ -658,10 +688,15 @@ export async function listChangeAuditEvents(query: ChangeAuditQuery = {}): Promi
         action,
         objectType,
         objectId,
-        objectName: objectId,
+        objectName: stringValue(payload.object_name) || objectId,
         objectVersion: version || undefined,
+        previousVersion: previousVersion || undefined,
+        newVersion: newVersion || undefined,
         actorType,
         actorId,
+        requestedBy: stringValue(payload.requested_by) || undefined,
+        outcome: outcome || undefined,
+        reason: stringValue(payload.reason) || undefined,
         operationId: stringValue(event.operation_id) || undefined,
         requestId: stringValue(payload.request_id) || undefined,
         payload,
@@ -678,7 +713,7 @@ export async function listChangeAuditEvents(query: ChangeAuditQuery = {}): Promi
     const objectTypeCode = objectTypeValue(event.objectType)
     event.objectName = objectNames.get(objectTypeCode + ":" + event.objectId + ":" + (event.objectVersion ?? ""))
       ?? objectNames.get(objectTypeCode + ":" + event.objectId + ":")
-      ?? event.objectId
+      ?? event.objectName
   })
 
   changeEvents.sort((left, right) => Date.parse(right.occurredAt) - Date.parse(left.occurredAt))

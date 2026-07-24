@@ -4,6 +4,7 @@ import { useState } from "react"
 import {
   ChevronLeft,
   ChevronRight,
+  CircleCheck,
   ClipboardList,
   Eye,
   FileCheck2,
@@ -21,6 +22,7 @@ import type { ChangeAuditAction, ChangeAuditEvent, DispatchType } from "@/featur
 import { Button } from "@/shared/ui/button"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { ChangeAuditDetailDialog } from "./change-audit-detail-dialog"
+import { changeAuditActionLabelKey, changeAuditOutcomeLabelKey } from "./change-audit-presentation"
 
 interface ChangeAuditListProps {
   events: ChangeAuditEvent[]
@@ -33,10 +35,12 @@ interface ChangeAuditListProps {
 
 const actionVisuals: Record<ChangeAuditAction, { icon: LucideIcon; iconClass: string }> = {
   created: { icon: FilePlus2, iconClass: "text-emerald-600" },
+  reused: { icon: FileCheck2, iconClass: "text-cyan-600" },
   updated: { icon: FilePenLine, iconClass: "text-blue-600" },
-  ensured: { icon: FileCheck2, iconClass: "text-cyan-600" },
-  deleted: { icon: Trash2, iconClass: "text-rose-600" },
+  deleteAccepted: { icon: Trash2, iconClass: "text-rose-600" },
+  deleteCompleted: { icon: CircleCheck, iconClass: "text-emerald-600" },
   deleteAborted: { icon: RotateCcw, iconClass: "text-amber-600" },
+  legacyCommand: { icon: FileCheck2, iconClass: "text-slate-500" },
 }
 
 const objectVisuals: Record<Exclude<DispatchType, "all">, { icon: LucideIcon; iconClass: string }> = {
@@ -59,14 +63,6 @@ function formatDate(value: string, locale: string) {
   }).format(date)
 }
 
-function actorTypeLabel(type: string, translate: (key: "actorTypes.operator" | "actorTypes.system" | "actorTypes.publisher" | "actorTypes.reconciler") => string) {
-  const normalized = type.toLowerCase()
-  if (normalized === "operator" || normalized === "system" || normalized === "publisher" || normalized === "reconciler") {
-    return translate(`actorTypes.${normalized}` as "actorTypes.operator" | "actorTypes.system" | "actorTypes.publisher" | "actorTypes.reconciler")
-  }
-  return type || "-"
-}
-
 export function ChangeAuditList({ events, total, page, pageSize, loading, onPageChange }: ChangeAuditListProps) {
   const t = useTranslations("pages.audit.changeAudit")
   const locale = useLocale()
@@ -87,17 +83,18 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
         </header>
 
         <div className="min-h-0 min-w-0 flex-1 overflow-auto">
-          <table className="w-full min-w-[1480px] table-fixed text-left text-xs">
+          <table className="w-full min-w-[1560px] table-fixed text-left text-xs">
             <colgroup>
               <col className="w-[170px]" />
-              <col className="w-[150px]" />
-              <col className="w-[130px]" />
+              <col className="w-[165px]" />
+              <col className="w-[120px]" />
+              <col className="w-[220px]" />
               <col className="w-[230px]" />
-              <col className="w-[250px]" />
-              <col className="w-[140px]" />
-              <col className="w-[190px]" />
-              <col className="w-[130px]" />
-              <col className="w-[100px]" />
+              <col className="w-[120px]" />
+              <col className="w-[120px]" />
+              <col className="w-[180px]" />
+              <col className="w-[145px]" />
+              <col className="w-[90px]" />
             </colgroup>
             <thead className="sticky top-0 z-10 bg-slate-50 text-xs font-semibold text-slate-500">
               <tr>
@@ -106,9 +103,10 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
                 <th className="px-3 py-3">{t("columns.objectType")}</th>
                 <th className="px-3 py-3">{t("columns.objectName")}</th>
                 <th className="px-3 py-3">{t("columns.objectId")}</th>
-                <th className="px-3 py-3">{t("columns.version")}</th>
+                <th className="px-3 py-3">{t("columns.previousVersion")}</th>
+                <th className="px-3 py-3">{t("columns.newVersion")}</th>
                 <th className="px-3 py-3">{t("columns.actor")}</th>
-                <th className="px-3 py-3">{t("columns.actorType")}</th>
+                <th className="px-3 py-3">{t("columns.outcome")}</th>
                 <th className="px-3 py-3 text-center">{t("columns.details")}</th>
               </tr>
             </thead>
@@ -122,8 +120,9 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
                     <td className="px-3 py-4"><Skeleton className="h-3.5 w-36" /></td>
                     <td className="px-3 py-4"><Skeleton className="h-3 w-44" /></td>
                     <td className="px-3 py-4"><Skeleton className="h-3 w-20" /></td>
-                    <td className="px-3 py-4"><Skeleton className="h-3.5 w-32" /></td>
                     <td className="px-3 py-4"><Skeleton className="h-3 w-20" /></td>
+                    <td className="px-3 py-4"><Skeleton className="h-3.5 w-32" /></td>
+                    <td className="px-3 py-4"><Skeleton className="h-3 w-24" /></td>
                     <td className="px-3 py-4"><Skeleton className="mx-auto h-8 w-16 rounded-full" /></td>
                   </tr>
                 ))
@@ -133,6 +132,9 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
                   const ActionIcon = actionVisual.icon
                   const objectVisual = objectVisuals[event.objectType]
                   const ObjectIcon = objectVisual.icon
+                  const actionLabelKey = changeAuditActionLabelKey(event)
+                  const outcomeLabelKey = changeAuditOutcomeLabelKey(event)
+                  const operatorID = event.requestedBy || event.actorId
                   return (
                     <tr key={event.id} className="bg-white transition-colors hover:bg-slate-50/80 focus-within:bg-sky-50/50">
                       <td className="whitespace-nowrap px-4 py-3 tabular-nums text-slate-500">
@@ -141,7 +143,7 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
                       <td className="px-3 py-3">
                         <span className="inline-flex max-w-full items-center gap-1.5 text-xs font-semibold text-black">
                           <ActionIcon className={`h-3.5 w-3.5 shrink-0 ${actionVisual.iconClass}`} aria-hidden="true" />
-                          <span className="truncate">{t(`actions.${event.action}`)}</span>
+                          <span className="truncate">{t(`actions.${actionLabelKey}`)}</span>
                         </span>
                       </td>
                       <td className="px-3 py-3">
@@ -152,9 +154,10 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
                       </td>
                       <td className="min-w-0 px-3 py-3"><div className="truncate font-medium text-slate-800" title={event.objectName}>{event.objectName || "-"}</div></td>
                       <td className="min-w-0 px-3 py-3"><div className="truncate font-mono text-xs text-slate-500" title={event.objectId}>{event.objectId || "-"}</div></td>
-                      <td className="min-w-0 px-3 py-3"><div className="truncate font-mono text-xs text-slate-600" title={event.objectVersion}>{event.objectVersion || "-"}</div></td>
-                      <td className="min-w-0 px-3 py-3"><div className="truncate text-slate-700" title={event.actorId}>{event.actorId || "-"}</div></td>
-                      <td className="px-3 py-3 text-slate-600">{actorTypeLabel(event.actorType, t)}</td>
+                      <td className="min-w-0 px-3 py-3"><div className="truncate font-mono text-xs text-slate-600" title={event.previousVersion}>{event.previousVersion || "-"}</div></td>
+                      <td className="min-w-0 px-3 py-3"><div className="truncate font-mono text-xs text-slate-600" title={event.newVersion}>{event.newVersion || "-"}</div></td>
+                      <td className="min-w-0 px-3 py-3"><div className="truncate text-slate-700" title={operatorID}>{operatorID || "-"}</div></td>
+                      <td className="px-3 py-3 text-slate-700">{t(`outcomes.${outcomeLabelKey}`)}</td>
                       <td className="px-3 py-3 text-center">
                         <button type="button" onClick={() => setSelectedEvent(event)} aria-label={t("viewAria", { object: event.objectName || event.objectId })} className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
                           <Eye className="h-3.5 w-3.5" aria-hidden="true" />

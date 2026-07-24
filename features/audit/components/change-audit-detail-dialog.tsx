@@ -3,11 +3,14 @@
 import {
   Braces,
   CalendarClock,
+  CircleCheck,
   FileCheck2,
   FilePenLine,
   FilePlus2,
   FileOutput,
   Hash,
+  ListChecks,
+  MessageSquareText,
   RotateCcw,
   Settings2,
   Tag,
@@ -18,7 +21,8 @@ import {
 } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { ChangeAuditAction, ChangeAuditEvent, DispatchType } from "@/features/audit/types"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/dialog"
+import { changeAuditActionLabelKey, changeAuditOutcomeLabelKey } from "./change-audit-presentation"
 
 interface ChangeAuditDetailDialogProps {
   event?: ChangeAuditEvent
@@ -28,10 +32,12 @@ interface ChangeAuditDetailDialogProps {
 
 const actionVisuals: Record<ChangeAuditAction, { icon: LucideIcon; iconClass: string }> = {
   created: { icon: FilePlus2, iconClass: "text-emerald-600" },
+  reused: { icon: FileCheck2, iconClass: "text-cyan-600" },
   updated: { icon: FilePenLine, iconClass: "text-blue-600" },
-  ensured: { icon: FileCheck2, iconClass: "text-cyan-600" },
-  deleted: { icon: Trash2, iconClass: "text-rose-600" },
+  deleteAccepted: { icon: Trash2, iconClass: "text-rose-600" },
+  deleteCompleted: { icon: CircleCheck, iconClass: "text-emerald-600" },
   deleteAborted: { icon: RotateCcw, iconClass: "text-amber-600" },
+  legacyCommand: { icon: FileCheck2, iconClass: "text-slate-500" },
 }
 
 const objectVisuals: Record<Exclude<DispatchType, "all">, { icon: LucideIcon; iconClass: string }> = {
@@ -40,16 +46,15 @@ const objectVisuals: Record<Exclude<DispatchType, "all">, { icon: LucideIcon; ic
   config: { icon: Settings2, iconClass: "text-indigo-600" },
 }
 
-const hiddenPayloadKeys = new Set([
-  "request_fingerprint",
-  "capability_profile",
-  "content_hash",
-  "request_id",
-  "operation_id",
-  "delete_cycle_id",
-  "version",
-  "previous_version",
-])
+const safePayloadKeys = [
+  "content_changed",
+  "metadata_changed",
+  "changed_fields",
+  "delete_attempt",
+  "delete_mode",
+  "total_targets",
+  "completed_by",
+] as const
 
 function formatDate(value: string, locale: string) {
   const date = new Date(value)
@@ -91,7 +96,29 @@ export function ChangeAuditDetailDialog({ event, open, onClose }: ChangeAuditDet
   const ActionIcon = actionVisual.icon
   const objectVisual = objectVisuals[event.objectType]
   const ObjectIcon = objectVisual.icon
-  const payloadRows = Object.entries(event.payload).filter(([key, value]) => !hiddenPayloadKeys.has(key) && value !== undefined && value !== "")
+  const actionLabelKey = changeAuditActionLabelKey(event)
+  const outcomeLabelKey = changeAuditOutcomeLabelKey(event)
+  const payloadRows = safePayloadKeys.flatMap((key) => {
+    const value = event.payload[key]
+    return value === undefined || value === "" ? [] : [[key, value] as const]
+  })
+  const payloadValue = (key: typeof safePayloadKeys[number], value: unknown) => {
+    if (typeof value === "boolean") return t(value ? "values.yes" : "values.no")
+    if (key === "changed_fields" && Array.isArray(value)) {
+      return value.map((field) => {
+        const normalized = String(field)
+        if (normalized === "version" || normalized === "content" || normalized === "name") {
+          return t(`changedFields.${normalized}`)
+        }
+        return normalized
+      }).join(t("values.separator"))
+    }
+    if (key === "delete_mode" && (value === "metadata_only" || value === "remove_effects" || value === "forbidden")) {
+      return t(`deleteModes.${value}`)
+    }
+    if (key === "completed_by" && value === "system") return t("actorTypes.system")
+    return formatValue(value)
+  }
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
@@ -100,19 +127,24 @@ export function ChangeAuditDetailDialog({ event, open, onClose }: ChangeAuditDet
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-600"><Braces className="h-5 w-5" aria-hidden="true" /></span>
             <DialogTitle className="truncate text-lg font-semibold text-slate-950">{t("detailTitle")}</DialogTitle>
+            <DialogDescription className="sr-only">{t("detailDescription")}</DialogDescription>
           </div>
         </DialogHeader>
 
         <div className="min-h-0 overflow-y-auto px-6 pb-6 pt-3">
           <dl className="grid min-w-0 grid-cols-1 overflow-hidden rounded-xl border border-slate-200 bg-slate-50/40 text-sm sm:grid-cols-2">
-            <InfoField label={t("columns.action")} value={t(`actions.${event.action}`)} icon={ActionIcon} iconClass={actionVisual.iconClass} />
+            <InfoField label={t("columns.action")} value={t(`actions.${actionLabelKey}`)} icon={ActionIcon} iconClass={actionVisual.iconClass} />
             <InfoField label={t("columns.time")} value={formatDate(event.occurredAt, locale)} icon={CalendarClock} iconClass="text-blue-500" />
             <InfoField label={t("columns.objectType")} value={t(`objects.${event.objectType}`)} icon={ObjectIcon} iconClass={objectVisual.iconClass} />
             <InfoField label={t("columns.objectName")} value={event.objectName} icon={Tag} iconClass="text-cyan-500" />
             <InfoField label={t("columns.objectId")} value={event.objectId} icon={Hash} iconClass="text-slate-500" mono />
-            <InfoField label={t("columns.version")} value={event.objectVersion || "-"} icon={Tag} iconClass="text-indigo-500" mono />
-            <InfoField label={t("columns.actor")} value={event.actorId} icon={UserRound} iconClass="text-violet-500" mono />
+            <InfoField label={t("columns.previousVersion")} value={event.previousVersion || "-"} icon={Tag} iconClass="text-slate-500" mono />
+            <InfoField label={t("columns.newVersion")} value={event.newVersion || "-"} icon={Tag} iconClass="text-indigo-500" mono />
+            <InfoField label={t("columns.actor")} value={event.requestedBy || event.actorId} icon={UserRound} iconClass="text-violet-500" mono />
+            <InfoField label={t("executionActor")} value={event.actorId} icon={UserRound} iconClass="text-sky-500" mono />
             <InfoField label={t("columns.actorType")} value={actorTypeLabel(event.actorType, t)} icon={UserRound} iconClass="text-violet-500" />
+            <InfoField label={t("columns.outcome")} value={t(`outcomes.${outcomeLabelKey}`)} icon={ListChecks} iconClass="text-emerald-600" />
+            {event.reason ? <InfoField label={t("reason")} value={event.reason} icon={MessageSquareText} iconClass="text-amber-600" /> : null}
             <InfoField label={t("eventType")} value={event.eventType} icon={Braces} iconClass="text-blue-600" mono />
             <InfoField label={t("operationId")} value={event.operationId || "-"} icon={Hash} iconClass="text-sky-500" mono />
             <InfoField label={t("requestId")} value={event.requestId || "-"} icon={Hash} iconClass="text-sky-500" mono />
@@ -124,8 +156,8 @@ export function ChangeAuditDetailDialog({ event, open, onClose }: ChangeAuditDet
               <dl className="divide-y divide-slate-100">
                 {payloadRows.map(([key, value]) => (
                   <div key={key} className="grid gap-2 px-4 py-3 sm:grid-cols-[180px_minmax(0,1fr)]">
-                    <dt className="text-xs font-medium text-slate-500">{key.replaceAll("_", " ")}</dt>
-                    <dd className="whitespace-pre-wrap break-words font-mono text-xs text-slate-700">{formatValue(value)}</dd>
+                    <dt className="text-xs font-medium text-slate-500">{t(`payloadFields.${key}`)}</dt>
+                    <dd className="whitespace-pre-wrap break-words text-xs text-slate-700">{payloadValue(key, value)}</dd>
                   </div>
                 ))}
               </dl>

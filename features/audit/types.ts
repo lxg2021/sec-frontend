@@ -9,7 +9,14 @@ export type DispatchType = "all" | "policy" | "command" | "config"
 export type AuditResult = "all" | "success" | "failed" | "pending" | "timeout"
 export type DispatchTimeRange = "24h" | "7d" | "30d" | "90d" | "custom"
 export type DispatchExecutionStatus = "pending" | "accepted" | "running" | "success" | "failed" | "skipped" | "canceled" | "unknown"
-export type ChangeAuditAction = "created" | "updated" | "deleted" | "ensured" | "deleteAborted"
+export type ChangeAuditAction =
+  | "created"
+  | "reused"
+  | "updated"
+  | "deleteAccepted"
+  | "deleteCompleted"
+  | "deleteAborted"
+  | "legacyCommand"
 
 export interface DispatchAuditEvent {
   id: string
@@ -42,8 +49,13 @@ export interface ChangeAuditEvent {
   objectId: string
   objectName: string
   objectVersion?: string
+  previousVersion?: string
+  newVersion?: string
   actorType: string
   actorId: string
+  requestedBy?: string
+  outcome?: string
+  reason?: string
   operationId?: string
   requestId?: string
   payload: Record<string, unknown>

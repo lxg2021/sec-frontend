@@ -5686,9 +5686,10 @@
         "all": "All",
         "allObjects": "All objects",
         "created": "Created",
-        "updated": "Version updated",
-        "ensured": "Command ensured",
-        "deleted": "Deletion accepted",
+        "reused": "Reused",
+        "updated": "Updated",
+        "deleteAccepted": "Deletion accepted",
+        "deleteCompleted": "Deletion completed",
         "deleteAborted": "Deletion aborted",
         "policy": "Policy",
         "command": "Command",
@@ -5703,9 +5704,12 @@
         "view": "View",
         "viewAria": "View change audit details for {object}",
         "detailTitle": "Change Audit Details",
+        "detailDescription": "Review the business fields recorded for this change event.",
         "eventType": "Backend event type",
         "operationId": "Operation ID",
         "requestId": "Request ID",
+        "executionActor": "Execution actor ID",
+        "reason": "Reason",
         "payloadTitle": "Change details",
         "noPayload": "No additional change fields to display",
         "previousPage": "Previous page",
@@ -5713,10 +5717,24 @@
         "pageSummary": "Showing {start}-{end} of {total}",
         "actions": {
           "created": "Created",
-          "updated": "Version updated",
-          "ensured": "Command ensured",
-          "deleted": "Deletion accepted",
-          "deleteAborted": "Deletion aborted"
+          "reused": "Reused",
+          "updated": "Updated",
+          "deleteAccepted": "Deletion accepted",
+          "deleteCompleted": "Deletion completed",
+          "deleteAborted": "Deletion aborted",
+          "legacyCommand": "Created/reused (historical data)"
+        },
+        "outcomes": {
+          "success": "Succeeded",
+          "created": "Created",
+          "reused": "Reused",
+          "advanced": "Version advanced",
+          "metadataUpdated": "Metadata updated",
+          "unchanged": "No change",
+          "accepted": "Accepted",
+          "retryAccepted": "Retry accepted",
+          "aborted": "Aborted",
+          "completed": "Completed"
         },
         "objects": {
           "policy": "Policy",
@@ -5736,9 +5754,36 @@
           "objectName": "Object name",
           "objectId": "Object ID",
           "version": "Object version",
+          "previousVersion": "Previous version",
+          "newVersion": "New version",
           "actor": "Actor ID",
           "actorType": "Actor type",
+          "outcome": "Change result",
           "details": "Details"
+        },
+        "payloadFields": {
+          "content_changed": "Content changed",
+          "metadata_changed": "Metadata changed",
+          "changed_fields": "Changed fields",
+          "delete_attempt": "Deletion attempt",
+          "delete_mode": "Deletion mode",
+          "total_targets": "Target count",
+          "completed_by": "Completed by"
+        },
+        "changedFields": {
+          "version": "Version",
+          "content": "Content",
+          "name": "Name"
+        },
+        "deleteModes": {
+          "metadata_only": "Metadata only",
+          "remove_effects": "Remove effects, then delete",
+          "forbidden": "Deletion forbidden"
+        },
+        "values": {
+          "yes": "Yes",
+          "no": "No",
+          "separator": ", "
         }
       },
       "defense": {

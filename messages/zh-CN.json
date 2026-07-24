@@ -5686,9 +5686,10 @@
         "all": "全部",
         "allObjects": "全部对象",
         "created": "创建",
-        "updated": "版本更新",
-        "ensured": "命令确认",
-        "deleted": "删除受理",
+        "reused": "复用",
+        "updated": "更新",
+        "deleteAccepted": "删除受理",
+        "deleteCompleted": "删除完成",
         "deleteAborted": "终止删除",
         "policy": "策略",
         "command": "命令",
@@ -5703,9 +5704,12 @@
         "view": "查看",
         "viewAria": "查看 {object} 的变更审计详情",
         "detailTitle": "变更审计详情",
+        "detailDescription": "查看本次变更事件记录的业务字段。",
         "eventType": "后台事件类型",
         "operationId": "操作 ID",
         "requestId": "请求 ID",
+        "executionActor": "执行主体 ID",
+        "reason": "原因",
         "payloadTitle": "变更内容",
         "noPayload": "暂无可展示的变更字段",
         "previousPage": "上一页",
@@ -5713,10 +5717,24 @@
         "pageSummary": "显示 {start}-{end} 条，共 {total} 条",
         "actions": {
           "created": "创建",
-          "updated": "版本更新",
-          "ensured": "命令确认",
-          "deleted": "删除受理",
-          "deleteAborted": "终止删除"
+          "reused": "复用",
+          "updated": "更新",
+          "deleteAccepted": "删除受理",
+          "deleteCompleted": "删除完成",
+          "deleteAborted": "终止删除",
+          "legacyCommand": "创建/复用（历史数据）"
+        },
+        "outcomes": {
+          "success": "成功",
+          "created": "已创建",
+          "reused": "已复用",
+          "advanced": "版本已推进",
+          "metadataUpdated": "元数据已更新",
+          "unchanged": "无变更",
+          "accepted": "已受理",
+          "retryAccepted": "重试已受理",
+          "aborted": "已终止",
+          "completed": "已完成"
         },
         "objects": {
           "policy": "策略",
@@ -5736,9 +5754,36 @@
           "objectName": "对象名称",
           "objectId": "对象 ID",
           "version": "对象版本",
+          "previousVersion": "原版本",
+          "newVersion": "新版本",
           "actor": "操作者 ID",
           "actorType": "操作者类型",
+          "outcome": "变更结果",
           "details": "详情"
+        },
+        "payloadFields": {
+          "content_changed": "内容是否变更",
+          "metadata_changed": "元数据是否变更",
+          "changed_fields": "变更字段",
+          "delete_attempt": "删除尝试次数",
+          "delete_mode": "删除方式",
+          "total_targets": "目标数量",
+          "completed_by": "完成主体"
+        },
+        "changedFields": {
+          "version": "版本",
+          "content": "内容",
+          "name": "名称"
+        },
+        "deleteModes": {
+          "metadata_only": "仅删除元数据",
+          "remove_effects": "移除生效内容后删除",
+          "forbidden": "禁止删除"
+        },
+        "values": {
+          "yes": "是",
+          "no": "否",
+          "separator": "、"
         }
       },
       "defense": {
