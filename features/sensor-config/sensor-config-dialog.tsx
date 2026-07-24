@@ -333,7 +333,7 @@ export function SensorConfigDialog({
                     placeholder="输入配置名称"
                   />
                 </div>
-                <InfoField label="来源"><Server className="h-4 w-4 text-cyan-600" />Agent 内置</InfoField>
+                <InfoField label="来源"><Server className="h-4 w-4 text-cyan-600" />系统内置</InfoField>
                 <InfoField label="基础版本"><span className="font-mono">{BASE_VERSION}</span></InfoField>
                 <div className="col-span-2 space-y-1.5 md:col-span-1">
                   <Label htmlFor="sensor-config-version" className="text-xs font-medium text-slate-600">新版本 <span className="text-rose-500">*</span></Label>
