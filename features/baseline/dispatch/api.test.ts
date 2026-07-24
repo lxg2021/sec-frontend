@@ -175,7 +175,6 @@ describe("baseline scan policy API normalization", () => {
             object_id: "policy-object-id",
             name: "Windows baseline",
             version: "1.0.0",
-            baseline_uuid: "baseline-id",
             scan_schedule: {
               mode: "interval",
               interval_hours: 24,
@@ -191,17 +190,20 @@ describe("baseline scan policy API normalization", () => {
     })
 
     const result = await listBaselineScanPolicies({
-      baselineUUID: "baseline-id",
       limit: 8,
     })
 
     expect(result.items).toHaveLength(1)
     expect(result.items[0]).toMatchObject({
       id: "policy-object-id",
-      baselineUuid: "baseline-id",
       scanSchedule: {
         retry_limit: 0,
       },
+    })
+    expect(postMock).toHaveBeenCalledWith("listBaselineScanPolicies", {
+      request_id: expect.any(String),
+      limit: 8,
+      offset: 0,
     })
   })
 

@@ -81,7 +81,6 @@ interface CreatedPolicy {
   id: string
   name: string
   version: string
-  baselineUuid: string
   baselineName: string
   schedule: ScanSchedule
 }
@@ -94,7 +93,6 @@ function mapReusablePolicyToCreatedPolicy(
     id: policy.id,
     name: policy.name,
     version: policy.version,
-    baselineUuid: policy.baselineUuid,
     baselineName,
     schedule: policy.scanSchedule,
   }
@@ -258,7 +256,6 @@ export function BaselineDispatchClient() {
 
     try {
       const result = await listBaselineScanPolicies({
-        baselineUUID: selectedTemplateUuid,
         limit: REUSABLE_POLICY_PAGE_SIZE,
         offset: (page - 1) * REUSABLE_POLICY_PAGE_SIZE,
       })
@@ -716,7 +713,6 @@ export function BaselineDispatchClient() {
         id: created.id,
         name: created.name,
         version: created.version,
-        baselineUuid: selectedTemplate.uuid,
         baselineName: baselineDisplayName,
         schedule: nextSchedule,
       }
@@ -731,7 +727,6 @@ export function BaselineDispatchClient() {
       if (isPolicyConflict(error)) {
         try {
           const latestPolicies = await listBaselineScanPolicies({
-            baselineUUID: selectedTemplate.uuid,
             limit: 100,
             offset: 0,
           })

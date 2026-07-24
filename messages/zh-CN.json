@@ -3297,7 +3297,7 @@
           "offlineHosts": "离线",
           "invalidHosts": "无效",
           "existingDialogTitle": "选择已有扫描任务",
-          "existingDialogDescription": "仅展示当前基线下可复用的扫描任务",
+          "existingDialogDescription": "展示所有基线共用的可复用扫描策略",
           "confirmDialogTitle": "确认基线任务下发",
           "confirmDialogDescription": "核对任务对象、目标主机、扫描计划和校验结果",
           "refresh": "刷新",
@@ -3422,7 +3422,7 @@
             "updatedAt": "最近更新：{time}",
             "retry": "重试",
             "emptyTitle": "暂无可复用任务",
-            "emptyDescription": "当前基线下还没有可复用的任务，请切换到生成新任务。",
+            "emptyDescription": "暂无可复用任务，请切换到生成新任务。",
             "sort": {
               "updated": "最近更新优先",
               "oldest": "最早更新优先",

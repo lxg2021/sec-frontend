@@ -3297,7 +3297,7 @@
           "offlineHosts": "Offline",
           "invalidHosts": "Invalid",
           "existingDialogTitle": "Select an Existing Scan Task",
-          "existingDialogDescription": "Only reusable scan tasks for the current baseline are shown",
+          "existingDialogDescription": "Shows reusable scan strategies shared by all baselines",
           "confirmDialogTitle": "Confirm Baseline Task Dispatch",
           "confirmDialogDescription": "Review the task object, target hosts, schedule, and validation results",
           "refresh": "Refresh",
@@ -3422,7 +3422,7 @@
             "updatedAt": "Updated: {time}",
             "retry": "Retry",
             "emptyTitle": "No reusable tasks",
-            "emptyDescription": "No reusable tasks are available for the selected baseline yet. Switch to generate a new task instead.",
+            "emptyDescription": "No reusable tasks are available yet. Switch to generate a new task instead.",
             "sort": {
               "updated": "Recently Updated",
               "oldest": "Earliest Updated",

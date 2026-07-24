@@ -34,7 +34,6 @@ interface ListBaselineScanPoliciesResponseData {
     object_id?: string
     name?: string
     version?: string
-    baseline_uuid?: string
     scan_schedule?: Partial<ScanSchedule> | null
     created_at?: string
     updated_at?: string
@@ -94,7 +93,6 @@ export interface BaselineScanPolicyOperation {
 }
 
 export interface ListBaselineScanPoliciesPayload {
-  baselineUUID: string
   limit?: number
   offset?: number
 }
@@ -112,7 +110,6 @@ export interface ReusableBaselineScanPolicy {
   id: string
   name: string
   version: string
-  baselineUuid: string
   scanSchedule: ScanSchedule
   createdAt: string
   updatedAt: string
@@ -209,14 +206,11 @@ export async function createBaselineScanPolicy({
 }
 
 export async function listBaselineScanPolicies({
-  baselineUUID,
   limit = 100,
   offset = 0,
 }: ListBaselineScanPoliciesPayload): Promise<BaselineScanPolicyListResult> {
-  const trimmedBaselineUUID = baselineUUID.trim()
   const result = (await http.post("listBaselineScanPolicies", {
     request_id: createRequestId(),
-    baseline_uuid: trimmedBaselineUUID,
     limit,
     offset,
   })) as ApiResult<ListBaselineScanPoliciesResponseData | null>
@@ -237,7 +231,6 @@ export async function listBaselineScanPolicies({
         id,
         name: stringValue(item?.name) || id,
         version,
-        baselineUuid: stringValue(item?.baseline_uuid) || trimmedBaselineUUID,
         scanSchedule: normalizeReturnedScanSchedule(item?.scan_schedule),
         createdAt: stringValue(item?.created_at),
         updatedAt: stringValue(item?.updated_at),

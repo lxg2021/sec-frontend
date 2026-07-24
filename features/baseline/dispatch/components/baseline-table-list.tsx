@@ -15,7 +15,6 @@ import {
   Copy,
   FileText,
   Hash,
-  Link2,
   Play,
   RefreshCcw,
   RotateCcw,
@@ -65,19 +64,18 @@ interface CopyableOverflowTextProps {
 
 const COLUMN_WIDTHS = [
   "4%",
-  "12%",
-  "11%",
+  "15%",
+  "14%",
   "6%",
-  "12%",
+  "7%",
   "6%",
-  "5%",
-  "6%",
-  "6%",
+  "7%",
+  "7%",
   "5.5%",
   "6%",
   "5.5%",
-  "7%",
-  "7%",
+  "8%",
+  "8%",
 ];
 
 const HEADER_CELL_CLASS_NAME =
@@ -199,14 +197,13 @@ export function BaselineTableList({
         ? {
             refresh: "刷新",
             emptyTitle: "暂无基线扫描策略",
-            emptyDescription: "当前基线下还没有可展示的扫描策略。",
+            emptyDescription: "暂无可展示的基线扫描策略。",
             copy: "复制",
             copied: "已复制",
             columns: {
               policyId: "策略 ID",
               name: "策略名称",
               version: "版本",
-              baselineUuid: "基线 UUID",
               mode: "调度模式",
               intervalHours: "间隔",
               specificTime: "固定时间",
@@ -231,15 +228,13 @@ export function BaselineTableList({
         : {
             refresh: "Refresh",
             emptyTitle: "No baseline scan policies",
-            emptyDescription:
-              "There are no scan policies available for this baseline yet.",
+            emptyDescription: "There are no baseline scan policies available yet.",
             copy: "Copy",
             copied: "Copied",
             columns: {
               policyId: "Policy ID",
               name: "Name",
               version: "Ver.",
-              baselineUuid: "Baseline",
               mode: "Mode",
               intervalHours: "Interval",
               specificTime: "Time",
@@ -337,13 +332,13 @@ export function BaselineTableList({
       <div className="space-y-4">
         <div
           className={cn(
-            "rounded-2xl overflow-x-hidden",
+            "rounded-2xl overflow-x-auto",
             shouldScroll
               ? `${SCROLLABLE_TABLE_MAX_HEIGHT_CLASS} overflow-y-auto`
               : "overflow-y-hidden",
           )}
         >
-          <table className="w-full table-fixed text-[12px] leading-5">
+          <table className="w-full min-w-[1120px] table-fixed text-[12px] leading-5">
             <colgroup>
               {COLUMN_WIDTHS.map((width, index) => (
                 <col key={`${index}-${width}`} style={{ width }} />
@@ -391,20 +386,6 @@ export function BaselineTableList({
                   <div className="flex min-w-0 items-center gap-1.5">
                     <Tag className="size-3.5 shrink-0 text-amber-500" />
                     <span className="truncate">{text.columns.version}</span>
-                  </div>
-                </TableHead>
-                <TableHead
-                  className={cn(
-                    HEADER_CELL_CLASS_NAME,
-                    "whitespace-nowrap",
-                    shouldScroll && "sticky top-0 z-10 bg-slate-50/95",
-                  )}
-                >
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <Link2 className="size-3.5 shrink-0 text-violet-500" />
-                    <span className="truncate">
-                      {text.columns.baselineUuid}
-                    </span>
                   </div>
                 </TableHead>
                 <TableHead
@@ -544,9 +525,6 @@ export function BaselineTableList({
                         <div className="h-6 w-12 animate-pulse rounded-full bg-slate-200" />
                       </TableCell>
                       <TableCell className={BODY_CELL_CLASS_NAME}>
-                        <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-                      </TableCell>
-                      <TableCell className={BODY_CELL_CLASS_NAME}>
                         <div className="h-6 w-full animate-pulse rounded-full bg-slate-200" />
                       </TableCell>
                       <TableCell className={BODY_CELL_CLASS_NAME}>
@@ -650,14 +628,6 @@ export function BaselineTableList({
                           >
                             {item.version}
                           </Badge>
-                        </TableCell>
-                        <TableCell className={BODY_CELL_CLASS_NAME}>
-                          <CopyableOverflowText
-                            value={item.baselineUuid}
-                            copyLabel={text.copy}
-                            copiedLabel={text.copied}
-                            textClassName="font-mono text-[12px] text-slate-500"
-                          />
                         </TableCell>
                         <TableCell className={BODY_CELL_CLASS_NAME}>
                           <Badge
