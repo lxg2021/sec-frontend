@@ -68,6 +68,7 @@ const FALLBACK_CONFIG = {
       getPatchInstallTasks: "/sensor/patch/installtask/list",
       getPatchInstallTaskProgress: "/sensor/patch/installtask/progress",
       createPatchInstallTask: "/sensor/control/patch/installtask",
+      patchScanPolicy: "/sensor/control/patch/scanpolicy",
       listPMCObjectDefinitions: "/sensor/control/pmc/object-definitions/list",
       listPMCOperations: "/sensor/control/pmc/operations/list",
       queryPMCExecutionResults: "/sensor/control/pmc/execution-results/query-by-filter",

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Boxes, CheckCircle2, Layers3, Settings2 } from "lucide-react"
+import { Boxes, CheckCircle2, Layers3, Settings2, ShieldCheck } from "lucide-react"
 
 import { ConfigTable } from "@/features/sensor-config/config-table"
 import { defaultConfigCategory } from "@/features/sensor-config/data/default-config-category"
@@ -11,6 +11,7 @@ import {
 } from "@/features/sensor-config/sensor-config-editor"
 import { SensorConfigDialog } from "@/features/sensor-config/sensor-config-dialog"
 import type { ConfigCategory } from "@/features/sensor-config/types/config-item"
+import { PatchScanPolicyDialog } from "@/features/vulnerability/policy/patch-scan-policy-dialog"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -20,6 +21,7 @@ export default function ConfigManagementPage() {
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [showEditorDialog, setShowEditorDialog] = useState(true)
+  const [showPatchPolicyDialog, setShowPatchPolicyDialog] = useState(false)
 
   const totalItems = countConfigItems(categories)
   const enabledItems = countEnabledConfigItems(categories)
@@ -50,13 +52,23 @@ export default function ConfigManagementPage() {
                   </p>
                 </div>
               </div>
-              <Button
-                className="h-10 shrink-0 bg-cyan-700 hover:bg-cyan-800"
-                onClick={() => setShowEditorDialog(true)}
-              >
-                <Settings2 className="mr-2 h-4 w-4" />
-                打开传感器配置编辑器
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  variant="outline"
+                  className="h-10 shrink-0 rounded-full border-cyan-200 bg-white px-5 text-cyan-800 hover:bg-cyan-50 hover:text-cyan-900"
+                  onClick={() => setShowPatchPolicyDialog(true)}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  漏洞扫描策略
+                </Button>
+                <Button
+                  className="h-10 shrink-0 rounded-full bg-cyan-700 px-5 hover:bg-cyan-800"
+                  onClick={() => setShowEditorDialog(true)}
+                >
+                  <Settings2 className="h-4 w-4" />
+                  传感器配置
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="grid gap-3 bg-white p-5 sm:grid-cols-3 sm:p-6">
@@ -75,6 +87,11 @@ export default function ConfigManagementPage() {
         categories={categories}
         onConfigChange={setCategories}
         onConfigSaved={handleConfigSaved}
+      />
+
+      <PatchScanPolicyDialog
+        open={showPatchPolicyDialog}
+        onOpenChange={setShowPatchPolicyDialog}
       />
 
       <Toaster />

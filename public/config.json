@@ -61,6 +61,7 @@
       "getPatchInstallTasks": "/sensor/patch/installtask/list",
       "getPatchInstallTaskProgress": "/sensor/patch/installtask/progress",
       "createPatchInstallTask": "/sensor/control/patch/installtask",
+      "patchScanPolicy": "/sensor/control/patch/scanpolicy",
       "patchImmediateScan": "/sensor/control/patch/immediatescan",
       "patchOneClickRepair": "/sensor/control/patch/oneclickrepair",
       "baselineOneClickRepair": "/sensor/control/baseline/oneclickrepair",
