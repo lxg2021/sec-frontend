@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   CheckCircle2,
   CircleAlert,
-  Clock3,
   FileCog,
   Info,
   Loader2,
@@ -52,7 +51,6 @@ import {
 } from "@/shared/ui/dialog"
 import { Input } from "@/shared/ui/input"
 import { Label } from "@/shared/ui/label"
-import { ScrollArea } from "@/shared/ui/scroll-area"
 import {
   Select,
   SelectContent,
@@ -295,11 +293,11 @@ export function GeneralConfigDialog({
         <DialogContent
           overlayClassName="bg-slate-950/55 backdrop-blur-[1px]"
           className={cn(
-            "h-[min(92dvh,680px)] w-[calc(100vw-1rem)] max-w-[760px] gap-0 overflow-hidden p-0 sm:rounded-2xl",
+            "max-h-[92dvh] w-[calc(100vw-1rem)] max-w-[760px] gap-0 overflow-hidden p-0 sm:h-[420px] sm:rounded-2xl",
             "[&>button]:hidden",
           )}
         >
-          <div className="flex h-full min-h-0 flex-col bg-white">
+          <div className="flex max-h-[92dvh] min-h-0 flex-col bg-white sm:h-full">
             <DialogHeader className="shrink-0 space-y-0 border-b border-slate-200 px-4 py-3.5 sm:px-6 sm:py-4">
               <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
@@ -334,14 +332,14 @@ export function GeneralConfigDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <ScrollArea className="min-h-0 flex-1 bg-white">
-              <div className="space-y-5 px-4 py-5 sm:px-6">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white">
+              <div className="space-y-4 px-4 py-4 sm:px-6">
                 {loading && <LoadingState />}
 
                 {!loading && loadError && (
                   <div
                     role="alert"
-                    className="flex min-h-48 flex-col items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 py-8 text-center"
+                    className="flex min-h-36 flex-col items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 py-6 text-center"
                   >
                     <CircleAlert className="h-7 w-7 text-rose-600" />
                     <p className="mt-3 text-sm font-semibold text-rose-900">通用配置加载失败</p>
@@ -369,7 +367,7 @@ export function GeneralConfigDialog({
                           基本信息
                         </h3>
                       </div>
-                      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
                         <ReadOnlyField label="配置名称">
                           <span className="truncate">通用配置</span>
                           <Tooltip>
@@ -426,82 +424,72 @@ export function GeneralConfigDialog({
                         <h3 id="general-config-parameters-title" className="text-sm font-semibold text-slate-900">
                           运行参数
                         </h3>
-                        <Badge variant="outline" className="border-slate-200 bg-slate-50 font-normal text-slate-600">
-                          2 项
-                        </Badge>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <ParameterCard
-                          icon={<Clock3 className="h-4 w-4" />}
-                          title="心跳上报间隔"
-                          modified={draft.heartInterval.trim() !== String(definition.heartInterval)}
+                        <FormField
+                          label="心跳上报间隔"
+                          htmlFor="general-config-heartInterval"
+                          error={
+                            validationIssue?.field === "heartInterval"
+                              ? validationIssue.message
+                              : undefined
+                          }
                         >
-                          <FormField
-                            label="间隔时间"
-                            htmlFor="general-config-heartInterval"
-                            visuallyHiddenLabel
-                            error={
-                              validationIssue?.field === "heartInterval"
-                                ? validationIssue.message
-                                : undefined
-                            }
-                          >
-                            <div className="relative">
-                              <Input
-                                id="general-config-heartInterval"
-                                value={draft.heartInterval}
-                                onChange={(event) => updateField("heartInterval", event.target.value)}
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                className="h-10 bg-white pr-12 tabular-nums"
-                                disabled={submitting}
-                                aria-invalid={validationIssue?.field === "heartInterval"}
-                              />
-                              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
-                                秒
-                              </span>
-                            </div>
-                          </FormField>
-                        </ParameterCard>
-
-                        <ParameterCard
-                          icon={<TerminalSquare className="h-4 w-4" />}
-                          title="Agent 日志级别"
-                          modified={draft.logLevel.trim() !== String(definition.logLevel)}
-                        >
-                          <FormField
-                            label="日志级别"
-                            htmlFor="general-config-logLevel"
-                            visuallyHiddenLabel
-                            error={
-                              validationIssue?.field === "logLevel"
-                                ? validationIssue.message
-                                : undefined
-                            }
-                          >
-                            <Select
-                              value={draft.logLevel}
-                              onValueChange={(value) => updateField("logLevel", value)}
+                          <div className="relative">
+                            <Input
+                              id="general-config-heartInterval"
+                              value={draft.heartInterval}
+                              onChange={(event) => updateField("heartInterval", event.target.value)}
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              className="h-10 bg-white pr-12 tabular-nums"
                               disabled={submitting}
+                              aria-invalid={validationIssue?.field === "heartInterval"}
+                            />
+                            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                              秒
+                            </span>
+                          </div>
+                        </FormField>
+
+                        <FormField
+                          label="Agent 日志级别"
+                          htmlFor="general-config-logLevel"
+                          error={
+                            validationIssue?.field === "logLevel"
+                              ? validationIssue.message
+                              : undefined
+                          }
+                        >
+                          <Select
+                            value={draft.logLevel}
+                            onValueChange={(value) => updateField("logLevel", value)}
+                            disabled={submitting}
+                          >
+                            <SelectTrigger
+                              id="general-config-logLevel"
+                              className="h-10 bg-white"
+                              disabled={submitting}
+                              aria-invalid={validationIssue?.field === "logLevel"}
                             >
-                              <SelectTrigger
-                                id="general-config-logLevel"
-                                className="h-10 bg-white"
-                                disabled={submitting}
-                                aria-invalid={validationIssue?.field === "logLevel"}
-                              >
-                                <SelectValue placeholder="选择日志级别" />
-                              </SelectTrigger>
-                              <SelectContent className="z-[80]">
-                                {GENERAL_CONFIG_LOG_LEVEL_OPTIONS.map((option) => (
-                                  <SelectItem key={option.value} value={String(option.value)}>
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormField>
-                        </ParameterCard>
+                              <SelectValue placeholder="选择日志级别" />
+                            </SelectTrigger>
+                            <SelectContent
+                              position="popper"
+                              side="top"
+                              align="end"
+                              sideOffset={4}
+                              avoidCollisions={false}
+                              className="z-[80]"
+                            >
+                              {GENERAL_CONFIG_LOG_LEVEL_OPTIONS.map((option) => (
+                                <SelectItem key={option.value} value={String(option.value)}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormField>
                       </div>
                     </section>
 
@@ -527,7 +515,7 @@ export function GeneralConfigDialog({
                   </TooltipProvider>
                 )}
               </div>
-            </ScrollArea>
+            </div>
 
             <footer className="shrink-0 border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -622,8 +610,8 @@ export function GeneralConfigDialog({
 
 function LoadingState() {
   return (
-    <div className="space-y-5" aria-label="正在加载通用配置">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div className="space-y-4" aria-label="正在加载通用配置">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
           <div key={index} className="space-y-2">
             <div className="h-3 w-14 animate-pulse rounded bg-slate-200" />
@@ -633,7 +621,10 @@ function LoadingState() {
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {Array.from({ length: 2 }, (_, index) => (
-          <div key={index} className="h-40 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+          <div key={index} className="space-y-2">
+            <div className="h-3 w-24 animate-pulse rounded bg-slate-200" />
+            <div className="h-10 animate-pulse rounded-md bg-slate-100" />
+          </div>
         ))}
       </div>
     </div>
@@ -655,68 +646,24 @@ function FormField({
   label,
   htmlFor,
   error,
-  visuallyHiddenLabel = false,
   children,
 }: {
   label: string
   htmlFor: string
   error?: string
-  visuallyHiddenLabel?: boolean
   children: React.ReactNode
 }) {
   return (
-    <div className={cn("min-w-0", !visuallyHiddenLabel && "space-y-1.5")}>
-      <Label
-        htmlFor={htmlFor}
-        className={cn(
-          "block text-xs font-medium leading-4 text-slate-600",
-          visuallyHiddenLabel && "sr-only",
-        )}
-      >
+    <div className="min-w-0 space-y-1.5">
+      <Label htmlFor={htmlFor} className="block text-xs font-medium leading-4 text-slate-600">
         {label} <span className="text-rose-500">*</span>
       </Label>
       {children}
       {error && (
-        <p
-          className={cn("text-xs leading-5 text-rose-600", visuallyHiddenLabel && "mt-1.5")}
-          role="alert"
-        >
+        <p className="text-xs leading-5 text-rose-600" role="alert">
           {error}
         </p>
       )}
-    </div>
-  )
-}
-
-function ParameterCard({
-  icon,
-  title,
-  modified,
-  children,
-}: {
-  icon: React.ReactNode
-  title: string
-  modified: boolean
-  children: React.ReactNode
-}) {
-  return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-      <div className="mb-3 flex items-center gap-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-cyan-700 shadow-sm ring-1 ring-slate-200">
-          {icon}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-sm font-semibold text-slate-900">{title}</h4>
-            {modified && (
-              <Badge variant="outline" className="border-amber-200 bg-amber-50 px-2 py-0 text-[10px] text-amber-700">
-                已修改
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
-      {children}
     </div>
   )
 }

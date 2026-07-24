@@ -30,10 +30,10 @@ import { Toaster } from "@/shared/ui/toaster"
 export default function ConfigManagementPage() {
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
-  const [showEditorDialog, setShowEditorDialog] = useState(true)
+  const [showEditorDialog, setShowEditorDialog] = useState(false)
   const [showPatchPolicyDialog, setShowPatchPolicyDialog] = useState(false)
   const [showBaselinePolicyDialog, setShowBaselinePolicyDialog] = useState(false)
-  const [showGeneralConfigDialog, setShowGeneralConfigDialog] = useState(false)
+  const [showGeneralConfigDialog, setShowGeneralConfigDialog] = useState(true)
 
   const totalItems = countConfigItems(categories)
   const enabledItems = countEnabledConfigItems(categories)
