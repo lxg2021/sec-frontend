@@ -141,7 +141,7 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
                         <time dateTime={event.occurredAt}>{formatDate(event.occurredAt, locale)}</time>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="inline-flex max-w-full items-center gap-1.5 text-xs font-semibold text-black">
+                        <span className="inline-flex max-w-full items-center gap-1.5 text-xs font-normal text-black">
                           <ActionIcon className={`h-3.5 w-3.5 shrink-0 ${actionVisual.iconClass}`} aria-hidden="true" />
                           <span className="truncate">{t(`actions.${actionLabelKey}`)}</span>
                         </span>
