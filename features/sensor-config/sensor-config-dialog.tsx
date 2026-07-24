@@ -9,7 +9,6 @@ import {
   FileCog,
   PackageCheck,
   RotateCcw,
-  Save,
   Search,
   Server,
   Settings2,
@@ -18,7 +17,7 @@ import {
   X,
 } from "lucide-react"
 
-import { configStorage, type SensorConfigEditorDraft } from "@/features/sensor-config/data/config-storage"
+import { configStorage } from "@/features/sensor-config/data/config-storage"
 import {
   buildEnabledConfigCategories,
   cloneConfigCategories,
@@ -70,24 +69,6 @@ interface SensorConfigDialogProps {
   onConfigSaved: () => void
 }
 
-function isValidEditorDraft(value: SensorConfigEditorDraft | null): value is SensorConfigEditorDraft {
-  if (!value || typeof value.name !== "string" || typeof value.version !== "string") return false
-  if (!Array.isArray(value.categories)) return false
-
-  return value.categories.every(
-    (category) =>
-      typeof category?.label === "string" &&
-      Array.isArray(category.items) &&
-      category.items.every(
-        (item) =>
-          typeof item?.key === "string" &&
-          typeof item.label === "string" &&
-          typeof item.enabled === "boolean" &&
-          (item.description === undefined || typeof item.description === "string"),
-      ),
-  )
-}
-
 function formatLocalDate(date: Date) {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, "0")
@@ -116,7 +97,6 @@ export function SensorConfigDialog({
   const [onlyModified, setOnlyModified] = useState(false)
   const [validationError, setValidationError] = useState("")
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false)
-  const [hasPersistedDraft, setHasPersistedDraft] = useState(false)
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState<EditorSnapshot>(() => ({
     name: DEFAULT_CONFIG_NAME,
     version: DEFAULT_NEW_VERSION,
@@ -128,14 +108,8 @@ export function SensorConfigDialog({
     if (!open) return
 
     const baseline = cloneConfigCategories(categories)
-    let storedDraft: SensorConfigEditorDraft | null = null
     let storedVersions: Array<{ name: string; version: string }> = []
 
-    try {
-      storedDraft = configStorage.getEditorDraft()
-    } catch {
-      storedDraft = null
-    }
     try {
       storedVersions = configStorage.getAllConfigs().map(({ name: savedName, version: savedVersion }) => ({
         name: savedName,
@@ -145,32 +119,25 @@ export function SensorConfigDialog({
       storedVersions = []
     }
 
-    const restoredDraft: EditorSnapshot = isValidEditorDraft(storedDraft)
-      ? {
-          name: storedDraft.name,
-          version: storedDraft.version,
-          categories: cloneConfigCategories(storedDraft.categories),
-        }
-      : {
-          name: DEFAULT_CONFIG_NAME,
-          version: DEFAULT_NEW_VERSION,
-          categories: cloneConfigCategories(baseline),
-        }
-    const preferredCategory = restoredDraft.categories.some((category) => category.label === "文件组")
+    const initialSnapshot: EditorSnapshot = {
+      name: DEFAULT_CONFIG_NAME,
+      version: DEFAULT_NEW_VERSION,
+      categories: cloneConfigCategories(baseline),
+    }
+    const preferredCategory = baseline.some((category) => category.label === "文件组")
       ? "文件组"
-      : (restoredDraft.categories[0]?.label ?? ALL_CATEGORIES)
+      : (baseline[0]?.label ?? ALL_CATEGORIES)
 
     setBaselineCategories(baseline)
-    setDraftCategories(cloneConfigCategories(restoredDraft.categories))
-    setName(restoredDraft.name)
-    setVersion(restoredDraft.version)
+    setDraftCategories(cloneConfigCategories(initialSnapshot.categories))
+    setName(initialSnapshot.name)
+    setVersion(initialSnapshot.version)
     setSelectedCategory(preferredCategory)
     setSearchTerm("")
     setOnlyModified(false)
     setValidationError("")
     setConfirmCloseOpen(false)
-    setHasPersistedDraft(isValidEditorDraft(storedDraft))
-    setLastSavedSnapshot({ ...restoredDraft, categories: cloneConfigCategories(restoredDraft.categories) })
+    setLastSavedSnapshot({ ...initialSnapshot, categories: cloneConfigCategories(initialSnapshot.categories) })
     setExistingVersions(storedVersions)
   }, [categories, open])
 
@@ -274,35 +241,6 @@ export function SensorConfigDialog({
     return null
   }
 
-  const saveDraft = () => {
-    const error = validateDraft()
-    if (error) {
-      setValidationError(error)
-      return
-    }
-
-    const savedSnapshot: EditorSnapshot = {
-      name: normalizedName,
-      version: normalizedVersion,
-      categories: cloneConfigCategories(draftCategories),
-    }
-    try {
-      configStorage.saveEditorDraft({ ...savedSnapshot, savedAt: new Date().toISOString() })
-      setName(normalizedName)
-      setVersion(normalizedVersion)
-      setLastSavedSnapshot(savedSnapshot)
-      setHasPersistedDraft(true)
-      setValidationError("")
-      toast({
-        duration: 2400,
-        title: "草稿已保存",
-        description: "编辑内容已保存在当前浏览器中，尚未生成正式配置版本。",
-      })
-    } catch {
-      setValidationError("保存草稿失败，请检查浏览器存储空间后重试")
-    }
-  }
-
   const saveNewVersion = () => {
     const error = validateDraft()
     if (error) {
@@ -322,20 +260,18 @@ export function SensorConfigDialog({
         date: currentDate,
         categories: buildEnabledConfigCategories(draftCategories),
       })
-      configStorage.clearEditorDraft()
       onConfigChange(cloneConfigCategories(draftCategories))
       onConfigSaved()
       setValidationError("")
-      setHasPersistedDraft(false)
       setExistingVersions((current) => [...current, { name: normalizedName, version: normalizedVersion }])
       toast({
         duration: 3000,
-        title: "新版本已保存",
+        title: "新版本已创建",
         description: `${normalizedName} ${normalizedVersion} 已生成；Agent 内置 ${BASE_VERSION} 版本未被覆盖。`,
       })
       onOpenChange(false)
     } catch {
-      setValidationError("保存新版本失败，请重试")
+      setValidationError("创建新版本失败，请重试")
     }
   }
 
@@ -369,12 +305,12 @@ export function SensorConfigDialog({
                   <Settings2 className="h-4 w-4" />
                 </div>
                 <DialogTitle className="text-lg text-slate-950 sm:text-xl">编辑传感器配置</DialogTitle>
-                <Badge className="px-2 py-0 text-[11px] border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-50">新版本草稿</Badge>
+                <Badge className="px-2 py-0 text-[11px] border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-50">创建新版本</Badge>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="ml-auto h-8 w-8 shrink-0 rounded-md text-slate-500 hover:text-slate-900"
+                  className="ml-auto h-8 w-8 shrink-0 rounded-full text-slate-500 hover:text-slate-900"
                   onClick={requestClose}
                   aria-label="关闭"
                   title="关闭"
@@ -576,7 +512,7 @@ export function SensorConfigDialog({
 
                     <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-4 text-xs leading-5 text-cyan-900">
                       <div className="mb-1 flex items-center gap-2 font-semibold"><PackageCheck className="h-4 w-4" />版本与下发相互独立</div>
-                      保存只会创建新的控制对象版本，不会立即下发。后续可从对象库选择目标主机执行下发。
+                      创建操作只会生成新的控制对象版本，不会立即下发。后续可从对象库选择目标主机执行下发。
                     </div>
                   </div>
                 </ScrollArea>
@@ -594,13 +530,12 @@ export function SensorConfigDialog({
                   {hasUnsavedChanges ? (
                     <><CircleAlert className="h-4 w-4 text-amber-600" /><span className="font-medium text-amber-700">{unsavedChangeCount > 0 ? `${unsavedChangeCount} 项未保存修改` : "存在未保存修改"}</span></>
                   ) : (
-                    <><CheckCircle2 className="h-4 w-4 text-emerald-600" /><span className="text-slate-600">{hasPersistedDraft ? "草稿已保存" : "当前无未保存修改"}</span></>
+                    <><CheckCircle2 className="h-4 w-4 text-emerald-600" /><span className="text-slate-600">当前无未保存修改</span></>
                   )}
                 </div>
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
                   <Button variant="ghost" className="h-10 rounded-full px-5" onClick={requestClose}>取消</Button>
-                  <Button variant="outline" className="h-10 rounded-full px-5" onClick={saveDraft}><Save className="mr-2 h-4 w-4" />保存草稿</Button>
-                  <Button className="h-10 rounded-full bg-cyan-700 px-5 hover:bg-cyan-800" onClick={saveNewVersion}><FileCog className="mr-2 h-4 w-4" />校验并保存新版本</Button>
+                  <Button className="h-10 rounded-full bg-cyan-700 px-5 hover:bg-cyan-800" onClick={saveNewVersion}><FileCog className="mr-2 h-4 w-4" />校验并创建新版本</Button>
                 </div>
               </div>
             </footer>
@@ -612,7 +547,7 @@ export function SensorConfigDialog({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>放弃未保存的修改？</AlertDialogTitle>
-            <AlertDialogDescription>自上次保存草稿后还有修改。放弃后这些修改不会保留；此前已保存的草稿仍可在下次打开时恢复。</AlertDialogDescription>
+            <AlertDialogDescription>当前修改尚未创建为正式配置版本。放弃后，这些修改将不会保留。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>继续编辑</AlertDialogCancel>
@@ -663,12 +598,12 @@ function ValidationSummary({ nameValid, versionValid, duplicate, enabledItems }:
   const rows = [
     ["配置名称", nameValid ? "已填写" : "待填写", nameValid],
     ["版本格式", versionValid ? "正确" : "需修正", versionValid],
-    ["版本唯一性", duplicate ? "已存在" : "可保存", !duplicate],
+    ["版本唯一性", duplicate ? "已存在" : "可创建", !duplicate],
     ["启用配置项", enabledItems > 0 ? `${enabledItems} 项` : "至少启用一项", enabledItems > 0],
   ] as const
   return (
     <section>
-      <h3 className="mb-3 text-sm font-semibold text-slate-900">保存前校验</h3>
+      <h3 className="mb-3 text-sm font-semibold text-slate-900">创建前校验</h3>
       <div className="space-y-2.5 text-sm">
         {rows.map(([label, value, valid]) => (
           <div key={label} className="flex items-center justify-between gap-3">

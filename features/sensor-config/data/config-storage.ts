@@ -12,15 +12,7 @@ export interface SavedConfig {
 
 export type ConfigContent = Omit<SavedConfig, "id" | "filePath">
 
-export interface SensorConfigEditorDraft {
-  name: string
-  version: string
-  categories: ConfigCategory[]
-  savedAt: string
-}
-
 const STORAGE_KEY = "saved_configs"
-const EDITOR_DRAFT_STORAGE_KEY = "sensor_config_editor_draft"
 
 export const configStorage = {
   // 保存配置到 localStorage
@@ -83,18 +75,5 @@ export const configStorage = {
     const configs = configStorage.getAllConfigs()
     const config = configs.find((c) => c.id === id)
     return config ? config.filePath : null
-  },
-
-  saveEditorDraft: (draft: SensorConfigEditorDraft): void => {
-    localStorage.setItem(EDITOR_DRAFT_STORAGE_KEY, JSON.stringify(draft))
-  },
-
-  getEditorDraft: (): SensorConfigEditorDraft | null => {
-    const draft = localStorage.getItem(EDITOR_DRAFT_STORAGE_KEY)
-    return draft ? (JSON.parse(draft) as SensorConfigEditorDraft) : null
-  },
-
-  clearEditorDraft: (): void => {
-    localStorage.removeItem(EDITOR_DRAFT_STORAGE_KEY)
   },
 }
