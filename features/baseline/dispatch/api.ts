@@ -62,8 +62,6 @@ interface OperatePMCObjectResponseData {
 export interface CreateBaselineScanPolicyPayload {
   name: string
   version: string
-  baselineUUID: string
-  baselineFileName: string
   scanSchedule: ScanSchedule
 }
 
@@ -190,18 +188,12 @@ function getReusablePolicyKey(policy: Pick<ReusableBaselineScanPolicy, "id" | "v
 export async function createBaselineScanPolicy({
   name,
   version,
-  baselineUUID,
-  baselineFileName,
   scanSchedule,
 }: CreateBaselineScanPolicyPayload): Promise<CreatedBaselineScanPolicy> {
   const result = (await http.post("baselineScanPolicy", {
     request_id: createRequestId(),
     name,
     version,
-    baseline_info: {
-      uuid: baselineUUID,
-      name: baselineFileName,
-    },
     scan_schedule: normalizeScanSchedule(scanSchedule),
   })) as ApiResult<CreateBaselineScanPolicyResponseData | null>
 

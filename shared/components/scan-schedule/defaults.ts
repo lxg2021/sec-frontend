@@ -3,7 +3,10 @@ import type { ScanSchedule } from "./types"
 export const MIN_INTERVAL_HOURS = 1
 export const MAX_INTERVAL_HOURS = 24
 export const MIN_RANDOM_DELAY_MINUTES = 0
-export const MAX_RANDOM_DELAY_MINUTES = 20
+// The shared ScanSchedule protobuf accepts 0–120 minutes. Keep this limit in
+// sync with the backend so valid policy defaults (including baseline's 60)
+// are not silently clamped before submission.
+export const MAX_RANDOM_DELAY_MINUTES = 120
 
 export const DEFAULT_SCAN_SCHEDULE: ScanSchedule = {
   mode: "interval",

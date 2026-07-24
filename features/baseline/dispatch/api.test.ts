@@ -103,8 +103,6 @@ describe("baseline scan policy API normalization", () => {
       createBaselineScanPolicy({
         name: "Windows baseline",
         version: "1.0.0",
-        baselineUUID: "baseline-id",
-        baselineFileName: "baseline.csv",
         scanSchedule: {
           mode: "interval",
           scan_on_startup: false,
@@ -114,6 +112,49 @@ describe("baseline scan policy API normalization", () => {
       id: "policy-object-id",
       name: "Windows baseline",
       version: "1.0.0",
+    })
+  })
+
+  it("preserves the packaged 60-minute random delay in the create request", async () => {
+    postMock.mockResolvedValueOnce({
+      code: 0,
+      message: "success",
+      requestId: "request-id",
+      data: {
+        object_id: "policy-object-id",
+        name: "默认基线扫描策略",
+        version: "1.1.0",
+      },
+      raw: null,
+    })
+
+    await createBaselineScanPolicy({
+      name: "默认基线扫描策略",
+      version: "1.1.0",
+      scanSchedule: {
+        mode: "interval",
+        interval_hours: 24,
+        specific_time: "01:00",
+        random_delay_minutes: 60,
+        retry_limit: 3,
+        retry_interval_minutes: 30,
+        scan_on_startup: true,
+      },
+    })
+
+    expect(postMock).toHaveBeenCalledWith("baselineScanPolicy", {
+      request_id: expect.any(String),
+      name: "默认基线扫描策略",
+      version: "1.1.0",
+      scan_schedule: {
+        mode: "interval",
+        interval_hours: 24,
+        specific_time: "01:00",
+        random_delay_minutes: 60,
+        retry_limit: 3,
+        retry_interval_minutes: 30,
+        scan_on_startup: true,
+      },
     })
   })
 

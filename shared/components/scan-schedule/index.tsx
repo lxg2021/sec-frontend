@@ -169,7 +169,12 @@ export function ScanScheduleForm({
       ) : null}
 
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-4 md:grid-cols-2",
+            fields?.length ? "xl:grid-cols-4" : "xl:grid-cols-2",
+          )}
+        >
           {policyNameField ? <TextInputField field={policyNameField} disabled={disabled} /> : null}
           {policyVersionField ? <TextInputField field={policyVersionField} disabled={disabled} /> : null}
 

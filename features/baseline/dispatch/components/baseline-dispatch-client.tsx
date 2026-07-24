@@ -695,8 +695,6 @@ export function BaselineDispatchClient() {
 
     const nextSchedule = sanitizeScanSchedule(schedule)
     const baselineDisplayName = selectedTemplate.display_name || selectedTemplate.baseline_uuid
-    const baselineFileName =
-      selectedTemplate.original_filename || selectedTemplate.display_name || selectedTemplate.baseline_uuid
     const reusePolicy = (policy: ReusableBaselineScanPolicy) => {
       const nextPolicy = mapReusablePolicyToCreatedPolicy(policy, baselineDisplayName)
       setSchedule(nextPolicy.schedule)
@@ -711,8 +709,6 @@ export function BaselineDispatchClient() {
       const created = await createBaselineScanPolicy({
         name: policyName.trim(),
         version: policyVersion.trim(),
-        baselineUUID: selectedTemplate.uuid,
-        baselineFileName,
         scanSchedule: nextSchedule,
       })
 

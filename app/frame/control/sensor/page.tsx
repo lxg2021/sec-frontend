@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Boxes, CheckCircle2, Layers3, Settings2, ShieldCheck } from "lucide-react"
+import { Boxes, CheckCircle2, Layers3, ListChecks, Settings2, ShieldCheck } from "lucide-react"
 
+import { BaselineScanPolicyDialog } from "@/features/baseline/policy/baseline-scan-policy-dialog"
 import { ConfigTable } from "@/features/sensor-config/config-table"
 import { defaultConfigCategory } from "@/features/sensor-config/data/default-config-category"
 import {
@@ -22,6 +23,7 @@ export default function ConfigManagementPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [showEditorDialog, setShowEditorDialog] = useState(true)
   const [showPatchPolicyDialog, setShowPatchPolicyDialog] = useState(false)
+  const [showBaselinePolicyDialog, setShowBaselinePolicyDialog] = useState(false)
 
   const totalItems = countConfigItems(categories)
   const enabledItems = countEnabledConfigItems(categories)
@@ -53,6 +55,14 @@ export default function ConfigManagementPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  variant="outline"
+                  className="h-10 shrink-0 rounded-full border-cyan-200 bg-white px-5 text-cyan-800 hover:bg-cyan-50 hover:text-cyan-900"
+                  onClick={() => setShowBaselinePolicyDialog(true)}
+                >
+                  <ListChecks className="h-4 w-4" />
+                  基线扫描策略
+                </Button>
                 <Button
                   variant="outline"
                   className="h-10 shrink-0 rounded-full border-cyan-200 bg-white px-5 text-cyan-800 hover:bg-cyan-50 hover:text-cyan-900"
@@ -92,6 +102,11 @@ export default function ConfigManagementPage() {
       <PatchScanPolicyDialog
         open={showPatchPolicyDialog}
         onOpenChange={setShowPatchPolicyDialog}
+      />
+
+      <BaselineScanPolicyDialog
+        open={showBaselinePolicyDialog}
+        onOpenChange={setShowBaselinePolicyDialog}
       />
 
       <Toaster />
