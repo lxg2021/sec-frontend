@@ -1095,13 +1095,15 @@ features/audit/
 
 - 当前路由名是 `reports`，页面标题是“审计中心”。可以保留 URL `/frame/reports`，但业务模块命名应为 `audit`。
 
-### 5.13 dac 处置响应模块
+### 5.13 dac 访问控制模块
 
 当前页面：
 
 ```txt
-app/frame/response/dac/page.tsx
+app/frame/control/access/page.tsx
 ```
+
+兼容入口 `app/frame/response/dac/page.tsx` 重定向到新的控制中心地址。
 
 当前组件和 hook：
 

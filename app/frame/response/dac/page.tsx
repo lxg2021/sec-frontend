@@ -1,5 +1,5 @@
-import { AccessControlWizard } from "@/features/dac/components/access-control-wizard"
+import { redirect } from "next/navigation"
 
 export default function Page() {
-  return <AccessControlWizard />
+  redirect("/frame/control/access")
 }

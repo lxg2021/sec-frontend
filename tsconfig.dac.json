@@ -6,6 +6,7 @@
   "include": [
     "next-env.d.ts",
     "react-window.d.ts",
+    "app/frame/control/access/page.tsx",
     "app/frame/response/dac/page.tsx",
     "features/dac/access-control-copy.ts",
     "features/dac/access-control-options.ts",
