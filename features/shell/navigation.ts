@@ -115,7 +115,6 @@ export const menuItems: NavigationItem[] = [
     submenu: [
       { id: "responseOverview", icon: LayoutDashboard, labelKey: "responseOverview", path: "/frame/response/overview" },
       { id: "orchestration", icon: Workflow, labelKey: "orchestration", path: "/frame/response/orchestration" },
-      { id: "dacpolicy", icon: Activity, labelKey: "dacpolicy", path: "/frame/response/dac" },
     ],
   },
   {
@@ -143,6 +142,7 @@ export const menuItems: NavigationItem[] = [
     labelKey: "control",
     submenu: [
       { id: "sensorconfig", icon: SlidersHorizontal, labelKey: "sensorconfig", path: "/frame/control/sensor" },
+      { id: "dacpolicy", icon: Activity, labelKey: "dacpolicy", path: "/frame/response/dac" },
       { id: "controltask", icon: Timer, labelKey: "controltask", path: "/frame/control/task" },
     ],
   },
