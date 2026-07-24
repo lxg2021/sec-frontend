@@ -449,7 +449,7 @@ frame/vulnerability/taskstatus
 frame/attack/dashboard
 frame/attack/drill
 frame/attack/positioning
-frame/response/dac
+frame/control/access
 frame/evidence
 frame/reports
 frame/control/sensor
