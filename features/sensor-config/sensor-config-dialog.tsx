@@ -49,6 +49,7 @@ import { Label } from "@/shared/ui/label"
 import { Progress } from "@/shared/ui/progress"
 import { ScrollArea } from "@/shared/ui/scroll-area"
 import { Switch } from "@/shared/ui/switch"
+import { Tooltip, TooltipContent, TooltipPortal, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 
 const ALL_CATEGORIES = "__all_categories__"
 const BASE_VERSION = "1.0.0"
@@ -479,7 +480,8 @@ export function SensorConfigDialog({
                 </div>
 
                 <ScrollArea className="min-h-0 flex-1">
-                  <div className="space-y-4 p-4 pr-5 sm:p-5 sm:pr-6">
+                  <TooltipProvider delayDuration={250} skipDelayDuration={100}>
+                    <div className="space-y-4 p-4 pr-5 sm:p-5 sm:pr-6">
                     {filteredCategories.length === 0 ? (
                       <div className="flex min-h-56 flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 text-center">
                         <Search className="mb-3 h-7 w-7 text-slate-300" />
@@ -500,10 +502,28 @@ export function SensorConfigDialog({
                                 <Switch checked={item.enabled} onCheckedChange={(enabled) => updateItem(category.label, item.key, enabled)} aria-label={`${item.label}：${item.enabled ? "已启用" : "已关闭"}`} className="mt-0.5 shrink-0" />
                                 <div className="min-w-0 flex-1">
                                   <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-sm font-medium text-slate-900">{item.label}</span>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <span
+                                          tabIndex={0}
+                                          className="cursor-help text-sm font-medium text-slate-900 outline-none decoration-slate-400 underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:ring-2 focus-visible:ring-cyan-500"
+                                        >
+                                          {item.label}
+                                        </span>
+                                      </TooltipTrigger>
+                                      <TooltipPortal>
+                                        <TooltipContent
+                                          side="top"
+                                          align="start"
+                                          sideOffset={8}
+                                          className="z-[80] max-w-sm px-3 py-2 text-sm leading-6"
+                                        >
+                                          {item.description || "暂无说明"}
+                                        </TooltipContent>
+                                      </TooltipPortal>
+                                    </Tooltip>
                                     {isModified && <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">已修改</Badge>}
                                   </div>
-                                  <p className="mt-1 text-sm leading-5 text-slate-600">{item.description || "暂无说明"}</p>
                                 </div>
                                 <span className={cn("shrink-0 pt-0.5 text-xs font-medium", item.enabled ? "text-emerald-700" : "text-slate-400")}>
                                   {item.enabled ? "已启用" : "已关闭"}
@@ -514,7 +534,8 @@ export function SensorConfigDialog({
                         </div>
                       </section>
                     ))}
-                  </div>
+                    </div>
+                  </TooltipProvider>
                 </ScrollArea>
               </main>
 
