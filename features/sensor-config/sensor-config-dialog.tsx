@@ -425,12 +425,12 @@ export function SensorConfigDialog({
             </section>
 
             <div className="grid flex-none overflow-visible lg:min-h-0 lg:flex-1 lg:grid-cols-[220px_minmax(0,1fr)_300px] lg:overflow-hidden">
-              <aside className="border-b border-slate-200 bg-white lg:min-h-0 lg:border-b-0 lg:border-r">
+              <aside className="flex flex-col border-b border-slate-200 bg-white lg:min-h-0 lg:border-b-0 lg:border-r">
                 <div className="flex items-center justify-between px-4 pb-2 pt-4">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">配置分类</span>
                   <span className="text-xs text-slate-400">{draftCategories.length} 类</span>
                 </div>
-                <ScrollArea className="h-[220px] px-2 pb-2 lg:h-[calc(100%-118px)]">
+                <ScrollArea className="h-[220px] px-2 pb-2 lg:h-auto lg:min-h-0 lg:flex-1">
                   <div className="space-y-1 pr-2">
                     <CategoryButton
                       selected={selectedCategory === ALL_CATEGORIES}
@@ -450,13 +450,13 @@ export function SensorConfigDialog({
                     ))}
                   </div>
                 </ScrollArea>
-                <div className="grid gap-2 border-t border-slate-100 p-3">
-                  <Button variant="outline" size="sm" className="h-9 justify-start" onClick={toggleCurrentCategory}>
+                <div className="grid shrink-0 gap-2 border-t border-slate-100 p-3">
+                  <Button variant="outline" size="sm" className="h-9 justify-start rounded-full px-4" onClick={toggleCurrentCategory}>
                     <Check className="mr-2 h-4 w-4" />
                     {selectedCategory === ALL_CATEGORIES ? "切换全部配置项" : "启用/关闭当前分类"}
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-9 justify-start text-slate-600" onClick={() => { setDraftCategories(cloneConfigCategories(baselineCategories)); setValidationError("") }}>
-                    <RotateCcw className="mr-2 h-4 w-4" />恢复为内置默认值
+                  <Button variant="outline" size="sm" className="h-9 justify-start rounded-full border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50 hover:text-slate-900" onClick={() => { setDraftCategories(cloneConfigCategories(baselineCategories)); setValidationError("") }}>
+                    <RotateCcw className="mr-2 h-4 w-4 text-slate-600" />恢复为内置默认值
                   </Button>
                 </div>
               </aside>
@@ -598,9 +598,9 @@ export function SensorConfigDialog({
                   )}
                 </div>
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-                  <Button variant="ghost" className="h-10" onClick={requestClose}>取消</Button>
-                  <Button variant="outline" className="h-10" onClick={saveDraft}><Save className="mr-2 h-4 w-4" />保存草稿</Button>
-                  <Button className="h-10 bg-cyan-700 hover:bg-cyan-800" onClick={saveNewVersion}><FileCog className="mr-2 h-4 w-4" />校验并保存新版本</Button>
+                  <Button variant="ghost" className="h-10 rounded-full px-5" onClick={requestClose}>取消</Button>
+                  <Button variant="outline" className="h-10 rounded-full px-5" onClick={saveDraft}><Save className="mr-2 h-4 w-4" />保存草稿</Button>
+                  <Button className="h-10 rounded-full bg-cyan-700 px-5 hover:bg-cyan-800" onClick={saveNewVersion}><FileCog className="mr-2 h-4 w-4" />校验并保存新版本</Button>
                 </div>
               </div>
             </footer>
