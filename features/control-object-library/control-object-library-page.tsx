@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Boxes,
+  Braces,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
@@ -27,6 +28,7 @@ import {
   type ControlObjectSource,
   type ControlObjectType,
 } from "@/features/control-object-library/api"
+import { ControlObjectDetailDialog } from "@/features/control-object-library/control-object-detail-dialog"
 import { GeneralConfigDialog } from "@/features/general-config/general-config-dialog"
 import { ReportConfigDialog } from "@/features/report-config/report-config-dialog"
 import { defaultConfigCategory } from "@/features/sensor-config/data/default-config-category"
@@ -122,8 +124,32 @@ function primaryOperationLabel(definition: ControlObjectDefinition) {
   return "选择下发"
 }
 
+function compactOperationLabel(definition: ControlObjectDefinition) {
+  if (definition.objectType === "command") return "执行"
+  if (definition.objectType === "policy") return "应用"
+  return "下发"
+}
+
 function sourceLabel(source: ControlObjectSource) {
-  return source === "builtin" ? "系统内置" : "未标明"
+  const labels: Record<ControlObjectSource, string> = {
+    builtin: "系统内置",
+    manual: "手动创建",
+    remediation: "处置编排",
+    mitigation: "直接处置",
+    unknown: "未标明",
+  }
+  return labels[source]
+}
+
+function sourceBadgeClassName(source: ControlObjectSource) {
+  const classNames: Record<ControlObjectSource, string> = {
+    builtin: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    manual: "border-blue-200 bg-blue-50 text-blue-700",
+    remediation: "border-violet-200 bg-violet-50 text-violet-700",
+    mitigation: "border-amber-200 bg-amber-50 text-amber-700",
+    unknown: "border-slate-200 bg-slate-50 text-slate-600",
+  }
+  return classNames[source]
 }
 
 function stateLabel(state: string) {
@@ -142,6 +168,7 @@ export function ControlObjectLibraryPage() {
   const [page, setPage] = useState(1)
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)
   const [activeEditor, setActiveEditor] = useState<EditorKind | null>(null)
+  const [detailTarget, setDetailTarget] = useState<ControlObjectDefinition | null>(null)
   const requestSequence = useRef(0)
 
   const loadObjects = useCallback(async () => {
@@ -301,6 +328,9 @@ export function ControlObjectLibraryPage() {
                     <SelectContent>
                       <SelectItem value="all">全部来源</SelectItem>
                       <SelectItem value="builtin">系统内置</SelectItem>
+                      <SelectItem value="manual">手动创建</SelectItem>
+                      <SelectItem value="remediation">处置编排</SelectItem>
+                      <SelectItem value="mitigation">直接处置</SelectItem>
                       <SelectItem value="unknown">未标明</SelectItem>
                     </SelectContent>
                   </Select>
@@ -367,7 +397,7 @@ export function ControlObjectLibraryPage() {
               ) : (
                 <>
                   <div className="hidden h-full min-h-0 overflow-auto lg:block">
-                    <table className="w-full min-w-[1000px] table-fixed border-collapse text-sm">
+                    <table className="w-full min-w-[1080px] table-fixed border-collapse text-sm">
                       <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs text-slate-500 backdrop-blur">
                         <tr className="border-b border-slate-200">
                           <th className="w-[100px] px-4 py-3 text-left font-medium">类型</th>
@@ -376,7 +406,7 @@ export function ControlObjectLibraryPage() {
                           <th className="w-[100px] px-3 py-3 text-left font-medium">来源</th>
                           <th className="w-[220px] px-3 py-3 text-left font-medium">对象能力</th>
                           <th className="w-[75px] px-3 py-3 text-left font-medium">状态</th>
-                          <th className="w-[180px] px-4 py-3 text-right font-medium">操作</th>
+                          <th className="w-[250px] px-4 py-3 text-right font-medium">操作</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -385,6 +415,7 @@ export function ControlObjectLibraryPage() {
                             key={`${definition.objectTypeValue}:${definition.objectId}`}
                             definition={definition}
                             onEdit={(kind) => setActiveEditor(kind)}
+                            onViewJson={setDetailTarget}
                           />
                         ))}
                       </tbody>
@@ -398,6 +429,7 @@ export function ControlObjectLibraryPage() {
                           key={`${definition.objectTypeValue}:${definition.objectId}`}
                           definition={definition}
                           onEdit={(kind) => setActiveEditor(kind)}
+                          onViewJson={setDetailTarget}
                         />
                       ))}
                     </div>
@@ -443,6 +475,13 @@ export function ControlObjectLibraryPage() {
           open={activeEditor === "report"}
           onOpenChange={(open) => setActiveEditor(open ? "report" : null)}
           onUpdated={handleObjectUpdated}
+        />
+        <ControlObjectDetailDialog
+          open={Boolean(detailTarget)}
+          definition={detailTarget}
+          onOpenChange={(open) => {
+            if (!open) setDetailTarget(null)
+          }}
         />
       </div>
     </TooltipProvider>
@@ -504,9 +543,11 @@ function TypeTabs({
 function ObjectTableRow({
   definition,
   onEdit,
+  onViewJson,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
+  onViewJson: (definition: ControlObjectDefinition) => void
 }) {
   const type = TYPE_PRESENTATION[definition.objectType]
   const TypeIcon = type.icon
@@ -543,7 +584,7 @@ function ObjectTableRow({
         </span>
       </td>
       <td className="px-4 py-3 align-middle">
-        <ObjectActions definition={definition} onEdit={onEdit} align="right" />
+        <ObjectActions definition={definition} onEdit={onEdit} onViewJson={onViewJson} align="right" />
       </td>
     </tr>
   )
@@ -552,9 +593,11 @@ function ObjectTableRow({
 function ObjectMobileCard({
   definition,
   onEdit,
+  onViewJson,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
+  onViewJson: (definition: ControlObjectDefinition) => void
 }) {
   const type = TYPE_PRESENTATION[definition.objectType]
   const TypeIcon = type.icon
@@ -600,7 +643,7 @@ function ObjectMobileCard({
 
       <div className="space-y-3 p-4">
         <CapabilityBadges definition={definition} />
-        <ObjectActions definition={definition} onEdit={onEdit} align="stretch" />
+        <ObjectActions definition={definition} onEdit={onEdit} onViewJson={onViewJson} align="stretch" />
       </div>
     </article>
   )
@@ -628,9 +671,7 @@ function SourceBadge({ source }: { source: ControlObjectSource }) {
       variant="outline"
       className={cn(
         "whitespace-nowrap font-medium",
-        source === "builtin"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-          : "border-slate-200 bg-slate-50 text-slate-600",
+        sourceBadgeClassName(source),
       )}
     >
       {sourceLabel(source)}
@@ -665,10 +706,12 @@ function CapabilityBadges({ definition }: { definition: ControlObjectDefinition 
 function ObjectActions({
   definition,
   onEdit,
+  onViewJson,
   align,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
+  onViewJson: (definition: ControlObjectDefinition) => void
   align: "right" | "stretch"
 }) {
   const kind = editorKind(definition)
@@ -683,7 +726,23 @@ function ObjectActions({
     : "后台能力合同不允许执行此操作"
 
   return (
-    <div className={cn("flex items-center gap-2", align === "right" ? "justify-end" : "w-full")}>
+    <div className={cn(
+      "items-center",
+      align === "right" ? "flex justify-end gap-2" : "grid w-full grid-cols-3 gap-1.5 sm:gap-2",
+    )}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onViewJson(definition)}
+        className={cn(
+          "h-8 rounded-full border-slate-200 bg-white px-3 text-slate-700 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700",
+          align === "stretch" && "w-full min-w-0 px-1.5 sm:px-3",
+        )}
+      >
+        <Braces className="h-3.5 w-3.5" aria-hidden="true" />
+        JSON
+      </Button>
       {canEdit && kind ? (
         <Button
           type="button"
@@ -692,7 +751,7 @@ function ObjectActions({
           onClick={() => onEdit(kind)}
           className={cn(
             "h-8 rounded-full border-slate-200 bg-white px-3 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-700",
-            align === "stretch" && "flex-1",
+            align === "stretch" && "w-full min-w-0 px-1.5 sm:px-3",
           )}
         >
           <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
@@ -703,6 +762,7 @@ function ObjectActions({
       )}
       <DisabledAction
         label={primaryOperationLabel(definition)}
+        shortLabel={compactOperationLabel(definition)}
         reason={operationReason}
         stretch={align === "stretch"}
         icon="send"
@@ -718,19 +778,21 @@ function DisabledAction({
   stretch,
   icon,
   accent,
+  shortLabel,
 }: {
   label: string
   reason: string
   stretch: boolean
   icon: "edit" | "send"
   accent?: boolean
+  shortLabel?: string
 }) {
   const Icon = icon === "edit" ? Pencil : Send
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className={cn("inline-flex", stretch && "flex-1")} tabIndex={0}>
+        <span className={cn("inline-flex", stretch && "w-full min-w-0")} tabIndex={0}>
           <Button
             type="button"
             variant={accent ? "default" : "outline"}
@@ -738,12 +800,17 @@ function DisabledAction({
             disabled
             className={cn(
               "h-8 rounded-full px-3",
-              stretch && "w-full",
+              stretch && "w-full min-w-0 px-1.5 sm:px-3",
               accent && "border border-cyan-100 bg-cyan-50 text-cyan-700",
             )}
           >
             <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-            {label}
+            {shortLabel ? (
+              <>
+                <span className="sm:hidden">{shortLabel}</span>
+                <span className="hidden sm:inline">{label}</span>
+              </>
+            ) : label}
           </Button>
         </span>
       </TooltipTrigger>

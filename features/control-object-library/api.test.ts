@@ -8,8 +8,32 @@ vi.mock("@/shared/lib/http/client", () => ({
 
 import {
   BUILTIN_CONTROL_OBJECT_IDS,
+  getControlObjectDefinition,
   listControlObjectDefinitions,
+  type ControlObjectDefinition,
 } from "./api"
+
+function configDefinition(overrides: Partial<ControlObjectDefinition> = {}): ControlObjectDefinition {
+  return {
+    objectId: "custom-config",
+    objectType: "config",
+    objectTypeValue: 3,
+    internalName: "Custom config",
+    displayName: "Custom config",
+    subType: 88,
+    version: "3.1.4",
+    source: "manual",
+    state: "active",
+    capabilities: {
+      profile: "config_replaceable_v1",
+      contractVersion: 1,
+      allowedOperations: ["apply"],
+      canUpdate: true,
+      deleteMode: "forbidden",
+    },
+    ...overrides,
+  }
+}
 
 describe("control object library API", () => {
   beforeEach(() => {
@@ -27,6 +51,7 @@ describe("control object library API", () => {
             type: 1,
             object_id: BUILTIN_CONTROL_OBJECT_IDS.baselineScanPolicy,
             object_version: "1.2.0",
+            creation_source: 1,
             policy: { name: "default baseline scan policy", sub_type: 210, version: "1.2.0" },
             capabilities: {
               capability_profile: "policy_protected_v1",
@@ -41,6 +66,7 @@ describe("control object library API", () => {
             type: 2,
             object_id: BUILTIN_CONTROL_OBJECT_IDS.patchImmediateScan,
             object_version: "1.0.0",
+            creation_source: 1,
             command: { name: "patch immediate scan", sub_type: 1, category: 1 },
             capabilities: {
               allowed_agent_operations: [4],
@@ -52,6 +78,7 @@ describe("control object library API", () => {
             type: 3,
             object_id: BUILTIN_CONTROL_OBJECT_IDS.generalConfig,
             object_version: "2.0.0",
+            creation_source: 1,
             config: { name: "generalconfig", subtype: 10, version: "2.0.0" },
             capabilities: {
               allowed_agent_operations: [1],
@@ -103,6 +130,7 @@ describe("control object library API", () => {
           type: "CONFIG_TYPE",
           objectId: "custom-config",
           objectVersion: "3.1.4",
+          creationSource: "PMC_CREATION_SOURCE_REMEDIATION",
           content: {
             config: { Name: "Custom config", SubType: 88 },
           },
@@ -123,7 +151,7 @@ describe("control object library API", () => {
         objectId: "custom-config",
         objectType: "config",
         displayName: "Custom config",
-        source: "unknown",
+        source: "remediation",
         subType: 88,
         capabilities: expect.objectContaining({
           allowedOperations: ["apply", "remove"],
@@ -131,6 +159,73 @@ describe("control object library API", () => {
         }),
       }),
     ])
+  })
+
+  it("normalizes every numeric creation source without inferring from a built-in object ID", async () => {
+    post.mockResolvedValue({
+      data: {
+        total: 5,
+        definitions: [
+          {
+            type: 3,
+            object_id: BUILTIN_CONTROL_OBJECT_IDS.generalConfig,
+            object_version: "1.0.0",
+            creation_source: 2,
+            config: { name: "built-in-id-created-manually", sub_type: 1 },
+          },
+          ...([1, 2, 3, 4] as const).map((creationSource) => ({
+            type: 3,
+            object_id: `source-${creationSource}`,
+            object_version: "1.0.0",
+            creation_source: creationSource,
+            config: { name: `Source ${creationSource}`, sub_type: creationSource },
+          })),
+        ],
+      },
+    })
+
+    const result = await listControlObjectDefinitions()
+    const sources = new Map(result.map((definition) => [definition.objectId, definition.source]))
+
+    expect(sources.get(BUILTIN_CONTROL_OBJECT_IDS.generalConfig)).toBe("manual")
+    expect(sources.get("source-1")).toBe("builtin")
+    expect(sources.get("source-2")).toBe("manual")
+    expect(sources.get("source-3")).toBe("remediation")
+    expect(sources.get("source-4")).toBe("mitigation")
+  })
+
+  it("normalizes creation-source enum names and falls back safely for missing or unknown values", async () => {
+    post.mockResolvedValue({
+      data: {
+        total: 6,
+        definitions: [
+          ["builtin", "PMC_CREATION_SOURCE_BUILTIN"],
+          ["manual", "PMC_CREATION_SOURCE_MANUAL"],
+          ["remediation", "PMC_CREATION_SOURCE_REMEDIATION"],
+          ["mitigation", "PMC_CREATION_SOURCE_MITIGATION"],
+          ["unknown-enum", "PMC_CREATION_SOURCE_UNSPECIFIED"],
+          ["missing", undefined],
+        ].map(([objectId, creationSource]) => ({
+          type: 3,
+          object_id: objectId,
+          object_version: "1.0.0",
+          CreationSource: creationSource,
+          config: { name: objectId, sub_type: 1 },
+        })),
+      },
+    })
+
+    const result = await listControlObjectDefinitions()
+    const sources = new Map(result.map((definition) => [definition.objectId, definition.source]))
+
+    expect(Object.fromEntries(sources)).toEqual({
+      builtin: "builtin",
+      manual: "manual",
+      remediation: "remediation",
+      mitigation: "mitigation",
+      "unknown-enum": "unknown",
+      missing: "unknown",
+    })
   })
 
   it("continues paging until the backend total is reached", async () => {
@@ -182,5 +277,82 @@ describe("control object library API", () => {
     post.mockResolvedValue({ data: { total: 0, definitions: null } })
 
     await expect(listControlObjectDefinitions()).resolves.toEqual([])
+  })
+
+  it("loads one exact object version and formats a JSON context without mutating the response", async () => {
+    const rawDefinition = {
+      type: 3,
+      object_id: "custom-config",
+      object_version: "3.1.4",
+      creation_source: 2,
+      config: {
+        name: "Custom config",
+        sub_type: 88,
+        context: "{\"enabled\":true,\"nested\":{\"count\":2}}",
+      },
+      capabilities: {
+        allowed_agent_operations: [1],
+        can_update: true,
+        catalog_delete_mode: 1,
+      },
+      object_state: "active",
+    }
+    post.mockResolvedValue({ data: { definition: rawDefinition } })
+
+    const result = await getControlObjectDefinition(configDefinition())
+
+    expect(post).toHaveBeenCalledWith("getPMCObjectDefinition", {
+      request_id: expect.stringMatching(/^\d+$/),
+      object_type: 3,
+      object_id: "custom-config",
+      version: "3.1.4",
+    })
+    expect(result.definition.source).toBe("manual")
+    expect(result.rawDefinition).toBe(rawDefinition)
+    expect(rawDefinition.config.context).toBe("{\"enabled\":true,\"nested\":{\"count\":2}}")
+    expect(JSON.parse(result.displayJson)).toMatchObject({
+      config: { context: { enabled: true, nested: { count: 2 } } },
+    })
+  })
+
+  it("preserves an opaque non-JSON context in the complete object JSON", async () => {
+    post.mockResolvedValue({
+      data: {
+        Definition: {
+          Type: "CONFIG_TYPE",
+          ObjectID: "custom-config",
+          ObjectVersion: "3.1.4",
+          CreationSource: "PMC_CREATION_SOURCE_MITIGATION",
+          Content: {
+            Config: { Name: "Custom config", SubType: 88, Context: "plain-text-context" },
+          },
+        },
+      },
+    })
+
+    const result = await getControlObjectDefinition(configDefinition())
+
+    expect(result.definition.source).toBe("mitigation")
+    expect(JSON.parse(result.displayJson)).toMatchObject({
+      Content: { Config: { Context: "plain-text-context" } },
+    })
+  })
+
+  it("rejects a missing or mismatched single-object response", async () => {
+    post.mockResolvedValueOnce({ data: null })
+    await expect(getControlObjectDefinition(configDefinition())).rejects.toThrow("PMC_OBJECT_DETAIL_INVALID")
+
+    post.mockResolvedValueOnce({
+      data: {
+        definition: {
+          type: 3,
+          object_id: "another-config",
+          object_version: "3.1.4",
+          creation_source: 2,
+          config: { name: "Another config", sub_type: 88 },
+        },
+      },
+    })
+    await expect(getControlObjectDefinition(configDefinition())).rejects.toThrow("PMC_OBJECT_DETAIL_MISMATCH")
   })
 })

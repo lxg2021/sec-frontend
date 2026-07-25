@@ -2,7 +2,7 @@ import { http } from "@/shared/lib/http/client"
 import { createRequestId } from "@/shared/lib/utils"
 
 export type ControlObjectType = "policy" | "command" | "config"
-export type ControlObjectSource = "builtin" | "unknown"
+export type ControlObjectSource = "builtin" | "manual" | "remediation" | "mitigation" | "unknown"
 export type ControlObjectOperation = "apply" | "stop" | "remove" | "execute"
 export type ControlObjectDeleteMode = "forbidden" | "metadata_only" | "remove_effects" | "unknown"
 
@@ -25,6 +25,12 @@ export interface ControlObjectDefinition {
   source: ControlObjectSource
   state: string
   capabilities: ControlObjectCapabilities
+}
+
+export interface ControlObjectDetail {
+  definition: ControlObjectDefinition
+  rawDefinition: Record<string, unknown>
+  displayJson: string
 }
 
 interface ApiResult<T> {
@@ -137,6 +143,21 @@ function normalizeDeleteMode(value: unknown): ControlObjectDeleteMode {
   return "unknown"
 }
 
+function normalizeCreationSource(value: unknown): ControlObjectSource {
+  const numeric = numberValue(value, Number.NaN)
+  if (numeric === 1) return "builtin"
+  if (numeric === 2) return "manual"
+  if (numeric === 3) return "remediation"
+  if (numeric === 4) return "mitigation"
+
+  const normalized = stringValue(value).toUpperCase()
+  if (normalized === "BUILTIN" || normalized === "PMC_CREATION_SOURCE_BUILTIN") return "builtin"
+  if (normalized === "MANUAL" || normalized === "PMC_CREATION_SOURCE_MANUAL") return "manual"
+  if (normalized === "REMEDIATION" || normalized === "PMC_CREATION_SOURCE_REMEDIATION") return "remediation"
+  if (normalized === "MITIGATION" || normalized === "PMC_CREATION_SOURCE_MITIGATION") return "mitigation"
+  return "unknown"
+}
+
 function extractContent(definition: Record<string, unknown>, objectType: ControlObjectType) {
   const direct = recordValue(fieldValue(
     definition,
@@ -215,9 +236,33 @@ function normalizeDefinition(value: unknown): ControlObjectDefinition {
     displayName: BUILTIN_DISPLAY_NAMES.get(normalizedId) ?? internalName,
     subType: numberValue(fieldValue(content, "sub_type", "subType", "SubType", "subtype")),
     version,
-    source: BUILTIN_DISPLAY_NAMES.has(normalizedId) ? "builtin" : "unknown",
+    source: normalizeCreationSource(fieldValue(
+      definition,
+      "creation_source",
+      "creationSource",
+      "CreationSource",
+    )),
     state: stringValue(fieldValue(definition, "object_state", "objectState", "ObjectState")) || "active",
     capabilities: normalizeCapabilities(fieldValue(definition, "capabilities", "Capabilities")),
+  }
+}
+
+function cloneDefinitionForDisplay(definition: Record<string, unknown>) {
+  return JSON.parse(JSON.stringify(definition)) as Record<string, unknown>
+}
+
+function expandContextForDisplay(definition: Record<string, unknown>, objectType: ControlObjectType) {
+  const content = extractContent(definition, objectType)
+  if (!content) return
+
+  for (const key of ["context", "Context"]) {
+    if (!Object.prototype.hasOwnProperty.call(content, key) || typeof content[key] !== "string") continue
+    try {
+      content[key] = JSON.parse(content[key] as string) as unknown
+    } catch {
+      // Context is an opaque string for some PMC objects; preserve it verbatim.
+    }
+    return
   }
 }
 
@@ -266,4 +311,37 @@ export async function listControlObjectDefinitions(): Promise<ControlObjectDefin
       definition,
     ])).values(),
   ).sort(compareDefinitions)
+}
+
+export async function getControlObjectDefinition(
+  definition: ControlObjectDefinition,
+): Promise<ControlObjectDetail> {
+  const result = (await http.post("getPMCObjectDefinition", {
+    request_id: createRequestId(),
+    object_type: definition.objectTypeValue,
+    object_id: definition.objectId,
+    version: definition.version,
+  })) as ApiResult<Record<string, unknown> | null>
+
+  const data = recordValue(result.data)
+  const rawDefinition = recordValue(fieldValue(data, "definition", "Definition"))
+  if (!rawDefinition) throw new Error("PMC_OBJECT_DETAIL_INVALID")
+
+  const normalized = normalizeDefinition(rawDefinition)
+  if (
+    normalized.objectTypeValue !== definition.objectTypeValue
+    || normalized.objectId.toLowerCase() !== definition.objectId.toLowerCase()
+    || normalized.version !== definition.version
+  ) {
+    throw new Error("PMC_OBJECT_DETAIL_MISMATCH")
+  }
+
+  const displayDefinition = cloneDefinitionForDisplay(rawDefinition)
+  expandContextForDisplay(displayDefinition, normalized.objectType)
+
+  return {
+    definition: normalized,
+    rawDefinition,
+    displayJson: JSON.stringify(displayDefinition, null, 2),
+  }
 }
