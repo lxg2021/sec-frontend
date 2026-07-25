@@ -159,8 +159,8 @@ export function ChangeAuditList({ events, total, page, pageSize, loading, onPage
                       <td className="min-w-0 px-3 py-3"><div className="truncate text-slate-700" title={operatorID}>{operatorID || "-"}</div></td>
                       <td className="px-3 py-3 text-slate-700">{t(`outcomes.${outcomeLabelKey}`)}</td>
                       <td className="px-3 py-3 text-center">
-                        <button type="button" onClick={() => setSelectedEvent(event)} aria-label={t("viewAria", { object: event.objectName || event.objectId })} className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500">
-                          <Eye className="h-3.5 w-3.5" aria-hidden="true" />
+                        <button type="button" onClick={() => setSelectedEvent(event)} aria-label={t("viewAria", { object: event.objectName || event.objectId })} className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-0 [&_svg]:size-3.5">
+                          <Eye aria-hidden="true" />
                           {t("view")}
                         </button>
                       </td>

@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRight, CircleCheck, CircleX } from "lucide-react"
+import { CircleCheck, CircleX, Eye } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { UserActivityAudit } from "@/features/audit/types"
 import { userActionLabelKey, userActionPresentation, userTargetTypeLabelKey } from "./user-activity-presentation"
@@ -68,10 +68,10 @@ export function UserActivityListItem({ audit, onView }: UserActivityListItemProp
           type="button"
           onClick={() => onView(audit)}
           aria-label={t("viewAria", { target: targetLabel })}
-          className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+          className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-0 [&_svg]:size-3.5"
         >
+          <Eye aria-hidden="true" />
           {t("view")}
-          <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
       </td>
     </tr>

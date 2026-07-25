@@ -1,6 +1,6 @@
 ﻿"use client"
 
-import { ChevronLeft, ChevronRight, CircleCheck, ClipboardList, Clock3, Copy, FileOutput, Settings2, TriangleAlert } from "lucide-react"
+import { ChevronLeft, ChevronRight, CircleCheck, ClipboardList, Clock3, Copy, Eye, FileOutput, Settings2, TriangleAlert } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import type { DispatchAuditEvent } from "@/features/audit/types"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select"
@@ -156,10 +156,10 @@ export function DispatchAuditTable({
                         onView(event)
                       }}
                       aria-label={t("table.viewAria", { object: objectName })}
-                      className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                      className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-0 [&_svg]:size-3.5"
                     >
+                      <Eye aria-hidden="true" />
                       {t("table.view")}
-                      <ChevronRight className="h-4 w-4" aria-hidden="true" />
                     </button>
                   </td>
                 </tr>
