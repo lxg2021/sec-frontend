@@ -12,7 +12,7 @@ export const CONTROL_OBJECT_TABLE_COLUMNS = [
   { key: "source", label: "来源", widthClassName: "w-[8%]", align: "left" },
   { key: "state", label: "状态", widthClassName: "w-[7%]", align: "left" },
   { key: "delivery", label: "下发情况", widthClassName: "w-[9%]", align: "center" },
-  { key: "actions", label: "操作", widthClassName: "w-[6%]", align: "right" },
+  { key: "actions", label: "操作", widthClassName: "w-[6%]", align: "left" },
 ] as const
 
 const DELETE_MODE_LABELS: Record<ControlObjectDeleteMode, string> = {

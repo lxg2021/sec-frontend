@@ -37,6 +37,10 @@ describe("control object table presentation", () => {
       ])
   })
 
+  it("aligns the action heading with the row action-menu button", () => {
+    expect(CONTROL_OBJECT_TABLE_COLUMNS.find(({ key }) => key === "actions")?.align).toBe("left")
+  })
+
   it("uses stable business labels for every catalog delete mode", () => {
     expect(controlObjectDeleteModeLabel("forbidden")).toBe("禁止删除")
     expect(controlObjectDeleteModeLabel("metadata_only")).toBe("仅删元数据")

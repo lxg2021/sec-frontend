@@ -56,7 +56,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/shared/ui/dropdown-menu"
@@ -169,6 +168,10 @@ function stateLabel(state: string) {
   return state || "—"
 }
 
+function objectRowKey(definition: ControlObjectDefinition) {
+  return `${definition.objectTypeValue}:${definition.objectId}`
+}
+
 export function ControlObjectLibraryPage() {
   const [objects, setObjects] = useState<ControlObjectDefinition[]>([])
   const [loading, setLoading] = useState(true)
@@ -178,6 +181,7 @@ export function ControlObjectLibraryPage() {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all")
   const [capabilityFilter, setCapabilityFilter] = useState<CapabilityFilter>("all")
   const [page, setPage] = useState(1)
+  const [selectedObjectKey, setSelectedObjectKey] = useState<string | null>(null)
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)
   const [activeEditor, setActiveEditor] = useState<EditorKind | null>(null)
   const [detailTarget, setDetailTarget] = useState<ControlObjectDefinition | null>(null)
@@ -421,8 +425,7 @@ export function ControlObjectLibraryPage() {
                                 "px-3 py-3 font-medium",
                                 column.align === "center" && "text-center",
                                 column.align === "left" && "text-left",
-                                column.align === "right" && "text-right",
-                                column.key === "actions" && "sticky right-0 z-20 bg-slate-50 px-4 shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)]",
+                                column.key === "actions" && "sticky right-0 z-20 bg-slate-50 pl-5 pr-3 shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)]",
                               )}
                             >
                               {column.label}
@@ -433,8 +436,10 @@ export function ControlObjectLibraryPage() {
                       <tbody>
                         {paginatedObjects.map((definition) => (
                           <ObjectTableRow
-                            key={`${definition.objectTypeValue}:${definition.objectId}`}
+                            key={objectRowKey(definition)}
                             definition={definition}
+                            selected={selectedObjectKey === objectRowKey(definition)}
+                            onSelect={() => setSelectedObjectKey(objectRowKey(definition))}
                             onEdit={(kind) => setActiveEditor(kind)}
                             onViewJson={setDetailTarget}
                             onViewDelivery={setDeliveryTarget}
@@ -587,6 +592,8 @@ function TypeTabs({
 
 function ObjectTableRow({
   definition,
+  selected,
+  onSelect,
   onEdit,
   onViewJson,
   onViewDelivery,
@@ -594,6 +601,8 @@ function ObjectTableRow({
   onDelete,
 }: {
   definition: ControlObjectDefinition
+  selected: boolean
+  onSelect: () => void
   onEdit: (kind: EditorKind) => void
   onViewJson: (definition: ControlObjectDefinition) => void
   onViewDelivery: (definition: ControlObjectDefinition) => void
@@ -604,8 +613,28 @@ function ObjectTableRow({
   const TypeIcon = type.icon
 
   return (
-    <tr className="group border-b border-slate-100 transition-colors last:border-b-0 hover:bg-cyan-50/30">
-      <td className="px-3 py-3 align-middle">
+    <tr
+      aria-selected={selected}
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return
+        if (event.key !== "Enter" && event.key !== " ") return
+        event.preventDefault()
+        onSelect()
+      }}
+      className={cn(
+        "group cursor-pointer border-b border-slate-100 transition-colors last:border-b-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500",
+        selected ? "bg-cyan-50/70" : "hover:bg-cyan-50/30",
+      )}
+    >
+      <td className="relative px-3 py-3 align-middle">
+        {selected && (
+          <span
+            aria-hidden="true"
+            className="absolute inset-y-2 left-0 w-1 rounded-r-full bg-cyan-500"
+          />
+        )}
         <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
           <TypeIcon className={cn("h-4 w-4 shrink-0", type.iconClassName)} aria-hidden="true" />
           <span className="text-xs font-medium text-black">{type.label}</span>
@@ -660,7 +689,10 @@ function ObjectTableRow({
           查看
         </Button>
       </td>
-      <td className="sticky right-0 z-[5] bg-white px-4 py-3 align-middle shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)] transition-colors group-hover:bg-cyan-50">
+      <td className={cn(
+        "sticky right-0 z-[5] px-4 py-3 align-middle shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)] transition-colors",
+        selected ? "bg-cyan-50" : "bg-white group-hover:bg-cyan-50",
+      )}>
         <ObjectActions
           definition={definition}
           onEdit={onEdit}
@@ -812,11 +844,11 @@ function ObjectActions({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="sm"
           aria-label={`打开“${definition.displayName}”操作菜单`}
           className={cn(
-            "h-8 rounded-lg border-slate-200 bg-white text-slate-600 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-700",
+            "h-8 rounded-full text-slate-600 hover:bg-cyan-50 hover:text-cyan-700",
             align === "right" ? "w-8 p-0" : "w-full gap-2",
           )}
         >
@@ -850,9 +882,6 @@ function ObjectActions({
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-        <DropdownMenuLabel className="px-2 py-1 text-xs font-medium text-slate-400">
-          Agent 操作
-        </DropdownMenuLabel>
         {operations.length > 0 ? operations.map((operation) => {
           const presentation = operationMenuPresentation(definition, operation)
           const OperationIcon = presentation.icon
