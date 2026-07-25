@@ -273,6 +273,10 @@ function compareDefinitions(left: ControlObjectDefinition, right: ControlObjectD
     || left.objectId.localeCompare(right.objectId)
 }
 
+function isControlLibraryObject(definition: ControlObjectDefinition) {
+  return definition.source !== "remediation" && definition.source !== "mitigation"
+}
+
 export async function listControlObjectDefinitions(): Promise<ControlObjectDefinition[]> {
   const collected: ControlObjectDefinition[] = []
   let page = 1
@@ -310,7 +314,7 @@ export async function listControlObjectDefinitions(): Promise<ControlObjectDefin
       `${definition.objectTypeValue}:${definition.objectId.toLowerCase()}`,
       definition,
     ])).values(),
-  ).sort(compareDefinitions)
+  ).filter(isControlLibraryObject).sort(compareDefinitions)
 }
 
 export async function getControlObjectDefinition(

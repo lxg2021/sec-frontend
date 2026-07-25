@@ -4,11 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Boxes,
   Braces,
+  Check,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
   FileSliders,
   LibraryBig,
+  Minus,
   Pencil,
   RefreshCw,
   RotateCcw,
@@ -24,11 +26,18 @@ import {
   BUILTIN_CONTROL_OBJECT_IDS,
   listControlObjectDefinitions,
   type ControlObjectDefinition,
+  type ControlObjectDeleteMode,
   type ControlObjectOperation,
   type ControlObjectSource,
   type ControlObjectType,
 } from "@/features/control-object-library/api"
 import { ControlObjectDetailDialog } from "@/features/control-object-library/control-object-detail-dialog"
+import {
+  CONTROL_OBJECT_CAPABILITY_COLUMNS,
+  CONTROL_OBJECT_TABLE_COLUMNS,
+  controlObjectDeleteModeLabel,
+  controlObjectHasCapability,
+} from "@/features/control-object-library/table-presentation"
 import { GeneralConfigDialog } from "@/features/general-config/general-config-dialog"
 import { ReportConfigDialog } from "@/features/report-config/report-config-dialog"
 import { defaultConfigCategory } from "@/features/sensor-config/data/default-config-category"
@@ -86,13 +95,6 @@ const TYPE_PRESENTATION: Record<ControlObjectType, {
     badgeClassName: "border-amber-200 bg-amber-50 text-amber-700",
     iconClassName: "bg-amber-50 text-amber-600",
   },
-}
-
-const OPERATION_LABELS: Record<ControlObjectOperation, string> = {
-  apply: "可应用",
-  stop: "可停止",
-  remove: "可移除",
-  execute: "可执行",
 }
 
 const EDITOR_BY_OBJECT_ID = new Map<string, EditorKind>([
@@ -329,8 +331,6 @@ export function ControlObjectLibraryPage() {
                       <SelectItem value="all">全部来源</SelectItem>
                       <SelectItem value="builtin">系统内置</SelectItem>
                       <SelectItem value="manual">手动创建</SelectItem>
-                      <SelectItem value="remediation">处置编排</SelectItem>
-                      <SelectItem value="mitigation">直接处置</SelectItem>
                       <SelectItem value="unknown">未标明</SelectItem>
                     </SelectContent>
                   </Select>
@@ -397,16 +397,25 @@ export function ControlObjectLibraryPage() {
               ) : (
                 <>
                   <div className="hidden h-full min-h-0 overflow-auto lg:block">
-                    <table className="w-full min-w-[1080px] table-fixed border-collapse text-sm">
+                    <table className="w-full min-w-[1694px] table-fixed border-collapse text-sm">
                       <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs text-slate-500 backdrop-blur">
                         <tr className="border-b border-slate-200">
-                          <th className="w-[100px] px-4 py-3 text-left font-medium">类型</th>
-                          <th className="w-[260px] px-4 py-3 text-left font-medium">对象名称</th>
-                          <th className="w-[90px] px-3 py-3 text-left font-medium">当前版本</th>
-                          <th className="w-[100px] px-3 py-3 text-left font-medium">来源</th>
-                          <th className="w-[220px] px-3 py-3 text-left font-medium">对象能力</th>
-                          <th className="w-[75px] px-3 py-3 text-left font-medium">状态</th>
-                          <th className="w-[250px] px-4 py-3 text-right font-medium">操作</th>
+                          {CONTROL_OBJECT_TABLE_COLUMNS.map((column) => (
+                            <th
+                              key={column.key}
+                              scope="col"
+                              className={cn(
+                                column.widthClassName,
+                                "px-3 py-3 font-medium",
+                                column.align === "center" && "text-center",
+                                column.align === "left" && "text-left",
+                                column.align === "right" && "text-right",
+                                column.key === "actions" && "sticky right-0 z-20 bg-slate-50 px-4 shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)]",
+                              )}
+                            >
+                              {column.label}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody>
@@ -553,7 +562,7 @@ function ObjectTableRow({
   const TypeIcon = type.icon
 
   return (
-    <tr className="border-b border-slate-100 transition-colors last:border-b-0 hover:bg-cyan-50/30">
+    <tr className="group border-b border-slate-100 transition-colors last:border-b-0 hover:bg-cyan-50/30">
       <td className="px-3 py-3 align-middle">
         <Badge variant="outline" className={cn("gap-1.5 whitespace-nowrap font-medium", type.badgeClassName)}>
           <TypeIcon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -561,7 +570,24 @@ function ObjectTableRow({
         </Badge>
       </td>
       <td className="px-3 py-3 align-middle">
-        <ObjectIdentity definition={definition} />
+        <p className="truncate font-medium text-slate-900" title={definition.displayName}>
+          {definition.displayName}
+        </p>
+      </td>
+      <td className="px-3 py-3 align-middle">
+        <p className="truncate text-xs text-slate-600" title={definition.internalName}>
+          {definition.internalName}
+        </p>
+      </td>
+      <td className="px-3 py-3 align-middle">
+        <p className="truncate font-mono text-[11px] text-slate-500" title={definition.objectId}>
+          {definition.objectId}
+        </p>
+      </td>
+      <td className="px-3 py-3 text-center align-middle">
+        <span className="font-mono text-xs font-medium tabular-nums text-slate-700">
+          {definition.subType}
+        </span>
       </td>
       <td className="px-3 py-3 align-middle">
         <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 font-mono text-xs font-medium text-slate-700">
@@ -571,10 +597,15 @@ function ObjectTableRow({
       <td className="px-3 py-3 align-middle">
         <SourceBadge source={definition.source} />
       </td>
-      <td className="px-4 py-3 align-middle">
-        <CapabilityBadges definition={definition} />
+      {CONTROL_OBJECT_CAPABILITY_COLUMNS.map(({ key }) => (
+        <td key={key} className="px-2 py-3 text-center align-middle">
+          <BooleanCapability value={controlObjectHasCapability(definition, key)} />
+        </td>
+      ))}
+      <td className="px-3 py-3 align-middle">
+        <DeleteModeBadge mode={definition.capabilities.deleteMode} />
       </td>
-      <td className="px-4 py-3 align-middle">
+      <td className="px-3 py-3 align-middle">
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-600">
           <span className={cn(
             "h-1.5 w-1.5 rounded-full",
@@ -583,7 +614,7 @@ function ObjectTableRow({
           {stateLabel(definition.state)}
         </span>
       </td>
-      <td className="px-4 py-3 align-middle">
+      <td className="sticky right-0 z-[5] bg-white px-4 py-3 align-middle shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)] transition-colors group-hover:bg-cyan-50">
         <ObjectActions definition={definition} onEdit={onEdit} onViewJson={onViewJson} align="right" />
       </td>
     </tr>
@@ -604,64 +635,48 @@ function ObjectMobileCard({
 
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <div className="flex min-w-0 items-start gap-3 p-4">
-        <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", type.iconClassName)}>
-          <TypeIcon className="h-4 w-4" aria-hidden="true" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h2 className="truncate text-sm font-semibold text-slate-900">{definition.displayName}</h2>
-              {definition.internalName !== definition.displayName && (
-                <p className="mt-0.5 truncate text-xs text-slate-500">{definition.internalName}</p>
-              )}
+      <div className="p-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", type.iconClassName)}>
+            <TypeIcon className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900" title={definition.displayName}>
+            {definition.displayName}
+          </h2>
+          <Badge variant="outline" className={cn("shrink-0 font-medium", type.badgeClassName)}>
+            {type.label}
+          </Badge>
+        </div>
+
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-xs">
+          <MobileField label="内部名称" value={definition.internalName} className="col-span-2" />
+          <MobileField label="Object ID" value={definition.objectId} mono className="col-span-2" />
+          <MobileField label="子类型" value={String(definition.subType)} mono />
+          <MobileField label="当前版本" value={definition.version} mono />
+          <MobileField label="来源" value={sourceLabel(definition.source)} />
+          <MobileField label="删除方式" value={controlObjectDeleteModeLabel(definition.capabilities.deleteMode)} />
+          <MobileField label="状态" value={stateLabel(definition.state)} />
+        </dl>
+      </div>
+
+      <div className="border-y border-slate-100 bg-slate-50/80 px-4 py-3">
+        <p className="text-[11px] font-medium text-slate-500">对象能力</p>
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          {CONTROL_OBJECT_CAPABILITY_COLUMNS.map(({ key, label }) => (
+            <div key={key} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs sm:block sm:text-center">
+              <span className="text-slate-500">{label}</span>
+              <span className="sm:mt-1 sm:flex sm:justify-center">
+                <BooleanCapability value={controlObjectHasCapability(definition, key)} />
+              </span>
             </div>
-            <Badge variant="outline" className={cn("shrink-0 font-medium", type.badgeClassName)}>
-              {type.label}
-            </Badge>
-          </div>
-          <p className="mt-2 truncate font-mono text-[11px] text-slate-400" title={definition.objectId}>
-            {definition.objectId}
-          </p>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-3 border-y border-slate-100 bg-slate-50/80 px-4 py-3 text-xs">
-        <div>
-          <p className="text-slate-400">版本</p>
-          <p className="mt-1 truncate font-mono font-medium text-slate-700">{definition.version}</p>
-        </div>
-        <div className="border-l border-slate-200 pl-3">
-          <p className="text-slate-400">来源</p>
-          <p className="mt-1 truncate font-medium text-slate-700">{sourceLabel(definition.source)}</p>
-        </div>
-        <div className="border-l border-slate-200 pl-3">
-          <p className="text-slate-400">状态</p>
-          <p className="mt-1 truncate font-medium text-slate-700">{stateLabel(definition.state)}</p>
-        </div>
-      </div>
-
-      <div className="space-y-3 p-4">
-        <CapabilityBadges definition={definition} />
+      <div className="p-4">
         <ObjectActions definition={definition} onEdit={onEdit} onViewJson={onViewJson} align="stretch" />
       </div>
     </article>
-  )
-}
-
-function ObjectIdentity({ definition }: { definition: ControlObjectDefinition }) {
-  return (
-    <div className="min-w-0">
-      <p className="truncate font-medium text-slate-900" title={definition.displayName}>
-        {definition.displayName}
-      </p>
-      <p className="mt-0.5 truncate text-xs text-slate-500" title={definition.internalName}>
-        {definition.internalName}
-      </p>
-      <p className="mt-1 truncate font-mono text-[10px] text-slate-400" title={definition.objectId}>
-        {definition.objectId}
-      </p>
-    </div>
   )
 }
 
@@ -679,27 +694,55 @@ function SourceBadge({ source }: { source: ControlObjectSource }) {
   )
 }
 
-function CapabilityBadges({ definition }: { definition: ControlObjectDefinition }) {
-  const capabilities = [
-    ...(definition.capabilities.canUpdate ? ["可更新"] : []),
-    ...definition.capabilities.allowedOperations.map((operation) => OPERATION_LABELS[operation]),
-  ]
+function MobileField({
+  label,
+  value,
+  mono,
+  className,
+}: {
+  label: string
+  value: string
+  mono?: boolean
+  className?: string
+}) {
+  return (
+    <div className={cn("min-w-0", className)}>
+      <dt className="text-slate-400">{label}</dt>
+      <dd className={cn("mt-1 truncate font-medium text-slate-700", mono && "font-mono text-[11px]")} title={value}>
+        {value}
+      </dd>
+    </div>
+  )
+}
 
-  if (capabilities.length === 0) {
-    return <span className="text-xs text-slate-400">未声明</span>
+function BooleanCapability({ value }: { value: boolean }) {
+  const Icon = value ? Check : Minus
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center justify-center gap-1 whitespace-nowrap text-xs font-medium",
+        value ? "text-emerald-700" : "text-slate-400",
+      )}
+      aria-label={value ? "支持" : "不支持"}
+    >
+      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      {value ? "是" : "否"}
+    </span>
+  )
+}
+
+function DeleteModeBadge({ mode }: { mode: ControlObjectDeleteMode }) {
+  const className: Record<ControlObjectDeleteMode, string> = {
+    forbidden: "border-slate-200 bg-slate-50 text-slate-600",
+    metadata_only: "border-amber-200 bg-amber-50 text-amber-700",
+    remove_effects: "border-violet-200 bg-violet-50 text-violet-700",
+    unknown: "border-slate-200 bg-white text-slate-500",
   }
 
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {capabilities.map((capability) => (
-        <span
-          key={capability}
-          className="inline-flex rounded-full border border-cyan-100 bg-cyan-50/70 px-2 py-0.5 text-[11px] font-medium text-cyan-700"
-        >
-          {capability}
-        </span>
-      ))}
-    </div>
+    <Badge variant="outline" className={cn("whitespace-nowrap font-medium", className[mode])}>
+      {controlObjectDeleteModeLabel(mode)}
+    </Badge>
   )
 }
 

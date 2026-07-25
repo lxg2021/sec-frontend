@@ -130,7 +130,7 @@ describe("control object library API", () => {
           type: "CONFIG_TYPE",
           objectId: "custom-config",
           objectVersion: "3.1.4",
-          creationSource: "PMC_CREATION_SOURCE_REMEDIATION",
+          creationSource: "PMC_CREATION_SOURCE_MANUAL",
           content: {
             config: { Name: "Custom config", SubType: 88 },
           },
@@ -151,7 +151,7 @@ describe("control object library API", () => {
         objectId: "custom-config",
         objectType: "config",
         displayName: "Custom config",
-        source: "remediation",
+        source: "manual",
         subType: 88,
         capabilities: expect.objectContaining({
           allowedOperations: ["apply", "remove"],
@@ -161,7 +161,7 @@ describe("control object library API", () => {
     ])
   })
 
-  it("normalizes every numeric creation source without inferring from a built-in object ID", async () => {
+  it("keeps managed creation sources authoritative and filters runtime objects from the library", async () => {
     post.mockResolvedValue({
       data: {
         total: 5,
@@ -190,8 +190,8 @@ describe("control object library API", () => {
     expect(sources.get(BUILTIN_CONTROL_OBJECT_IDS.generalConfig)).toBe("manual")
     expect(sources.get("source-1")).toBe("builtin")
     expect(sources.get("source-2")).toBe("manual")
-    expect(sources.get("source-3")).toBe("remediation")
-    expect(sources.get("source-4")).toBe("mitigation")
+    expect(sources.has("source-3")).toBe(false)
+    expect(sources.has("source-4")).toBe(false)
   })
 
   it("normalizes creation-source enum names and falls back safely for missing or unknown values", async () => {
@@ -221,11 +221,45 @@ describe("control object library API", () => {
     expect(Object.fromEntries(sources)).toEqual({
       builtin: "builtin",
       manual: "manual",
-      remediation: "remediation",
-      mitigation: "mitigation",
       "unknown-enum": "unknown",
       missing: "unknown",
     })
+  })
+
+  it("finishes backend paging before filtering runtime objects", async () => {
+    post
+      .mockResolvedValueOnce({
+        data: {
+          total: 2,
+          definitions: [{
+            type: 2,
+            object_id: "runtime-remediation-command",
+            object_version: "1.0.0",
+            creation_source: 3,
+            command: { name: "Runtime remediation command", sub_type: 1 },
+            capabilities: {},
+          }],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          total: 2,
+          definitions: [{
+            type: 2,
+            object_id: "manual-command",
+            object_version: "1.0.0",
+            creation_source: 2,
+            command: { name: "Manual command", sub_type: 1 },
+            capabilities: {},
+          }],
+        },
+      })
+
+    const result = await listControlObjectDefinitions()
+
+    expect(post).toHaveBeenCalledTimes(2)
+    expect(post.mock.calls.map((call) => call[1].page)).toEqual([1, 2])
+    expect(result.map((item) => item.objectId)).toEqual(["manual-command"])
   })
 
   it("continues paging until the backend total is reached", async () => {

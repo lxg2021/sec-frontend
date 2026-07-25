@@ -24,7 +24,6 @@ import {
   ShieldCheck,
   Sword,
   Target,
-  Timer,
   Workflow,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -143,7 +142,6 @@ export const menuItems: NavigationItem[] = [
     submenu: [
       { id: "sensorconfig", icon: LibraryBig, labelKey: "sensorconfig", path: "/frame/control/sensor" },
       { id: "dacpolicy", icon: Activity, labelKey: "dacpolicy", path: "/frame/control/access" },
-      { id: "controltask", icon: Timer, labelKey: "controltask", path: "/frame/control/task" },
     ],
   },
 ]
