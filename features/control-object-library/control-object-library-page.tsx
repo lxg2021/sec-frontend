@@ -74,26 +74,22 @@ const PAGE_SIZE = 10
 const TYPE_PRESENTATION: Record<ControlObjectType, {
   label: string
   icon: typeof Settings2
-  badgeClassName: string
   iconClassName: string
 }> = {
   config: {
     label: "配置",
     icon: FileSliders,
-    badgeClassName: "border-blue-200 bg-blue-50 text-blue-700",
-    iconClassName: "bg-blue-50 text-blue-600",
+    iconClassName: "text-blue-600",
   },
   policy: {
     label: "策略",
     icon: ShieldCheck,
-    badgeClassName: "border-violet-200 bg-violet-50 text-violet-700",
-    iconClassName: "bg-violet-50 text-violet-600",
+    iconClassName: "text-violet-600",
   },
   command: {
     label: "命令",
     icon: SquareTerminal,
-    badgeClassName: "border-amber-200 bg-amber-50 text-amber-700",
-    iconClassName: "bg-amber-50 text-amber-600",
+    iconClassName: "text-amber-600",
   },
 }
 
@@ -143,13 +139,13 @@ function sourceLabel(source: ControlObjectSource) {
   return labels[source]
 }
 
-function sourceBadgeClassName(source: ControlObjectSource) {
+function sourceTextClassName(source: ControlObjectSource) {
   const classNames: Record<ControlObjectSource, string> = {
-    builtin: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    manual: "border-blue-200 bg-blue-50 text-blue-700",
-    remediation: "border-violet-200 bg-violet-50 text-violet-700",
-    mitigation: "border-amber-200 bg-amber-50 text-amber-700",
-    unknown: "border-slate-200 bg-slate-50 text-slate-600",
+    builtin: "text-emerald-700",
+    manual: "text-blue-700",
+    remediation: "text-violet-700",
+    mitigation: "text-amber-700",
+    unknown: "text-slate-600",
   }
   return classNames[source]
 }
@@ -316,7 +312,7 @@ export function ControlObjectLibraryPage() {
                   <Input
                     value={keyword}
                     onChange={(event) => setKeyword(event.target.value)}
-                    placeholder="搜索对象名称、内部名称或 Object ID"
+                    placeholder="搜索对象名称、内部名称或 ID"
                     aria-label="搜索控制对象"
                     className="h-10 rounded-full border-slate-200 bg-slate-50 pl-9 pr-4 focus-visible:bg-white"
                   />
@@ -564,10 +560,10 @@ function ObjectTableRow({
   return (
     <tr className="group border-b border-slate-100 transition-colors last:border-b-0 hover:bg-cyan-50/30">
       <td className="px-3 py-3 align-middle">
-        <Badge variant="outline" className={cn("gap-1.5 whitespace-nowrap font-medium", type.badgeClassName)}>
-          <TypeIcon className="h-3.5 w-3.5" aria-hidden="true" />
-          {type.label}
-        </Badge>
+        <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+          <TypeIcon className={cn("h-4 w-4 shrink-0", type.iconClassName)} aria-hidden="true" />
+          <span className="text-xs font-medium text-black">{type.label}</span>
+        </div>
       </td>
       <td className="px-3 py-3 align-middle">
         <p className="truncate font-medium text-slate-900" title={definition.displayName}>
@@ -595,7 +591,7 @@ function ObjectTableRow({
         </span>
       </td>
       <td className="px-3 py-3 align-middle">
-        <SourceBadge source={definition.source} />
+        <SourceText source={definition.source} />
       </td>
       {CONTROL_OBJECT_CAPABILITY_COLUMNS.map(({ key }) => (
         <td key={key} className="px-2 py-3 text-center align-middle">
@@ -637,21 +633,17 @@ function ObjectMobileCard({
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="p-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", type.iconClassName)}>
-            <TypeIcon className="h-4 w-4" aria-hidden="true" />
-          </span>
+          <TypeIcon className={cn("h-5 w-5 shrink-0", type.iconClassName)} aria-hidden="true" />
           <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900" title={definition.displayName}>
             {definition.displayName}
           </h2>
-          <Badge variant="outline" className={cn("shrink-0 font-medium", type.badgeClassName)}>
-            {type.label}
-          </Badge>
+          <span className="shrink-0 text-xs font-medium text-black">{type.label}</span>
         </div>
 
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-xs">
           <MobileField label="内部名称" value={definition.internalName} className="col-span-2" />
-          <MobileField label="Object ID" value={definition.objectId} mono className="col-span-2" />
-          <MobileField label="子类型" value={String(definition.subType)} mono />
+          <MobileField label="ID" value={definition.objectId} mono className="col-span-2" />
+          <MobileField label="类型" value={String(definition.subType)} mono />
           <MobileField label="当前版本" value={definition.version} mono />
           <MobileField label="来源" value={sourceLabel(definition.source)} />
           <MobileField label="删除方式" value={controlObjectDeleteModeLabel(definition.capabilities.deleteMode)} />
@@ -680,17 +672,11 @@ function ObjectMobileCard({
   )
 }
 
-function SourceBadge({ source }: { source: ControlObjectSource }) {
+function SourceText({ source }: { source: ControlObjectSource }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn(
-        "whitespace-nowrap font-medium",
-        sourceBadgeClassName(source),
-      )}
-    >
+    <span className={cn("whitespace-nowrap text-xs font-medium", sourceTextClassName(source))}>
       {sourceLabel(source)}
-    </Badge>
+    </span>
   )
 }
 

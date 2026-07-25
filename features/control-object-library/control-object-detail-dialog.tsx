@@ -65,7 +65,7 @@ function detailErrorMessage(error: unknown) {
     return "后台返回的对象身份或版本与当前选择不一致，已停止展示。"
   }
   if (message === "PMC_OBJECT_DEFINITION_INVALID") {
-    return "后台返回的对象定义缺少类型、Object ID、名称或版本。"
+    return "后台返回的对象定义缺少类型、ID、名称或版本。"
   }
   return message || "完整对象内容加载失败，请稍后重试。"
 }
