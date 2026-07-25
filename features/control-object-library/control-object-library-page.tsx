@@ -4,13 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Boxes,
   Braces,
-  Check,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
+  CircleStop,
   FileSliders,
   LibraryBig,
-  Minus,
+  MoreHorizontal,
   Pencil,
   RefreshCw,
   RotateCcw,
@@ -19,6 +19,8 @@ import {
   Settings2,
   ShieldCheck,
   SquareTerminal,
+  Trash2,
+  Unplug,
 } from "lucide-react"
 
 import { BaselineScanPolicyDialog } from "@/features/baseline/policy/baseline-scan-policy-dialog"
@@ -26,17 +28,19 @@ import {
   BUILTIN_CONTROL_OBJECT_IDS,
   listControlObjectDefinitions,
   type ControlObjectDefinition,
-  type ControlObjectDeleteMode,
   type ControlObjectOperation,
   type ControlObjectSource,
   type ControlObjectType,
 } from "@/features/control-object-library/api"
+import { ControlObjectDeleteDialog } from "@/features/control-object-library/control-object-delete-dialog"
 import { ControlObjectDetailDialog } from "@/features/control-object-library/control-object-detail-dialog"
 import {
-  CONTROL_OBJECT_CAPABILITY_COLUMNS,
+  ControlObjectOperationDialog,
+  type ControlObjectOperationTarget,
+} from "@/features/control-object-library/control-object-operation-dialog"
+import {
   CONTROL_OBJECT_TABLE_COLUMNS,
   controlObjectDeleteModeLabel,
-  controlObjectHasCapability,
 } from "@/features/control-object-library/table-presentation"
 import { GeneralConfigDialog } from "@/features/general-config/general-config-dialog"
 import { ReportConfigDialog } from "@/features/report-config/report-config-dialog"
@@ -45,8 +49,15 @@ import { SensorConfigDialog } from "@/features/sensor-config/sensor-config-dialo
 import type { ConfigCategory } from "@/features/sensor-config/types/config-item"
 import { PatchScanPolicyDialog } from "@/features/vulnerability/policy/patch-scan-policy-dialog"
 import { cn } from "@/shared/lib/utils"
-import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu"
 import { Input } from "@/shared/ui/input"
 import {
   Select,
@@ -56,13 +67,6 @@ import {
   SelectValue,
 } from "@/shared/ui/select"
 import { Skeleton } from "@/shared/ui/skeleton"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipPortal,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/ui/tooltip"
 
 type TypeFilter = "all" | ControlObjectType
 type SourceFilter = "all" | ControlObjectSource
@@ -116,16 +120,24 @@ function loadErrorMessage(error: unknown) {
   return message || "控制对象加载失败，请稍后重试。"
 }
 
-function primaryOperationLabel(definition: ControlObjectDefinition) {
-  if (definition.objectType === "command") return "选择执行"
-  if (definition.objectType === "policy") return "选择应用"
-  return "选择下发"
-}
-
-function compactOperationLabel(definition: ControlObjectDefinition) {
-  if (definition.objectType === "command") return "执行"
-  if (definition.objectType === "policy") return "应用"
-  return "下发"
+function operationMenuPresentation(
+  definition: ControlObjectDefinition,
+  operation: ControlObjectOperation,
+) {
+  if (operation === "apply") {
+    return {
+      label: definition.objectType === "config" ? "选择下发" : "选择应用",
+      icon: Send,
+      iconClassName: "text-cyan-600",
+    }
+  }
+  if (operation === "execute") {
+    return { label: "选择执行", icon: SquareTerminal, iconClassName: "text-violet-600" }
+  }
+  if (operation === "stop") {
+    return { label: "停止", icon: CircleStop, iconClassName: "text-amber-600" }
+  }
+  return { label: "移除", icon: Unplug, iconClassName: "text-rose-600" }
 }
 
 function sourceLabel(source: ControlObjectSource) {
@@ -167,6 +179,8 @@ export function ControlObjectLibraryPage() {
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)
   const [activeEditor, setActiveEditor] = useState<EditorKind | null>(null)
   const [detailTarget, setDetailTarget] = useState<ControlObjectDefinition | null>(null)
+  const [operationTarget, setOperationTarget] = useState<ControlObjectOperationTarget | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<ControlObjectDefinition | null>(null)
   const requestSequence = useRef(0)
 
   const loadObjects = useCallback(async () => {
@@ -262,8 +276,7 @@ export function ControlObjectLibraryPage() {
   }
 
   return (
-    <TooltipProvider delayDuration={250} skipDelayDuration={100}>
-      <div className="h-full min-h-0 overflow-hidden bg-slate-100 p-3 max-md:pl-[4.75rem] md:p-4">
+    <div className="h-full min-h-0 overflow-hidden bg-slate-100 p-3 max-md:pl-[4.75rem] md:p-4">
         <div className="flex h-full min-h-0 w-full flex-col gap-3">
           <header className="w-full shrink-0 rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.08)] sm:rounded-[28px] sm:px-5 sm:py-[13px]">
             <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center">
@@ -393,7 +406,7 @@ export function ControlObjectLibraryPage() {
               ) : (
                 <>
                   <div className="hidden h-full min-h-0 overflow-auto lg:block">
-                    <table className="w-full min-w-[1694px] table-fixed border-collapse text-sm">
+                    <table className="w-full min-w-[1060px] table-fixed border-collapse text-sm">
                       <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs text-slate-500 backdrop-blur">
                         <tr className="border-b border-slate-200">
                           {CONTROL_OBJECT_TABLE_COLUMNS.map((column) => (
@@ -421,6 +434,8 @@ export function ControlObjectLibraryPage() {
                             definition={definition}
                             onEdit={(kind) => setActiveEditor(kind)}
                             onViewJson={setDetailTarget}
+                            onOperate={(operation) => setOperationTarget({ definition, operation })}
+                            onDelete={() => setDeleteTarget(definition)}
                           />
                         ))}
                       </tbody>
@@ -435,6 +450,8 @@ export function ControlObjectLibraryPage() {
                           definition={definition}
                           onEdit={(kind) => setActiveEditor(kind)}
                           onViewJson={setDetailTarget}
+                          onOperate={(operation) => setOperationTarget({ definition, operation })}
+                          onDelete={() => setDeleteTarget(definition)}
                         />
                       ))}
                     </div>
@@ -488,8 +505,20 @@ export function ControlObjectLibraryPage() {
             if (!open) setDetailTarget(null)
           }}
         />
-      </div>
-    </TooltipProvider>
+        <ControlObjectOperationDialog
+          target={operationTarget}
+          onOpenChange={(open) => {
+            if (!open) setOperationTarget(null)
+          }}
+        />
+        <ControlObjectDeleteDialog
+          definition={deleteTarget}
+          onOpenChange={(open) => {
+            if (!open) setDeleteTarget(null)
+          }}
+          onDeleted={handleObjectUpdated}
+        />
+    </div>
   )
 }
 
@@ -549,10 +578,14 @@ function ObjectTableRow({
   definition,
   onEdit,
   onViewJson,
+  onOperate,
+  onDelete,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
   onViewJson: (definition: ControlObjectDefinition) => void
+  onOperate: (operation: ControlObjectOperation) => void
+  onDelete: () => void
 }) {
   const type = TYPE_PRESENTATION[definition.objectType]
   const TypeIcon = type.icon
@@ -593,14 +626,6 @@ function ObjectTableRow({
       <td className="px-3 py-3 align-middle">
         <SourceText source={definition.source} />
       </td>
-      {CONTROL_OBJECT_CAPABILITY_COLUMNS.map(({ key }) => (
-        <td key={key} className="px-2 py-3 text-center align-middle">
-          <BooleanCapability value={controlObjectHasCapability(definition, key)} />
-        </td>
-      ))}
-      <td className="px-3 py-3 align-middle">
-        <DeleteModeBadge mode={definition.capabilities.deleteMode} />
-      </td>
       <td className="px-3 py-3 align-middle">
         <span className="inline-flex items-center gap-1.5 text-xs text-slate-600">
           <span className={cn(
@@ -611,7 +636,14 @@ function ObjectTableRow({
         </span>
       </td>
       <td className="sticky right-0 z-[5] bg-white px-4 py-3 align-middle shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)] transition-colors group-hover:bg-cyan-50">
-        <ObjectActions definition={definition} onEdit={onEdit} onViewJson={onViewJson} align="right" />
+        <ObjectActions
+          definition={definition}
+          onEdit={onEdit}
+          onViewJson={onViewJson}
+          onOperate={onOperate}
+          onDelete={onDelete}
+          align="right"
+        />
       </td>
     </tr>
   )
@@ -621,10 +653,14 @@ function ObjectMobileCard({
   definition,
   onEdit,
   onViewJson,
+  onOperate,
+  onDelete,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
   onViewJson: (definition: ControlObjectDefinition) => void
+  onOperate: (operation: ControlObjectOperation) => void
+  onDelete: () => void
 }) {
   const type = TYPE_PRESENTATION[definition.objectType]
   const TypeIcon = type.icon
@@ -646,27 +682,19 @@ function ObjectMobileCard({
           <MobileField label="类型" value={String(definition.subType)} mono />
           <MobileField label="当前版本" value={definition.version} mono />
           <MobileField label="来源" value={sourceLabel(definition.source)} />
-          <MobileField label="删除方式" value={controlObjectDeleteModeLabel(definition.capabilities.deleteMode)} />
           <MobileField label="状态" value={stateLabel(definition.state)} />
         </dl>
       </div>
 
-      <div className="border-y border-slate-100 bg-slate-50/80 px-4 py-3">
-        <p className="text-[11px] font-medium text-slate-500">对象能力</p>
-        <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-5">
-          {CONTROL_OBJECT_CAPABILITY_COLUMNS.map(({ key, label }) => (
-            <div key={key} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs sm:block sm:text-center">
-              <span className="text-slate-500">{label}</span>
-              <span className="sm:mt-1 sm:flex sm:justify-center">
-                <BooleanCapability value={controlObjectHasCapability(definition, key)} />
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="p-4">
-        <ObjectActions definition={definition} onEdit={onEdit} onViewJson={onViewJson} align="stretch" />
+      <div className="border-t border-slate-100 p-4">
+        <ObjectActions
+          definition={definition}
+          onEdit={onEdit}
+          onViewJson={onViewJson}
+          onOperate={onOperate}
+          onDelete={onDelete}
+          align="stretch"
+        />
       </div>
     </article>
   )
@@ -701,46 +729,19 @@ function MobileField({
   )
 }
 
-function BooleanCapability({ value }: { value: boolean }) {
-  const Icon = value ? Check : Minus
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center justify-center gap-1 whitespace-nowrap text-xs font-medium",
-        value ? "text-emerald-700" : "text-slate-400",
-      )}
-      aria-label={value ? "支持" : "不支持"}
-    >
-      <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-      {value ? "是" : "否"}
-    </span>
-  )
-}
-
-function DeleteModeBadge({ mode }: { mode: ControlObjectDeleteMode }) {
-  const className: Record<ControlObjectDeleteMode, string> = {
-    forbidden: "border-slate-200 bg-slate-50 text-slate-600",
-    metadata_only: "border-amber-200 bg-amber-50 text-amber-700",
-    remove_effects: "border-violet-200 bg-violet-50 text-violet-700",
-    unknown: "border-slate-200 bg-white text-slate-500",
-  }
-
-  return (
-    <Badge variant="outline" className={cn("whitespace-nowrap font-medium", className[mode])}>
-      {controlObjectDeleteModeLabel(mode)}
-    </Badge>
-  )
-}
-
 function ObjectActions({
   definition,
   onEdit,
   onViewJson,
+  onOperate,
+  onDelete,
   align,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
   onViewJson: (definition: ControlObjectDefinition) => void
+  onOperate: (operation: ControlObjectOperation) => void
+  onDelete: () => void
   align: "right" | "stretch"
 }) {
   const kind = editorKind(definition)
@@ -748,107 +749,105 @@ function ObjectActions({
   const editReason = !definition.capabilities.canUpdate
     ? "后台能力合同不允许更新此对象"
     : "该对象尚未提供安全的可视化编辑器"
-  const operation = definition.objectType === "command" ? "execute" : "apply"
-  const canOperate = definition.capabilities.allowedOperations.includes(operation)
-  const operationReason = canOperate
-    ? "主机选择与操作创建流程将在下一步接入；当前页面不会直接下发"
-    : "后台能力合同不允许执行此操作"
+  const operationOrder: Record<ControlObjectOperation, number> = {
+    apply: 0,
+    stop: 1,
+    remove: 2,
+    execute: 3,
+  }
+  const operations = [...definition.capabilities.allowedOperations]
+    .sort((left, right) => operationOrder[left] - operationOrder[right])
+  const deleteMode = definition.capabilities.deleteMode
+  const deleteAllowedByCapability = deleteMode === "metadata_only" || deleteMode === "remove_effects"
+  const canDelete = deleteAllowedByCapability
+    && definition.state.toLowerCase() === "active"
+    && definition.stateVersion > 0
+  const deleteReason = !deleteAllowedByCapability
+    ? "后台能力合同禁止删除此对象"
+    : definition.state.toLowerCase() !== "active"
+      ? "只有 active 状态的对象可以删除"
+      : definition.stateVersion <= 0
+        ? "后台未返回有效的 state_version，请刷新后重试"
+        : undefined
 
   return (
-    <div className={cn(
-      "items-center",
-      align === "right" ? "flex justify-end gap-2" : "grid w-full grid-cols-3 gap-1.5 sm:gap-2",
-    )}>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => onViewJson(definition)}
-        className={cn(
-          "h-8 rounded-full border-slate-200 bg-white px-3 text-slate-700 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700",
-          align === "stretch" && "w-full min-w-0 px-1.5 sm:px-3",
-        )}
-      >
-        <Braces className="h-3.5 w-3.5" aria-hidden="true" />
-        JSON
-      </Button>
-      {canEdit && kind ? (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
         <Button
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => onEdit(kind)}
+          aria-label={`打开“${definition.displayName}”操作菜单`}
           className={cn(
-            "h-8 rounded-full border-slate-200 bg-white px-3 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-700",
-            align === "stretch" && "w-full min-w-0 px-1.5 sm:px-3",
+            "h-8 rounded-lg border-slate-200 bg-white text-slate-600 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-700",
+            align === "right" ? "w-8 p-0" : "w-full gap-2",
           )}
         >
-          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-          编辑
+          <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+          {align === "stretch" && <span>操作</span>}
         </Button>
-      ) : (
-        <DisabledAction label="编辑" reason={editReason} stretch={align === "stretch"} icon="edit" />
-      )}
-      <DisabledAction
-        label={primaryOperationLabel(definition)}
-        shortLabel={compactOperationLabel(definition)}
-        reason={operationReason}
-        stretch={align === "stretch"}
-        icon="send"
-        accent
-      />
-    </div>
-  )
-}
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" sideOffset={6} className="w-56 rounded-xl p-1.5">
+        <DropdownMenuItem
+          onSelect={() => onViewJson(definition)}
+          className="cursor-pointer rounded-lg py-2"
+        >
+          <Braces className="text-violet-600" aria-hidden="true" />
+          查看 JSON
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={!canEdit}
+          title={canEdit ? undefined : editReason}
+          onSelect={() => {
+            if (kind) onEdit(kind)
+          }}
+          className="cursor-pointer rounded-lg py-2"
+        >
+          <Pencil className="text-cyan-600" aria-hidden="true" />
+          编辑
+          {!canEdit && (
+            <span className="ml-auto text-xs text-slate-400">
+              {definition.capabilities.canUpdate ? "未支持" : "不可用"}
+            </span>
+          )}
+        </DropdownMenuItem>
 
-function DisabledAction({
-  label,
-  reason,
-  stretch,
-  icon,
-  accent,
-  shortLabel,
-}: {
-  label: string
-  reason: string
-  stretch: boolean
-  icon: "edit" | "send"
-  accent?: boolean
-  shortLabel?: string
-}) {
-  const Icon = icon === "edit" ? Pencil : Send
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="px-2 py-1 text-xs font-medium text-slate-400">
+          Agent 操作
+        </DropdownMenuLabel>
+        {operations.length > 0 ? operations.map((operation) => {
+          const presentation = operationMenuPresentation(definition, operation)
+          const OperationIcon = presentation.icon
+          return (
+            <DropdownMenuItem
+              key={operation}
+              onSelect={() => onOperate(operation)}
+              className="cursor-pointer rounded-lg py-2"
+            >
+              <OperationIcon className={presentation.iconClassName} aria-hidden="true" />
+              {presentation.label}
+            </DropdownMenuItem>
+          )
+        }) : (
+          <DropdownMenuItem disabled className="rounded-lg py-2 text-slate-400">
+            无可用 Agent 操作
+          </DropdownMenuItem>
+        )}
 
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className={cn("inline-flex", stretch && "w-full min-w-0")} tabIndex={0}>
-          <Button
-            type="button"
-            variant={accent ? "default" : "outline"}
-            size="sm"
-            disabled
-            className={cn(
-              "h-8 rounded-full px-3",
-              stretch && "w-full min-w-0 px-1.5 sm:px-3",
-              accent && "border border-cyan-100 bg-cyan-50 text-cyan-700",
-            )}
-          >
-            <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-            {shortLabel ? (
-              <>
-                <span className="sm:hidden">{shortLabel}</span>
-                <span className="hidden sm:inline">{label}</span>
-              </>
-            ) : label}
-          </Button>
-        </span>
-      </TooltipTrigger>
-      <TooltipPortal>
-        <TooltipContent side="top" className="max-w-72 text-xs leading-5">
-          {reason}
-        </TooltipContent>
-      </TooltipPortal>
-    </Tooltip>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={!canDelete}
+          onSelect={onDelete}
+          className={cn("rounded-lg py-2", canDelete && "text-rose-600")}
+          title={deleteReason}
+        >
+          <Trash2 aria-hidden="true" />
+          {controlObjectDeleteModeLabel(deleteMode)}
+          {!canDelete && <span className="ml-auto text-xs text-slate-400">不可用</span>}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -865,7 +864,7 @@ function ObjectListSkeleton() {
             </div>
             <Skeleton className="hidden h-6 w-16 rounded-full sm:block" />
             <Skeleton className="hidden h-6 w-24 rounded-full md:block" />
-            <Skeleton className="h-8 w-28 rounded-full" />
+            <Skeleton className="h-8 w-8 rounded-lg" />
           </div>
         ))}
       </div>

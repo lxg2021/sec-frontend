@@ -8,8 +8,11 @@ vi.mock("@/shared/lib/http/client", () => ({
 
 import {
   BUILTIN_CONTROL_OBJECT_IDS,
+  deleteControlObjectDefinition,
   getControlObjectDefinition,
   listControlObjectDefinitions,
+  operateControlObject,
+  queryControlObjectAgents,
   type ControlObjectDefinition,
 } from "./api"
 
@@ -24,6 +27,7 @@ function configDefinition(overrides: Partial<ControlObjectDefinition> = {}): Con
     version: "3.1.4",
     source: "manual",
     state: "active",
+    stateVersion: 7,
     capabilities: {
       profile: "config_replaceable_v1",
       contractVersion: 1,
@@ -85,6 +89,7 @@ describe("control object library API", () => {
               can_update: true,
               catalog_delete_mode: 1,
             },
+            state_version: 9,
           },
         ],
       },
@@ -106,6 +111,7 @@ describe("control object library API", () => {
       source: "builtin",
       subType: 10,
       version: "2.0.0",
+      stateVersion: 9,
       capabilities: {
         allowedOperations: ["apply"],
         canUpdate: true,
@@ -388,5 +394,218 @@ describe("control object library API", () => {
       },
     })
     await expect(getControlObjectDefinition(configDefinition())).rejects.toThrow("PMC_OBJECT_DETAIL_MISMATCH")
+  })
+
+  it("creates an allowed Agent operation with a normalized target set", async () => {
+    post.mockResolvedValue({
+      data: {
+        operation: {
+          operation_id: "pmcop-1",
+          planning_status: "materializing",
+          status: "created",
+          total_count: 2,
+          pending_count: 2,
+        },
+      },
+    })
+
+    const definition = configDefinition({
+      capabilities: {
+        profile: "config_replaceable_v1",
+        contractVersion: 1,
+        allowedOperations: ["apply", "remove"],
+        canUpdate: true,
+        deleteMode: "remove_effects",
+      },
+    })
+    const result = await operateControlObject(definition, "apply", [
+      " agent-2 ",
+      "agent-1",
+      "agent-2",
+    ])
+
+    expect(post).toHaveBeenCalledWith("operatePMCObject", {
+      request_id: expect.stringMatching(/^\d+$/),
+      object_type: 3,
+      object_id: "custom-config",
+      object_version: "3.1.4",
+      operation: 1,
+      agent_ids: ["agent-2", "agent-1"],
+    })
+    expect(result).toMatchObject({
+      operationId: "pmcop-1",
+      planningStatus: "materializing",
+      status: "created",
+      totalCount: 2,
+      pendingCount: 2,
+    })
+  })
+
+  it("rejects unsupported Agent operations and empty target sets before calling the backend", async () => {
+    const definition = configDefinition()
+
+    await expect(operateControlObject(definition, "execute", ["agent-1"]))
+      .rejects.toThrow("PMC_OPERATION_NOT_ALLOWED")
+    await expect(operateControlObject(definition, "apply", [" "]))
+      .rejects.toThrow("PMC_AGENT_TARGETS_INVALID")
+    expect(post).not.toHaveBeenCalled()
+  })
+
+  it("loads all object-associated Agents across versions for safe STOP/REMOVE targeting", async () => {
+    post
+      .mockResolvedValueOnce({
+        data: {
+          total: 2,
+          page: 1,
+          page_size: 100,
+          agents: [{
+            agent_id: "agent-old-version",
+            object_type: 3,
+            object_id: "custom-config",
+            object_version: "1.0.0",
+            current_effect: {
+              object_version: "1.0.0",
+              current_state: "started",
+              apply_state: "success",
+            },
+          }],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: {
+          total: 2,
+          page: 2,
+          page_size: 100,
+          agents: [{
+            agentId: "agent-current-version",
+            objectType: "CONFIG_TYPE",
+            objectId: "custom-config",
+            objectVersion: "3.1.4",
+            currentEffect: {
+              objectVersion: "3.1.4",
+              currentState: "stopped",
+              applyState: "success",
+            },
+            activeChange: {
+              operationId: "operation-in-flight",
+            },
+          }],
+        },
+      })
+
+    const result = await queryControlObjectAgents(configDefinition())
+
+    expect(post).toHaveBeenCalledTimes(2)
+    expect(post.mock.calls.map((call) => call[1])).toEqual([
+      {
+        request_id: expect.stringMatching(/^\d+$/),
+        object_type: 3,
+        object_id: "custom-config",
+        page: 1,
+        page_size: 100,
+      },
+      {
+        request_id: expect.stringMatching(/^\d+$/),
+        object_type: 3,
+        object_id: "custom-config",
+        page: 2,
+        page_size: 100,
+      },
+    ])
+    expect(result).toEqual([
+      {
+        agentId: "agent-old-version",
+        objectVersion: "1.0.0",
+        currentEffect: {
+          objectVersion: "1.0.0",
+          currentState: "started",
+          applyState: "success",
+        },
+        hasActiveChange: false,
+      },
+      {
+        agentId: "agent-current-version",
+        objectVersion: "3.1.4",
+        currentEffect: {
+          objectVersion: "3.1.4",
+          currentState: "stopped",
+          applyState: "success",
+        },
+        hasActiveChange: true,
+      },
+    ])
+  })
+
+  it("accepts an empty associated-Agent result and rejects mismatched object identities", async () => {
+    post.mockResolvedValueOnce({ data: { total: 0, agents: null } })
+    await expect(queryControlObjectAgents(configDefinition())).resolves.toEqual([])
+
+    post.mockResolvedValueOnce({
+      data: {
+        total: 1,
+        agents: [{
+          agent_id: "agent-1",
+          object_type: 3,
+          object_id: "another-config",
+        }],
+      },
+    })
+    await expect(queryControlObjectAgents(configDefinition()))
+      .rejects.toThrow("PMC_OBJECT_AGENT_INVALID")
+  })
+
+  it("deletes a Catalog object with its current state version", async () => {
+    post.mockResolvedValue({
+      data: {
+        object: {
+          object_type: 3,
+          object_id: "custom-config",
+          object_state: "deleting",
+          state_version: 8,
+        },
+        operation_id: "pmcop-delete-1",
+      },
+    })
+
+    const definition = configDefinition({
+      stateVersion: 7,
+      capabilities: {
+        profile: "config_replaceable_v1",
+        contractVersion: 1,
+        allowedOperations: ["apply", "remove"],
+        canUpdate: true,
+        deleteMode: "remove_effects",
+      },
+    })
+    const result = await deleteControlObjectDefinition(definition)
+
+    expect(post).toHaveBeenCalledWith("deletePMCObjectDefinition", {
+      request_id: expect.stringMatching(/^\d+$/),
+      object_type: 3,
+      object_id: "custom-config",
+      expected_state_version: 7,
+    })
+    expect(result).toEqual({
+      objectId: "custom-config",
+      state: "deleting",
+      stateVersion: 8,
+      operationId: "pmcop-delete-1",
+    })
+  })
+
+  it("rejects forbidden deletion and missing state versions before calling the backend", async () => {
+    await expect(deleteControlObjectDefinition(configDefinition()))
+      .rejects.toThrow("PMC_DELETE_NOT_ALLOWED")
+    await expect(deleteControlObjectDefinition(configDefinition({
+      stateVersion: 0,
+      capabilities: {
+        profile: "config_replaceable_v1",
+        contractVersion: 1,
+        allowedOperations: ["apply", "remove"],
+        canUpdate: true,
+        deleteMode: "remove_effects",
+      },
+    }))).rejects.toThrow("PMC_STATE_VERSION_INVALID")
+    expect(post).not.toHaveBeenCalled()
   })
 })

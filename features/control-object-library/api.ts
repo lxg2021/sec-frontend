@@ -24,6 +24,7 @@ export interface ControlObjectDefinition {
   version: string
   source: ControlObjectSource
   state: string
+  stateVersion: number
   capabilities: ControlObjectCapabilities
 }
 
@@ -31,6 +32,38 @@ export interface ControlObjectDetail {
   definition: ControlObjectDefinition
   rawDefinition: Record<string, unknown>
   displayJson: string
+}
+
+export interface ControlObjectOperationResult {
+  operationId: string
+  planningStatus: string
+  status: string
+  outcome: string
+  totalCount: number
+  pendingCount: number
+  runningCount: number
+  successCount: number
+  failedCount: number
+  skippedCount: number
+  canceledCount: number
+}
+
+export interface ControlObjectAgentState {
+  agentId: string
+  objectVersion: string
+  currentEffect: {
+    objectVersion: string
+    currentState: string
+    applyState: string
+  } | null
+  hasActiveChange: boolean
+}
+
+export interface ControlObjectDeleteResult {
+  objectId: string
+  state: string
+  stateVersion: number
+  operationId: string
 }
 
 interface ApiResult<T> {
@@ -45,8 +78,23 @@ interface RawListResponseData {
   pageSize?: unknown
 }
 
+interface RawAgentListResponseData {
+  agents?: unknown
+  total?: unknown
+  page?: unknown
+  page_size?: unknown
+  pageSize?: unknown
+}
+
 const PAGE_SIZE = 100
 const MAX_PAGES = 100
+
+const OPERATION_TYPE_VALUE: Record<ControlObjectOperation, 1 | 2 | 3 | 4> = {
+  apply: 1,
+  stop: 2,
+  remove: 3,
+  execute: 4,
+}
 
 export const BUILTIN_CONTROL_OBJECT_IDS = {
   baselineScanPolicy: "6f2c9d3a-8e47-4f6b-b9f2-1e3c4a7d8b21",
@@ -243,6 +291,12 @@ function normalizeDefinition(value: unknown): ControlObjectDefinition {
       "CreationSource",
     )),
     state: stringValue(fieldValue(definition, "object_state", "objectState", "ObjectState")) || "active",
+    stateVersion: Math.max(0, numberValue(fieldValue(
+      definition,
+      "state_version",
+      "stateVersion",
+      "StateVersion",
+    ))),
     capabilities: normalizeCapabilities(fieldValue(definition, "capabilities", "Capabilities")),
   }
 }
@@ -347,5 +401,203 @@ export async function getControlObjectDefinition(
     definition: normalized,
     rawDefinition,
     displayJson: JSON.stringify(displayDefinition, null, 2),
+  }
+}
+
+function normalizeAgentIds(agentIds: string[]) {
+  return Array.from(new Set(agentIds.map((agentId) => agentId.trim()).filter(Boolean)))
+}
+
+function normalizeAgentState(
+  value: unknown,
+  definition: ControlObjectDefinition,
+): ControlObjectAgentState {
+  const agent = recordValue(value)
+  if (!agent) throw new Error("PMC_OBJECT_AGENT_INVALID")
+
+  const agentId = stringValue(fieldValue(agent, "agent_id", "agentId", "AgentId", "AgentID"))
+  const objectType = normalizeObjectType(fieldValue(agent, "object_type", "objectType", "ObjectType"))
+  const objectId = stringValue(fieldValue(agent, "object_id", "objectId", "ObjectId", "ObjectID"))
+  if (
+    !agentId
+    || objectType !== definition.objectTypeValue
+    || objectId.toLowerCase() !== definition.objectId.toLowerCase()
+  ) {
+    throw new Error("PMC_OBJECT_AGENT_INVALID")
+  }
+
+  const effect = recordValue(fieldValue(agent, "current_effect", "currentEffect", "CurrentEffect"))
+  const currentEffect = effect
+    ? {
+        objectVersion: stringValue(fieldValue(
+          effect,
+          "object_version",
+          "objectVersion",
+          "ObjectVersion",
+        )),
+        currentState: stringValue(fieldValue(
+          effect,
+          "current_state",
+          "currentState",
+          "CurrentState",
+        )).toLowerCase(),
+        applyState: stringValue(fieldValue(
+          effect,
+          "apply_state",
+          "applyState",
+          "ApplyState",
+        )).toLowerCase(),
+      }
+    : null
+
+  return {
+    agentId,
+    objectVersion: stringValue(fieldValue(
+      agent,
+      "object_version",
+      "objectVersion",
+      "ObjectVersion",
+    )),
+    currentEffect,
+    hasActiveChange: Boolean(recordValue(fieldValue(
+      agent,
+      "active_change",
+      "activeChange",
+      "ActiveChange",
+    ))),
+  }
+}
+
+export async function queryControlObjectAgents(
+  definition: ControlObjectDefinition,
+): Promise<ControlObjectAgentState[]> {
+  const collected: ControlObjectAgentState[] = []
+  let page = 1
+  let total = Number.POSITIVE_INFINITY
+
+  while (collected.length < total && page <= MAX_PAGES) {
+    const result = (await http.post("queryPMCAgentsByObjectID", {
+      request_id: createRequestId(),
+      object_type: definition.objectTypeValue,
+      object_id: definition.objectId,
+      // Intentionally omit object_version: STOP/REMOVE must also find Agents
+      // whose authoritative Current Effect is still on an older version.
+      page,
+      page_size: PAGE_SIZE,
+    })) as ApiResult<RawAgentListResponseData | null>
+
+    const data = recordValue(result.data)
+    const rawAgents = fieldValue(data, "agents", "Agents")
+    const responseTotal = Math.max(0, numberValue(fieldValue(data, "total", "Total")))
+    const normalizedAgents = rawAgents == null && responseTotal === 0 ? [] : rawAgents
+    if (!Array.isArray(normalizedAgents)) throw new Error("PMC_OBJECT_AGENT_LIST_INVALID")
+
+    const pageItems = normalizedAgents.map((agent) => normalizeAgentState(agent, definition))
+    collected.push(...pageItems)
+    total = responseTotal || collected.length
+
+    if (pageItems.length === 0 || collected.length >= total) break
+    page += 1
+  }
+
+  if (collected.length < total) throw new Error("PMC_OBJECT_AGENT_LIST_TRUNCATED")
+
+  return Array.from(new Map(
+    collected.map((agent) => [agent.agentId, agent]),
+  ).values())
+}
+
+function normalizeOperationResult(value: unknown): ControlObjectOperationResult {
+  const operation = recordValue(value)
+  const operationId = stringValue(fieldValue(operation, "operation_id", "operationId", "OperationId"))
+  if (!operationId) throw new Error("PMC_OPERATION_RESPONSE_INVALID")
+
+  return {
+    operationId,
+    planningStatus: stringValue(fieldValue(operation, "planning_status", "planningStatus", "PlanningStatus")),
+    status: stringValue(fieldValue(operation, "status", "Status")),
+    outcome: stringValue(fieldValue(operation, "outcome", "Outcome")),
+    totalCount: Math.max(0, numberValue(fieldValue(operation, "total_count", "totalCount", "TotalCount"))),
+    pendingCount: Math.max(0, numberValue(fieldValue(operation, "pending_count", "pendingCount", "PendingCount"))),
+    runningCount: Math.max(0, numberValue(fieldValue(operation, "running_count", "runningCount", "RunningCount"))),
+    successCount: Math.max(0, numberValue(fieldValue(operation, "success_count", "successCount", "SuccessCount"))),
+    failedCount: Math.max(0, numberValue(fieldValue(operation, "failed_count", "failedCount", "FailedCount"))),
+    skippedCount: Math.max(0, numberValue(fieldValue(operation, "skipped_count", "skippedCount", "SkippedCount"))),
+    canceledCount: Math.max(0, numberValue(fieldValue(operation, "canceled_count", "canceledCount", "CanceledCount"))),
+  }
+}
+
+export async function operateControlObject(
+  definition: ControlObjectDefinition,
+  operation: ControlObjectOperation,
+  agentIds: string[],
+): Promise<ControlObjectOperationResult> {
+  if (definition.state.toLowerCase() !== "active") {
+    throw new Error("PMC_OBJECT_NOT_ACTIVE")
+  }
+  if (!definition.capabilities.allowedOperations.includes(operation)) {
+    throw new Error("PMC_OPERATION_NOT_ALLOWED")
+  }
+
+  const normalizedAgentIds = normalizeAgentIds(agentIds)
+  if (normalizedAgentIds.length === 0 || normalizedAgentIds.length > 10_000) {
+    throw new Error("PMC_AGENT_TARGETS_INVALID")
+  }
+
+  const result = (await http.post("operatePMCObject", {
+    request_id: createRequestId(),
+    object_type: definition.objectTypeValue,
+    object_id: definition.objectId,
+    object_version: definition.version,
+    operation: OPERATION_TYPE_VALUE[operation],
+    agent_ids: normalizedAgentIds,
+  })) as ApiResult<Record<string, unknown> | null>
+
+  const data = recordValue(result.data)
+  return normalizeOperationResult(fieldValue(data, "operation", "Operation"))
+}
+
+export async function deleteControlObjectDefinition(
+  definition: ControlObjectDefinition,
+): Promise<ControlObjectDeleteResult> {
+  if (definition.state.toLowerCase() !== "active") {
+    throw new Error("PMC_OBJECT_NOT_ACTIVE")
+  }
+  if (
+    definition.capabilities.deleteMode !== "metadata_only"
+    && definition.capabilities.deleteMode !== "remove_effects"
+  ) {
+    throw new Error("PMC_DELETE_NOT_ALLOWED")
+  }
+  if (!Number.isSafeInteger(definition.stateVersion) || definition.stateVersion <= 0) {
+    throw new Error("PMC_STATE_VERSION_INVALID")
+  }
+
+  const result = (await http.post("deletePMCObjectDefinition", {
+    request_id: createRequestId(),
+    object_type: definition.objectTypeValue,
+    object_id: definition.objectId,
+    expected_state_version: definition.stateVersion,
+  })) as ApiResult<Record<string, unknown> | null>
+
+  const data = recordValue(result.data)
+  const object = recordValue(fieldValue(data, "object", "Object"))
+  if (!object) throw new Error("PMC_DELETE_RESPONSE_INVALID")
+
+  const objectId = stringValue(fieldValue(object, "object_id", "objectId", "ObjectId", "ObjectID"))
+  if (objectId && objectId.toLowerCase() !== definition.objectId.toLowerCase()) {
+    throw new Error("PMC_DELETE_RESPONSE_MISMATCH")
+  }
+
+  return {
+    objectId: objectId || definition.objectId,
+    state: stringValue(fieldValue(object, "object_state", "objectState", "ObjectState")),
+    stateVersion: Math.max(0, numberValue(fieldValue(
+      object,
+      "state_version",
+      "stateVersion",
+      "StateVersion",
+    ))),
+    operationId: stringValue(fieldValue(data, "operation_id", "operationId", "OperationId")),
   }
 }
