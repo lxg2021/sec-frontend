@@ -149,7 +149,7 @@
     "iocVerification": "Intelligence Verification",
     "reports": "Audit Center",
     "control": "Control Center",
-    "sensorconfig": "Sensor Config",
+    "sensorconfig": "Control Object Library",
     "controltask": "Task Config"
   },
   "pages": {
