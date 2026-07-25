@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Layers3,
   ListChecks,
+  RadioTower,
   Settings2,
   ShieldCheck,
   SlidersHorizontal,
@@ -13,6 +14,7 @@ import {
 
 import { BaselineScanPolicyDialog } from "@/features/baseline/policy/baseline-scan-policy-dialog"
 import { GeneralConfigDialog } from "@/features/general-config/general-config-dialog"
+import { ReportConfigDialog } from "@/features/report-config/report-config-dialog"
 import { ConfigTable } from "@/features/sensor-config/config-table"
 import { defaultConfigCategory } from "@/features/sensor-config/data/default-config-category"
 import {
@@ -34,6 +36,7 @@ export default function ConfigManagementPage() {
   const [showPatchPolicyDialog, setShowPatchPolicyDialog] = useState(false)
   const [showBaselinePolicyDialog, setShowBaselinePolicyDialog] = useState(false)
   const [showGeneralConfigDialog, setShowGeneralConfigDialog] = useState(true)
+  const [showReportConfigDialog, setShowReportConfigDialog] = useState(false)
 
   const totalItems = countConfigItems(categories)
   const enabledItems = countEnabledConfigItems(categories)
@@ -90,6 +93,14 @@ export default function ConfigManagementPage() {
                   通用配置
                 </Button>
                 <Button
+                  variant="outline"
+                  className="h-10 shrink-0 rounded-full border-cyan-200 bg-white px-5 text-cyan-800 hover:bg-cyan-50 hover:text-cyan-900"
+                  onClick={() => setShowReportConfigDialog(true)}
+                >
+                  <RadioTower className="h-4 w-4" />
+                  上报配置
+                </Button>
+                <Button
                   className="h-10 shrink-0 rounded-full bg-cyan-700 px-5 hover:bg-cyan-800"
                   onClick={() => setShowEditorDialog(true)}
                 >
@@ -130,6 +141,12 @@ export default function ConfigManagementPage() {
       <GeneralConfigDialog
         open={showGeneralConfigDialog}
         onOpenChange={setShowGeneralConfigDialog}
+        onUpdated={handleConfigSaved}
+      />
+
+      <ReportConfigDialog
+        open={showReportConfigDialog}
+        onOpenChange={setShowReportConfigDialog}
         onUpdated={handleConfigSaved}
       />
 
