@@ -122,13 +122,10 @@ function loadErrorMessage(error: unknown) {
   return message || "控制对象加载失败，请稍后重试。"
 }
 
-function operationMenuPresentation(
-  definition: ControlObjectDefinition,
-  operation: ControlObjectOperation,
-) {
+function operationMenuPresentation(operation: ControlObjectOperation) {
   if (operation === "apply") {
     return {
-      label: definition.objectType === "config" ? "选择下发" : "选择应用",
+      label: "选择下发",
       icon: Send,
       iconClassName: "text-cyan-600",
     }
@@ -884,7 +881,7 @@ function ObjectActions({
 
         <DropdownMenuSeparator />
         {operations.length > 0 ? operations.map((operation) => {
-          const presentation = operationMenuPresentation(definition, operation)
+          const presentation = operationMenuPresentation(operation)
           const OperationIcon = presentation.icon
           return (
             <DropdownMenuItem
