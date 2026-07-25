@@ -320,7 +320,7 @@ export function AccessControlWizard() {
   )
 }
 
-function PolicyConfigurationPanel({
+export function PolicyConfigurationPanel({
   copy,
   draft,
   readOnly,
@@ -375,16 +375,20 @@ function PolicyConfigurationPanel({
   )
 }
 
-function PolicyDefinitionBar({
+export function PolicyDefinitionBar({
   copy,
   draft,
   readOnly,
+  typeLocked = false,
+  idPrefix = "access-policy",
   onChange,
   onTypeChange,
 }: {
   copy: AccessControlCopy
   draft: AccessControlPolicyDraft
   readOnly: boolean
+  typeLocked?: boolean
+  idPrefix?: string
   onChange: (patch: Partial<AccessControlPolicyDraft>) => void
   onTypeChange: (type: AccessPolicyType) => void
 }) {
@@ -412,11 +416,12 @@ function PolicyDefinitionBar({
                 key={type}
                 type="button"
                 aria-pressed={active}
+                disabled={typeLocked}
                 title={copy.policyTypes[type][1]}
                 onClick={() => {
-                  if (!active) onTypeChange(type)
+                  if (!active && !typeLocked) onTypeChange(type)
                 }}
-                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 ${
+                className={`flex h-9 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-xs font-medium transition-[background-color,color,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 disabled:cursor-default ${
                   active
                     ? `${POLICY_ACTIVE_COLOR} shadow-sm ring-1 ring-inset`
                     : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
@@ -432,12 +437,12 @@ function PolicyDefinitionBar({
 
       <fieldset disabled={readOnly} className="mt-3 grid grid-cols-1 gap-4 border-t border-slate-200 pt-3 xl:grid-cols-[minmax(320px,1.5fr)_180px_minmax(240px,0.75fr)]">
         <div className="min-w-0 space-y-1.5">
-          <Label htmlFor="access-policy-name" className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
+          <Label htmlFor={`${idPrefix}-name`} className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
             {copy.policyName}
             <span className="ml-1 text-red-500">*</span>
           </Label>
           <Input
-            id="access-policy-name"
+            id={`${idPrefix}-name`}
             value={draft.name}
             onChange={(event) => onChange({ name: event.target.value })}
             placeholder={copy.policyNamePlaceholder}
@@ -446,12 +451,12 @@ function PolicyDefinitionBar({
           />
         </div>
         <div className="min-w-0 space-y-1.5">
-          <Label htmlFor="access-policy-version" className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
+          <Label htmlFor={`${idPrefix}-version`} className="flex h-4 items-center text-xs font-medium leading-none text-slate-700">
             {copy.version}
             <span className="ml-1 text-red-500">*</span>
           </Label>
           <Input
-            id="access-policy-version"
+            id={`${idPrefix}-version`}
             value={draft.version}
             onChange={(event) => onChange({ version: event.target.value })}
             placeholder="1.0.0"

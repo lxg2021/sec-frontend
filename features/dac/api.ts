@@ -164,6 +164,10 @@ const CREATE_ENDPOINT_PATHS: Record<AccessPolicyType, string> = {
   network: "/api/v1/sensor/control/network/policy",
 }
 
+export function getAccessPolicyTypeBySubType(subType: number): AccessPolicyType | null {
+  return ACCESS_POLICY_TYPE_BY_SUB_TYPE[subType] ?? null
+}
+
 function stringValue(value: unknown) {
   return typeof value === "string" ? value.trim() : ""
 }
@@ -505,7 +509,7 @@ function normalizeExistingAccessControlPolicy(
   const policy = definition.Content?.policy ?? definition.policy
   const objectId = stringValue(definition.object_id)
   const subType = numberValue(policy?.sub_type)
-  const policyType = ACCESS_POLICY_TYPE_BY_SUB_TYPE[subType]
+  const policyType = getAccessPolicyTypeBySubType(subType)
   const version = stringValue(definition.object_version) || stringValue(policy?.version)
 
   if (
@@ -529,20 +533,12 @@ function normalizeExistingAccessControlPolicy(
   }
 }
 
-export function buildAccessControlDraftFromExistingPolicy(
+function buildAccessControlDraftFromBody(
   policy: ExistingAccessControlPolicy,
+  body: Record<string, unknown>,
 ): AccessControlPolicyDraft {
   const initial = createInitialAccessControlDraft()
   const policyType = policy.policyType
-  let body: Record<string, unknown> = {}
-
-  try {
-    const envelope = recordValue(JSON.parse(policy.context))
-    body = recordValue(recordValue(envelope.policy).body)
-  } catch {
-    // The Catalog identity remains usable for dispatch even if an old context cannot be rendered.
-  }
-
   const priority = numberValue(body.priority, initial.priority)
   if (policyType === "network") {
     const rule = recordValue(body.rule)
@@ -586,6 +582,118 @@ export function buildAccessControlDraftFromExistingPolicy(
     objectHashes: normalizeStoredHashes(object.hash),
     rules: normalizeStoredRules(body.rules, policyType),
   }
+}
+
+interface ParsedAccessControlPolicyContext {
+  envelope: Record<string, unknown>
+  policyNode: Record<string, unknown>
+  head: Record<string, unknown>
+  body: Record<string, unknown>
+}
+
+function parseEditableAccessControlPolicyContext(
+  policy: ExistingAccessControlPolicy,
+): ParsedAccessControlPolicyContext {
+  let envelope: Record<string, unknown>
+  try {
+    envelope = recordValue(JSON.parse(policy.context))
+  } catch {
+    throw new Error("ACCESS_POLICY_CONTEXT_INVALID")
+  }
+
+  const policyNode = recordValue(envelope.policy)
+  const head = recordValue(policyNode.head)
+  const body = recordValue(policyNode.body)
+  const objectId = stringValue(head.id)
+  const headName = stringValue(head.name)
+  const headVersion = stringValue(head.version)
+
+  if (
+    Object.keys(policyNode).length === 0
+    || Object.keys(head).length === 0
+    || Object.keys(body).length === 0
+    || numberValue(head.type) !== PMC_OBJECT_TYPE_POLICY
+    || numberValue(head.subtype) !== policy.subType
+    || !objectId
+    || objectId.toLowerCase() !== policy.objectId.toLowerCase()
+    || !headName
+    || headName !== policy.name
+    || !headVersion
+    || headVersion !== policy.version
+  ) {
+    throw new Error("ACCESS_POLICY_CONTEXT_IDENTITY_MISMATCH")
+  }
+
+  if (policy.policyType !== "network") {
+    const storedObjectType = stringValue(recordValue(body.object).type)
+    if (storedObjectType !== policy.policyType) {
+      throw new Error("ACCESS_POLICY_CONTEXT_TYPE_MISMATCH")
+    }
+  }
+
+  return { envelope, policyNode, head, body }
+}
+
+export function buildAccessControlDraftFromExistingPolicy(
+  policy: ExistingAccessControlPolicy,
+): AccessControlPolicyDraft {
+  let body: Record<string, unknown> = {}
+
+  try {
+    const envelope = recordValue(JSON.parse(policy.context))
+    body = recordValue(recordValue(envelope.policy).body)
+  } catch {
+    // The Catalog identity remains usable for dispatch even if an old context cannot be rendered.
+  }
+
+  return buildAccessControlDraftFromBody(policy, body)
+}
+
+export function buildEditableAccessControlDraft(
+  policy: ExistingAccessControlPolicy,
+): AccessControlPolicyDraft {
+  const { body } = parseEditableAccessControlPolicyContext(policy)
+  const draft = buildAccessControlDraftFromBody(policy, body)
+  if (validateAccessControlDraft(draft).length > 0) {
+    throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+  }
+  return draft
+}
+
+export function getAccessControlContentFingerprint(draft: AccessControlPolicyDraft) {
+  return getAccessControlDraftFingerprint({ ...draft, version: "1.0.0" })
+}
+
+export function buildUpdatedAccessControlPolicyContext(
+  policy: ExistingAccessControlPolicy,
+  draft: AccessControlPolicyDraft,
+) {
+  if (draft.type !== policy.policyType) throw new Error("ACCESS_POLICY_TYPE_CHANGE_FORBIDDEN")
+
+  const errors = validateAccessControlDraft(draft)
+  if (errors.length > 0) {
+    throw new Error(`invalid access control policy draft: ${errors.join(",")}`)
+  }
+
+  const { envelope, policyNode, head, body } = parseEditableAccessControlPolicyContext(policy)
+  const request = buildCreateAccessControlPolicyRequest(draft, "")
+  const updatedBody = "network_info" in request ? request.network_info : request.policy_info
+
+  return JSON.stringify({
+    ...envelope,
+    policy: {
+      ...policyNode,
+      head: {
+        ...head,
+        name: draft.name.trim(),
+        version: draft.version.trim(),
+      },
+      body: {
+        ...body,
+        ...updatedBody,
+      },
+    },
+  })
 }
 
 function oneOf<T extends string>(value: string, values: readonly T[], fallback: T): T {

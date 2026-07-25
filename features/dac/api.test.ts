@@ -3,12 +3,20 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import {
   applyAccessControlPolicy,
   buildAccessControlDraftFromExistingPolicy,
+  buildEditableAccessControlDraft,
   buildCreateAccessControlPolicyRequest,
+  buildUpdatedAccessControlPolicyContext,
   createAccessControlPolicy,
+  getAccessControlContentFingerprint,
+  getAccessPolicyTypeBySubType,
   listExistingAccessControlPolicies,
   validateAccessControlDraft,
 } from "./api"
-import type { AccessControlPolicyDraft } from "./access-control-types"
+import type {
+  AccessControlPolicyDraft,
+  AccessPolicyType,
+  ExistingAccessControlPolicy,
+} from "./access-control-types"
 import { http } from "@/shared/lib/http/client"
 
 afterEach(() => {
@@ -54,6 +62,57 @@ function baseDraft(type: AccessControlPolicyDraft["type"]): AccessControlPolicyD
       programPath: "C:\\Program Files\\App\\app.exe",
       programMd5: "0123456789abcdef0123456789abcdef",
     },
+  }
+}
+
+const ACCESS_POLICY_SUB_TYPES: Record<AccessPolicyType, number> = {
+  network: 20,
+  file: 90,
+  process: 91,
+  registry: 92,
+}
+
+function editableDraft(type: AccessPolicyType) {
+  const draft = baseDraft(type)
+  if (type === "registry") {
+    draft.objectPaths = ["HKEY_LOCAL_MACHINE\\Software\\WatchPoint"]
+    draft.rules = [{ id: "rule-registry", action: "query", effect: "allow", audit: true }]
+  } else if (type === "process") {
+    draft.objectPaths = ["C:\\Windows\\System32\\target.exe"]
+    draft.objectHashes = [{ algo: "sha256", value: "a".repeat(64) }]
+    draft.rules = [{ id: "rule-process", action: "protect", effect: "prompt", audit: false }]
+  }
+  return draft
+}
+
+function existingPolicy(draft: AccessControlPolicyDraft): ExistingAccessControlPolicy {
+  const request = buildCreateAccessControlPolicyRequest(draft, "request-existing")
+  const subType = ACCESS_POLICY_SUB_TYPES[draft.type]
+  const objectId = `${draft.type}-policy-id`
+  const body = "network_info" in request ? request.network_info : request.policy_info
+  return {
+    objectId,
+    objectType: 1,
+    name: draft.name,
+    version: draft.version,
+    policyType: draft.type,
+    subType,
+    objectState: "active",
+    context: JSON.stringify({
+      schema_marker: "preserve-me",
+      policy: {
+        head: {
+          id: objectId,
+          type: 1,
+          subtype: subType,
+          module: draft.type === "network" ? "NetworkFirewall" : "DacAccessModule",
+          name: draft.name,
+          version: draft.version,
+          future_head_field: true,
+        },
+        body: { ...body, future_body_field: "preserve-me" },
+      },
+    }),
   }
 }
 
@@ -362,5 +421,74 @@ describe("access control request mapping", () => {
       objectPaths: ["C:\\Confidential\\*.docx"],
       rules: [{ action: "write", effect: "block", audit: true }],
     })
+  })
+
+  it.each(["file", "registry", "process", "network"] as const)(
+    "strictly restores and updates a %s policy without changing its identity contract",
+    (type) => {
+      const currentDraft = editableDraft(type)
+      const policy = existingPolicy(currentDraft)
+      const restored = buildEditableAccessControlDraft(policy)
+
+      expect(getAccessControlContentFingerprint(restored)).toBe(
+        getAccessControlContentFingerprint(currentDraft),
+      )
+
+      const updatedDraft = {
+        ...restored,
+        name: `${currentDraft.name} updated`,
+        version: "1.1.0",
+        priority: 200,
+      }
+      const updatedContext = JSON.parse(
+        buildUpdatedAccessControlPolicyContext(policy, updatedDraft),
+      )
+
+      expect(updatedContext).toMatchObject({
+        schema_marker: "preserve-me",
+        policy: {
+          head: {
+            id: policy.objectId,
+            type: 1,
+            subtype: policy.subType,
+            module: type === "network" ? "NetworkFirewall" : "DacAccessModule",
+            name: "Access policy updated",
+            version: "1.1.0",
+            future_head_field: true,
+          },
+          body: {
+            priority: 200,
+            future_body_field: "preserve-me",
+          },
+        },
+      })
+      expect(getAccessPolicyTypeBySubType(policy.subType)).toBe(type)
+    },
+  )
+
+  it("blocks structured editing when the embedded identity does not match the Catalog object", () => {
+    const policy = existingPolicy(editableDraft("file"))
+    const context = JSON.parse(policy.context)
+    context.policy.head.id = "another-object"
+
+    expect(() => buildEditableAccessControlDraft({
+      ...policy,
+      context: JSON.stringify(context),
+    })).toThrow("ACCESS_POLICY_CONTEXT_IDENTITY_MISMATCH")
+  })
+
+  it("ignores version-only changes when deciding whether policy content changed", () => {
+    const draft = editableDraft("network")
+    expect(getAccessControlContentFingerprint({ ...draft, version: "9.9.9" })).toBe(
+      getAccessControlContentFingerprint(draft),
+    )
+    expect(getAccessControlContentFingerprint({ ...draft, name: "Renamed" })).not.toBe(
+      getAccessControlContentFingerprint(draft),
+    )
+  })
+
+  it("does not classify scan or remediation effect subtypes as standard access-control policies", () => {
+    expect(getAccessPolicyTypeBySubType(60)).toBeNull()
+    expect(getAccessPolicyTypeBySubType(1013)).toBeNull()
   })
 })

@@ -8,6 +8,7 @@ vi.mock("@/shared/lib/http/client", () => ({
 
 import {
   BUILTIN_CONTROL_OBJECT_IDS,
+  compareControlObjectVersions,
   deleteControlObjectDefinition,
   getControlObjectDefinition,
   listControlObjectOperations,
@@ -15,6 +16,8 @@ import {
   operateControlObject,
   queryControlObjectAgentOverview,
   queryControlObjectAgents,
+  suggestNextControlObjectVersion,
+  updateControlObjectDefinition,
   type ControlObjectDefinition,
 } from "./api"
 
@@ -351,6 +354,14 @@ describe("control object library API", () => {
     })
     expect(result.definition.source).toBe("manual")
     expect(result.rawDefinition).toBe(rawDefinition)
+    expect(result.editableContent).toEqual({
+      name: "Custom config",
+      subType: 88,
+      version: "3.1.4",
+      context: "{\"enabled\":true,\"nested\":{\"count\":2}}",
+      url: "",
+      md5: "",
+    })
     expect(rawDefinition.config.context).toBe("{\"enabled\":true,\"nested\":{\"count\":2}}")
     expect(JSON.parse(result.displayJson)).toMatchObject({
       config: { context: { enabled: true, nested: { count: 2 } } },
@@ -396,6 +407,98 @@ describe("control object library API", () => {
       },
     })
     await expect(getControlObjectDefinition(configDefinition())).rejects.toThrow("PMC_OBJECT_DETAIL_MISMATCH")
+  })
+
+  it("updates an editable Config using only caller-controlled definition fields", async () => {
+    post.mockResolvedValue({
+      data: {
+        definition: {
+          type: 3,
+          object_id: "custom-config",
+          object_version: "3.2.0",
+          creation_source: 2,
+          config: {
+            name: "Updated config",
+            sub_type: 88,
+            version: "3.2.0",
+            context: "{\"enabled\":false}",
+            url: "https://example.test/config.json",
+            md5: "0123456789abcdef0123456789abcdef",
+          },
+          capabilities: {
+            allowed_agent_operations: [1],
+            can_update: true,
+            catalog_delete_mode: 1,
+          },
+          object_state: "active",
+        },
+      },
+    })
+
+    const result = await updateControlObjectDefinition(configDefinition(), {
+      name: " Updated config ",
+      version: " 3.2.0 ",
+      context: "{\"enabled\":false}",
+      url: " https://example.test/config.json ",
+      md5: " 0123456789ABCDEF0123456789ABCDEF ",
+    })
+
+    expect(post).toHaveBeenCalledWith("updatePMCObjectDefinition", {
+      request_id: expect.stringMatching(/^\d+$/),
+      definition: {
+        type: 3,
+        object_id: "custom-config",
+        config: {
+          name: "Updated config",
+          sub_type: 88,
+          version: "3.2.0",
+          context: "{\"enabled\":false}",
+          url: "https://example.test/config.json",
+          md5: "0123456789abcdef0123456789abcdef",
+        },
+      },
+    })
+    expect(result).toMatchObject({
+      objectId: "custom-config",
+      objectType: "config",
+      internalName: "Updated config",
+      subType: 88,
+      version: "3.2.0",
+      source: "manual",
+    })
+  })
+
+  it("rejects unsafe generic updates before calling the backend", async () => {
+    const command = configDefinition({
+      objectType: "command",
+      objectTypeValue: 2,
+    })
+
+    await expect(updateControlObjectDefinition(command, {
+      name: "command",
+      version: "3.2.0",
+      context: "{}",
+    })).rejects.toThrow("PMC_UPDATE_TYPE_UNSUPPORTED")
+    await expect(updateControlObjectDefinition(configDefinition(), {
+      name: "config",
+      version: "3.0.0",
+      context: "{}",
+    })).rejects.toThrow("PMC_UPDATE_VERSION_INVALID")
+    await expect(updateControlObjectDefinition(configDefinition(), {
+      name: "config",
+      version: "3.2.0",
+      context: "{}",
+      md5: "not-an-md5",
+    })).rejects.toThrow("PMC_UPDATE_MD5_INVALID")
+    expect(post).not.toHaveBeenCalled()
+  })
+
+  it("compares and suggests strict semantic object versions", () => {
+    expect(compareControlObjectVersions("3.2.0", "3.1.4")).toBe(1)
+    expect(compareControlObjectVersions("3.1.4", "3.1.4")).toBe(0)
+    expect(compareControlObjectVersions("3.1", "3.1.4")).toBeNull()
+    expect(suggestNextControlObjectVersion("3.1.4")).toBe("3.2.0")
+    expect(suggestNextControlObjectVersion("invalid")).toBe("")
   })
 
   it("creates an allowed Agent operation with a normalized target set", async () => {

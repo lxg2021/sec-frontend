@@ -34,6 +34,24 @@ export interface ControlObjectDetail {
   definition: ControlObjectDefinition
   rawDefinition: Record<string, unknown>
   displayJson: string
+  editableContent: ControlObjectEditableContent
+}
+
+export interface ControlObjectEditableContent {
+  name: string
+  subType: number
+  version: string
+  context: string
+  url: string
+  md5: string
+}
+
+export interface ControlObjectUpdateInput {
+  name: string
+  version: string
+  context: string
+  url?: string
+  md5?: string
 }
 
 export interface ControlObjectOperationResult {
@@ -489,6 +507,31 @@ function expandContextForDisplay(definition: Record<string, unknown>, objectType
   }
 }
 
+function editableContentFromDefinition(
+  rawDefinition: Record<string, unknown>,
+  definition: ControlObjectDefinition,
+): ControlObjectEditableContent {
+  const content = extractContent(rawDefinition, definition.objectType)
+  const rawContext = fieldValue(content, "context", "Context")
+  const name = stringValue(fieldValue(content, "name", "Name"))
+  const subType = numberValue(fieldValue(content, "sub_type", "subType", "SubType", "subtype"))
+  const version = stringValue(fieldValue(content, "version", "Version")) || definition.version
+  const context = typeof rawContext === "string" ? rawContext : ""
+
+  if (!content || !name || subType <= 0 || !version || context.length === 0) {
+    throw new Error("PMC_OBJECT_EDITABLE_CONTENT_INVALID")
+  }
+
+  return {
+    name,
+    subType,
+    version,
+    context,
+    url: stringValue(fieldValue(content, "url", "Url", "URL")),
+    md5: stringValue(fieldValue(content, "md5", "Md5", "MD5")).toLowerCase(),
+  }
+}
+
 function compareDefinitions(left: ControlObjectDefinition, right: ControlObjectDefinition) {
   const typeOrder = { config: 0, policy: 1, command: 2 } satisfies Record<ControlObjectType, number>
   return typeOrder[left.objectType] - typeOrder[right.objectType]
@@ -570,7 +613,88 @@ export async function getControlObjectDefinition(
     definition: normalized,
     rawDefinition,
     displayJson: JSON.stringify(displayDefinition, null, 2),
+    editableContent: editableContentFromDefinition(rawDefinition, normalized),
   }
+}
+
+const SEMANTIC_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
+
+function parseControlObjectVersion(value: string) {
+  const normalized = value.trim()
+  if (!SEMANTIC_VERSION_PATTERN.test(normalized)) return null
+  const parts = normalized.split(".").map(Number)
+  return parts.every(Number.isSafeInteger) ? parts : null
+}
+
+export function compareControlObjectVersions(left: string, right: string) {
+  const leftParts = parseControlObjectVersion(left)
+  const rightParts = parseControlObjectVersion(right)
+  if (!leftParts || !rightParts) return null
+
+  for (let index = 0; index < leftParts.length; index += 1) {
+    if (leftParts[index] > rightParts[index]) return 1
+    if (leftParts[index] < rightParts[index]) return -1
+  }
+  return 0
+}
+
+export function suggestNextControlObjectVersion(value: string) {
+  const parts = parseControlObjectVersion(value)
+  if (!parts || parts[1] >= Number.MAX_SAFE_INTEGER) return ""
+  return `${parts[0]}.${parts[1] + 1}.0`
+}
+
+export async function updateControlObjectDefinition(
+  definition: ControlObjectDefinition,
+  input: ControlObjectUpdateInput,
+): Promise<ControlObjectDefinition> {
+  if (definition.objectType === "command") throw new Error("PMC_UPDATE_TYPE_UNSUPPORTED")
+  if (!definition.capabilities.canUpdate) throw new Error("PMC_UPDATE_NOT_ALLOWED")
+  if (definition.state.toLowerCase() !== "active") throw new Error("PMC_OBJECT_NOT_ACTIVE")
+
+  const name = input.name.trim()
+  const version = input.version.trim()
+  const context = input.context
+  const url = input.url?.trim() ?? ""
+  const md5 = input.md5?.trim().toLowerCase() ?? ""
+  const versionComparison = compareControlObjectVersions(version, definition.version)
+
+  if (!name || name.length > 255) throw new Error("PMC_UPDATE_NAME_INVALID")
+  if (versionComparison === null || versionComparison < 0) throw new Error("PMC_UPDATE_VERSION_INVALID")
+  if (!context.trim()) throw new Error("PMC_UPDATE_CONTEXT_INVALID")
+  if (url.length > 512) throw new Error("PMC_UPDATE_URL_INVALID")
+  if (md5 && !/^[a-f0-9]{32}$/.test(md5)) throw new Error("PMC_UPDATE_MD5_INVALID")
+
+  const content = {
+    name,
+    sub_type: definition.subType,
+    version,
+    context,
+    ...(definition.objectType === "config" ? { url, md5 } : {}),
+  }
+  const result = (await http.post("updatePMCObjectDefinition", {
+    request_id: createRequestId(),
+    definition: {
+      type: definition.objectTypeValue,
+      object_id: definition.objectId,
+      [definition.objectType]: content,
+    },
+  })) as ApiResult<Record<string, unknown> | null>
+
+  const data = recordValue(result.data)
+  const rawDefinition = recordValue(fieldValue(data, "definition", "Definition"))
+  if (!rawDefinition) throw new Error("PMC_UPDATE_RESPONSE_INVALID")
+
+  const updated = normalizeDefinition(rawDefinition)
+  if (
+    updated.objectTypeValue !== definition.objectTypeValue
+    || updated.objectId.toLowerCase() !== definition.objectId.toLowerCase()
+    || updated.subType !== definition.subType
+    || updated.version !== version
+  ) {
+    throw new Error("PMC_UPDATE_RESPONSE_MISMATCH")
+  }
+  return updated
 }
 
 function normalizeAgentIds(agentIds: string[]) {

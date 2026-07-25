@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
   Boxes,
@@ -37,6 +37,14 @@ import {
 import { ControlObjectDeleteDialog } from "@/features/control-object-library/control-object-delete-dialog"
 import { ControlObjectDeliveryDialog } from "@/features/control-object-library/control-object-delivery-dialog"
 import { ControlObjectDetailDialog } from "@/features/control-object-library/control-object-detail-dialog"
+import { ControlObjectEditorDialog } from "@/features/control-object-library/control-object-editor-dialog"
+import { canEditControlObjectDefinition } from "@/features/control-object-library/control-object-editor-model"
+import {
+  calculateAdaptivePageSize,
+  pageForPreservedOffset,
+} from "@/features/control-object-library/adaptive-page-size"
+import { getAccessPolicyTypeBySubType } from "@/features/dac/api"
+import { AccessControlPolicyEditorDialog } from "@/features/dac/components/access-control-policy-editor-dialog"
 import {
   ControlObjectOperationDialog,
   type ControlObjectOperationTarget,
@@ -75,7 +83,10 @@ type SourceFilter = "all" | ControlObjectSource
 type CapabilityFilter = "all" | "update" | ControlObjectOperation
 type EditorKind = "baseline" | "patch" | "general" | "report" | "sensor"
 
-const PAGE_SIZE = 10
+const DEFAULT_PAGE_SIZE = 10
+const DESKTOP_ROW_HEIGHT = 56
+const MOBILE_CARD_HEIGHT = 260
+const MAX_ADAPTIVE_PAGE_SIZE = 50
 
 const TYPE_PRESENTATION: Record<ControlObjectType, {
   label: string
@@ -170,6 +181,92 @@ function objectRowKey(definition: ControlObjectDefinition) {
   return `${definition.objectTypeValue}:${definition.objectId}`
 }
 
+function pixelValue(value: string) {
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+function useAdaptivePageSize({
+  itemCount,
+  page,
+  loading,
+}: {
+  itemCount: number
+  page: number
+  loading: boolean
+}) {
+  const viewportRef = useRef<HTMLElement>(null)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+
+  useLayoutEffect(() => {
+    const root = viewportRef.current
+    if (!root || loading || itemCount === 0) return
+
+    let animationFrame = 0
+    const calculate = () => {
+      const desktopViewport = root.querySelector<HTMLElement>('[data-adaptive-list="desktop"]')
+      const mobileViewport = root.querySelector<HTMLElement>('[data-adaptive-list="mobile"]')
+      const desktopVisible = desktopViewport && window.getComputedStyle(desktopViewport).display !== "none"
+      const activeViewport = desktopVisible ? desktopViewport : mobileViewport
+      if (!activeViewport || activeViewport.clientHeight <= 0) return
+
+      const items = Array.from(
+        activeViewport.querySelectorAll<HTMLElement>('[data-adaptive-item="true"]'),
+      )
+      const measuredItemHeights = items.map((item) => item.getBoundingClientRect().height)
+      let nextPageSize: number
+
+      if (desktopVisible) {
+        const headerHeight = activeViewport.querySelector<HTMLElement>("thead")
+          ?.getBoundingClientRect().height ?? 0
+        nextPageSize = calculateAdaptivePageSize({
+          viewportHeight: activeViewport.clientHeight,
+          headerHeight,
+          measuredItemHeights,
+          fallbackItemHeight: DESKTOP_ROW_HEIGHT,
+          max: MAX_ADAPTIVE_PAGE_SIZE,
+        })
+      } else {
+        const viewportStyle = window.getComputedStyle(activeViewport)
+        const itemsContainer = activeViewport.querySelector<HTMLElement>('[data-adaptive-items="true"]')
+        const itemStyle = itemsContainer ? window.getComputedStyle(itemsContainer) : null
+        nextPageSize = calculateAdaptivePageSize({
+          viewportHeight: activeViewport.clientHeight,
+          verticalPadding: pixelValue(viewportStyle.paddingTop) + pixelValue(viewportStyle.paddingBottom),
+          gap: pixelValue(itemStyle?.rowGap ?? "0"),
+          measuredItemHeights,
+          fallbackItemHeight: MOBILE_CARD_HEIGHT,
+          max: MAX_ADAPTIVE_PAGE_SIZE,
+        })
+      }
+
+      setPageSize((current) => current === nextPageSize ? current : nextPageSize)
+    }
+
+    const scheduleCalculation = () => {
+      window.cancelAnimationFrame(animationFrame)
+      animationFrame = window.requestAnimationFrame(calculate)
+    }
+
+    const observer = typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(scheduleCalculation)
+    observer?.observe(root)
+    root.querySelectorAll<HTMLElement>('[data-adaptive-list], table, [data-adaptive-items="true"]')
+      .forEach((element) => observer?.observe(element))
+    window.addEventListener("resize", scheduleCalculation)
+    scheduleCalculation()
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame)
+      window.removeEventListener("resize", scheduleCalculation)
+      observer?.disconnect()
+    }
+  }, [itemCount, loading, page, pageSize])
+
+  return { viewportRef, pageSize }
+}
+
 export function ControlObjectLibraryPage() {
   const [objects, setObjects] = useState<ControlObjectDefinition[]>([])
   const [loading, setLoading] = useState(true)
@@ -182,6 +279,8 @@ export function ControlObjectLibraryPage() {
   const [selectedObjectKey, setSelectedObjectKey] = useState<string | null>(null)
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)
   const [activeEditor, setActiveEditor] = useState<EditorKind | null>(null)
+  const [accessPolicyEditTarget, setAccessPolicyEditTarget] = useState<ControlObjectDefinition | null>(null)
+  const [genericEditTarget, setGenericEditTarget] = useState<ControlObjectDefinition | null>(null)
   const [detailTarget, setDetailTarget] = useState<ControlObjectDefinition | null>(null)
   const [deliveryTarget, setDeliveryTarget] = useState<ControlObjectDefinition | null>(null)
   const [operationTarget, setOperationTarget] = useState<ControlObjectOperationTarget | null>(null)
@@ -252,11 +351,17 @@ export function ControlObjectLibraryPage() {
     })
   }, [capabilityFilter, keyword, objects, sourceFilter, typeFilter])
 
-  const totalPages = Math.max(1, Math.ceil(filteredObjects.length / PAGE_SIZE))
+  const { viewportRef: listViewportRef, pageSize } = useAdaptivePageSize({
+    itemCount: filteredObjects.length,
+    page,
+    loading,
+  })
+  const previousPageSizeRef = useRef(pageSize)
+  const totalPages = Math.max(1, Math.ceil(filteredObjects.length / pageSize))
   const paginatedObjects = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE
-    return filteredObjects.slice(start, start + PAGE_SIZE)
-  }, [filteredObjects, page])
+    const start = (page - 1) * pageSize
+    return filteredObjects.slice(start, start + pageSize)
+  }, [filteredObjects, page, pageSize])
 
   useEffect(() => {
     setPage(1)
@@ -265,6 +370,13 @@ export function ControlObjectLibraryPage() {
   useEffect(() => {
     setPage((current) => Math.min(current, totalPages))
   }, [totalPages])
+
+  useEffect(() => {
+    const previousPageSize = previousPageSizeRef.current
+    if (previousPageSize === pageSize) return
+    setPage((current) => pageForPreservedOffset(current, previousPageSize, pageSize))
+    previousPageSizeRef.current = pageSize
+  }, [pageSize])
 
   const resetFilters = () => {
     setKeyword("")
@@ -278,6 +390,19 @@ export function ControlObjectLibraryPage() {
 
   const handleObjectUpdated = () => {
     void loadObjects()
+  }
+
+  const handleEditDefinition = (definition: ControlObjectDefinition) => {
+    if (definition.objectType === "policy" && getAccessPolicyTypeBySubType(definition.subType)) {
+      setAccessPolicyEditTarget(definition)
+      return
+    }
+    const kind = editorKind(definition)
+    if (kind) {
+      setActiveEditor(kind)
+      return
+    }
+    setGenericEditTarget(definition)
   }
 
   return (
@@ -403,14 +528,14 @@ export function ControlObjectLibraryPage() {
               </div>
             )}
 
-            <section aria-label="控制对象列表" className="min-h-0 flex-1 overflow-hidden">
+            <section ref={listViewportRef} aria-label="控制对象列表" className="min-h-0 flex-1 overflow-hidden">
               {loading && objects.length === 0 ? (
                 <ObjectListSkeleton />
               ) : filteredObjects.length === 0 ? (
                 <EmptyState filtered={objects.length > 0} onReset={resetFilters} />
               ) : (
                 <>
-                  <div className="hidden h-full min-h-0 overflow-auto lg:block">
+                  <div data-adaptive-list="desktop" className="hidden h-full min-h-0 overflow-x-auto overflow-y-hidden lg:block">
                     <table className="w-full min-w-[1060px] table-fixed border-collapse text-sm">
                       <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs text-slate-500 backdrop-blur">
                         <tr className="border-b border-slate-200">
@@ -438,7 +563,7 @@ export function ControlObjectLibraryPage() {
                             definition={definition}
                             selected={selectedObjectKey === objectRowKey(definition)}
                             onSelect={() => setSelectedObjectKey(objectRowKey(definition))}
-                            onEdit={(kind) => setActiveEditor(kind)}
+                            onEdit={() => handleEditDefinition(definition)}
                             onViewJson={setDetailTarget}
                             onViewDelivery={setDeliveryTarget}
                             onOperate={(operation) => setOperationTarget({ definition, operation })}
@@ -449,13 +574,13 @@ export function ControlObjectLibraryPage() {
                     </table>
                   </div>
 
-                  <div className="h-full min-h-0 overflow-y-auto bg-slate-50/60 p-3 lg:hidden">
-                    <div className="space-y-3">
+                  <div data-adaptive-list="mobile" className="h-full min-h-0 overflow-hidden bg-slate-50/60 p-3 lg:hidden">
+                    <div data-adaptive-items="true" className="space-y-3">
                       {paginatedObjects.map((definition) => (
                         <ObjectMobileCard
                           key={`${definition.objectTypeValue}:${definition.objectId}`}
                           definition={definition}
-                          onEdit={(kind) => setActiveEditor(kind)}
+                          onEdit={() => handleEditDefinition(definition)}
                           onViewJson={setDetailTarget}
                           onViewDelivery={setDeliveryTarget}
                           onOperate={(operation) => setOperationTarget({ definition, operation })}
@@ -473,6 +598,7 @@ export function ControlObjectLibraryPage() {
                 page={page}
                 totalPages={totalPages}
                 total={filteredObjects.length}
+                pageSize={pageSize}
                 onPageChange={setPage}
               />
             )}
@@ -504,6 +630,20 @@ export function ControlObjectLibraryPage() {
         <ReportConfigDialog
           open={activeEditor === "report"}
           onOpenChange={(open) => setActiveEditor(open ? "report" : null)}
+          onUpdated={handleObjectUpdated}
+        />
+        <AccessControlPolicyEditorDialog
+          definition={accessPolicyEditTarget}
+          onOpenChange={(open) => {
+            if (!open) setAccessPolicyEditTarget(null)
+          }}
+          onUpdated={handleObjectUpdated}
+        />
+        <ControlObjectEditorDialog
+          definition={genericEditTarget}
+          onOpenChange={(open) => {
+            if (!open) setGenericEditTarget(null)
+          }}
           onUpdated={handleObjectUpdated}
         />
         <ControlObjectDetailDialog
@@ -601,7 +741,7 @@ function ObjectTableRow({
   definition: ControlObjectDefinition
   selected: boolean
   onSelect: () => void
-  onEdit: (kind: EditorKind) => void
+  onEdit: () => void
   onViewJson: (definition: ControlObjectDefinition) => void
   onViewDelivery: (definition: ControlObjectDefinition) => void
   onOperate: (operation: ControlObjectOperation) => void
@@ -612,6 +752,7 @@ function ObjectTableRow({
 
   return (
     <tr
+      data-adaptive-item="true"
       aria-selected={selected}
       tabIndex={0}
       onClick={onSelect}
@@ -713,7 +854,7 @@ function ObjectMobileCard({
   onDelete,
 }: {
   definition: ControlObjectDefinition
-  onEdit: (kind: EditorKind) => void
+  onEdit: () => void
   onViewJson: (definition: ControlObjectDefinition) => void
   onViewDelivery: (definition: ControlObjectDefinition) => void
   onOperate: (operation: ControlObjectOperation) => void
@@ -723,7 +864,7 @@ function ObjectMobileCard({
   const TypeIcon = type.icon
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <article data-adaptive-item="true" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="p-4">
         <div className="flex min-w-0 items-center gap-3">
           <TypeIcon className={cn("h-5 w-5 shrink-0", type.iconClassName)} aria-hidden="true" />
@@ -805,17 +946,16 @@ function ObjectActions({
   align,
 }: {
   definition: ControlObjectDefinition
-  onEdit: (kind: EditorKind) => void
+  onEdit: () => void
   onViewJson: (definition: ControlObjectDefinition) => void
   onOperate: (operation: ControlObjectOperation) => void
   onDelete: () => void
   align: "right" | "stretch"
 }) {
-  const kind = editorKind(definition)
-  const canEdit = Boolean(kind && definition.capabilities.canUpdate)
+  const canEdit = canEditControlObjectDefinition(definition)
   const editReason = !definition.capabilities.canUpdate
     ? "后台能力合同不允许更新此对象"
-    : "该对象尚未提供安全的可视化编辑器"
+    : "后台更新接口只支持策略和配置"
   const operationOrder: Record<ControlObjectOperation, number> = {
     apply: 0,
     stop: 1,
@@ -865,9 +1005,7 @@ function ObjectActions({
         <DropdownMenuItem
           disabled={!canEdit}
           title={canEdit ? undefined : editReason}
-          onSelect={() => {
-            if (kind) onEdit(kind)
-          }}
+          onSelect={onEdit}
           className="cursor-pointer rounded-lg py-2"
         >
           <Pencil className="text-cyan-600" aria-hidden="true" />
@@ -966,15 +1104,17 @@ function PaginationFooter({
   page,
   totalPages,
   total,
+  pageSize,
   onPageChange,
 }: {
   page: number
   totalPages: number
   total: number
+  pageSize: number
   onPageChange: (page: number) => void
 }) {
-  const start = (page - 1) * PAGE_SIZE + 1
-  const end = Math.min(page * PAGE_SIZE, total)
+  const start = (page - 1) * pageSize + 1
+  const end = Math.min(page * pageSize, total)
 
   return (
     <footer className="flex min-h-12 shrink-0 items-center justify-between gap-3 border-t border-slate-200 bg-white px-3 py-2 sm:px-4">
