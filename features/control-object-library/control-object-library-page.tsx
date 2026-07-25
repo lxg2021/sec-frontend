@@ -9,6 +9,7 @@ import {
   ChevronRight,
   CircleAlert,
   CircleStop,
+  Eye,
   FileSliders,
   LibraryBig,
   MoreHorizontal,
@@ -292,9 +293,9 @@ export function ControlObjectLibraryPage() {
                   <LibraryBig className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 space-y-1">
-                  <h1 className="truncate text-lg font-semibold leading-tight text-slate-950">控制对象库</h1>
+                  <h1 className="truncate text-lg font-semibold leading-tight text-slate-950">管理中心</h1>
                   <p className="truncate text-xs text-slate-500 sm:text-sm">
-                    统一管理 Agent 内置配置、策略和命令
+                    统一管理内置配置、策略和命令
                   </p>
                 </div>
               </div>
@@ -425,7 +426,7 @@ export function ControlObjectLibraryPage() {
                                 "px-3 py-3 font-medium",
                                 column.align === "center" && "text-center",
                                 column.align === "left" && "text-left",
-                                column.key === "actions" && "sticky right-0 z-20 bg-slate-50 pl-5 pr-3 shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)]",
+                                column.key === "actions" && "sticky right-0 z-20 bg-slate-50 pl-6 pr-2 shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)]",
                               )}
                             >
                               {column.label}
@@ -683,15 +684,15 @@ function ObjectTableRow({
           variant="ghost"
           size="sm"
           onClick={() => onViewDelivery(definition)}
-          className="h-8 rounded-full px-2 text-xs font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800"
+          className="h-8 gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:ring-cyan-500 focus-visible:ring-offset-0 [&_svg]:size-3.5"
         >
-          <Activity className="h-3.5 w-3.5 text-cyan-600" aria-hidden="true" />
+          <Eye aria-hidden="true" />
           查看
         </Button>
       </td>
       <td className={cn(
         "sticky right-0 z-[5] px-4 py-3 align-middle shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)] transition-colors",
-        selected ? "bg-cyan-50" : "bg-white group-hover:bg-cyan-50",
+        selected ? "bg-cyan-50" : "bg-white group-hover:bg-cyan-50/30",
       )}>
         <ObjectActions
           definition={definition}
@@ -848,8 +849,8 @@ function ObjectActions({
           size="sm"
           aria-label={`打开“${definition.displayName}”操作菜单`}
           className={cn(
-            "h-8 rounded-full text-slate-600 hover:bg-cyan-50 hover:text-cyan-700",
-            align === "right" ? "w-8 p-0" : "w-full gap-2",
+            "h-8 rounded-full text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:ring-cyan-500 focus-visible:ring-offset-0",
+            align === "right" ? "w-10 p-0" : "w-full gap-2",
           )}
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />

@@ -512,7 +512,7 @@ export function SensorConfigDialog({
 
                     <div className="rounded-xl border border-cyan-100 bg-cyan-50 p-4 text-xs leading-5 text-cyan-900">
                       <div className="mb-1 flex items-center gap-2 font-semibold"><PackageCheck className="h-4 w-4" />版本与下发相互独立</div>
-                      创建操作只会生成新的控制对象版本，不会立即下发。后续可从对象库选择目标主机执行下发。
+                      创建操作只会生成新的控制对象版本，不会立即下发。后续可从管理中心选择目标主机执行下发。
                     </div>
                   </div>
                 </ScrollArea>

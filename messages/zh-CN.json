@@ -149,7 +149,7 @@
     "iocVerification": "情报验证",
     "reports": "审计中心",
     "control": "控制中心",
-    "sensorconfig": "控制对象库"
+    "sensorconfig": "管理中心"
   },
   "pages": {
     "collection": {

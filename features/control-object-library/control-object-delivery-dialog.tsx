@@ -355,7 +355,7 @@ export function ControlObjectDeliveryDialog({
             </span>
             <div className="min-w-0 flex-1">
               <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                对象下发情况
+                应用情况
               </DialogTitle>
               <DialogDescription className="mt-0.5 truncate text-xs text-slate-500">
                 {definition ? `${definition.displayName} · 当前版本 ${definition.version}` : "查看对象运行态和历史下发批次"}

@@ -54,7 +54,7 @@ export function ControlObjectDeleteDialog({
         title: removesEffects ? "删除流程已创建" : "对象已删除",
         description: result.operationId
           ? `后台将先移除主机效果，Operation ID：${result.operationId}`
-          : `“${definition.displayName}”已从活动对象库移除。`,
+          : `“${definition.displayName}”已从管理中心移除。`,
         variant: "success",
       })
       onOpenChange(false)
