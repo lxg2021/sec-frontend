@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
+  Activity,
   Boxes,
   Braces,
   ChevronLeft,
@@ -33,6 +34,7 @@ import {
   type ControlObjectType,
 } from "@/features/control-object-library/api"
 import { ControlObjectDeleteDialog } from "@/features/control-object-library/control-object-delete-dialog"
+import { ControlObjectDeliveryDialog } from "@/features/control-object-library/control-object-delivery-dialog"
 import { ControlObjectDetailDialog } from "@/features/control-object-library/control-object-detail-dialog"
 import {
   ControlObjectOperationDialog,
@@ -179,6 +181,7 @@ export function ControlObjectLibraryPage() {
   const [categories, setCategories] = useState<ConfigCategory[]>(defaultConfigCategory)
   const [activeEditor, setActiveEditor] = useState<EditorKind | null>(null)
   const [detailTarget, setDetailTarget] = useState<ControlObjectDefinition | null>(null)
+  const [deliveryTarget, setDeliveryTarget] = useState<ControlObjectDefinition | null>(null)
   const [operationTarget, setOperationTarget] = useState<ControlObjectOperationTarget | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<ControlObjectDefinition | null>(null)
   const requestSequence = useRef(0)
@@ -434,6 +437,7 @@ export function ControlObjectLibraryPage() {
                             definition={definition}
                             onEdit={(kind) => setActiveEditor(kind)}
                             onViewJson={setDetailTarget}
+                            onViewDelivery={setDeliveryTarget}
                             onOperate={(operation) => setOperationTarget({ definition, operation })}
                             onDelete={() => setDeleteTarget(definition)}
                           />
@@ -450,6 +454,7 @@ export function ControlObjectLibraryPage() {
                           definition={definition}
                           onEdit={(kind) => setActiveEditor(kind)}
                           onViewJson={setDetailTarget}
+                          onViewDelivery={setDeliveryTarget}
                           onOperate={(operation) => setOperationTarget({ definition, operation })}
                           onDelete={() => setDeleteTarget(definition)}
                         />
@@ -503,6 +508,12 @@ export function ControlObjectLibraryPage() {
           definition={detailTarget}
           onOpenChange={(open) => {
             if (!open) setDetailTarget(null)
+          }}
+        />
+        <ControlObjectDeliveryDialog
+          definition={deliveryTarget}
+          onOpenChange={(open) => {
+            if (!open) setDeliveryTarget(null)
           }}
         />
         <ControlObjectOperationDialog
@@ -578,12 +589,14 @@ function ObjectTableRow({
   definition,
   onEdit,
   onViewJson,
+  onViewDelivery,
   onOperate,
   onDelete,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
   onViewJson: (definition: ControlObjectDefinition) => void
+  onViewDelivery: (definition: ControlObjectDefinition) => void
   onOperate: (operation: ControlObjectOperation) => void
   onDelete: () => void
 }) {
@@ -635,6 +648,18 @@ function ObjectTableRow({
           {stateLabel(definition.state)}
         </span>
       </td>
+      <td className="px-2 py-3 text-center align-middle">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onViewDelivery(definition)}
+          className="h-8 rounded-full px-2 text-xs font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800"
+        >
+          <Activity className="h-3.5 w-3.5 text-cyan-600" aria-hidden="true" />
+          查看
+        </Button>
+      </td>
       <td className="sticky right-0 z-[5] bg-white px-4 py-3 align-middle shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)] transition-colors group-hover:bg-cyan-50">
         <ObjectActions
           definition={definition}
@@ -653,12 +678,14 @@ function ObjectMobileCard({
   definition,
   onEdit,
   onViewJson,
+  onViewDelivery,
   onOperate,
   onDelete,
 }: {
   definition: ControlObjectDefinition
   onEdit: (kind: EditorKind) => void
   onViewJson: (definition: ControlObjectDefinition) => void
+  onViewDelivery: (definition: ControlObjectDefinition) => void
   onOperate: (operation: ControlObjectOperation) => void
   onDelete: () => void
 }) {
@@ -686,14 +713,24 @@ function ObjectMobileCard({
         </dl>
       </div>
 
-      <div className="border-t border-slate-100 p-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t border-slate-100 p-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onViewDelivery(definition)}
+          className="h-8 min-w-0 rounded-full border-slate-200 text-xs text-slate-700 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800"
+        >
+          <Activity className="h-3.5 w-3.5 text-cyan-600" aria-hidden="true" />
+          查看下发情况
+        </Button>
         <ObjectActions
           definition={definition}
           onEdit={onEdit}
           onViewJson={onViewJson}
           onOperate={onOperate}
           onDelete={onDelete}
-          align="stretch"
+          align="right"
         />
       </div>
     </article>

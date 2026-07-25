@@ -16,8 +16,25 @@ describe("control object table presentation", () => {
       ["version", "当前版本"],
       ["source", "来源"],
       ["state", "状态"],
+      ["delivery", "下发情况"],
       ["actions", "操作"],
     ])
+  })
+
+  it("uses a complete percentage width grid so wide screens do not over-expand the ID column", () => {
+    expect(CONTROL_OBJECT_TABLE_COLUMNS.map(({ key, widthClassName }) => [key, widthClassName]))
+      .toEqual([
+        ["type", "w-[7%]"],
+        ["displayName", "w-[16%]"],
+        ["internalName", "w-[16%]"],
+        ["objectId", "w-[17%]"],
+        ["subType", "w-[6%]"],
+        ["version", "w-[8%]"],
+        ["source", "w-[8%]"],
+        ["state", "w-[7%]"],
+        ["delivery", "w-[9%]"],
+        ["actions", "w-[6%]"],
+      ])
   })
 
   it("uses stable business labels for every catalog delete mode", () => {

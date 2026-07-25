@@ -5,6 +5,8 @@ export type ControlObjectType = "policy" | "command" | "config"
 export type ControlObjectSource = "builtin" | "manual" | "remediation" | "mitigation" | "unknown"
 export type ControlObjectOperation = "apply" | "stop" | "remove" | "execute"
 export type ControlObjectDeleteMode = "forbidden" | "metadata_only" | "remove_effects" | "unknown"
+export type ControlObjectExecutionStatus = "pending" | "accepted" | "running" | "success" | "failed" | "skipped" | "canceled" | "unknown"
+export type ControlObjectFailureCertainty = "definitive" | "uncertain" | "unknown"
 
 export interface ControlObjectCapabilities {
   profile: string
@@ -59,6 +61,130 @@ export interface ControlObjectAgentState {
   hasActiveChange: boolean
 }
 
+export interface ControlObjectCurrentEffect {
+  objectVersion: string
+  currentState: string
+  applyState: string
+  evidenceDispatchId: string
+  evidenceResultVersion: number
+  stateVersion: number
+  lastReportAtUnixMs: number
+}
+
+export interface ControlObjectActiveChange {
+  operationId: string
+  dispatchId: string
+  targetObjectVersion: string
+  operation: ControlObjectOperation | "unknown"
+  publishStatus: string
+  executionStatus: ControlObjectExecutionStatus
+  failureCertainty: ControlObjectFailureCertainty
+  errorCode: string
+  errorMessage: string
+  resultVersion: number
+  createdAtUnixMs: number
+  updatedAtUnixMs: number
+  lastReportAtUnixMs: number
+  taskVisibility: string
+}
+
+export interface ControlObjectExecutionSnapshot {
+  operationId: string
+  dispatchId: string
+  agentId: string
+  objectTypeValue: 1 | 2 | 3
+  objectId: string
+  objectVersion: string
+  operation: ControlObjectOperation | "unknown"
+  publishStatus: string
+  executionStatus: ControlObjectExecutionStatus
+  failureCertainty: ControlObjectFailureCertainty
+  reasonCode: string
+  reasonMessage: string
+  errorCode: string
+  errorMessage: string
+  resultVersion: number
+  createdAtUnixMs: number
+  updatedAtUnixMs: number
+  publishedAtUnixMs: number
+  startedAtUnixMs: number
+  lastReportAtUnixMs: number
+  finishedAtUnixMs: number
+  taskVisibility: string
+}
+
+export interface ControlObjectAgentOverview {
+  agentId: string
+  objectTypeValue: 1 | 2 | 3
+  objectId: string
+  objectName: string
+  objectSubType: number
+  objectVersion: string
+  statusModel: "current_effect" | "execution_only"
+  currentEffect: ControlObjectCurrentEffect | null
+  activeChange: ControlObjectActiveChange | null
+  latestExecution: ControlObjectExecutionSnapshot | null
+  executionCount: number
+}
+
+export interface ControlObjectAgentOverviewStatistics {
+  totalAgents: number
+  effectiveCount: number
+  startedCount: number
+  stoppedCount: number
+  pendingCount: number
+  runningCount: number
+  successCount: number
+  failedCount: number
+  uncertainCount: number
+  skippedCount: number
+  canceledCount: number
+}
+
+export interface ControlObjectAgentOverviewPage {
+  items: ControlObjectAgentOverview[]
+  statistics: ControlObjectAgentOverviewStatistics
+  total: number
+  page: number
+  pageSize: number
+}
+
+export interface ControlObjectOperationSnapshot {
+  operationId: string
+  sourceType: string
+  sourceRefId: string
+  objectTypeValue: 1 | 2 | 3
+  objectId: string
+  objectVersion: string
+  operation: ControlObjectOperation | "unknown"
+  planningStatus: string
+  status: string
+  outcome: string
+  revision: number
+  totalCount: number
+  materializedCount: number
+  pendingCount: number
+  runningCount: number
+  successCount: number
+  failedCount: number
+  uncertainCount: number
+  skippedCount: number
+  canceledCount: number
+  resultVersion: number
+  createdAtUnixMs: number
+  updatedAtUnixMs: number
+  completedAtUnixMs: number
+  canceledBy: string
+  cancelReason: string
+}
+
+export interface ControlObjectOperationPage {
+  items: ControlObjectOperationSnapshot[]
+  total: number
+  page: number
+  pageSize: number
+}
+
 export interface ControlObjectDeleteResult {
   objectId: string
   state: string
@@ -80,6 +206,17 @@ interface RawListResponseData {
 
 interface RawAgentListResponseData {
   agents?: unknown
+  total?: unknown
+  page?: unknown
+  page_size?: unknown
+  pageSize?: unknown
+  statistics?: unknown
+  Statistics?: unknown
+}
+
+interface RawOperationListResponseData {
+  operations?: unknown
+  Operations?: unknown
   total?: unknown
   page?: unknown
   page_size?: unknown
@@ -176,6 +313,38 @@ function normalizeOperation(value: unknown): ControlObjectOperation | null {
   if (normalized.includes("STOP")) return "stop"
   if (normalized.includes("APPLY")) return "apply"
   return null
+}
+
+function normalizeExecutionStatus(value: unknown): ControlObjectExecutionStatus {
+  const numeric = numberValue(value, Number.NaN)
+  if (numeric === 1) return "pending"
+  if (numeric === 2) return "running"
+  if (numeric === 3) return "success"
+  if (numeric === 4) return "failed"
+  if (numeric === 5) return "skipped"
+  if (numeric === 6) return "canceled"
+  if (numeric === 7) return "accepted"
+
+  const normalized = stringValue(value).toLowerCase()
+  if (normalized.includes("accepted")) return "accepted"
+  if (normalized.includes("pending")) return "pending"
+  if (normalized.includes("running")) return "running"
+  if (normalized.includes("success")) return "success"
+  if (normalized.includes("failed")) return "failed"
+  if (normalized.includes("skipped")) return "skipped"
+  if (normalized.includes("canceled") || normalized.includes("cancelled")) return "canceled"
+  return "unknown"
+}
+
+function normalizeFailureCertainty(value: unknown): ControlObjectFailureCertainty {
+  const numeric = numberValue(value, Number.NaN)
+  if (numeric === 1) return "definitive"
+  if (numeric === 2) return "uncertain"
+
+  const normalized = stringValue(value).toLowerCase()
+  if (normalized.includes("definitive")) return "definitive"
+  if (normalized.includes("uncertain")) return "uncertain"
+  return "unknown"
 }
 
 function normalizeDeleteMode(value: unknown): ControlObjectDeleteMode {
@@ -408,10 +577,93 @@ function normalizeAgentIds(agentIds: string[]) {
   return Array.from(new Set(agentIds.map((agentId) => agentId.trim()).filter(Boolean)))
 }
 
-function normalizeAgentState(
+function normalizeCurrentEffect(value: unknown): ControlObjectCurrentEffect | null {
+  const effect = recordValue(value)
+  if (!effect) return null
+
+  return {
+    objectVersion: stringValue(fieldValue(effect, "object_version", "objectVersion", "ObjectVersion")),
+    currentState: stringValue(fieldValue(effect, "current_state", "currentState", "CurrentState")).toLowerCase(),
+    applyState: stringValue(fieldValue(effect, "apply_state", "applyState", "ApplyState")).toLowerCase(),
+    evidenceDispatchId: stringValue(fieldValue(effect, "evidence_dispatch_id", "evidenceDispatchId", "EvidenceDispatchId", "EvidenceDispatchID")),
+    evidenceResultVersion: Math.max(0, numberValue(fieldValue(effect, "evidence_result_version", "evidenceResultVersion", "EvidenceResultVersion"))),
+    stateVersion: Math.max(0, numberValue(fieldValue(effect, "state_version", "stateVersion", "StateVersion"))),
+    lastReportAtUnixMs: Math.max(0, numberValue(fieldValue(effect, "last_report_at_unix_ms", "lastReportAtUnixMs", "LastReportAtUnixMs", "LastReportAtUnixMS"))),
+  }
+}
+
+function normalizeActiveChange(value: unknown): ControlObjectActiveChange | null {
+  const change = recordValue(value)
+  if (!change) return null
+
+  return {
+    operationId: stringValue(fieldValue(change, "operation_id", "operationId", "OperationId", "OperationID")),
+    dispatchId: stringValue(fieldValue(change, "dispatch_id", "dispatchId", "DispatchId", "DispatchID")),
+    targetObjectVersion: stringValue(fieldValue(change, "target_object_version", "targetObjectVersion", "TargetObjectVersion")),
+    operation: normalizeOperation(fieldValue(change, "operation", "Operation")) ?? "unknown",
+    publishStatus: stringValue(fieldValue(change, "publish_status", "publishStatus", "PublishStatus")).toLowerCase(),
+    executionStatus: normalizeExecutionStatus(fieldValue(change, "execution_status", "executionStatus", "ExecutionStatus")),
+    failureCertainty: normalizeFailureCertainty(fieldValue(change, "failure_certainty", "failureCertainty", "FailureCertainty")),
+    errorCode: stringValue(fieldValue(change, "error_code", "errorCode", "ErrorCode")),
+    errorMessage: stringValue(fieldValue(change, "error_message", "errorMessage", "ErrorMessage")),
+    resultVersion: Math.max(0, numberValue(fieldValue(change, "result_version", "resultVersion", "ResultVersion"))),
+    createdAtUnixMs: Math.max(0, numberValue(fieldValue(change, "created_at_unix_ms", "createdAtUnixMs", "CreatedAtUnixMs", "CreatedAtUnixMS"))),
+    updatedAtUnixMs: Math.max(0, numberValue(fieldValue(change, "updated_at_unix_ms", "updatedAtUnixMs", "UpdatedAtUnixMs", "UpdatedAtUnixMS"))),
+    lastReportAtUnixMs: Math.max(0, numberValue(fieldValue(change, "last_report_at_unix_ms", "lastReportAtUnixMs", "LastReportAtUnixMs", "LastReportAtUnixMS"))),
+    taskVisibility: stringValue(fieldValue(change, "task_visibility", "taskVisibility", "TaskVisibility")).toLowerCase(),
+  }
+}
+
+function normalizeExecutionSnapshot(
   value: unknown,
   definition: ControlObjectDefinition,
-): ControlObjectAgentState {
+  expectedAgentId: string,
+): ControlObjectExecutionSnapshot | null {
+  const execution = recordValue(value)
+  if (!execution) return null
+
+  const agentId = stringValue(fieldValue(execution, "agent_id", "agentId", "AgentId", "AgentID"))
+  const objectTypeValue = normalizeObjectType(fieldValue(execution, "object_type", "objectType", "ObjectType"))
+  const objectId = stringValue(fieldValue(execution, "object_id", "objectId", "ObjectId", "ObjectID"))
+  if (
+    !agentId
+    || agentId !== expectedAgentId
+    || objectTypeValue !== definition.objectTypeValue
+    || objectId.toLowerCase() !== definition.objectId.toLowerCase()
+  ) {
+    throw new Error("PMC_OBJECT_AGENT_INVALID")
+  }
+
+  return {
+    operationId: stringValue(fieldValue(execution, "operation_id", "operationId", "OperationId", "OperationID")),
+    dispatchId: stringValue(fieldValue(execution, "dispatch_id", "dispatchId", "DispatchId", "DispatchID")),
+    agentId,
+    objectTypeValue,
+    objectId,
+    objectVersion: stringValue(fieldValue(execution, "object_version", "objectVersion", "ObjectVersion")),
+    operation: normalizeOperation(fieldValue(execution, "operation", "Operation")) ?? "unknown",
+    publishStatus: stringValue(fieldValue(execution, "publish_status", "publishStatus", "PublishStatus")).toLowerCase(),
+    executionStatus: normalizeExecutionStatus(fieldValue(execution, "execution_status", "executionStatus", "ExecutionStatus")),
+    failureCertainty: normalizeFailureCertainty(fieldValue(execution, "failure_certainty", "failureCertainty", "FailureCertainty")),
+    reasonCode: stringValue(fieldValue(execution, "reason_code", "reasonCode", "ReasonCode")),
+    reasonMessage: stringValue(fieldValue(execution, "reason_message", "reasonMessage", "ReasonMessage")),
+    errorCode: stringValue(fieldValue(execution, "error_code", "errorCode", "ErrorCode")),
+    errorMessage: stringValue(fieldValue(execution, "error_message", "errorMessage", "ErrorMessage")),
+    resultVersion: Math.max(0, numberValue(fieldValue(execution, "result_version", "resultVersion", "ResultVersion"))),
+    createdAtUnixMs: Math.max(0, numberValue(fieldValue(execution, "created_at_unix_ms", "createdAtUnixMs", "CreatedAtUnixMs", "CreatedAtUnixMS"))),
+    updatedAtUnixMs: Math.max(0, numberValue(fieldValue(execution, "updated_at_unix_ms", "updatedAtUnixMs", "UpdatedAtUnixMs", "UpdatedAtUnixMS"))),
+    publishedAtUnixMs: Math.max(0, numberValue(fieldValue(execution, "published_at_unix_ms", "publishedAtUnixMs", "PublishedAtUnixMs", "PublishedAtUnixMS"))),
+    startedAtUnixMs: Math.max(0, numberValue(fieldValue(execution, "started_at_unix_ms", "startedAtUnixMs", "StartedAtUnixMs", "StartedAtUnixMS"))),
+    lastReportAtUnixMs: Math.max(0, numberValue(fieldValue(execution, "last_report_at_unix_ms", "lastReportAtUnixMs", "LastReportAtUnixMs", "LastReportAtUnixMS"))),
+    finishedAtUnixMs: Math.max(0, numberValue(fieldValue(execution, "finished_at_unix_ms", "finishedAtUnixMs", "FinishedAtUnixMs", "FinishedAtUnixMS"))),
+    taskVisibility: stringValue(fieldValue(execution, "task_visibility", "taskVisibility", "TaskVisibility")).toLowerCase(),
+  }
+}
+
+function normalizeAgentOverview(
+  value: unknown,
+  definition: ControlObjectDefinition,
+): ControlObjectAgentOverview {
   const agent = recordValue(value)
   if (!agent) throw new Error("PMC_OBJECT_AGENT_INVALID")
 
@@ -426,45 +678,116 @@ function normalizeAgentState(
     throw new Error("PMC_OBJECT_AGENT_INVALID")
   }
 
-  const effect = recordValue(fieldValue(agent, "current_effect", "currentEffect", "CurrentEffect"))
-  const currentEffect = effect
-    ? {
-        objectVersion: stringValue(fieldValue(
-          effect,
-          "object_version",
-          "objectVersion",
-          "ObjectVersion",
-        )),
-        currentState: stringValue(fieldValue(
-          effect,
-          "current_state",
-          "currentState",
-          "CurrentState",
-        )).toLowerCase(),
-        applyState: stringValue(fieldValue(
-          effect,
-          "apply_state",
-          "applyState",
-          "ApplyState",
-        )).toLowerCase(),
-      }
-    : null
+  const expectedStatusModel = definition.objectType === "command" ? "execution_only" : "current_effect"
+  const statusModelValue = stringValue(fieldValue(agent, "status_model", "statusModel", "StatusModel")).toLowerCase()
+  const statusModel = statusModelValue || expectedStatusModel
+  if (statusModel !== expectedStatusModel) throw new Error("PMC_OBJECT_AGENT_INVALID")
+
+  const currentEffect = normalizeCurrentEffect(fieldValue(agent, "current_effect", "currentEffect", "CurrentEffect"))
+  const activeChange = normalizeActiveChange(fieldValue(agent, "active_change", "activeChange", "ActiveChange"))
+  const latestExecution = normalizeExecutionSnapshot(
+    fieldValue(agent, "latest_execution", "latestExecution", "LatestExecution"),
+    definition,
+    agentId,
+  )
 
   return {
     agentId,
+    objectTypeValue: objectType,
+    objectId,
+    objectName: stringValue(fieldValue(agent, "object_name", "objectName", "ObjectName")),
+    objectSubType: Math.max(0, numberValue(fieldValue(agent, "object_sub_type", "objectSubType", "ObjectSubType"))),
     objectVersion: stringValue(fieldValue(
       agent,
       "object_version",
       "objectVersion",
       "ObjectVersion",
     )),
+    statusModel: statusModel as ControlObjectAgentOverview["statusModel"],
     currentEffect,
-    hasActiveChange: Boolean(recordValue(fieldValue(
-      agent,
-      "active_change",
-      "activeChange",
-      "ActiveChange",
-    ))),
+    activeChange,
+    latestExecution,
+    executionCount: Math.max(0, numberValue(fieldValue(agent, "execution_count", "executionCount", "ExecutionCount"))),
+  }
+}
+
+function projectAgentState(agent: ControlObjectAgentOverview): ControlObjectAgentState {
+  return {
+    agentId: agent.agentId,
+    objectVersion: agent.objectVersion,
+    currentEffect: agent.currentEffect
+      ? {
+          objectVersion: agent.currentEffect.objectVersion,
+          currentState: agent.currentEffect.currentState,
+          applyState: agent.currentEffect.applyState,
+        }
+      : null,
+    hasActiveChange: Boolean(agent.activeChange),
+  }
+}
+
+function normalizeOverviewStatistics(value: unknown): ControlObjectAgentOverviewStatistics {
+  const statistics = recordValue(value)
+  const count = (...keys: string[]) => Math.max(0, numberValue(fieldValue(statistics, ...keys)))
+
+  return {
+    totalAgents: count("total_agents", "totalAgents", "TotalAgents"),
+    effectiveCount: count("effective_count", "effectiveCount", "EffectiveCount"),
+    startedCount: count("started_count", "startedCount", "StartedCount"),
+    stoppedCount: count("stopped_count", "stoppedCount", "StoppedCount"),
+    pendingCount: count("pending_count", "pendingCount", "PendingCount"),
+    runningCount: count("running_count", "runningCount", "RunningCount"),
+    successCount: count("success_count", "successCount", "SuccessCount"),
+    failedCount: count("failed_count", "failedCount", "FailedCount"),
+    uncertainCount: count("uncertain_count", "uncertainCount", "UncertainCount"),
+    skippedCount: count("skipped_count", "skippedCount", "SkippedCount"),
+    canceledCount: count("canceled_count", "canceledCount", "CanceledCount"),
+  }
+}
+
+function normalizePage(value: unknown, fallback: number) {
+  return Math.max(1, Math.trunc(numberValue(value, fallback)))
+}
+
+function normalizePageSize(value: unknown, fallback: number) {
+  return Math.min(100, Math.max(1, Math.trunc(numberValue(value, fallback))))
+}
+
+export async function queryControlObjectAgentOverview(
+  definition: ControlObjectDefinition,
+  page = 1,
+  pageSize = 10,
+): Promise<ControlObjectAgentOverviewPage> {
+  const requestedPage = normalizePage(page, 1)
+  const requestedPageSize = normalizePageSize(pageSize, 10)
+  const result = (await http.post("queryPMCAgentsByObjectID", {
+    request_id: createRequestId(),
+    object_type: definition.objectTypeValue,
+    object_id: definition.objectId,
+    // Deliberately show every associated/running version, including Agents
+    // that have not yet converged to the Catalog's current version.
+    page: requestedPage,
+    page_size: requestedPageSize,
+  })) as ApiResult<RawAgentListResponseData | null>
+
+  const data = recordValue(result.data)
+  const rawAgents = fieldValue(data, "agents", "Agents")
+  const total = Math.max(0, numberValue(fieldValue(data, "total", "Total")))
+  const normalizedAgents = rawAgents == null && total === 0 ? [] : rawAgents
+  if (!Array.isArray(normalizedAgents)) throw new Error("PMC_OBJECT_AGENT_LIST_INVALID")
+
+  const items = normalizedAgents.map((agent) => normalizeAgentOverview(agent, definition))
+  const statistics = normalizeOverviewStatistics(fieldValue(data, "statistics", "Statistics"))
+  if (statistics.totalAgents !== 0 && statistics.totalAgents !== total) {
+    throw new Error("PMC_OBJECT_AGENT_STATISTICS_INVALID")
+  }
+
+  return {
+    items,
+    statistics: { ...statistics, totalAgents: statistics.totalAgents || total },
+    total,
+    page: normalizePage(fieldValue(data, "page", "Page"), requestedPage),
+    pageSize: normalizePageSize(fieldValue(data, "page_size", "pageSize", "PageSize"), requestedPageSize),
   }
 }
 
@@ -492,7 +815,7 @@ export async function queryControlObjectAgents(
     const normalizedAgents = rawAgents == null && responseTotal === 0 ? [] : rawAgents
     if (!Array.isArray(normalizedAgents)) throw new Error("PMC_OBJECT_AGENT_LIST_INVALID")
 
-    const pageItems = normalizedAgents.map((agent) => normalizeAgentState(agent, definition))
+    const pageItems = normalizedAgents.map((agent) => projectAgentState(normalizeAgentOverview(agent, definition)))
     collected.push(...pageItems)
     total = responseTotal || collected.length
 
@@ -505,6 +828,84 @@ export async function queryControlObjectAgents(
   return Array.from(new Map(
     collected.map((agent) => [agent.agentId, agent]),
   ).values())
+}
+
+function normalizeOperationSnapshot(
+  value: unknown,
+  definition: ControlObjectDefinition,
+): ControlObjectOperationSnapshot {
+  const operation = recordValue(value)
+  if (!operation) throw new Error("PMC_OBJECT_OPERATION_INVALID")
+
+  const operationId = stringValue(fieldValue(operation, "operation_id", "operationId", "OperationId", "OperationID"))
+  const objectTypeValue = normalizeObjectType(fieldValue(operation, "object_type", "objectType", "ObjectType"))
+  const objectId = stringValue(fieldValue(operation, "object_id", "objectId", "ObjectId", "ObjectID"))
+  if (
+    !operationId
+    || objectTypeValue !== definition.objectTypeValue
+    || objectId.toLowerCase() !== definition.objectId.toLowerCase()
+  ) {
+    throw new Error("PMC_OBJECT_OPERATION_INVALID")
+  }
+
+  const count = (...keys: string[]) => Math.max(0, numberValue(fieldValue(operation, ...keys)))
+  return {
+    operationId,
+    sourceType: stringValue(fieldValue(operation, "source_type", "sourceType", "SourceType")),
+    sourceRefId: stringValue(fieldValue(operation, "source_ref_id", "sourceRefId", "SourceRefId", "SourceRefID")),
+    objectTypeValue,
+    objectId,
+    objectVersion: stringValue(fieldValue(operation, "object_version", "objectVersion", "ObjectVersion")),
+    operation: normalizeOperation(fieldValue(operation, "operation", "Operation")) ?? "unknown",
+    planningStatus: stringValue(fieldValue(operation, "planning_status", "planningStatus", "PlanningStatus")).toLowerCase(),
+    status: stringValue(fieldValue(operation, "status", "Status")).toLowerCase(),
+    outcome: stringValue(fieldValue(operation, "outcome", "Outcome")).toLowerCase(),
+    revision: count("revision", "Revision"),
+    totalCount: count("total_count", "totalCount", "TotalCount"),
+    materializedCount: count("materialized_count", "materializedCount", "MaterializedCount"),
+    pendingCount: count("pending_count", "pendingCount", "PendingCount"),
+    runningCount: count("running_count", "runningCount", "RunningCount"),
+    successCount: count("success_count", "successCount", "SuccessCount"),
+    failedCount: count("failed_count", "failedCount", "FailedCount"),
+    uncertainCount: count("uncertain_count", "uncertainCount", "UncertainCount"),
+    skippedCount: count("skipped_count", "skippedCount", "SkippedCount"),
+    canceledCount: count("canceled_count", "canceledCount", "CanceledCount"),
+    resultVersion: count("result_version", "resultVersion", "ResultVersion"),
+    createdAtUnixMs: count("created_at_unix_ms", "createdAtUnixMs", "CreatedAtUnixMs", "CreatedAtUnixMS"),
+    updatedAtUnixMs: count("updated_at_unix_ms", "updatedAtUnixMs", "UpdatedAtUnixMs", "UpdatedAtUnixMS"),
+    completedAtUnixMs: count("completed_at_unix_ms", "completedAtUnixMs", "CompletedAtUnixMs", "CompletedAtUnixMS"),
+    canceledBy: stringValue(fieldValue(operation, "canceled_by", "canceledBy", "CanceledBy")),
+    cancelReason: stringValue(fieldValue(operation, "cancel_reason", "cancelReason", "CancelReason")),
+  }
+}
+
+export async function listControlObjectOperations(
+  definition: ControlObjectDefinition,
+  page = 1,
+  pageSize = 10,
+): Promise<ControlObjectOperationPage> {
+  const requestedPage = normalizePage(page, 1)
+  const requestedPageSize = normalizePageSize(pageSize, 10)
+  const result = (await http.post("listPMCOperations", {
+    request_id: createRequestId(),
+    object_type: definition.objectTypeValue,
+    object_id: definition.objectId,
+    page: requestedPage,
+    page_size: requestedPageSize,
+  })) as ApiResult<RawOperationListResponseData | null>
+
+  const data = recordValue(result.data)
+  const rawOperations = fieldValue(data, "operations", "Operations")
+  const total = Math.max(0, numberValue(fieldValue(data, "total", "Total")))
+  const normalizedOperations = rawOperations == null && total === 0 ? [] : rawOperations
+  if (!Array.isArray(normalizedOperations)) throw new Error("PMC_OBJECT_OPERATION_LIST_INVALID")
+
+  return {
+    items: normalizedOperations.map((operation) => normalizeOperationSnapshot(operation, definition)),
+    total,
+    page: normalizePage(fieldValue(data, "page", "Page"), requestedPage),
+    pageSize: normalizePageSize(fieldValue(data, "page_size", "pageSize", "PageSize"), requestedPageSize),
+  }
 }
 
 function normalizeOperationResult(value: unknown): ControlObjectOperationResult {

@@ -10,8 +10,10 @@ import {
   BUILTIN_CONTROL_OBJECT_IDS,
   deleteControlObjectDefinition,
   getControlObjectDefinition,
+  listControlObjectOperations,
   listControlObjectDefinitions,
   operateControlObject,
+  queryControlObjectAgentOverview,
   queryControlObjectAgents,
   type ControlObjectDefinition,
 } from "./api"
@@ -552,6 +554,251 @@ describe("control object library API", () => {
     })
     await expect(queryControlObjectAgents(configDefinition()))
       .rejects.toThrow("PMC_OBJECT_AGENT_INVALID")
+  })
+
+  it("loads a paged Policy/Config overview with authoritative effects, active changes, and statistics", async () => {
+    post.mockResolvedValue({
+      data: {
+        total: 1,
+        page: 2,
+        page_size: 20,
+        statistics: {
+          total_agents: 1,
+          effective_count: 1,
+          started_count: 1,
+          pending_count: 1,
+          uncertain_count: 0,
+        },
+        agents: [{
+          agent_id: "agent-1",
+          object_type: 3,
+          object_id: "custom-config",
+          object_name: "Custom config",
+          object_sub_type: 88,
+          object_version: "3.1.4",
+          status_model: "current_effect",
+          current_effect: {
+            object_version: "3.1.0",
+            current_state: "started",
+            apply_state: "success",
+            evidence_dispatch_id: "dispatch-old",
+            evidence_result_version: 4,
+            state_version: 9,
+            last_report_at_unix_ms: 1_750_000_000_000,
+          },
+          active_change: {
+            operation_id: "pmcop-new",
+            dispatch_id: "dispatch-new",
+            target_object_version: "3.1.4",
+            operation: 1,
+            publish_status: "published",
+            execution_status: 2,
+            failure_certainty: 0,
+            result_version: 2,
+            last_report_at_unix_ms: 1_750_000_001_000,
+            task_visibility: "fresh",
+          },
+          execution_count: 5,
+        }],
+      },
+    })
+
+    const result = await queryControlObjectAgentOverview(configDefinition(), 2, 20)
+
+    expect(post).toHaveBeenCalledWith("queryPMCAgentsByObjectID", {
+      request_id: expect.stringMatching(/^\d+$/),
+      object_type: 3,
+      object_id: "custom-config",
+      page: 2,
+      page_size: 20,
+    })
+    expect(result).toMatchObject({
+      total: 1,
+      page: 2,
+      pageSize: 20,
+      statistics: {
+        totalAgents: 1,
+        effectiveCount: 1,
+        startedCount: 1,
+        pendingCount: 1,
+      },
+      items: [{
+        agentId: "agent-1",
+        objectTypeValue: 3,
+        objectId: "custom-config",
+        objectName: "Custom config",
+        objectSubType: 88,
+        objectVersion: "3.1.4",
+        statusModel: "current_effect",
+        currentEffect: {
+          objectVersion: "3.1.0",
+          currentState: "started",
+          applyState: "success",
+          evidenceDispatchId: "dispatch-old",
+          stateVersion: 9,
+        },
+        activeChange: {
+          operationId: "pmcop-new",
+          targetObjectVersion: "3.1.4",
+          operation: "apply",
+          executionStatus: "running",
+          taskVisibility: "fresh",
+        },
+        latestExecution: null,
+        executionCount: 5,
+      }],
+    })
+  })
+
+  it("loads the latest execution model for Command Agents", async () => {
+    const definition = configDefinition({
+      objectId: "command-1",
+      objectType: "command",
+      objectTypeValue: 2,
+      internalName: "command",
+      displayName: "Command",
+      subType: 7,
+      version: "1.0.0",
+      capabilities: {
+        profile: "command_v1",
+        contractVersion: 1,
+        allowedOperations: ["execute"],
+        canUpdate: false,
+        deleteMode: "metadata_only",
+      },
+    })
+    post.mockResolvedValue({
+      data: {
+        total: 1,
+        statistics: { total_agents: 1, failed_count: 1, uncertain_count: 1 },
+        agents: [{
+          agent_id: "agent-command",
+          object_type: "COMMAND_TYPE",
+          object_id: "command-1",
+          object_version: "1.0.0",
+          status_model: "execution_only",
+          latest_execution: {
+            operation_id: "pmcop-command",
+            dispatch_id: "dispatch-command",
+            agent_id: "agent-command",
+            object_type: 2,
+            object_id: "command-1",
+            object_version: "1.0.0",
+            operation: 4,
+            publish_status: "published",
+            execution_status: 4,
+            failure_certainty: 2,
+            error_code: "AGENT_TIMEOUT",
+            error_message: "report deadline exceeded",
+            last_report_at_unix_ms: 1_750_000_002_000,
+            task_visibility: "unknown",
+          },
+          execution_count: 3,
+        }],
+      },
+    })
+
+    const result = await queryControlObjectAgentOverview(definition)
+
+    expect(result.items[0]).toMatchObject({
+      statusModel: "execution_only",
+      currentEffect: null,
+      activeChange: null,
+      executionCount: 3,
+      latestExecution: {
+        operationId: "pmcop-command",
+        agentId: "agent-command",
+        operation: "execute",
+        executionStatus: "failed",
+        failureCertainty: "uncertain",
+        errorCode: "AGENT_TIMEOUT",
+        taskVisibility: "unknown",
+      },
+    })
+    expect(result.statistics).toMatchObject({ totalAgents: 1, failedCount: 1, uncertainCount: 1 })
+  })
+
+  it("lists only the selected object's operation history with backend pagination", async () => {
+    post.mockResolvedValue({
+      data: {
+        total: 11,
+        page: 2,
+        page_size: 10,
+        operations: [{
+          operation_id: "pmcop-history",
+          source_type: "manual",
+          source_ref_id: "manual:user-1:request-1",
+          object_type: 3,
+          object_id: "custom-config",
+          object_version: "3.1.4",
+          operation: 1,
+          planning_status: "complete",
+          status: "completed",
+          outcome: "partial",
+          revision: 4,
+          total_count: 5,
+          materialized_count: 5,
+          success_count: 3,
+          failed_count: 1,
+          uncertain_count: 1,
+          created_at_unix_ms: 1_750_000_003_000,
+          completed_at_unix_ms: 1_750_000_004_000,
+        }],
+      },
+    })
+
+    const result = await listControlObjectOperations(configDefinition(), 2, 10)
+
+    expect(post).toHaveBeenCalledWith("listPMCOperations", {
+      request_id: expect.stringMatching(/^\d+$/),
+      object_type: 3,
+      object_id: "custom-config",
+      page: 2,
+      page_size: 10,
+    })
+    expect(result).toMatchObject({
+      total: 11,
+      page: 2,
+      pageSize: 10,
+      items: [{
+        operationId: "pmcop-history",
+        objectTypeValue: 3,
+        objectId: "custom-config",
+        operation: "apply",
+        status: "completed",
+        outcome: "partial",
+        totalCount: 5,
+        materializedCount: 5,
+        successCount: 3,
+        failedCount: 1,
+        uncertainCount: 1,
+      }],
+    })
+  })
+
+  it("accepts nil empty overview/history lists and rejects mismatched operation identities", async () => {
+    post.mockResolvedValueOnce({ data: { total: 0, agents: null, statistics: null } })
+    await expect(queryControlObjectAgentOverview(configDefinition())).resolves.toMatchObject({
+      items: [],
+      total: 0,
+      statistics: { totalAgents: 0 },
+    })
+
+    post.mockResolvedValueOnce({ data: { total: 0, operations: null } })
+    await expect(listControlObjectOperations(configDefinition())).resolves.toMatchObject({ items: [], total: 0 })
+
+    post.mockResolvedValueOnce({
+      data: {
+        total: 1,
+        operations: [{
+          operation_id: "pmcop-wrong-object",
+          object_type: 1,
+          object_id: "another-object",
+        }],
+      },
+    })
+    await expect(listControlObjectOperations(configDefinition()))
+      .rejects.toThrow("PMC_OBJECT_OPERATION_INVALID")
   })
 
   it("deletes a Catalog object with its current state version", async () => {
