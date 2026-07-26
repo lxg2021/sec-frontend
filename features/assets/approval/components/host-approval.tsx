@@ -170,7 +170,7 @@ export function HostApproval({
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">{t("pageSize")}</span>
             <Select value={String(pagination.page_size)} onValueChange={(value) => handlePageSizeChange(Number(value))}>
-              <SelectTrigger className="h-9 w-24">
+              <SelectTrigger className="h-9 w-24" aria-label={t("pageSizeAriaLabel")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -191,7 +191,7 @@ export function HostApproval({
           )}
           <Button onClick={handleSubmit} disabled={loading || submitting || pendingChangeCount === 0}>
             {!submitting && <Save className="mr-2 h-4 w-4" />}
-            {submitting ? "保存中..." : t("saveChanges")}
+            {submitting ? t("savingChanges") : t("saveChanges")}
           </Button>
         </div>
       </div>

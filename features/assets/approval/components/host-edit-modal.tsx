@@ -119,7 +119,10 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
 
   return (
     <Dialog open={visible} onOpenChange={handleCancel}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        closeLabel={t("close")}
+        className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-xl"
+      >
         <DialogHeader className="flex flex-row items-center justify-between pb-2">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
@@ -201,8 +204,16 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
             <CardContent>
               <div className="space-y-2">
                 <Label htmlFor="group" className="text-sm">{t("logicGroup")}</Label>
-                <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-                  <SelectTrigger id="group" className={fieldErrors.selectedGroupId ? "border-destructive" : ""}>
+                <Select
+                  value={selectedGroupId || "none"}
+                  onValueChange={(value) => setSelectedGroupId(value === "none" ? undefined : value)}
+                >
+                  <SelectTrigger
+                    id="group"
+                    className={fieldErrors.selectedGroupId ? "border-destructive" : ""}
+                    aria-invalid={Boolean(fieldErrors.selectedGroupId)}
+                    aria-describedby={fieldErrors.selectedGroupId ? "group-error" : undefined}
+                  >
                     <SelectValue placeholder={t("selectLogicGroup")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -215,7 +226,9 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                   </SelectContent>
                 </Select>
                 {fieldErrors.selectedGroupId && (
-                  <p className="text-sm text-destructive mt-1">{fieldErrors.selectedGroupId}</p>
+                  <p id="group-error" className="mt-1 text-sm text-destructive" role="alert">
+                    {fieldErrors.selectedGroupId}
+                  </p>
                 )}
               </div>
             </CardContent>
@@ -242,16 +255,25 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                     onChange={(e) => handleFieldChange('ownerName', e.target.value, setOwnerName)}
                     placeholder={t("ownerNamePlaceholder")}
                     className={fieldErrors.ownerName ? "border-destructive" : ""}
+                    aria-invalid={Boolean(fieldErrors.ownerName)}
+                    aria-describedby={fieldErrors.ownerName ? "ownerName-error" : undefined}
                   />
                   {fieldErrors.ownerName && (
-                    <p className="text-sm text-destructive">{fieldErrors.ownerName}</p>
+                    <p id="ownerName-error" className="text-sm text-destructive" role="alert">
+                      {fieldErrors.ownerName}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="ownerRole" className="text-sm">{t("ownerRole")}</Label>
                   <Select value={ownerRole} onValueChange={(value) => handleFieldChange('ownerRole', value, setOwnerRole)}>
-                    <SelectTrigger id="ownerRole" className={fieldErrors.ownerRole ? "border-destructive" : ""}>
+                    <SelectTrigger
+                      id="ownerRole"
+                      className={fieldErrors.ownerRole ? "border-destructive" : ""}
+                      aria-invalid={Boolean(fieldErrors.ownerRole)}
+                      aria-describedby={fieldErrors.ownerRole ? "ownerRole-error" : undefined}
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -261,7 +283,9 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                     </SelectContent>
                   </Select>
                   {fieldErrors.ownerRole && (
-                    <p className="text-sm text-destructive">{fieldErrors.ownerRole}</p>
+                    <p id="ownerRole-error" className="text-sm text-destructive" role="alert">
+                      {fieldErrors.ownerRole}
+                    </p>
                   )}
                 </div>
 
@@ -273,9 +297,13 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                     onChange={(e) => handleFieldChange('ownerPhone', e.target.value, setOwnerPhone)}
                     placeholder={t("phonePlaceholder")}
                     className={fieldErrors.ownerPhone ? "border-destructive" : ""}
+                    aria-invalid={Boolean(fieldErrors.ownerPhone)}
+                    aria-describedby={fieldErrors.ownerPhone ? "ownerPhone-error" : undefined}
                   />
                   {fieldErrors.ownerPhone && (
-                    <p className="text-sm text-destructive">{fieldErrors.ownerPhone}</p>
+                    <p id="ownerPhone-error" className="text-sm text-destructive" role="alert">
+                      {fieldErrors.ownerPhone}
+                    </p>
                   )}
                 </div>
 
@@ -288,9 +316,13 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
                     onChange={(e) => handleFieldChange('ownerEmail', e.target.value, setOwnerEmail)}
                     placeholder={t("emailPlaceholder")}
                     className={fieldErrors.ownerEmail ? "border-destructive" : ""}
+                    aria-invalid={Boolean(fieldErrors.ownerEmail)}
+                    aria-describedby={fieldErrors.ownerEmail ? "ownerEmail-error" : undefined}
                   />
                   {fieldErrors.ownerEmail && (
-                    <p className="text-sm text-destructive">{fieldErrors.ownerEmail}</p>
+                    <p id="ownerEmail-error" className="text-sm text-destructive" role="alert">
+                      {fieldErrors.ownerEmail}
+                    </p>
                   )}
                 </div>
               </div>

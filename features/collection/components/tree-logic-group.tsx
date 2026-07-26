@@ -564,7 +564,13 @@ export function TreeLogicGroup({
   // 保存并转换
   const handleSave = useCallback(() => {
     // 验证数据
-    const errors = validateUserLogicGroups(groups)
+    const errors = validateUserLogicGroups(groups, {
+      nodeNameRequired: t("nodeNameRequired"),
+      nodeTypeRequired: t("nodeTypeRequired"),
+      duplicateChildName: (name) => t("duplicateChildName", { name }),
+      duplicateRootName: (name) => t("duplicateRootName", { name }),
+      nestedError: (parent, error) => t("nestedValidationError", { parent, error }),
+    })
     if (errors.length > 0) {
       setValidationErrors(errors)
       return
@@ -577,7 +583,7 @@ export function TreeLogicGroup({
     // 调用回调
     onSave?.(tableGroups)
     setValidationErrors([])
-  }, [createdBy, groups, onSave, tenantId])
+  }, [createdBy, groups, onSave, t, tenantId])
 
   useEffect(() => {
     if (saveRequestVersion === undefined) return
@@ -614,7 +620,14 @@ export function TreeLogicGroup({
     }
 
     return (
-      <div key={node.id} className="space-y-1">
+      <div
+        key={node.id}
+        className="space-y-1"
+        role="treeitem"
+        aria-level={level + 1}
+        aria-selected={isSelected}
+        aria-expanded={hasChildren ? isExpanded : undefined}
+      >
         <div
           ref={(el) => {
             rowRefs.current[node.id] = el
@@ -634,6 +647,8 @@ export function TreeLogicGroup({
                 e.stopPropagation()
                 toggleExpand(node.id)
               }}
+              aria-label={t(isExpanded ? "collapseNode" : "expandNode", { name: node.name })}
+              title={t(isExpanded ? "collapseNode" : "expandNode", { name: node.name })}
             >
               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
@@ -652,16 +667,33 @@ export function TreeLogicGroup({
                 onChange={(e) => setNodeState((prev) => ({ ...prev, editValue: e.target.value }))}
                 className="h-8"
                 autoFocus
+                aria-label={t("renameNode", { name: node.name })}
                 onBlur={() => saveEdit()}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") saveEdit()
                   if (e.key === "Escape") cancelEdit()
                 }}
               />
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onMouseDown={(e) => e.preventDefault()} onClick={saveEdit}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={saveEdit}
+                aria-label={t("confirmRename")}
+                title={t("confirmRename")}
+              >
                 <Check className="h-4 w-4 text-green-600" />
               </Button>
-              <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onMouseDown={(e) => e.preventDefault()} onClick={cancelEdit}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={cancelEdit}
+                aria-label={t("cancelRename")}
+                title={t("cancelRename")}
+              >
                 <X className="h-4 w-4 text-red-600" />
               </Button>
             </div>
@@ -687,6 +719,7 @@ export function TreeLogicGroup({
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => addChild(node.id)}
                       title={node.type === "company" ? t("addDepartment") : t("addGroup")}
+                      aria-label={node.type === "company" ? t("addDepartment") : t("addGroup")}
                     >
                       <Plus className="h-4 w-4" />
                     </Button>
@@ -698,6 +731,7 @@ export function TreeLogicGroup({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => startEdit(node.id, node.name)}
                     title={t("editName")}
+                    aria-label={t("editName")}
                   >
                     <SquarePen className="h-4 w-4" />
                   </Button>
@@ -708,6 +742,7 @@ export function TreeLogicGroup({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => confirmDelete(node.id)}
                     title={t("deleteNode")}
+                    aria-label={t("deleteNode")}
                   >
                     <Trash2 className="h-4 w-4 text-red-600" />
                   </Button>
@@ -719,7 +754,7 @@ export function TreeLogicGroup({
 
         {/* 子节点 */}
         {hasChildren && isExpanded && (
-          <div className="border-l-2 border-border ml-3 pl-2">
+          <div className="ml-3 border-l-2 border-border pl-2" role="group">
             {node.children!.map((child) => renderNode(child, level + 1))}
           </div>
         )}
@@ -742,16 +777,16 @@ export function TreeLogicGroup({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={handleExpandAll} className="bg-white">
-              全部展开
+              {t("expandAll")}
             </Button>
             <Button variant="outline" size="sm" onClick={handleCollapseAll} className="bg-white">
-              全部收起
+              {t("collapseAll")}
             </Button>
             {!readOnly && !disabled && !hideAddCompanyButton && (
               <Button
                 onClick={addRootNode}
                 size="sm"
-                className="h-10 w-28 shrink-0 justify-center bg-slate-900 text-white hover:bg-slate-800"
+                className="h-10 min-w-28 shrink-0 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {t("addCompany")}
@@ -763,14 +798,14 @@ export function TreeLogicGroup({
         <div className="flex flex-col gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2">
             <GitBranch className="h-4 w-4 text-slate-400" />
-            <span className="font-medium text-slate-700">当前路径</span>
+            <span className="font-medium text-slate-700">{t("currentPath")}</span>
             <span className="text-slate-500">
               {nodeState.editing || nodeState.selected
                 ? (treeIndex.pathById.get(nodeState.editing ?? nodeState.selected ?? "") ?? []).join(" / ")
-                : "未选择节点"}
+                : t("noSelection")}
             </span>
           </div>
-          <div className="text-xs text-slate-500">键盘：↑↓选择，←→折叠/展开，Enter 重命名，Delete 删除</div>
+          <div className="text-xs text-slate-500">{t("keyboardHint")}</div>
         </div>
       </div>
 
@@ -787,7 +822,13 @@ export function TreeLogicGroup({
         </div>
       )}
 
-      <div className="space-y-2">
+      <div
+        className="space-y-2 outline-none"
+        role="tree"
+        aria-label={t("treeAriaLabel")}
+        tabIndex={0}
+        onKeyDown={handleTreeKeyDown}
+      >
         {groups.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
             <Building2 className="mx-auto mb-2 h-12 w-12 opacity-50" />
@@ -831,9 +872,7 @@ export function TreeLogicGroup({
   if (!showFrame) {
     return (
       <>
-        <div tabIndex={0} onKeyDown={handleTreeKeyDown} className="outline-none">
-          {treeContent}
-        </div>
+        {treeContent}
         {deleteDialog}
       </>
     )
@@ -864,7 +903,7 @@ export function TreeLogicGroup({
               <Button
                 onClick={addRootNode}
                 size="sm"
-                className="flex h-10 w-28 items-center justify-center gap-1 bg-slate-900 text-white hover:bg-slate-800"
+                className="flex h-10 min-w-28 items-center justify-center gap-1 bg-slate-900 px-4 text-white hover:bg-slate-800"
               >
                 <Plus className="h-4 w-4" />
                 {t("addCompany")}
@@ -875,7 +914,7 @@ export function TreeLogicGroup({
                 onClick={handleSave}
                 size="sm"
                 variant="default"
-                className="flex h-10 w-28 items-center justify-center gap-1 bg-slate-900 text-white hover:bg-slate-800"
+                className="flex h-10 min-w-28 items-center justify-center gap-1 bg-slate-900 px-4 text-white hover:bg-slate-800"
               >
                 <Save className="h-4 w-4" />
                 {t("save")}
@@ -885,9 +924,7 @@ export function TreeLogicGroup({
         </CardHeader>
 
         <CardContent>
-          <div tabIndex={0} onKeyDown={handleTreeKeyDown} className="outline-none">
-            {treeContent}
-          </div>
+          {treeContent}
         </CardContent>
       </Card>
       {deleteDialog}

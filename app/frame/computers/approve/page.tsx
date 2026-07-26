@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import {
   Computer,
   Download,
@@ -44,6 +44,7 @@ type HostLoadStatus = "loading" | "loaded" | "error"
 export default function LogicGroupsPage() {
   const t = useTranslations("pages.computers.approve")
   const treeT = useTranslations("pages.collection.tree")
+  const locale = useLocale()
   const { toast } = useToast()
 
   const [uploadedGroups, setUploadedGroups] = useState<UserLogicGroup[]>([])
@@ -89,18 +90,19 @@ export default function LogicGroupsPage() {
       setLogicGroupTreeVersion((value) => value + 1)
       setLogicGroupStatus("loaded")
     } catch (error) {
-      const message = error instanceof Error ? error.message : "加载组织结构失败"
+      console.error("[ComputerApproval] loadLogicGroups:error", error)
+      const message = t("structureLoadFailed")
       setLogicGroups([])
       setUploadedGroups([])
       setLogicGroupError(message)
       setLogicGroupStatus("error")
       toast({
-        title: "加载组织结构失败",
+        title: t("structureLoadFailed"),
         description: message,
         variant: "destructive",
       })
     }
-  }, [toast])
+  }, [t, toast])
 
   useEffect(() => {
     void loadLogicGroups()
@@ -123,7 +125,8 @@ export default function LogicGroupsPage() {
       setHostPagination(result.pagination)
       setHostStatus("loaded")
     } catch (error) {
-      const message = error instanceof Error ? error.message : t("hostLoadFailed")
+      console.error("[ComputerApproval] loadHosts:error", error)
+      const message = t("hostLoadFailed")
       setHosts([])
       setOriginalHosts([])
       setHostError(message)
@@ -183,7 +186,7 @@ export default function LogicGroupsPage() {
   }
 
   const handleDownloadTemplate = () => {
-    const template = generateLogicGroupTemplate()
+    const template = generateLogicGroupTemplate(locale)
     const blob = new Blob([template], { type: "text/yaml" })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement("a")
@@ -220,9 +223,10 @@ export default function LogicGroupsPage() {
       toast({ title: t("saveSuccess", { count: tableGroups.length }) })
       await loadLogicGroups()
     } catch (error) {
+      console.error("[ComputerApproval] saveLogicGroups:error", error)
       toast({
-        title: "保存组织结构失败",
-        description: error instanceof Error ? error.message : "发生未知错误",
+        title: t("structureSaveFailed"),
+        description: t("unknownError"),
         variant: "destructive",
       })
     } finally {
@@ -254,9 +258,10 @@ export default function LogicGroupsPage() {
       toast({ title: t("hostApproveSuccess", { count: changedHosts.length }) })
       await loadHosts()
     } catch (error) {
+      console.error("[ComputerApproval] approveHosts:error", error)
       toast({
         title: t("hostApproveFailed"),
-        description: error instanceof Error ? error.message : "Unknown error",
+        description: t("unknownError"),
         variant: "destructive",
       })
     } finally {
@@ -276,7 +281,7 @@ export default function LogicGroupsPage() {
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-800">{t("editStructure")}</CardTitle>
                 <p className="mt-1 text-sm text-slate-600">
-                  管理公司、部门与逻辑组的层级结构，支持导入、编辑与批量维护
+                  {t("structureDescription")}
                 </p>
               </div>
             </div>
@@ -285,27 +290,27 @@ export default function LogicGroupsPage() {
               <Button
                 onClick={handleRequestLogicSave}
                 disabled={savingLogicGroups || logicGroupStatus === "loading" || uploadedGroups.length === 0}
-                className="h-10 w-28 justify-center bg-slate-900 text-white hover:bg-slate-800"
+                className="h-10 min-w-28 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
               >
                 {savingLogicGroups ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    保存中...
+                    {t("saving")}
                   </>
                 ) : (
                   <>
                     <Save className="mr-2 h-4 w-4" />
-                    保存结构
+                    {t("saveStructure")}
                   </>
                 )}
               </Button>
               <Button
                 onClick={handleAddCompany}
                 disabled={logicGroupStatus === "loading"}
-                className="h-10 w-28 justify-center bg-slate-900 text-white hover:bg-slate-800"
+                className="h-10 min-w-28 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
               >
                 <Plus className="mr-2 h-4 w-4" />
-                添加公司
+                {t("addCompany")}
               </Button>
               <Button
                 variant="outline"
@@ -315,7 +320,7 @@ export default function LogicGroupsPage() {
                 className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
               >
                 <RefreshCcw className="mr-2 h-4 w-4" />
-                刷新
+                {t("refresh")}
               </Button>
             </div>
           </CardHeader>
@@ -324,18 +329,22 @@ export default function LogicGroupsPage() {
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_440px]">
               <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="mb-4 text-xs text-slate-500">
-                  {uploadedFileName ? `来源：${uploadedFileName}` : "来源：后端组织结构"}
+                  {uploadedFileName
+                    ? t("sourceFile", {
+                        name: uploadedFileName === "manual" ? t("sourceManual") : uploadedFileName,
+                      })
+                    : t("sourceBackend")}
                 </div>
                 {logicGroupStatus === "loading" && (
                   <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    正在加载组织结构...
+                    {t("structureLoading")}
                   </div>
                 )}
                 {logicGroupStatus === "error" && (
                   <div className="mb-4 flex flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm md:flex-row md:items-center md:justify-between">
                     <div>
-                      <div className="font-medium text-rose-700">加载组织结构失败</div>
+                      <div className="font-medium text-rose-700">{t("structureLoadFailed")}</div>
                       <div className="mt-1 text-slate-500">{logicGroupError}</div>
                     </div>
                     <Button
@@ -345,7 +354,7 @@ export default function LogicGroupsPage() {
                       className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                     >
                       <RefreshCcw className="h-4 w-4" />
-                      刷新
+                      {t("refresh")}
                     </Button>
                   </div>
                 )}
@@ -367,15 +376,15 @@ export default function LogicGroupsPage() {
               <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-base font-semibold text-slate-900">导入配置</h3>
-                    <p className="mt-1 text-sm text-slate-500">上传组织结构文件，校验后同步到左侧树。</p>
+                    <h3 className="text-base font-semibold text-slate-900">{t("importTitle")}</h3>
+                    <p className="mt-1 text-sm text-slate-500">{t("importDescription")}</p>
                   </div>
                   <Button
                     onClick={handleDownloadTemplate}
-                    className="h-10 w-28 shrink-0 justify-center bg-slate-900 text-white hover:bg-slate-800"
+                    className="h-10 min-w-28 shrink-0 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    下载模板
+                    {t("downloadTemplate")}
                   </Button>
                 </div>
                 <div className="space-y-4">
@@ -387,7 +396,7 @@ export default function LogicGroupsPage() {
                     hideDownloadButton
                   />
                   <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
-                    导入完成后，可在左侧树上直接编辑、添加和删除节点。
+                    {t("importHint")}
                   </div>
                 </div>
               </div>
@@ -414,7 +423,7 @@ export default function LogicGroupsPage() {
               className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
             >
               <RefreshCcw className="mr-2 h-4 w-4" />
-              刷新
+              {t("refresh")}
             </Button>
           </CardHeader>
           <CardContent className="p-4">
@@ -437,7 +446,7 @@ export default function LogicGroupsPage() {
                   className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 >
                   <RefreshCcw className="h-4 w-4" />
-                  刷新
+                  {t("refresh")}
                 </Button>
               </div>
             )}
@@ -471,7 +480,7 @@ export default function LogicGroupsPage() {
               className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
             >
               <RefreshCcw className="mr-2 h-4 w-4" />
-              刷新
+              {t("refresh")}
             </Button>
           </CardHeader>
           <CardContent className="p-4">

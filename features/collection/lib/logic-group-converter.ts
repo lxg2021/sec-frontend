@@ -2,6 +2,22 @@ import { v4 as uuidv4 } from "uuid"
 import type { UserLogicGroup } from "@/features/collection/types"
 import type { TableLogicGroup } from "@/features/collection/table-types"
 
+export interface LogicGroupValidationMessages {
+  nodeNameRequired: string
+  nodeTypeRequired: string
+  duplicateChildName: (name: string) => string
+  duplicateRootName: (name: string) => string
+  nestedError: (parent: string, error: string) => string
+}
+
+const DEFAULT_VALIDATION_MESSAGES: LogicGroupValidationMessages = {
+  nodeNameRequired: "Node name is required",
+  nodeTypeRequired: "Node type is required",
+  duplicateChildName: (name) => `Duplicate child node name: ${name}`,
+  duplicateRootName: (name) => `Duplicate root node name: ${name}`,
+  nestedError: (parent, error) => `${parent} > ${error}`,
+}
+
 /**
  * 将UserLogicGroup转换为TableLogicGroup
  */
@@ -71,27 +87,30 @@ export function convertToTableLogicGroups(
 /**
  * 验证UserLogicGroup数据
  */
-export function validateUserLogicGroup(group: UserLogicGroup): string[] {
+export function validateUserLogicGroup(
+  group: UserLogicGroup,
+  messages: LogicGroupValidationMessages = DEFAULT_VALIDATION_MESSAGES,
+): string[] {
   const errors: string[] = []
 
   if (!group.name || group.name.trim() === "") {
-    errors.push(`节点名称不能为空`)
+    errors.push(messages.nodeNameRequired)
   }
 
   if (!group.type) {
-    errors.push(`节点类型不能为空`)
+    errors.push(messages.nodeTypeRequired)
   }
 
   if (group.children && group.children.length > 0) {
     const childNames = new Set<string>()
     group.children.forEach((child) => {
       if (childNames.has(child.name)) {
-        errors.push(`重复的子节点名称: ${child.name}`)
+        errors.push(messages.duplicateChildName(child.name))
       }
       childNames.add(child.name)
 
-      const childErrors = validateUserLogicGroup(child)
-      errors.push(...childErrors.map((err) => `${group.name} > ${err}`))
+      const childErrors = validateUserLogicGroup(child, messages)
+      errors.push(...childErrors.map((error) => messages.nestedError(group.name, error)))
     })
   }
 
@@ -101,17 +120,20 @@ export function validateUserLogicGroup(group: UserLogicGroup): string[] {
 /**
  * 验证整个UserLogicGroup数组
  */
-export function validateUserLogicGroups(groups: UserLogicGroup[]): string[] {
+export function validateUserLogicGroups(
+  groups: UserLogicGroup[],
+  messages: LogicGroupValidationMessages = DEFAULT_VALIDATION_MESSAGES,
+): string[] {
   const errors: string[] = []
   const rootNames = new Set<string>()
 
   groups.forEach((group) => {
     if (rootNames.has(group.name)) {
-      errors.push(`重复的根节点名称: ${group.name}`)
+      errors.push(messages.duplicateRootName(group.name))
     }
     rootNames.add(group.name)
 
-    const groupErrors = validateUserLogicGroup(group)
+    const groupErrors = validateUserLogicGroup(group, messages)
     errors.push(...groupErrors)
   })
 

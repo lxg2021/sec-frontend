@@ -106,6 +106,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              aria-label={t("hostSearchAriaLabel")}
               placeholder={t("searchPlaceholder")}
               value={filters.searchText || ""}
               onChange={(e) => handleSearchChange(e.target.value)}
@@ -117,7 +118,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         {/* Group Filter */}
         <div>
           <Select value={filters.groupIds?.[0] || "all"} onValueChange={handleGroupChange}>
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10" aria-label={t("logicGroupFilterAriaLabel")}>
               <SelectValue placeholder={t("selectLogicGroup")} />
             </SelectTrigger>
             <SelectContent>

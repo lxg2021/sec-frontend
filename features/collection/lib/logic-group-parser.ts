@@ -6,12 +6,23 @@ interface RawLogicGroupNode {
   children?: RawLogicGroupNode[]
 }
 
+export const LOGIC_GROUP_PARSE_ERRORS = {
+  rootNotArray: "LOGIC_GROUP_ROOT_NOT_ARRAY",
+  nameRequired: "LOGIC_GROUP_NAME_REQUIRED",
+  typeInvalid: "LOGIC_GROUP_TYPE_INVALID",
+  parseFailed: "LOGIC_GROUP_PARSE_FAILED",
+} as const
+
+function isLogicGroupParseError(message: string) {
+  return Object.values(LOGIC_GROUP_PARSE_ERRORS).some((code) => code === message)
+}
+
 export function parseLogicGroupFile(content: string): UserLogicGroup[] {
   try {
     const data = parseYAML(content)
 
     if (!Array.isArray(data)) {
-      throw new Error("文件格式错误：根节点必须是数组。")
+      throw new Error(LOGIC_GROUP_PARSE_ERRORS.rootNotArray)
     }
 
     const groups: UserLogicGroup[] = []
@@ -19,11 +30,11 @@ export function parseLogicGroupFile(content: string): UserLogicGroup[] {
 
     function processNode(node: RawLogicGroupNode, parentId?: string, parentPath = ""): UserLogicGroup {
       if (!node.name || typeof node.name !== "string") {
-        throw new Error("缺少必填字段：name")
+        throw new Error(LOGIC_GROUP_PARSE_ERRORS.nameRequired)
       }
 
       if (!node.type || !["company", "department", "group"].includes(node.type)) {
-        throw new Error(`无效的类型：${node.type}，必须是 company、department 或 group`)
+        throw new Error(LOGIC_GROUP_PARSE_ERRORS.typeInvalid)
       }
 
       const id = `${node.type}-${idCounter++}`
@@ -50,10 +61,8 @@ export function parseLogicGroupFile(content: string): UserLogicGroup[] {
 
     return groups
   } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`解析失败：${error.message}`)
-    }
-    throw new Error("解析失败：未知错误")
+    if (error instanceof Error && isLogicGroupParseError(error.message)) throw error
+    throw new Error(LOGIC_GROUP_PARSE_ERRORS.parseFailed)
   }
 }
 
@@ -116,7 +125,43 @@ function parseYAML(content: string): RawLogicGroupNode[] {
   return result
 }
 
-export function generateLogicGroupTemplate(): string {
+export function generateLogicGroupTemplate(locale = "zh-CN"): string {
+  if (!locale.toLowerCase().startsWith("zh")) {
+    return `# Logical organization structure template
+# Supports three levels: company > department > group
+# Required fields: name and type
+
+- name: Headquarters
+  type: company
+  children:
+    - name: Security Department
+      type: department
+      children:
+        - name: Analysis Group
+          type: group
+        - name: Response Group
+          type: group
+    - name: Audit Department
+      type: department
+      children:
+        - name: Forensics Group
+          type: group
+        - name: Review Group
+          type: group
+
+- name: Branch A
+  type: company
+  children:
+    - name: Operations Department
+      type: department
+      children:
+        - name: Platform Group
+          type: group
+        - name: Asset Group
+          type: group
+`
+  }
+
   return `# 逻辑组织结构模板
 # 支持三级结构：公司(company) > 部门(department) > 组(group)
 # 必填字段：name（名称）、type（类型）

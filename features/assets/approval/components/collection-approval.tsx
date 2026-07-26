@@ -16,6 +16,7 @@ import {
   Fingerprint,
   FolderTree,
   Mail,
+  Loader2,
   Monitor,
   Network,
   Phone,
@@ -26,7 +27,7 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { approveCollectionSubmission, getCollectionSubmission, listCollectionSubmissions, rejectCollectionSubmission } from "@/features/assets/approval/collection-api"
 import { buildCollectionOwnerRows } from "@/features/assets/approval/collection-detail-view-model"
@@ -118,10 +119,20 @@ function statusTone(status: CollectionSubmissionStatus) {
   }
 }
 
-function formatDateTime(value?: number) {
+function formatDateTime(value: number | undefined, locale: string) {
   if (!value) return "-"
   const date = new Date(value < 1_000_000_000_000 ? value * 1000 : value)
-  return date.toLocaleString()
+  return date.toLocaleString(locale)
+}
+
+function ownerRoleLabel(role: string, t: Translator) {
+  const roleKey = {
+    admin: "ownerAdmin",
+    auditor: "ownerAuditor",
+    operator: "ownerOperator",
+  }[role.toLowerCase()]
+
+  return roleKey ? t(roleKey) : role
 }
 
 function TableHeaderLabel({
@@ -275,6 +286,7 @@ export interface CollectionApprovalProps {
 
 export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }: CollectionApprovalProps) {
   const t = useTranslations("pages.computers.approve.collection")
+  const locale = useLocale()
   const { toast } = useToast()
   const [items, setItems] = useState<CollectionSubmissionSummary[]>([])
   const [page, setPage] = useState(1)
@@ -285,6 +297,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
   const [loading, setLoading] = useState(false)
   const [detailLoading, setDetailLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(null)
   const [selected, setSelected] = useState<CollectionSubmissionDetail | null>(null)
   const [open, setOpen] = useState(false)
   const [reviewNote, setReviewNote] = useState("")
@@ -321,7 +334,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
       console.error("[CollectionApproval] loadList:error", error)
       toast({
         title: t("loadFailed"),
-        description: error instanceof Error ? error.message : t("unknownError"),
+        description: t("unknownError"),
         variant: "destructive",
       })
     } finally {
@@ -382,9 +395,10 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
         const detail = await getCollectionSubmission(TENANT_ID, submissionId)
         setSelected(detail)
       } catch (error) {
+        console.error("[CollectionApproval] loadDetail:error", error)
         toast({
           title: t("detailLoadFailed"),
-          description: error instanceof Error ? error.message : t("unknownError"),
+          description: t("unknownError"),
           variant: "destructive",
         })
       } finally {
@@ -397,6 +411,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
   const handleApprove = async () => {
     if (!selected) return
     setActionLoading(true)
+    setActionType("approve")
     try {
       const result = await approveCollectionSubmission(TENANT_ID, selected.submission_id, reviewNote)
       const summary = summarizeApprovalResult(result)
@@ -412,17 +427,19 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
       )
       toast({
         title: summary.failureCount > 0 ? t("failed") : t("approveSuccess"),
-        description: `${summary.successCount}/${summary.total}`,
+        description: t("approveSummary", { success: summary.successCount, total: summary.total }),
       })
       await loadList()
     } catch (error) {
+      console.error("[CollectionApproval] approve:error", error)
       toast({
         title: t("approveFailed"),
-        description: error instanceof Error ? error.message : t("unknownError"),
+        description: t("unknownError"),
         variant: "destructive",
       })
     } finally {
       setActionLoading(false)
+      setActionType(null)
     }
   }
 
@@ -445,6 +462,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
       return
     }
     setActionLoading(true)
+    setActionType("reject")
     try {
       await rejectCollectionSubmission(TENANT_ID, selected.submission_id, reviewNote)
       toast({ title: t("rejectSuccess"), description: selected.submission_id })
@@ -452,13 +470,15 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
       setSelected(null)
       await loadList()
     } catch (error) {
+      console.error("[CollectionApproval] reject:error", error)
       toast({
         title: t("rejectFailed"),
-        description: error instanceof Error ? error.message : t("unknownError"),
+        description: t("unknownError"),
         variant: "destructive",
       })
     } finally {
       setActionLoading(false)
+      setActionType(null)
     }
   }
 
@@ -469,6 +489,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
+              aria-label={t("searchAriaLabel")}
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
               placeholder={t("searchPlaceholder")}
@@ -477,7 +498,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
           </div>
           <div className="w-full lg:w-56">
             <Select value={String(status)} onValueChange={(value) => setStatus(value === "all" ? "all" : (Number(value) as CollectionSubmissionStatus))}>
-              <SelectTrigger>
+              <SelectTrigger aria-label={t("statusFilterAriaLabel")}>
                 <SelectValue placeholder={t("statusFilter")} />
               </SelectTrigger>
               <SelectContent>
@@ -563,7 +584,9 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                           <span className="text-xs text-muted-foreground">{item.submitter?.email || item.submitter?.phone || "-"}</span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{formatDateTime(item.created_at)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDateTime(item.created_at, locale)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="sm" onClick={() => openDetail(item.submission_id)}>
@@ -606,8 +629,11 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
           }
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-5xl overflow-hidden">
-          <DialogHeader>
+        <DialogContent
+          closeLabel={t("close")}
+          className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-5xl flex-col overflow-hidden rounded-xl"
+        >
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5" />
               {t("detailTitle")}
@@ -622,7 +648,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
               {t("detailLoading")}
             </div>
           ) : selected ? (
-            <div className="space-y-4 overflow-hidden">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
               <div className="grid gap-3 md:grid-cols-4">
                 <DetailSummaryItem icon={Building2} label={t("tenant")} value={selected.tenant_id} tone="blue" />
                 <DetailSummaryItem icon={CircleDot} label={t("status")} value={statusLabel(selected.status, t)} tone="amber" />
@@ -678,7 +704,11 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                                 <TableCell className="text-xs">{host.department_path || host.group_id || "-"}</TableCell>
                                 <TableCell className="text-xs">
                                   <div className="flex flex-col gap-0.5">
-                                    <span>{host.owner ? `${host.owner.username} / ${host.owner.role}` : "-"}</span>
+                                    <span>
+                                      {host.owner
+                                        ? `${host.owner.username} / ${ownerRoleLabel(host.owner.role, t)}`
+                                        : "-"}
+                                    </span>
                                     {host.owner && (
                                       <span className="text-muted-foreground">{host.owner.email || host.owner.phone || "-"}</span>
                                     )}
@@ -732,7 +762,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                             ownerRows.map((owner) => (
                               <TableRow key={owner.key}>
                                 <TableCell className="font-medium">{owner.username}</TableCell>
-                                <TableCell className="text-xs">{owner.role}</TableCell>
+                                <TableCell className="text-xs">{ownerRoleLabel(owner.role, t)}</TableCell>
                                 <TableCell className="text-xs">{owner.phone}</TableCell>
                                 <TableCell className="text-xs">{owner.email}</TableCell>
                                 <TableCell className="text-xs">{owner.hostname}</TableCell>
@@ -752,7 +782,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                 <div className="rounded-lg border bg-muted/30 p-4">
                   <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
-                      <div className="text-sm font-semibold">入库结果</div>
+                      <div className="text-sm font-semibold">{t("importResult")}</div>
                       <div className="text-xs text-muted-foreground">{approvalResult.submissionId}</div>
                     </div>
                     <span className={cn("inline-flex rounded-full border px-2 py-1 text-xs font-medium", statusTone(approvalResult.status))}>
@@ -761,26 +791,26 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                   </div>
                   <div className="grid gap-3 md:grid-cols-3">
                     <div className="rounded-md border bg-background p-3">
-                      <div className="text-xs text-muted-foreground">主机总数</div>
+                      <div className="text-xs text-muted-foreground">{t("importHostTotal")}</div>
                       <div className="text-xl font-semibold">{approvalResult.total}</div>
                     </div>
                     <div className="rounded-md border bg-background p-3">
-                      <div className="text-xs text-muted-foreground">成功入库</div>
+                      <div className="text-xs text-muted-foreground">{t("importSucceeded")}</div>
                       <div className="text-xl font-semibold text-emerald-600">{approvalResult.successCount}</div>
                     </div>
                     <div className="rounded-md border bg-background p-3">
-                      <div className="text-xs text-muted-foreground">入库失败</div>
+                      <div className="text-xs text-muted-foreground">{t("importFailedCount")}</div>
                       <div className="text-xl font-semibold text-rose-600">{approvalResult.failureCount}</div>
                     </div>
                   </div>
                   {approvalResult.hostResults.length > 0 && (
-                    <div className="mt-3 overflow-hidden rounded-md border bg-background">
+                    <div className="mt-3 overflow-x-auto rounded-md border bg-background">
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Agent ID</TableHead>
-                            <TableHead>结果</TableHead>
-                            <TableHead>说明</TableHead>
+                            <TableHead>{t("agentId")}</TableHead>
+                            <TableHead>{t("result")}</TableHead>
+                            <TableHead>{t("resultDescription")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -791,12 +821,12 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                                 {result.success ? (
                                   <span className="inline-flex items-center gap-1 text-emerald-600">
                                     <CheckCircle2 className="h-4 w-4" />
-                                    成功
+                                    {t("resultSuccess")}
                                   </span>
                                 ) : (
                                   <span className="inline-flex items-center gap-1 text-rose-600">
                                     <XCircle className="h-4 w-4" />
-                                    失败
+                                    {t("resultFailure")}
                                   </span>
                                 )}
                               </TableCell>
@@ -809,7 +839,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                   )}
                   {approvalResult.failedResults.length > 0 && (
                     <div className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-                      存在失败主机，可保留弹窗查看原因；采集单进入失败状态后可再次审核重试。
+                      {t("failedRetryHint")}
                     </div>
                   )}
                 </div>
@@ -833,17 +863,25 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
             </div>
           )}
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="shrink-0 gap-2">
             <Button variant="destructive" onClick={handleReject} disabled={actionLoading || !selected || !canRejectCollectionSubmission(selected.status)}>
-              <XCircle className="mr-2 h-4 w-4" />
-              {t("reject")}
+              {actionLoading && actionType === "reject" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <XCircle className="mr-2 h-4 w-4" />
+              )}
+              {actionLoading && actionType === "reject" ? t("rejecting") : t("reject")}
             </Button>
             <Button
               onClick={handleApprove}
               disabled={actionLoading || !selected || !canApproveCollectionSubmission(selected.status)}
             >
-              <CheckCircle2 className="mr-2 h-4 w-4" />
-              {t("approve")}
+              {actionLoading && actionType === "approve" ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+              )}
+              {actionLoading && actionType === "approve" ? t("approvingAction") : t("approve")}
             </Button>
           </DialogFooter>
         </DialogContent>

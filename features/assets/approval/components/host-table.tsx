@@ -64,6 +64,7 @@ export function HostTable({
   totalPages = 1,
   onPageChange,
   sortField,
+  sortDirection = "asc",
   onSort,
 }: HostTableProps) {
   const t = useTranslations("pages.computers.approve")
@@ -83,6 +84,16 @@ export function HostTable({
         {config.label}
       </div>
     )
+  }
+
+  const getOwnerRoleLabel = (role: string) => {
+    const roleKey = {
+      admin: "ownerAdmin",
+      auditor: "ownerAuditor",
+      operator: "ownerOperator",
+    }[role.toLowerCase()]
+
+    return roleKey ? t(roleKey) : role
   }
 
   const formatHeartbeat = (heartbeat: string) => {
@@ -107,7 +118,9 @@ export function HostTable({
     field: keyof Host
     children: React.ReactNode
   }) => (
-    <TableHead>
+    <TableHead
+      aria-sort={sortField === field ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
+    >
       <Button variant="ghost" size="sm" onClick={() => onSort?.(field)} className="-ml-3 h-8 text-xs font-medium">
         {children}
         <ArrowUpDown
@@ -155,7 +168,13 @@ export function HostTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {hosts.map((host) => {
+            {hosts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9} className="py-10 text-center text-muted-foreground">
+                  {t("noHosts")}
+                </TableCell>
+              </TableRow>
+            ) : hosts.map((host) => {
               const needsAttention = (highlightUngrouped && !host.group) || (highlightUnowned && !host.owner)
 
               return (
@@ -213,7 +232,9 @@ export function HostTable({
                       <div className="flex flex-col">
                         <span className="text-sm font-medium">{host.owner.owner_name}</span>
                         {host.owner.owner_role && (
-                          <span className="text-xs text-muted-foreground">{host.owner.owner_role}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {getOwnerRoleLabel(host.owner.owner_role)}
+                          </span>
                         )}
                       </div>
                     ) : (
@@ -226,7 +247,13 @@ export function HostTable({
                     {formatHeartbeat(host.heartbeat_time)}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => onEditHost?.(host)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEditHost?.(host)}
+                      aria-label={t("editHostAriaLabel", { host: host.hostname })}
+                      title={t("editHostAriaLabel", { host: host.hostname })}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                   </TableCell>

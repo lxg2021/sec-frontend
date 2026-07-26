@@ -7,9 +7,13 @@ import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Progress } from "@/shared/ui/progress"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
-import { parseLogicGroupFile, generateLogicGroupTemplate } from "@/features/collection/lib/logic-group-parser"
+import {
+  generateLogicGroupTemplate,
+  LOGIC_GROUP_PARSE_ERRORS,
+  parseLogicGroupFile,
+} from "@/features/collection/lib/logic-group-parser"
 import type { LogicGroupUploaderProps } from "@/features/collection/types"
-import { useTranslations } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 export function LogicGroupUploader({
   onGroupsUploaded,
@@ -20,6 +24,7 @@ export function LogicGroupUploader({
   hideDownloadButton = false,
 }: LogicGroupUploaderProps) {
   const t = useTranslations("pages.collection.logicGroupUploader")
+  const locale = useLocale()
   const defaultTexts = {
     title: t("title"),
     description: t("description"),
@@ -91,7 +96,15 @@ export function LogicGroupUploader({
     } catch (error) {
       clearInterval(progressInterval)
       setUploadStatus("error")
-      setErrorMessage(error instanceof Error ? error.message : t("parseFailed"))
+      const messageKey = error instanceof Error
+        ? {
+            [LOGIC_GROUP_PARSE_ERRORS.rootNotArray]: "rootNotArray",
+            [LOGIC_GROUP_PARSE_ERRORS.nameRequired]: "nameRequired",
+            [LOGIC_GROUP_PARSE_ERRORS.typeInvalid]: "typeInvalid",
+            [LOGIC_GROUP_PARSE_ERRORS.parseFailed]: "parseFailed",
+          }[error.message]
+        : undefined
+      setErrorMessage(messageKey ? t(messageKey) : t("parseFailed"))
     }
   }, [onBeforeUpload, onGroupsUploaded, t])
 
@@ -123,7 +136,7 @@ export function LogicGroupUploader({
   }, [handleFile])
 
   const handleDownloadTemplate = () => {
-    const template = generateLogicGroupTemplate()
+    const template = generateLogicGroupTemplate(locale)
     const blob = new Blob([template], { type: "text/yaml" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -146,7 +159,7 @@ export function LogicGroupUploader({
           <div className="flex items-center justify-end gap-2">
           <Button
             onClick={handleDownloadTemplate}
-            className="h-10 w-28 justify-center gap-2 bg-slate-900 text-white hover:bg-slate-800"
+            className="h-10 min-w-28 justify-center gap-2 bg-slate-900 px-4 text-white hover:bg-slate-800"
           >
             <Download className="h-4 w-4" />
             {defaultTexts.downloadTemplateText}
@@ -171,6 +184,7 @@ export function LogicGroupUploader({
             onChange={handleFileInput}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             disabled={uploadStatus === "uploading" || disabled}
+            aria-label={t("fileInputAriaLabel")}
           />
 
           <div className="flex flex-col items-center justify-center gap-4 text-center">
@@ -216,7 +230,7 @@ export function LogicGroupUploader({
                 <AlertCircle className="h-12 w-12 text-destructive" />
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-destructive">{defaultTexts.errorText}</p>
-                  <p className="text-xs text-muted-foreground">{errorMessage}</p>
+                  <p className="text-xs text-muted-foreground" role="alert">{errorMessage}</p>
                   <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 bg-transparent">
                     <X className="h-4 w-4" />
                     {defaultTexts.retryButtonText}
