@@ -1,5 +1,6 @@
 "use client"
 
+import { Shield } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { ReportOverviewHeader } from "@/features/ai-ops/threat-analysis/components/report-overview-header"
@@ -52,9 +53,12 @@ export function AttackReport({ task }: { task: ReportTask }) {
 
   if (!report) {
     return (
-      <article className="w-full">
-        <div className="py-8">
-          <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+      <article className="flex min-h-0 w-full flex-1 items-center justify-center px-6 py-8 text-center">
+        <div className="max-w-md">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100">
+            <Shield className="h-5 w-5 text-slate-500" aria-hidden />
+          </div>
+          <div className="text-sm font-semibold text-slate-900">
             {t(useLocalizedReport ? localizedEmptyMessageKey(task) : "empty.noReport")}
           </div>
         </div>

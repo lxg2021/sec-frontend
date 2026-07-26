@@ -8,7 +8,7 @@ import {
   useState,
   type FormEvent,
 } from "react"
-import { ArrowLeft, Loader2, Search, Shield } from "lucide-react"
+import { ArrowLeft, ChartNoAxesCombined, Loader2, Search, Shield } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
@@ -89,6 +89,7 @@ function NoCaseState() {
 }
 
 function CaseIdSearchToolbar() {
+  const pageT = useTranslations("pages.aiops.threatAnalysis")
   const t = useTranslations("pages.aiops.threatAnalysis.search")
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -308,48 +309,61 @@ function CaseIdSearchToolbar() {
     router.push(normalizedCaseId ? buildAttackDetailHref(normalizedCaseId, snapshotId) : "/frame/attack/detail")
   }
 
+  const backLabel = t("backToAttackDetail")
+
   return (
     <>
-      <section className="w-full rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.07)]">
-        <form
-          className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center"
-          onSubmit={handleSubmit}
-        >
-          <div className="flex h-11 min-w-0 w-full flex-1 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50/80 pl-1 pr-1 shadow-inner shadow-slate-100/70">
-            <button
-              type="button"
-              onClick={handleBackToAttackDetail}
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-blue-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-              title={returnTo === "workflow" ? "Back" : t("backToAttackDetail")}
-              aria-label={returnTo === "workflow" ? "Back" : t("backToAttackDetail")}
-            >
-              <ArrowLeft className="size-4" />
-              <span className="whitespace-nowrap">
-                {returnTo === "workflow" ? "Back" : t("backToAttackDetail")}
-              </span>
-            </button>
-            <span className="mx-2 h-6 w-px shrink-0 bg-slate-200" aria-hidden="true" />
-            <Search className="h-4 w-4 shrink-0 text-slate-400" />
-            <Input
-              value={caseId}
-              onChange={(event) => setCaseId(event.target.value)}
-              placeholder={t("caseIdPlaceholder")}
-              aria-label="CaseID"
-              spellCheck={false}
-              disabled={loading}
-              className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 font-mono text-sm font-semibold text-slate-900 shadow-none placeholder:font-sans placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-wait disabled:opacity-80"
-            />
-            <Button
-              type="submit"
-              className="h-9 shrink-0 rounded-full bg-blue-600 px-3.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:opacity-85"
-              disabled={loading}
-              aria-busy={loading}
-            >
-              {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
-              {loading ? t("analyzing") : t("submit")}
-            </Button>
+      <section className="flex min-h-[92px] min-w-0 items-center rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+        <div className="flex w-full min-w-0 flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 items-center gap-4">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 text-blue-600">
+              <ChartNoAxesCombined className="size-5" aria-hidden />
+            </span>
+            <div className="min-w-0">
+              <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+                <h1 className="text-lg font-semibold leading-tight text-slate-950">{pageT("title")}</h1>
+                <button
+                  type="button"
+                  onClick={handleBackToAttackDetail}
+                  className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  title={backLabel}
+                  aria-label={backLabel}
+                >
+                  <ArrowLeft className="size-4" aria-hidden />
+                  <span className="whitespace-nowrap">{backLabel}</span>
+                </button>
+              </div>
+              <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-500">{pageT("subtitle")}</p>
+            </div>
           </div>
-        </form>
+
+          <form
+            className="flex w-full min-w-0 xl:w-auto xl:min-w-[560px]"
+            onSubmit={handleSubmit}
+          >
+            <div className="flex h-11 w-full min-w-0 flex-1 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50/80 px-1 shadow-inner shadow-slate-100/70">
+              <Search className="ml-2 size-4 shrink-0 text-slate-400" aria-hidden />
+              <Input
+                value={caseId}
+                onChange={(event) => setCaseId(event.target.value)}
+                placeholder={t("caseIdPlaceholder")}
+                aria-label={t("caseIdPlaceholder")}
+                spellCheck={false}
+                disabled={loading}
+                className="h-9 min-w-0 flex-1 border-0 bg-transparent px-2 font-mono text-sm font-semibold text-slate-900 shadow-none placeholder:font-sans placeholder:font-medium placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0 disabled:cursor-wait disabled:opacity-80"
+              />
+              <Button
+                type="submit"
+                className="h-9 shrink-0 rounded-full bg-blue-600 px-3.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-wait disabled:opacity-85"
+                disabled={loading}
+                aria-busy={loading}
+              >
+                {loading ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
+                {loading ? t("analyzing") : t("submit")}
+              </Button>
+            </div>
+          </form>
+        </div>
       </section>
       {loading ? (
         <AnalysisProgressState caseId={caseId.trim()} phase={analysisPhase} />
