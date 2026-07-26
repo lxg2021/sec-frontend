@@ -42,7 +42,7 @@ function StatusRow({
 export function ForensicServiceStatusCard({ availability }: Props) {
   const locale = useLocale()
   const t = useTranslations("pages.investigation.collection.serviceStatus")
-  const labelClassName = locale.startsWith("zh") ? "w-24" : "w-32"
+  const labelClassName = locale.startsWith("zh") ? "w-24" : "w-24 2xl:w-32"
   const max = Math.max(
     availability.available_endpoint_count,
     availability.unbound_endpoint_count,

@@ -83,7 +83,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
           action={
             <Link
               href="/frame/investigation/tasks"
-              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-3 text-xs font-medium text-blue-700 transition-colors hover:border-blue-200 hover:bg-blue-100 hover:text-blue-800"
+              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-3 text-xs font-medium text-blue-700 transition-colors hover:border-blue-200 hover:bg-blue-100 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200"
             >
               {t("recentTasks.viewMore")}
               <ChevronRight className="size-3.5" />

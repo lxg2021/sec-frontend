@@ -181,7 +181,7 @@ export function ForensicBackendStatusPanel({ data, loading = false }: Props) {
 
   return (
     <Card className="min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] dark:bg-slate-950">
-      <CardHeader className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:justify-between sm:p-5 sm:pb-4">
+      <CardHeader className="flex flex-col items-start gap-3 space-y-0 p-4 sm:flex-row sm:justify-between sm:p-5 sm:pb-4">
         <div className="flex min-w-0 items-start gap-3">
           <ForensicIconBadge icon={ShieldCheck} tone="indigo" className="size-10 rounded-xl" iconClassName="size-5" />
           <div className="min-w-0">
