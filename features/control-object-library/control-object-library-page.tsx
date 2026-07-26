@@ -97,17 +97,17 @@ const TYPE_PRESENTATION: Record<ControlObjectType, {
   config: {
     label: "配置",
     icon: FileSliders,
-    iconClassName: "text-blue-600",
+    iconClassName: "text-indigo-600",
   },
   policy: {
     label: "策略",
     icon: ShieldCheck,
-    iconClassName: "text-violet-600",
+    iconClassName: "text-blue-600",
   },
   command: {
     label: "命令",
     icon: SquareTerminal,
-    iconClassName: "text-amber-600",
+    iconClassName: "text-cyan-600",
   },
 }
 
