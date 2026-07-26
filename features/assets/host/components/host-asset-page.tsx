@@ -163,7 +163,7 @@ export function HostAssetPage({
           <HostSummaryCard summary={summary} />
         ) : null}
 
-        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-none">
+        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
           <CardHeader className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100">
@@ -178,25 +178,35 @@ export function HostAssetPage({
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleRefresh} disabled={hostsLoading || summaryLoading}>
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={hostsLoading || summaryLoading}
+              className="h-10 rounded-2xl border-slate-200 bg-white px-4 shadow-none"
+            >
               <RefreshCcw className="mr-2 h-4 w-4" />
               {refreshText}
             </Button>
           </CardHeader>
           <CardContent className="flex min-h-0 flex-1 flex-col gap-4 pb-6 pt-6">
             {hostsError ? (
-              <div className="flex min-h-24 flex-1 flex-col gap-3 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 md:flex-row md:items-center md:justify-between">
+              <div className="flex min-h-24 flex-1 flex-col gap-3 rounded-[20px] border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4" />
                   <span>{hostsError}</span>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => void loadHosts()} className="bg-white">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void loadHosts()}
+                  className="rounded-2xl bg-white"
+                >
                   <RefreshCcw className="mr-2 h-4 w-4" />
                   {retryText}
                 </Button>
               </div>
             ) : hostsLoading ? (
-              <div className="flex min-h-48 flex-1 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
+              <div className="flex min-h-48 flex-1 items-center justify-center rounded-[20px] border border-slate-200 bg-white text-sm text-slate-500">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {loadingListText}
               </div>
@@ -214,7 +224,7 @@ export function HostAssetPage({
                 <span className="text-slate-500">{pageLabel(pagination.current_page, Math.max(pagination.total_pages, 1))}</span>
                 <span className="ml-2 text-slate-500">{pageSizeLabel}</span>
                 <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                  <SelectTrigger className="h-9 w-24">
+                  <SelectTrigger className="h-9 w-24 rounded-2xl border-slate-200 bg-white shadow-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -227,6 +237,7 @@ export function HostAssetPage({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="rounded-2xl border-slate-200 bg-white shadow-none"
                   onClick={() => setPage((current) => Math.max(current - 1, 1))}
                   disabled={hostsLoading || !pagination.has_previous}
                 >
@@ -236,6 +247,7 @@ export function HostAssetPage({
                 <Button
                   variant="outline"
                   size="sm"
+                  className="rounded-2xl border-slate-200 bg-white shadow-none"
                   onClick={() => setPage((current) => current + 1)}
                   disabled={hostsLoading || !pagination.has_next}
                 >
