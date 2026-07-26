@@ -60,7 +60,12 @@ export function HostInfoCard({ node, className, reserveCloseSpace = false }: Hos
   if (!node || node.type !== "host") return null
 
   return (
-    <div className={cn("inline-block min-w-[420px] rounded-lg border bg-white text-sm shadow-md", className)}>
+    <div
+      className={cn(
+        "inline-block w-[min(420px,calc(100vw-2rem))] min-w-0 rounded-lg border bg-white text-sm shadow-md",
+        className,
+      )}
+    >
       <div
         className={cn(
           "px-4 py-3",
@@ -79,7 +84,7 @@ export function HostInfoCard({ node, className, reserveCloseSpace = false }: Hos
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-3">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-3 px-4 py-3 sm:grid-cols-2">
         {infoFields.map(({ labelKey, key, icon: Icon }) => {
           const value = node[key]
 

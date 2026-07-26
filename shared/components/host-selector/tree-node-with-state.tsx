@@ -141,7 +141,7 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-sm font-medium transition-colors duration-200",
-          compactHostRows && isHost && "min-w-[7.5rem]",
+          compactHostRows && isHost && "sm:min-w-[7.5rem]",
           checkboxState === "checked"
             ? "text-slate-700"
             : checkboxState === "indeterminate"
@@ -167,13 +167,13 @@ export const TreeNodeWithState = memo(function TreeNodeWithState({
         <div
           className={cn(
             "flex flex-shrink-0 items-center",
-            compactHostRows ? "w-[12.25rem] justify-end gap-2" : "gap-3",
+            compactHostRows ? "w-7 justify-end gap-0 sm:w-[12.25rem] sm:gap-2" : "gap-3",
           )}
         >
           <div
             className={cn(
               "truncate rounded-md bg-slate-100/80 px-2 py-1 font-mono text-xs tabular-nums text-slate-500",
-              compactHostRows ? "w-40" : "min-w-[16rem]",
+              compactHostRows ? "hidden w-40 sm:block" : "min-w-[16rem]",
             )}
             title={node.ip || undefined}
           >

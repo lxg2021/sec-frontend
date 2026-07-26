@@ -5875,6 +5875,7 @@
         "reset": "Reset",
         "retry": "Retry",
         "refresh": "Refresh",
+        "refreshing": "Refreshing…",
         "view": "View",
         "edit": "Edit",
         "save": "Save",
