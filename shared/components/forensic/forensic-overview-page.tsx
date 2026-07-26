@@ -198,8 +198,8 @@ export function ForensicOverviewPage({ context }: Props) {
   }, [refresh])
 
   return (
-    <main className="bg-gray-50">
-      <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
+    <main className="min-h-dvh min-w-0 overflow-x-hidden bg-slate-50">
+      <div className="flex min-h-[calc(100dvh-3rem)] min-w-0 flex-col gap-4 py-3 pl-[4.75rem] pr-3 sm:p-4 xl:gap-5 xl:p-6">
         <ForensicOverviewHeader
           loading={loading}
           refreshedAt={refreshedAt}
@@ -208,7 +208,7 @@ export function ForensicOverviewPage({ context }: Props) {
           onRefresh={refresh}
         />
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
           <ForensicServiceStatusCard availability={overview.availability} />
           <ForensicEndpointStatusSummary summary={overview.endpoint_summary} />
           <ForensicTaskStatusSummary summary={overview.task_summary} />

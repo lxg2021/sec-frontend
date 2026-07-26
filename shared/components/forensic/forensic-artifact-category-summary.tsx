@@ -24,15 +24,15 @@ const CATEGORIES = [
 export function ForensicArtifactCategorySummary({ summary }: Props) {
   const t = useTranslations("pages.investigation.collection.artifactSummary")
   return (
-    <ForensicSummaryCard color="from-yellow-400 to-amber-600">
-      <CardHeader className="p-5 pb-4">
+    <ForensicSummaryCard>
+      <CardHeader className="p-4 pb-3 sm:p-5 sm:pb-4">
         <ForensicPanelHeader
           icon={Boxes}
           iconColor="from-yellow-400 to-amber-600"
           title={t("title")}
         />
       </CardHeader>
-      <CardContent className="px-5 pb-5">
+      <CardContent className="px-4 pb-4 sm:px-5 sm:pb-5">
         <div className="grid grid-cols-3 gap-2">
           {CATEGORIES.map((cat) => {
             const value = summary.by_category[cat.key] ?? 0
@@ -42,7 +42,7 @@ export function ForensicArtifactCategorySummary({ summary }: Props) {
                 key={cat.key}
                 href={`/frame/investigation/artifacts?category=${cat.key}`}
                 className={cn(
-                  "flex flex-col gap-0.5 rounded-md border px-2.5 py-2 transition-colors",
+                  "flex min-w-0 flex-col gap-0.5 rounded-2xl border px-2.5 py-2 transition-colors",
                   active
                     ? "border-border bg-background hover:bg-accent"
                     : "border-dashed border-border bg-muted/30 hover:bg-accent/50"

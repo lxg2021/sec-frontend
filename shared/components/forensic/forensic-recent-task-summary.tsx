@@ -73,8 +73,8 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
   const items = tasks.slice(0, 5)
 
   return (
-    <Card className="flex h-full flex-col">
-      <CardHeader className="p-5 pb-4">
+    <Card className="flex h-full min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="p-4 pb-3 sm:p-5 sm:pb-4">
         <ForensicPanelHeader
           icon={Clock3}
           tone="teal"
@@ -83,7 +83,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
           action={
             <Link
               href="/frame/investigation/tasks"
-              className="mt-1 inline-flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-3 text-xs font-medium text-blue-700 transition-colors hover:border-blue-200 hover:bg-blue-100 hover:text-blue-800"
             >
               {t("recentTasks.viewMore")}
               <ChevronRight className="size-3.5" />
@@ -91,7 +91,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
           }
         />
       </CardHeader>
-      <CardContent className="flex flex-1 px-5 pb-5">
+      <CardContent className="flex min-w-0 flex-1 px-4 pb-4 sm:px-5 sm:pb-5">
         {items.length === 0 ? (
           <div className="flex min-h-[220px] flex-1 flex-col items-center justify-center text-center">
             <Box className="size-12 stroke-[1.8] text-slate-300" aria-hidden />
@@ -99,7 +99,7 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
             <div className="mt-2 text-xs text-slate-500">{t("recentTasks.emptyDescription")}</div>
           </div>
         ) : (
-          <div className="w-full overflow-x-auto">
+          <div className="w-full min-w-0 overflow-x-auto">
             <table className="w-full min-w-[1208px] table-fixed text-sm">
               <colgroup>
                 <col className="w-[82px]" />
@@ -112,17 +112,17 @@ export function ForensicRecentTaskSummary({ tasks }: Props) {
                 <col className="w-[170px]" />
                 <col className="w-[160px]" />
               </colgroup>
-              <thead>
-                <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="px-2 pb-2 text-center font-medium">{t("recentTasks.columns.status")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.taskId")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.caseId")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.host")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.ip")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.mac")}</th>
-                  <th className="px-2 pb-2 text-center font-medium">{t("recentTasks.columns.online")}</th>
-                  <th className="pb-2 pr-3 font-medium">{t("recentTasks.columns.artifact")}</th>
-                  <th className="px-3 pb-2 text-center font-medium">{t("recentTasks.columns.created")}</th>
+              <thead className="bg-slate-100">
+                <tr className="border-b border-slate-200 text-left text-xs text-slate-500">
+                  <th className="px-2 py-3 text-center font-medium">{t("recentTasks.columns.status")}</th>
+                  <th className="py-3 pr-3 font-medium">{t("recentTasks.columns.taskId")}</th>
+                  <th className="py-3 pr-3 font-medium">{t("recentTasks.columns.caseId")}</th>
+                  <th className="py-3 pr-3 font-medium">{t("recentTasks.columns.host")}</th>
+                  <th className="py-3 pr-3 font-medium">{t("recentTasks.columns.ip")}</th>
+                  <th className="py-3 pr-3 font-medium">{t("recentTasks.columns.mac")}</th>
+                  <th className="px-2 py-3 text-center font-medium">{t("recentTasks.columns.online")}</th>
+                  <th className="py-3 pr-3 font-medium">{t("recentTasks.columns.artifact")}</th>
+                  <th className="px-3 py-3 text-center font-medium">{t("recentTasks.columns.created")}</th>
                 </tr>
               </thead>
               <tbody>

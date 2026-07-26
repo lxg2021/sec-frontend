@@ -27,26 +27,23 @@ const ICON_TONE_CLASS: Record<ForensicIconTone, string> = {
 }
 
 interface ForensicSummaryCardProps extends HTMLAttributes<HTMLDivElement> {
-  color?: string
   children?: ReactNode
 }
 
 export function ForensicSummaryCard({
   className,
-  color = "from-cyan-400 to-blue-600",
   children,
   ...props
 }: ForensicSummaryCardProps) {
   return (
     <Card
       className={cn(
-        "group relative h-full overflow-hidden rounded-lg border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl dark:bg-slate-950",
+        "relative h-full min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] transition-shadow duration-200 hover:shadow-[0_14px_34px_rgba(15,23,42,0.08)] dark:bg-slate-950",
         className
       )}
       {...props}
     >
-      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-5 transition-opacity group-hover:opacity-10", color)} />
-      <div className="relative h-full">{children}</div>
+      {children}
     </Card>
   )
 }
@@ -67,7 +64,7 @@ export function ForensicIconBadge({
   return (
     <span
       className={cn(
-        "inline-flex size-10 shrink-0 items-center justify-center rounded-lg ring-1",
+        "inline-flex size-10 shrink-0 items-center justify-center rounded-xl ring-1",
         ICON_TONE_CLASS[tone],
         className
       )}
@@ -99,22 +96,22 @@ export function ForensicPanelHeader({
   if (iconColor) {
     return (
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 pt-0.5">
-          <CardTitle className="text-sm font-medium leading-5 text-slate-600 dark:text-slate-300">
-            {title}
-          </CardTitle>
-          {description && (
-            <CardDescription className="mt-1 text-xs leading-5 text-muted-foreground">
-              {description}
-            </CardDescription>
-          )}
-        </div>
-        <div className="flex shrink-0 items-start gap-2">
-          {action}
-          <span className={cn("inline-flex size-8 items-center justify-center rounded-lg bg-gradient-to-br", iconColor)}>
-            <Icon className="size-4 text-white" aria-hidden />
+        <div className="flex min-w-0 items-start gap-3">
+          <span className={cn("inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br", iconColor)}>
+            <Icon className="size-5 text-white" aria-hidden />
           </span>
+          <div className="min-w-0 pt-0.5">
+            <CardTitle className="text-base font-medium leading-6 text-slate-950 dark:text-slate-100">
+              {title}
+            </CardTitle>
+            {description && (
+              <CardDescription className="mt-1 text-xs leading-5 text-muted-foreground">
+                {description}
+              </CardDescription>
+            )}
+          </div>
         </div>
+        {action}
       </div>
     )
   }
@@ -124,7 +121,7 @@ export function ForensicPanelHeader({
       <div className="flex min-w-0 items-start gap-3">
         <ForensicIconBadge icon={icon} tone={tone} />
         <div className="min-w-0 pt-0.5">
-          <CardTitle className="text-base font-semibold leading-5 text-foreground">
+          <CardTitle className="text-base font-medium leading-6 text-foreground">
             {title}
           </CardTitle>
           {description && (

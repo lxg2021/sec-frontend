@@ -156,7 +156,7 @@ function MetricItem({
   className?: string
 }) {
   return (
-    <div className={cn("flex min-h-20 flex-col gap-1 rounded-lg bg-slate-50 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800", className)}>
+    <div className={cn("flex min-h-20 min-w-0 flex-col gap-1 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800", className)}>
       <div className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
         {Icon ? <Icon className="size-3.5 shrink-0" aria-hidden="true" /> : null}
         <span>{label}</span>
@@ -180,12 +180,12 @@ export function ForensicBackendStatusPanel({ data, loading = false }: Props) {
       : "offline"
 
   return (
-    <Card className="overflow-hidden border-0 bg-white shadow-lg dark:bg-slate-950">
-      <CardHeader className="flex flex-row items-start justify-between gap-4 p-5 pb-4">
+    <Card className="min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] dark:bg-slate-950">
+      <CardHeader className="flex flex-col items-start gap-3 p-4 sm:flex-row sm:justify-between sm:p-5 sm:pb-4">
         <div className="flex min-w-0 items-start gap-3">
           <ForensicIconBadge icon={ShieldCheck} tone="indigo" className="size-10 rounded-xl" iconClassName="size-5" />
           <div className="min-w-0">
-            <CardTitle className="text-base font-semibold leading-5 text-foreground">{t("title")}</CardTitle>
+            <CardTitle className="text-base font-medium leading-6 text-foreground">{t("title")}</CardTitle>
             <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs leading-5 text-muted-foreground">
               <span>{t("description")}</span>
               <span className="text-muted-foreground/60">|</span>
@@ -193,13 +193,13 @@ export function ForensicBackendStatusPanel({ data, loading = false }: Props) {
             </p>
           </div>
         </div>
-        <div className="mr-4 flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           {loading ? <span className="text-xs text-muted-foreground">{t("loading")}</span> : null}
           <StatusBadge status={velociraptor.status} />
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 px-5 pb-5">
+      <CardContent className="space-y-4 px-4 pb-4 sm:px-5 sm:pb-5">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
           <MetricItem icon={Cpu} label={t("metrics.cpu")} value={`${velociraptor.cpu_percent}%`} />
           <MetricItem icon={MemoryStick} label={t("metrics.memory")} value={formatBytes(velociraptor.memory_bytes, locale)} />
@@ -215,7 +215,7 @@ export function ForensicBackendStatusPanel({ data, loading = false }: Props) {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <section className="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+          <section className="min-w-0 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <HardDrive className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -245,7 +245,7 @@ export function ForensicBackendStatusPanel({ data, loading = false }: Props) {
             </div>
           </section>
 
-          <section className="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
+          <section className="min-w-0 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200 dark:bg-slate-900/60 dark:ring-slate-800">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <MonitorSmartphone className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -253,7 +253,7 @@ export function ForensicBackendStatusPanel({ data, loading = false }: Props) {
               </div>
               <StatusBadge status={endpointStatus} />
             </div>
-            <div className="flex items-end justify-center gap-2 rounded-lg bg-white py-6 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
+            <div className="flex items-end justify-center gap-2 rounded-2xl bg-white py-6 ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
               <span className="font-mono text-4xl font-semibold tabular-nums text-foreground">{endpoints.connected}</span>
               <span className="pb-1 font-mono text-lg text-muted-foreground">/ {endpoints.registered}</span>
             </div>

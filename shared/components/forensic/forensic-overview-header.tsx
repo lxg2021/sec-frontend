@@ -71,8 +71,8 @@ export function ForensicOverviewHeader({
   const createTaskHref = `/frame/investigation/tasks?${createTaskParams.toString()}`
 
   return (
-    <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+    <header className="w-full min-w-0 rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)] sm:px-5 2xl:flex-row">
+      <div className="flex min-w-0 flex-col gap-4 2xl:flex-row 2xl:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
             <ScanSearch aria-hidden className="h-5 w-5" />
@@ -91,10 +91,10 @@ export function ForensicOverviewHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
-          <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-2 2xl:ml-auto 2xl:w-auto 2xl:gap-3">
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-3 2xl:justify-end">
             <form
-              className="flex h-12 w-full min-w-[320px] max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
+              className="flex h-11 w-full min-w-0 max-w-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:w-[420px] xl:w-[520px]"
               onSubmit={handleCaseSubmit}
             >
               <Search aria-hidden className="h-4 w-4 shrink-0 text-slate-400" />
@@ -109,7 +109,7 @@ export function ForensicOverviewHeader({
               />
             </form>
 
-            <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+            <span className="hidden h-6 w-px bg-slate-200 sm:block" aria-hidden="true" />
 
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-400">
@@ -123,7 +123,7 @@ export function ForensicOverviewHeader({
               </div>
             </div>
 
-            <span className="h-6 w-px bg-slate-200" aria-hidden="true" />
+            <span className="hidden h-6 w-px bg-slate-200 sm:block" aria-hidden="true" />
 
             <Button
               type="button"

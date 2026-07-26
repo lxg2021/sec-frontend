@@ -26,15 +26,15 @@ export function ForensicTaskStatusSummary({ summary }: Props) {
   const total = LEGEND.reduce((sum, item) => sum + summary[item.key], 0)
 
   return (
-    <ForensicSummaryCard color="from-violet-400 to-purple-600">
-      <CardHeader className="p-5 pb-4">
+    <ForensicSummaryCard>
+      <CardHeader className="p-4 pb-3 sm:p-5 sm:pb-4">
         <ForensicPanelHeader
           icon={ListChecks}
           iconColor="from-violet-400 to-purple-600"
           title={t("taskSummary.title")}
         />
       </CardHeader>
-      <CardContent className="space-y-4 px-5 pb-5">
+      <CardContent className="space-y-4 px-4 pb-4 sm:px-5 sm:pb-5">
         <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
           {LEGEND.map((item) => {
             const value = summary[item.key]

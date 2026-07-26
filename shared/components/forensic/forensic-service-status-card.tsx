@@ -51,15 +51,15 @@ export function ForensicServiceStatusCard({ availability }: Props) {
   )
 
   return (
-    <ForensicSummaryCard color="from-cyan-400 to-blue-600">
-      <CardHeader className="p-5 pb-4">
+    <ForensicSummaryCard>
+      <CardHeader className="p-4 pb-3 sm:p-5 sm:pb-4">
         <ForensicPanelHeader
           icon={ScanSearch}
           iconColor="from-cyan-400 to-blue-600"
           title={t("title")}
         />
       </CardHeader>
-      <CardContent className="space-y-3 px-5 pb-5">
+      <CardContent className="space-y-3 px-4 pb-4 sm:px-5 sm:pb-5">
         <div className="grid gap-3">
           <StatusRow
             label={t("availableEndpoint")}

@@ -21,15 +21,15 @@ export function ForensicEndpointStatusSummary({ summary }: Props) {
   const max = Math.max(summary.total, 1)
 
   return (
-    <ForensicSummaryCard color="from-green-400 to-emerald-600">
-      <CardHeader className="p-5 pb-4">
+    <ForensicSummaryCard>
+      <CardHeader className="p-4 pb-3 sm:p-5 sm:pb-4">
         <ForensicPanelHeader
           icon={Monitor}
           iconColor="from-green-400 to-emerald-600"
           title={t("title")}
         />
       </CardHeader>
-      <CardContent className="space-y-4 px-5 pb-5">
+      <CardContent className="space-y-4 px-4 pb-4 sm:px-5 sm:pb-5">
         <ul className="space-y-3">
           {rows.map((row) => (
             <li key={row.key} className="flex items-center gap-3">
