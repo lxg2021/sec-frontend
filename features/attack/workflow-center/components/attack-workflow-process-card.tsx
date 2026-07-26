@@ -142,16 +142,16 @@ function WorkflowHeader({
     loading && !workflow ? t("loading") : displayHeaderValue(workflow?.case_id)
 
   return (
-    <header className="flex min-w-0 items-center gap-3 px-6 py-5">
-      <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-        <Waypoints className="size-6" aria-hidden="true" />
+    <header className="flex min-w-0 items-center gap-3 px-5 py-4">
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+        <Waypoints className="size-5" aria-hidden="true" />
       </div>
 
       <div className="min-w-0 flex-1">
         <h2
           className={cn(
-            "line-clamp-2 break-words text-lg font-semibold leading-6 text-slate-950",
-            isChinese && "font-semibold",
+            "line-clamp-2 break-words text-base font-medium leading-6 text-slate-950",
+            isChinese && "font-medium",
             loading && !workflow && "text-slate-400",
           )}
           title={title}
@@ -159,7 +159,7 @@ function WorkflowHeader({
           {title}
         </h2>
 
-        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 text-sm text-slate-500">
+        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-2 text-xs leading-5 text-slate-500">
           <span
             className={cn(
               "min-w-0 max-w-full font-mono text-xs font-semibold leading-5 text-slate-500",
@@ -188,7 +188,7 @@ export function AttackWorkflowProcessCard({
   const notice = processNotice(t, workflow)
 
   return (
-    <Card className="min-h-0 w-full overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
+    <Card className="min-h-0 min-w-0 w-full overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <WorkflowHeader
         isChinese={isChinese}
         loading={loading}
@@ -214,7 +214,7 @@ export function AttackWorkflowProcessCard({
         <div className="border-t border-slate-100 px-4 py-3">
           <div
             className={cn(
-              "rounded-xl border px-4 py-3 text-sm font-medium",
+              "rounded-2xl border px-4 py-3 text-sm font-medium",
               processNoticeTone(workflow),
             )}
           >

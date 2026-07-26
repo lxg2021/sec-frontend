@@ -36,17 +36,17 @@ export function AttackWorkflowActivityPanel({
   const content = (
     <Tabs defaultValue="events" className="flex min-h-0 flex-1 flex-col">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-lg bg-slate-100 p-1 sm:grid-cols-3 lg:inline-flex lg:w-auto">
+        <TabsList className="grid h-auto w-full grid-cols-1 gap-1 rounded-full bg-slate-100 p-1 sm:grid-cols-3 lg:inline-flex lg:w-auto">
           <TabsTrigger
             value="events"
-            className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
+            className="min-h-8 gap-1.5 rounded-full px-3 text-sm data-[state=active]:bg-white"
           >
             <History className="size-4" />
             {t("activity.events", { count: events.length })}
           </TabsTrigger>
           <TabsTrigger
             value="actions"
-            className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
+            className="min-h-8 gap-1.5 rounded-full px-3 text-sm data-[state=active]:bg-white"
           >
             <FileText className="size-4" />
             {t("activity.actions", { count: actions.length })}
@@ -54,7 +54,7 @@ export function AttackWorkflowActivityPanel({
           <TabsTrigger
             value="impact"
             disabled
-            className="min-h-8 gap-1.5 rounded-md px-3 text-sm data-[state=active]:bg-white"
+            className="min-h-8 gap-1.5 rounded-full px-3 text-sm data-[state=active]:bg-white"
           >
             <Network className="size-4" />
             {t("activity.impactSurface")}
@@ -96,7 +96,7 @@ export function AttackWorkflowActivityPanel({
   return (
     <Card
       className={cn(
-        "flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm",
+        "flex min-h-0 min-w-0 w-full flex-col overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
         className,
       )}
     >

@@ -240,7 +240,7 @@ function EventMobileCard({
   const operator = eventOperatorName(event)
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white px-4 py-3">
+    <article className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="font-mono text-xs text-slate-500">
@@ -294,10 +294,10 @@ export function AttackWorkflowEventsTable({
         ))}
       </div>
 
-      <div className="hidden min-w-0 rounded-xl border border-slate-200 md:block">
-        <Table>
-          <TableHeader className="sticky top-0 z-10 bg-slate-50">
-            <TableRow className="hover:bg-slate-50">
+      <div className="hidden min-w-0 md:block">
+        <Table className="min-w-[960px]">
+          <TableHeader className="sticky top-0 z-10 bg-slate-100">
+            <TableRow className="hover:bg-slate-100">
               <TableHead className="h-11 w-[13rem] text-xs font-semibold text-slate-500">
                 {t("events.columns.time")}
               </TableHead>

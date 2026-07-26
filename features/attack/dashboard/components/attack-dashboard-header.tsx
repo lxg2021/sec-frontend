@@ -87,7 +87,7 @@ export function AttackDashboardHeader({
         className,
       )}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <div
             className={cn(
@@ -118,7 +118,7 @@ export function AttackDashboardHeader({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
+        <div className="flex flex-wrap items-center gap-2 xl:ml-auto xl:gap-3">
           <AttackSnapshotSelector
             value={bucket.snapshot_id}
             snapshot={overview}
@@ -126,7 +126,7 @@ export function AttackDashboardHeader({
             onChange={(snapshot) => onSnapshotChange?.(snapshot)}
           />
 
-          <div className="flex items-center gap-1 lg:border-l lg:border-slate-200 lg:pl-4">
+          <div className="flex items-center gap-1 xl:border-l xl:border-slate-200 xl:pl-4">
             <Button
               type="button"
               variant="ghost"
@@ -160,7 +160,7 @@ export function AttackDashboardHeader({
             ) : null}
           </div>
 
-          <div className="flex items-center lg:border-l lg:border-slate-200 lg:pl-3">
+          <div className="flex items-center xl:border-l xl:border-slate-200 xl:pl-3">
             <Button
               type="button"
               variant="ghost"

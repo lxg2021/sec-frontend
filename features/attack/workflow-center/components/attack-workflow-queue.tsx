@@ -18,6 +18,7 @@ import {
   CircleDot,
   Clock3,
   Inbox,
+  ListChecks,
   ListFilter,
   Loader2,
   RefreshCw,
@@ -408,33 +409,38 @@ export function AttackWorkflowQueue({
   return (
     <section
       className={cn(
-        "flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm",
-        "max-h-[60dvh] lg:max-h-none",
+        "flex min-h-0 min-w-0 w-full flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
+        "max-h-[60dvh] xl:max-h-none",
         className,
       )}
       aria-label={t("queue.ariaLabel")}
     >
-      <header className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <div className="min-w-0">
-          <h2
-            className={cn(
-              "text-sm font-semibold leading-5 text-slate-900",
-              isChinese && "font-semibold",
-            )}
-          >
-            {t("queue.title")}
-          </h2>
-          <p className="mt-0.5 truncate text-xs text-slate-500">
-            {queueScopeSummary}
-            {typeof total === "number" ? (
-              <>
-                {" / "}
-                <span className="font-medium text-slate-600">
-                  {normalizedTotal.toLocaleString()}
-                </span>
-              </>
-            ) : null}
-          </p>
+      <header className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600">
+            <ListChecks className="size-5" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <h2
+              className={cn(
+                "text-base font-medium leading-5 text-slate-950",
+                isChinese && "font-medium",
+              )}
+            >
+              {t("queue.title")}
+            </h2>
+            <p className="mt-0.5 truncate text-xs leading-5 text-slate-500">
+              {queueScopeSummary}
+              {typeof total === "number" ? (
+                <>
+                  {" / "}
+                  <span className="font-medium text-slate-600">
+                    {normalizedTotal.toLocaleString()}
+                  </span>
+                </>
+              ) : null}
+            </p>
+          </div>
         </div>
         <button
           type="button"
@@ -442,7 +448,7 @@ export function AttackWorkflowQueue({
           disabled={loading}
           aria-label={t("queue.refreshAria")}
           className={cn(
-            "inline-flex size-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600",
+            "inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-600",
             "transition-colors hover:bg-slate-50 hover:text-slate-900",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
             "disabled:cursor-not-allowed disabled:opacity-50",
@@ -470,7 +476,7 @@ export function AttackWorkflowQueue({
             placeholder={t("queue.caseIdPlaceholder")}
             aria-label={t("queue.caseIdFilterAria")}
             className={cn(
-              "h-9 w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-900 placeholder:text-slate-400",
+              "h-9 w-full rounded-2xl border border-slate-200 bg-white pl-8 pr-8 text-sm text-slate-900 placeholder:text-slate-400",
               "focus-visible:border-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/30",
             )}
           />
@@ -479,7 +485,7 @@ export function AttackWorkflowQueue({
               type="button"
               onClick={() => onCaseIdChange("")}
               aria-label={t("queue.clearCaseIdAria")}
-              className="absolute right-2 top-1/2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="absolute right-2 top-1/2 inline-flex size-5 -translate-y-1/2 items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
             >
               <X className="size-3.5" aria-hidden="true" />
             </button>
@@ -489,7 +495,7 @@ export function AttackWorkflowQueue({
         <div
           role="group"
           aria-label={t("queue.scopeAria")}
-          className="grid grid-cols-3 gap-1 rounded-lg bg-slate-100 p-1"
+          className="grid grid-cols-3 gap-1 rounded-full bg-slate-100 p-1"
         >
           {SCOPE_OPTIONS.map((option) => {
             const active = filters.statusScope === option.value
@@ -500,7 +506,7 @@ export function AttackWorkflowQueue({
                 aria-pressed={active}
                 onClick={() => handleScope(option.value)}
                 className={cn(
-                  "h-7 rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                  "h-7 rounded-full text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                   active
                     ? "bg-white text-blue-700 shadow-sm"
                     : "text-slate-600 hover:text-slate-900",
@@ -527,7 +533,7 @@ export function AttackWorkflowQueue({
                 id={statusId}
                 aria-label={t("queue.filterByStatus")}
                 className={cn(
-                  "h-9 rounded-lg border-slate-200 bg-white px-2.5 py-0 text-sm text-slate-700 shadow-none ring-offset-white",
+                  "h-9 rounded-2xl border-slate-200 bg-white px-2.5 py-0 text-sm text-slate-700 shadow-none ring-offset-white",
                   "focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0 data-[state=open]:border-blue-300 data-[state=open]:ring-2 data-[state=open]:ring-blue-500/20",
                   "[&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-slate-500 [&>svg]:opacity-80",
                 )}
@@ -547,7 +553,7 @@ export function AttackWorkflowQueue({
               <SelectContent
                 align="start"
                 sideOffset={4}
-                className="w-[var(--radix-select-trigger-width)] rounded-lg border-slate-200 bg-white p-1 shadow-lg [&_[data-radix-select-viewport]]:h-auto"
+                className="w-[var(--radix-select-trigger-width)] rounded-2xl border-slate-200 bg-white p-1 shadow-lg [&_[data-radix-select-viewport]]:h-auto"
               >
                 <SelectItem
                   value={ALL_STATUS_FILTER_VALUE}
@@ -591,7 +597,7 @@ export function AttackWorkflowQueue({
                 id={severityId}
                 aria-label={t("queue.filterBySeverity")}
                 className={cn(
-                  "h-9 rounded-lg border-slate-200 bg-white px-2.5 py-0 text-sm text-slate-700 shadow-none ring-offset-white",
+                  "h-9 rounded-2xl border-slate-200 bg-white px-2.5 py-0 text-sm text-slate-700 shadow-none ring-offset-white",
                   "focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0 data-[state=open]:border-blue-300 data-[state=open]:ring-2 data-[state=open]:ring-blue-500/20",
                   "[&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-slate-500 [&>svg]:opacity-80",
                 )}
@@ -611,7 +617,7 @@ export function AttackWorkflowQueue({
               <SelectContent
                 align="start"
                 sideOffset={4}
-                className="w-[var(--radix-select-trigger-width)] rounded-lg border-slate-200 bg-white p-1 shadow-lg [&_[data-radix-select-viewport]]:h-auto"
+                className="w-[var(--radix-select-trigger-width)] rounded-2xl border-slate-200 bg-white p-1 shadow-lg [&_[data-radix-select-viewport]]:h-auto"
               >
                 <SelectItem
                   value={ALL_SEVERITY_FILTER_VALUE}
@@ -644,7 +650,7 @@ export function AttackWorkflowQueue({
         {error ? (
           <div
             role="alert"
-            className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700"
+            className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700"
           >
             <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
             <span className="min-w-0 flex-1 truncate">{error}</span>
@@ -665,7 +671,7 @@ export function AttackWorkflowQueue({
             {Array.from({ length: 5 }).map((_, index) => (
               <li
                 key={index}
-                className="rounded-xl border border-slate-100 bg-white p-3"
+                className="rounded-2xl border border-slate-100 bg-white p-3"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="h-3.5 w-28 animate-pulse rounded bg-slate-100" />
@@ -750,7 +756,7 @@ function QueuePaginationFooter({
   totalPages: number
 }) {
   const buttonClassName = cn(
-    "inline-flex size-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600",
+    "inline-flex size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600",
     "transition-colors hover:bg-slate-50 hover:text-slate-900",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
     "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-white disabled:hover:text-slate-600",
@@ -851,7 +857,7 @@ function QueueItemCard({
       aria-pressed={selected}
       onClick={() => onSelect(item)}
       className={cn(
-        "group relative w-full overflow-hidden rounded-xl border text-left transition-all duration-150",
+        "group relative w-full overflow-hidden rounded-2xl border text-left transition-all duration-150",
         "p-2.5 pl-3",
         "before:absolute before:inset-y-0 before:left-0 before:w-1 before:transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",

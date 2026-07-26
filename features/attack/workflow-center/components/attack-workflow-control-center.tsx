@@ -951,7 +951,7 @@ export function AttackWorkflowControlCenter({
   }
 
   return (
-    <main className="flex min-h-[calc(100dvh-3rem)] w-full overflow-x-hidden bg-gray-50 p-3 sm:p-4 xl:p-5">
+    <main className="flex min-h-[calc(100dvh-3rem)] min-w-0 w-full overflow-x-hidden bg-slate-50 p-3 sm:p-4 xl:p-5">
       <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
         <AttackDetailHeader
           overview={attackOverview ?? EMPTY_ATTACK_OVERVIEW}
@@ -962,7 +962,7 @@ export function AttackWorkflowControlCenter({
           onSnapshotChange={selectAttackOverviewSnapshot}
         />
 
-        <section className="grid min-h-0 w-full flex-1 items-stretch gap-4 xl:grid-cols-[clamp(440px,31vw,480px)_minmax(0,1fr)]">
+        <section className="grid min-h-0 min-w-0 w-full flex-1 grid-cols-[minmax(0,1fr)] items-stretch gap-4 xl:grid-cols-[clamp(440px,31vw,480px)_minmax(0,1fr)]">
           <AttackWorkflowQueue
             className="xl:h-full"
             caseIdQuery={queueCaseIdQuery}
@@ -1061,7 +1061,7 @@ function WorkflowMainGrid({
   workflow: AttackWorkflowItem | null
 }) {
   return (
-    <section className="flex h-full min-h-0 w-full flex-1 flex-col gap-4">
+    <section className="flex h-full min-h-0 min-w-0 w-full flex-1 flex-col gap-4">
       <AttackWorkflowProcessCard
         loading={loading}
         onStatusSelect={onWorkbenchStatusSelect}
@@ -1169,14 +1169,14 @@ function StatusDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl rounded-2xl border-slate-200 p-0 shadow-xl">
+      <DialogContent className="max-w-xl rounded-[24px] border-slate-200 p-0 shadow-[0_18px_48px_rgba(15,23,42,0.16)]">
         <DialogHeader className="border-b border-slate-100 px-5 py-4 pr-12">
           <div className="flex items-center gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
               <Activity className="size-5" />
             </span>
             <div>
-              <DialogTitle className="text-sm font-semibold text-slate-950">
+              <DialogTitle className="text-base font-medium text-slate-950">
                 {title}
               </DialogTitle>
               <div className="mt-1.5 max-w-full text-xs font-medium text-slate-500">
@@ -1204,7 +1204,10 @@ function StatusDialog({
                   onCloseReasonChange(value as AttackWorkflowCloseReason)
                 }
               >
-                <SelectTrigger id="attack-workflow-center-close-reason">
+                <SelectTrigger
+                  id="attack-workflow-center-close-reason"
+                  className="rounded-2xl border-slate-200"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1229,7 +1232,7 @@ function StatusDialog({
               value={comment}
               onChange={(event) => onCommentChange(event.target.value)}
               placeholder={notePlaceholder}
-              className="min-h-28 resize-y rounded-xl border-slate-200 text-sm leading-6"
+              className="min-h-28 resize-y rounded-2xl border-slate-200 text-sm leading-6"
             />
             <p className="text-xs leading-5 text-slate-500">
               {noteHint}
@@ -1238,11 +1241,21 @@ function StatusDialog({
         </div>
         <DialogFooter className="gap-2 border-t border-slate-100 px-5 py-4 sm:space-x-0">
           <DialogClose asChild>
-            <Button type="button" variant="outline" disabled={updating}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={updating}
+              className="rounded-full px-5"
+            >
               {t("dialog.cancel")}
             </Button>
           </DialogClose>
-          <Button type="button" onClick={onSubmit} disabled={!canSubmit}>
+          <Button
+            type="button"
+            onClick={onSubmit}
+            disabled={!canSubmit}
+            className="rounded-full px-5"
+          >
             {updating ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (

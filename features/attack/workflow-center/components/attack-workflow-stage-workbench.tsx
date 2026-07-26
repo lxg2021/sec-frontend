@@ -977,26 +977,24 @@ export function AttackWorkflowStageWorkbench({
   ])
 
   return (
-    <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
+    <Card className="min-w-0 overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <header className="flex flex-col gap-4 border-b border-slate-100 p-4 sm:p-5 xl:flex-row xl:items-start xl:justify-between">
         <div className="flex min-w-0 items-start gap-3">
-          <span className="flex h-14 w-12 shrink-0 items-center">
-            <span
-              className={cn(
-                "flex size-12 items-center justify-center rounded-xl",
-                selectedStyle.iconBg,
-                selectedStyle.iconText,
-              )}
-            >
-              <FlowStatusIcon status={selectedStatus} className="size-6" />
-            </span>
+          <span
+            className={cn(
+              "flex size-10 shrink-0 items-center justify-center rounded-xl",
+              selectedStyle.iconBg,
+              selectedStyle.iconText,
+            )}
+          >
+            <FlowStatusIcon status={selectedStatus} className="size-5" />
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h2
                 className={cn(
-                  "whitespace-nowrap text-lg font-semibold leading-6 text-slate-900",
-                  isChinese && "text-base font-semibold leading-5",
+                  "whitespace-nowrap text-base font-medium leading-5 text-slate-950",
+                  isChinese && "font-medium",
                 )}
               >
                 {t("workbench.title")}
@@ -1086,7 +1084,7 @@ export function AttackWorkflowStageWorkbench({
             {isReadOnly ? (
               <div
                 className={cn(
-                  "min-h-0 rounded-xl border border-slate-200 bg-slate-50 p-3",
+                  "min-h-0 rounded-2xl border border-slate-200 bg-slate-50 p-3",
                   "2xl:flex-1",
                 )}
               >
@@ -1106,7 +1104,7 @@ export function AttackWorkflowStageWorkbench({
             ) : (
               <div
                 className={cn(
-                  "flex min-h-0 flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3",
+                  "flex min-h-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3",
                   "2xl:flex-1",
                 )}
               >
@@ -1132,7 +1130,7 @@ export function AttackWorkflowStageWorkbench({
                         )
                       }
                       className={cn(
-                        "w-full justify-between focus-visible:ring-2 focus-visible:ring-offset-2",
+                        "w-full justify-between rounded-full focus-visible:ring-2 focus-visible:ring-offset-2",
                       getStatusStyle(recommendedStatus as AttackWorkflowStatus)
                         .primaryBtn,
                         isChinese && "text-sm font-medium",
@@ -1218,7 +1216,7 @@ export function AttackWorkflowStageWorkbench({
                           disabled={updating}
                           onClick={() => onOpenStatusDialog(status)}
                           className={cn(
-                            "h-8 min-w-0 justify-center px-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-offset-2",
+                            "h-8 min-w-0 justify-center rounded-full px-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-offset-2",
                             getStatusStyle(status).primaryBtn,
                           )}
                         >
@@ -1251,8 +1249,8 @@ export function AttackWorkflowStageWorkbench({
               className={cn(
                 "flex min-h-0 flex-col 2xl:flex-1",
                 tools.length > 0
-                  ? "overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)] 2xl:justify-evenly"
-                  : "rounded-xl border border-slate-200 bg-white/95 p-2",
+                  ? "overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-2 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_12px_32px_-12px_rgba(15,23,42,0.10)] 2xl:justify-evenly"
+                  : "rounded-2xl border border-slate-200 bg-white/95 p-2",
               )}
             >
               {tools.length > 0 ? (
@@ -1294,7 +1292,7 @@ export function AttackWorkflowStageWorkbench({
           </SectionTitle>
           <div
             className={cn(
-              "flex min-h-0 flex-col gap-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-3",
+              "flex min-h-0 flex-col gap-3 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50/50 p-3",
               hasPairedSectionHeight && "2xl:flex-1",
             )}
           >
