@@ -170,10 +170,10 @@ export function HostAssetPage({
                 <ListIcon className="size-6" />
               </div>
               <div>
-                <CardTitle className="text-xl font-semibold text-slate-950">
+                <CardTitle className="text-base font-medium text-slate-950">
                   {listTitle}
                 </CardTitle>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-xs leading-5 text-slate-500">
                   {listDescription}
                 </p>
               </div>
