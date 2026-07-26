@@ -643,6 +643,116 @@
         "pageSize": "Per page",
         "previousPage": "Previous",
         "nextPage": "Next",
+        "inventory": {
+          "summary": {
+            "overviewTitle": "Hardware Asset Overview",
+            "overviewDescription": "Summary by model, device, and host coverage",
+            "modelCount": "Total Models",
+            "deviceCount": "Total Devices",
+            "hostCount": "Hosts",
+            "distributionTitle": "Hardware Category Distribution",
+            "distributionDescription": "Model and device counts by category, with model share visualized",
+            "ratioAria": "{category} model share {percent}%"
+          },
+          "units": {
+            "models": "models",
+            "devices": "devices"
+          },
+          "categories": {
+            "cpu": "CPU",
+            "disk": "Disk",
+            "mainboard": "Motherboard",
+            "memory": "Memory",
+            "gpu": "GPU",
+            "network": "Network Adapter"
+          },
+          "list": {
+            "title": "Hardware Inventory",
+            "description": "Aggregated by {category} model, with filters and expandable related hosts",
+            "showing": "Showing {shown} of {total} models",
+            "searchPlaceholder": "Search hardware model, vendor, host name, or fingerprint...",
+            "searchAriaLabel": "Search hardware assets"
+          },
+          "actions": {
+            "refresh": "Refresh",
+            "clearFilters": "Clear filters",
+            "search": "Search",
+            "retry": "Retry",
+            "expand": "Expand related hosts",
+            "collapse": "Collapse related hosts"
+          },
+          "empty": {
+            "title": "No Hardware Assets",
+            "description": "No hardware models match the current category. Adjust the filters or refresh and try again."
+          },
+          "related": {
+            "title": "Related Hosts - {title}",
+            "description": "Hosts associated with this hardware model",
+            "hostCount": "{count, plural, one {# host} other {# hosts}}",
+            "empty": "No related host details"
+          },
+          "columns": {
+            "expand": "Expand",
+            "type": "Type",
+            "modelInfo": "Model Information",
+            "modelFingerprint": "Model Fingerprint",
+            "deviceCount": "Devices",
+            "hostCount": "Hosts",
+            "collectedAt": "Last Collected",
+            "hostname": "Host Name",
+            "agentId": "Agent ID",
+            "os": "Operating System",
+            "status": "Status"
+          },
+          "status": {
+            "online": "Online",
+            "offline": "Offline"
+          },
+          "pagination": {
+            "total": "{total, plural, one {# model} other {# models}}",
+            "totalRange": "{total, plural, one {# model} other {# models}}, showing {start}-{end}",
+            "perPage": "Per page",
+            "previous": "Previous",
+            "next": "Next"
+          },
+          "fallbacks": {
+            "unknownCpu": "Unknown CPU",
+            "unknownDisk": "Unknown Disk",
+            "unknownMainboard": "Unknown Motherboard",
+            "unknownMemory": "Unknown Memory Module",
+            "unknownGpu": "Unknown GPU",
+            "unknownNetwork": "Unknown Network Adapter"
+          },
+          "subtitles": {
+            "cpu": "{vendor} · {physical} cores · {logical} threads"
+          },
+          "specs": {
+            "frequency": "Frequency",
+            "socket": "Socket",
+            "processorId": "Processor ID",
+            "capacity": "Capacity",
+            "interface": "Interface",
+            "media": "Media",
+            "serialNumber": "Serial Number",
+            "version": "Version",
+            "speed": "Speed",
+            "slot": "Slot",
+            "vram": "VRAM",
+            "driver": "Driver",
+            "processor": "Processor",
+            "mac": "MAC",
+            "dns": "DNS",
+            "dhcp": "DHCP"
+          },
+          "network": {
+            "enabled": "Enabled",
+            "disabled": "Disabled"
+          },
+          "errors": {
+            "summaryLoadFailed": "Failed to load hardware summary",
+            "listLoadFailed": "Failed to load hardware inventory"
+          }
+        },
         "host": {
           "tabs": {
             "basic": "Basic Info",

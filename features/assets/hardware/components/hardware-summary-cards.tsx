@@ -1,6 +1,7 @@
 "use client"
 
 import { Database, PackageSearch } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { HARDWARE_CATEGORIES } from "@/features/assets/hardware/constants"
 import type { HardwareSummary } from "@/features/assets/hardware/types"
@@ -23,6 +24,7 @@ function MetricItem({
   tone: "blue" | "green" | "slate"
   isLoading?: boolean
 }) {
+  const locale = useLocale()
   const tones = {
     blue: {
       value: "text-blue-600",
@@ -47,8 +49,8 @@ function MetricItem({
       {isLoading ? (
         <Skeleton className="mt-5 h-10 w-24" />
       ) : (
-        <p className={`mt-5 text-4xl font-semibold leading-none tabular-nums ${tones.value}`}>
-          {value.toLocaleString()}
+        <p className={`mt-4 text-3xl font-semibold leading-none tabular-nums ${tones.value}`}>
+          {value.toLocaleString(locale)}
         </p>
       )}
     </div>
@@ -56,35 +58,35 @@ function MetricItem({
 }
 
 function OverviewCard({ summary, isLoading = false }: HardwareSummaryCardsProps) {
+  const t = useTranslations("pages.assets.hardware.inventory")
+
   return (
-    <Card className="group relative overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-50/90 via-white to-slate-50" />
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-100/80 via-orange-50/60 to-slate-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-      <CardHeader className="relative flex flex-row items-center justify-between pb-4">
-        <div>
-          <h3 className="text-base font-semibold text-slate-800">硬件资产概览</h3>
-          <p className="mt-2 text-sm text-slate-500">按型号、设备和主机覆盖范围汇总</p>
+    <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="flex flex-row items-center gap-3 pb-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
+          <PackageSearch className="size-6" aria-hidden="true" />
         </div>
-        <div className="rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 p-2 text-white shadow-sm shadow-amber-200/60">
-          <PackageSearch className="h-5 w-5" />
+        <div className="min-w-0">
+          <h3 className="text-base font-medium text-slate-950">{t("summary.overviewTitle")}</h3>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{t("summary.overviewDescription")}</p>
         </div>
       </CardHeader>
-      <CardContent className="relative">
+      <CardContent>
         <div className="grid gap-8 md:grid-cols-3">
           <MetricItem
-            title="型号总数"
+            title={t("summary.modelCount")}
             value={Number(summary.model_count || 0)}
             tone="blue"
             isLoading={isLoading}
           />
           <MetricItem
-            title="设备总数"
+            title={t("summary.deviceCount")}
             value={Number(summary.device_count || 0)}
             tone="green"
             isLoading={isLoading}
           />
           <MetricItem
-            title="主机数"
+            title={t("summary.hostCount")}
             value={Number(summary.covered_host_count || 0)}
             tone="slate"
             isLoading={isLoading}
@@ -96,28 +98,30 @@ function OverviewCard({ summary, isLoading = false }: HardwareSummaryCardsProps)
 }
 
 function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsProps) {
+  const t = useTranslations("pages.assets.hardware.inventory")
+  const locale = useLocale()
   const byCategory = new Map(summary.categories.map((item) => [item.category, item]))
 
   return (
-    <Card className="group relative overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-500 to-slate-600 opacity-10 transition-opacity group-hover:opacity-20" />
-      <CardHeader className="relative flex flex-row items-start justify-between pb-2">
-        <div>
-          <h3 className="text-base font-semibold text-slate-800">硬件分类分布</h3>
-          <p className="mt-2 text-sm text-slate-500">每类展示型号数 / 设备数，进度条按型号占比绘制</p>
+    <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="flex flex-row items-center gap-3 pb-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
+          <Database className="size-6" aria-hidden="true" />
         </div>
-        <div className="rounded-lg bg-gradient-to-br from-slate-500 to-slate-700 p-2 text-white">
-          <Database className="h-5 w-5" />
+        <div className="min-w-0">
+          <h3 className="text-base font-medium text-slate-950">{t("summary.distributionTitle")}</h3>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{t("summary.distributionDescription")}</p>
         </div>
       </CardHeader>
 
-      <CardContent className="relative pt-0">
-        <div className="grid gap-x-8 gap-y-4 lg:grid-cols-2">
+      <CardContent className="pt-0">
+        <div className="grid gap-x-8 gap-y-4 2xl:grid-cols-2">
           {isLoading
             ? Array.from({ length: 6 }).map((_, index) => (
                 <Skeleton key={index} className="h-9 w-full" />
               ))
             : HARDWARE_CATEGORIES.map((category) => {
+                const categoryLabel = t(`categories.${category.value}`)
                 const value = byCategory.get(category.value)
                 const modelCount = Number(value?.model_count || 0)
                 const deviceCount = Number(value?.device_count || 0)
@@ -125,21 +129,21 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
                   ? Math.min(100, Math.max(0, Math.round((modelCount / deviceCount) * 100)))
                   : 0
                 return (
-                  <div key={category.value} className="grid grid-cols-[72px_132px_minmax(120px,1fr)] items-center gap-4 text-sm">
+                  <div key={category.value} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 text-sm sm:grid-cols-[minmax(120px,138px)_minmax(132px,auto)_minmax(100px,1fr)]">
                     <div className="flex min-w-0 items-center gap-2 font-medium text-slate-700">
                       <category.icon className={`h-4 w-4 shrink-0 ${category.color}`} />
-                      <span className="truncate">{category.label}</span>
+                      <span className="truncate">{categoryLabel}</span>
                     </div>
-                    <div className="grid grid-cols-[24px_32px_10px_28px_32px] items-center text-sm font-medium tabular-nums text-slate-700">
-                      <span className="text-right">{modelCount.toLocaleString()}</span>
-                      <span className="text-left"> 型号</span>
+                    <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium tabular-nums text-slate-700">
+                      <span>{modelCount.toLocaleString(locale)}</span>
+                      <span>{t("units.models")}</span>
                       <span className="text-center text-slate-400">/</span>
-                      <span className="text-right">{deviceCount.toLocaleString()}</span>
-                      <span className="text-left"> 设备</span>
+                      <span>{deviceCount.toLocaleString(locale)}</span>
+                      <span>{t("units.devices")}</span>
                     </div>
                     <div
-                      className="h-2 overflow-hidden rounded-full bg-slate-200"
-                      aria-label={`${category.label} 型号占比 ${percent}%`}
+                      className="col-span-2 h-2 overflow-hidden rounded-full bg-slate-200 sm:col-span-1"
+                      aria-label={t("summary.ratioAria", { category: categoryLabel, percent })}
                       role="progressbar"
                       aria-valuenow={percent}
                       aria-valuemin={0}
@@ -162,7 +166,7 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
 
 export function HardwareSummaryCards({ summary, isLoading = false }: HardwareSummaryCardsProps) {
   return (
-    <div className="grid shrink-0 gap-6 xl:grid-cols-[minmax(420px,0.85fr)_minmax(560px,1.15fr)]">
+    <div className="grid shrink-0 gap-4 xl:grid-cols-[minmax(420px,0.85fr)_minmax(560px,1.15fr)]">
       <OverviewCard summary={summary} isLoading={isLoading} />
       <DistributionCard summary={summary} isLoading={isLoading} />
     </div>

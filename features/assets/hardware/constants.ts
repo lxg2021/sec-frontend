@@ -5,7 +5,6 @@ import type { HardwareCategory, HardwareCategoryMeta } from "@/features/assets/h
 export const HARDWARE_CATEGORIES: HardwareCategoryMeta[] = [
   {
     value: "cpu",
-    label: "CPU",
     icon: Cpu,
     color: "text-blue-600",
     barClassName: "bg-blue-500",
@@ -13,7 +12,6 @@ export const HARDWARE_CATEGORIES: HardwareCategoryMeta[] = [
   },
   {
     value: "disk",
-    label: "磁盘",
     icon: HardDrive,
     color: "text-emerald-600",
     barClassName: "bg-emerald-500",
@@ -21,7 +19,6 @@ export const HARDWARE_CATEGORIES: HardwareCategoryMeta[] = [
   },
   {
     value: "mainboard",
-    label: "主板",
     icon: CircuitBoard,
     color: "text-violet-600",
     barClassName: "bg-violet-500",
@@ -29,7 +26,6 @@ export const HARDWARE_CATEGORIES: HardwareCategoryMeta[] = [
   },
   {
     value: "memory",
-    label: "内存",
     icon: MemoryStick,
     color: "text-amber-600",
     barClassName: "bg-amber-500",
@@ -37,7 +33,6 @@ export const HARDWARE_CATEGORIES: HardwareCategoryMeta[] = [
   },
   {
     value: "gpu",
-    label: "显卡",
     icon: Microchip,
     color: "text-rose-600",
     barClassName: "bg-rose-500",
@@ -45,7 +40,6 @@ export const HARDWARE_CATEGORIES: HardwareCategoryMeta[] = [
   },
   {
     value: "network",
-    label: "网卡",
     icon: Network,
     color: "text-cyan-600",
     barClassName: "bg-cyan-500",

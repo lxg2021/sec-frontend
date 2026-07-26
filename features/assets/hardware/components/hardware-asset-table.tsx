@@ -2,6 +2,7 @@
 
 import type { ComponentType, ReactNode } from "react"
 import { Fragment, useMemo, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import {
   ArrowUpDown,
   CalendarDays,
@@ -62,12 +63,12 @@ function HeaderLabel({
   )
 }
 
-function formatTimestamp(value: number) {
+function formatTimestamp(value: number, locale: string) {
   if (!value) return "-"
   const timestamp = value < 1_000_000_000_000 ? value * 1000 : value
   const date = new Date(timestamp)
   if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleString("zh-CN", {
+  return date.toLocaleString(locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -83,21 +84,19 @@ function shortHash(value: string) {
   return `${value.slice(0, 12)}...${value.slice(-6)}`
 }
 
-function statusLabel(value: string) {
-  return value === "online" ? "在线" : "离线"
-}
-
 function EmptyState({ onRetry }: { onRetry: () => void }) {
+  const t = useTranslations("pages.assets.hardware.inventory")
+
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-auto border-t border-slate-200 px-6 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-        <Package className="h-6 w-6" />
+      <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+        <Package className="size-6" aria-hidden="true" />
       </div>
-      <h3 className="mt-4 text-base font-semibold text-slate-950">暂无硬件资产</h3>
-      <p className="mt-2 max-w-sm text-sm text-slate-500">当前分类下没有匹配的硬件型号，调整筛选条件或刷新后再试。</p>
-      <Button variant="outline" size="sm" onClick={onRetry} className="mt-4">
+      <h3 className="mt-4 text-base font-semibold text-slate-950">{t("empty.title")}</h3>
+      <p className="mt-2 max-w-sm text-sm text-slate-500">{t("empty.description")}</p>
+      <Button variant="outline" size="sm" onClick={onRetry} className="mt-4 rounded-2xl border-slate-200">
         <RefreshCcw className="mr-2 h-4 w-4" />
-        刷新
+        {t("actions.refresh")}
       </Button>
     </div>
   )
@@ -125,46 +124,49 @@ function LoadingRows() {
 }
 
 function ExpandedHosts({ item }: { item: HardwareAssetItem }) {
+  const t = useTranslations("pages.assets.hardware.inventory")
+  const locale = useLocale()
+
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50/70 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
             <Server className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <h4 className="truncate text-sm font-semibold text-slate-950">
-              关联主机 - {item.title}
+              {t("related.title", { title: item.title })}
             </h4>
-            <p className="mt-1 text-xs text-slate-500">{item.subtitle || item.vendor || "硬件型号关联主机明细"}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">{item.subtitle || item.vendor || t("related.description")}</p>
           </div>
         </div>
         <Badge variant="outline" className="w-fit rounded-full bg-slate-50 px-3 py-1 text-slate-700">
-          {item.hosts.length} 台主机
+          {t("related.hostCount", { count: item.hosts.length })}
         </Badge>
       </div>
 
       {item.hosts.length === 0 ? (
-        <div className="px-5 py-8 text-center text-sm text-slate-500">暂无关联主机明细</div>
+        <div className="px-5 py-8 text-center text-sm text-slate-500">{t("related.empty")}</div>
       ) : (
         <div className="max-h-80 overflow-auto">
           <table className="w-full min-w-[920px] text-sm">
-            <thead className="sticky top-0 z-10 bg-white shadow-[0_1px_0_0_rgba(226,232,240,1)]">
+            <thead className="sticky top-0 z-10 bg-muted shadow-[0_1px_0_0_rgba(226,232,240,1)]">
               <tr className="text-left text-xs font-medium text-slate-500">
                 <th className="px-5 py-3">
-                  <HeaderLabel icon={Monitor}>主机名</HeaderLabel>
+                  <HeaderLabel icon={Monitor}>{t("columns.hostname")}</HeaderLabel>
                 </th>
                 <th className="px-5 py-3">
-                  <HeaderLabel icon={Fingerprint}>Agent ID</HeaderLabel>
+                  <HeaderLabel icon={Fingerprint}>{t("columns.agentId")}</HeaderLabel>
                 </th>
                 <th className="px-5 py-3">
-                  <HeaderLabel icon={Package}>操作系统</HeaderLabel>
+                  <HeaderLabel icon={Package}>{t("columns.os")}</HeaderLabel>
                 </th>
                 <th className="px-5 py-3">
-                  <HeaderLabel icon={Hash}>状态</HeaderLabel>
+                  <HeaderLabel icon={Hash}>{t("columns.status")}</HeaderLabel>
                 </th>
                 <th className="px-5 py-3">
-                  <HeaderLabel icon={CalendarDays}>最近采集</HeaderLabel>
+                  <HeaderLabel icon={CalendarDays}>{t("columns.collectedAt")}</HeaderLabel>
                 </th>
               </tr>
             </thead>
@@ -195,11 +197,11 @@ function ExpandedHosts({ item }: { item: HardwareAssetItem }) {
                       host.status === "online" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600",
                     )}>
                       <span className={cn("h-1.5 w-1.5 rounded-full", host.status === "online" ? "bg-emerald-500" : "bg-slate-400")} />
-                      {statusLabel(host.status)}
+                      {host.status === "online" ? t("status.online") : t("status.offline")}
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-5 py-3 text-slate-700">
-                    {formatTimestamp(host.collected_at)}
+                    {formatTimestamp(host.collected_at, locale)}
                   </td>
                 </tr>
               ))}
@@ -225,10 +227,13 @@ export function HardwareAssetTable({
   onPageSizeChange,
   onRetry,
 }: HardwareAssetTableProps) {
+  const t = useTranslations("pages.assets.hardware.inventory")
+  const locale = useLocale()
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
   const [draftKeyword, setDraftKeyword] = useState(keyword)
 
   const activeMeta = getHardwareCategoryMeta(category)
+  const activeCategoryLabel = t(`categories.${category}`)
   const currentPage = pagination.current_page
   const totalPages = Math.max(pagination.total_pages, pagination.total_count > 0 ? 1 : 0)
   const shownStart = pagination.total_count > 0 ? (pagination.current_page - 1) * pagination.page_size + 1 : 0
@@ -272,39 +277,39 @@ export function HardwareAssetTable({
   }
 
   return (
-    <div className="min-h-0 flex-1">
-      <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="min-h-[560px] flex-1 xl:min-h-0">
+      <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
         <div className="flex shrink-0 flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-100 bg-blue-50">
-              <activeMeta.icon className={cn("h-5 w-5", activeMeta.color)} />
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+              <activeMeta.icon className={cn("size-6", activeMeta.color)} aria-hidden="true" />
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-slate-950">硬件清单</h3>
-              <p className="mt-1 text-sm text-slate-500">按 {activeMeta.label} 型号聚合展示，支持筛选、展开查看关联主机</p>
+            <div className="min-w-0">
+              <h3 className="text-base font-medium text-slate-950">{t("list.title")}</h3>
+              <p className="mt-1 text-xs leading-5 text-slate-500">{t("list.description", { category: activeCategoryLabel })}</p>
             </div>
           </div>
-          <Button variant="outline" onClick={onRetry} disabled={isLoading}>
+          <Button variant="outline" onClick={onRetry} disabled={isLoading} className="h-10 rounded-2xl border-slate-200 bg-white px-4 shadow-none">
             <RefreshCcw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
-            刷新
+            {t("actions.refresh")}
           </Button>
         </div>
 
         <div className="shrink-0 border-b border-slate-200 bg-slate-50/50 px-6 py-4">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-slate-500">
-              显示 {data.length} / {pagination.total_count} 个型号
+              {t("list.showing", { shown: data.length, total: pagination.total_count })}
             </span>
             {keyword ? (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 w-fit text-slate-500">
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 w-fit rounded-2xl text-slate-500">
                 <X className="mr-1 h-4 w-4" />
-                清除筛选
+                {t("actions.clearFilters")}
               </Button>
             ) : null}
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[minmax(320px,1fr)_auto]">
-            <div className="relative">
+          <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(320px,1fr)_auto]">
+            <div className="relative min-w-0">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 value={draftKeyword}
@@ -312,12 +317,13 @@ export function HardwareAssetTable({
                 onKeyDown={(event) => {
                   if (event.key === "Enter") submitSearch()
                 }}
-                placeholder="搜索硬件型号、厂商、主机名或指纹..."
-                className="h-10 bg-white pl-9"
+                placeholder={t("list.searchPlaceholder")}
+                aria-label={t("list.searchAriaLabel")}
+                className="h-10 rounded-2xl border-slate-200 bg-white pl-9 shadow-none"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-slate-100 p-1">
+            <div className="flex min-w-0 flex-wrap items-center gap-3">
+              <div className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-2xl bg-slate-100 p-1">
                 {HARDWARE_CATEGORIES.map((item) => {
                   const Icon = item.icon
                   const active = item.value === category
@@ -331,20 +337,20 @@ export function HardwareAssetTable({
                         setExpandedRows(new Set())
                       }}
                       className={cn(
-                        "inline-flex h-9 min-w-20 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md px-3 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                        "inline-flex h-9 min-w-20 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                         active
                           ? "bg-white text-slate-950 shadow-sm"
                           : "text-slate-600 hover:bg-white/70 hover:text-slate-900",
                       )}
                     >
                       <Icon className={cn("h-4 w-4", active ? item.color : "text-slate-500")} />
-                      {item.label}
+                      {t(`categories.${item.value}`)}
                     </button>
                   )
                 })}
               </div>
-              <Button variant="outline" onClick={submitSearch} className="h-10 bg-white">
-                查询
+              <Button variant="outline" onClick={submitSearch} className="h-10 rounded-2xl border-slate-200 bg-white px-4 shadow-none">
+                {t("actions.search")}
               </Button>
             </div>
           </div>
@@ -352,14 +358,14 @@ export function HardwareAssetTable({
 
         {error ? (
           <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-auto border-t border-slate-200 px-6 py-12 text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-500">
-              <Package className="h-6 w-6" />
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
+              <Package className="size-6" aria-hidden="true" />
             </div>
-            <h3 className="mt-4 text-base font-semibold text-slate-950">加载硬件清单失败</h3>
+            <h3 className="mt-4 text-base font-semibold text-slate-950">{t("errors.listLoadFailed")}</h3>
             <p className="mt-2 max-w-lg text-sm text-slate-500">{error}</p>
-            <Button variant="outline" size="sm" onClick={onRetry} className="mt-4">
+            <Button variant="outline" size="sm" onClick={onRetry} className="mt-4 rounded-2xl border-slate-200">
               <RefreshCcw className="mr-2 h-4 w-4" />
-              重试
+              {t("actions.retry")}
             </Button>
           </div>
         ) : isLoading ? (
@@ -369,26 +375,26 @@ export function HardwareAssetTable({
         ) : (
           <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
             <Table>
-              <TableHeader className="sticky top-0 z-10 bg-white">
+              <TableHeader className="sticky top-0 z-10 bg-muted">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-12"></TableHead>
+                  <TableHead className="w-12"><span className="sr-only">{t("columns.expand")}</span></TableHead>
                   <TableHead className="min-w-36">
-                    <HeaderLabel icon={Hash}>类型</HeaderLabel>
+                    <HeaderLabel icon={Hash}>{t("columns.type")}</HeaderLabel>
                   </TableHead>
                   <TableHead className="min-w-80">
-                    <HeaderLabel icon={Package}>型号信息</HeaderLabel>
+                    <HeaderLabel icon={Package}>{t("columns.modelInfo")}</HeaderLabel>
                   </TableHead>
                   <TableHead className="min-w-52">
-                    <HeaderLabel icon={Fingerprint}>型号指纹</HeaderLabel>
+                    <HeaderLabel icon={Fingerprint}>{t("columns.modelFingerprint")}</HeaderLabel>
                   </TableHead>
                   <TableHead className="text-center">
-                    <HeaderLabel icon={ArrowUpDown} className="justify-center">设备数</HeaderLabel>
+                    <HeaderLabel icon={ArrowUpDown} className="justify-center">{t("columns.deviceCount")}</HeaderLabel>
                   </TableHead>
                   <TableHead className="text-center">
-                    <HeaderLabel icon={Monitor} className="justify-center">主机数</HeaderLabel>
+                    <HeaderLabel icon={Monitor} className="justify-center">{t("columns.hostCount")}</HeaderLabel>
                   </TableHead>
                   <TableHead className="min-w-44">
-                    <HeaderLabel icon={CalendarDays}>最近采集</HeaderLabel>
+                    <HeaderLabel icon={CalendarDays}>{t("columns.collectedAt")}</HeaderLabel>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -415,6 +421,7 @@ export function HardwareAssetTable({
                               "h-8 w-8 rounded-md border border-transparent p-0 text-slate-500 transition-colors hover:border-slate-200 hover:bg-white hover:text-slate-900",
                               isExpanded && "border-blue-200 bg-white text-blue-600 shadow-sm hover:border-blue-200 hover:text-blue-700",
                             )}
+                            aria-label={isExpanded ? t("actions.collapse") : t("actions.expand")}
                           >
                             {isExpanded ? (
                               <ChevronDown className="h-4 w-4" />
@@ -426,7 +433,7 @@ export function HardwareAssetTable({
                         <TableCell>
                           <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
                             <Icon className={cn("h-4 w-4", meta.color)} />
-                            {meta.label}
+                            {t(`categories.${item.category}`)}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -451,15 +458,15 @@ export function HardwareAssetTable({
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="inline-flex min-w-9 justify-center rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold tabular-nums text-blue-600">
-                            {item.device_count.toLocaleString()}
+                            {item.device_count.toLocaleString(locale)}
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="inline-flex min-w-9 justify-center rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold tabular-nums text-blue-600">
-                            {item.host_count.toLocaleString()}
+                            {item.host_count.toLocaleString(locale)}
                           </span>
                         </TableCell>
-                        <TableCell className="text-sm text-slate-500">{formatTimestamp(item.collected_at)}</TableCell>
+                        <TableCell className="text-sm text-slate-500">{formatTimestamp(item.collected_at, locale)}</TableCell>
                       </TableRow>
                       {isExpanded ? (
                         <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
@@ -480,11 +487,12 @@ export function HardwareAssetTable({
 
         <div className="flex shrink-0 flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            共 {pagination.total_count.toLocaleString()} 个型号
-            {pagination.total_count > 0 ? `，当前显示 ${shownStart}-${shownEnd}` : ""}
+            {pagination.total_count > 0
+              ? t("pagination.totalRange", { total: pagination.total_count, start: shownStart, end: shownEnd })
+              : t("pagination.total", { total: pagination.total_count })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-slate-500">每页</span>
+            <span className="text-slate-500">{t("pagination.perPage")}</span>
             <Select
               value={String(pageSize)}
               onValueChange={(value) => {
@@ -492,7 +500,7 @@ export function HardwareAssetTable({
                 onPageChange(1)
               }}
             >
-              <SelectTrigger className="h-9 w-24">
+              <SelectTrigger className="h-9 w-24 rounded-2xl border-slate-200 bg-white shadow-none" aria-label={t("pagination.perPage")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -508,9 +516,10 @@ export function HardwareAssetTable({
               size="sm"
               onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
               disabled={isLoading || !pagination.has_previous}
+              className="rounded-2xl border-slate-200 bg-white shadow-none"
             >
               <ChevronLeft className="mr-1 h-4 w-4" />
-              上一页
+              {t("pagination.previous")}
             </Button>
             {pageNumbers.map((pageNumber, index) =>
               pageNumber === "..." ? (
@@ -520,7 +529,7 @@ export function HardwareAssetTable({
                   key={pageNumber}
                   variant={pageNumber === currentPage ? "default" : "outline"}
                   size="sm"
-                  className="h-9 w-9 px-0"
+                  className="h-9 w-9 rounded-2xl px-0"
                   onClick={() => onPageChange(pageNumber)}
                   disabled={isLoading}
                 >
@@ -533,8 +542,9 @@ export function HardwareAssetTable({
               size="sm"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={isLoading || !pagination.has_next}
+              className="rounded-2xl border-slate-200 bg-white shadow-none"
             >
-              下一页
+              {t("pagination.next")}
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </div>

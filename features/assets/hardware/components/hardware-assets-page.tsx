@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { getHardwareAssetPagination, getHardwareSummary } from "@/features/assets/hardware/api"
 import { HardwareAssetTable } from "@/features/assets/hardware/components/hardware-asset-table"
 import { HardwareSummaryCards } from "@/features/assets/hardware/components/hardware-summary-cards"
@@ -33,6 +34,7 @@ const EMPTY_SUMMARY: HardwareSummary = {
 }
 
 export function HardwareAssetsPage() {
+  const t = useTranslations("pages.assets.hardware.inventory")
   const [summary, setSummary] = useState<HardwareSummary>(EMPTY_SUMMARY)
   const [summaryLoading, setSummaryLoading] = useState(true)
   const [summaryError, setSummaryError] = useState("")
@@ -52,12 +54,13 @@ export function HardwareAssetsPage() {
     try {
       setSummary(await getHardwareSummary({ tenantId: TENANT_ID }))
     } catch (error) {
+      console.error("[HardwareAssets] loadSummary:error", error)
       setSummary(EMPTY_SUMMARY)
-      setSummaryError(error instanceof Error ? error.message : "加载硬件统计失败")
+      setSummaryError(t("errors.summaryLoadFailed"))
     } finally {
       setSummaryLoading(false)
     }
-  }, [])
+  }, [t])
 
   const loadAssets = useCallback(async () => {
     setAssetsLoading(true)
@@ -70,18 +73,20 @@ export function HardwareAssetsPage() {
         keyword,
         page,
         pageSize,
+        translate: (key, values) => t(key, values),
       })
 
       setAssets(result.assets)
       setPagination(result.pagination)
     } catch (error) {
+      console.error("[HardwareAssets] loadAssets:error", error)
       setAssets([])
       setPagination({ ...EMPTY_PAGINATION, current_page: page, page_size: pageSize })
-      setAssetsError(error instanceof Error ? error.message : "加载硬件清单失败")
+      setAssetsError(t("errors.listLoadFailed"))
     } finally {
       setAssetsLoading(false)
     }
-  }, [category, keyword, page, pageSize])
+  }, [category, keyword, page, pageSize, t])
 
   useEffect(() => {
     void loadSummary()
@@ -92,8 +97,8 @@ export function HardwareAssetsPage() {
   }, [loadAssets])
 
   return (
-    <div className="h-full min-h-0 overflow-hidden bg-slate-50">
-      <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden p-6">
+    <div className="h-full min-h-0 overflow-auto bg-slate-50">
+      <div className="flex min-h-full flex-col gap-6 p-6">
         {summaryError ? (
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {summaryError}

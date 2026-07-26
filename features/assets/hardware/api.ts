@@ -137,6 +137,20 @@ interface BackendAssetData {
   networkList?: BackendAssetItem[]
 }
 
+type HardwareAssetTranslator = (
+  key: string,
+  values?: Record<string, string | number>,
+) => string
+
+function translated(
+  translate: HardwareAssetTranslator | undefined,
+  key: string,
+  fallback: string,
+  values?: Record<string, string | number>,
+) {
+  return translate ? translate(key, values) : fallback
+}
+
 function numberValue(value: unknown): number {
   return Number(value) || 0
 }
@@ -218,7 +232,11 @@ function adaptHost(host: BackendHardwareHostReference): HardwareHostReference {
   }
 }
 
-function adaptAssetItem(category: HardwareCategory, item: BackendAssetItem): HardwareAssetItem {
+function adaptAssetItem(
+  category: HardwareCategory,
+  item: BackendAssetItem,
+  translate?: HardwareAssetTranslator,
+): HardwareAssetItem {
   const detail = (item[category] || {}) as Record<string, unknown>
   const modelHash = item.model_hash || item.modelHash || ""
   const collectedAt = numberValue(item.collected_at ?? item.collectedAt)
@@ -233,23 +251,36 @@ function adaptAssetItem(category: HardwareCategory, item: BackendAssetItem): Har
   }
 
   if (category === "cpu") {
-    const title = textValue(getField(detail, "name"), "未知 CPU")
+    const physicalCores = numberValue(getField(detail, "physical_cores", "physicalCores"))
+    const logicalCores = numberValue(getField(detail, "logical_cores", "logicalCores"))
+    const title = textValue(
+      getField(detail, "name"),
+      translated(translate, "fallbacks.unknownCpu", "未知 CPU"),
+    )
     const vendor = textValue(getField(detail, "vendor"), "-")
     return {
       ...common,
       title,
       vendor,
-      subtitle: [vendor, `${numberValue(getField(detail, "physical_cores", "physicalCores"))} 核`, `${numberValue(getField(detail, "logical_cores", "logicalCores"))} 线程`].filter(Boolean).join(" · "),
+      subtitle: translated(
+        translate,
+        "subtitles.cpu",
+        `${vendor} · ${physicalCores} 核 · ${logicalCores} 线程`,
+        { vendor, physical: physicalCores, logical: logicalCores },
+      ),
       specs: compactSpecs([
-        ["主频", getField(detail, "max_frequency_mhz", "maxFrequencyMhz"), " MHz"],
-        ["插槽", getField(detail, "socket_id", "socketId")],
-        ["处理器ID", getField(detail, "processor_id", "processorId")],
+        [translated(translate, "specs.frequency", "主频"), getField(detail, "max_frequency_mhz", "maxFrequencyMhz"), " MHz"],
+        [translated(translate, "specs.socket", "插槽"), getField(detail, "socket_id", "socketId")],
+        [translated(translate, "specs.processorId", "处理器ID"), getField(detail, "processor_id", "processorId")],
       ]),
     }
   }
 
   if (category === "disk") {
-    const title = textValue(getField(detail, "model", "caption"), "未知磁盘")
+    const title = textValue(
+      getField(detail, "model", "caption"),
+      translated(translate, "fallbacks.unknownDisk", "未知磁盘"),
+    )
     const vendor = textValue(getField(detail, "manufacturer"), "-")
     return {
       ...common,
@@ -257,16 +288,19 @@ function adaptAssetItem(category: HardwareCategory, item: BackendAssetItem): Har
       vendor,
       subtitle: [vendor, textValue(getField(detail, "interface_type", "interfaceType"), ""), textValue(getField(detail, "media_type", "mediaType"), ""), formatBytes(getField(detail, "size_bytes", "sizeBytes"))].filter(Boolean).join(" · "),
       specs: compactSpecs([
-        ["容量", formatBytes(getField(detail, "size_bytes", "sizeBytes"))],
-        ["接口", getField(detail, "interface_type", "interfaceType")],
-        ["介质", getField(detail, "media_type", "mediaType")],
-        ["序列号", getField(detail, "serial_number", "serialNumber")],
+        [translated(translate, "specs.capacity", "容量"), formatBytes(getField(detail, "size_bytes", "sizeBytes"))],
+        [translated(translate, "specs.interface", "接口"), getField(detail, "interface_type", "interfaceType")],
+        [translated(translate, "specs.media", "介质"), getField(detail, "media_type", "mediaType")],
+        [translated(translate, "specs.serialNumber", "序列号"), getField(detail, "serial_number", "serialNumber")],
       ]),
     }
   }
 
   if (category === "mainboard") {
-    const title = textValue(getField(detail, "product"), "未知主板")
+    const title = textValue(
+      getField(detail, "product"),
+      translated(translate, "fallbacks.unknownMainboard", "未知主板"),
+    )
     const vendor = textValue(getField(detail, "manufacturer"), "-")
     return {
       ...common,
@@ -274,14 +308,17 @@ function adaptAssetItem(category: HardwareCategory, item: BackendAssetItem): Har
       vendor,
       subtitle: [vendor, textValue(getField(detail, "version"), "")].filter(Boolean).join(" · "),
       specs: compactSpecs([
-        ["版本", getField(detail, "version")],
-        ["序列号", getField(detail, "serial_number", "serialNumber")],
+        [translated(translate, "specs.version", "版本"), getField(detail, "version")],
+        [translated(translate, "specs.serialNumber", "序列号"), getField(detail, "serial_number", "serialNumber")],
       ]),
     }
   }
 
   if (category === "memory") {
-    const title = textValue(getField(detail, "part_number", "partNumber"), "未知内存")
+    const title = textValue(
+      getField(detail, "part_number", "partNumber"),
+      translated(translate, "fallbacks.unknownMemory", "未知内存"),
+    )
     const vendor = textValue(getField(detail, "manufacturer"), "-")
     return {
       ...common,
@@ -289,16 +326,19 @@ function adaptAssetItem(category: HardwareCategory, item: BackendAssetItem): Har
       vendor,
       subtitle: [vendor, formatBytes(getField(detail, "capacity_bytes", "capacityBytes")), `${numberValue(getField(detail, "speed_mhz", "speedMhz"))} MHz`].filter(Boolean).join(" · "),
       specs: compactSpecs([
-        ["容量", formatBytes(getField(detail, "capacity_bytes", "capacityBytes"))],
-        ["频率", getField(detail, "speed_mhz", "speedMhz"), " MHz"],
-        ["槽位", getField(detail, "device_locator", "deviceLocator")],
-        ["序列号", getField(detail, "serial_number", "serialNumber")],
+        [translated(translate, "specs.capacity", "容量"), formatBytes(getField(detail, "capacity_bytes", "capacityBytes"))],
+        [translated(translate, "specs.speed", "频率"), getField(detail, "speed_mhz", "speedMhz"), " MHz"],
+        [translated(translate, "specs.slot", "槽位"), getField(detail, "device_locator", "deviceLocator")],
+        [translated(translate, "specs.serialNumber", "序列号"), getField(detail, "serial_number", "serialNumber")],
       ]),
     }
   }
 
   if (category === "gpu") {
-    const title = textValue(getField(detail, "name"), "未知显卡")
+    const title = textValue(
+      getField(detail, "name"),
+      translated(translate, "fallbacks.unknownGpu", "未知显卡"),
+    )
     const vendor = textValue(getField(detail, "vendor"), "-")
     return {
       ...common,
@@ -306,24 +346,31 @@ function adaptAssetItem(category: HardwareCategory, item: BackendAssetItem): Har
       vendor,
       subtitle: [vendor, formatBytes(getField(detail, "memory_bytes", "memoryBytes")), textValue(getField(detail, "driver_version", "driverVersion"), "")].filter(Boolean).join(" · "),
       specs: compactSpecs([
-        ["显存", formatBytes(getField(detail, "memory_bytes", "memoryBytes"))],
-        ["驱动", getField(detail, "driver_version", "driverVersion")],
-        ["处理器", getField(detail, "video_processor", "videoProcessor")],
+        [translated(translate, "specs.vram", "显存"), formatBytes(getField(detail, "memory_bytes", "memoryBytes"))],
+        [translated(translate, "specs.driver", "驱动"), getField(detail, "driver_version", "driverVersion")],
+        [translated(translate, "specs.processor", "处理器"), getField(detail, "video_processor", "videoProcessor")],
       ]),
     }
   }
 
-  const title = textValue(getField(detail, "description"), "未知网卡")
+  const title = textValue(
+    getField(detail, "description"),
+    translated(translate, "fallbacks.unknownNetwork", "未知网卡"),
+  )
   const vendor = textValue(getField(detail, "mac_address", "macAddress"), "-")
+  const enabled = Boolean(getField(detail, "ip_enabled", "ipEnabled"))
+  const networkStatus = enabled
+    ? translated(translate, "network.enabled", "已启用")
+    : translated(translate, "network.disabled", "未启用")
   return {
     ...common,
     title,
     vendor,
-    subtitle: [textValue(getField(detail, "mac_address", "macAddress"), ""), getField(detail, "ip_enabled", "ipEnabled") ? "已启用" : "未启用"].filter(Boolean).join(" · "),
+    subtitle: [textValue(getField(detail, "mac_address", "macAddress"), ""), networkStatus].filter(Boolean).join(" · "),
     specs: compactSpecs([
-      ["MAC", getField(detail, "mac_address", "macAddress")],
-      ["DNS", getField(detail, "dns_domain", "dnsDomain")],
-      ["DHCP", getField(detail, "dhcp_server", "dhcpServer")],
+      [translated(translate, "specs.mac", "MAC"), getField(detail, "mac_address", "macAddress")],
+      [translated(translate, "specs.dns", "DNS"), getField(detail, "dns_domain", "dnsDomain")],
+      [translated(translate, "specs.dhcp", "DHCP"), getField(detail, "dhcp_server", "dhcpServer")],
     ]),
   }
 }
@@ -361,12 +408,14 @@ export async function getHardwareAssetPagination({
   keyword,
   page,
   pageSize,
+  translate,
 }: {
   tenantId?: string
   category: HardwareCategory
   keyword?: string
   page: number
   pageSize: number
+  translate?: HardwareAssetTranslator
 }): Promise<HardwareAssetResult> {
   const result = await http.post(CATEGORY_ENDPOINTS[category], {
     request_id: createRequestId(),
@@ -379,7 +428,7 @@ export async function getHardwareAssetPagination({
   const data = (result.data || {}) as BackendAssetData
   const [snakeKey, camelKey] = CATEGORY_LIST_KEYS[category]
   const list = ((data[snakeKey as keyof BackendAssetData] || data[camelKey as keyof BackendAssetData] || []) as BackendAssetItem[])
-    .map((item) => adaptAssetItem(category, item))
+    .map((item) => adaptAssetItem(category, item, translate))
 
   return {
     assets: list,

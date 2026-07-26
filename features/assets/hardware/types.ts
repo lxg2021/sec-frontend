@@ -65,7 +65,6 @@ export interface HardwareAssetResult {
 
 export interface HardwareCategoryMeta {
   value: HardwareCategory
-  label: string
   icon: ComponentType<{ className?: string }>
   color: string
   barClassName: string
