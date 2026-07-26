@@ -77,13 +77,13 @@ export function BaselineSelector({
   return (
     <div
       className={cn(
-        "w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]",
+        "w-full rounded-[28px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_12px_34px_rgba(15,23,42,0.08)]",
         className,
       )}
     >
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-        <div className="flex min-w-0 flex-1 items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
             {icon ?? <ShieldCheckIcon className="h-5 w-5" />}
           </div>
 
@@ -94,12 +94,12 @@ export function BaselineSelector({
                 role="combobox"
                 aria-expanded={open}
                 disabled={!hasItems}
-                className="h-auto min-w-0 flex-1 justify-start rounded-2xl px-3 py-2 text-left hover:bg-slate-50 disabled:opacity-100"
+                className="h-auto min-w-0 flex-1 justify-start rounded-xl px-2 py-1.5 text-left hover:bg-slate-50 disabled:opacity-100"
               >
                 {selectedItem ? (
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-lg font-semibold text-slate-950">{selectedItem.title}</span>
+                      <span className="truncate text-base font-semibold text-slate-950">{selectedItem.title}</span>
                       <ChevronDownIcon
                         className={cn(
                           "h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200",
@@ -107,17 +107,17 @@ export function BaselineSelector({
                         )}
                       />
                     </div>
-                    <div className="mt-2 flex flex-wrap items-center gap-2.5">
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
                       <Badge
                         variant="outline"
                         className={cn(
-                          "h-7 rounded-full border-slate-200 bg-white px-2.5 text-[11px] font-medium uppercase tracking-[0.08em] text-slate-700",
+                          "h-6 rounded-full border-slate-200 bg-white px-2.5 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-700",
                           getStandardColor(selectedItem),
                         )}
                       >
                         {selectedItem.standardLabel}
                       </Badge>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-xs text-slate-500">
                         {selectedItem.productLabel || text.unknown} / {selectedItem.profileLabel || text.unknown}
                       </span>
                     </div>
@@ -258,13 +258,13 @@ export function BaselineSelector({
 
         <div className="flex flex-wrap items-center gap-2 lg:ml-auto lg:gap-3">
           {selectedItem ? (
-            <div className="flex min-w-[220px] items-center gap-3 rounded-2xl bg-slate-50/90 px-3 py-2.5 lg:border-l lg:border-slate-200 lg:bg-transparent lg:pl-5 lg:pr-0">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80 lg:bg-slate-50">
+            <div className="flex min-w-[210px] items-center gap-2.5 rounded-xl bg-slate-50/90 px-3 py-1.5 lg:border-l lg:border-slate-200 lg:bg-transparent lg:pl-4 lg:pr-0">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80 lg:bg-slate-50">
                 <ClockIcon className="h-4 w-4" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xs leading-none text-slate-400">{text.lastChecked}</span>
-                <span className="mt-1 text-sm font-medium text-slate-700">
+                <span className="text-[11px] leading-none text-slate-400">{text.lastChecked}</span>
+                <span className="mt-1 text-xs font-medium text-slate-700">
                   {formatCheckTime(selectedItem.lastCheckTime, text.noCheck)}
                 </span>
               </div>
