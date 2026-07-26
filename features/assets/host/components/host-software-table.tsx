@@ -59,7 +59,7 @@ export function HostSoftwareTable({
       <Card>
         <CardContent className="flex items-center justify-center py-10 text-sm text-muted-foreground">
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          正在加载软件信息...
+          {t("loading")}
         </CardContent>
       </Card>
     )
@@ -73,7 +73,7 @@ export function HostSoftwareTable({
           {onRetry ? (
             <Button variant="outline" size="sm" onClick={onRetry}>
               <RefreshCcw className="mr-2 h-4 w-4" />
-              重试
+              {t("retry")}
             </Button>
           ) : null}
         </CardContent>
@@ -216,12 +216,13 @@ export function HostSoftwareTable({
       {pagination ? (
         <div className="flex flex-col gap-3 border-t pt-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            共 {totalCount} 条软件记录
-            {totalCount > 0 ? `，当前显示 ${rangeStart}-${rangeEnd}` : ""}
+            {totalCount > 0
+              ? t("totalRange", { total: totalCount, start: rangeStart, end: rangeEnd })
+              : t("total", { total: totalCount })}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-slate-500">第 {currentPage} / {totalPages} 页</span>
-            <span className="ml-2 text-slate-500">每页</span>
+            <span className="text-slate-500">{t("pageInfo", { page: currentPage, totalPages })}</span>
+            <span className="ml-2 text-slate-500">{t("pageSize")}</span>
             <Select value={String(pageSize)} onValueChange={(value) => onPageSizeChange?.(Number(value))}>
               <SelectTrigger className="h-9 w-24">
                 <SelectValue />
@@ -240,7 +241,7 @@ export function HostSoftwareTable({
               disabled={loading || !pagination.has_previous}
             >
               <ChevronLeft className="mr-1 h-4 w-4" />
-              上一页
+              {t("previousPage")}
             </Button>
             <Button
               variant="outline"
@@ -248,7 +249,7 @@ export function HostSoftwareTable({
               onClick={() => onPageChange?.(currentPage + 1)}
               disabled={loading || !pagination.has_next}
             >
-              下一页
+              {t("nextPage")}
               <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </div>

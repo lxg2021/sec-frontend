@@ -649,6 +649,24 @@
             "hardware": "Hardware Info",
             "software": "Software Info"
           },
+          "summary": {
+            "total": "Total Hosts",
+            "totalDescription": "Registered hosts",
+            "online": "Online Hosts",
+            "onlineDescription": "Hosts currently online",
+            "offline": "Offline Hosts",
+            "offlineDescription": "Hosts currently offline",
+            "osDistribution": "Operating System Distribution",
+            "empty": "No data"
+          },
+          "details": {
+            "close": "Close host details",
+            "loadingHardware": "Loading hardware information...",
+            "loadingSoftware": "Loading software information...",
+            "retry": "Retry",
+            "hardwareLoadFailed": "Failed to load hardware information",
+            "softwareLoadFailed": "Failed to load software information"
+          },
           "toolbar": {
             "searchPlaceholder": "Search host name or host ID...",
             "status": "Status",
@@ -758,6 +776,8 @@
           },
           "softwarePanel": {
             "empty": "No software information",
+            "loading": "Loading software information...",
+            "retry": "Retry",
             "searchPlaceholder": "Search software name or vendor...",
             "selectVendor": "Filter vendor",
             "allVendors": "All vendors",
@@ -775,7 +795,13 @@
             "quietUninstall": "Silent Uninstall",
             "infoUrl": "Info URL",
             "noMatch": "No matching software found",
-            "details": "View details"
+            "details": "View details",
+            "total": "{total, plural, one {# software record} other {# software records}}",
+            "totalRange": "{total, plural, one {# software record} other {# software records}}, showing {start}-{end}",
+            "pageInfo": "Page {page} / {totalPages}",
+            "pageSize": "Per page",
+            "previousPage": "Previous",
+            "nextPage": "Next"
           }
         }
       },

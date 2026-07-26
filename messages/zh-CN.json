@@ -649,6 +649,24 @@
             "hardware": "硬件信息",
             "software": "软件信息"
           },
+          "summary": {
+            "total": "总主机数",
+            "totalDescription": "已注册主机总数",
+            "online": "在线主机",
+            "onlineDescription": "当前在线主机数",
+            "offline": "离线主机",
+            "offlineDescription": "当前离线主机数",
+            "osDistribution": "操作系统分布",
+            "empty": "暂无数据"
+          },
+          "details": {
+            "close": "关闭主机详情",
+            "loadingHardware": "正在加载硬件信息...",
+            "loadingSoftware": "正在加载软件信息...",
+            "retry": "重试",
+            "hardwareLoadFailed": "加载硬件信息失败",
+            "softwareLoadFailed": "加载软件信息失败"
+          },
           "toolbar": {
             "searchPlaceholder": "搜索主机名或主机ID...",
             "status": "状态",
@@ -758,6 +776,8 @@
           },
           "softwarePanel": {
             "empty": "暂无软件信息",
+            "loading": "正在加载软件信息...",
+            "retry": "重试",
             "searchPlaceholder": "搜索软件名称、厂商...",
             "selectVendor": "筛选厂商",
             "allVendors": "全部厂商",
@@ -775,7 +795,13 @@
             "quietUninstall": "静默卸载",
             "infoUrl": "信息网址",
             "noMatch": "未找到匹配的软件",
-            "details": "查看详情"
+            "details": "查看详情",
+            "total": "共 {total} 条软件记录",
+            "totalRange": "共 {total} 条软件记录，当前显示 {start}-{end}",
+            "pageInfo": "第 {page} / {totalPages} 页",
+            "pageSize": "每页",
+            "previousPage": "上一页",
+            "nextPage": "下一页"
           }
         }
       },

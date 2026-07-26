@@ -48,22 +48,23 @@ export function HostDetailsTabs({
   onSoftwarePageChange,
   onSoftwarePageSizeChange,
 }: HostDetailsTabsProps) {
-  const t = useTranslations("pages.assets.hardware.host.tabs")
+  const tabsT = useTranslations("pages.assets.hardware.host.tabs")
+  const detailsT = useTranslations("pages.assets.hardware.host.details")
 
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="h-full flex flex-col">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="basic" className="flex items-center gap-2">
           <Info className="w-4 h-4 text-gray-500" />
-          {t("basic")}
+          {tabsT("basic")}
         </TabsTrigger>
         <TabsTrigger value="hardware" className="flex items-center gap-2">
           <Monitor className="w-4 h-4 text-gray-500" />
-          {t("hardware")}
+          {tabsT("hardware")}
         </TabsTrigger>
         <TabsTrigger value="software" className="flex items-center gap-2">
           <Package className="w-4 h-4 text-gray-500" />
-          {t("software")}
+          {tabsT("software")}
         </TabsTrigger>
       </TabsList>
 
@@ -76,7 +77,7 @@ export function HostDetailsTabs({
           <Card>
             <CardContent className="flex items-center justify-center py-10 text-sm text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              正在加载硬件信息...
+              {detailsT("loadingHardware")}
             </CardContent>
           </Card>
         ) : hardwareError ? (
@@ -86,7 +87,7 @@ export function HostDetailsTabs({
               {onRetryHardware ? (
                 <Button variant="outline" size="sm" onClick={onRetryHardware}>
                   <RefreshCcw className="mr-2 h-4 w-4" />
-                  重试
+                  {detailsT("retry")}
                 </Button>
               ) : null}
             </CardContent>

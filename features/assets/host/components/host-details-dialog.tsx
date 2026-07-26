@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { Computer } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { getHardwareInfo, getHostSoftwareInfoPagination } from "@/features/assets/host/api"
 import type { HostPagination } from "@/features/assets/host/api"
@@ -25,6 +26,7 @@ export function HostDetailsDialog({
   onClose,
   host,
 }: HostDetailsDialogProps) {
+  const t = useTranslations("pages.assets.hardware.host.details")
   const [activeTab, setActiveTab] = useState("basic")
   const [hardware, setHardware] = useState<AgentHardwareInfo | null>(null)
   const [hardwareLoading, setHardwareLoading] = useState(false)
@@ -50,11 +52,11 @@ export function HostDetailsDialog({
       }))
     } catch (error) {
       setHardware(null)
-      setHardwareError(error instanceof Error ? error.message : "加载硬件信息失败")
+      setHardwareError(error instanceof Error ? error.message : t("hardwareLoadFailed"))
     } finally {
       setHardwareLoading(false)
     }
-  }, [hardware, host])
+  }, [hardware, host, t])
 
   const loadSoftware = useCallback(async () => {
     if (!host) return
@@ -76,11 +78,11 @@ export function HostDetailsDialog({
     } catch (error) {
       setSoftware(null)
       setSoftwarePagination(null)
-      setSoftwareError(error instanceof Error ? error.message : "加载软件信息失败")
+      setSoftwareError(error instanceof Error ? error.message : t("softwareLoadFailed"))
     } finally {
       setSoftwareLoading(false)
     }
-  }, [host, softwarePage, softwarePageSize])
+  }, [host, softwarePage, softwarePageSize, t])
 
   useEffect(() => {
     if (!isOpen || !host?.hostId) return
@@ -109,7 +111,7 @@ export function HostDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="w-[80vw] max-w-none overflow-y-auto p-0">
+      <DialogContent closeLabel={t("close")} className="w-[80vw] max-w-none overflow-y-auto p-0">
         <DialogHeader className="px-6 pt-6">
           <DialogTitle>
             <Computer className="mr-2 inline-block h-5 w-5 text-blue-600" />
