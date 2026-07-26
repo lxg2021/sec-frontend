@@ -122,17 +122,17 @@ function InvestigationAssistantStateCard({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.07)]",
+        "overflow-hidden rounded-[24px] border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
         className,
       )}
       aria-busy={isLoading}
       aria-label={copy.title}
     >
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white px-5">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
-          <Bot className="h-4 w-4" />
+      <header className="flex min-h-16 shrink-0 items-center gap-3 border-b border-slate-100 bg-white p-4 sm:px-5">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600">
+          <Bot className="size-5" />
         </span>
-        <span className="text-base font-bold tracking-tight text-slate-950">{copy.title}</span>
+        <span className="text-base font-medium leading-6 text-slate-950">{copy.title}</span>
       </header>
 
       {isLoading ? (
@@ -153,7 +153,7 @@ function InvestigationAssistantStateCard({
         <div className="bg-slate-50/70 px-5 py-5">
           <div
             className={cn(
-              "rounded-xl border bg-white p-4 shadow-sm",
+              "rounded-2xl border bg-white p-4 shadow-sm",
               isWarning ? "border-amber-200" : state === "error" ? "border-red-200" : "border-slate-200",
             )}
           >
@@ -191,7 +191,7 @@ function InvestigationAssistantStateCard({
                 <button
                   type="button"
                   onClick={onRetry}
-                  className="inline-flex min-h-8 shrink-0 cursor-pointer items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                  className="inline-flex min-h-8 shrink-0 cursor-pointer items-center gap-1 rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
                 >
                   <RotateCcw className="h-3 w-3" />
                   {copy.retry}

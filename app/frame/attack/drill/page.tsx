@@ -106,7 +106,7 @@ function CaseIdSearchToolbar({
   const t = useTranslations("pages.attack.drill")
 
   return (
-    <section className="w-full rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.07)]">
+    <section className="w-full rounded-[24px] border border-slate-200/80 bg-white px-4 py-3 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <form
         className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-center"
         onSubmit={onSearch}
@@ -1102,8 +1102,8 @@ export default function App() {
   }, [refreshKey, t, timelineCaseId])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
+    <div className="min-h-dvh min-w-0 overflow-x-hidden bg-slate-50">
+      <div className="min-w-0 space-y-4 py-3 pl-[4.75rem] pr-3 sm:p-4 xl:space-y-5 xl:p-6">
         <CaseIdSearchToolbar
           loading={graphLoading}
           onSearch={handleCaseSearch}

@@ -79,15 +79,15 @@ function EmptyState({
   const hasCaseId = Boolean(caseId?.trim())
 
   return (
-    <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <div className="flex min-w-0 items-center gap-4">
+    <Card className="min-w-0 max-w-full overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="border-b border-slate-100 p-4 sm:p-5">
+        <div className="flex min-w-0 items-center gap-3">
           <StoryHeaderIcon icon={Activity} tone="slate" />
           <div className="min-w-0">
-            <CardTitle className="text-lg font-semibold text-slate-950">
+            <CardTitle className="text-base font-medium leading-6 text-slate-950">
               {t("title")}
             </CardTitle>
-            <CardDescription className="mt-1">
+            <CardDescription className="mt-1 text-xs leading-5 text-slate-500">
               {hasCaseId
                 ? t("empty.noTimelineData")
                 : noCaseDescription ?? t("empty.selectCaseDescription")}
@@ -95,8 +95,8 @@ function EmptyState({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-6 py-10">
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
+      <CardContent className="px-4 py-8 sm:px-5">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
           <FileSearch className="size-8 text-slate-400" />
           <p className="text-sm text-slate-500">
             {hasCaseId
@@ -113,22 +113,22 @@ function MissingCaseState({ caseId }: { caseId: string }) {
   const t = useTranslations("pages.attack.dashboard.caseStory")
 
   return (
-    <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <div className="flex min-w-0 items-center gap-4">
+    <Card className="min-w-0 max-w-full overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="border-b border-slate-100 p-4 sm:p-5">
+        <div className="flex min-w-0 items-center gap-3">
           <StoryHeaderIcon icon={FileSearch} tone="slate" />
           <div className="min-w-0">
-            <CardTitle className="text-lg font-semibold text-slate-950">
+            <CardTitle className="text-base font-medium leading-6 text-slate-950">
               {t("title")}
             </CardTitle>
-            <CardDescription className="mt-1">
+            <CardDescription className="mt-1 text-xs leading-5 text-slate-500">
               {t("missing.description")}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-6 py-10">
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-6 py-10 text-center">
+      <CardContent className="px-4 py-8 sm:px-5">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-amber-200 bg-amber-50/60 px-6 py-10 text-center">
           <FileSearch className="size-8 text-amber-500" />
           <p className="max-w-xl text-sm text-amber-800">
             {t("missing.hint", { caseId })}
@@ -143,27 +143,27 @@ function LoadingState() {
   const t = useTranslations("pages.attack.dashboard.caseStory")
 
   return (
-    <Card className="min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm">
-      <CardHeader className="border-b border-slate-200 px-6 py-5">
-        <div className="flex min-w-0 items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-100 text-blue-600">
-            <Loader2 className="h-6 w-6 animate-spin" />
+    <Card className="min-w-0 max-w-full overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="border-b border-slate-100 p-4 sm:p-5">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-100 text-blue-600">
+            <Loader2 className="size-5 animate-spin" />
           </div>
           <div className="min-w-0">
-            <CardTitle className="text-lg font-semibold text-slate-950">
+            <CardTitle className="text-base font-medium leading-6 text-slate-950">
               {t("loading.title")}
             </CardTitle>
-            <CardDescription className="mt-1">
+            <CardDescription className="mt-1 text-xs leading-5 text-slate-500">
               {t("loading.description")}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 px-6 py-6">
-        <div className="h-8 w-72 rounded-lg bg-slate-100" />
-        <div className="h-24 rounded-lg bg-slate-100" />
-        <div className="h-24 rounded-lg bg-slate-100" />
-        <div className="h-24 rounded-lg bg-slate-100" />
+      <CardContent className="space-y-4 p-4 sm:p-5">
+        <div className="h-8 w-72 max-w-full rounded-2xl bg-slate-100" />
+        <div className="h-24 rounded-2xl bg-slate-100" />
+        <div className="h-24 rounded-2xl bg-slate-100" />
+        <div className="h-24 rounded-2xl bg-slate-100" />
       </CardContent>
     </Card>
   )
@@ -377,21 +377,21 @@ export function AttackCaseStoryTimelineRender({
 
   if (error) {
     return (
-      <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm", className)}>
-        <CardHeader className="border-b border-slate-200 px-6 py-5">
-          <div className="flex min-w-0 items-center gap-4">
+      <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]", className)}>
+        <CardHeader className="border-b border-slate-100 p-4 sm:p-5">
+          <div className="flex min-w-0 items-center gap-3">
             <StoryHeaderIcon icon={AlertTriangle} tone="rose" />
             <div className="min-w-0">
-              <CardTitle className="text-lg font-semibold text-slate-950">
+              <CardTitle className="text-base font-medium leading-6 text-slate-950">
                 {t("title")}
               </CardTitle>
-              <CardDescription className="mt-1">{error}</CardDescription>
+              <CardDescription className="mt-1 text-xs leading-5 text-slate-500">{error}</CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex items-center justify-between gap-4 px-6 py-6">
+        <CardContent className="flex flex-col items-start justify-between gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
           <p className="text-sm text-slate-500">{t("loadErrorMessage")}</p>
-          <Button type="button" variant="outline" size="sm" onClick={() => void loadTimeline()}>
+          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={() => void loadTimeline()}>
             <RefreshCw className="mr-2 size-4" />
             {t("retry")}
           </Button>
@@ -409,15 +409,15 @@ export function AttackCaseStoryTimelineRender({
   const resolvedBackLabel = backLabel || t("backToCaseList")
 
   return (
-    <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-lg border-slate-200 bg-white shadow-sm", className)}>
-      <CardHeader className="border-b border-slate-200 px-6 py-5">
+    <Card className={cn("min-w-0 max-w-full overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]", className)}>
+      <CardHeader className="border-b border-slate-100 p-4 sm:p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-4">
+            <div className="flex min-w-0 items-center gap-3">
               <StoryHeaderIcon icon={ShieldAlert} tone="teal" />
               <div className="min-w-0">
                 <div className="flex min-w-0 items-center gap-2">
-                  <CardTitle className="truncate text-lg font-semibold text-slate-950">
+                  <CardTitle className="truncate text-base font-medium leading-6 text-slate-950">
                     {t("title")}
                   </CardTitle>
                   <TooltipProvider delayDuration={150}>
@@ -438,7 +438,7 @@ export function AttackCaseStoryTimelineRender({
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <CardDescription className="mt-1">
+                <CardDescription className="mt-1 text-xs leading-5 text-slate-500">
                   {t("description")}
                 </CardDescription>
               </div>
@@ -446,7 +446,7 @@ export function AttackCaseStoryTimelineRender({
             <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
               <button
                 type="button"
-                className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-1 text-left font-mono text-xs font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
+                className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-sky-100 bg-sky-50/70 px-2.5 py-1 text-left font-mono text-xs font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-200"
                 title={t("caseButtonTitle")}
                 onClick={() => router.push(buildAttackDetailHref(summary.case_id, snapshotId))}
               >
@@ -473,9 +473,9 @@ export function AttackCaseStoryTimelineRender({
           />
         </div>
       </CardHeader>
-      <CardContent className="min-w-0 max-w-full px-6 py-5">
+      <CardContent className="min-w-0 max-w-full p-4 sm:p-5">
         {describeWarning ? (
-          <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
             {describeWarning}
           </div>
         ) : null}

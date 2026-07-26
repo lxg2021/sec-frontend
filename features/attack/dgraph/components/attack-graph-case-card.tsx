@@ -90,8 +90,8 @@ export function AttackGraphCaseCard({
   const hasGraph = Boolean(response && nodeCount > 0);
 
   return (
-    <Card className="!bg-transparent border border-gray-200 shadow-sm">
-      <CardHeader className="px-6 py-5">
+    <Card className="min-w-0 overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="p-4 sm:p-5">
         <AttackGraphFlowHeader
           title={title}
           subtitle={subtitle}
@@ -107,7 +107,7 @@ export function AttackGraphCaseCard({
                       variant="outline"
                       size="sm"
                       onClick={onBack}
-                      className="h-10 bg-white px-3 text-xs font-medium text-slate-600"
+                      className="h-10 rounded-full bg-white px-3 text-xs font-medium text-slate-600"
                       title={backLabel}
                       aria-label={backLabel}
                     >
@@ -127,7 +127,7 @@ export function AttackGraphCaseCard({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="h-10 bg-white px-3 text-xs font-medium text-slate-600"
+                      className="h-10 rounded-full bg-white px-3 text-xs font-medium text-slate-600"
                       onClick={onResetPositions}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
@@ -148,7 +148,7 @@ export function AttackGraphCaseCard({
         />
       </CardHeader>
 
-      <div className="border-t border-gray-100" />
+      <div className="border-t border-slate-100" />
 
       <CardContent className="p-0">
         <div className="w-full h-[760px]">
@@ -207,7 +207,7 @@ function GraphStateMessage({
   return (
     <div className="flex h-full min-h-[420px] items-center justify-center px-6 text-center">
       <div className="max-w-md">
-        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100">
+        <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-xl bg-slate-100">
           <Shield className="h-5 w-5 text-slate-500" />
         </div>
         <div className="text-sm font-semibold text-slate-800">{title}</div>

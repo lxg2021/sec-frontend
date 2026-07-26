@@ -282,17 +282,17 @@ export function InvestigationAssistant({
   return (
     <section
       className={cn(
-        "w-full overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.07)]",
+        "w-full overflow-hidden rounded-[24px] border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
         className,
       )}
       aria-label={copy.title}
     >
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-100 bg-white px-5">
+      <header className="flex min-h-16 shrink-0 flex-wrap items-center gap-3 border-b border-slate-100 bg-white p-4 sm:px-5">
         <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
-            <Bot className="h-4 w-4" />
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600">
+            <Bot className="size-5" />
           </span>
-          <span className="text-base font-bold tracking-tight text-slate-950">{copy.title}</span>
+          <span className="text-base font-medium leading-6 text-slate-950">{copy.title}</span>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600">
           <ShieldAlert className="h-3.5 w-3.5" />
@@ -324,8 +324,8 @@ export function InvestigationAssistant({
       </header>
 
       <div className="bg-slate-50/70 px-5 py-5">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
-          <section className="flex min-h-[250px] flex-col rounded-xl border border-red-100 bg-white p-4 shadow-sm">
+        <div className="grid [grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))] gap-4">
+          <section className="flex min-h-[250px] flex-col rounded-2xl border border-red-100 bg-white p-4 shadow-sm">
             <SectionLabel
               icon={<AlertTriangle className="h-4 w-4" />}
               title={copy.currentAssessment}
@@ -343,7 +343,7 @@ export function InvestigationAssistant({
             </div>
           </section>
 
-          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
+          <section className="min-h-[250px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
             <SectionLabel
               icon={<CheckCircle2 className="h-4 w-4" />}
               title={copy.confirmedFacts}
@@ -365,7 +365,7 @@ export function InvestigationAssistant({
             </ol>
           </section>
 
-          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
+          <section className="min-h-[250px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
             <SectionLabel
               icon={<Target className="h-4 w-4" />}
               title={copy.attackObjectives}
@@ -391,7 +391,7 @@ export function InvestigationAssistant({
             </div>
           </section>
 
-          <section className="min-h-[250px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
+          <section className="min-h-[250px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-blue-200">
             <SectionLabel
               icon={<Search className="h-4 w-4" />}
               title={copy.evidenceToVerify}

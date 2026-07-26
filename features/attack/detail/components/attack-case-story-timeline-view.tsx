@@ -274,15 +274,15 @@ function TimelineEventCard({
 
   return (
     <div
-      className="min-w-0 rounded-lg border bg-white px-4 py-3 shadow-sm"
+      className="min-w-0 rounded-2xl border bg-white px-4 py-3 shadow-[0_6px_18px_rgba(15,23,42,0.04)]"
       style={{ borderColor, borderLeftColor: step.phaseColor, borderLeftWidth: 3 }}
     >
       <div className="flex min-w-0 flex-wrap items-center gap-2">
-        <h3 className="min-w-0 text-base font-semibold leading-6 text-slate-950">
+        <h3 className="min-w-0 text-base font-medium leading-6 text-slate-950">
           {step.phaseLabel}
         </h3>
         <span
-          className="rounded-lg border px-2.5 py-1 text-xs font-semibold"
+          className="rounded-full border px-2.5 py-1 text-xs font-semibold"
           style={{
             borderColor,
             color: step.phaseColor,
@@ -294,7 +294,7 @@ function TimelineEventCard({
         {step.agentId ? (
           <button
             type="button"
-            className="rounded-lg border border-sky-100 bg-sky-50/60 px-2.5 py-1 font-mono text-[11px] font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 disabled:cursor-wait disabled:opacity-70"
+            className="rounded-full border border-sky-100 bg-sky-50/60 px-2.5 py-1 font-mono text-[11px] font-semibold text-sky-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800 disabled:cursor-wait disabled:opacity-70"
             disabled={loadingHost}
             onClick={() => onHostClick(step.agentId)}
             title={step.agentId}
@@ -451,7 +451,7 @@ function StorySummaryStrip({
   const summaryText = storySummary || t("summaryFallback")
 
   return (
-    <div className="mb-5 flex min-w-0 items-start gap-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
+    <div className="mb-5 flex min-w-0 items-start gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
       <span className="min-h-7 w-1 self-stretch rounded-full bg-blue-600" />
       <p className="min-w-0 flex-1 whitespace-normal break-words">
         {summaryText}
@@ -477,9 +477,9 @@ function TimelineFrame({
   const t = useTranslations("pages.attack.dashboard.caseStory")
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div className="overflow-x-auto">
-        <div className="grid min-w-[900px] grid-cols-[112px_56px_minmax(0,1fr)] gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-medium text-slate-500">
+        <div className="grid min-w-[900px] grid-cols-[112px_56px_minmax(0,1fr)] gap-3 rounded-none border-b border-slate-200 bg-slate-100 px-4 py-3 text-xs font-medium text-slate-500">
           <div className="pl-2">{t("table.time")}</div>
           <div className="text-center">{t("table.phase")}</div>
           <div>{t("table.evidence")}</div>
@@ -509,7 +509,7 @@ export function FactsStrip({
   items: Array<[string, number]>
 }) {
   return (
-    <div className="flex min-w-0 flex-wrap items-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+    <div className="flex min-w-0 flex-wrap items-center overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
       {items.map(([label, value], index) => (
         <div key={label} className="flex items-center">
           {index > 0 ? <span className="mx-4 h-5 w-px bg-slate-200" /> : null}
@@ -536,8 +536,8 @@ export function StoryHeaderIcon({
   }[tone]
 
   return (
-    <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl", toneClassName)}>
-      <Icon className="h-6 w-6" />
+    <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl", toneClassName)}>
+      <Icon className="size-5" />
     </div>
   )
 }
@@ -590,7 +590,7 @@ export function AttackCaseStoryTimelineBody({
 
   if (steps.length === 0) {
     return (
-      <div className={cn("rounded-lg border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center", className)}>
+      <div className={cn("rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center", className)}>
         <FileText className="mx-auto size-8 text-slate-400" />
         <p className="mt-3 text-sm text-slate-500">{t("empty.noEvidence")}</p>
       </div>
@@ -622,18 +622,18 @@ export function AttackCaseStoryTimelineBody({
         }
       }}
     >
-      <DialogContent className="w-auto max-w-[600px] border-none p-0 shadow-xl">
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-[600px] overflow-hidden rounded-[24px] border-none p-0 shadow-[0_18px_48px_rgba(15,23,42,0.16)] [&>button]:flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:bg-slate-100 [&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:hover:bg-slate-200 [&>button]:hover:text-slate-700">
         <DialogTitle className="m-0 h-0 overflow-hidden p-0">
           <VisuallyHidden>{selectedHost?.hostname || selectedHostId || t("host.infoTitle")}</VisuallyHidden>
         </DialogTitle>
         {loadingHostId ? (
-          <div className="flex min-w-[420px] flex-col items-center justify-center gap-3 rounded-lg border bg-white px-8 py-10 text-sm text-slate-500">
+          <div className="flex w-full min-w-0 flex-col items-center justify-center gap-3 rounded-[24px] bg-white px-6 py-10 text-sm text-slate-500 sm:px-8">
             <Loader2 className="size-5 animate-spin text-blue-600" />
             <div>{t("host.loading")}</div>
             <div className="max-w-[360px] truncate font-mono text-xs text-slate-400">{selectedHostId}</div>
           </div>
         ) : hostInfoError ? (
-          <div className="min-w-[420px] rounded-lg border bg-white px-5 py-4">
+          <div className="w-full min-w-0 rounded-[24px] bg-white px-5 py-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-rose-600">
               <AlertTriangle className="size-4" />
               {t("host.loadFailed")}
@@ -646,7 +646,7 @@ export function AttackCaseStoryTimelineBody({
         ) : selectedHost ? (
           <HostInfoCard
             node={selectedHost}
-            className="m-0 border-none p-0 shadow-none"
+            className="m-0 w-full max-w-none overflow-hidden rounded-[24px] border-none p-0 shadow-none"
             reserveCloseSpace
           />
         ) : null}
