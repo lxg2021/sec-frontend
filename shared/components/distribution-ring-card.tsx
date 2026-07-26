@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react"
 
+import { cn } from "@/shared/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 
 export interface DistributionRingItem {
@@ -12,6 +13,7 @@ export interface DistributionRingItem {
 }
 
 interface DistributionRingCardProps {
+  className?: string
   title: string
   description?: string
   totalLabel: string
@@ -29,6 +31,7 @@ function percentage(value: number, total: number) {
 }
 
 export function DistributionRingCard({
+  className,
   title,
   description,
   totalLabel,
@@ -135,7 +138,7 @@ export function DistributionRingCard({
 
   if (!loading && resolvedTotal === 0 && emptyText) {
     return (
-      <Card className="h-full border-0 shadow-lg">
+      <Card className={cn("h-full border-0 shadow-lg", className)}>
         {renderHeader()}
         <CardContent className="flex h-64 items-center justify-center">
           <p className="text-sm text-muted-foreground">{emptyText}</p>
@@ -147,7 +150,7 @@ export function DistributionRingCard({
   let offset = 0
 
   return (
-    <Card className="h-full border-0 shadow-lg">
+    <Card className={cn("h-full border-0 shadow-lg", className)}>
       {renderHeader()}
       <CardContent className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col items-center justify-center gap-6 lg:flex-row">

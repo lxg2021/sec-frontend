@@ -28,6 +28,7 @@ export default function TrendChart({ data, loading = false }: TrendChartProps) {
 
   return (
     <PercentageTrendCard
+      className="rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]"
       data={chartData}
       loading={loading}
       title={t("title")}

@@ -345,7 +345,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
   }
 
   return (
-    <div className="flex min-h-[680px] flex-col overflow-hidden rounded-lg border bg-card lg:flex-row">
+    <div className="flex min-h-[680px] flex-col overflow-hidden rounded-2xl border bg-card lg:flex-row">
       <aside className="flex w-full flex-col border-b border-border lg:w-[30rem] lg:border-b-0 lg:border-r">
         <div className="border-b border-border px-4 py-3">
           <TooltipProvider delayDuration={200}>
@@ -441,7 +441,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
         </ScrollArea>
         {categoryTotalPages > 1 && (
           <div ref={leftPaginationRef} className="border-t border-border bg-slate-50/70 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-2.5 py-2">
               <span className="text-xs font-medium text-slate-600">
                 {t("categoryPageInfo", {
                   current: categoryCurrentPage,
@@ -455,7 +455,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                   size="sm"
                   onClick={() => handleCategoryPageChange(categoryCurrentPage - 1)}
                   disabled={categoryCurrentPage === 1}
-                  className="h-8 gap-1.5 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                  className="h-8 gap-1.5 rounded-2xl border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                   <span>{t("previousPage")}</span>
@@ -465,7 +465,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                   size="sm"
                   onClick={() => handleCategoryPageChange(categoryCurrentPage + 1)}
                   disabled={categoryCurrentPage === categoryTotalPages}
-                  className="h-8 gap-1.5 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                  className="h-8 gap-1.5 rounded-2xl border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
                   <span>{t("nextPage")}</span>
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -502,11 +502,11 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                   placeholder={t("searchPlaceholder")}
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  className="h-8 w-full pl-8 text-sm sm:w-52"
+                  className="h-8 w-full rounded-2xl border-slate-200 pl-8 text-sm shadow-none sm:w-52"
                 />
               </div>
               <Select value={severityFilter} onValueChange={setSeverityFilter}>
-                <SelectTrigger className="h-8 w-full sm:w-36">
+                <SelectTrigger className="h-8 w-full rounded-2xl border-slate-200 bg-white shadow-none sm:w-36">
                   <Filter className="mr-1.5 h-3.5 w-3.5" />
                   <SelectValue placeholder={t("severityFilter")} />
                 </SelectTrigger>
@@ -642,7 +642,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                           variant="ghost"
                           size="sm"
                           onClick={() => handleItemDetail(item)}
-                          className="h-7 px-2 text-xs text-primary hover:bg-primary/10 hover:text-primary"
+                          className="h-7 rounded-2xl px-2 text-xs text-primary hover:bg-primary/10 hover:text-primary"
                         >
                           {t("details")}
                           <ArrowRight className="ml-1 h-3 w-3" />
@@ -667,7 +667,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
 
         {totalPages > 1 && (
           <div className="border-t border-border bg-slate-50/70 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-2.5 py-2">
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-2.5 py-2">
               <div className="text-xs font-medium text-slate-600">
                 {t("pageInfo", { current: currentPage, total: totalPages, count: filteredItems.length })}
               </div>
@@ -677,7 +677,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                   size="sm"
                   onClick={() => setCurrentPage(1)}
                   disabled={currentPage === 1}
-                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                  className="h-8 rounded-2xl border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
                   {t("firstPage")}
                 </Button>
@@ -686,7 +686,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                   size="sm"
                   onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                   disabled={currentPage === 1}
-                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                  className="h-8 rounded-2xl border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   {t("previousPage")}
@@ -710,7 +710,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                         variant={currentPage === pageNum ? "default" : "ghost"}
                         size="sm"
                         onClick={() => setCurrentPage(pageNum)}
-                        className="h-8 w-8 rounded-md p-0 text-xs"
+                        className="h-8 w-8 rounded-2xl p-0 text-xs"
                       >
                         {pageNum}
                       </Button>
@@ -722,7 +722,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                   size="sm"
                   onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                   disabled={currentPage === totalPages}
-                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                  className="h-8 rounded-2xl border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
                   {t("nextPage")}
                   <ChevronRight className="h-4 w-4" />
@@ -732,7 +732,7 @@ export default function CategoryTable({ data, baselineUUID, baselineName, loadin
                   size="sm"
                   onClick={() => setCurrentPage(totalPages)}
                   disabled={currentPage === totalPages}
-                  className="h-8 rounded-md border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
+                  className="h-8 rounded-2xl border-slate-200 bg-white px-2.5 text-xs font-medium text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-300"
                 >
                   {t("lastPage")}
                 </Button>

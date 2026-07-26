@@ -318,7 +318,7 @@ export default function BaselineDashboardClient() {
           <RiskChart data={dailyStats} loading={loadingStats || loadingOptions} />
         </div>
 
-        <Card className="flex min-h-[220px] flex-1 flex-col border bg-card shadow-sm">
+        <Card className="flex min-h-[220px] flex-1 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
           <CardHeader className="border-b border-border pb-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -339,7 +339,7 @@ export default function BaselineDashboardClient() {
                 size="sm"
                 onClick={() => void loadCategoryStats(selectedOption)}
                 disabled={!selectedOption || loadingCategory}
-                className="h-9 gap-2 border-border/70 bg-background/80 px-3 shadow-none"
+                className="h-9 gap-2 rounded-2xl border-border/70 bg-background/80 px-3 shadow-none"
               >
                 <RefreshCw className={loadingCategory ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
                 <span>{t("refresh")}</span>

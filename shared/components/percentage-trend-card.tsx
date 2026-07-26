@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react"
 
+import { cn } from "@/shared/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 
 export interface PercentageTrendPoint {
@@ -20,6 +21,7 @@ interface PercentageTrendCardLabels {
 }
 
 interface PercentageTrendCardProps {
+  className?: string
   data: PercentageTrendPoint[]
   loading?: boolean
   title: string
@@ -40,6 +42,7 @@ function formatMetric(value: number, suffix: string) {
 }
 
 export function PercentageTrendCard({
+  className,
   data,
   loading = false,
   title,
@@ -124,7 +127,7 @@ export function PercentageTrendCard({
 
   return (
     <>
-      <Card className="border-0 shadow-lg">
+      <Card className={cn("border-0 shadow-lg", className)}>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center space-x-3">
             {icon ? <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2">{icon}</div> : null}
