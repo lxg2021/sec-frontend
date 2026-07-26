@@ -22,7 +22,6 @@ import {
   BreadcrumbSeparator,
 } from "@/shared/ui/breadcrumb"
 import { Button } from "@/shared/ui/button"
-import { Card } from "@/shared/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/shared/ui/tooltip"
 import { cn } from "@/shared/lib/utils"
 
@@ -90,37 +89,32 @@ function SkeletonLine({ className }: { className: string }) {
 }
 
 function StatItem({
-  accentClassName,
+  className,
   icon,
-  iconClassName,
   isLoading,
   label,
   value,
-  valueClassName,
 }: {
-  accentClassName: string
+  className: string
   icon: ReactNode
-  iconClassName: string
   isLoading?: boolean
   label: string
   value: number | string
-  valueClassName: string
 }) {
   return (
-    <Card className="relative overflow-hidden rounded-md border bg-background shadow-sm transition-shadow hover:shadow-md">
-      <span aria-hidden="true" className={cn("absolute inset-y-0 left-0 w-1", accentClassName)} />
-      <div className="flex min-h-[86px] items-center gap-2.5 px-3 py-4 pl-4">
-        <div className={cn("shrink-0", iconClassName)}>{icon}</div>
-        <div className="min-w-0">
-          <div className="text-[11px] leading-4 text-muted-foreground">{label}</div>
-          {isLoading ? (
-            <SkeletonLine className="mt-1 h-5 w-12" />
-          ) : (
-            <div className={cn("text-lg font-semibold leading-6 tabular-nums", valueClassName)}>{value}</div>
-          )}
-        </div>
+    <div className={cn("min-h-14 rounded-2xl px-3 py-2.5", className)}>
+      <div className="flex items-center gap-2">
+        <span className="shrink-0 opacity-80" aria-hidden="true">
+          {icon}
+        </span>
+        {isLoading ? (
+          <SkeletonLine className="h-5 w-12" />
+        ) : (
+          <div className="font-mono text-base font-semibold leading-none tabular-nums">{value}</div>
+        )}
       </div>
-    </Card>
+      <div className="mt-1.5 text-[11px] font-medium leading-none opacity-70">{label}</div>
+    </div>
   )
 }
 
@@ -129,6 +123,7 @@ export function BaselineDetailHeader({
   statistics,
   baselineUuid,
   baselineName,
+  categoryIcon: CategoryIcon = Info,
   fallbackCategory,
   fallbackTitle,
   isLoading = false,
@@ -144,53 +139,23 @@ export function BaselineDetailHeader({
   const severityMeta = getSeverityMeta(item?.severity)
 
   return (
-    <section className="space-y-4">
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbPage className="max-w-[18rem] truncate font-normal text-muted-foreground">
-              {templateLabel}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage className="max-w-[18rem] truncate font-medium text-foreground">
-              {isLoading ? <SkeletonLine className="h-4 w-20" /> : categoryLabel}
-            </BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-white via-white to-slate-50 px-5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_16px_34px_rgba(15,23,42,0.10)]">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-100 text-blue-600">
+            <CategoryIcon className="size-6" />
+          </div>
 
-      <div className="flex flex-col gap-5 xl:flex-row xl:items-center">
-        <div className="flex min-w-0 shrink-0 items-center gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={onBack}
-              className="h-10 w-10 shrink-0 rounded-full bg-background shadow-sm transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
-              aria-label="返回"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-
-          <div className="flex min-h-[86px] w-full min-w-0 px-1 py-1 xl:w-[32rem]">
-            {isLoading ? (
-              <div className="flex min-h-[78px] w-full flex-col justify-center gap-2">
-                <SkeletonLine className="h-8 w-full max-w-[28rem]" />
-                <div className="flex flex-wrap gap-2">
-                  <SkeletonLine className="h-6 w-32 rounded-full" />
-                  <SkeletonLine className="h-6 w-20 rounded-full" />
-                  <SkeletonLine className="h-6 w-24 rounded-full" />
-                </div>
-              </div>
-            ) : (
-              <div className="flex min-h-[78px] w-full flex-col justify-center gap-2">
-                <div className="min-w-0 w-full">
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="min-w-0 flex-1">
+                {isLoading ? (
+                  <SkeletonLine className="h-6 w-full max-w-[28rem]" />
+                ) : (
                   <TooltipProvider delayDuration={200}>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <h1 className="w-full truncate text-lg font-semibold leading-snug tracking-tight text-foreground">
+                        <h1 className="line-clamp-2 break-words text-lg font-semibold leading-tight text-slate-950">
                           {title}
                         </h1>
                       </TooltipTrigger>
@@ -199,8 +164,44 @@ export function BaselineDetailHeader({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                </div>
+                )}
+              </div>
 
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={onBack}
+              className="size-9 shrink-0 rounded-full border-slate-200 bg-white text-slate-700 shadow-none transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+              aria-label="返回"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            </div>
+
+            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+              <Breadcrumb>
+                <BreadcrumbList className="flex-nowrap text-xs">
+                  <BreadcrumbItem className="min-w-0">
+                    <BreadcrumbPage className="max-w-[14rem] truncate font-normal text-slate-500">
+                      {templateLabel}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem className="min-w-0">
+                    <BreadcrumbPage className="max-w-[14rem] truncate font-medium text-slate-600">
+                      {isLoading ? <SkeletonLine className="h-4 w-20" /> : categoryLabel}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+
+              {isLoading ? (
+                <div className="flex flex-wrap gap-2">
+                  <SkeletonLine className="h-6 w-20 rounded-full" />
+                  <SkeletonLine className="h-6 w-24 rounded-full" />
+                </div>
+              ) : (
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline" className={cn("gap-1.5", severityMeta.className)}>
                     <AlertTriangle className={cn("h-3 w-3", severityMeta.iconClassName)} />
@@ -211,59 +212,49 @@ export function BaselineDetailHeader({
                     ID: {itemId}
                   </Badge>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <StatItem
-              label="总主机数"
-              value={formatNumber(statistics?.total_hosts)}
-              icon={<Monitor className="h-4 w-4" />}
-              accentClassName="bg-blue-500"
-              iconClassName="text-blue-500"
-              valueClassName="text-blue-600"
-              isLoading={isLoading}
-            />
-            <StatItem
-              label="通过"
-              value={formatNumber(statistics?.passed_hosts)}
-              icon={<CheckCircle2 className="h-4 w-4" />}
-              accentClassName="bg-emerald-500"
-              iconClassName="text-emerald-500"
-              valueClassName="text-emerald-600"
-              isLoading={isLoading}
-            />
-            <StatItem
-              label="失败"
-              value={formatNumber(statistics?.failed_hosts)}
-              icon={<XCircle className="h-4 w-4" />}
-              accentClassName="bg-rose-500"
-              iconClassName="text-rose-500"
-              valueClassName="text-rose-600"
-              isLoading={isLoading}
-            />
-            <StatItem
-              label="异常"
-              value={formatNumber(statistics?.error_hosts)}
-              icon={<AlertCircle className="h-4 w-4" />}
-              accentClassName="bg-amber-500"
-              iconClassName="text-amber-500"
-              valueClassName="text-amber-600"
-              isLoading={isLoading}
-            />
-            <StatItem
-              label="通过率"
-              value={formatPassRate(statistics)}
-              icon={<TrendingUp className="h-4 w-4" />}
-              accentClassName="bg-indigo-500"
-              iconClassName="text-indigo-500"
-              valueClassName="text-indigo-600"
-              isLoading={isLoading}
-            />
-          </div>
+        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:w-auto xl:min-w-[600px]">
+          <StatItem
+            label="总主机数"
+            value={formatNumber(statistics?.total_hosts)}
+            icon={<Monitor className="size-4" />}
+            className="bg-slate-100 text-slate-950"
+            isLoading={isLoading}
+          />
+          <StatItem
+            label="通过"
+            value={formatNumber(statistics?.passed_hosts)}
+            icon={<CheckCircle2 className="size-4" />}
+            className="bg-emerald-50 text-emerald-700"
+            isLoading={isLoading}
+          />
+          <StatItem
+            label="失败"
+            value={formatNumber(statistics?.failed_hosts)}
+            icon={<XCircle className="size-4" />}
+            className="bg-rose-50 text-rose-700"
+            isLoading={isLoading}
+          />
+          <StatItem
+            label="异常"
+            value={formatNumber(statistics?.error_hosts)}
+            icon={<AlertCircle className="size-4" />}
+            className="bg-amber-50 text-amber-700"
+            isLoading={isLoading}
+          />
+          <StatItem
+            label="通过率"
+            value={formatPassRate(statistics)}
+            icon={<TrendingUp className="size-4" />}
+            className="bg-indigo-50 text-indigo-700"
+            isLoading={isLoading}
+          />
         </div>
+      </div>
     </section>
   )
 }

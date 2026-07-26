@@ -102,13 +102,13 @@ function getLabels(useZh: boolean) {
 }
 
 function SkeletonRow() {
-  return <div className="h-10 animate-pulse rounded-md bg-muted/70" />
+  return <div className="h-10 animate-pulse rounded-xl bg-muted/70" />
 }
 
 function SkeletonCard() {
   return (
-    <Card className="overflow-hidden rounded-xl border bg-background shadow-sm">
-      <CardContent className="space-y-6 p-6">
+    <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardContent className="space-y-5 p-5">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="h-5 w-40 animate-pulse rounded bg-muted" />
@@ -116,18 +116,18 @@ function SkeletonCard() {
           </div>
           <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
         </div>
-        <div className="h-14 rounded-md border-l-4 border-blue-500 bg-muted/30 p-4" />
+        <div className="h-14 rounded-2xl border-l-4 border-blue-500 bg-muted/30 p-4" />
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-3 rounded-lg border p-4">
+          <div className="space-y-3 rounded-2xl border p-4">
             <SkeletonRow />
             <SkeletonRow />
           </div>
-          <div className="space-y-3 rounded-lg border p-4">
+          <div className="space-y-3 rounded-2xl border p-4">
             <SkeletonRow />
             <SkeletonRow />
           </div>
         </div>
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-2xl border p-4">
           <SkeletonRow />
           <SkeletonRow />
           <SkeletonRow />
@@ -139,7 +139,7 @@ function SkeletonCard() {
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <Card className="border-dashed bg-background shadow-sm">
+    <Card className="rounded-[24px] border-dashed bg-background shadow-sm">
       <CardContent className="py-12 text-center text-sm text-muted-foreground">{label}</CardContent>
     </Card>
   )
@@ -161,7 +161,7 @@ function CopyButton({
       type="button"
       variant="ghost"
       size="icon"
-      className="h-7 w-7 shrink-0 opacity-60 transition-opacity hover:opacity-100"
+      className="h-7 w-7 shrink-0 rounded-full opacity-60 transition-opacity hover:opacity-100"
       aria-label={labels.copy}
       onClick={onCopy}
       disabled={!value}
@@ -191,7 +191,7 @@ function ValuePill({
           <TooltipTrigger asChild>
             <div
               className={cn(
-                "min-w-0 flex-1 truncate rounded-md bg-slate-100 px-3 py-1.5 text-right text-sm text-slate-900",
+                "min-w-0 flex-1 truncate rounded-xl bg-slate-100 px-3 py-1.5 text-right text-sm text-slate-900",
                 field.mono && "font-mono text-xs",
               )}
             >
@@ -242,7 +242,7 @@ function Panel({
   children: ReactNode
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-background p-4 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-background p-4 shadow-sm">
       <div className="flex items-center gap-2 pb-4">
         <span aria-hidden="true" className={cn("h-5 w-1.5 rounded-full", accentClassName)} />
         <span className="text-sm font-semibold text-foreground">{title}</span>
@@ -290,7 +290,7 @@ function PrimaryBlock({
   if (hasWmi) {
     return (
       <Panel title={labels.wmi} accentClassName="bg-orange-500" icon={<Code2 className="h-4 w-4" />}>
-        <div className="rounded-md bg-slate-950 px-4 py-4">
+        <div className="rounded-2xl bg-slate-950 px-4 py-4">
           <div className="space-y-0">
             {renderLine("namespace", labels.namespace, item.namespace)}
             {renderLine("class_name", labels.className, item.class_name)}
@@ -307,7 +307,7 @@ function PrimaryBlock({
       <Panel title={labels.registry} accentClassName="bg-orange-500" icon={<Database className="h-4 w-4" />}>
         <div className="space-y-3">
           {hasValue(item.registry_path) && (
-            <div className="rounded-md bg-slate-950 px-4 py-4">
+            <div className="rounded-2xl bg-slate-950 px-4 py-4">
               <div className="mb-2 text-xs uppercase tracking-wide text-slate-400">{labels.path}</div>
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1 font-mono text-sm leading-7 text-emerald-400">
@@ -464,16 +464,16 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
 
   return (
     <TooltipProvider delayDuration={200}>
-      <Card className="overflow-hidden rounded-xl border border-slate-200 bg-background shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-5">
+      <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+        <div className="border-b border-slate-200 px-5 py-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
-                <FileText className="h-5 w-5" />
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <FileText className="size-6" />
               </div>
               <div className="min-w-0">
-                <h3 className="truncate text-lg font-semibold text-slate-950">{labels.title}</h3>
-                <p className="mt-1 text-sm text-slate-500">{labels.subtitle}</p>
+                <h3 className="truncate text-base font-medium text-slate-950">{labels.title}</h3>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{labels.subtitle}</p>
               </div>
             </div>
             <Button
@@ -490,9 +490,9 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
         </div>
 
         {!collapsed && (
-          <CardContent className="space-y-6 p-6">
+          <CardContent className="space-y-5 p-5">
             {description && (
-              <div className="border-l-4 border-blue-500 pl-4 text-sm leading-7 text-slate-700">
+              <div className="rounded-2xl border-l-4 border-blue-500 bg-blue-50/50 px-4 py-3 text-sm leading-7 text-slate-700">
                 {description}
               </div>
             )}
@@ -531,7 +531,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
                         href={ref}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50"
+                        className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-blue-700 hover:bg-blue-50"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         <span className="truncate">{ref}</span>
@@ -539,7 +539,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
                     ) : (
                       <span
                         key={ref}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700"
+                        className="inline-flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-700"
                       >
                         <Info className="h-3.5 w-3.5 text-slate-400" />
                         <span className="truncate">{ref}</span>

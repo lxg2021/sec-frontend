@@ -154,24 +154,24 @@ export default function HostList({
   const failedCount = filteredData.filter((host) => host.status !== "passed").length
 
   return (
-    <section className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-      <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-100 bg-blue-50 text-blue-600">
-            <Server className="h-5 w-5" />
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
+            <Server className="size-6" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-slate-950">{t("hostListTitle")}</h3>
-            <p className="mt-1 text-sm text-slate-500">{t("hostListDescription")}</p>
+            <h3 className="text-base font-medium text-slate-950">{t("hostListTitle")}</h3>
+            <p className="mt-1 text-xs leading-5 text-slate-500">{t("hostListDescription")}</p>
           </div>
         </div>
-        <Button variant="outline" onClick={onRetry} disabled={isLoading}>
+        <Button className="h-10 rounded-full border-slate-200" variant="outline" onClick={onRetry} disabled={isLoading}>
           <RefreshCcw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
           {t("refresh")}
         </Button>
       </div>
 
-      <div className="border-b border-slate-200 bg-slate-50/50 px-6 py-4">
+      <div className="border-b border-slate-200 bg-slate-50/70 px-5 py-4">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
             <span>{t("hostCount", { count: pagination.total_count })}</span>
@@ -185,7 +185,7 @@ export default function HostList({
             ) : null}
           </div>
           {hasFilters ? (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 w-fit text-slate-500">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 w-fit rounded-full text-slate-500">
               <X className="mr-1 h-4 w-4" />
               {t("clearFilters")}
             </Button>
@@ -199,12 +199,12 @@ export default function HostList({
               placeholder={t("searchPlaceholder")}
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              className="h-10 bg-white pl-9"
+              className="h-10 rounded-2xl border-slate-200 bg-white pl-9 shadow-none focus-visible:ring-blue-200"
             />
           </div>
 
           <Select value={filterUser || "all"} onValueChange={(value) => setFilterUser(value === "all" ? "" : value)}>
-            <SelectTrigger className="h-10 bg-white">
+            <SelectTrigger className="h-10 rounded-2xl border-slate-200 bg-white shadow-none">
               <SelectValue placeholder={t("filterUser")} />
             </SelectTrigger>
             <SelectContent>
@@ -221,7 +221,7 @@ export default function HostList({
             value={filterDepartment || "all"}
             onValueChange={(value) => setFilterDepartment(value === "all" ? "" : value)}
           >
-            <SelectTrigger className="h-10 bg-white">
+            <SelectTrigger className="h-10 rounded-2xl border-slate-200 bg-white shadow-none">
               <SelectValue placeholder={t("filterDepartment")} />
             </SelectTrigger>
             <SelectContent>
@@ -235,7 +235,7 @@ export default function HostList({
           </Select>
 
           <Select value={filterOS || "all"} onValueChange={(value) => setFilterOS(value === "all" ? "" : value)}>
-            <SelectTrigger className="h-10 bg-white">
+            <SelectTrigger className="h-10 rounded-2xl border-slate-200 bg-white shadow-none">
               <SelectValue placeholder={t("filterOs")} />
             </SelectTrigger>
             <SelectContent>
@@ -252,7 +252,7 @@ export default function HostList({
             placeholder={t("filterHostId")}
             value={filterHostId}
             onChange={(event) => setFilterHostId(event.target.value)}
-            className="h-10 bg-white"
+            className="h-10 rounded-2xl border-slate-200 bg-white shadow-none focus-visible:ring-blue-200"
           />
         </div>
       </div>
@@ -264,7 +264,7 @@ export default function HostList({
           </div>
           <h3 className="mt-4 text-base font-semibold text-slate-950">{t("loadHostsFailed")}</h3>
           <p className="mt-2 max-w-lg text-sm text-slate-500">{error}</p>
-          <Button variant="outline" size="sm" onClick={onRetry} className="mt-4">
+          <Button variant="outline" size="sm" onClick={onRetry} className="mt-4 rounded-full">
             <RefreshCcw className="mr-2 h-4 w-4" />
             {t("retry")}
           </Button>
@@ -281,8 +281,8 @@ export default function HostList({
         </div>
       ) : (
         <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
+          <TableHeader className="bg-slate-100">
+            <TableRow className="bg-slate-100 hover:bg-slate-100">
               <TableHead className="min-w-52">
                 <HeaderLabel icon={Hash}>{t("hostId")}</HeaderLabel>
               </TableHead>
@@ -354,7 +354,7 @@ export default function HostList({
               onPageChange(1)
             }}
           >
-            <SelectTrigger className="h-9 w-24">
+            <SelectTrigger className="h-9 w-24 rounded-2xl border-slate-200 shadow-none">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -368,6 +368,7 @@ export default function HostList({
           <Button
             variant="outline"
             size="sm"
+            className="rounded-full"
             onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
             disabled={isLoading || !pagination.has_previous}
           >
@@ -380,6 +381,7 @@ export default function HostList({
           <Button
             variant="outline"
             size="sm"
+            className="rounded-full"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={isLoading || !pagination.has_next}
           >
