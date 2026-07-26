@@ -142,20 +142,20 @@ export default function StageHostDistributionChart({
     text.length > max ? text.slice(0, max) + "…" : text
 
   return (
-    <Card className="border-0 shadow-lg rounded-xl">
-      <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
+    <Card className="h-full min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="flex flex-row items-center justify-between gap-4 px-5 pb-4 pt-5">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-sky-600">
             <MoreHorizontal className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
-          <CardTitle className="text-base md:text-lg font-semibold text-slate-800 dark:text-white">
+          <CardTitle className="text-base font-medium text-slate-950">
             {t("stageChart.title")}
           </CardTitle>
         </div>
       </CardHeader>
-      <CardContent className="px-5 pb-4 pt-0">
+      <CardContent className="px-5 pb-5 pt-0">
         {data.length === 0 ? (
-          <div className="flex h-[354px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-muted-foreground">
+          <div className="flex h-[354px] items-center justify-center rounded-2xl bg-slate-50/80 text-sm text-muted-foreground">
             {t("stageChart.noData")}
           </div>
         ) : (

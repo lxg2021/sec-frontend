@@ -171,14 +171,14 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
 
   return (
     <>
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="h-full min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+        <CardHeader className="flex flex-row items-center justify-between px-5 pb-4 pt-5">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-600">
               <Trophy className="h-5 w-5 text-white" aria-hidden="true" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+              <CardTitle className="text-base font-medium text-slate-950">
                 {t("top10.title")}
               </CardTitle>
             </div>
@@ -186,8 +186,8 @@ export default function AttackTop10({ top10 = [] as Top10Item[] }: { top10?: Top
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
+            <Table className="min-w-[800px]">
+              <TableHeader className="bg-slate-100">
                 <TableRow>
                   <TableHead className="min-w-[100px]">
                     <HeaderLabel icon={Binary} label={t("top10.technique")} />

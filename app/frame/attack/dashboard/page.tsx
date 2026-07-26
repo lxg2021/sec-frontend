@@ -205,9 +205,9 @@ export default function AttckDashboardPage() {
 
   if (!data || !overview) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="p-6">
-          <div className="rounded-2xl border border-gray-200 bg-white px-6 py-8 text-sm text-gray-500 shadow-sm">
+      <div className="min-h-full min-w-0 bg-slate-50 p-3 sm:p-4 xl:p-5 2xl:p-6">
+        <div className="min-w-0">
+          <div className="rounded-[24px] border border-slate-200 bg-white px-6 py-8 text-sm text-slate-500 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
             {t("loading")}
           </div>
         </div>
@@ -216,8 +216,8 @@ export default function AttckDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="p-6 space-y-6">
+    <div className="min-h-full min-w-0 bg-slate-50 p-3 sm:p-4 xl:p-5 2xl:p-6">
+      <div className="min-w-0 space-y-4 xl:space-y-5 2xl:space-y-6">
         <AttackDashboardHeader
           overview={overview}
           checking={checking || taskChecking}
@@ -228,14 +228,14 @@ export default function AttckDashboardPage() {
 
         <AttckHeader data={data} overview={overview} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2 xl:gap-5 2xl:gap-6">
           <StageHostDistributionChart
             snapshotId={overview.bucket.snapshot_id}
           />
           <AttackStatsTrendChart />
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2 xl:gap-5 2xl:gap-6">
           <AttackTop10 top10={data.top10 || []} />
           <TopRiskHosts snapshotId={overview.bucket.snapshot_id} />
         </div>

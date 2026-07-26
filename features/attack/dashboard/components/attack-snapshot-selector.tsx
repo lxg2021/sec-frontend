@@ -39,7 +39,7 @@ export function AttackSnapshotSelector({ snapshot }: AttackSnapshotSelectorProps
 
   return (
     <div
-      className="flex min-w-[320px] items-center gap-3 rounded-2xl bg-slate-50/90 px-3 py-2.5 text-left lg:border-l lg:border-slate-200 lg:bg-transparent lg:pl-5 lg:pr-0"
+      className="flex w-full min-w-0 items-center gap-3 rounded-2xl bg-slate-50/90 px-3 py-2.5 text-left sm:min-w-[320px] lg:w-auto lg:border-l lg:border-slate-200 lg:bg-transparent lg:pl-5 lg:pr-0"
       title={`${selectedStart} - ${selectedEnd}`}
     >
       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 shadow-sm ring-1 ring-slate-200/80 lg:bg-slate-50">

@@ -159,25 +159,25 @@ export default function AttackStatsTrendChart() {
   const hasData = chartData.length > 0
 
   return (
-    <Card className="border-0 shadow-lg">
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
+    <Card className="h-full min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="flex flex-col gap-4 px-5 pb-4 pt-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center space-x-3">
-          <div className="rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 p-2">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-600">
             <TrendingUp className="h-5 w-5 text-white" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <CardTitle className="truncate text-lg font-semibold text-slate-800 dark:text-white">
+            <CardTitle className="truncate text-base font-medium text-slate-950">
               {t("trend.title")}
             </CardTitle>
           </div>
         </div>
-        <div className="flex shrink-0 rounded-lg bg-slate-100 p-1">
+        <div className="flex w-full shrink-0 rounded-full bg-slate-100 p-1 sm:w-auto">
           {(["24h", "7d", "30d"] as const).map((option) => (
             <button
               type="button"
               key={option}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors",
+                "flex-1 rounded-full px-2.5 py-1 text-xs font-medium text-slate-500 transition-colors sm:flex-none",
                 range === option && "bg-white text-slate-900 shadow-sm",
               )}
               onClick={() => setRange(option)}
@@ -187,8 +187,8 @@ export default function AttackStatsTrendChart() {
           ))}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px] rounded-lg bg-gradient-to-t from-sky-50 to-transparent p-3">
+      <CardContent className="px-5 pb-5 pt-0">
+        <div className="h-[300px] rounded-2xl bg-gradient-to-t from-sky-50 to-transparent p-3">
           {loading ? (
             <div className="flex h-full items-center justify-center gap-2 text-sm text-slate-500">
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />

@@ -188,14 +188,14 @@ export default function TopRiskHosts({ snapshotId, limit = 10 }: TopRiskHostsPro
 
   return (
     <>
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="h-full min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+        <CardHeader className="flex flex-row items-center justify-between px-5 pb-4 pt-5">
           <div className="flex items-center space-x-3">
-            <div className="rounded-lg bg-gradient-to-br from-rose-500 to-red-600 p-2">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-600">
               <ShieldAlert className="h-5 w-5 text-white" aria-hidden="true" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+              <CardTitle className="text-base font-medium text-slate-950">
                 {t("topRiskHosts.title")}
               </CardTitle>
             </div>
@@ -203,8 +203,8 @@ export default function TopRiskHosts({ snapshotId, limit = 10 }: TopRiskHostsPro
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table className="table-fixed">
-              <TableHeader>
+            <Table className="min-w-[640px] table-fixed">
+              <TableHeader className="bg-slate-100">
                 <TableRow>
                   <TableHead className="w-12 whitespace-nowrap text-center">
                     <span className="text-sm font-medium">#</span>

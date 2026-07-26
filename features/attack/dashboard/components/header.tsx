@@ -37,15 +37,15 @@ function StatCard({
   children?: ReactNode
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-lg border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
+    <div className="group relative min-h-[132px] overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition-shadow duration-200 hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
       <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5 transition-opacity group-hover:opacity-10`} />
-      <div className="relative flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+      <div className="relative flex flex-row items-center justify-between space-y-0 px-5 pb-2 pt-5">
         <div className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</div>
         <div className={`rounded-lg bg-gradient-to-br p-2 ${color}`}>
           <Icon className="h-4 w-4 text-white" aria-hidden="true" />
         </div>
       </div>
-      <div className="relative p-6 pt-2">
+      <div className="relative px-5 pb-5 pt-2">
         <div className="flex items-baseline justify-between">
           <div className={`bg-gradient-to-br ${color} bg-clip-text text-2xl font-bold text-transparent`}>
             {formatCount(value)}
@@ -70,7 +70,7 @@ export default function AttckHeader({ data, overview }: HeaderProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5 2xl:gap-6">
       <StatCard title={t("involvedRules")} value={overview.total_rules} icon={Activity} color="from-blue-400 to-indigo-600">
         <p className="mt-1 text-xs text-slate-500">{t("involvedRulesDescription")}</p>
       </StatCard>
@@ -89,15 +89,15 @@ export default function AttckHeader({ data, overview }: HeaderProps) {
         <p className="mt-1 text-xs text-slate-500">{t("affectedHostsDescription")}</p>
       </StatCard>
 
-      <div className="group relative overflow-hidden rounded-lg border-0 bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className="group relative min-h-[132px] overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition-shadow duration-200 hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-amber-600 opacity-5 transition-opacity group-hover:opacity-10" />
-        <div className="relative flex flex-row items-center justify-between space-y-0 p-6 pb-2">
+        <div className="relative flex flex-row items-center justify-between space-y-0 px-5 pb-2 pt-5">
           <div className="text-sm font-medium text-slate-600 dark:text-slate-300">{t("securityLevel")}</div>
           <div className="rounded-lg bg-gradient-to-br from-yellow-400 to-red-500 p-2">
             <AlertTriangle className="h-4 w-4 text-white" aria-hidden="true" />
           </div>
         </div>
-        <div className="relative p-6 pt-2">
+        <div className="relative px-5 pb-5 pt-2">
           <div className="mb-2 text-xs text-muted-foreground">{t("total", { total: totalCount })}</div>
           <div className="mb-2 flex h-2 w-full overflow-hidden rounded-full bg-muted">
             {segments.map((seg) => {
