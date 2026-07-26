@@ -147,8 +147,8 @@ export function BaselineDetailHeader({
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="min-w-0">
                 {isLoading ? (
                   <SkeletonLine className="h-6 w-full max-w-[28rem]" />
                 ) : (

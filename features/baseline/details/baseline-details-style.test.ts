@@ -20,6 +20,10 @@ describe("baseline item details visual hierarchy", () => {
     )
 
     expect(headerSource).toContain("rounded-[28px] border border-slate-200/80")
+    expect(headerSource).toContain('className="flex min-w-0 items-center gap-2"')
+    expect(headerSource).toContain(
+      'className="size-9 shrink-0 rounded-full border-slate-200',
+    )
     expect(detailSource).toContain(
       "rounded-[24px] border border-slate-200 bg-white",
     )
