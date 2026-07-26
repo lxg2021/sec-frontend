@@ -270,27 +270,27 @@ export default function LogicGroupsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="space-y-6 p-6">
-        <Card className="rounded-xl border border-slate-200 bg-white shadow-none">
-          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-slate-900 p-2 text-white">
-                <FolderTree className="h-5 w-5" />
+    <div className="min-h-screen overflow-x-hidden bg-gray-50">
+      <div className="space-y-4 p-3 sm:p-4 xl:p-5 2xl:p-6">
+        <Card className="rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 p-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-700">
+                <FolderTree className="size-6" />
               </div>
-              <div>
-                <CardTitle className="text-lg font-semibold text-slate-800">{t("editStructure")}</CardTitle>
-                <p className="mt-1 text-sm text-slate-600">
+              <div className="min-w-0">
+                <CardTitle className="text-base font-medium text-slate-950">{t("editStructure")}</CardTitle>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
                   {t("structureDescription")}
                 </p>
               </div>
             </div>
 
-            <div className="flex max-w-3xl flex-wrap items-center justify-start gap-2 lg:justify-end">
+            <div className="flex max-w-3xl flex-wrap items-center justify-start gap-2 lg:justify-end xl:flex-nowrap">
               <Button
                 onClick={handleRequestLogicSave}
                 disabled={savingLogicGroups || logicGroupStatus === "loading" || uploadedGroups.length === 0}
-                className="h-10 min-w-28 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
+                className="h-10 min-w-28 justify-center rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
               >
                 {savingLogicGroups ? (
                   <>
@@ -307,7 +307,7 @@ export default function LogicGroupsPage() {
               <Button
                 onClick={handleAddCompany}
                 disabled={logicGroupStatus === "loading"}
-                className="h-10 min-w-28 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
+                className="h-10 min-w-28 justify-center rounded-2xl bg-violet-600 px-4 text-white hover:bg-violet-700"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {t("addCompany")}
@@ -317,7 +317,7 @@ export default function LogicGroupsPage() {
                 size="sm"
                 onClick={() => void loadLogicGroups()}
                 disabled={logicGroupStatus === "loading"}
-                className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
+                className="h-10 rounded-2xl border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
               >
                 <RefreshCcw className="mr-2 h-4 w-4" />
                 {t("refresh")}
@@ -325,9 +325,9 @@ export default function LogicGroupsPage() {
             </div>
           </CardHeader>
 
-          <CardContent className="p-4">
+          <CardContent className="p-5">
             <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_440px]">
-              <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="min-h-[480px] min-w-0 rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="mb-4 text-xs text-slate-500">
                   {uploadedFileName
                     ? t("sourceFile", {
@@ -351,7 +351,7 @@ export default function LogicGroupsPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => void loadLogicGroups()}
-                      className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                      className="rounded-2xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                     >
                       <RefreshCcw className="h-4 w-4" />
                       {t("refresh")}
@@ -373,15 +373,15 @@ export default function LogicGroupsPage() {
                 </div>
               </div>
 
-              <div className="min-h-[480px] rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-base font-semibold text-slate-900">{t("importTitle")}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{t("importDescription")}</p>
+              <div className="min-h-[480px] min-w-0 rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <h3 className="text-base font-medium text-slate-950">{t("importTitle")}</h3>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">{t("importDescription")}</p>
                   </div>
                   <Button
                     onClick={handleDownloadTemplate}
-                    className="h-10 min-w-28 shrink-0 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
+                    className="h-10 w-full min-w-28 shrink-0 justify-center rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800 sm:w-auto"
                   >
                     <Download className="mr-2 h-4 w-4" />
                     {t("downloadTemplate")}
@@ -404,15 +404,15 @@ export default function LogicGroupsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border border-slate-200 bg-white shadow-none">
-          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-blue-600 p-2 text-white">
-                <Computer className="h-5 w-5" />
+        <Card className="rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 p-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <Computer className="size-6" />
               </div>
-              <div>
-                <CardTitle className="text-lg font-semibold text-slate-800">{t("approvalTitle")}</CardTitle>
-                <p className="mt-1 text-sm text-slate-600">{t("approvalDescription")}</p>
+              <div className="min-w-0">
+                <CardTitle className="text-base font-medium text-slate-950">{t("approvalTitle")}</CardTitle>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t("approvalDescription")}</p>
               </div>
             </div>
 
@@ -420,13 +420,13 @@ export default function LogicGroupsPage() {
               variant="outline"
               size="sm"
               onClick={() => void loadHosts()}
-              className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
+              className="h-10 rounded-2xl border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
             >
               <RefreshCcw className="mr-2 h-4 w-4" />
               {t("refresh")}
             </Button>
           </CardHeader>
-          <CardContent className="p-4">
+          <CardContent className="p-5">
             {hostStatus === "loading" && (
               <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-500">
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -443,7 +443,7 @@ export default function LogicGroupsPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => void loadHosts()}
-                  className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                  className="rounded-2xl border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 >
                   <RefreshCcw className="h-4 w-4" />
                   {t("refresh")}
@@ -461,15 +461,15 @@ export default function LogicGroupsPage() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-xl border border-slate-200 bg-white shadow-none">
-          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 pb-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-emerald-600 p-2 text-white">
-                <FileUp className="h-5 w-5" />
+        <Card className="rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 p-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                <FileUp className="size-6" />
               </div>
-              <div>
-                <CardTitle className="text-lg font-semibold text-slate-800">{t("collectionApprovalTitle")}</CardTitle>
-                <p className="mt-1 text-sm text-slate-600">{t("collectionApprovalDescription")}</p>
+              <div className="min-w-0">
+                <CardTitle className="text-base font-medium text-slate-950">{t("collectionApprovalTitle")}</CardTitle>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t("collectionApprovalDescription")}</p>
               </div>
             </div>
 
@@ -477,13 +477,13 @@ export default function LogicGroupsPage() {
               variant="outline"
               size="sm"
               onClick={() => setCollectionRefreshRequestVersion((value) => value + 1)}
-              className="h-10 border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
+              className="h-10 rounded-2xl border-slate-200 bg-white px-4 text-slate-700 hover:bg-slate-50"
             >
               <RefreshCcw className="mr-2 h-4 w-4" />
               {t("refresh")}
             </Button>
           </CardHeader>
-          <CardContent className="p-4">
+          <CardContent className="p-5">
             <CollectionApproval
               refreshRequestVersion={collectionRefreshRequestVersion}
             />

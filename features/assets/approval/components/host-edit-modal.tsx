@@ -121,7 +121,7 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
     <Dialog open={visible} onOpenChange={handleCancel}>
       <DialogContent
         closeLabel={t("close")}
-        className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-xl"
+        className="max-h-[90vh] w-[calc(100vw-1rem)] max-w-2xl overflow-y-auto rounded-[24px]"
       >
         <DialogHeader className="flex flex-row items-center justify-between pb-2">
           <div className="flex items-center space-x-3">
@@ -143,7 +143,7 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
 
         <div className="space-y-6 py-4">
           {/* 主机基本信息 Card */}
-          <Card>
+          <Card className="rounded-[20px] border-slate-200 shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-2">
                 <Server className="h-4 w-4 text-blue-500" />
@@ -191,7 +191,7 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
           </Card>
 
           {/* 逻辑组选择 Card */}
-          <Card>
+          <Card className="rounded-[20px] border-slate-200 shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-2">
                 <Users className="h-4 w-4 text-green-500" />
@@ -235,7 +235,7 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
           </Card>
 
           {/* 负责人信息 Card */}
-          <Card>
+          <Card className="rounded-[20px] border-slate-200 shadow-none">
             <CardHeader className="pb-3">
               <div className="flex items-center space-x-2">
                 <User className="h-4 w-4 text-purple-500" />
@@ -334,14 +334,14 @@ export function HostEditModal({ visible, host, logicGroups, onCancel, onSave }: 
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="w-full"
+            className="w-full rounded-2xl border-slate-200"
           >
             {t("cancel")}
           </Button>
           <Button
             onClick={handleSave}
             disabled={ownerName.trim() === ""}
-            className="w-full"
+            className="w-full rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
           >
             {t("save")}
           </Button>

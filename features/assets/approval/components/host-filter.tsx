@@ -72,7 +72,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-lg font-semibold text-foreground">{t("filterTitle")}</h3>
+            <h3 className="text-base font-medium text-slate-950">{t("filterTitle")}</h3>
           </div>
           {activeFilterCount > 0 && (
             <Badge variant="secondary" className="px-2 py-1">
@@ -90,7 +90,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
               variant="ghost"
               size="sm"
               onClick={clearFilters}
-              className="h-8 text-muted-foreground hover:text-foreground"
+              className="h-8 rounded-2xl text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4 mr-1" />
               {t("clearAll")}
@@ -110,7 +110,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
               placeholder={t("searchPlaceholder")}
               value={filters.searchText || ""}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-9 h-10"
+              className="h-10 rounded-2xl border-slate-200 bg-slate-50 pl-9 shadow-none"
             />
           </div>
         </div>
@@ -118,7 +118,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
         {/* Group Filter */}
         <div>
           <Select value={filters.groupIds?.[0] || "all"} onValueChange={handleGroupChange}>
-            <SelectTrigger className="h-10" aria-label={t("logicGroupFilterAriaLabel")}>
+            <SelectTrigger className="h-10 rounded-2xl border-slate-200 bg-white" aria-label={t("logicGroupFilterAriaLabel")}>
               <SelectValue placeholder={t("selectLogicGroup")} />
             </SelectTrigger>
             <SelectContent>
@@ -148,7 +148,7 @@ export function HostFilter({ filters, onFiltersChange, logicGroups, totalHosts, 
                   size="sm"
                   onClick={() => handleStatusToggle(status.value)}
                   className={cn(
-                    "h-10 w-28 shrink-0 cursor-pointer justify-center border-slate-200 bg-white px-3 text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900",
+                    "h-10 min-w-28 shrink-0 cursor-pointer justify-center rounded-2xl border-slate-200 bg-white px-3 text-slate-700 transition-colors hover:bg-slate-50 hover:text-slate-900",
                     selected &&
                       status.value === "online" &&
                       "border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800",

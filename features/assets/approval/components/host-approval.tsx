@@ -137,7 +137,7 @@ export function HostApproval({
 
   return (
     <div className="space-y-6">
-      <Card className="border-border bg-card p-6">
+      <Card className="rounded-[20px] border-slate-200 bg-white p-5 shadow-none">
         <HostFilter
           filters={filters}
           onFiltersChange={handleFiltersChange}
@@ -147,7 +147,7 @@ export function HostApproval({
         />
       </Card>
 
-      <Card className="border-border bg-card">
+      <Card className="overflow-hidden rounded-[20px] border-slate-200 bg-white shadow-none">
         <HostTable
           hosts={displayedHosts}
           onEditHost={handleEditHost}
@@ -170,7 +170,7 @@ export function HostApproval({
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">{t("pageSize")}</span>
             <Select value={String(pagination.page_size)} onValueChange={(value) => handlePageSizeChange(Number(value))}>
-              <SelectTrigger className="h-9 w-24" aria-label={t("pageSizeAriaLabel")}>
+              <SelectTrigger className="h-9 w-24 rounded-2xl" aria-label={t("pageSizeAriaLabel")}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -185,11 +185,15 @@ export function HostApproval({
         </div>
         <div className="flex justify-end gap-3 sm:flex-1">
           {onCancel && (
-            <Button variant="outline" onClick={onCancel}>
+            <Button variant="outline" onClick={onCancel} className="rounded-2xl border-slate-200">
               {t("cancel")}
             </Button>
           )}
-          <Button onClick={handleSubmit} disabled={loading || submitting || pendingChangeCount === 0}>
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || submitting || pendingChangeCount === 0}
+            className="rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
+          >
             {!submitting && <Save className="mr-2 h-4 w-4" />}
             {submitting ? t("savingChanges") : t("saveChanges")}
           </Button>

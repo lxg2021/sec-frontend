@@ -159,7 +159,7 @@ export function LogicGroupUploader({
           <div className="flex items-center justify-end gap-2">
           <Button
             onClick={handleDownloadTemplate}
-            className="h-10 min-w-28 justify-center gap-2 bg-slate-900 px-4 text-white hover:bg-slate-800"
+            className="h-10 min-w-28 justify-center gap-2 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
           >
             <Download className="h-4 w-4" />
             {defaultTexts.downloadTemplateText}
@@ -217,7 +217,7 @@ export function LogicGroupUploader({
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-green-600">{defaultTexts.successText}</p>
                   <p className="text-xs text-muted-foreground">{fileName}</p>
-                  <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 bg-transparent">
+                  <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 rounded-2xl bg-transparent">
                     <X className="h-4 w-4" />
                     {defaultTexts.resetButtonText}
                   </Button>
@@ -231,7 +231,7 @@ export function LogicGroupUploader({
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-destructive">{defaultTexts.errorText}</p>
                   <p className="text-xs text-muted-foreground" role="alert">{errorMessage}</p>
-                  <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 bg-transparent">
+                  <Button variant="outline" size="sm" onClick={handleReset} className="gap-2 rounded-2xl bg-transparent">
                     <X className="h-4 w-4" />
                     {defaultTexts.retryButtonText}
                   </Button>

@@ -121,7 +121,7 @@ export function HostTable({
     <TableHead
       aria-sort={sortField === field ? (sortDirection === "asc" ? "ascending" : "descending") : "none"}
     >
-      <Button variant="ghost" size="sm" onClick={() => onSort?.(field)} className="-ml-3 h-8 text-xs font-medium">
+      <Button variant="ghost" size="sm" onClick={() => onSort?.(field)} className="-ml-3 h-8 rounded-xl text-xs font-medium">
         {children}
         <ArrowUpDown
           className={cn("ml-2 h-3.5 w-3.5", sortField === field ? "text-foreground" : "text-muted-foreground")}
@@ -251,6 +251,7 @@ export function HostTable({
                       variant="ghost"
                       size="sm"
                       onClick={() => onEditHost?.(host)}
+                      className="rounded-xl"
                       aria-label={t("editHostAriaLabel", { host: host.hostname })}
                       title={t("editHostAriaLabel", { host: host.hostname })}
                     >
@@ -273,6 +274,7 @@ export function HostTable({
             <Button
               variant="ghost"
               size="sm"
+              className="rounded-xl"
               onClick={() => onPageChange?.(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -282,6 +284,7 @@ export function HostTable({
             <Button
               variant="ghost"
               size="sm"
+              className="rounded-xl"
               onClick={() => onPageChange?.(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

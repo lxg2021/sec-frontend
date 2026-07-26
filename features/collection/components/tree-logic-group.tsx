@@ -776,17 +776,17 @@ export function TreeLogicGroup({
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleExpandAll} className="bg-white">
+            <Button variant="outline" size="sm" onClick={handleExpandAll} className="rounded-2xl border-slate-200 bg-white">
               {t("expandAll")}
             </Button>
-            <Button variant="outline" size="sm" onClick={handleCollapseAll} className="bg-white">
+            <Button variant="outline" size="sm" onClick={handleCollapseAll} className="rounded-2xl border-slate-200 bg-white">
               {t("collapseAll")}
             </Button>
             {!readOnly && !disabled && !hideAddCompanyButton && (
               <Button
                 onClick={addRootNode}
                 size="sm"
-                className="h-10 min-w-28 shrink-0 justify-center bg-slate-900 px-4 text-white hover:bg-slate-800"
+                className="h-10 min-w-28 shrink-0 justify-center rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 {t("addCompany")}
@@ -903,7 +903,7 @@ export function TreeLogicGroup({
               <Button
                 onClick={addRootNode}
                 size="sm"
-                className="flex h-10 min-w-28 items-center justify-center gap-1 bg-slate-900 px-4 text-white hover:bg-slate-800"
+                className="flex h-10 min-w-28 items-center justify-center gap-1 rounded-2xl bg-slate-950 px-4 text-white hover:bg-slate-800"
               >
                 <Plus className="h-4 w-4" />
                 {t("addCompany")}
@@ -914,7 +914,7 @@ export function TreeLogicGroup({
                 onClick={handleSave}
                 size="sm"
                 variant="default"
-                className="flex h-10 min-w-28 items-center justify-center gap-1 bg-slate-900 px-4 text-white hover:bg-slate-800"
+                className="flex h-10 min-w-28 items-center justify-center gap-1 rounded-2xl bg-blue-600 px-4 text-white hover:bg-blue-700"
               >
                 <Save className="h-4 w-4" />
                 {t("save")}

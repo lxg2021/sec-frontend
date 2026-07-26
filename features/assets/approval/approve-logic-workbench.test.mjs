@@ -12,7 +12,7 @@ test("approve logic workbench uses a light split panel and supports double-click
   const treeSource = readFileSync(resolve(repoRoot, "features/collection/components/tree-logic-group.tsx"), "utf8")
   const uploaderSource = readFileSync(resolve(repoRoot, "features/collection/components/logic-group-uploader.tsx"), "utf8")
 
-  assert.match(pageSource, /rounded-xl border border-slate-200 bg-white shadow-none/)
+  assert.match(pageSource, /rounded-\[24px\] border border-slate-200 bg-white/)
   assert.match(pageSource, /grid-cols-\[minmax\(0,1fr\)_440px\]/)
   assert.match(pageSource, /min-h-\[480px\]/)
   assert.match(pageSource, /\{t\("saveStructure"\)\}/)
@@ -35,12 +35,12 @@ test("approve logic workbench uses a light split panel and supports double-click
   assert.match(treeSource, /onDoubleClick/)
   assert.match(treeSource, /startEdit\(node\.id, node\.name\)/)
   assert.match(treeSource, /h-10 min-w-28/)
-  assert.match(treeSource, /bg-slate-900[^"\n]*text-white[^"\n]*hover:bg-slate-800/)
+  assert.match(treeSource, /rounded-2xl[^"\n]*bg-slate-950[^"\n]*text-white[^"\n]*hover:bg-slate-800/)
 
   assert.match(uploaderSource, /downloadTemplateText/)
   assert.match(uploaderSource, /hideDownloadButton/)
   assert.match(uploaderSource, /justify-end/)
-  assert.match(uploaderSource, /bg-slate-900[^"\n]*text-white[^"\n]*hover:bg-slate-800/)
+  assert.match(uploaderSource, /rounded-2xl[^"\n]*bg-slate-950[^"\n]*text-white[^"\n]*hover:bg-slate-800/)
 })
 
 test("logic tree exposes efficient tree editing interactions", () => {

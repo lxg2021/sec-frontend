@@ -199,11 +199,11 @@ function CollectionStatCard({
   return (
     <div
       className={cn(
-        "flex min-w-0 items-center gap-3 rounded-lg border border-t-2 border-slate-200 bg-white px-4 py-3 transition-colors hover:border-slate-300 hover:bg-slate-50/60",
+        "flex min-w-0 items-center gap-3 rounded-2xl border border-t-2 border-slate-200 bg-white px-4 py-3 transition-colors hover:border-slate-300 hover:bg-slate-50/60",
         tones.border,
       )}
     >
-      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", tones.iconBg, tones.icon)}>
+      <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl", tones.iconBg, tones.icon)}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
@@ -212,69 +212,6 @@ function CollectionStatCard({
           {value}
         </div>
       </div>
-    </div>
-  )
-}
-
-function DetailSummaryItem({
-  icon: Icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: ComponentType<{ className?: string }>
-  label: string
-  value: ReactNode
-  tone: "blue" | "amber" | "emerald" | "rose" | "slate"
-}) {
-  const tones = {
-    blue: {
-      icon: "text-blue-500",
-      dot: "bg-blue-500",
-      value: "text-blue-600",
-      border: "border-t-blue-500",
-    },
-    amber: {
-      icon: "text-amber-500",
-      dot: "bg-amber-500",
-      value: "text-amber-600",
-      border: "border-t-amber-500",
-    },
-    emerald: {
-      icon: "text-emerald-500",
-      dot: "bg-emerald-500",
-      value: "text-emerald-600",
-      border: "border-t-emerald-500",
-    },
-    rose: {
-      icon: "text-rose-500",
-      dot: "bg-rose-500",
-      value: "text-rose-600",
-      border: "border-t-rose-500",
-    },
-    slate: {
-      icon: "text-slate-500",
-      dot: "bg-slate-400",
-      value: "text-slate-900",
-      border: "border-t-slate-400",
-    },
-  }[tone]
-
-  return (
-    <div
-      className={cn(
-        "rounded-lg border border-t-2 border-slate-200 bg-white p-3 transition-colors hover:border-slate-300 hover:bg-slate-50/60",
-        tones.border,
-      )}
-    >
-      <div className="flex items-center justify-between text-xs text-slate-500">
-        <span className="inline-flex items-center gap-1.5">
-          <Icon className={cn("h-3.5 w-3.5", tones.icon)} />
-          {label}
-        </span>
-        <span className={cn("h-1.5 w-1.5 rounded-full", tones.dot)} />
-      </div>
-      <div className={cn("mt-2 truncate text-lg font-semibold leading-none", tones.value)}>{value}</div>
     </div>
   )
 }
@@ -493,12 +430,12 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
               placeholder={t("searchPlaceholder")}
-              className="pl-9"
+              className="h-10 rounded-2xl border-slate-200 bg-slate-50 pl-9 shadow-none"
             />
           </div>
           <div className="w-full lg:w-56">
             <Select value={String(status)} onValueChange={(value) => setStatus(value === "all" ? "all" : (Number(value) as CollectionSubmissionStatus))}>
-              <SelectTrigger aria-label={t("statusFilterAriaLabel")}>
+              <SelectTrigger className="h-10 rounded-2xl border-slate-200 bg-white" aria-label={t("statusFilterAriaLabel")}>
                 <SelectValue placeholder={t("statusFilter")} />
               </SelectTrigger>
               <SelectContent>
@@ -520,7 +457,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
           <CollectionStatCard icon={Ban} label={t("statRejected")} value={rejectedCount} tone="slate" />
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-lg border bg-card">
+        <div className="mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -589,7 +526,12 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => openDetail(item.submission_id)}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-2xl border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800"
+                            onClick={() => openDetail(item.submission_id)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             {t("view")}
                           </Button>
@@ -607,10 +549,10 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
               {t("paginationInfo", { page, totalPages, total })}
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
+              <Button className="rounded-2xl" variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>
                 {t("prevPage")}
               </Button>
-              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
+              <Button className="rounded-2xl" variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>
                 {t("nextPage")}
               </Button>
             </div>
@@ -631,7 +573,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
       >
         <DialogContent
           closeLabel={t("close")}
-          className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-5xl flex-col overflow-hidden rounded-xl"
+          className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-5xl flex-col overflow-hidden rounded-[24px]"
         >
           <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2">
@@ -649,13 +591,6 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
             </div>
           ) : selected ? (
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
-              <div className="grid gap-3 md:grid-cols-4">
-                <DetailSummaryItem icon={Building2} label={t("tenant")} value={selected.tenant_id} tone="blue" />
-                <DetailSummaryItem icon={CircleDot} label={t("status")} value={statusLabel(selected.status, t)} tone="amber" />
-                <DetailSummaryItem icon={UserRound} label={t("ownerCount")} value={ownerRows.length} tone="emerald" />
-                <DetailSummaryItem icon={Server} label={t("hostCount")} value={selected.host_count} tone="slate" />
-              </div>
-
               <Tabs defaultValue="hosts">
                 <TabsList>
                   <TabsTrigger value="hosts">{t("hostsTab")}</TabsTrigger>
@@ -864,7 +799,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
           )}
 
           <DialogFooter className="shrink-0 gap-2">
-            <Button variant="destructive" onClick={handleReject} disabled={actionLoading || !selected || !canRejectCollectionSubmission(selected.status)}>
+            <Button className="rounded-2xl" variant="destructive" onClick={handleReject} disabled={actionLoading || !selected || !canRejectCollectionSubmission(selected.status)}>
               {actionLoading && actionType === "reject" ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -875,6 +810,7 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
             <Button
               onClick={handleApprove}
               disabled={actionLoading || !selected || !canApproveCollectionSubmission(selected.status)}
+              className="rounded-2xl bg-blue-600 text-white hover:bg-blue-700"
             >
               {actionLoading && actionType === "approve" ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
