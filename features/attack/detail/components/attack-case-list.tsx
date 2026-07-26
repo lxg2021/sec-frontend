@@ -253,7 +253,7 @@ export function AttackCaseList({
     return (
       <Card
         className={cn(
-          "overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm",
+          "min-w-0 overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
           className,
         )}
       >
@@ -265,7 +265,7 @@ export function AttackCaseList({
           onLocateCase={handleLocateCase}
         />
         <CardContent className="px-6 py-14">
-          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card py-12 text-center">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-card py-12 text-center">
             <ShieldCheck className="size-8 text-muted-foreground/50" />
             <p className="text-sm text-muted-foreground">{t("empty")}</p>
           </div>
@@ -278,7 +278,7 @@ export function AttackCaseList({
     <TooltipProvider>
       <Card
         className={cn(
-          "overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm",
+          "min-w-0 overflow-hidden rounded-[24px] border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
           className,
         )}
       >
@@ -304,7 +304,7 @@ export function AttackCaseList({
             ))}
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+        <CardFooter className="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 text-sm text-slate-600 xl:flex-row xl:items-center xl:justify-between">
           <div>
             {t("pagination.total", {
               total: totalLabel,
@@ -327,7 +327,7 @@ export function AttackCaseList({
             </span>
             <span className="ml-2 text-slate-500">{t("pagination.pageSize")}</span>
             <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-              <SelectTrigger className="h-9 w-24">
+              <SelectTrigger className="h-9 w-24 rounded-2xl border-slate-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -344,6 +344,7 @@ export function AttackCaseList({
               size="sm"
               onClick={handlePreviousPage}
               disabled={loadingMore || loadingPrevious || (!hasPrevious && normalizedPage <= 1)}
+              className="rounded-full px-4"
             >
               <ChevronLeft className="mr-1 h-4 w-4" />
               {loadingPrevious ? t("loadingMore") : t("pagination.previous")}
@@ -354,6 +355,7 @@ export function AttackCaseList({
               size="sm"
               onClick={handleNextPage}
               disabled={loadingMore || loadingPrevious || (!hasMore && normalizedPage >= totalPages)}
+              className="rounded-full px-4"
             >
               {loadingMore ? t("loadingMore") : t("pagination.next")}
               <ChevronRight className="ml-1 h-4 w-4" />
@@ -381,23 +383,23 @@ function AttackCaseListHeader({
   const t = useTranslations("pages.attack.dashboard.cases")
 
   return (
-    <CardHeader className="gap-3 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <CardHeader className="gap-3 border-b border-slate-100 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-blue-100 bg-blue-50 text-blue-600">
-          <ListTree className="size-6" />
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <ListTree className="size-5" />
         </div>
         <div className="min-w-0">
-          <CardTitle className="text-lg font-semibold leading-6 text-slate-950">
+          <CardTitle className="text-base font-medium leading-6 text-slate-950">
             {t("title")}
           </CardTitle>
-          <CardDescription className="mt-1 text-sm text-slate-500">
+          <CardDescription className="mt-0.5 text-xs leading-5 text-slate-500">
             {t("description")}
           </CardDescription>
         </div>
       </div>
-      <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+      <div className="flex w-full flex-wrap items-center justify-end gap-2 lg:w-auto">
         <div
-          className="flex h-10 min-w-[320px] max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white px-3 shadow-sm"
+          className="flex h-10 w-full min-w-0 items-center gap-2 rounded-full border border-slate-200 bg-white px-3 shadow-sm lg:w-[320px]"
           title={selectedCaseId || t("caseLocator.empty")}
         >
           <Target className="size-4 shrink-0 text-slate-400" />

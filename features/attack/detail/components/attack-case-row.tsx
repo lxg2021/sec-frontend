@@ -174,7 +174,7 @@ export function AttackCaseRow({
           }
         }}
         className={cn(
-          "group/case-row relative min-w-0 overflow-hidden rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.045)] outline-none hover:shadow-[0_16px_32px_rgba(15,23,42,0.10)]",
+          "group/case-row relative min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_6px_18px_rgba(15,23,42,0.04)] outline-none transition-shadow duration-200 hover:shadow-[0_12px_28px_rgba(15,23,42,0.08)]",
           clickable && "cursor-pointer focus-visible:ring-2 focus-visible:ring-slate-300",
           selected && severity.selected,
         )}
@@ -188,7 +188,7 @@ export function AttackCaseRow({
           aria-hidden="true"
         />
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(294px,1fr)_352px_max-content_max-content] lg:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content_max-content]">
+          <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(294px,1fr)_352px_max-content_max-content] xl:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content_max-content]">
             <div className="min-w-0 self-start">
               <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span
@@ -200,7 +200,7 @@ export function AttackCaseRow({
                   <ShieldAlert className="size-3.5" />
                   {t(`severity.${severity.labelKey}`)}
                 </span>
-                <h3 className="w-[220px] shrink-0 leading-6 2xl:w-[520px]">
+                <h3 className="min-w-0 flex-1 leading-6">
                   <CaseTitleEditor
                     item={item}
                     title={title}
@@ -229,7 +229,7 @@ export function AttackCaseRow({
             </div>
           </div>
 
-          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-lg bg-slate-50/70 py-1.5 pl-2 pr-3 lg:grid-cols-[max-content_max-content_minmax(0,1fr)] lg:items-center">
+          <div className="grid min-w-0 gap-x-4 gap-y-1.5 rounded-2xl bg-slate-50/70 py-1.5 pl-2 pr-3 xl:grid-cols-[max-content_max-content_minmax(0,1fr)] xl:items-center">
             <MetaCluster
               icon={Target}
               label={t("labels.caseId")}
@@ -356,16 +356,16 @@ function CaseTitleEditor({
         </button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-xl gap-4 rounded-2xl border-slate-200 p-0 shadow-2xl"
+        className="max-w-xl gap-4 rounded-[24px] border-slate-200 p-0 shadow-[0_18px_48px_rgba(15,23,42,0.16)]"
         onClick={(event) => event.stopPropagation()}
       >
         <DialogHeader className="border-b border-slate-100 px-5 py-4 pr-12">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
-              <FileText className="size-4.5" />
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+              <FileText className="size-5" />
             </span>
             <div className="min-w-0">
-              <DialogTitle className="text-base font-semibold leading-6 text-slate-950">
+              <DialogTitle className="text-base font-medium leading-6 text-slate-950">
                 {t("titleEdit.dialogTitle")}
               </DialogTitle>
               <DialogDescription className="mt-0.5 text-xs leading-5 text-slate-500">
@@ -379,12 +379,17 @@ function CaseTitleEditor({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             placeholder={t("titleEdit.placeholder")}
-            className="rounded-xl border-slate-200 text-sm focus-visible:ring-blue-200"
+            className="rounded-2xl border-slate-200 text-sm focus-visible:ring-blue-200"
           />
         </div>
         <DialogFooter className="gap-2 border-t border-slate-100 px-5 py-4 sm:space-x-0">
           <DialogClose asChild>
-            <Button type="button" variant="outline" disabled={saving}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saving}
+              className="rounded-full px-5"
+            >
               {t("titleEdit.cancel")}
             </Button>
           </DialogClose>
@@ -392,7 +397,7 @@ function CaseTitleEditor({
             type="button"
             onClick={handleSave}
             disabled={saving || !draft.trim()}
-            className="bg-blue-600 text-white hover:bg-blue-700"
+            className="rounded-full bg-blue-600 px-5 text-white hover:bg-blue-700"
           >
             {saving ? <Loader2 className="size-4 animate-spin" /> : null}
             {t("titleEdit.save")}
@@ -478,16 +483,16 @@ function CaseSummaryEditor({
         </button>
       </DialogTrigger>
       <DialogContent
-        className="max-w-xl gap-4 rounded-2xl border-slate-200 p-0 shadow-2xl"
+        className="max-w-xl gap-4 rounded-[24px] border-slate-200 p-0 shadow-[0_18px_48px_rgba(15,23,42,0.16)]"
         onClick={(event) => event.stopPropagation()}
       >
           <DialogHeader className="border-b border-slate-100 px-5 py-4 pr-12">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
-                <FileText className="size-4.5" />
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                <FileText className="size-5" />
               </span>
               <div className="min-w-0">
-                <DialogTitle className="text-base font-semibold leading-6 text-slate-950">
+                <DialogTitle className="text-base font-medium leading-6 text-slate-950">
                   {t("summary.dialogTitle")}
                 </DialogTitle>
                 <DialogDescription className="mt-0.5 text-xs leading-5 text-slate-500">
@@ -501,12 +506,17 @@ function CaseSummaryEditor({
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
               placeholder={t("summary.placeholder")}
-              className="min-h-32 resize-y rounded-xl border-slate-200 text-sm leading-6 focus-visible:ring-blue-200"
+              className="min-h-32 resize-y rounded-2xl border-slate-200 text-sm leading-6 focus-visible:ring-blue-200"
             />
           </div>
           <DialogFooter className="gap-2 border-t border-slate-100 px-5 py-4 sm:space-x-0">
             <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={saving}>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={saving}
+                className="rounded-full px-5"
+              >
                 {t("summary.cancel")}
               </Button>
             </DialogClose>
@@ -514,7 +524,7 @@ function CaseSummaryEditor({
               type="button"
               onClick={handleSave}
               disabled={saving || !draft.trim()}
-              className="bg-blue-600 text-white hover:bg-blue-700"
+              className="rounded-full bg-blue-600 px-5 text-white hover:bg-blue-700"
             >
               {saving ? <Loader2 className="size-4 animate-spin" /> : null}
               {t("summary.save")}
