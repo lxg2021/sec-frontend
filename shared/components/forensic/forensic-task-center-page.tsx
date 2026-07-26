@@ -497,8 +497,8 @@ export function ForensicTaskCenterPage({ context }: Props) {
   }, [caseId, context, router])
 
   return (
-    <main className="bg-gray-50">
-      <div className="flex min-h-[calc(100vh-3rem)] flex-col gap-6 p-6">
+    <main className="min-h-dvh min-w-0 overflow-x-hidden bg-slate-50">
+      <div className="flex min-h-[calc(100vh-3rem)] min-w-0 flex-col gap-6 p-6">
         <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -595,16 +595,16 @@ export function ForensicTaskCenterPage({ context }: Props) {
 
         <Card
           ref={createPanelRef}
-          className="overflow-hidden rounded-[18px] border-0 bg-white shadow-[0_12px_34px_rgba(15,23,42,0.08)]"
+          className="min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]"
         >
-          <CardHeader className="flex-row items-center justify-between gap-4 space-y-0 border-b border-slate-200 px-6 py-5">
+          <CardHeader className="flex-col items-stretch justify-between gap-4 space-y-0 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center">
             <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-500/20">
-                <Plus aria-hidden className="h-5 w-5" />
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-sm shadow-teal-100">
+                <Plus aria-hidden className="size-5" />
               </div>
               <div className="min-w-0">
-                <CardTitle className="text-base font-semibold text-slate-950">{t("create.title")}</CardTitle>
-                <p className="mt-1 text-sm leading-6 text-slate-500">{t("create.description")}</p>
+                <CardTitle className="text-base font-medium leading-6 text-slate-950">{t("create.title")}</CardTitle>
+                <p className="mt-1 text-xs leading-5 text-slate-500">{t("create.description")}</p>
               </div>
             </div>
             <Button
@@ -644,27 +644,27 @@ export function ForensicTaskCenterPage({ context }: Props) {
           </CardContent>
         </Card>
 
-        <Card className="flex min-h-[560px] flex-1 flex-col overflow-hidden rounded-[18px] border-0 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-          <CardHeader className="flex-row items-center justify-between gap-4 border-b border-slate-200 px-6 py-4">
+        <Card className="flex min-h-[560px] min-w-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+          <CardHeader className="flex-col items-stretch justify-between gap-4 border-b border-slate-200 px-6 py-4 xl:flex-row xl:items-center">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-600 text-white shadow-lg shadow-sky-500/20">
-                <ListChecks aria-hidden className="h-5 w-5" />
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm shadow-sky-100">
+                <ListChecks aria-hidden className="size-5" />
               </div>
               <div className="min-w-0">
-                <CardTitle className="text-base font-semibold text-slate-950">
+                <CardTitle className="text-base font-medium leading-6 text-slate-950">
                   {t("list.title")}
                   <span className="ml-2 text-xs font-normal text-slate-500">{t("list.count", { count: total })}</span>
                 </CardTitle>
               </div>
             </div>
-            <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
-              <div className="relative w-full max-w-[260px]">
+            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 xl:justify-end">
+              <div className="relative w-full sm:max-w-[260px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                   value={keyword}
                   onChange={(event) => setKeyword(event.target.value)}
                   placeholder={t("filters.keyword")}
-                  className="h-9 rounded-lg border-slate-200 bg-slate-50 pl-9 text-xs"
+                  className="h-9 rounded-full border-slate-200 bg-slate-50 pl-9 text-xs"
                 />
               </div>
               <Input
@@ -674,7 +674,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   setPage(1)
                 }}
                 placeholder={t("filters.caseId")}
-                className="h-9 w-[130px] rounded-lg border-slate-200 bg-slate-50 text-xs"
+                className="h-9 w-full rounded-full border-slate-200 bg-slate-50 text-xs sm:w-[130px]"
               />
               <Select
                 value={status}
@@ -683,7 +683,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   setPage(1)
                 }}
               >
-                <SelectTrigger className="h-9 w-[120px] rounded-lg border-slate-200 bg-slate-50 text-xs">
+                <SelectTrigger className="h-9 w-[120px] rounded-full border-slate-200 bg-slate-50 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -701,7 +701,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                 size="icon"
                 onClick={() => void refresh()}
                 disabled={loading}
-                className="h-9 w-9 shrink-0 rounded-lg"
+                className="size-9 shrink-0 rounded-full"
                 title={t("filters.apply")}
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -710,9 +710,9 @@ export function ForensicTaskCenterPage({ context }: Props) {
           </CardHeader>
 
           <CardContent className="flex flex-1 flex-col p-0">
-            <div className="min-w-0 flex-1 overflow-hidden">
-              <div className="flex h-full min-w-0 flex-col">
-                <div className={cn("grid min-w-0 border-b border-slate-200 px-4 py-3 text-center text-xs text-slate-500", TASK_TABLE_GRID_CLASS)}>
+            <div className="min-w-0 flex-1 overflow-x-auto">
+              <div className="flex h-full min-w-[1680px] flex-col">
+                <div className={cn("grid min-w-0 border-b border-slate-200 bg-slate-100 px-4 py-3 text-center text-xs font-medium text-slate-500", TASK_TABLE_GRID_CLASS)}>
                   <span className="min-w-0 truncate">{t("list.columns.status")}</span>
                   <span className="min-w-0 truncate">{t("list.columns.task")}</span>
                   <span className="min-w-0 truncate">{t("list.columns.case")}</span>
@@ -860,7 +860,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               type="button"
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 rounded-lg text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 disabled:text-slate-300"
+                              className="size-8 rounded-full text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 disabled:text-slate-300"
                               aria-label={t("actions.downloadZip")}
                               title={t("actions.downloadZip")}
                               disabled={!task.remote_flow_id || downloadingFlow}
@@ -881,7 +881,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                               variant="ghost"
                               size="sm"
                               className={cn(
-                                "h-7 min-w-9 rounded-lg px-2 font-mono text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700",
+                                "h-7 min-w-9 rounded-full px-2 font-mono text-xs font-semibold text-blue-600 hover:bg-blue-50 hover:text-blue-700",
                                 detailAttention && "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-200 motion-safe:animate-pulse"
                               )}
                               aria-label={t("actions.viewDetail")}
@@ -904,7 +904,7 @@ export function ForensicTaskCenterPage({ context }: Props) {
                                   type="button"
                                   variant="ghost"
                                   size="icon"
-                                  className="h-8 w-8 rounded-lg text-slate-500 hover:bg-white hover:text-slate-800"
+                                  className="size-8 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800"
                                   aria-label={t("list.columns.actions")}
                                 >
                                   {canceling || deleting ? (
@@ -948,18 +948,18 @@ export function ForensicTaskCenterPage({ context }: Props) {
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-8 w-8"
+                  className="size-8 rounded-full"
                   disabled={page <= 1 || loading}
                   onClick={() => setPage((current) => Math.max(1, current - 1))}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="flex h-8 min-w-8 items-center justify-center rounded-lg bg-slate-950 px-2 text-xs font-semibold text-white">{page}</span>
+                <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-slate-950 px-2 text-xs font-semibold text-white">{page}</span>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="h-8 w-8"
+                  className="size-8 rounded-full"
                   disabled={page >= pageCount || loading}
                   onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
                 >

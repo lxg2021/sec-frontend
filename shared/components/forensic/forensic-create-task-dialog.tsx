@@ -365,7 +365,7 @@ function FieldInput({
   if (field.enum?.length) {
     return (
       <Select value={textValue} onValueChange={onChange}>
-        <SelectTrigger id={id} className={cn("h-9", error && "border-red-300")}>
+        <SelectTrigger id={id} className={cn("h-9 rounded-full", error && "border-red-300")}>
           <SelectValue placeholder={field.placeholder || field.label} />
         </SelectTrigger>
         <SelectContent>
@@ -381,7 +381,7 @@ function FieldInput({
 
   if (field.type === "boolean") {
     return (
-      <label className="flex min-h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3">
+      <label className="flex min-h-9 items-center gap-2 rounded-full border border-slate-200 bg-white px-3">
         <Checkbox checked={value === true} onCheckedChange={(checked) => onChange(checked === true)} />
         <span className="text-sm text-slate-700">{field.label}</span>
       </label>
@@ -395,7 +395,7 @@ function FieldInput({
         rows={3}
         value={Array.isArray(value) ? value.join("\n") : ""}
         placeholder={field.placeholder}
-        className={cn("font-mono text-xs", error && "border-red-300")}
+        className={cn("rounded-xl font-mono text-xs", error && "border-red-300")}
         onChange={(event) =>
           onChange(event.target.value.split("\n").map((item) => item.trim()).filter(Boolean))
         }
@@ -411,7 +411,7 @@ function FieldInput({
         value={textValue}
         min={field.min}
         max={field.max}
-        className={cn("h-9", error && "border-red-300")}
+        className={cn("h-9 rounded-full", error && "border-red-300")}
         onChange={(event) => onChange(event.target.value === "" ? undefined : Number(event.target.value))}
       />
     )
@@ -424,7 +424,7 @@ function FieldInput({
         rows={3}
         value={textValue}
         placeholder={field.placeholder}
-        className={cn("font-mono text-xs", error && "border-red-300")}
+        className={cn("rounded-xl font-mono text-xs", error && "border-red-300")}
         onChange={(event) => onChange(event.target.value)}
       />
     )
@@ -435,7 +435,7 @@ function FieldInput({
       id={id}
       value={textValue}
       placeholder={field.placeholder}
-      className={cn("h-9 font-mono text-xs", error && "border-red-300")}
+      className={cn("h-9 rounded-full font-mono text-xs", error && "border-red-300")}
       onChange={(event) => onChange(event.target.value)}
     />
   )
@@ -716,7 +716,7 @@ export function ForensicCreateTaskForm({
   const endpointSection = (
     <section
       className={cn(
-        "rounded-xl border border-slate-200 bg-slate-50/70 p-4",
+        "rounded-2xl border border-slate-200 bg-slate-50/70 p-4",
         isWorkspace ? "flex h-[280px] shrink-0 flex-col gap-3 overflow-hidden" : "shrink-0 space-y-3",
       )}
     >
@@ -730,7 +730,7 @@ export function ForensicCreateTaskForm({
           value={endpointKeyword}
           onChange={(event) => setEndpointKeyword(event.target.value)}
           placeholder={t("endpoint.search")}
-          className="h-9 bg-white pl-9"
+          className="h-9 rounded-full bg-white pl-9"
         />
       </div>
       <div className={cn("space-y-2 pr-1", isWorkspace ? "min-h-0 flex-1 overflow-y-auto" : "max-h-56 overflow-auto")}>
@@ -786,7 +786,7 @@ export function ForensicCreateTaskForm({
   const artifactSection = (
     <section
       className={cn(
-        "rounded-xl border border-slate-200 bg-slate-50/70 p-4",
+        "rounded-2xl border border-slate-200 bg-slate-50/70 p-4",
         isWorkspace ? "h-[204px] shrink-0 space-y-3 overflow-hidden" : "space-y-3",
       )}
     >
@@ -795,7 +795,7 @@ export function ForensicCreateTaskForm({
         {loadingArtifact ? <Loader2 className="h-4 w-4 animate-spin text-slate-400" /> : null}
       </div>
       <Select value={artifactKey} onValueChange={(value) => void handleArtifactChange(value)}>
-        <SelectTrigger className="h-9 bg-white">
+        <SelectTrigger className="h-9 rounded-full bg-white">
           <SelectValue placeholder={t("artifact.placeholder")} />
         </SelectTrigger>
         <SelectContent>
@@ -837,11 +837,11 @@ export function ForensicCreateTaskForm({
   )
 
   const paramsContent = !artifactDef ? (
-    <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
+    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
       {t("params.selectArtifactFirst")}
     </div>
   ) : fields.length === 0 ? (
-    <div className="rounded-xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
+    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-10 text-center text-sm text-slate-500">
       {t("params.empty")}
     </div>
   ) : (
@@ -889,14 +889,14 @@ export function ForensicCreateTaskForm({
   const footer = (
     <div className={cn("flex items-center justify-end gap-2 pt-4", footerClassName)}>
       {onCancel ? (
-        <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
+        <Button type="button" variant="outline" className="rounded-full" onClick={onCancel} disabled={submitting}>
           {t("actions.cancel")}
         </Button>
       ) : null}
       <Button
         type="submit"
         disabled={submitting || !selectedEndpoint || !artifactDef}
-        className="bg-slate-950 text-white hover:bg-slate-800"
+        className="rounded-full bg-slate-950 text-white hover:bg-slate-800"
       >
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         {submitting ? t("actions.submitting") : t("actions.submit")}
@@ -913,7 +913,7 @@ export function ForensicCreateTaskForm({
             {artifactSection}
           </aside>
 
-          <section className="flex h-full min-h-0 self-stretch flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
+          <section className="flex h-full min-h-0 self-stretch flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white">
             <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
               <Label className="text-sm font-semibold text-slate-800">{t("params.title")}</Label>
               <span className="text-xs text-slate-500">{t("params.nativeHint")}</span>
