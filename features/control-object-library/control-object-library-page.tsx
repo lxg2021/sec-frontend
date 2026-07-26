@@ -20,6 +20,7 @@ import {
   Send,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   SquareTerminal,
   Trash2,
   Unplug,
@@ -412,7 +413,7 @@ export function ControlObjectLibraryPage() {
             <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:items-center">
               <div className="flex min-w-0 items-center gap-3 sm:gap-4 xl:w-[430px] xl:flex-none">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-100 text-blue-600 sm:h-12 sm:w-12">
-                  <LibraryBig className="h-5 w-5" aria-hidden="true" />
+                  <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 space-y-1">
                   <h1 className="truncate text-lg font-semibold leading-tight text-slate-950">管理中心</h1>
