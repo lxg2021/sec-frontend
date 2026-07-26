@@ -42,6 +42,8 @@ import { ControlObjectEditorDialog } from "@/features/control-object-library/con
 import { canEditControlObjectDefinition } from "@/features/control-object-library/control-object-editor-model"
 import { BaselineRepairCommandEditorDialog } from "@/features/control-object-library/baseline-repair-command-editor-dialog"
 import { isBaselineRepairCommandDefinition } from "@/features/control-object-library/baseline-repair-command-editor"
+import { PatchCommandEditorDialog } from "@/features/control-object-library/patch-command-editor-dialog"
+import { isPatchCommandDefinition } from "@/features/control-object-library/patch-command-editor"
 import {
   calculateAdaptivePageSize,
   pageForPreservedOffset,
@@ -284,6 +286,7 @@ export function ControlObjectLibraryPage() {
   const [activeEditor, setActiveEditor] = useState<EditorKind | null>(null)
   const [accessPolicyEditTarget, setAccessPolicyEditTarget] = useState<ControlObjectDefinition | null>(null)
   const [baselineRepairCommandEditTarget, setBaselineRepairCommandEditTarget] = useState<ControlObjectDefinition | null>(null)
+  const [patchCommandEditTarget, setPatchCommandEditTarget] = useState<ControlObjectDefinition | null>(null)
   const [genericEditTarget, setGenericEditTarget] = useState<ControlObjectDefinition | null>(null)
   const [detailTarget, setDetailTarget] = useState<ControlObjectDefinition | null>(null)
   const [deliveryTarget, setDeliveryTarget] = useState<ControlObjectDefinition | null>(null)
@@ -397,6 +400,10 @@ export function ControlObjectLibraryPage() {
   }
 
   const handleEditDefinition = (definition: ControlObjectDefinition) => {
+    if (isPatchCommandDefinition(definition)) {
+      setPatchCommandEditTarget(definition)
+      return
+    }
     if (isBaselineRepairCommandDefinition(definition)) {
       setBaselineRepairCommandEditTarget(definition)
       return
@@ -651,6 +658,13 @@ export function ControlObjectLibraryPage() {
           definition={baselineRepairCommandEditTarget}
           onOpenChange={(open) => {
             if (!open) setBaselineRepairCommandEditTarget(null)
+          }}
+          onCreated={handleObjectUpdated}
+        />
+        <PatchCommandEditorDialog
+          definition={patchCommandEditTarget}
+          onOpenChange={(open) => {
+            if (!open) setPatchCommandEditTarget(null)
           }}
           onCreated={handleObjectUpdated}
         />
@@ -968,7 +982,10 @@ function ObjectActions({
   align: "right" | "stretch"
 }) {
   const isBaselineRepairCommand = isBaselineRepairCommandDefinition(definition)
-  const canEdit = isBaselineRepairCommand || canEditControlObjectDefinition(definition)
+  const isPatchCommand = isPatchCommandDefinition(definition)
+  const canEdit = isBaselineRepairCommand
+    || isPatchCommand
+    || canEditControlObjectDefinition(definition)
   const editReason = !definition.capabilities.canUpdate
     ? "后台能力合同不允许更新此对象"
     : "后台更新接口只支持策略和配置"
