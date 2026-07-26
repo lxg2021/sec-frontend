@@ -9,6 +9,7 @@ vi.mock("@/shared/lib/http/client", () => ({
 import {
   BUILTIN_CONTROL_OBJECT_IDS,
   compareControlObjectVersions,
+  createControlObjectCommand,
   deleteControlObjectDefinition,
   getControlObjectDefinition,
   listControlObjectOperations,
@@ -407,6 +408,99 @@ describe("control object library API", () => {
       },
     })
     await expect(getControlObjectDefinition(configDefinition())).rejects.toThrow("PMC_OBJECT_DETAIL_MISMATCH")
+  })
+
+  it("creates an immutable manual Command and validates the authoritative response", async () => {
+    const objectId = "5d4066df-1143-4b27-85f2-9f4ed9190ba2"
+    const context = JSON.stringify({
+      command: {
+        head: { id: objectId, type: 2, subtype: 102 },
+        body: { repair: { mode: "HailMary", source: "Intune" } },
+      },
+    })
+    post.mockResolvedValue({
+      data: {
+        definition: {
+          type: 2,
+          object_id: objectId,
+          object_version: "1.0.0",
+          creation_source: 2,
+          command: {
+            name: "baseline one-click repair",
+            category: 1,
+            sub_type: 102,
+            context,
+          },
+          capabilities: {
+            allowed_agent_operations: [4],
+            can_update: false,
+            catalog_delete_mode: 2,
+          },
+          object_state: "active",
+          state_version: 1,
+        },
+      },
+    })
+
+    const result = await createControlObjectCommand({
+      objectId,
+      name: " baseline one-click repair ",
+      category: 1,
+      subType: 102,
+      context,
+    })
+
+    expect(post).toHaveBeenCalledWith("createPMCObjectDefinition", {
+      request_id: expect.stringMatching(/^\d+$/),
+      definition: {
+        type: 2,
+        object_id: objectId,
+        command: {
+          name: "baseline one-click repair",
+          category: 1,
+          sub_type: 102,
+          context,
+        },
+      },
+    })
+    expect(result).toMatchObject({
+      objectId,
+      objectType: "command",
+      internalName: "baseline one-click repair",
+      subType: 102,
+      version: "1.0.0",
+      source: "manual",
+    })
+  })
+
+  it("rejects an incomplete or mismatched Command create response", async () => {
+    const input = {
+      objectId: "5d4066df-1143-4b27-85f2-9f4ed9190ba2",
+      name: "baseline one-click repair",
+      category: 1,
+      subType: 102,
+      context: "{}",
+    }
+    post.mockResolvedValueOnce({ data: null })
+    await expect(createControlObjectCommand(input)).rejects.toThrow("PMC_CREATE_RESPONSE_INVALID")
+
+    post.mockResolvedValueOnce({
+      data: {
+        definition: {
+          type: 2,
+          object_id: "another-id",
+          object_version: "1.0.0",
+          creation_source: 2,
+          command: {
+            name: input.name,
+            category: input.category,
+            sub_type: input.subType,
+            context: input.context,
+          },
+        },
+      },
+    })
+    await expect(createControlObjectCommand(input)).rejects.toThrow("PMC_CREATE_RESPONSE_MISMATCH")
   })
 
   it("updates an editable Config using only caller-controlled definition fields", async () => {

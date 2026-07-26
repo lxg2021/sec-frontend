@@ -54,6 +54,14 @@ export interface ControlObjectUpdateInput {
   md5?: string
 }
 
+export interface ControlObjectCommandCreateInput {
+  objectId: string
+  name: string
+  category: number
+  subType: number
+  context: string
+}
+
 export interface ControlObjectOperationResult {
   operationId: string
   planningStatus: string
@@ -615,6 +623,60 @@ export async function getControlObjectDefinition(
     displayJson: JSON.stringify(displayDefinition, null, 2),
     editableContent: editableContentFromDefinition(rawDefinition, normalized),
   }
+}
+
+export async function createControlObjectCommand(
+  input: ControlObjectCommandCreateInput,
+): Promise<ControlObjectDefinition> {
+  const objectId = input.objectId.trim()
+  const name = input.name.trim()
+  const context = input.context
+  if (!objectId || objectId.length > 64) throw new Error("PMC_CREATE_OBJECT_ID_INVALID")
+  if (!name || name.length > 255) throw new Error("PMC_CREATE_NAME_INVALID")
+  if (!Number.isSafeInteger(input.category) || input.category <= 0) {
+    throw new Error("PMC_CREATE_CATEGORY_INVALID")
+  }
+  if (!Number.isSafeInteger(input.subType) || input.subType <= 0) {
+    throw new Error("PMC_CREATE_SUBTYPE_INVALID")
+  }
+  if (!context.trim()) throw new Error("PMC_CREATE_CONTEXT_INVALID")
+
+  const result = (await http.post("createPMCObjectDefinition", {
+    request_id: createRequestId(),
+    definition: {
+      type: 2,
+      object_id: objectId,
+      command: {
+        name,
+        category: input.category,
+        sub_type: input.subType,
+        context,
+      },
+    },
+  })) as ApiResult<Record<string, unknown> | null>
+
+  const data = recordValue(result.data)
+  const rawDefinition = recordValue(fieldValue(data, "definition", "Definition"))
+  if (!rawDefinition) throw new Error("PMC_CREATE_RESPONSE_INVALID")
+
+  const created = normalizeDefinition(rawDefinition)
+  const rawCommand = extractContent(rawDefinition, "command")
+  const returnedCategory = numberValue(fieldValue(rawCommand, "category", "Category"))
+  const returnedContext = fieldValue(rawCommand, "context", "Context")
+  if (
+    created.objectType !== "command"
+    || created.objectTypeValue !== 2
+    || created.objectId.toLowerCase() !== objectId.toLowerCase()
+    || created.internalName !== name
+    || created.subType !== input.subType
+    || created.version !== "1.0.0"
+    || created.source !== "manual"
+    || returnedCategory !== input.category
+    || returnedContext !== context
+  ) {
+    throw new Error("PMC_CREATE_RESPONSE_MISMATCH")
+  }
+  return created
 }
 
 const SEMANTIC_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
