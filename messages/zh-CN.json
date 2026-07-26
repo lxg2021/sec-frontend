@@ -4106,6 +4106,7 @@
             "system": "系统"
           },
           "selectPatchAria": "选择补丁 {title}",
+          "view": "查看",
           "viewDetails": "查看详情",
           "noMatch": "未找到匹配的补丁，请调整搜索或筛选条件",
           "empty": "暂无补丁数据",
@@ -4176,7 +4177,7 @@
         "emptyFilteredDescription": "当前筛选条件下没有匹配的主机漏洞数据。",
         "coverageLabel": "覆盖率",
         "updatedAt": "更新：{time}",
-        "openDetail": "查看详情",
+        "openDetail": "查看",
         "totalLabel": "共 {total} 台主机，当前显示 {start}-{end}",
         "pageLabel": "第 {page} / {totalPages} 页",
         "pageSizeLabel": "每页",

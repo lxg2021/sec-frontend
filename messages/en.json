@@ -4106,6 +4106,7 @@
             "system": "System"
           },
           "selectPatchAria": "Select patch {title}",
+          "view": "View",
           "viewDetails": "View details",
           "noMatch": "No matching patches found. Try adjusting the search or filters.",
           "empty": "No patch data",
@@ -4176,7 +4177,7 @@
         "emptyFilteredDescription": "No host vulnerability data matches the current filters.",
         "coverageLabel": "Coverage",
         "updatedAt": "Updated: {time}",
-        "openDetail": "View details",
+        "openDetail": "View",
         "totalLabel": "{total} hosts total, showing {start}-{end}",
         "pageLabel": "Page {page} / {totalPages}",
         "pageSizeLabel": "Per page",
