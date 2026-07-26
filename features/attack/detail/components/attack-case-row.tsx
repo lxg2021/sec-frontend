@@ -188,7 +188,7 @@ export function AttackCaseRow({
           aria-hidden="true"
         />
         <div className="min-w-0 space-y-2">
-          <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(294px,1fr)_352px_max-content_max-content] xl:items-center 2xl:grid-cols-[minmax(0,1fr)_416px_max-content_max-content]">
+          <div className="grid min-w-0 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(280px,352px)] lg:items-center xl:grid-cols-[minmax(294px,1fr)_352px_max-content_max-content] 2xl:grid-cols-[minmax(0,1fr)_416px_max-content_max-content]">
             <div className="min-w-0 self-start">
               <div className="flex min-w-0 items-center gap-2 overflow-hidden">
                 <span

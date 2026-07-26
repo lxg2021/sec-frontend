@@ -52,6 +52,9 @@ describe("attack detail visual hierarchy", () => {
       "group/case-row relative min-w-0 overflow-hidden rounded-2xl",
     )
     expect(rowSource).toContain(
+      "lg:grid-cols-[minmax(0,1fr)_minmax(280px,352px)]",
+    )
+    expect(rowSource).toContain(
       "xl:grid-cols-[minmax(294px,1fr)_352px_max-content_max-content]",
     )
     expect(rowSource).toContain(
