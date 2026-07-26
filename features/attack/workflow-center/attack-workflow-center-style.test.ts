@@ -33,6 +33,9 @@ describe("attack workflow center visual hierarchy", () => {
       "min-h-[calc(100dvh-3rem)] min-w-0 w-full overflow-x-hidden bg-slate-50",
     )
     expect(centerSource).toContain(
+      "py-3 pl-[4.75rem] pr-3 sm:p-4 xl:p-5",
+    )
+    expect(centerSource).toContain(
       "grid min-h-0 min-w-0 w-full flex-1 grid-cols-[minmax(0,1fr)]",
     )
 

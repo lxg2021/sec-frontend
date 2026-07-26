@@ -951,7 +951,7 @@ export function AttackWorkflowControlCenter({
   }
 
   return (
-    <main className="flex min-h-[calc(100dvh-3rem)] min-w-0 w-full overflow-x-hidden bg-slate-50 p-3 sm:p-4 xl:p-5">
+    <main className="flex min-h-[calc(100dvh-3rem)] min-w-0 w-full overflow-x-hidden bg-slate-50 py-3 pl-[4.75rem] pr-3 sm:p-4 xl:p-5">
       <div className="flex w-full min-w-0 flex-1 flex-col gap-4">
         <AttackDetailHeader
           overview={attackOverview ?? EMPTY_ATTACK_OVERVIEW}
