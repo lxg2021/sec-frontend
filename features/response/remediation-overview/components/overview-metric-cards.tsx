@@ -3,7 +3,7 @@ import { Activity, AlertTriangle, ClipboardList, Monitor } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import type { RemediationOverviewTotals } from "@/features/attack/remediation-order"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Card, CardContent } from "@/shared/ui/card"
 
 import { formatCount } from "../presentation"
 
@@ -25,19 +25,20 @@ export function OverviewMetricCards({ totals }: { totals: RemediationOverviewTot
   ]
 
   return (
-    <div className="grid h-[116px] grid-cols-2 gap-4 xl:grid-cols-4">
+    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map(({ key, icon: Icon, value, color }) => (
-        <Card key={key} className="group relative h-full overflow-hidden border-0 shadow-md transition-shadow hover:shadow-lg">
-          <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-[0.055]`} />
-          <CardHeader className="relative flex flex-row items-center justify-between space-y-0 px-5 pb-1 pt-4">
-            <CardTitle className="text-sm font-medium text-slate-600">{t(`${key}.title`)}</CardTitle>
-            <span className={`flex size-8 items-center justify-center rounded-lg bg-gradient-to-br ${color}`}>
-              <Icon className="size-4 text-white" aria-hidden />
-            </span>
-          </CardHeader>
-          <CardContent className="relative px-5 pb-4 pt-0">
-            <div className="text-2xl font-bold tabular-nums text-slate-900">{formatCount(value, locale)}</div>
-            <p className="mt-0.5 truncate text-xs text-slate-400">{t(`${key}.description`)}</p>
+        <Card key={key} className="min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+          <CardContent className="flex min-h-[104px] items-center justify-between gap-3 p-5">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className={`flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${color}`}>
+                <Icon className="size-5 text-white" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-base font-medium leading-6 text-slate-950">{t(`${key}.title`)}</p>
+                <p className="mt-1 truncate text-xs leading-5 text-slate-500">{t(`${key}.description`)}</p>
+              </div>
+            </div>
+            <div className="shrink-0 text-2xl font-semibold tabular-nums text-slate-950">{formatCount(value, locale)}</div>
           </CardContent>
         </Card>
       ))}

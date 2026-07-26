@@ -76,14 +76,14 @@ export function RemediationTrendChart({ data, error, loading, onRetry }: TrendCh
   const hasData = chartData.some((point) => point.total > 0)
 
   return (
-    <Card className="flex min-h-0 flex-col border-0 shadow-md">
-      <CardHeader className="flex shrink-0 flex-row items-center gap-3 px-4 py-3">
-        <span className="flex size-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600">
-          <TrendingUp className="size-4.5 text-white" aria-hidden />
+    <Card className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardHeader className="flex shrink-0 flex-row items-center gap-3 px-5 py-4">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600">
+          <TrendingUp className="size-5 text-white" aria-hidden />
         </span>
-        <div>
-          <CardTitle className="text-base font-semibold text-slate-900">{t("title")}</CardTitle>
-          <p className="mt-0.5 text-xs text-slate-400">{t("description")}</p>
+        <div className="min-w-0">
+          <CardTitle className="text-base font-medium leading-6 text-slate-950">{t("title")}</CardTitle>
+          <p className="mt-0.5 truncate text-xs leading-5 text-slate-500">{t("description")}</p>
         </div>
       </CardHeader>
       <CardContent className="min-h-0 flex-1 px-3 pb-3 pt-0">
@@ -92,7 +92,7 @@ export function RemediationTrendChart({ data, error, loading, onRetry }: TrendCh
             <Loader2 className="size-4 animate-spin" aria-hidden />{t("loading")}
           </div>
         ) : error ? (
-          <button type="button" onClick={onRetry} className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-xl text-sm text-red-600 hover:bg-red-50">
+          <button type="button" onClick={onRetry} className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl text-sm text-red-600 transition-colors hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-red-500">
             <AlertCircle className="size-5" aria-hidden />
             <span>{t("loadFailed")}</span>
             <span className="text-xs text-slate-400">{t("retry")}</span>

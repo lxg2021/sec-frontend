@@ -20,7 +20,7 @@ export function RemediationOverviewViewTabs({
     <div
       role="tablist"
       aria-label={t("viewMode")}
-      className="inline-flex shrink-0 rounded-xl bg-slate-100 p-1"
+      className="inline-flex shrink-0 rounded-full bg-slate-100 p-1"
     >
       {([
         { value: "order" as const, label: t("byOrder"), icon: ListChecks },
@@ -35,7 +35,7 @@ export function RemediationOverviewViewTabs({
             aria-selected={selected}
             onClick={() => onChange(value)}
             className={cn(
-              "inline-flex h-8 min-w-[96px] cursor-pointer items-center justify-center gap-2 rounded-lg px-3 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
+              "inline-flex h-8 min-w-[96px] cursor-pointer items-center justify-center gap-2 rounded-full px-3 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1",
               selected
                 ? "bg-white text-slate-900 shadow-sm"
                 : "text-slate-500 hover:bg-white/60 hover:text-slate-700",

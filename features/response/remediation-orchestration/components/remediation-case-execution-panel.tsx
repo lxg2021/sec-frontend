@@ -1175,9 +1175,11 @@ function ExecutionItemRow({
 
 export function RemediationExecutionItemsTable({
   emptyText,
+  headerClassName,
   items,
 }: {
   emptyText?: string;
+  headerClassName?: string;
   items: RemediationOrderItem[];
 }) {
   const locale = useLocale();
@@ -1186,7 +1188,7 @@ export function RemediationExecutionItemsTable({
   return (
     <div className="overflow-x-auto">
       <div className="min-w-[1810px]">
-        <div className="grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500">
+        <div className={cn("grid grid-cols-[minmax(180px,1fr)_minmax(150px,.8fr)_160px_250px_160px_160px_110px_160px_minmax(160px,.8fr)_minmax(180px,.9fr)] items-center gap-4 border-b border-slate-100 px-5 py-3 text-center text-[11px] font-bold text-slate-500", headerClassName)}>
           <span>{t("execution.target")}</span>
           <span>{t("execution.action")}</span>
           <span>{t("execution.orderId")}</span>

@@ -158,8 +158,8 @@ export function RemediationOverviewPage() {
   }, [loadHosts, loadOrders, loadSummary, viewMode])
 
   return (
-    <div className="h-full min-h-0 overflow-hidden bg-slate-50">
-      <main className="grid h-full min-h-0 grid-rows-[auto_auto_minmax(190px,0.8fr)_minmax(250px,1.2fr)] gap-4 p-6">
+    <div className="min-h-dvh min-w-0 overflow-x-hidden bg-slate-50 2xl:h-full 2xl:min-h-0 2xl:overflow-hidden">
+      <main className="grid min-h-[calc(100dvh-3rem)] min-w-0 grid-rows-[auto_auto_auto_auto] gap-4 p-6 2xl:h-full 2xl:min-h-0 2xl:grid-rows-[auto_auto_minmax(180px,0.8fr)_minmax(230px,1.2fr)]">
         <section className="flex min-h-[92px] items-center rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
           <div className="flex min-w-0 flex-1 items-center gap-4">
             <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-indigo-100 text-blue-600"><ShieldCheck className="size-5" aria-hidden /></span>
@@ -183,7 +183,7 @@ export function RemediationOverviewPage() {
 
         <OverviewMetricCards totals={summary.totals} />
 
-        <section className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="grid min-h-[280px] min-w-0 grid-cols-1 gap-4 lg:grid-cols-2 2xl:min-h-0">
           <RemediationTrendChart data={summary.trend} error={summaryError} loading={summaryLoading} onRetry={() => void loadSummary()} />
           <RemediationActionDistribution data={summary.actions} error={summaryError} loading={summaryLoading} onRetry={() => void loadSummary()} />
         </section>

@@ -176,15 +176,15 @@ export function RemediationHostOverviewList({
   }
 
   return (
-    <Card className="flex min-h-0 flex-col overflow-hidden border-0 shadow-md">
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+    <Card className="flex min-h-[420px] min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] 2xl:min-h-0">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
         <div className="flex flex-wrap items-center gap-4">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-slate-900 text-white">
-            <Monitor className="size-4.5" aria-hidden />
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white">
+            <Monitor className="size-5" aria-hidden />
           </span>
           <div>
-            <h2 className="text-base font-semibold text-slate-900">{hostT("title")}</h2>
-            <p className="mt-0.5 text-xs text-slate-400">{hostT("description", { count: formatCount(data.total, locale) })}</p>
+            <h2 className="text-base font-medium leading-6 text-slate-950">{hostT("title")}</h2>
+            <p className="mt-0.5 text-xs leading-5 text-slate-500">{hostT("description", { count: formatCount(data.total, locale) })}</p>
           </div>
           <RemediationOverviewViewTabs mode={viewMode} onChange={onViewModeChange} />
         </div>
@@ -203,11 +203,11 @@ export function RemediationHostOverviewList({
               onChange={(event) => setKeywordInput(event.target.value)}
               placeholder={hostT("searchPlaceholder")}
               aria-label={hostT("searchPlaceholder")}
-              className="h-9 w-[210px] rounded-xl border-slate-200 bg-white pl-9 text-xs"
+              className="h-9 w-[210px] rounded-full border-slate-200 bg-white pl-9 text-xs"
             />
           </form>
           <Select value={String(selectedSource)} onValueChange={(value) => onSourceChange(value === "all" ? "all" : Number(value) as RemediationSourceType)}>
-            <SelectTrigger className="h-9 w-[146px] rounded-xl border-slate-200 bg-white text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[146px] rounded-full border-slate-200 bg-white text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{hostT("allSources")}</SelectItem>
               {[RemediationSourceType.CaseGraph, RemediationSourceType.DrillGraph, RemediationSourceType.LocateGraph].map((type) => (
@@ -216,7 +216,7 @@ export function RemediationHostOverviewList({
             </SelectContent>
           </Select>
           <Select value={selectedStatus} onValueChange={(value) => onStatusChange(value as ItemStatusFilter)}>
-            <SelectTrigger className="h-9 w-[146px] rounded-xl border-slate-200 bg-white text-xs"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[146px] rounded-full border-slate-200 bg-white text-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{hostT("allStatuses")}</SelectItem>
               {ITEM_STATUS_FILTERS.map((status) => (
@@ -246,7 +246,7 @@ export function RemediationHostOverviewList({
               <col className="w-[110px]" />
               <col className="w-[190px]" />
             </colgroup>
-            <thead className="sticky top-0 z-10 bg-slate-50/95 text-xs text-slate-500 backdrop-blur">
+            <thead className="sticky top-0 z-10 bg-slate-100 text-xs text-slate-500">
               <tr className="border-b border-slate-200">
                 <th className="h-10 px-4 text-left font-medium">{hostT("columns.hostId")}</th>
                 <th className="h-10 px-3 text-left font-medium">{hostT("columns.hostName")}</th>
@@ -278,7 +278,7 @@ export function RemediationHostOverviewList({
                       }}
                       className={cn(
                         "h-12 cursor-pointer border-b border-slate-100 text-slate-700 transition-colors hover:bg-slate-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500",
-                        expanded && "bg-slate-50",
+                        expanded && "bg-sky-50/70 shadow-[inset_4px_0_0_#0284c7]",
                       )}
                     >
                       <td className="px-4 font-mono text-xs text-slate-700" title={host.agent_id}>
@@ -369,7 +369,7 @@ function HostActionDetailTable({
           <col className="w-[170px]" />
           <col className="w-[110px]" />
         </colgroup>
-        <thead className="bg-slate-50 text-slate-500">
+        <thead className="bg-slate-100 text-slate-500">
           <tr className="border-b border-slate-100">
             <th className="h-9 px-4 text-center font-medium">{t("detailColumns.orderName")}</th>
             <th className="h-9 px-3 text-center font-medium">{t("detailColumns.orderId")}</th>
