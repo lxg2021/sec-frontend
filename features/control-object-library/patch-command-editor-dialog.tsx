@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useId, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   AlertTriangle,
   CalendarClock,
@@ -73,33 +74,33 @@ import {
 import { Switch } from "@/shared/ui/switch"
 
 const OPERATING_SYSTEM_LABELS: Record<PatchOperatingSystem, string> = {
-  "": "未指定",
+  "": "patchCommand.unspecified",
   windows: "Windows",
   linux: "Linux",
   macOs: "macOS",
 }
 
-function editorErrorMessage(error: unknown) {
+function editorErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   const messages: Record<string, string> = {
-    PMC_OBJECT_DETAIL_INVALID: "后台没有返回完整的命令定义，请刷新列表后重试。",
-    PMC_OBJECT_DETAIL_MISMATCH: "后台返回的命令身份或版本与当前列表不一致，请刷新后重试。",
-    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "命令缺少名称、类型、版本或 context，无法安全编辑。",
-    PMC_PATCH_COMMAND_CONTEXT_INVALID: "命令内容不是完整、有效的补丁命令结构，已停止编辑以避免破坏业务数据。",
-    PMC_CREATE_OBJECT_ID_INVALID: "无法生成有效的新命令 ID，请重试。",
-    PMC_CREATE_NAME_INVALID: "命令名称无效。",
-    PMC_CREATE_CATEGORY_INVALID: "命令分类无效。",
-    PMC_CREATE_SUBTYPE_INVALID: "命令类型无效。",
-    PMC_CREATE_CONTEXT_INVALID: "命令内容不能为空。",
-    PMC_CREATE_RESPONSE_INVALID: "后台已响应，但没有返回新命令定义。",
-    PMC_CREATE_RESPONSE_MISMATCH: "后台返回的新命令与本次保存内容不一致，请刷新后核对。",
-    PMC_RANDOM_UUID_UNAVAILABLE: "当前浏览器无法安全生成新命令 ID，请更换浏览器后重试。",
+    PMC_OBJECT_DETAIL_INVALID: "commandEditors.errors.detailInvalid",
+    PMC_OBJECT_DETAIL_MISMATCH: "commandEditors.errors.detailMismatch",
+    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "commandEditors.errors.contentIncomplete",
+    PMC_PATCH_COMMAND_CONTEXT_INVALID: "patchCommand.errors.contextInvalid",
+    PMC_CREATE_OBJECT_ID_INVALID: "commandEditors.errors.objectIdInvalid",
+    PMC_CREATE_NAME_INVALID: "commandEditors.errors.nameInvalid",
+    PMC_CREATE_CATEGORY_INVALID: "commandEditors.errors.categoryInvalid",
+    PMC_CREATE_SUBTYPE_INVALID: "commandEditors.errors.subTypeInvalid",
+    PMC_CREATE_CONTEXT_INVALID: "commandEditors.errors.contextRequired",
+    PMC_CREATE_RESPONSE_INVALID: "commandEditors.errors.responseInvalid",
+    PMC_CREATE_RESPONSE_MISMATCH: "commandEditors.errors.responseMismatch",
+    PMC_RANDOM_UUID_UNAVAILABLE: "commandEditors.errors.uuidUnavailable",
   }
-  if (messages[message]) return messages[message]
+  if (messages[message]) return translate(messages[message])
   if (message.includes("object version already exists") || message.includes("already exists")) {
-    return "新命令 ID 已存在，请重新保存。"
+    return translate("commandEditors.errors.idExists")
   }
-  return message || "新命令创建失败，请稍后重试。"
+  return message || translate("commandEditors.errors.createFailed")
 }
 
 function createCommandObjectId() {
@@ -118,6 +119,7 @@ export function PatchCommandEditorDialog({
   onOpenChange: (open: boolean) => void
   onCreated: () => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const { toast } = useToast()
   const rawFieldPrefix = useId()
   const fieldPrefix = `patch-command-editor-${rawFieldPrefix.replace(/:/g, "")}`
@@ -165,7 +167,7 @@ export function PatchCommandEditorDialog({
         setInitialSignature(patchCommandParameterSignature(nextParameters))
       })
       .catch((error: unknown) => {
-        if (active) setLoadError(editorErrorMessage(error))
+        if (active) setLoadError(editorErrorMessage(error, (key) => t(key)))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -174,14 +176,13 @@ export function PatchCommandEditorDialog({
     return () => {
       active = false
     }
-  }, [definition, reloadToken])
+  }, [definition, reloadToken, t])
 
-  const validationMessage = useMemo(
-    () => content && parameters
-      ? validatePatchCommandParameters(content.kind, parameters)
-      : "",
-    [content, parameters],
-  )
+  const validationMessage = useMemo(() => {
+    if (!content || !parameters) return ""
+    const code = validatePatchCommandParameters(content.kind, parameters)
+    return code ? t(`patchCommand.validation.${code}`) : ""
+  }, [content, parameters, t])
   const dirty = Boolean(parameters && initialSignature
     && patchCommandParameterSignature(parameters) !== initialSignature)
   const canSubmit = Boolean(
@@ -233,14 +234,14 @@ export function PatchCommandEditorDialog({
         context,
       })
       toast({
-        title: "新命令已创建",
-        description: `已另存为 ${created.objectId}；当前命令保持不变，尚未下发到主机。`,
+        title: t("commandEditors.toast.created"),
+        description: t("commandEditors.toast.createdDescription", { id: created.objectId }),
         variant: "success",
       })
       onCreated()
       onOpenChange(false)
     } catch (error) {
-      setSubmitError(editorErrorMessage(error))
+      setSubmitError(editorErrorMessage(error, (key) => t(key)))
     } finally {
       setSubmitting(false)
     }
@@ -248,7 +249,7 @@ export function PatchCommandEditorDialog({
 
   const selectedKind = content?.kind ?? (definition ? patchCommandKind(definition) : null)
   const isInstallTask = selectedKind === "install_task"
-  const title = isInstallTask ? "编辑补丁安装任务命令" : "编辑补丁一键修复命令"
+  const title = isInstallTask ? t("patchCommand.installTitle") : t("patchCommand.repairTitle")
 
   return (
     <>
@@ -260,6 +261,7 @@ export function PatchCommandEditorDialog({
       >
         <DialogContent
           overlayClassName="bg-slate-950/45 backdrop-blur-[2px]"
+          closeLabel={t("common.close")}
           className={cn(
             "flex max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-[860px] flex-col gap-0 overflow-hidden rounded-2xl border-slate-200 bg-white p-0 shadow-2xl",
             "[&>button]:right-4 [&>button]:top-3.5 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-slate-100 [&>button]:hover:text-slate-800 [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-cyan-500",
@@ -276,7 +278,7 @@ export function PatchCommandEditorDialog({
                   {title}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                  修改命令参数，并基于当前内容另存为新的不可变命令
+                  {t("commandEditors.description")}
                 </DialogDescription>
               </div>
             </div>
@@ -286,7 +288,7 @@ export function PatchCommandEditorDialog({
             {loading ? (
               <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 text-center text-slate-500" aria-busy="true">
                 <LoaderCircle className="h-6 w-6 animate-spin text-cyan-600" aria-hidden="true" />
-                <p className="text-sm">正在读取当前命令内容…</p>
+                <p className="text-sm">{t("commandEditors.loading")}</p>
               </div>
             ) : loadError ? (
               <div className="flex min-h-[360px] items-center justify-center">
@@ -294,7 +296,7 @@ export function PatchCommandEditorDialog({
                   <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600">
                     <CircleAlert className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <p className="mt-3 text-sm font-medium text-slate-900">命令内容加载失败</p>
+                  <p className="mt-3 text-sm font-medium text-slate-900">{t("commandEditors.loadFailedTitle")}</p>
                   <p className="mt-1.5 text-xs leading-5 text-slate-600">{loadError}</p>
                   <Button
                     type="button"
@@ -304,7 +306,7 @@ export function PatchCommandEditorDialog({
                     className="mt-4 h-8 rounded-full border-slate-200 px-3"
                   >
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                    重试
+                    {t("common.retry")}
                   </Button>
                 </div>
               </div>
@@ -315,24 +317,31 @@ export function PatchCommandEditorDialog({
                     id={`${fieldPrefix}-basic-heading`}
                     icon={FileText}
                     iconClassName="text-violet-600"
-                    title="基本信息"
+                    title={t("commandEditors.basicInfo")}
                   />
                   <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 sm:grid-cols-4">
-                    <ReadOnlyField label="当前命令 ID" value={definition.objectId} mono className="sm:col-span-2" />
-                    <ReadOnlyField label="当前版本" value={definition.version} mono />
-                    <ReadOnlyField label="类型" value="补丁命令" />
+                    <ReadOnlyField label={t("commandEditors.currentCommandId")} value={definition.objectId} mono className="sm:col-span-2" />
+                    <ReadOnlyField label={t("commandEditors.currentVersion")} value={definition.version} mono />
+                    <ReadOnlyField label={t("commandEditors.type")} value={t("patchCommand.typeValue")} />
                     <ReadOnlyField
-                      label="命令内容"
-                      value={isInstallTask ? "补丁安装任务" : "补丁一键修复"}
-                    />
-                    <ReadOnlyField label="操作系统" value={OPERATING_SYSTEM_LABELS[content.osPlatform]} />
-                    <ReadOnlyField
-                      label="目标范围"
-                      value={isInstallTask ? `${content.targets.length} 台主机` : "所有待修复主机"}
+                      label={t("patchCommand.commandContent")}
+                      value={isInstallTask ? t("patchCommand.installTask") : t("patchCommand.oneClickRepair")}
                     />
                     <ReadOnlyField
-                      label={isInstallTask ? "补丁数量" : "补丁范围"}
-                      value={isInstallTask ? `${content.uniquePatchCount} 个补丁` : "所有缺失补丁"}
+                      label={t("patchCommand.operatingSystem")}
+                      value={content.osPlatform ? OPERATING_SYSTEM_LABELS[content.osPlatform] : t(OPERATING_SYSTEM_LABELS[content.osPlatform])}
+                    />
+                    <ReadOnlyField
+                      label={t("patchCommand.targetScope")}
+                      value={isInstallTask
+                        ? t("patchCommand.hostCount", { count: content.targets.length })
+                        : t("patchCommand.allRepairHosts")}
+                    />
+                    <ReadOnlyField
+                      label={isInstallTask ? t("patchCommand.patchCountLabel") : t("patchCommand.patchScope")}
+                      value={isInstallTask
+                        ? t("patchCommand.patchCount", { count: content.uniquePatchCount })
+                        : t("patchCommand.allMissingPatches")}
                     />
                   </div>
                 </section>
@@ -343,8 +352,8 @@ export function PatchCommandEditorDialog({
                       id={`${fieldPrefix}-targets-heading`}
                       icon={ListChecks}
                       iconClassName="text-blue-600"
-                      title="目标补丁与主机"
-                      aside="目标映射保持不变"
+                      title={t("patchCommand.targetsTitle")}
+                      aside={t("patchCommand.targetsLocked")}
                     />
                     <div className="max-h-44 overflow-y-auto rounded-xl border border-slate-200 bg-white">
                       {content.targets.map((target) => (
@@ -359,9 +368,9 @@ export function PatchCommandEditorDialog({
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <span className="block text-[11px] text-slate-500">补丁 GUID（{target.patchGuids.length}）</span>
-                            <span className="block truncate font-mono text-xs text-slate-700" title={target.patchGuids.join("、")}>
-                              {target.patchGuids.join("、")}
+                            <span className="block text-[11px] text-slate-500">{t("patchCommand.patchGuidCount", { count: target.patchGuids.length })}</span>
+                            <span className="block truncate font-mono text-xs text-slate-700" title={target.patchGuids.join(t("common.listSeparator"))}>
+                              {target.patchGuids.join(t("common.listSeparator"))}
                             </span>
                           </div>
                         </div>
@@ -375,13 +384,13 @@ export function PatchCommandEditorDialog({
                     id={`${fieldPrefix}-parameters-heading`}
                     icon={Wrench}
                     iconClassName="text-cyan-600"
-                    title="命令参数"
+                    title={t("patchCommand.parameters")}
                   />
                   <div className="grid gap-3 sm:grid-cols-2">
                     {isInstallTask ? (
                       <div className="rounded-xl border border-slate-200 bg-white p-3 sm:col-span-2">
                         <Label htmlFor={`${fieldPrefix}-task-name`} className="text-xs font-medium text-slate-800">
-                          任务名称
+                          {t("patchCommand.taskName")}
                         </Label>
                         <Input
                           id={`${fieldPrefix}-task-name`}
@@ -395,7 +404,7 @@ export function PatchCommandEditorDialog({
                     ) : (
                       <div className="rounded-xl border border-slate-200 bg-white p-3">
                         <Label htmlFor={`${fieldPrefix}-os`} className="text-xs font-medium text-slate-800">
-                          操作系统
+                          {t("patchCommand.operatingSystem")}
                         </Label>
                         <Select
                           value={parameters.osPlatform || "unspecified"}
@@ -409,7 +418,7 @@ export function PatchCommandEditorDialog({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unspecified">未指定</SelectItem>
+                            <SelectItem value="unspecified">{t("patchCommand.unspecified")}</SelectItem>
                             <SelectItem value="windows">Windows</SelectItem>
                             <SelectItem value="linux">Linux</SelectItem>
                             <SelectItem value="macOs">macOS</SelectItem>
@@ -421,7 +430,7 @@ export function PatchCommandEditorDialog({
                     <div className="rounded-xl border border-slate-200 bg-white p-3">
                       <Label htmlFor={`${fieldPrefix}-execution`} className="inline-flex items-center gap-2 text-xs font-medium text-slate-800">
                         <PlayCircle className="h-4 w-4 text-emerald-600" aria-hidden="true" />
-                        执行方式
+                        {t("patchCommand.executionMode")}
                       </Label>
                       <Select
                         value={parameters.executionMode}
@@ -435,8 +444,8 @@ export function PatchCommandEditorDialog({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="immediate">立即执行</SelectItem>
-                          <SelectItem value="scheduled">定时执行</SelectItem>
+                          <SelectItem value="immediate">{t("patchCommand.immediate")}</SelectItem>
+                          <SelectItem value="scheduled">{t("patchCommand.scheduled")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -445,7 +454,7 @@ export function PatchCommandEditorDialog({
                       <div className="rounded-xl border border-slate-200 bg-white p-3">
                         <Label htmlFor={`${fieldPrefix}-scheduled-time`} className="inline-flex items-center gap-2 text-xs font-medium text-slate-800">
                           <CalendarClock className="h-4 w-4 text-violet-600" aria-hidden="true" />
-                          计划执行时间
+                          {t("patchCommand.scheduledTime")}
                         </Label>
                         <Input
                           id={`${fieldPrefix}-scheduled-time`}
@@ -465,7 +474,7 @@ export function PatchCommandEditorDialog({
                     <div className="rounded-xl border border-slate-200 bg-white p-3">
                       <Label htmlFor={`${fieldPrefix}-delay`} className="inline-flex items-center gap-2 text-xs font-medium text-slate-800">
                         <Clock3 className="h-4 w-4 text-amber-600" aria-hidden="true" />
-                        随机延迟
+                        {t("patchCommand.randomDelay")}
                       </Label>
                       <div className="mt-2 flex items-center gap-2">
                         <Input
@@ -482,7 +491,7 @@ export function PatchCommandEditorDialog({
                           )}
                           className="h-9 rounded-lg border-slate-200 bg-white text-sm"
                         />
-                        <span className="shrink-0 text-xs text-slate-500">分钟</span>
+                        <span className="shrink-0 text-xs text-slate-500">{t("patchCommand.minutes")}</span>
                       </div>
                     </div>
 
@@ -490,7 +499,7 @@ export function PatchCommandEditorDialog({
                       id={`${fieldPrefix}-reboot`}
                       icon={RotateCcw}
                       iconClassName="text-rose-600"
-                      label="安装后重启"
+                      label={t("patchCommand.rebootAfterInstall")}
                       checked={parameters.rebootAfterInstall}
                       disabled={submitting}
                       onCheckedChange={(checked) => updateParameter("rebootAfterInstall", checked)}
@@ -499,7 +508,7 @@ export function PatchCommandEditorDialog({
                       id={`${fieldPrefix}-backup`}
                       icon={DatabaseBackup}
                       iconClassName="text-cyan-600"
-                      label="安装前备份"
+                      label={t("patchCommand.backupBeforeInstall")}
                       checked={parameters.backupBeforeRepair}
                       disabled={submitting}
                       onCheckedChange={(checked) => updateParameter("backupBeforeRepair", checked)}
@@ -508,7 +517,7 @@ export function PatchCommandEditorDialog({
                       id={`${fieldPrefix}-rescan`}
                       icon={RefreshCw}
                       iconClassName="text-blue-600"
-                      label="修复后重新扫描"
+                      label={t("patchCommand.rescanAfterRepair")}
                       checked={parameters.rescanAfterRepair}
                       disabled={submitting}
                       onCheckedChange={(checked) => updateParameter("rescanAfterRepair", checked)}
@@ -520,8 +529,8 @@ export function PatchCommandEditorDialog({
                   <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800" role="alert">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
                     <div>
-                      {parameters.rebootAfterInstall && <p>已允许安装后重启，请确认业务窗口允许主机重启。</p>}
-                      {!parameters.backupBeforeRepair && <p>安装前备份已关闭，发生异常时回滚能力会减弱。</p>}
+                      {parameters.rebootAfterInstall && <p>{t("patchCommand.warnings.reboot")}</p>}
+                      {!parameters.backupBeforeRepair && <p>{t("patchCommand.warnings.backupDisabled")}</p>}
                     </div>
                   </div>
                 )}
@@ -546,10 +555,10 @@ export function PatchCommandEditorDialog({
           <DialogFooter className="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <p className="min-w-0 text-[11px] leading-5 text-slate-500" aria-live="polite">
               {submitting
-                ? "正在创建新的 1.0.0 命令…"
+                ? t("commandEditors.creating")
                 : dirty
-                  ? "保存后创建新命令；当前命令保持不变，且不会自动下发。"
-                  : "修改任一参数后即可另存为新命令。"}
+                  ? t("commandEditors.changedHint")
+                  : t("patchCommand.unchangedHint")}
             </p>
             <div className="flex shrink-0 items-center justify-end gap-2">
               <Button
@@ -560,7 +569,7 @@ export function PatchCommandEditorDialog({
                 disabled={submitting}
                 className="h-8 rounded-full px-4"
               >
-                取消
+                {t("common.cancel")}
               </Button>
               <Button
                 type="button"
@@ -572,7 +581,7 @@ export function PatchCommandEditorDialog({
                 {submitting
                   ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                   : <CopyPlus className="h-3.5 w-3.5" aria-hidden="true" />}
-                {submitting ? "创建中" : "另存为新命令"}
+                {submitting ? t("commandEditors.creatingShort") : t("commandEditors.saveAsNew")}
               </Button>
             </div>
           </DialogFooter>
@@ -582,18 +591,18 @@ export function PatchCommandEditorDialog({
       <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <AlertDialogContent className="max-w-md rounded-2xl border-slate-200 p-5">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base text-slate-950">放弃未保存的修改？</AlertDialogTitle>
+            <AlertDialogTitle className="text-base text-slate-950">{t("genericEditor.discard.title")}</AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-6 text-slate-600">
-              当前命令参数尚未另存为新命令，关闭后将无法恢复。
+              {t("patchCommand.discardDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="h-9 rounded-full px-4">继续编辑</AlertDialogCancel>
+            <AlertDialogCancel className="h-9 rounded-full px-4">{t("genericEditor.discard.continue")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onOpenChange(false)}
               className="h-9 rounded-full bg-rose-600 px-4 text-white hover:bg-rose-700"
             >
-              放弃修改
+              {t("genericEditor.discard.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

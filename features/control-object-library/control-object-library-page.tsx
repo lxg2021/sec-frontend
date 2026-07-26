@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   Activity,
   Boxes,
@@ -56,7 +57,8 @@ import {
 } from "@/features/control-object-library/control-object-operation-dialog"
 import {
   CONTROL_OBJECT_TABLE_COLUMNS,
-  controlObjectDeleteModeLabel,
+  controlObjectDeleteModeLabelKey,
+  controlObjectDisplayNameKey,
 } from "@/features/control-object-library/table-presentation"
 import { GeneralConfigDialog } from "@/features/general-config/general-config-dialog"
 import { ReportConfigDialog } from "@/features/report-config/report-config-dialog"
@@ -94,22 +96,22 @@ const MOBILE_CARD_HEIGHT = 260
 const MAX_ADAPTIVE_PAGE_SIZE = 50
 
 const TYPE_PRESENTATION: Record<ControlObjectType, {
-  label: string
+  labelKey: string
   icon: typeof Settings2
   iconClassName: string
 }> = {
   config: {
-    label: "配置",
+    labelKey: "objectTypes.config",
     icon: FileSliders,
     iconClassName: "text-indigo-600",
   },
   policy: {
-    label: "策略",
+    labelKey: "objectTypes.policy",
     icon: ShieldCheck,
     iconClassName: "text-blue-600",
   },
   command: {
-    label: "命令",
+    labelKey: "objectTypes.command",
     icon: SquareTerminal,
     iconClassName: "text-cyan-600",
   },
@@ -127,41 +129,41 @@ function editorKind(definition: ControlObjectDefinition) {
   return EDITOR_BY_OBJECT_ID.get(definition.objectId.toLowerCase())
 }
 
-function loadErrorMessage(error: unknown) {
+function loadErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   if (message === "PMC_OBJECT_DEFINITION_INVALID" || message === "PMC_OBJECT_LIST_INVALID") {
-    return "后台返回的控制对象数据不完整，请检查 PMC Catalog 接口。"
+    return translate("errors.catalogDataInvalid")
   }
   if (message === "PMC_OBJECT_LIST_TRUNCATED") {
-    return "控制对象数量超过当前安全分页上限，请缩小后台数据范围后重试。"
+    return translate("errors.catalogTruncated")
   }
-  return message || "控制对象加载失败，请稍后重试。"
+  return message || translate("errors.catalogLoadFailed")
 }
 
 function operationMenuPresentation(operation: ControlObjectOperation) {
   if (operation === "apply") {
     return {
-      label: "选择下发",
+      labelKey: "operations.selectDelivery",
       icon: Send,
       iconClassName: "text-cyan-600",
     }
   }
   if (operation === "execute") {
-    return { label: "选择执行", icon: SquareTerminal, iconClassName: "text-violet-600" }
+    return { labelKey: "operations.selectExecution", icon: SquareTerminal, iconClassName: "text-violet-600" }
   }
   if (operation === "stop") {
-    return { label: "停止", icon: CircleStop, iconClassName: "text-amber-600" }
+    return { labelKey: "operations.stop", icon: CircleStop, iconClassName: "text-amber-600" }
   }
-  return { label: "移除", icon: Unplug, iconClassName: "text-rose-600" }
+  return { labelKey: "operations.remove", icon: Unplug, iconClassName: "text-rose-600" }
 }
 
-function sourceLabel(source: ControlObjectSource) {
+function sourceLabelKey(source: ControlObjectSource) {
   const labels: Record<ControlObjectSource, string> = {
-    builtin: "系统内置",
-    manual: "手动创建",
-    remediation: "处置编排",
-    mitigation: "直接处置",
-    unknown: "未标明",
+    builtin: "sources.builtin",
+    manual: "sources.manual",
+    remediation: "sources.remediation",
+    mitigation: "sources.mitigation",
+    unknown: "sources.unknown",
   }
   return labels[source]
 }
@@ -177,9 +179,17 @@ function sourceTextClassName(source: ControlObjectSource) {
   return classNames[source]
 }
 
-function stateLabel(state: string) {
-  if (state.toLowerCase() === "active") return "可用"
-  return state || "—"
+function stateLabel(state: string, translate: (key: string) => string) {
+  if (state.toLowerCase() === "active") return translate("states.active")
+  return state || translate("common.notAvailable")
+}
+
+function localizedDisplayName(
+  definition: ControlObjectDefinition,
+  translate: (key: string) => string,
+) {
+  const key = controlObjectDisplayNameKey(definition)
+  return key ? translate(key) : definition.displayName
 }
 
 function objectRowKey(definition: ControlObjectDefinition) {
@@ -273,6 +283,7 @@ function useAdaptivePageSize({
 }
 
 export function ControlObjectLibraryPage() {
+  const t = useTranslations("pages.controlCenter")
   const [objects, setObjects] = useState<ControlObjectDefinition[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
@@ -305,11 +316,11 @@ export function ControlObjectLibraryPage() {
       setObjects(definitions)
     } catch (error) {
       if (sequence !== requestSequence.current) return
-      setLoadError(loadErrorMessage(error))
+      setLoadError(loadErrorMessage(error, (key) => t(key)))
     } finally {
       if (sequence === requestSequence.current) setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void loadObjects()
@@ -348,6 +359,7 @@ export function ControlObjectLibraryPage() {
           ? definition.capabilities.canUpdate
           : definition.capabilities.allowedOperations.includes(capabilityFilter))
       const matchesKeyword = !normalizedKeyword || [
+        localizedDisplayName(definition, (key) => t(key)),
         definition.displayName,
         definition.internalName,
         definition.objectId,
@@ -356,7 +368,7 @@ export function ControlObjectLibraryPage() {
 
       return matchesType && matchesSource && matchesCapability && matchesKeyword
     })
-  }, [capabilityFilter, keyword, objects, sourceFilter, typeFilter])
+  }, [capabilityFilter, keyword, objects, sourceFilter, t, typeFilter])
 
   const { viewportRef: listViewportRef, pageSize } = useAdaptivePageSize({
     itemCount: filteredObjects.length,
@@ -430,9 +442,9 @@ export function ControlObjectLibraryPage() {
                   <SlidersHorizontal className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 space-y-1">
-                  <h1 className="truncate text-lg font-semibold leading-tight text-slate-950">管理中心</h1>
+                  <h1 className="truncate text-lg font-semibold leading-tight text-slate-950">{t("page.title")}</h1>
                   <p className="truncate text-xs text-slate-500 sm:text-sm">
-                    统一管理内置配置、策略和命令
+                    {t("page.description")}
                   </p>
                 </div>
               </div>
@@ -449,8 +461,8 @@ export function ControlObjectLibraryPage() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    aria-label="刷新控制对象"
-                    title="刷新控制对象"
+                    aria-label={t("page.refresh")}
+                    title={t("page.refresh")}
                     disabled={loading}
                     onClick={() => void loadObjects()}
                     className="h-10 w-10 rounded-full text-teal-600 hover:bg-teal-50 hover:text-teal-700"
@@ -463,50 +475,50 @@ export function ControlObjectLibraryPage() {
           </header>
 
           <main className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[24px] border border-slate-200/80 bg-white shadow-[0_12px_34px_rgba(15,23,42,0.06)] sm:rounded-[28px]">
-            <section aria-label="对象筛选" className="shrink-0 border-b border-slate-200 bg-white px-3 py-3 sm:px-4">
+            <section aria-label={t("filters.ariaLabel")} className="shrink-0 border-b border-slate-200 bg-white px-3 py-3 sm:px-4">
               <div className="flex flex-col gap-2.5 lg:flex-row lg:items-center">
                 <div className="relative min-w-0 flex-1 lg:max-w-xl">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                   <Input
                     value={keyword}
                     onChange={(event) => setKeyword(event.target.value)}
-                    placeholder="搜索对象名称、内部名称或 ID"
-                    aria-label="搜索控制对象"
+                    placeholder={t("filters.searchPlaceholder")}
+                    aria-label={t("filters.searchAriaLabel")}
                     className="h-10 rounded-full border-slate-200 bg-slate-50 pl-9 pr-4 focus-visible:bg-white"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                   <Select value={sourceFilter} onValueChange={(value) => setSourceFilter(value as SourceFilter)}>
-                    <SelectTrigger className="h-10 min-w-0 rounded-full border-slate-200 bg-white px-4 sm:w-[132px]" aria-label="按来源筛选">
-                      <SelectValue placeholder="全部来源" />
+                    <SelectTrigger className="h-10 min-w-0 rounded-full border-slate-200 bg-white px-4 sm:w-[148px]" aria-label={t("filters.sourceAriaLabel")}>
+                      <SelectValue placeholder={t("filters.allSources")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">全部来源</SelectItem>
-                      <SelectItem value="builtin">系统内置</SelectItem>
-                      <SelectItem value="manual">手动创建</SelectItem>
-                      <SelectItem value="unknown">未标明</SelectItem>
+                      <SelectItem value="all">{t("filters.allSources")}</SelectItem>
+                      <SelectItem value="builtin">{t("sources.builtin")}</SelectItem>
+                      <SelectItem value="manual">{t("sources.manual")}</SelectItem>
+                      <SelectItem value="unknown">{t("sources.unknown")}</SelectItem>
                     </SelectContent>
                   </Select>
 
                   <Select value={capabilityFilter} onValueChange={(value) => setCapabilityFilter(value as CapabilityFilter)}>
-                    <SelectTrigger className="h-10 min-w-0 rounded-full border-slate-200 bg-white px-4 sm:w-[142px]" aria-label="按能力筛选">
-                      <SelectValue placeholder="全部能力" />
+                    <SelectTrigger className="h-10 min-w-0 rounded-full border-slate-200 bg-white px-4 sm:w-[150px]" aria-label={t("filters.capabilityAriaLabel")}>
+                      <SelectValue placeholder={t("filters.allCapabilities")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">全部能力</SelectItem>
-                      <SelectItem value="update">可更新</SelectItem>
-                      <SelectItem value="apply">可应用</SelectItem>
-                      <SelectItem value="execute">可执行</SelectItem>
-                      <SelectItem value="stop">可停止</SelectItem>
-                      <SelectItem value="remove">可移除</SelectItem>
+                      <SelectItem value="all">{t("filters.allCapabilities")}</SelectItem>
+                      <SelectItem value="update">{t("capabilities.update")}</SelectItem>
+                      <SelectItem value="apply">{t("capabilities.apply")}</SelectItem>
+                      <SelectItem value="execute">{t("capabilities.execute")}</SelectItem>
+                      <SelectItem value="stop">{t("capabilities.stop")}</SelectItem>
+                      <SelectItem value="remove">{t("capabilities.remove")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="flex min-h-10 items-center justify-between gap-2 lg:justify-end">
                   <span className="whitespace-nowrap text-xs text-slate-500">
-                    {loading ? "正在同步…" : `${filteredObjects.length} 个对象`}
+                    {loading ? t("page.syncing") : t("page.objectCount", { count: filteredObjects.length })}
                   </span>
                   {hasSecondaryFilters && (
                     <Button
@@ -517,7 +529,7 @@ export function ControlObjectLibraryPage() {
                       className="h-9 rounded-full px-3 text-slate-600 hover:bg-slate-100"
                     >
                       <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                      重置
+                      {t("common.reset")}
                     </Button>
                   )}
                 </div>
@@ -528,7 +540,7 @@ export function ControlObjectLibraryPage() {
               <div className="mx-3 mt-3 flex shrink-0 items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 sm:mx-4" role="alert">
                 <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium">控制对象加载失败</p>
+                  <p className="font-medium">{t("errors.catalogLoadTitle")}</p>
                   <p className="mt-0.5 break-words text-xs leading-5 text-rose-700">{loadError}</p>
                 </div>
                 <Button
@@ -538,12 +550,12 @@ export function ControlObjectLibraryPage() {
                   onClick={() => void loadObjects()}
                   className="h-8 shrink-0 rounded-full border-rose-200 bg-white px-3 text-rose-700 hover:bg-rose-100"
                 >
-                  重试
+                  {t("common.retry")}
                 </Button>
               </div>
             )}
 
-            <section ref={listViewportRef} aria-label="控制对象列表" className="min-h-0 flex-1 overflow-hidden">
+            <section ref={listViewportRef} aria-label={t("list.ariaLabel")} className="min-h-0 flex-1 overflow-hidden">
               {loading && objects.length === 0 ? (
                 <ObjectListSkeleton />
               ) : filteredObjects.length === 0 ? (
@@ -566,7 +578,7 @@ export function ControlObjectLibraryPage() {
                                 column.key === "actions" && "sticky right-0 z-20 bg-slate-50 pl-6 pr-2 shadow-[-10px_0_16px_-16px_rgba(15,23,42,0.6)]",
                               )}
                             >
-                              {column.label}
+                              {t(column.labelKey)}
                             </th>
                           ))}
                         </tr>
@@ -716,16 +728,17 @@ function TypeTabs({
   disabled: boolean
   onChange: (value: TypeFilter) => void
 }) {
-  const tabs: Array<{ value: TypeFilter; label: string; icon?: typeof Boxes }> = [
-    { value: "all", label: "全部", icon: Boxes },
-    { value: "config", label: "配置" },
-    { value: "policy", label: "策略" },
-    { value: "command", label: "命令" },
+  const t = useTranslations("pages.controlCenter")
+  const tabs: Array<{ value: TypeFilter; labelKey: string; icon?: typeof Boxes }> = [
+    { value: "all", labelKey: "objectTypes.all", icon: Boxes },
+    { value: "config", labelKey: "objectTypes.config" },
+    { value: "policy", labelKey: "objectTypes.policy" },
+    { value: "command", labelKey: "objectTypes.command" },
   ]
 
   return (
     <div className="min-w-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      <div className="inline-flex min-w-max items-center rounded-full border border-slate-200 bg-slate-50 p-1" role="tablist" aria-label="控制对象类型">
+      <div className="inline-flex min-w-max items-center rounded-full border border-slate-200 bg-slate-50 p-1" role="tablist" aria-label={t("tabs.ariaLabel")}>
         {tabs.map((tab) => {
           const Icon = tab.icon
           const active = value === tab.value
@@ -745,7 +758,7 @@ function TypeTabs({
               )}
             >
               {Icon && <Icon className="h-3.5 w-3.5" aria-hidden="true" />}
-              <span>{tab.label}</span>
+              <span>{t(tab.labelKey)}</span>
               <span className={cn("tabular-nums", active ? "text-cyan-600" : "text-slate-400")}>
                 {counts[tab.value]}
               </span>
@@ -776,8 +789,10 @@ function ObjectTableRow({
   onOperate: (operation: ControlObjectOperation) => void
   onDelete: () => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const type = TYPE_PRESENTATION[definition.objectType]
   const TypeIcon = type.icon
+  const displayName = localizedDisplayName(definition, (key) => t(key))
 
   return (
     <tr
@@ -805,12 +820,12 @@ function ObjectTableRow({
         )}
         <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
           <TypeIcon className={cn("h-4 w-4 shrink-0", type.iconClassName)} aria-hidden="true" />
-          <span className="text-xs font-medium text-black">{type.label}</span>
+          <span className="text-xs font-medium text-black">{t(type.labelKey)}</span>
         </div>
       </td>
       <td className="px-3 py-3 align-middle">
-        <p className="truncate font-medium text-slate-900" title={definition.displayName}>
-          {definition.displayName}
+        <p className="truncate font-medium text-slate-900" title={displayName}>
+          {displayName}
         </p>
       </td>
       <td className="px-3 py-3 align-middle">
@@ -842,7 +857,7 @@ function ObjectTableRow({
             "h-1.5 w-1.5 rounded-full",
             definition.state.toLowerCase() === "active" ? "bg-emerald-500" : "bg-slate-400",
           )} />
-          {stateLabel(definition.state)}
+          {stateLabel(definition.state, (key) => t(key))}
         </span>
       </td>
       <td className="px-2 py-3 text-center align-middle">
@@ -854,7 +869,7 @@ function ObjectTableRow({
           className="h-8 gap-1 rounded-full px-3 text-xs font-medium text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:ring-cyan-500 focus-visible:ring-offset-0 [&_svg]:size-3.5"
         >
           <Eye aria-hidden="true" />
-          查看
+          {t("common.view")}
         </Button>
       </td>
       <td className={cn(
@@ -889,27 +904,29 @@ function ObjectMobileCard({
   onOperate: (operation: ControlObjectOperation) => void
   onDelete: () => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const type = TYPE_PRESENTATION[definition.objectType]
   const TypeIcon = type.icon
+  const displayName = localizedDisplayName(definition, (key) => t(key))
 
   return (
     <article data-adaptive-item="true" className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <div className="p-4">
         <div className="flex min-w-0 items-center gap-3">
           <TypeIcon className={cn("h-5 w-5 shrink-0", type.iconClassName)} aria-hidden="true" />
-          <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900" title={definition.displayName}>
-            {definition.displayName}
+          <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-900" title={displayName}>
+            {displayName}
           </h2>
-          <span className="shrink-0 text-xs font-medium text-black">{type.label}</span>
+          <span className="shrink-0 text-xs font-medium text-black">{t(type.labelKey)}</span>
         </div>
 
         <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 text-xs">
-          <MobileField label="内部名称" value={definition.internalName} className="col-span-2" />
-          <MobileField label="ID" value={definition.objectId} mono className="col-span-2" />
-          <MobileField label="类型" value={String(definition.subType)} mono />
-          <MobileField label="当前版本" value={definition.version} mono />
-          <MobileField label="来源" value={sourceLabel(definition.source)} />
-          <MobileField label="状态" value={stateLabel(definition.state)} />
+          <MobileField label={t("table.internalName")} value={definition.internalName} className="col-span-2" />
+          <MobileField label={t("table.id")} value={definition.objectId} mono className="col-span-2" />
+          <MobileField label={t("table.subType")} value={String(definition.subType)} mono />
+          <MobileField label={t("table.version")} value={definition.version} mono />
+          <MobileField label={t("table.source")} value={t(sourceLabelKey(definition.source))} />
+          <MobileField label={t("table.state")} value={stateLabel(definition.state, (key) => t(key))} />
         </dl>
       </div>
 
@@ -922,7 +939,7 @@ function ObjectMobileCard({
           className="h-8 min-w-0 rounded-full border-slate-200 text-xs text-slate-700 hover:border-cyan-200 hover:bg-cyan-50 hover:text-cyan-800"
         >
           <Activity className="h-3.5 w-3.5 text-cyan-600" aria-hidden="true" />
-          查看下发情况
+          {t("delivery.viewDelivery")}
         </Button>
         <ObjectActions
           definition={definition}
@@ -938,9 +955,10 @@ function ObjectMobileCard({
 }
 
 function SourceText({ source }: { source: ControlObjectSource }) {
+  const t = useTranslations("pages.controlCenter")
   return (
     <span className={cn("whitespace-nowrap text-xs font-medium", sourceTextClassName(source))}>
-      {sourceLabel(source)}
+      {t(sourceLabelKey(source))}
     </span>
   )
 }
@@ -981,14 +999,15 @@ function ObjectActions({
   onDelete: () => void
   align: "right" | "stretch"
 }) {
+  const t = useTranslations("pages.controlCenter")
   const isBaselineRepairCommand = isBaselineRepairCommandDefinition(definition)
   const isPatchCommand = isPatchCommandDefinition(definition)
   const canEdit = isBaselineRepairCommand
     || isPatchCommand
     || canEditControlObjectDefinition(definition)
   const editReason = !definition.capabilities.canUpdate
-    ? "后台能力合同不允许更新此对象"
-    : "后台更新接口只支持策略和配置"
+    ? t("actions.updateForbidden")
+    : t("actions.updateUnsupportedType")
   const operationOrder: Record<ControlObjectOperation, number> = {
     apply: 0,
     stop: 1,
@@ -1003,12 +1022,13 @@ function ObjectActions({
     && definition.state.toLowerCase() === "active"
     && definition.stateVersion > 0
   const deleteReason = !deleteAllowedByCapability
-    ? "后台能力合同禁止删除此对象"
+    ? t("actions.deleteForbidden")
     : definition.state.toLowerCase() !== "active"
-      ? "只有 active 状态的对象可以删除"
+      ? t("actions.deleteActiveOnly")
       : definition.stateVersion <= 0
-        ? "后台未返回有效的 state_version，请刷新后重试"
+        ? t("actions.deleteStateVersionMissing")
         : undefined
+  const displayName = localizedDisplayName(definition, (key) => t(key))
 
   return (
     <DropdownMenu>
@@ -1017,14 +1037,14 @@ function ObjectActions({
           type="button"
           variant="ghost"
           size="sm"
-          aria-label={`打开“${definition.displayName}”操作菜单`}
+          aria-label={t("actions.openMenu", { name: displayName })}
           className={cn(
             "h-8 rounded-full text-cyan-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 focus-visible:ring-cyan-500 focus-visible:ring-offset-0",
             align === "right" ? "w-10 p-0" : "w-full gap-2",
           )}
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-          {align === "stretch" && <span>操作</span>}
+          {align === "stretch" && <span>{t("table.actions")}</span>}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={6} className="w-56 rounded-xl p-1.5">
@@ -1033,7 +1053,7 @@ function ObjectActions({
           className="cursor-pointer rounded-lg py-2"
         >
           <Braces className="text-violet-600" aria-hidden="true" />
-          查看 JSON
+          {t("actions.viewJson")}
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={!canEdit}
@@ -1042,10 +1062,10 @@ function ObjectActions({
           className="cursor-pointer rounded-lg py-2"
         >
           <Pencil className="text-cyan-600" aria-hidden="true" />
-          编辑
+          {t("common.edit")}
           {!canEdit && (
             <span className="ml-auto text-xs text-slate-400">
-              {definition.capabilities.canUpdate ? "未支持" : "不可用"}
+              {definition.capabilities.canUpdate ? t("common.unsupported") : t("common.unavailable")}
             </span>
           )}
         </DropdownMenuItem>
@@ -1061,12 +1081,12 @@ function ObjectActions({
               className="cursor-pointer rounded-lg py-2"
             >
               <OperationIcon className={presentation.iconClassName} aria-hidden="true" />
-              {presentation.label}
+              {t(presentation.labelKey)}
             </DropdownMenuItem>
           )
         }) : (
           <DropdownMenuItem disabled className="rounded-lg py-2 text-slate-400">
-            无可用 Agent 操作
+            {t("actions.noAgentOperations")}
           </DropdownMenuItem>
         )}
 
@@ -1078,8 +1098,8 @@ function ObjectActions({
           title={deleteReason}
         >
           <Trash2 aria-hidden="true" />
-          {controlObjectDeleteModeLabel(deleteMode)}
-          {!canDelete && <span className="ml-auto text-xs text-slate-400">不可用</span>}
+          {t(controlObjectDeleteModeLabelKey(deleteMode))}
+          {!canDelete && <span className="ml-auto text-xs text-slate-400">{t("common.unavailable")}</span>}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -1087,8 +1107,9 @@ function ObjectActions({
 }
 
 function ObjectListSkeleton() {
+  const t = useTranslations("pages.controlCenter")
   return (
-    <div className="h-full overflow-hidden p-3 sm:p-4" aria-label="正在加载控制对象" aria-busy="true">
+    <div className="h-full overflow-hidden p-3 sm:p-4" aria-label={t("list.loadingAriaLabel")} aria-busy="true">
       <div className="space-y-2">
         {Array.from({ length: 6 }, (_, index) => (
           <div key={index} className="flex items-center gap-4 rounded-xl border border-slate-100 px-4 py-3">
@@ -1108,6 +1129,7 @@ function ObjectListSkeleton() {
 }
 
 function EmptyState({ filtered, onReset }: { filtered: boolean; onReset: () => void }) {
+  const t = useTranslations("pages.controlCenter")
   return (
     <div className="flex h-full min-h-64 items-center justify-center p-6 text-center">
       <div className="max-w-sm">
@@ -1115,17 +1137,17 @@ function EmptyState({ filtered, onReset }: { filtered: boolean; onReset: () => v
           <LibraryBig className="h-5 w-5" aria-hidden="true" />
         </span>
         <h2 className="mt-4 text-sm font-semibold text-slate-900">
-          {filtered ? "没有符合条件的控制对象" : "暂无可用控制对象"}
+          {filtered ? t("empty.filteredTitle") : t("empty.title")}
         </h2>
         <p className="mt-1.5 text-xs leading-5 text-slate-500">
           {filtered
-            ? "请调整搜索词或筛选条件。"
-            : "后台 PMC Catalog 当前没有返回 active 状态的配置、策略或命令。"}
+            ? t("empty.filteredDescription")
+            : t("empty.description")}
         </p>
         {filtered && (
           <Button type="button" variant="outline" size="sm" onClick={onReset} className="mt-4 rounded-full px-4">
             <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-            清除筛选
+            {t("filters.clear")}
           </Button>
         )}
       </div>
@@ -1146,20 +1168,21 @@ function PaginationFooter({
   pageSize: number
   onPageChange: (page: number) => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const start = (page - 1) * pageSize + 1
   const end = Math.min(page * pageSize, total)
 
   return (
     <footer className="flex min-h-12 shrink-0 items-center justify-between gap-3 border-t border-slate-200 bg-white px-3 py-2 sm:px-4">
       <p className="truncate text-xs text-slate-500">
-        显示 {start}–{end}，共 {total} 个
+        {t("pagination.summary", { start, end, total })}
       </p>
       <div className="flex shrink-0 items-center gap-1.5">
         <Button
           type="button"
           variant="outline"
           size="icon"
-          aria-label="上一页"
+          aria-label={t("pagination.previous")}
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}
           className="h-8 w-8 rounded-full border-slate-200"
@@ -1173,7 +1196,7 @@ function PaginationFooter({
           type="button"
           variant="outline"
           size="icon"
-          aria-label="下一页"
+          aria-label={t("pagination.next")}
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
           className="h-8 w-8 rounded-full border-slate-200"

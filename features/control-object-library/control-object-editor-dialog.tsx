@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useId, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   CalendarClock,
   CircleAlert,
@@ -30,7 +31,9 @@ import {
   validateControlObjectEditorForm,
   type ControlObjectEditorField,
   type ControlObjectEditorForm,
+  type ControlObjectEditorIssue,
 } from "./control-object-editor-model"
+import { controlObjectDisplayNameKey } from "./table-presentation"
 import {
   ScanScheduleForm,
   type ScanSchedule,
@@ -62,56 +65,45 @@ import { Label } from "@/shared/ui/label"
 import { Textarea } from "@/shared/ui/textarea"
 
 const TYPE_LABELS = {
-  policy: "策略",
-  config: "配置",
-  command: "命令",
+  policy: "objectTypes.policy",
+  config: "objectTypes.config",
+  command: "objectTypes.command",
 } as const
 
-const BASELINE_SCAN_SCHEDULE_TEXT: ScanScheduleFormText = {
-  modeLabel: "调度模式",
-  modePlaceholder: "选择调度模式",
-  modeInterval: "固定间隔",
-  intervalLabel: "间隔",
-  intervalValue: (hours) => `${hours} 小时`,
-  fixedTimeLabel: "固定执行时间",
-  randomDelayLabel: "随机延迟",
-  randomDelayValue: (minutes) => `${minutes} 分钟`,
-  retryCountLabel: "重试次数",
-  retryIntervalLabel: "重试间隔",
-  retryNone: "不重试",
-  retryTimes: (count) => `${count} 次`,
-  minutesUnit: "分钟",
-  startupTitle: "Agent 启动时执行扫描",
-  startupDescription: "启动后立即补跑一次扫描任务",
-  startupInlineLabel: "启动时扫描",
-}
-
-function editorErrorMessage(error: unknown) {
+function editorErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   const messages: Record<string, string> = {
-    PMC_OBJECT_DETAIL_INVALID: "后台没有返回完整的对象定义，请刷新列表后重试。",
-    PMC_OBJECT_DETAIL_MISMATCH: "后台返回的对象身份或版本与当前列表不一致，请刷新后重试。",
-    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "对象内容缺少名称、类型、版本或 context，无法安全编辑。",
-    PMC_BASELINE_SCAN_POLICY_CONTEXT_INVALID: "后台返回的基线扫描策略缺少完整、有效的扫描计划，无法安全编辑。",
-    PMC_UPDATE_TYPE_UNSUPPORTED: "后台只允许更新策略和配置，命令不能编辑。",
-    PMC_UPDATE_NOT_ALLOWED: "后台能力合同不允许更新此对象。",
-    PMC_OBJECT_NOT_ACTIVE: "对象当前不是 active 状态，不能更新。",
-    PMC_UPDATE_NAME_INVALID: "对象名称为空或长度超过限制。",
-    PMC_UPDATE_VERSION_INVALID: "新版本格式无效，或者低于当前版本。",
-    PMC_UPDATE_CONTEXT_INVALID: "对象内容不能为空。",
-    PMC_UPDATE_URL_INVALID: "配置下载地址长度超过限制。",
-    PMC_UPDATE_MD5_INVALID: "MD5 必须是 32 位十六进制字符串。",
-    PMC_UPDATE_RESPONSE_INVALID: "后台已响应，但没有返回更新后的对象定义。",
-    PMC_UPDATE_RESPONSE_MISMATCH: "后台返回的对象身份、类型、子类型或版本与本次更新不一致。",
+    PMC_OBJECT_DETAIL_INVALID: "genericEditor.errors.detailInvalid",
+    PMC_OBJECT_DETAIL_MISMATCH: "genericEditor.errors.detailMismatch",
+    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "genericEditor.errors.editableContentInvalid",
+    PMC_BASELINE_SCAN_POLICY_CONTEXT_INVALID: "genericEditor.errors.baselineContextInvalid",
+    PMC_UPDATE_TYPE_UNSUPPORTED: "genericEditor.errors.typeUnsupported",
+    PMC_UPDATE_NOT_ALLOWED: "genericEditor.errors.notAllowed",
+    PMC_OBJECT_NOT_ACTIVE: "genericEditor.errors.notActive",
+    PMC_UPDATE_NAME_INVALID: "genericEditor.errors.nameInvalid",
+    PMC_UPDATE_VERSION_INVALID: "genericEditor.errors.versionInvalid",
+    PMC_UPDATE_CONTEXT_INVALID: "genericEditor.errors.contextInvalid",
+    PMC_UPDATE_URL_INVALID: "genericEditor.errors.urlInvalid",
+    PMC_UPDATE_MD5_INVALID: "genericEditor.errors.md5Invalid",
+    PMC_UPDATE_RESPONSE_INVALID: "genericEditor.errors.responseInvalid",
+    PMC_UPDATE_RESPONSE_MISMATCH: "genericEditor.errors.responseMismatch",
   }
-  if (messages[message]) return messages[message]
-  if (message.includes("version must be greater")) return "新版本必须高于当前版本。"
-  if (message.includes("version already exists")) return "该版本已经存在，但内容不同，请提高版本号后重试。"
-  if (message.includes("subtype cannot be changed")) return "对象子类型是固定身份字段，不能修改。"
+  if (messages[message]) return translate(messages[message])
+  if (message.includes("version must be greater")) return translate("genericEditor.errors.versionMustIncrease")
+  if (message.includes("version already exists")) return translate("genericEditor.errors.versionExists")
+  if (message.includes("subtype cannot be changed")) return translate("genericEditor.errors.subtypeLocked")
   if (message.includes("blocked by active or uncertain execution")) {
-    return "该对象仍有进行中或状态不确定的下发，暂时不能更新。"
+    return translate("genericEditor.errors.executionBlocked")
   }
-  return message || "对象更新失败，请稍后重试。"
+  return message || translate("genericEditor.errors.updateFailed")
+}
+
+function editorIssueMessage(
+  code: ControlObjectEditorIssue["message"],
+  currentVersion: string,
+  translate: (key: string, values?: Record<string, string>) => string,
+) {
+  return translate(`genericEditor.validation.${code}`, { version: currentVersion })
 }
 
 function focusEditorField(prefix: string, field: ControlObjectEditorField) {
@@ -128,6 +120,7 @@ export function ControlObjectEditorDialog({
   onOpenChange: (open: boolean) => void
   onUpdated: () => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const { toast } = useToast()
   const rawFieldPrefix = useId()
   const fieldPrefix = `control-object-editor-${rawFieldPrefix.replace(/:/g, "")}`
@@ -176,7 +169,7 @@ export function ControlObjectEditorDialog({
         setInitialSignature(controlObjectEditorSignature(nextForm))
       })
       .catch((error: unknown) => {
-        if (active) setLoadError(editorErrorMessage(error))
+        if (active) setLoadError(editorErrorMessage(error, (key) => t(key)))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -185,13 +178,13 @@ export function ControlObjectEditorDialog({
     return () => {
       active = false
     }
-  }, [definition, reloadToken])
+  }, [definition, reloadToken, t])
 
   const dirty = Boolean(form && initialSignature
     && controlObjectEditorSignature(form) !== initialSignature)
   const hasDefinitionChanges = Boolean(form && detail
     && hasControlObjectDefinitionChanges(form, detail))
-  const typeLabel = definition ? TYPE_LABELS[definition.objectType] : "对象"
+  const typeLabel = definition ? t(TYPE_LABELS[definition.objectType]) : t("objectTypes.object")
   const canSubmit = Boolean(form && detail && hasDefinitionChanges && !loading && !submitting)
   const isBaselineScanPolicy = Boolean(detail && isBaselineScanPolicyDefinition(detail.definition))
   const baselineScanSchedule = useMemo(() => {
@@ -202,12 +195,32 @@ export function ControlObjectEditorDialog({
       return null
     }
   }, [form, isBaselineScanPolicy])
+  const baselineScanScheduleText = useMemo<ScanScheduleFormText>(() => ({
+    modeLabel: t("genericEditor.schedule.modeLabel"),
+    modePlaceholder: t("genericEditor.schedule.modePlaceholder"),
+    modeInterval: t("genericEditor.schedule.modeInterval"),
+    intervalLabel: t("genericEditor.schedule.intervalLabel"),
+    intervalValue: (hours) => t("genericEditor.schedule.hours", { count: hours }),
+    fixedTimeLabel: t("genericEditor.schedule.fixedTimeLabel"),
+    randomDelayLabel: t("genericEditor.schedule.randomDelayLabel"),
+    randomDelayValue: (minutes) => t("genericEditor.schedule.minutes", { count: minutes }),
+    retryCountLabel: t("genericEditor.schedule.retryCountLabel"),
+    retryIntervalLabel: t("genericEditor.schedule.retryIntervalLabel"),
+    retryNone: t("genericEditor.schedule.retryNone"),
+    retryTimes: (count) => t("genericEditor.schedule.retryTimes", { count }),
+    minutesUnit: t("genericEditor.schedule.minutesUnit"),
+    startupTitle: t("genericEditor.schedule.startupTitle"),
+    startupDescription: t("genericEditor.schedule.startupDescription"),
+    startupInlineLabel: t("genericEditor.schedule.startupInlineLabel"),
+  }), [t])
 
   const fieldError = useMemo(() => {
     if (!formError || !form || !detail) return null
     const issue = validateControlObjectEditorForm(form, detail)
-    return issue?.message === formError ? issue.field : null
-  }, [detail, form, formError])
+    return issue && editorIssueMessage(issue.message, detail.definition.version, (key, values) => t(key, values)) === formError
+      ? issue.field
+      : null
+  }, [detail, form, formError, t])
 
   const updateField = <Field extends keyof ControlObjectEditorForm>(
     field: Field,
@@ -228,7 +241,7 @@ export function ControlObjectEditorDialog({
         schedule,
       }))
     } catch {
-      setFormError("基线扫描计划内容无效，无法更新。")
+      setFormError(t("genericEditor.validation.baselineScheduleUpdateInvalid"))
     }
   }
 
@@ -245,7 +258,11 @@ export function ControlObjectEditorDialog({
     if (!definition || !detail || !form || submitting) return
     const issue = validateControlObjectEditorForm(form, detail)
     if (issue) {
-      setFormError(issue.message)
+      setFormError(editorIssueMessage(
+        issue.message,
+        detail.definition.version,
+        (key, values) => t(key, values),
+      ))
       focusEditorField(fieldPrefix, issue.field)
       return
     }
@@ -258,14 +275,19 @@ export function ControlObjectEditorDialog({
         controlObjectUpdateInput(form, detail.definition),
       )
       toast({
-        title: `${typeLabel}已更新`,
-        description: `“${updated.displayName}”已创建版本 ${updated.version}；尚未自动下发到主机。`,
+        title: t("genericEditor.toast.updated", { type: typeLabel }),
+        description: t("genericEditor.toast.updatedDescription", {
+          name: controlObjectDisplayNameKey(updated)
+            ? t(controlObjectDisplayNameKey(updated)!)
+            : updated.displayName,
+          version: updated.version,
+        }),
         variant: "success",
       })
       onUpdated()
       onOpenChange(false)
     } catch (error) {
-      setFormError(editorErrorMessage(error))
+      setFormError(editorErrorMessage(error, (key) => t(key)))
     } finally {
       setSubmitting(false)
     }
@@ -281,6 +303,7 @@ export function ControlObjectEditorDialog({
       >
         <DialogContent
           overlayClassName="bg-slate-950/45 backdrop-blur-[2px]"
+          closeLabel={t("common.close")}
           className={cn(
             "flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-1.5rem)] max-w-[880px] flex-col gap-0 overflow-hidden rounded-2xl border-slate-200 bg-white p-0 shadow-2xl",
             "[&>button]:right-4 [&>button]:top-3.5 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-slate-100 [&>button]:hover:text-slate-800 [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-cyan-500",
@@ -293,10 +316,18 @@ export function ControlObjectEditorDialog({
               </span>
               <div className="min-w-0 flex-1">
                 <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                  {isBaselineScanPolicy ? "编辑基线扫描策略" : `编辑${typeLabel}`}
+                  {isBaselineScanPolicy
+                    ? t("genericEditor.baselineTitle")
+                    : t("genericEditor.title", { type: typeLabel })}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                  {definition?.displayName || "读取对象定义中"} · 更新会追加新版本，不会自动下发
+                  {t("genericEditor.description", {
+                    name: definition
+                      ? (controlObjectDisplayNameKey(definition)
+                          ? t(controlObjectDisplayNameKey(definition)!)
+                          : definition.displayName)
+                      : t("genericEditor.loadingDefinition"),
+                  })}
                 </DialogDescription>
               </div>
             </div>
@@ -306,7 +337,7 @@ export function ControlObjectEditorDialog({
             {loading ? (
               <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 text-center text-slate-500" aria-busy="true">
                 <LoaderCircle className="h-6 w-6 animate-spin text-cyan-600" aria-hidden="true" />
-                <p className="text-sm">正在读取当前对象版本…</p>
+                <p className="text-sm">{t("genericEditor.loading")}</p>
               </div>
             ) : loadError ? (
               <div className="flex min-h-[360px] items-center justify-center">
@@ -314,7 +345,7 @@ export function ControlObjectEditorDialog({
                   <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600">
                     <CircleAlert className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <p className="mt-3 text-sm font-medium text-slate-900">对象内容加载失败</p>
+                  <p className="mt-3 text-sm font-medium text-slate-900">{t("genericEditor.loadFailedTitle")}</p>
                   <p className="mt-1.5 text-xs leading-5 text-slate-600">{loadError}</p>
                   <Button
                     type="button"
@@ -324,7 +355,7 @@ export function ControlObjectEditorDialog({
                     className="mt-4 h-8 rounded-full border-slate-200 px-3"
                   >
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                    重试
+                    {t("common.retry")}
                   </Button>
                 </div>
               </div>
@@ -333,13 +364,13 @@ export function ControlObjectEditorDialog({
                 <section aria-labelledby={`${fieldPrefix}-basic-heading`}>
                   <div className="mb-2.5 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-violet-600" aria-hidden="true" />
-                    <h3 id={`${fieldPrefix}-basic-heading`} className="text-xs font-semibold text-slate-900">基本信息</h3>
-                    <span className="text-[11px] text-slate-400">对象身份字段保持锁定</span>
+                    <h3 id={`${fieldPrefix}-basic-heading`} className="text-xs font-semibold text-slate-900">{t("genericEditor.basicInfo")}</h3>
+                    <span className="text-[11px] text-slate-400">{t("genericEditor.identityLocked")}</span>
                   </div>
 
                   <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                      <Label htmlFor={`${fieldPrefix}-name`} className="text-xs text-slate-700">名称</Label>
+                      <Label htmlFor={`${fieldPrefix}-name`} className="text-xs text-slate-700">{t("genericEditor.name")}</Label>
                       <Input
                         id={`${fieldPrefix}-name`}
                         value={form.name}
@@ -350,7 +381,7 @@ export function ControlObjectEditorDialog({
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor={`${fieldPrefix}-version`} className="text-xs text-slate-700">新版本</Label>
+                      <Label htmlFor={`${fieldPrefix}-version`} className="text-xs text-slate-700">{t("genericEditor.newVersion")}</Label>
                       <Input
                         id={`${fieldPrefix}-version`}
                         value={form.version}
@@ -358,23 +389,23 @@ export function ControlObjectEditorDialog({
                         onChange={(event) => updateField("version", event.target.value)}
                         className="h-9 rounded-lg border-slate-200 bg-white font-mono text-sm"
                       />
-                      <p className="text-[11px] text-slate-400">当前版本：{detail.definition.version}</p>
+                      <p className="text-[11px] text-slate-400">{t("genericEditor.currentVersion", { version: detail.definition.version })}</p>
                     </div>
-                    <ReadOnlyField label="对象类型" value={TYPE_LABELS[detail.definition.objectType]} />
-                    <ReadOnlyField label="子类型" value={String(detail.definition.subType)} mono />
-                    <ReadOnlyField label="对象 ID" value={detail.definition.objectId} mono className="sm:col-span-2" />
+                    <ReadOnlyField label={t("genericEditor.objectType")} value={t(TYPE_LABELS[detail.definition.objectType])} />
+                    <ReadOnlyField label={t("genericEditor.subType")} value={String(detail.definition.subType)} mono />
+                    <ReadOnlyField label={t("genericEditor.objectId")} value={detail.definition.objectId} mono className="sm:col-span-2" />
                   </div>
                 </section>
 
                 {detail.definition.objectType === "config" && (
-                  <section className="grid gap-3 sm:grid-cols-2" aria-label="配置下载信息">
+                  <section className="grid gap-3 sm:grid-cols-2" aria-label={t("genericEditor.downloadInfo")}>
                     <div className="space-y-1.5">
-                      <Label htmlFor={`${fieldPrefix}-url`} className="text-xs text-slate-700">下载地址</Label>
+                      <Label htmlFor={`${fieldPrefix}-url`} className="text-xs text-slate-700">{t("genericEditor.downloadUrl")}</Label>
                       <Input
                         id={`${fieldPrefix}-url`}
                         value={form.url}
                         maxLength={512}
-                        placeholder="可选"
+                        placeholder={t("genericEditor.optional")}
                         aria-invalid={fieldError === "url"}
                         onChange={(event) => updateField("url", event.target.value)}
                         className="h-9 rounded-lg border-slate-200 font-mono text-xs"
@@ -386,7 +417,7 @@ export function ControlObjectEditorDialog({
                         id={`${fieldPrefix}-md5`}
                         value={form.md5}
                         maxLength={32}
-                        placeholder="可选，32 位十六进制"
+                        placeholder={t("genericEditor.md5Placeholder")}
                         aria-invalid={fieldError === "md5"}
                         onChange={(event) => updateField("md5", event.target.value)}
                         className="h-9 rounded-lg border-slate-200 font-mono text-xs"
@@ -406,10 +437,10 @@ export function ControlObjectEditorDialog({
                       <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" aria-hidden="true" />
                       <div>
                         <h3 id={`${fieldPrefix}-content-heading`} className="text-xs font-semibold text-slate-900">
-                          基线扫描计划
+                          {t("genericEditor.baselineSchedule")}
                         </h3>
                         <p className="mt-0.5 text-[11px] leading-5 text-slate-500">
-                          与基线扫描下发页面使用相同配置；保存仅创建新版本，不会自动下发。
+                          {t("genericEditor.baselineScheduleDescription")}
                         </p>
                       </div>
                     </div>
@@ -418,7 +449,7 @@ export function ControlObjectEditorDialog({
                       onChange={updateBaselineScanSchedule}
                       title={null}
                       description={null}
-                      text={BASELINE_SCAN_SCHEDULE_TEXT}
+                      text={baselineScanScheduleText}
                       disabled={submitting}
                       className="max-w-none rounded-xl border-slate-200 bg-white shadow-none [&>div]:space-y-4 [&>div]:p-3 sm:[&>div]:p-4"
                     />
@@ -428,11 +459,11 @@ export function ControlObjectEditorDialog({
                     <div className="mb-2 flex items-end justify-between gap-3">
                       <div>
                         <Label id={`${fieldPrefix}-content-heading`} htmlFor={`${fieldPrefix}-context`} className="text-xs text-slate-700">
-                          对象内容
+                          {t("genericEditor.objectContent")}
                         </Label>
-                        <p className="mt-1 text-[11px] text-slate-400">内容将原样写入 context，支持 JSON 或普通文本。</p>
+                        <p className="mt-1 text-[11px] text-slate-400">{t("genericEditor.contentHint")}</p>
                       </div>
-                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-slate-400">{form.context.length} 字符</span>
+                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-slate-400">{t("genericEditor.characterCount", { count: form.context.length })}</span>
                     </div>
                     <Textarea
                       id={`${fieldPrefix}-context`}
@@ -458,16 +489,16 @@ export function ControlObjectEditorDialog({
           <DialogFooter className="flex shrink-0 flex-row items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
             <p className="min-w-0 truncate text-xs text-slate-500" aria-live="polite">
               {submitting
-                ? "正在创建新版本…"
+                ? t("genericEditor.creatingVersion")
                 : hasDefinitionChanges
-                  ? "已修改，保存后仍需手动选择主机下发"
+                  ? t("genericEditor.changedHint")
                   : isBaselineScanPolicy
-                    ? "修改名称或扫描计划后即可保存"
-                    : "修改名称或内容后即可保存"}
+                    ? t("genericEditor.baselineUnchangedHint")
+                    : t("genericEditor.unchangedHint")}
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <Button type="button" variant="outline" size="sm" onClick={requestClose} disabled={submitting} className="h-8 rounded-full px-4">
-                取消
+                {t("common.cancel")}
               </Button>
               <Button
                 type="button"
@@ -477,7 +508,7 @@ export function ControlObjectEditorDialog({
                 className="h-8 rounded-full bg-cyan-600 px-4 text-white hover:bg-cyan-700"
               >
                 {submitting ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <Save className="h-3.5 w-3.5" aria-hidden="true" />}
-                {submitting ? "保存中" : "保存新版本"}
+                {submitting ? t("common.saving") : t("genericEditor.saveVersion")}
               </Button>
             </div>
           </DialogFooter>
@@ -487,18 +518,18 @@ export function ControlObjectEditorDialog({
       <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <AlertDialogContent className="max-w-md rounded-2xl border-slate-200 p-5">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base text-slate-950">放弃未保存的修改？</AlertDialogTitle>
+            <AlertDialogTitle className="text-base text-slate-950">{t("genericEditor.discard.title")}</AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-6 text-slate-600">
-              当前修改尚未创建新版本，关闭后将无法恢复。
+              {t("genericEditor.discard.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="h-9 rounded-full px-4">继续编辑</AlertDialogCancel>
+            <AlertDialogCancel className="h-9 rounded-full px-4">{t("genericEditor.discard.continue")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onOpenChange(false)}
               className="h-9 rounded-full bg-rose-600 px-4 text-white hover:bg-rose-700"
             >
-              放弃修改
+              {t("genericEditor.discard.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

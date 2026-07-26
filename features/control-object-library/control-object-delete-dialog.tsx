@@ -1,12 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 import { CircleAlert, LoaderCircle, Trash2, Unplug } from "lucide-react"
 
 import {
   deleteControlObjectDefinition,
   type ControlObjectDefinition,
 } from "@/features/control-object-library/api"
+import { controlObjectDisplayNameKey } from "@/features/control-object-library/table-presentation"
 import { useToast } from "@/shared/hooks/use-toast"
 import { Button } from "@/shared/ui/button"
 import {
@@ -18,16 +20,18 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog"
 
-function deleteErrorMessage(error: unknown) {
+function deleteErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   const messages: Record<string, string> = {
-    PMC_OBJECT_NOT_ACTIVE: "对象当前不是 active 状态，不能发起删除。",
-    PMC_DELETE_NOT_ALLOWED: "后台能力合同禁止删除此对象。",
-    PMC_STATE_VERSION_INVALID: "列表没有返回有效的 state_version，请刷新后重试。",
-    PMC_DELETE_RESPONSE_INVALID: "后台已响应，但没有返回删除后的对象状态。",
-    PMC_DELETE_RESPONSE_MISMATCH: "后台返回的对象与当前删除对象不一致，已停止处理。",
+    PMC_OBJECT_NOT_ACTIVE: "deleteDialog.errors.notActive",
+    PMC_DELETE_NOT_ALLOWED: "deleteDialog.errors.notAllowed",
+    PMC_STATE_VERSION_INVALID: "deleteDialog.errors.stateVersionInvalid",
+    PMC_DELETE_RESPONSE_INVALID: "deleteDialog.errors.responseInvalid",
+    PMC_DELETE_RESPONSE_MISMATCH: "deleteDialog.errors.responseMismatch",
   }
-  return messages[message] || message || "删除请求失败，请稍后重试。"
+  return messages[message]
+    ? translate(messages[message])
+    : message || translate("deleteDialog.errors.failed")
 }
 
 export function ControlObjectDeleteDialog({
@@ -39,10 +43,15 @@ export function ControlObjectDeleteDialog({
   onOpenChange: (open: boolean) => void
   onDeleted: () => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const { toast } = useToast()
   const [submitting, setSubmitting] = useState(false)
   const removesEffects = definition?.capabilities.deleteMode === "remove_effects"
   const canSubmit = Boolean(definition && definition.stateVersion > 0)
+  const displayNameKey = definition ? controlObjectDisplayNameKey(definition) : null
+  const displayName = definition
+    ? (displayNameKey ? t(displayNameKey) : definition.displayName)
+    : ""
 
   const handleDelete = async () => {
     if (!definition || submitting || !canSubmit) return
@@ -51,18 +60,18 @@ export function ControlObjectDeleteDialog({
     try {
       const result = await deleteControlObjectDefinition(definition)
       toast({
-        title: removesEffects ? "删除流程已创建" : "对象已删除",
+        title: removesEffects ? t("deleteDialog.toast.flowCreated") : t("deleteDialog.toast.deleted"),
         description: result.operationId
-          ? `后台将先移除主机效果，Operation ID：${result.operationId}`
-          : `“${definition.displayName}”已从管理中心移除。`,
+          ? t("deleteDialog.toast.removeEffects", { operationId: result.operationId })
+          : t("deleteDialog.toast.removed", { name: displayName }),
         variant: "success",
       })
       onOpenChange(false)
       onDeleted()
     } catch (error) {
       toast({
-        title: "删除对象失败",
-        description: deleteErrorMessage(error),
+        title: t("deleteDialog.toast.failed"),
+        description: deleteErrorMessage(error, (key) => t(key)),
         variant: "destructive",
       })
     } finally {
@@ -79,6 +88,7 @@ export function ControlObjectDeleteDialog({
     >
       <DialogContent
         overlayClassName="bg-slate-950/45 backdrop-blur-[2px]"
+        closeLabel={t("common.close")}
         className="w-[calc(100vw-1.5rem)] max-w-md gap-0 overflow-hidden rounded-2xl border-slate-200 bg-white p-0 shadow-2xl [&>button]:right-4 [&>button]:top-3.5 [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:p-2 [&>button]:opacity-100"
       >
         <DialogHeader className="border-b border-slate-200 bg-slate-50/80 px-5 py-3 pr-16 text-left">
@@ -92,10 +102,10 @@ export function ControlObjectDeleteDialog({
             </span>
             <div className="min-w-0">
               <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                {removesEffects ? "移除主机效果并删除" : "删除对象"}
+                {removesEffects ? t("deleteDialog.removeEffectsTitle") : t("deleteDialog.title")}
               </DialogTitle>
               <DialogDescription className="sr-only">
-                {definition?.displayName || ""}
+                {displayName}
               </DialogDescription>
             </div>
           </div>
@@ -104,20 +114,20 @@ export function ControlObjectDeleteDialog({
         <div className="space-y-3 px-5 py-4">
           <p className="text-sm leading-6 text-slate-700">
             {removesEffects
-              ? "后台会先查找仍有当前效果的主机，创建 REMOVE 操作；全部移除完成后，再结束 Catalog 删除流程。"
-              : "该对象将从活动 Catalog 中移除。命令的历史执行记录不会因此回滚。"}
+              ? t("deleteDialog.removeEffectsDescription")
+              : t("deleteDialog.description")}
           </p>
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900">
             <div className="flex items-start gap-2">
               <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
-                这是 Catalog 生命周期操作，不等同于对单台主机执行“移除”。提交后请通过执行记录跟踪结果。
+                {t("deleteDialog.warning")}
               </span>
             </div>
           </div>
           {!canSubmit && definition && (
             <p className="text-xs leading-5 text-rose-600" role="alert">
-              当前列表数据缺少有效的 state_version，请关闭对话框、刷新列表后再试。
+              {t("deleteDialog.stateVersionMissing")}
             </p>
           )}
         </div>
@@ -130,7 +140,7 @@ export function ControlObjectDeleteDialog({
             onClick={() => onOpenChange(false)}
             className="h-9 rounded-full px-4"
           >
-            取消
+            {t("common.cancel")}
           </Button>
           <Button
             type="button"
@@ -143,7 +153,7 @@ export function ControlObjectDeleteDialog({
             ) : (
               <Trash2 className="h-4 w-4" aria-hidden="true" />
             )}
-            {submitting ? "正在提交…" : "确认删除"}
+            {submitting ? t("deleteDialog.submitting") : t("deleteDialog.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

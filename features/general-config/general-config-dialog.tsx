@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   CheckCircle2,
   CircleAlert,
@@ -115,25 +116,31 @@ function parseLogLevel(value: string) {
 function validateDraft(
   draft: GeneralConfigDraft,
   baseVersion: string,
+  translate: (key: string, values?: Record<string, string>) => string,
 ): ValidationIssue | null {
   const comparison = compareGeneralConfigVersions(draft.version, baseVersion)
   if (comparison === null) {
-    return { field: "version", message: "新版本必须使用 x.y.z 格式，例如 1.1.0" }
+    return { field: "version", message: translate("generalConfig.validation.versionFormat") }
   }
   if (comparison <= 0) {
-    return { field: "version", message: `新版本必须高于当前版本 ${baseVersion}` }
+    return { field: "version", message: translate("generalConfig.validation.versionNotGreater", { version: baseVersion }) }
   }
   if (parseInteger(draft.heartInterval, 1) === null) {
-    return { field: "heartInterval", message: "心跳上报间隔必须是大于 0 的整数" }
+    return { field: "heartInterval", message: translate("generalConfig.validation.heartInterval") }
   }
   if (parseLogLevel(draft.logLevel) === null) {
-    return { field: "logLevel", message: "请选择有效的 Agent 日志级别" }
+    return { field: "logLevel", message: translate("generalConfig.validation.logLevel") }
   }
   return null
 }
 
-function errorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error && error.message.trim()) return error.message
+function errorMessage(error: unknown, fallback: string, translate: (key: string) => string) {
+  if (error instanceof Error && error.message.trim()) {
+    if (error.message === "GENERAL_CONFIG_VERSION_SUGGESTION_INVALID") {
+      return translate("generalConfig.errors.versionSuggestion")
+    }
+    return error.message
+  }
   return fallback
 }
 
@@ -142,6 +149,7 @@ export function GeneralConfigDialog({
   onOpenChange,
   onUpdated,
 }: GeneralConfigDialogProps) {
+  const t = useTranslations("pages.controlCenter")
   const { toast } = useToast()
   const requestSequence = useRef(0)
   const [definition, setDefinition] = useState<GeneralConfigDefinition | null>(null)
@@ -169,7 +177,7 @@ export function GeneralConfigDialog({
       if (sequence !== requestSequence.current) return
 
       const nextVersion = suggestNextGeneralConfigVersion(current.baseVersion)
-      if (!nextVersion) throw new Error("当前配置版本无法生成有效的新版本建议")
+      if (!nextVersion) throw new Error("GENERAL_CONFIG_VERSION_SUGGESTION_INVALID")
       const nextDraft = {
         version: nextVersion,
         heartInterval: String(current.heartInterval),
@@ -180,11 +188,11 @@ export function GeneralConfigDialog({
       setInitialSignature(draftSignature(nextDraft))
     } catch (error) {
       if (sequence !== requestSequence.current) return
-      setLoadError(errorMessage(error, "加载通用配置失败，请稍后重试"))
+      setLoadError(errorMessage(error, t("generalConfig.errors.loadFailed"), (key) => t(key)))
     } finally {
       if (sequence === requestSequence.current) setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (open) {
@@ -242,11 +250,11 @@ export function GeneralConfigDialog({
   const saveNewVersion = async () => {
     if (!definition || submitting) return
     if (!definition.canUpdate) {
-      setRequestError("服务端未授权更新此通用配置")
+      setRequestError(t("generalConfig.errors.notAllowed"))
       return
     }
 
-    const issue = validateDraft(draft, definition.baseVersion)
+    const issue = validateDraft(draft, definition.baseVersion, (key, values) => t(key, values))
     if (issue) {
       setValidationIssue(issue)
       setRequestError("")
@@ -268,18 +276,18 @@ export function GeneralConfigDialog({
       toast({
         variant: "success",
         duration: 4500,
-        title: "通用配置新版本已创建",
-        description: `已创建 ${updated.baseVersion}，尚未选择主机或下发。`,
+        title: t("generalConfig.toast.created"),
+        description: t("generalConfig.toast.createdDescription", { version: updated.baseVersion }),
       })
       onUpdated?.(updated)
       onOpenChange(false)
     } catch (error) {
-      const message = errorMessage(error, "创建通用配置新版本失败，请稍后重试")
+      const message = errorMessage(error, t("generalConfig.errors.createFailed"), (key) => t(key))
       setRequestError(message)
       toast({
         variant: "destructive",
         duration: 4500,
-        title: "通用配置更新失败",
+        title: t("generalConfig.toast.failed"),
         description: message,
       })
     } finally {
@@ -305,13 +313,13 @@ export function GeneralConfigDialog({
                 </div>
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                    编辑通用配置
+                    {t("generalConfig.title")}
                   </DialogTitle>
                   <Badge
                     variant="outline"
                     className="border-cyan-200 bg-cyan-50 px-2 py-0 text-[11px] text-cyan-700"
                   >
-                    系统内置
+                    {t("sources.builtin")}
                   </Badge>
                 </div>
                 <Button
@@ -321,14 +329,14 @@ export function GeneralConfigDialog({
                   className="h-8 w-8 shrink-0 rounded-full text-slate-500 hover:text-slate-900"
                   onClick={requestClose}
                   disabled={submitting}
-                  aria-label="关闭通用配置"
-                  title="关闭"
+                  aria-label={t("generalConfig.closeAriaLabel")}
+                  title={t("common.close")}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <DialogDescription className="sr-only">
-                加载并编辑 Agent 通用配置，校验后创建一个可供后续下发的新版本。
+                {t("generalConfig.description")}
               </DialogDescription>
             </DialogHeader>
 
@@ -342,7 +350,7 @@ export function GeneralConfigDialog({
                     className="flex min-h-36 flex-col items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 py-6 text-center"
                   >
                     <CircleAlert className="h-7 w-7 text-rose-600" />
-                    <p className="mt-3 text-sm font-semibold text-rose-900">通用配置加载失败</p>
+                    <p className="mt-3 text-sm font-semibold text-rose-900">{t("generalConfig.loadFailedTitle")}</p>
                     <p className="mt-1 max-w-lg break-words text-xs leading-5 text-rose-700">
                       {loadError}
                     </p>
@@ -353,7 +361,7 @@ export function GeneralConfigDialog({
                       onClick={() => void loadCurrentConfig()}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
-                      重新加载
+                      {t("generalConfig.reload")}
                     </Button>
                   </div>
                 )}
@@ -364,38 +372,38 @@ export function GeneralConfigDialog({
                       <div className="mb-3 flex items-center gap-2">
                         <SlidersHorizontal className="h-4 w-4 text-cyan-700" />
                         <h3 id="general-config-basic-title" className="text-sm font-semibold text-slate-900">
-                          基本信息
+                          {t("genericEditor.basicInfo")}
                         </h3>
                       </div>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-                        <ReadOnlyField label="配置名称">
-                          <span className="truncate">通用配置</span>
+                        <ReadOnlyField label={t("generalConfig.configName")}>
+                          <span className="truncate">{t("builtinObjects.generalConfig")}</span>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
                                 type="button"
                                 className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-400 hover:bg-white hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-                                aria-label="查看内部配置信息"
+                                aria-label={t("generalConfig.internalInfoAriaLabel")}
                               >
                                 <Info className="h-3.5 w-3.5" />
                               </button>
                             </TooltipTrigger>
                             <TooltipPortal>
                               <TooltipContent className="z-[80] max-w-xs text-xs leading-5">
-                                内部名称：{GENERAL_CONFIG_INTERNAL_NAME}<br />模块：{GENERAL_CONFIG_MODULE}
+                                {t("generalConfig.internalName", { name: GENERAL_CONFIG_INTERNAL_NAME })}<br />{t("generalConfig.module", { module: GENERAL_CONFIG_MODULE })}
                               </TooltipContent>
                             </TooltipPortal>
                           </Tooltip>
                         </ReadOnlyField>
-                        <ReadOnlyField label="来源">
+                        <ReadOnlyField label={t("table.source")}>
                           <Server className="h-4 w-4 text-cyan-600" />
-                          系统内置
+                          {t("sources.builtin")}
                         </ReadOnlyField>
-                        <ReadOnlyField label="基础版本">
+                        <ReadOnlyField label={t("sensorConfig.baseVersion")}>
                           <span className="truncate font-mono">{definition.baseVersion}</span>
                         </ReadOnlyField>
                         <FormField
-                          label="新版本"
+                          label={t("genericEditor.newVersion")}
                           htmlFor="general-config-version"
                           error={validationIssue?.field === "version" ? validationIssue.message : undefined}
                         >
@@ -406,7 +414,7 @@ export function GeneralConfigDialog({
                               onChange={(event) => updateField("version", event.target.value)}
                               maxLength={64}
                               className="h-10 bg-white pr-9 font-mono"
-                              placeholder="例如 1.1.0"
+                              placeholder={t("sensorConfig.versionPlaceholder")}
                               disabled={submitting}
                               aria-invalid={validationIssue?.field === "version"}
                             />
@@ -422,12 +430,12 @@ export function GeneralConfigDialog({
                       <div className="mb-3 flex items-center gap-2">
                         <TerminalSquare className="h-4 w-4 text-cyan-700" />
                         <h3 id="general-config-parameters-title" className="text-sm font-semibold text-slate-900">
-                          运行参数
+                          {t("generalConfig.runtimeParameters")}
                         </h3>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <FormField
-                          label="心跳上报间隔"
+                          label={t("generalConfig.heartInterval")}
                           htmlFor="general-config-heartInterval"
                           error={
                             validationIssue?.field === "heartInterval"
@@ -447,13 +455,13 @@ export function GeneralConfigDialog({
                               aria-invalid={validationIssue?.field === "heartInterval"}
                             />
                             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
-                              秒
+                              {t("generalConfig.seconds")}
                             </span>
                           </div>
                         </FormField>
 
                         <FormField
-                          label="Agent 日志级别"
+                          label={t("generalConfig.logLevel")}
                           htmlFor="general-config-logLevel"
                           error={
                             validationIssue?.field === "logLevel"
@@ -472,7 +480,7 @@ export function GeneralConfigDialog({
                               disabled={submitting}
                               aria-invalid={validationIssue?.field === "logLevel"}
                             >
-                              <SelectValue placeholder="选择日志级别" />
+                              <SelectValue placeholder={t("generalConfig.logLevelPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent
                               position="popper"
@@ -484,7 +492,7 @@ export function GeneralConfigDialog({
                             >
                               {GENERAL_CONFIG_LOG_LEVEL_OPTIONS.map((option) => (
                                 <SelectItem key={option.value} value={String(option.value)}>
-                                  {option.label}
+                                {t(option.labelKey)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -499,7 +507,7 @@ export function GeneralConfigDialog({
                         className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800"
                       >
                         <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                        服务端当前未授予此内置对象的更新能力，无法创建新版本。
+                        {t("generalConfig.notAllowedDescription")}
                       </div>
                     )}
 
@@ -523,17 +531,17 @@ export function GeneralConfigDialog({
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 shrink-0 animate-spin text-cyan-600" />
-                      <span>正在读取当前配置</span>
+                      <span>{t("generalConfig.loading")}</span>
                     </>
                   ) : hasUnsavedChanges ? (
                     <>
                       <CircleAlert className="h-4 w-4 shrink-0 text-amber-500" />
-                      <span>{modifiedFieldCount} 项内容已修改，尚未创建</span>
+                      <span>{t("generalConfig.modifiedCount", { count: modifiedFieldCount })}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                      <span>{definition ? "当前无未保存修改" : "等待加载配置"}</span>
+                      <span>{definition ? t("sensorConfig.noUnsaved") : t("generalConfig.waiting")}</span>
                     </>
                   )}
                 </div>
@@ -546,7 +554,7 @@ export function GeneralConfigDialog({
                     disabled={!definition || loading || submitting}
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    恢复为系统内置值
+                    {t("generalConfig.restoreDefaults")}
                   </Button>
                   <Button
                     type="button"
@@ -555,7 +563,7 @@ export function GeneralConfigDialog({
                     onClick={requestClose}
                     disabled={submitting}
                   >
-                    取消
+                    {t("common.cancel")}
                   </Button>
                   <Button
                     type="button"
@@ -566,12 +574,12 @@ export function GeneralConfigDialog({
                     {submitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        正在创建
+                        {t("generalConfig.creating")}
                       </>
                     ) : (
                       <>
                         <FileCog className="h-4 w-4" />
-                        校验并创建新版本
+                        {t("sensorConfig.validateAndCreate")}
                       </>
                     )}
                   </Button>
@@ -585,13 +593,13 @@ export function GeneralConfigDialog({
       <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>放弃未创建的修改？</AlertDialogTitle>
+            <AlertDialogTitle>{t("generalConfig.discard.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              当前通用配置存在未创建的修改。关闭后，这些修改将不会保留。
+              {t("generalConfig.discard.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full px-5">继续编辑</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-full px-5">{t("genericEditor.discard.continue")}</AlertDialogCancel>
             <AlertDialogAction
               className="rounded-full bg-rose-600 px-5 text-white hover:bg-rose-700"
               onClick={() => {
@@ -599,7 +607,7 @@ export function GeneralConfigDialog({
                 onOpenChange(false)
               }}
             >
-              放弃修改
+              {t("genericEditor.discard.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -609,8 +617,9 @@ export function GeneralConfigDialog({
 }
 
 function LoadingState() {
+  const t = useTranslations("pages.controlCenter")
   return (
-    <div className="space-y-4" aria-label="正在加载通用配置">
+    <div className="space-y-4" aria-label={t("generalConfig.loadingAriaLabel")}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
           <div key={index} className="space-y-2">

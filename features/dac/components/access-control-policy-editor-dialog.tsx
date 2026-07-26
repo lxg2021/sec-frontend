@@ -11,7 +11,7 @@ import {
   RotateCcw,
   Save,
 } from "lucide-react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import {
   buildEditableAccessControlDraft,
@@ -66,24 +66,26 @@ const POLICY_ICONS: Record<AccessPolicyType, typeof FileText> = {
   network: Network,
 }
 
-function editorErrorMessage(error: unknown) {
+function editorErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   const messages: Record<string, string> = {
-    ACCESS_POLICY_CONTEXT_INVALID: "策略内容不是有效的 JSON，无法安全编辑。",
-    ACCESS_POLICY_CONTEXT_IDENTITY_MISMATCH: "策略内容中的 ID、类型、名称或版本与对象记录不一致，已阻止编辑。",
-    ACCESS_POLICY_CONTEXT_TYPE_MISMATCH: "策略内容中的访问对象类型与当前策略类型不一致，已阻止编辑。",
-    ACCESS_POLICY_CONTEXT_UNSUPPORTED: "策略内容不符合当前文件、注册表、进程或网络策略合同，无法完整回填。",
-    ACCESS_POLICY_TYPE_CHANGE_FORBIDDEN: "编辑现有策略时不能改变策略类型。",
-    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "后台返回的策略内容不完整，无法安全编辑。",
-    PMC_OBJECT_DETAIL_INVALID: "后台没有返回策略详情。",
-    PMC_OBJECT_DETAIL_MISMATCH: "后台返回的策略详情与当前对象不一致。",
-    PMC_UPDATE_NOT_ALLOWED: "后台能力合同不允许更新这个策略。",
-    PMC_OBJECT_NOT_ACTIVE: "只有 active 状态的策略可以更新。",
-    PMC_UPDATE_VERSION_INVALID: "新版本必须使用 MAJOR.MINOR.PATCH 格式，且不能低于当前版本。",
-    PMC_UPDATE_RESPONSE_INVALID: "后台没有返回更新后的策略。",
-    PMC_UPDATE_RESPONSE_MISMATCH: "后台返回的更新结果与当前策略不一致，请刷新后检查。",
+    ACCESS_POLICY_CONTEXT_INVALID: "accessPolicyEditor.errors.contextInvalid",
+    ACCESS_POLICY_CONTEXT_IDENTITY_MISMATCH: "accessPolicyEditor.errors.identityMismatch",
+    ACCESS_POLICY_CONTEXT_TYPE_MISMATCH: "accessPolicyEditor.errors.typeMismatch",
+    ACCESS_POLICY_CONTEXT_UNSUPPORTED: "accessPolicyEditor.errors.contextUnsupported",
+    ACCESS_POLICY_TYPE_CHANGE_FORBIDDEN: "accessPolicyEditor.errors.typeChangeForbidden",
+    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "accessPolicyEditor.errors.editableContentInvalid",
+    PMC_OBJECT_DETAIL_INVALID: "accessPolicyEditor.errors.detailInvalid",
+    PMC_OBJECT_DETAIL_MISMATCH: "accessPolicyEditor.errors.detailMismatch",
+    PMC_UPDATE_NOT_ALLOWED: "accessPolicyEditor.errors.notAllowed",
+    PMC_OBJECT_NOT_ACTIVE: "accessPolicyEditor.errors.notActive",
+    PMC_UPDATE_VERSION_INVALID: "accessPolicyEditor.errors.versionInvalid",
+    PMC_UPDATE_RESPONSE_INVALID: "accessPolicyEditor.errors.responseInvalid",
+    PMC_UPDATE_RESPONSE_MISMATCH: "accessPolicyEditor.errors.responseMismatch",
   }
-  return messages[message] || message || "访问控制策略加载失败，请稍后重试。"
+  return messages[message]
+    ? translate(messages[message])
+    : message || translate("accessPolicyEditor.errors.loadFailed")
 }
 
 function existingPolicyFromDetail(detail: ControlObjectDetail): ExistingAccessControlPolicy {
@@ -113,22 +115,23 @@ function validationMessage(
   draft: AccessControlPolicyDraft,
   currentVersion: string,
   hasContentChanges: boolean,
+  translate: (key: string, values?: Record<string, string>) => string,
 ) {
   const versionComparison = compareControlObjectVersions(draft.version, currentVersion)
-  if (versionComparison === null) return "版本必须使用 MAJOR.MINOR.PATCH 格式，例如 1.1.0。"
-  if (versionComparison <= 0) return `新版本必须高于当前版本 ${currentVersion}。`
+  if (versionComparison === null) return translate("accessPolicyEditor.validation.versionFormat")
+  if (versionComparison <= 0) return translate("accessPolicyEditor.validation.versionNotGreater", { version: currentVersion })
 
   const errors = validateAccessControlDraft(draft)
   if (errors.some((error) => error.startsWith("POLICY_"))) {
-    return "请完整填写策略名称、版本和 0–255 的优先级。"
+    return translate("accessPolicyEditor.validation.policyFields")
   }
   if (draft.type === "network" && errors.length > 0) {
-    return "请检查网络方向、协议、端口、地址、程序路径和 MD5。"
+    return translate("accessPolicyEditor.validation.networkFields")
   }
   if (errors.length > 0) {
-    return "请完整填写主体、访问对象和至少一条有效规则。"
+    return translate("accessPolicyEditor.validation.ruleFields")
   }
-  if (!hasContentChanges) return "策略名称或策略内容没有变化，无需创建新版本。"
+  if (!hasContentChanges) return translate("accessPolicyEditor.validation.unchanged")
   return ""
 }
 
@@ -142,6 +145,7 @@ export function AccessControlPolicyEditorDialog({
   onUpdated?: () => void
 }) {
   const locale = useLocale()
+  const t = useTranslations("pages.controlCenter")
   const copy = useMemo(() => getAccessControlCopy(locale), [locale])
   const { toast } = useToast()
   const forceCloseRef = useRef(false)
@@ -191,7 +195,7 @@ export function AccessControlPolicyEditorDialog({
         setInitialContentFingerprint(getAccessControlContentFingerprint(currentDraft))
       })
       .catch((error) => {
-        if (active) setLoadError(editorErrorMessage(error))
+        if (active) setLoadError(editorErrorMessage(error, (key) => t(key)))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -200,7 +204,7 @@ export function AccessControlPolicyEditorDialog({
     return () => {
       active = false
     }
-  }, [definition, reloadToken])
+  }, [definition, reloadToken, t])
 
   const currentContentFingerprint = useMemo(() => {
     if (!draft) return ""
@@ -216,14 +220,14 @@ export function AccessControlPolicyEditorDialog({
     && currentContentFingerprint !== initialContentFingerprint,
   )
   const errorMessage = draft && detail
-    ? validationMessage(draft, detail.definition.version, hasContentChanges)
+    ? validationMessage(draft, detail.definition.version, hasContentChanges, (key, values) => t(key, values))
     : ""
   const dirty = Boolean(draft && (
     hasContentChanges
     || draft.version !== suggestNextControlObjectVersion(detail?.definition.version ?? "")
   ))
   const PolicyIcon = draft ? POLICY_ICONS[draft.type] : FileText
-  const typeTitle = draft ? copy.policyTypes[draft.type][0] : "访问控制策略"
+  const typeTitle = draft ? copy.policyTypes[draft.type][0] : t("accessPolicyEditor.policy")
 
   const updateDraft = useCallback((patch: Partial<AccessControlPolicyDraft>) => {
     setDraft((current) => current ? { ...current, ...patch } : current)
@@ -254,7 +258,12 @@ export function AccessControlPolicyEditorDialog({
 
   const handleSave = useCallback(async () => {
     if (!definition || !detail || !policy || !draft) return
-    const issue = validationMessage(draft, detail.definition.version, hasContentChanges)
+    const issue = validationMessage(
+      draft,
+      detail.definition.version,
+      hasContentChanges,
+      (key, values) => t(key, values),
+    )
     if (issue) {
       setFormError(issue)
       return
@@ -271,23 +280,24 @@ export function AccessControlPolicyEditorDialog({
       })
       toast({
         variant: "success",
-        title: "访问控制策略已更新",
-        description: `已创建版本 ${draft.version}，尚未自动下发。`,
+        title: t("accessPolicyEditor.toast.updated"),
+        description: t("accessPolicyEditor.toast.updatedDescription", { version: draft.version }),
       })
       onUpdated?.()
       closeDialog()
     } catch (error) {
-      setFormError(editorErrorMessage(error))
+      setFormError(editorErrorMessage(error, (key) => t(key)))
     } finally {
       setSaving(false)
     }
-  }, [closeDialog, definition, detail, draft, hasContentChanges, onUpdated, policy, toast])
+  }, [closeDialog, definition, detail, draft, hasContentChanges, onUpdated, policy, t, toast])
 
   return (
     <>
       <Dialog open={Boolean(definition)} onOpenChange={handleOpenChange}>
         <DialogContent
           overlayClassName="bg-slate-950/45 backdrop-blur-[1px]"
+          closeLabel={t("common.close")}
           className="flex h-[min(90vh,920px)] w-[min(96vw,1180px)] max-w-none flex-col gap-0 overflow-hidden border-slate-200 bg-white p-0 shadow-2xl [&>button]:right-4 [&>button]:top-3 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-slate-100"
           onEscapeKeyDown={(event) => {
             if (dirty) {
@@ -306,10 +316,12 @@ export function AccessControlPolicyEditorDialog({
               </span>
               <div className="min-w-0">
                 <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                  编辑{typeTitle}
+                  {t("accessPolicyEditor.title", { type: typeTitle })}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                  {definition ? `${definition.objectId} · 当前版本 ${definition.version}` : "加载策略内容"}
+                  {definition
+                    ? t("accessPolicyEditor.description", { id: definition.objectId, version: definition.version })
+                    : t("accessPolicyEditor.loadingDescription")}
                 </DialogDescription>
               </div>
             </div>
@@ -319,12 +331,12 @@ export function AccessControlPolicyEditorDialog({
             {loading ? (
               <div className="flex min-h-0 flex-1 items-center justify-center rounded-2xl border border-slate-200 bg-white text-sm text-slate-500">
                 <LoaderCircle className="mr-2 h-4 w-4 animate-spin text-cyan-600" aria-hidden="true" />
-                正在加载完整策略内容…
+                {t("accessPolicyEditor.loading")}
               </div>
             ) : loadError ? (
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl border border-rose-200 bg-white px-6 text-center">
                 <CircleAlert className="h-8 w-8 text-rose-500" aria-hidden="true" />
-                <p className="mt-3 max-w-xl text-sm font-medium text-slate-900">策略内容无法安全回填</p>
+                <p className="mt-3 max-w-xl text-sm font-medium text-slate-900">{t("accessPolicyEditor.loadFailedTitle")}</p>
                 <p className="mt-1 max-w-xl text-xs leading-5 text-slate-500">{loadError}</p>
                 <Button
                   type="button"
@@ -334,7 +346,7 @@ export function AccessControlPolicyEditorDialog({
                   className="mt-4 h-9 rounded-full px-4"
                 >
                   <RotateCcw className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
-                  重新加载
+                  {t("accessPolicyEditor.reload")}
                 </Button>
               </div>
             ) : draft ? (
@@ -366,7 +378,7 @@ export function AccessControlPolicyEditorDialog({
                   <span className="truncate" title={formError}>{formError}</span>
                 </p>
               ) : (
-                <p className="truncate text-xs text-slate-500">保存后创建同一 Object ID 的新版本，不会自动下发。</p>
+                <p className="truncate text-xs text-slate-500">{t("accessPolicyEditor.saveHint")}</p>
               )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -377,7 +389,7 @@ export function AccessControlPolicyEditorDialog({
                 disabled={saving}
                 className="h-9 rounded-full px-4"
               >
-                取消
+                {t("common.cancel")}
               </Button>
               <Button
                 type="button"
@@ -390,7 +402,7 @@ export function AccessControlPolicyEditorDialog({
                 ) : (
                   <Save className="mr-1.5 h-4 w-4" aria-hidden="true" />
                 )}
-                {saving ? "保存中…" : "保存新版本"}
+                {saving ? t("common.saving") : t("genericEditor.saveVersion")}
               </Button>
             </div>
           </DialogFooter>
@@ -400,18 +412,18 @@ export function AccessControlPolicyEditorDialog({
       <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <AlertDialogContent className="max-w-md rounded-2xl border-slate-200 p-5">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base text-slate-950">放弃未保存的修改？</AlertDialogTitle>
+            <AlertDialogTitle className="text-base text-slate-950">{t("genericEditor.discard.title")}</AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-6 text-slate-600">
-              当前访问控制策略的修改尚未保存，关闭后将无法恢复。
+              {t("accessPolicyEditor.discardDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="h-9 rounded-full px-4">继续编辑</AlertDialogCancel>
+            <AlertDialogCancel className="h-9 rounded-full px-4">{t("genericEditor.discard.continue")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={closeDialog}
               className="h-9 rounded-full bg-rose-600 px-4 text-white hover:bg-rose-700"
             >
-              放弃修改
+              {t("genericEditor.discard.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -261,12 +261,12 @@ describe("patch command editor", () => {
     expect(validatePatchCommandParameters("install_task", {
       ...patchCommandParameters(content),
       randomDelayMinutes: 121,
-    })).toBe("随机延迟必须是 0–120 之间的整数")
+    })).toBe("randomDelayInvalid")
     expect(validatePatchCommandParameters("install_task", {
       ...patchCommandParameters(content),
       executionMode: "scheduled",
       scheduledTime: "",
-    })).toBe("请选择有效的计划执行时间")
+    })).toBe("scheduledTimeInvalid")
 
     const immediate = patchCommandParameters(content)
     expect(patchCommandParameterSignature({
@@ -276,6 +276,6 @@ describe("patch command editor", () => {
     expect(validatePatchCommandParameters("install_task", {
       ...immediate,
       backupBeforeRepair: "true" as unknown as boolean,
-    })).toBe("安装选项无效")
+    })).toBe("installOptionsInvalid")
   })
 })

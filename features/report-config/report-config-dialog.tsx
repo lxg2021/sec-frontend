@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   CheckCircle2,
   CircleAlert,
@@ -121,34 +122,42 @@ function parseCompressType(value: string): ReportCompressType | null {
 function validateDraft(
   draft: ReportConfigDraft,
   baseVersion: string,
+  translate: (key: string, values?: Record<string, string>) => string,
 ): ValidationIssue | null {
   const comparison = compareReportConfigVersions(draft.version, baseVersion)
   if (comparison === null) {
-    return { field: "version", message: "新版本必须使用 x.y.z 格式，例如 1.1.0" }
+    return { field: "version", message: translate("reportConfig.validation.versionFormat") }
   }
   if (comparison <= 0) {
-    return { field: "version", message: `新版本必须高于当前版本 ${baseVersion}` }
+    return {
+      field: "version",
+      message: translate("reportConfig.validation.versionNotGreater", { version: baseVersion }),
+    }
   }
   if (parsePositiveInteger(draft.intervalTime) === null) {
-    return { field: "intervalTime", message: "上报间隔必须是大于 0 的整数毫秒" }
+    return { field: "intervalTime", message: translate("reportConfig.validation.intervalTime") }
   }
   if (parsePositiveInteger(draft.reportThread) === null) {
-    return { field: "reportThread", message: "上报线程数必须是大于 0 的整数" }
+    return { field: "reportThread", message: translate("reportConfig.validation.reportThread") }
   }
   if (parsePositiveInteger(draft.reportUnit) === null) {
-    return { field: "reportUnit", message: "单批上报数量必须是大于 0 的整数" }
+    return { field: "reportUnit", message: translate("reportConfig.validation.reportUnit") }
   }
   if (parsePositiveInteger(draft.tryCount) === null) {
-    return { field: "tryCount", message: "失败重试次数必须是大于 0 的整数" }
+    return { field: "tryCount", message: translate("reportConfig.validation.tryCount") }
   }
   if (parseCompressType(draft.compressType) === null) {
-    return { field: "compressType", message: "请选择 Agent 当前支持的压缩方式" }
+    return { field: "compressType", message: translate("reportConfig.validation.compressType") }
   }
   return null
 }
 
-function errorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error && error.message.trim()) return error.message
+function errorMessage(error: unknown, fallback: string, translate: (key: string) => string) {
+  if (error instanceof Error && error.message.trim()) {
+    if (error.message === "REPORT_CONFIG_VERSION_SUGGESTION_INVALID") {
+      return translate("reportConfig.errors.versionSuggestion")
+    }
+  }
   return fallback
 }
 
@@ -157,6 +166,7 @@ export function ReportConfigDialog({
   onOpenChange,
   onUpdated,
 }: ReportConfigDialogProps) {
+  const t = useTranslations("pages.controlCenter")
   const { toast } = useToast()
   const requestSequence = useRef(0)
   const [definition, setDefinition] = useState<ReportConfigDefinition | null>(null)
@@ -184,7 +194,7 @@ export function ReportConfigDialog({
       if (sequence !== requestSequence.current) return
 
       const nextVersion = suggestNextReportConfigVersion(current.baseVersion)
-      if (!nextVersion) throw new Error("当前配置版本无法生成有效的新版本建议")
+      if (!nextVersion) throw new Error("REPORT_CONFIG_VERSION_SUGGESTION_INVALID")
       const nextDraft = {
         version: nextVersion,
         intervalTime: String(current.intervalTime),
@@ -198,11 +208,11 @@ export function ReportConfigDialog({
       setInitialSignature(draftSignature(nextDraft))
     } catch (error) {
       if (sequence !== requestSequence.current) return
-      setLoadError(errorMessage(error, "加载上报配置失败，请稍后重试"))
+      setLoadError(errorMessage(error, t("reportConfig.errors.loadFailed"), (key) => t(key)))
     } finally {
       if (sequence === requestSequence.current) setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (open) {
@@ -266,11 +276,11 @@ export function ReportConfigDialog({
   const saveNewVersion = async () => {
     if (!definition || submitting) return
     if (!definition.canUpdate) {
-      setRequestError("服务端未授权更新此上报配置")
+      setRequestError(t("reportConfig.errors.notAllowed"))
       return
     }
 
-    const issue = validateDraft(draft, definition.baseVersion)
+    const issue = validateDraft(draft, definition.baseVersion, (key, values) => t(key, values))
     if (issue) {
       setValidationIssue(issue)
       setRequestError("")
@@ -295,18 +305,18 @@ export function ReportConfigDialog({
       toast({
         variant: "success",
         duration: 4500,
-        title: "上报配置新版本已创建",
-        description: `已创建 ${updated.baseVersion}，尚未选择主机或下发。`,
+        title: t("reportConfig.toast.created"),
+        description: t("reportConfig.toast.createdDescription", { version: updated.baseVersion }),
       })
       onUpdated?.(updated)
       onOpenChange(false)
     } catch (error) {
-      const message = errorMessage(error, "创建上报配置新版本失败，请稍后重试")
+      const message = errorMessage(error, t("reportConfig.errors.createFailed"), (key) => t(key))
       setRequestError(message)
       toast({
         variant: "destructive",
         duration: 4500,
-        title: "上报配置更新失败",
+        title: t("reportConfig.toast.failed"),
         description: message,
       })
     } finally {
@@ -332,13 +342,13 @@ export function ReportConfigDialog({
                 </div>
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                    编辑数据上报配置
+                    {t("reportConfig.title")}
                   </DialogTitle>
                   <Badge
                     variant="outline"
                     className="border-cyan-200 bg-cyan-50 px-2 py-0 text-[11px] text-cyan-700"
                   >
-                    系统内置
+                    {t("sources.builtin")}
                   </Badge>
                 </div>
                 <Button
@@ -348,14 +358,14 @@ export function ReportConfigDialog({
                   className="h-8 w-8 shrink-0 rounded-full text-slate-500 hover:text-slate-900"
                   onClick={requestClose}
                   disabled={submitting}
-                  aria-label="关闭数据上报配置"
-                  title="关闭"
+                  aria-label={t("reportConfig.closeAriaLabel")}
+                  title={t("common.close")}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <DialogDescription className="sr-only">
-                加载并编辑 Agent 数据上报配置，校验后创建一个可供后续下发的新版本。
+                {t("reportConfig.description")}
               </DialogDescription>
             </DialogHeader>
 
@@ -369,7 +379,7 @@ export function ReportConfigDialog({
                     className="flex min-h-36 flex-col items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 py-6 text-center"
                   >
                     <CircleAlert className="h-7 w-7 text-rose-600" />
-                    <p className="mt-3 text-sm font-semibold text-rose-900">上报配置加载失败</p>
+                    <p className="mt-3 text-sm font-semibold text-rose-900">{t("reportConfig.loadFailedTitle")}</p>
                     <p className="mt-1 max-w-lg break-words text-xs leading-5 text-rose-700">
                       {loadError}
                     </p>
@@ -380,7 +390,7 @@ export function ReportConfigDialog({
                       onClick={() => void loadCurrentConfig()}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
-                      重新加载
+                      {t("reportConfig.reload")}
                     </Button>
                   </div>
                 )}
@@ -394,38 +404,38 @@ export function ReportConfigDialog({
                           id="report-config-basic-title"
                           className="text-sm font-semibold text-slate-900"
                         >
-                          基本信息
+                          {t("genericEditor.basicInfo")}
                         </h3>
                       </div>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
-                        <ReadOnlyField label="配置名称">
-                          <span className="truncate">数据上报配置</span>
+                        <ReadOnlyField label={t("reportConfig.configName")}>
+                          <span className="truncate">{t("builtinObjects.reportConfig")}</span>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
                                 type="button"
                                 className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-                                aria-label="查看内部配置名称"
+                                aria-label={t("reportConfig.internalInfoAriaLabel")}
                               >
                                 <Info className="h-3.5 w-3.5" />
                               </button>
                             </TooltipTrigger>
                             <TooltipPortal>
                               <TooltipContent className="z-[80] max-w-xs text-xs leading-5">
-                                内部名称：{REPORT_CONFIG_INTERNAL_NAME}
+                                {t("reportConfig.internalName", { name: REPORT_CONFIG_INTERNAL_NAME })}
                               </TooltipContent>
                             </TooltipPortal>
                           </Tooltip>
                         </ReadOnlyField>
-                        <ReadOnlyField label="来源">
+                        <ReadOnlyField label={t("table.source")}>
                           <Server className="h-4 w-4 text-cyan-600" />
-                          系统内置
+                          {t("sources.builtin")}
                         </ReadOnlyField>
-                        <ReadOnlyField label="基础版本">
+                        <ReadOnlyField label={t("sensorConfig.baseVersion")}>
                           <span className="truncate font-mono">{definition.baseVersion}</span>
                         </ReadOnlyField>
                         <FormField
-                          label="新版本"
+                          label={t("genericEditor.newVersion")}
                           htmlFor="report-config-version"
                           error={
                             validationIssue?.field === "version"
@@ -440,7 +450,7 @@ export function ReportConfigDialog({
                               onChange={(event) => updateField("version", event.target.value)}
                               maxLength={64}
                               className="h-10 bg-white pr-9 font-mono"
-                              placeholder="例如 1.1.0"
+                              placeholder={t("sensorConfig.versionPlaceholder")}
                               disabled={submitting}
                               aria-invalid={validationIssue?.field === "version"}
                             />
@@ -462,13 +472,13 @@ export function ReportConfigDialog({
                           id="report-config-parameters-title"
                           className="text-sm font-semibold text-slate-900"
                         >
-                          上报参数
+                          {t("reportConfig.parameters")}
                         </h3>
                       </div>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-6">
                         <FormField
                           className="md:col-span-2"
-                          label="上报间隔"
+                          label={t("reportConfig.intervalTime")}
                           htmlFor="report-config-intervalTime"
                           error={
                             validationIssue?.field === "intervalTime"
@@ -480,7 +490,7 @@ export function ReportConfigDialog({
                             id="report-config-intervalTime"
                             value={draft.intervalTime}
                             onChange={(value) => updateField("intervalTime", value)}
-                            unit="毫秒"
+                            unit={t("reportConfig.milliseconds")}
                             disabled={submitting}
                             invalid={validationIssue?.field === "intervalTime"}
                           />
@@ -488,21 +498,21 @@ export function ReportConfigDialog({
 
                         <FormField
                           className="md:col-span-2"
-                          label="上报线程数"
+                          label={t("reportConfig.reportThread")}
                           labelAccessory={
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
                                   type="button"
                                   className="inline-flex h-5 w-5 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-cyan-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
-                                  aria-label="查看上报线程数生效说明"
+                                  aria-label={t("reportConfig.threadInfoAriaLabel")}
                                 >
                                   <Info className="h-3.5 w-3.5" />
                                 </button>
                               </TooltipTrigger>
                               <TooltipPortal>
                                 <TooltipContent className="z-[80] max-w-xs text-xs leading-5">
-                                  修改后将在 Agent 上报模块下次启动时生效；当前运行中的线程池不会立即重建。
+                                  {t("reportConfig.threadInfo")}
                                 </TooltipContent>
                               </TooltipPortal>
                             </Tooltip>
@@ -525,7 +535,7 @@ export function ReportConfigDialog({
 
                         <FormField
                           className="md:col-span-2"
-                          label="单批上报数量"
+                          label={t("reportConfig.reportUnit")}
                           htmlFor="report-config-reportUnit"
                           error={
                             validationIssue?.field === "reportUnit"
@@ -544,7 +554,7 @@ export function ReportConfigDialog({
 
                         <FormField
                           className="md:col-span-3"
-                          label="失败重试次数"
+                          label={t("reportConfig.tryCount")}
                           htmlFor="report-config-tryCount"
                           error={
                             validationIssue?.field === "tryCount"
@@ -563,7 +573,7 @@ export function ReportConfigDialog({
 
                         <FormField
                           className="md:col-span-3"
-                          label="压缩方式"
+                          label={t("reportConfig.compressType")}
                           htmlFor="report-config-compressType"
                           error={
                             validationIssue?.field === "compressType"
@@ -582,7 +592,7 @@ export function ReportConfigDialog({
                               disabled={submitting}
                               aria-invalid={validationIssue?.field === "compressType"}
                             >
-                              <SelectValue placeholder="选择压缩方式" />
+                              <SelectValue placeholder={t("reportConfig.compressPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent
                               position="popper"
@@ -592,7 +602,7 @@ export function ReportConfigDialog({
                             >
                               {REPORT_COMPRESS_OPTIONS.map((option) => (
                                 <SelectItem key={option.value} value={String(option.value)}>
-                                  {option.label}
+                                  {t(option.labelKey)}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -607,7 +617,7 @@ export function ReportConfigDialog({
                         className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-800"
                       >
                         <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                        服务端当前未授予此内置对象的更新能力，无法创建新版本。
+                        {t("reportConfig.notAllowedDescription")}
                       </div>
                     )}
 
@@ -631,17 +641,17 @@ export function ReportConfigDialog({
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 shrink-0 animate-spin text-cyan-600" />
-                      <span>正在读取当前配置</span>
+                      <span>{t("reportConfig.loading")}</span>
                     </>
                   ) : hasUnsavedChanges ? (
                     <>
                       <CircleAlert className="h-4 w-4 shrink-0 text-amber-500" />
-                      <span>{modifiedFieldCount} 项内容已修改，尚未创建</span>
+                      <span>{t("reportConfig.modifiedCount", { count: modifiedFieldCount })}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                      <span>{definition ? "当前无未保存修改" : "等待加载配置"}</span>
+                      <span>{definition ? t("sensorConfig.noUnsaved") : t("reportConfig.waiting")}</span>
                     </>
                   )}
                 </div>
@@ -654,7 +664,7 @@ export function ReportConfigDialog({
                     disabled={!definition || loading || submitting}
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    恢复为系统内置值
+                    {t("reportConfig.restoreDefaults")}
                   </Button>
                   <Button
                     type="button"
@@ -663,7 +673,7 @@ export function ReportConfigDialog({
                     onClick={requestClose}
                     disabled={submitting}
                   >
-                    取消
+                    {t("common.cancel")}
                   </Button>
                   <Button
                     type="button"
@@ -674,13 +684,13 @@ export function ReportConfigDialog({
                     {submitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        正在创建
+                        {t("reportConfig.creating")}
                       </>
                     ) : (
                       <>
                         <FileCog className="h-4 w-4" />
-                        <span className="sm:hidden">创建新版本</span>
-                        <span className="hidden sm:inline">校验并创建新版本</span>
+                        <span className="sm:hidden">{t("reportConfig.createVersionShort")}</span>
+                        <span className="hidden sm:inline">{t("reportConfig.createVersion")}</span>
                       </>
                     )}
                   </Button>
@@ -694,13 +704,13 @@ export function ReportConfigDialog({
       <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>放弃未创建的修改？</AlertDialogTitle>
+            <AlertDialogTitle>{t("reportConfig.discard.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              当前上报配置存在未创建的修改。关闭后，这些修改将不会保留。
+              {t("reportConfig.discard.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full px-5">继续编辑</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-full px-5">{t("genericEditor.discard.continue")}</AlertDialogCancel>
             <AlertDialogAction
               className="rounded-full bg-rose-600 px-5 text-white hover:bg-rose-700"
               onClick={() => {
@@ -708,7 +718,7 @@ export function ReportConfigDialog({
                 onOpenChange(false)
               }}
             >
-              放弃修改
+              {t("genericEditor.discard.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -754,8 +764,9 @@ function NumberInput({
 }
 
 function LoadingState() {
+  const t = useTranslations("pages.controlCenter")
   return (
-    <div className="space-y-4" aria-label="正在加载上报配置">
+    <div className="space-y-4" aria-label={t("reportConfig.loadingAriaLabel")}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
         {Array.from({ length: 4 }, (_, index) => (
           <div key={index} className="space-y-2">

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useId, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   AlertTriangle,
   CircleAlert,
@@ -61,27 +62,27 @@ import {
 } from "@/shared/ui/select"
 import { Switch } from "@/shared/ui/switch"
 
-function editorErrorMessage(error: unknown) {
+function editorErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   const messages: Record<string, string> = {
-    PMC_OBJECT_DETAIL_INVALID: "后台没有返回完整的命令定义，请刷新列表后重试。",
-    PMC_OBJECT_DETAIL_MISMATCH: "后台返回的命令身份或版本与当前列表不一致，请刷新后重试。",
-    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "命令缺少名称、类型、版本或 context，无法安全编辑。",
-    PMC_BASELINE_REPAIR_COMMAND_CONTEXT_INVALID: "命令内容不是完整、有效的基线一键修复结构，已停止编辑以避免破坏业务数据。",
-    PMC_CREATE_OBJECT_ID_INVALID: "无法生成有效的新命令 ID，请重试。",
-    PMC_CREATE_NAME_INVALID: "命令名称无效。",
-    PMC_CREATE_CATEGORY_INVALID: "命令分类无效。",
-    PMC_CREATE_SUBTYPE_INVALID: "命令子类型无效。",
-    PMC_CREATE_CONTEXT_INVALID: "命令内容不能为空。",
-    PMC_CREATE_RESPONSE_INVALID: "后台已响应，但没有返回新命令定义。",
-    PMC_CREATE_RESPONSE_MISMATCH: "后台返回的新命令与本次保存内容不一致，请刷新后核对。",
-    PMC_RANDOM_UUID_UNAVAILABLE: "当前浏览器无法安全生成新命令 ID，请更换浏览器后重试。",
+    PMC_OBJECT_DETAIL_INVALID: "commandEditors.errors.detailInvalid",
+    PMC_OBJECT_DETAIL_MISMATCH: "commandEditors.errors.detailMismatch",
+    PMC_OBJECT_EDITABLE_CONTENT_INVALID: "commandEditors.errors.contentIncomplete",
+    PMC_BASELINE_REPAIR_COMMAND_CONTEXT_INVALID: "baselineRepairCommand.errors.contextInvalid",
+    PMC_CREATE_OBJECT_ID_INVALID: "commandEditors.errors.objectIdInvalid",
+    PMC_CREATE_NAME_INVALID: "commandEditors.errors.nameInvalid",
+    PMC_CREATE_CATEGORY_INVALID: "commandEditors.errors.categoryInvalid",
+    PMC_CREATE_SUBTYPE_INVALID: "commandEditors.errors.subTypeInvalid",
+    PMC_CREATE_CONTEXT_INVALID: "commandEditors.errors.contextRequired",
+    PMC_CREATE_RESPONSE_INVALID: "commandEditors.errors.responseInvalid",
+    PMC_CREATE_RESPONSE_MISMATCH: "commandEditors.errors.responseMismatch",
+    PMC_RANDOM_UUID_UNAVAILABLE: "commandEditors.errors.uuidUnavailable",
   }
-  if (messages[message]) return messages[message]
+  if (messages[message]) return translate(messages[message])
   if (message.includes("object version already exists") || message.includes("already exists")) {
-    return "新命令 ID 已存在，请重新保存。"
+    return translate("commandEditors.errors.idExists")
   }
-  return message || "新命令创建失败，请稍后重试。"
+  return message || translate("commandEditors.errors.createFailed")
 }
 
 function createCommandObjectId() {
@@ -100,6 +101,7 @@ export function BaselineRepairCommandEditorDialog({
   onOpenChange: (open: boolean) => void
   onCreated: () => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const { toast } = useToast()
   const rawFieldPrefix = useId()
   const fieldPrefix = `baseline-repair-command-editor-${rawFieldPrefix.replace(/:/g, "")}`
@@ -147,7 +149,7 @@ export function BaselineRepairCommandEditorDialog({
         setInitialSignature(baselineRepairCommandParameterSignature(nextParameters))
       })
       .catch((error: unknown) => {
-        if (active) setLoadError(editorErrorMessage(error))
+        if (active) setLoadError(editorErrorMessage(error, (key) => t(key)))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -156,7 +158,7 @@ export function BaselineRepairCommandEditorDialog({
     return () => {
       active = false
     }
-  }, [definition, reloadToken])
+  }, [definition, reloadToken, t])
 
   const dirty = Boolean(parameters && initialSignature
     && baselineRepairCommandParameterSignature(parameters) !== initialSignature)
@@ -199,14 +201,14 @@ export function BaselineRepairCommandEditorDialog({
         context,
       })
       toast({
-        title: "新命令已创建",
-        description: `已另存为 ${created.objectId}；当前命令保持不变，尚未下发到主机。`,
+        title: t("commandEditors.toast.created"),
+        description: t("commandEditors.toast.createdDescription", { id: created.objectId }),
         variant: "success",
       })
       onCreated()
       onOpenChange(false)
     } catch (error) {
-      setSubmitError(editorErrorMessage(error))
+      setSubmitError(editorErrorMessage(error, (key) => t(key)))
     } finally {
       setSubmitting(false)
     }
@@ -222,6 +224,7 @@ export function BaselineRepairCommandEditorDialog({
       >
         <DialogContent
           overlayClassName="bg-slate-950/45 backdrop-blur-[2px]"
+          closeLabel={t("common.close")}
           className={cn(
             "flex max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-[780px] flex-col gap-0 overflow-hidden rounded-2xl border-slate-200 bg-white p-0 shadow-2xl",
             "[&>button]:right-4 [&>button]:top-3.5 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-slate-100 [&>button]:hover:text-slate-800 [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-cyan-500",
@@ -235,10 +238,10 @@ export function BaselineRepairCommandEditorDialog({
               </span>
               <div className="min-w-0 flex-1">
                 <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                  编辑基线一键修复命令
+                  {t("baselineRepairCommand.title")}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                  修改修复参数，并基于当前内容另存为新的不可变命令
+                  {t("commandEditors.description")}
                 </DialogDescription>
               </div>
             </div>
@@ -248,7 +251,7 @@ export function BaselineRepairCommandEditorDialog({
             {loading ? (
               <div className="flex min-h-[360px] flex-col items-center justify-center gap-3 text-center text-slate-500" aria-busy="true">
                 <LoaderCircle className="h-6 w-6 animate-spin text-cyan-600" aria-hidden="true" />
-                <p className="text-sm">正在读取当前命令内容…</p>
+                <p className="text-sm">{t("commandEditors.loading")}</p>
               </div>
             ) : loadError ? (
               <div className="flex min-h-[360px] items-center justify-center">
@@ -256,7 +259,7 @@ export function BaselineRepairCommandEditorDialog({
                   <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600">
                     <CircleAlert className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <p className="mt-3 text-sm font-medium text-slate-900">命令内容加载失败</p>
+                  <p className="mt-3 text-sm font-medium text-slate-900">{t("commandEditors.loadFailedTitle")}</p>
                   <p className="mt-1.5 text-xs leading-5 text-slate-600">{loadError}</p>
                   <Button
                     type="button"
@@ -266,7 +269,7 @@ export function BaselineRepairCommandEditorDialog({
                     className="mt-4 h-8 rounded-full border-slate-200 px-3"
                   >
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                    重试
+                    {t("common.retry")}
                   </Button>
                 </div>
               </div>
@@ -275,29 +278,29 @@ export function BaselineRepairCommandEditorDialog({
                 <section aria-labelledby={`${fieldPrefix}-basic-heading`}>
                   <div className="mb-2.5 flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-violet-600" aria-hidden="true" />
-                    <h3 id={`${fieldPrefix}-basic-heading`} className="text-xs font-semibold text-slate-900">基本信息</h3>
+                    <h3 id={`${fieldPrefix}-basic-heading`} className="text-xs font-semibold text-slate-900">{t("commandEditors.basicInfo")}</h3>
                   </div>
                   <div className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 sm:grid-cols-3">
-                    <ReadOnlyField label="当前命令 ID" value={definition.objectId} mono className="sm:col-span-2" />
-                    <ReadOnlyField label="当前版本" value={definition.version} mono />
-                    <ReadOnlyField label="类型" value="命令" />
-                    <ReadOnlyField label="子类型" value="102 / 基线一键修复" />
-                    <ReadOnlyField label="修复模式" value="一键修复（HailMary）" />
-                    <ReadOnlyField label="基线文件名" value={content.baselineName} className="sm:col-span-2" icon={FileText} />
-                    <ReadOnlyField label="基线 UUID" value={content.baselineUuid} mono />
+                    <ReadOnlyField label={t("commandEditors.currentCommandId")} value={definition.objectId} mono className="sm:col-span-2" />
+                    <ReadOnlyField label={t("commandEditors.currentVersion")} value={definition.version} mono />
+                    <ReadOnlyField label={t("commandEditors.type")} value={t("objectTypes.command")} />
+                    <ReadOnlyField label={t("commandEditors.subType")} value={t("baselineRepairCommand.subTypeValue")} />
+                    <ReadOnlyField label={t("baselineRepairCommand.repairMode")} value={t("baselineRepairCommand.repairModeValue")} />
+                    <ReadOnlyField label={t("baselineRepairCommand.baselineFileName")} value={content.baselineName} className="sm:col-span-2" icon={FileText} />
+                    <ReadOnlyField label={t("baselineRepairCommand.baselineUuid")} value={content.baselineUuid} mono />
                   </div>
                 </section>
 
                 <section aria-labelledby={`${fieldPrefix}-parameters-heading`}>
                   <div className="mb-2.5 flex items-center gap-2">
                     <Wrench className="h-4 w-4 shrink-0 text-cyan-600" aria-hidden="true" />
-                    <h3 id={`${fieldPrefix}-parameters-heading`} className="text-xs font-semibold text-slate-900">修复参数</h3>
+                    <h3 id={`${fieldPrefix}-parameters-heading`} className="text-xs font-semibold text-slate-900">{t("baselineRepairCommand.parameters")}</h3>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-slate-200 bg-white p-3">
-                      <Label htmlFor={`${fieldPrefix}-source`} className="text-xs font-medium text-slate-800">修复源类型</Label>
-                      <p className="mt-1 text-[11px] leading-4 text-slate-500">选择客户端采用的配置修复来源。</p>
+                      <Label htmlFor={`${fieldPrefix}-source`} className="text-xs font-medium text-slate-800">{t("baselineRepairCommand.sourceType")}</Label>
+                      <p className="mt-1 text-[11px] leading-4 text-slate-500">{t("baselineRepairCommand.sourceDescription")}</p>
                       <Select
                         value={parameters.source}
                         disabled={submitting}
@@ -317,8 +320,8 @@ export function BaselineRepairCommandEditorDialog({
                       id={`${fieldPrefix}-backup`}
                       icon={DatabaseBackup}
                       iconClassName="text-cyan-600"
-                      label="修复前备份"
-                      description="执行修复前备份当前配置，便于后续恢复。"
+                      label={t("baselineRepairCommand.backup")}
+                      description={t("baselineRepairCommand.backupDescription")}
                       checked={parameters.backupBeforeRepair}
                       disabled={submitting}
                       onCheckedChange={(checked) => updateParameter("backupBeforeRepair", checked)}
@@ -327,8 +330,8 @@ export function BaselineRepairCommandEditorDialog({
                       id={`${fieldPrefix}-rescan`}
                       icon={RefreshCw}
                       iconClassName="text-blue-600"
-                      label="修复后重扫"
-                      description="修复完成后由 Agent 自动触发一次基线扫描。"
+                      label={t("baselineRepairCommand.rescan")}
+                      description={t("baselineRepairCommand.rescanDescription")}
                       checked={parameters.rescanAfterRepair}
                       disabled={submitting}
                       onCheckedChange={(checked) => updateParameter("rescanAfterRepair", checked)}
@@ -337,8 +340,8 @@ export function BaselineRepairCommandEditorDialog({
                       id={`${fieldPrefix}-restore-point`}
                       icon={RotateCcw}
                       iconClassName="text-rose-600"
-                      label="跳过系统还原点"
-                      description="修复时不创建系统还原点，会降低恢复保障。"
+                      label={t("baselineRepairCommand.skipRestorePoint")}
+                      description={t("baselineRepairCommand.skipRestorePointDescription")}
                       checked={parameters.skipRestorePoint}
                       disabled={submitting}
                       onCheckedChange={(checked) => updateParameter("skipRestorePoint", checked)}
@@ -350,8 +353,8 @@ export function BaselineRepairCommandEditorDialog({
                   <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800" role="alert">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
                     <div>
-                      {!parameters.backupBeforeRepair && <p>修复前备份已关闭，发生异常时回滚能力会减弱。</p>}
-                      {parameters.skipRestorePoint && <p>将跳过系统还原点，系统级恢复风险会增加。</p>}
+                      {!parameters.backupBeforeRepair && <p>{t("baselineRepairCommand.warnings.backupDisabled")}</p>}
+                      {parameters.skipRestorePoint && <p>{t("baselineRepairCommand.warnings.restorePointSkipped")}</p>}
                     </div>
                   </div>
                 )}
@@ -369,14 +372,14 @@ export function BaselineRepairCommandEditorDialog({
           <DialogFooter className="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
             <p className="min-w-0 text-[11px] leading-5 text-slate-500" aria-live="polite">
               {submitting
-                ? "正在创建新的 1.0.0 命令…"
+                ? t("commandEditors.creating")
                 : dirty
-                  ? "保存后创建新命令；当前命令保持不变，且不会自动下发。"
-                  : "修改任一修复参数后即可另存为新命令。"}
+                  ? t("commandEditors.changedHint")
+                  : t("baselineRepairCommand.unchangedHint")}
             </p>
             <div className="flex shrink-0 items-center justify-end gap-2">
               <Button type="button" variant="outline" size="sm" onClick={requestClose} disabled={submitting} className="h-8 rounded-full px-4">
-                取消
+                {t("common.cancel")}
               </Button>
               <Button
                 type="button"
@@ -386,7 +389,7 @@ export function BaselineRepairCommandEditorDialog({
                 className="h-8 rounded-full bg-cyan-600 px-4 text-white hover:bg-cyan-700"
               >
                 {submitting ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <CopyPlus className="h-3.5 w-3.5" aria-hidden="true" />}
-                {submitting ? "创建中" : "另存为新命令"}
+                {submitting ? t("commandEditors.creatingShort") : t("commandEditors.saveAsNew")}
               </Button>
             </div>
           </DialogFooter>
@@ -396,18 +399,18 @@ export function BaselineRepairCommandEditorDialog({
       <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <AlertDialogContent className="max-w-md rounded-2xl border-slate-200 p-5">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base text-slate-950">放弃未保存的修改？</AlertDialogTitle>
+            <AlertDialogTitle className="text-base text-slate-950">{t("genericEditor.discard.title")}</AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-6 text-slate-600">
-              当前修复参数尚未另存为新命令，关闭后将无法恢复。
+              {t("baselineRepairCommand.discardDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="h-9 rounded-full px-4">继续编辑</AlertDialogCancel>
+            <AlertDialogCancel className="h-9 rounded-full px-4">{t("genericEditor.discard.continue")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => onOpenChange(false)}
               className="h-9 rounded-full bg-rose-600 px-4 text-white hover:bg-rose-700"
             >
-              放弃修改
+              {t("genericEditor.discard.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

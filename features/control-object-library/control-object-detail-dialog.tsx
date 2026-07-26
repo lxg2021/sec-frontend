@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   Check,
   CircleAlert,
@@ -16,6 +17,7 @@ import {
   type ControlObjectDetail,
   type ControlObjectSource,
 } from "@/features/control-object-library/api"
+import { controlObjectDisplayNameKey } from "@/features/control-object-library/table-presentation"
 import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 import { Button } from "@/shared/ui/button"
@@ -27,47 +29,47 @@ import {
   DialogTitle,
 } from "@/shared/ui/dialog"
 
-const SOURCE_PRESENTATION: Record<ControlObjectSource, { label: string; className: string }> = {
+const SOURCE_PRESENTATION: Record<ControlObjectSource, { labelKey: string; className: string }> = {
   builtin: {
-    label: "系统内置",
+    labelKey: "sources.builtin",
     className: "border-emerald-200 bg-emerald-50 text-emerald-700",
   },
   manual: {
-    label: "手动创建",
+    labelKey: "sources.manual",
     className: "border-blue-200 bg-blue-50 text-blue-700",
   },
   remediation: {
-    label: "处置编排",
+    labelKey: "sources.remediation",
     className: "border-violet-200 bg-violet-50 text-violet-700",
   },
   mitigation: {
-    label: "直接处置",
+    labelKey: "sources.mitigation",
     className: "border-amber-200 bg-amber-50 text-amber-700",
   },
   unknown: {
-    label: "未标明",
+    labelKey: "sources.unknown",
     className: "border-slate-200 bg-slate-50 text-slate-600",
   },
 }
 
 const TYPE_LABELS = {
-  config: "配置",
-  policy: "策略",
-  command: "命令",
+  config: "objectTypes.config",
+  policy: "objectTypes.policy",
+  command: "objectTypes.command",
 } as const
 
-function detailErrorMessage(error: unknown) {
+function detailErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   if (message === "PMC_OBJECT_DETAIL_INVALID") {
-    return "后台没有返回完整的对象定义，请检查单对象详情接口。"
+    return translate("detail.errors.invalid")
   }
   if (message === "PMC_OBJECT_DETAIL_MISMATCH") {
-    return "后台返回的对象身份或版本与当前选择不一致，已停止展示。"
+    return translate("detail.errors.mismatch")
   }
   if (message === "PMC_OBJECT_DEFINITION_INVALID") {
-    return "后台返回的对象定义缺少类型、ID、名称或版本。"
+    return translate("detail.errors.definitionInvalid")
   }
-  return message || "完整对象内容加载失败，请稍后重试。"
+  return message || translate("detail.errors.loadFailed")
 }
 
 export function ControlObjectDetailDialog({
@@ -79,6 +81,7 @@ export function ControlObjectDetailDialog({
   definition: ControlObjectDefinition | null
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const [detail, setDetail] = useState<ControlObjectDetail | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -105,7 +108,7 @@ export function ControlObjectDetailDialog({
         if (active) setDetail(result)
       })
       .catch((loadError: unknown) => {
-        if (active) setError(detailErrorMessage(loadError))
+        if (active) setError(detailErrorMessage(loadError, (key) => t(key)))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -114,7 +117,7 @@ export function ControlObjectDetailDialog({
     return () => {
       active = false
     }
-  }, [definition, open, reloadToken])
+  }, [definition, open, reloadToken, t])
 
   useEffect(() => {
     if (copyState !== "copied") return
@@ -134,11 +137,16 @@ export function ControlObjectDetailDialog({
 
   const visibleDefinition = detail?.definition ?? definition
   const source = visibleDefinition ? SOURCE_PRESENTATION[visibleDefinition.source] : null
+  const displayNameKey = visibleDefinition ? controlObjectDisplayNameKey(visibleDefinition) : null
+  const displayName = visibleDefinition
+    ? (displayNameKey ? t(displayNameKey) : visibleDefinition.displayName)
+    : ""
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         overlayClassName="bg-slate-950/45 backdrop-blur-[2px]"
+        closeLabel={t("common.close")}
         className={cn(
           "flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-1.5rem)] max-w-[900px] flex-col gap-0 overflow-hidden rounded-2xl border-slate-200 bg-white p-0 shadow-2xl sm:rounded-2xl",
           "[&>button]:right-4 [&>button]:top-3.5 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-slate-100 [&>button]:hover:text-slate-800 [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-cyan-500",
@@ -151,10 +159,10 @@ export function ControlObjectDetailDialog({
             </span>
             <div className="min-w-0 flex-1">
               <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                {visibleDefinition?.displayName || "完整对象 JSON"}
+                {displayName || t("detail.title")}
               </DialogTitle>
               <DialogDescription className="sr-only">
-                通过单对象详情接口读取的完整定义
+                {t("detail.description")}
               </DialogDescription>
             </div>
           </div>
@@ -162,11 +170,11 @@ export function ControlObjectDetailDialog({
           {visibleDefinition && (
             <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-1.5 pl-0 sm:pl-[42px]">
               <Badge variant="outline" className="border-slate-200 bg-white text-slate-700">
-                {TYPE_LABELS[visibleDefinition.objectType]}
+                {t(TYPE_LABELS[visibleDefinition.objectType])}
               </Badge>
               {source && (
                 <Badge variant="outline" className={cn("font-medium", source.className)}>
-                  {source.label}
+                  {t(source.labelKey)}
                 </Badge>
               )}
               <span className="inline-flex rounded-full border border-slate-200 bg-white px-2 py-0.5 font-mono text-[11px] font-medium text-slate-600">
@@ -186,7 +194,7 @@ export function ControlObjectDetailDialog({
           {loading ? (
             <div className="flex min-h-72 flex-1 flex-col items-center justify-center gap-3 px-6 text-center text-slate-300" aria-busy="true">
               <LoaderCircle className="h-6 w-6 animate-spin text-cyan-400" aria-hidden="true" />
-              <p className="text-sm">正在读取完整对象内容…</p>
+              <p className="text-sm">{t("detail.loading")}</p>
             </div>
           ) : error ? (
             <div className="flex min-h-72 flex-1 items-center justify-center px-6 py-10">
@@ -194,7 +202,7 @@ export function ControlObjectDetailDialog({
                 <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/15 text-rose-300">
                   <CircleAlert className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <p className="mt-3 text-sm font-medium text-white">对象内容加载失败</p>
+                <p className="mt-3 text-sm font-medium text-white">{t("detail.loadFailedTitle")}</p>
                 <p className="mt-1.5 text-xs leading-5 text-slate-300">{error}</p>
                 <Button
                   type="button"
@@ -204,7 +212,7 @@ export function ControlObjectDetailDialog({
                   className="mt-4 h-8 rounded-full border-slate-600 bg-slate-900 px-3 text-slate-100 hover:bg-slate-800 hover:text-white"
                 >
                   <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                  重试
+                  {t("common.retry")}
                 </Button>
               </div>
             </div>
@@ -212,7 +220,7 @@ export function ControlObjectDetailDialog({
             <pre
               className="min-h-0 min-w-0 w-full max-w-full flex-1 overflow-auto p-4 font-mono text-[12px] leading-5 text-slate-200 [tab-size:2] sm:p-5"
               tabIndex={0}
-              aria-label={`${detail.definition.displayName} 的完整 JSON`}
+              aria-label={t("detail.jsonAriaLabel", { name: displayName })}
             >
               <code>{detail.displayJson}</code>
             </pre>
@@ -225,10 +233,10 @@ export function ControlObjectDetailDialog({
             copyState === "failed" ? "text-rose-600" : "text-slate-500",
           )} aria-live="polite">
             {copyState === "copied"
-              ? "完整 JSON 已复制"
+              ? t("detail.copySuccess")
               : copyState === "failed"
-                ? "复制失败，请检查浏览器剪贴板权限"
-                : "context 为合法 JSON 时会展开显示，原始响应不会被修改"}
+                ? t("detail.copyFailed")
+                : t("detail.copyHint")}
           </p>
           <Button
             type="button"
@@ -243,7 +251,7 @@ export function ControlObjectDetailDialog({
             ) : (
               <Copy className="h-3.5 w-3.5" aria-hidden="true" />
             )}
-            {copyState === "copied" ? "已复制" : "复制 JSON"}
+            {copyState === "copied" ? t("detail.copied") : t("detail.copyJson")}
           </Button>
         </div>
       </DialogContent>

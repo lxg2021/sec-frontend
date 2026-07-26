@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
 import {
   CalendarClock,
   CheckCircle2,
@@ -82,28 +83,9 @@ const SCHEDULE_FIELD_IDS: Partial<Record<BaselineScanPolicyValidationField, stri
   retry_interval_minutes: "retry_interval",
 }
 
-const SCAN_SCHEDULE_TEXT: ScanScheduleFormText = {
-  modeLabel: "调度模式",
-  modePlaceholder: "选择调度模式",
-  modeInterval: "固定间隔",
-  intervalLabel: "执行间隔",
-  intervalValue: (hours) => `${hours} 小时`,
-  fixedTimeLabel: "固定执行时间",
-  randomDelayLabel: "随机延迟",
-  randomDelayValue: (minutes) => `${minutes} 分钟`,
-  retryCountLabel: "失败重试",
-  retryIntervalLabel: "重试间隔",
-  retryNone: "不重试",
-  retryTimes: (count) => `${count} 次`,
-  minutesUnit: "分钟",
-  startupTitle: "Agent 启动时执行",
-  startupDescription: "Agent 启动后补跑一次基线扫描",
-  startupInlineLabel: "启动时扫描",
-}
-
-function requestErrorMessage(error: unknown) {
+function requestErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message.trim()) return error.message
-  return "创建失败，请检查扫描计划后重试"
+  return fallback
 }
 
 export function BaselineScanPolicyDialog({
@@ -111,12 +93,17 @@ export function BaselineScanPolicyDialog({
   onOpenChange,
   onPolicyCreated,
 }: BaselineScanPolicyDialogProps) {
+  const t = useTranslations("pages.controlCenter")
   const { toast } = useToast()
+  const createLocalizedDefaults = useCallback(
+    () => createDefaultBaselineScanPolicyForm(t("baselineScanPolicy.defaultName")),
+    [t],
+  )
   const [form, setForm] = useState<BaselineScanPolicyFormValue>(() =>
-    createDefaultBaselineScanPolicyForm(),
+    createLocalizedDefaults(),
   )
   const [initialSignature, setInitialSignature] = useState(() =>
-    createBaselineScanPolicySignature(createDefaultBaselineScanPolicyForm()),
+    createBaselineScanPolicySignature(createLocalizedDefaults()),
   )
   const [validationIssue, setValidationIssue] =
     useState<BaselineScanPolicyValidationIssue | null>(null)
@@ -127,22 +114,47 @@ export function BaselineScanPolicyDialog({
   useEffect(() => {
     if (!open) return
 
-    const defaults = createDefaultBaselineScanPolicyForm()
+    const defaults = createLocalizedDefaults()
     setForm(defaults)
     setInitialSignature(createBaselineScanPolicySignature(defaults))
     setValidationIssue(null)
     setRequestError("")
     setConfirmCloseOpen(false)
     setSubmitting(false)
-  }, [open])
+  }, [createLocalizedDefaults, open])
 
   const hasUnsavedChanges = createBaselineScanPolicySignature(form) !== initialSignature
   const modifiedFieldCount = useMemo(
-    () => countModifiedBaselineScanPolicyFields(form),
-    [form],
+    () => countModifiedBaselineScanPolicyFields(form, t("baselineScanPolicy.defaultName")),
+    [form, t],
   )
   const scheduleValidationIssue =
     validationIssue && SCHEDULE_FIELDS.has(validationIssue.field) ? validationIssue : null
+  const fieldError = (field: BaselineScanPolicyValidationField) =>
+    validationIssue?.field === field
+      ? t(`baselineScanPolicy.validation.${validationIssue.code}`)
+      : undefined
+  const scanScheduleText = useMemo<ScanScheduleFormText>(
+    () => ({
+      modeLabel: t("genericEditor.schedule.modeLabel"),
+      modePlaceholder: t("genericEditor.schedule.modePlaceholder"),
+      modeInterval: t("genericEditor.schedule.modeInterval"),
+      intervalLabel: t("baselineScanPolicy.schedule.intervalLabel"),
+      intervalValue: (hours) => t("genericEditor.schedule.hours", { count: hours }),
+      fixedTimeLabel: t("genericEditor.schedule.fixedTimeLabel"),
+      randomDelayLabel: t("genericEditor.schedule.randomDelayLabel"),
+      randomDelayValue: (minutes) => t("genericEditor.schedule.minutes", { count: minutes }),
+      retryCountLabel: t("baselineScanPolicy.schedule.retryCountLabel"),
+      retryIntervalLabel: t("genericEditor.schedule.retryIntervalLabel"),
+      retryNone: t("genericEditor.schedule.retryNone"),
+      retryTimes: (count) => t("genericEditor.schedule.retryTimes", { count }),
+      minutesUnit: t("genericEditor.schedule.minutesUnit"),
+      startupTitle: t("baselineScanPolicy.schedule.startupTitle"),
+      startupDescription: t("baselineScanPolicy.schedule.startupDescription"),
+      startupInlineLabel: t("genericEditor.schedule.startupInlineLabel"),
+    }),
+    [t],
+  )
 
   const updateField = <Field extends "name" | "version">(
     field: Field,
@@ -165,7 +177,7 @@ export function BaselineScanPolicyDialog({
   }, [])
 
   const restoreDefaults = () => {
-    setForm(createDefaultBaselineScanPolicyForm())
+    setForm(createLocalizedDefaults())
     setValidationIssue(null)
     setRequestError("")
   }
@@ -221,18 +233,18 @@ export function BaselineScanPolicyDialog({
       toast({
         variant: "success",
         duration: 4500,
-        title: "基线扫描策略已创建",
-        description: "该策略适用于所有基线模板，当前尚未选择主机或下发。",
+        title: t("baselineScanPolicy.toast.created"),
+        description: t("baselineScanPolicy.toast.createdDescription"),
       })
       onPolicyCreated?.(created)
       onOpenChange(false)
     } catch (error) {
-      const message = requestErrorMessage(error)
+      const message = requestErrorMessage(error, t("baselineScanPolicy.errors.createFailed"))
       setRequestError(message)
       toast({
         variant: "destructive",
         duration: 4500,
-        title: "基线扫描策略创建失败",
+        title: t("baselineScanPolicy.toast.failed"),
         description: message,
       })
     } finally {
@@ -258,13 +270,13 @@ export function BaselineScanPolicyDialog({
                 </div>
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                    创建基线扫描策略
+                    {t("baselineScanPolicy.title")}
                   </DialogTitle>
                   <Badge
                     variant="outline"
                     className="border-cyan-200 bg-cyan-50 px-2 py-0 text-[11px] text-cyan-700"
                   >
-                    基于内置策略
+                    {t("baselineScanPolicy.basedOnBuiltIn")}
                   </Badge>
                 </div>
                 <Button
@@ -274,28 +286,28 @@ export function BaselineScanPolicyDialog({
                   className="h-8 w-8 shrink-0 rounded-full text-slate-500 hover:text-slate-900"
                   onClick={requestClose}
                   disabled={submitting}
-                  aria-label="关闭基线扫描策略配置"
-                  title="关闭"
+                  aria-label={t("baselineScanPolicy.closeAriaLabel")}
+                  title={t("common.close")}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <DialogDescription className="sr-only">
-                编辑一套适用于所有基线模板的通用扫描计划，并创建可供后续下发的新策略版本。
+                {t("baselineScanPolicy.description")}
               </DialogDescription>
             </DialogHeader>
 
             <section
-              aria-label="基线扫描策略基本信息"
+              aria-label={t("baselineScanPolicy.basicInfoAriaLabel")}
               className="shrink-0 border-b border-slate-200 bg-white px-5 py-4 sm:px-7"
             >
               <div className="grid grid-cols-2 gap-4 md:grid-cols-[minmax(220px,1.35fr)_minmax(150px,0.8fr)_minmax(150px,0.8fr)_minmax(220px,1fr)]">
                 <FormField
                   className="col-span-2 md:col-span-1"
-                  label="策略名称"
+                  label={t("baselineScanPolicy.policyName")}
                   htmlFor="baseline-policy-name"
                   required
-                  error={validationIssue?.field === "name" ? validationIssue.message : undefined}
+                  error={fieldError("name")}
                 >
                   <Input
                     id="baseline-policy-name"
@@ -307,22 +319,22 @@ export function BaselineScanPolicyDialog({
                     }
                     maxLength={128}
                     className="h-10 bg-white"
-                    placeholder="输入策略名称"
+                    placeholder={t("baselineScanPolicy.policyNamePlaceholder")}
                   />
                 </FormField>
-                <ReadOnlyField label="来源">
+                <ReadOnlyField label={t("table.source")}>
                   <Server className="h-4 w-4 text-cyan-600" />
-                  系统内置
+                  {t("sources.builtin")}
                 </ReadOnlyField>
-                <ReadOnlyField label="基础版本">
+                <ReadOnlyField label={t("sensorConfig.baseVersion")}>
                   <span className="font-mono">{BASELINE_SCAN_POLICY_BASE_VERSION}</span>
                 </ReadOnlyField>
                 <FormField
                   className="col-span-2 md:col-span-1"
-                  label="新版本"
+                  label={t("genericEditor.newVersion")}
                   htmlFor="baseline-policy-version"
                   required
-                  error={validationIssue?.field === "version" ? validationIssue.message : undefined}
+                  error={fieldError("version")}
                 >
                   <div className="relative">
                     <Input
@@ -337,7 +349,7 @@ export function BaselineScanPolicyDialog({
                       }
                       maxLength={64}
                       className="h-10 bg-white pr-10 font-mono"
-                      placeholder="例如 1.1.0"
+                      placeholder={t("sensorConfig.versionPlaceholder")}
                     />
                     {validationIssue?.field !== "version" &&
                       /^\d+\.\d+\.\d+$/.test(form.version.trim()) && (
@@ -357,7 +369,7 @@ export function BaselineScanPolicyDialog({
                   >
                     <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
                     <div>
-                      <p className="font-medium">创建失败，请修正后重试</p>
+                      <p className="font-medium">{t("baselineScanPolicy.requestFailedTitle")}</p>
                       <p className="mt-0.5 break-words text-xs text-rose-700">{requestError}</p>
                     </div>
                   </div>
@@ -370,14 +382,14 @@ export function BaselineScanPolicyDialog({
                       id="baseline-policy-schedule-title"
                       className="text-sm font-semibold text-slate-900"
                     >
-                      通用扫描计划
+                      {t("baselineScanPolicy.schedule.title")}
                     </h3>
                     <Badge
                       variant="outline"
                       className="border-violet-200 bg-violet-50 font-normal text-violet-700"
                     >
                       <Layers3 className="mr-1 h-3 w-3" />
-                      所有基线共用
+                      {t("baselineScanPolicy.schedule.sharedByAll")}
                     </Badge>
                     <Button
                       type="button"
@@ -388,7 +400,7 @@ export function BaselineScanPolicyDialog({
                       disabled={submitting}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
-                      恢复内置默认值
+                      {t("baselineScanPolicy.restoreDefaults")}
                     </Button>
                   </div>
 
@@ -398,7 +410,7 @@ export function BaselineScanPolicyDialog({
                       role="alert"
                     >
                       <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      {scheduleValidationIssue.message}
+                      {t(`baselineScanPolicy.validation.${scheduleValidationIssue.code}`)}
                     </div>
                   )}
 
@@ -408,7 +420,7 @@ export function BaselineScanPolicyDialog({
                       onChange={updateSchedule}
                       title={null}
                       description={null}
-                      text={SCAN_SCHEDULE_TEXT}
+                      text={scanScheduleText}
                       disabled={submitting}
                       className="max-w-none border-0 bg-transparent shadow-none [&>div]:!p-0"
                     />
@@ -423,12 +435,12 @@ export function BaselineScanPolicyDialog({
                   {hasUnsavedChanges ? (
                     <>
                       <CircleAlert className="h-4 w-4 shrink-0 text-amber-500" />
-                      <span>{modifiedFieldCount} 项配置已修改，尚未创建</span>
+                      <span>{t("baselineScanPolicy.modifiedCount", { count: modifiedFieldCount })}</span>
                     </>
                   ) : (
                     <>
                       <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                      <span>当前为后台内置默认值</span>
+                      <span>{t("baselineScanPolicy.builtInDefaults")}</span>
                     </>
                   )}
                 </div>
@@ -440,7 +452,7 @@ export function BaselineScanPolicyDialog({
                     onClick={requestClose}
                     disabled={submitting}
                   >
-                    取消
+                    {t("common.cancel")}
                   </Button>
                   <Button
                     type="button"
@@ -451,12 +463,12 @@ export function BaselineScanPolicyDialog({
                     {submitting ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        正在创建
+                        {t("baselineScanPolicy.creating")}
                       </>
                     ) : (
                       <>
                         <ListChecks className="h-4 w-4" />
-                        校验并创建策略
+                        {t("baselineScanPolicy.validateAndCreate")}
                       </>
                     )}
                   </Button>
@@ -470,13 +482,13 @@ export function BaselineScanPolicyDialog({
       <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <AlertDialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>放弃未创建的修改？</AlertDialogTitle>
+            <AlertDialogTitle>{t("baselineScanPolicy.discard.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              当前基线扫描策略存在未创建的修改。关闭后，这些修改将不会保留。
+              {t("baselineScanPolicy.discard.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-full px-5">继续编辑</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-full px-5">{t("genericEditor.discard.continue")}</AlertDialogCancel>
             <AlertDialogAction
               className="rounded-full bg-rose-600 px-5 text-white hover:bg-rose-700"
               onClick={() => {
@@ -484,7 +496,7 @@ export function BaselineScanPolicyDialog({
                 onOpenChange(false)
               }}
             >
-              放弃修改
+              {t("genericEditor.discard.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

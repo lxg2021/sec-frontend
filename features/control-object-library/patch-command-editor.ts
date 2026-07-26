@@ -9,6 +9,9 @@ export const PATCH_ONE_CLICK_REPAIR_NAME = "patch one-click repair"
 export type PatchCommandKind = "install_task" | "one_click_repair"
 export type PatchExecutionMode = "immediate" | "scheduled"
 export type PatchOperatingSystem = "" | "windows" | "linux" | "macOs"
+export type PatchCommandValidationCode = "" | "taskNameRequired" | "taskNameTooLong"
+  | "osInvalid" | "executionModeInvalid" | "randomDelayInvalid"
+  | "scheduledTimeInvalid" | "installOptionsInvalid"
 
 export interface PatchInstallTaskTarget {
   agentId: string
@@ -264,38 +267,38 @@ export function patchCommandParameterSignature(parameters: PatchCommandParameter
 export function validatePatchCommandParameters(
   kind: PatchCommandKind,
   parameters: PatchCommandParameters,
-) {
+): PatchCommandValidationCode {
   if (kind === "install_task") {
     const taskName = parameters.taskName.trim()
-    if (!taskName) return "请输入任务名称"
-    if (taskName.length > 128) return "任务名称不能超过 128 个字符"
+    if (!taskName) return "taskNameRequired"
+    if (taskName.length > 128) return "taskNameTooLong"
   }
 
   if (!["", "windows", "linux", "macOs"].includes(parameters.osPlatform)) {
-    return "操作系统无效"
+    return "osInvalid"
   }
   if (parameters.executionMode !== "immediate" && parameters.executionMode !== "scheduled") {
-    return "执行方式无效"
+    return "executionModeInvalid"
   }
   if (
     !Number.isSafeInteger(parameters.randomDelayMinutes)
     || parameters.randomDelayMinutes < 0
     || parameters.randomDelayMinutes > 120
   ) {
-    return "随机延迟必须是 0–120 之间的整数"
+    return "randomDelayInvalid"
   }
   if (
     parameters.executionMode === "scheduled"
     && !isValidPatchScheduledTime(parameters.scheduledTime)
   ) {
-    return "请选择有效的计划执行时间"
+    return "scheduledTimeInvalid"
   }
   if (
     typeof parameters.rebootAfterInstall !== "boolean"
     || typeof parameters.backupBeforeRepair !== "boolean"
     || typeof parameters.rescanAfterRepair !== "boolean"
   ) {
-    return "安装选项无效"
+    return "installOptionsInvalid"
   }
   return ""
 }

@@ -2,22 +2,23 @@ import { describe, expect, it } from "vitest"
 
 import {
   CONTROL_OBJECT_TABLE_COLUMNS,
-  controlObjectDeleteModeLabel,
+  controlObjectDeleteModeLabelKey,
+  controlObjectDisplayNameKey,
 } from "./table-presentation"
 
 describe("control object table presentation", () => {
   it("keeps identity fields in columns and reserves one action-menu column", () => {
-    expect(CONTROL_OBJECT_TABLE_COLUMNS.map(({ key, label }) => [key, label])).toEqual([
-      ["type", "类型"],
-      ["displayName", "显示名称"],
-      ["internalName", "内部名称"],
-      ["objectId", "ID"],
-      ["subType", "类型"],
-      ["version", "当前版本"],
-      ["source", "来源"],
-      ["state", "状态"],
-      ["delivery", "下发情况"],
-      ["actions", "操作"],
+    expect(CONTROL_OBJECT_TABLE_COLUMNS.map(({ key, labelKey }) => [key, labelKey])).toEqual([
+      ["type", "table.type"],
+      ["displayName", "table.displayName"],
+      ["internalName", "table.internalName"],
+      ["objectId", "table.id"],
+      ["subType", "table.subType"],
+      ["version", "table.version"],
+      ["source", "table.source"],
+      ["state", "table.state"],
+      ["delivery", "table.delivery"],
+      ["actions", "table.actions"],
     ])
   })
 
@@ -42,9 +43,16 @@ describe("control object table presentation", () => {
   })
 
   it("uses stable business labels for every catalog delete mode", () => {
-    expect(controlObjectDeleteModeLabel("forbidden")).toBe("禁止删除")
-    expect(controlObjectDeleteModeLabel("metadata_only")).toBe("仅删元数据")
-    expect(controlObjectDeleteModeLabel("remove_effects")).toBe("移除效果后删除")
-    expect(controlObjectDeleteModeLabel("unknown")).toBe("未声明")
+    expect(controlObjectDeleteModeLabelKey("forbidden")).toBe("deleteModes.forbidden")
+    expect(controlObjectDeleteModeLabelKey("metadata_only")).toBe("deleteModes.metadataOnly")
+    expect(controlObjectDeleteModeLabelKey("remove_effects")).toBe("deleteModes.removeEffects")
+    expect(controlObjectDeleteModeLabelKey("unknown")).toBe("deleteModes.unknown")
+  })
+
+  it("returns a translation key only for known built-in object IDs", () => {
+    expect(controlObjectDisplayNameKey({
+      objectId: "9A182447-B61D-48F6-B99C-264C128AEEBB",
+    })).toBe("builtinObjects.generalConfig")
+    expect(controlObjectDisplayNameKey({ objectId: "manual-object" })).toBeNull()
   })
 })

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import {
   Activity,
   ArrowLeft,
@@ -32,6 +33,7 @@ import {
   type ControlObjectOperationPage,
   type ControlObjectOperationSnapshot,
 } from "@/features/control-object-library/api"
+import { controlObjectDisplayNameKey } from "@/features/control-object-library/table-presentation"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 import {
@@ -75,58 +77,58 @@ const EMPTY_OPERATIONS: ControlObjectOperationPage = {
   pageSize: PAGE_SIZE,
 }
 
-const OPERATION_LABELS: Record<ControlObjectOperation | "unknown", string> = {
-  apply: "应用",
-  stop: "停止",
-  remove: "移除",
-  execute: "执行",
-  unknown: "未知",
+const OPERATION_LABEL_KEYS: Record<ControlObjectOperation | "unknown", string> = {
+  apply: "deliveryDialog.operations.apply",
+  stop: "deliveryDialog.operations.stop",
+  remove: "deliveryDialog.operations.remove",
+  execute: "deliveryDialog.operations.execute",
+  unknown: "deliveryDialog.statuses.unknown",
 }
 
 const EXECUTION_PRESENTATION: Record<ControlObjectExecutionStatus, {
-  label: string
+  labelKey: string
   icon: typeof Clock3
   iconClassName: string
 }> = {
-  pending: { label: "等待中", icon: Clock3, iconClassName: "text-sky-600" },
-  accepted: { label: "已接收", icon: Clock3, iconClassName: "text-blue-600" },
-  running: { label: "运行中", icon: LoaderCircle, iconClassName: "text-cyan-600" },
-  success: { label: "成功", icon: CheckCircle2, iconClassName: "text-emerald-600" },
-  failed: { label: "失败", icon: CircleAlert, iconClassName: "text-rose-600" },
-  skipped: { label: "已跳过", icon: SkipForward, iconClassName: "text-slate-500" },
-  canceled: { label: "已取消", icon: Ban, iconClassName: "text-amber-600" },
-  unknown: { label: "未知", icon: CircleDashed, iconClassName: "text-slate-500" },
+  pending: { labelKey: "deliveryDialog.statuses.pending", icon: Clock3, iconClassName: "text-sky-600" },
+  accepted: { labelKey: "deliveryDialog.statuses.accepted", icon: Clock3, iconClassName: "text-blue-600" },
+  running: { labelKey: "deliveryDialog.statuses.running", icon: LoaderCircle, iconClassName: "text-cyan-600" },
+  success: { labelKey: "deliveryDialog.statuses.success", icon: CheckCircle2, iconClassName: "text-emerald-600" },
+  failed: { labelKey: "deliveryDialog.statuses.failed", icon: CircleAlert, iconClassName: "text-rose-600" },
+  skipped: { labelKey: "deliveryDialog.statuses.skipped", icon: SkipForward, iconClassName: "text-slate-500" },
+  canceled: { labelKey: "deliveryDialog.statuses.canceled", icon: Ban, iconClassName: "text-amber-600" },
+  unknown: { labelKey: "deliveryDialog.statuses.unknown", icon: CircleDashed, iconClassName: "text-slate-500" },
 }
 
 const AUDIT_EXECUTION_PRESENTATION: Record<DispatchExecutionStatus, {
-  label: string
+  labelKey: string
   icon: typeof Clock3
   iconClassName: string
 }> = EXECUTION_PRESENTATION
 
-function deliveryErrorMessage(error: unknown) {
+function deliveryErrorMessage(error: unknown, translate: (key: string) => string) {
   const message = error instanceof Error ? error.message.trim() : ""
   if (message === "PMC_OBJECT_AGENT_INVALID") {
-    return "后台返回的主机状态与当前对象不一致，已停止展示。"
+    return translate("deliveryDialog.errors.agentMismatch")
   }
   if (message === "PMC_OBJECT_AGENT_LIST_INVALID") {
-    return "后台返回的主机状态列表格式不完整。"
+    return translate("deliveryDialog.errors.agentListInvalid")
   }
   if (message === "PMC_OBJECT_AGENT_STATISTICS_INVALID") {
-    return "后台返回的主机统计与分页总数不一致。"
+    return translate("deliveryDialog.errors.statisticsInvalid")
   }
   if (message === "PMC_OBJECT_OPERATION_INVALID") {
-    return "后台返回了不属于当前对象的下发批次，已停止展示。"
+    return translate("deliveryDialog.errors.operationMismatch")
   }
   if (message === "PMC_OBJECT_OPERATION_LIST_INVALID") {
-    return "后台返回的下发历史列表格式不完整。"
+    return translate("deliveryDialog.errors.operationListInvalid")
   }
-  return message || "数据加载失败，请稍后重试。"
+  return message || translate("deliveryDialog.errors.loadFailed")
 }
 
-function formatUnixMs(value: number) {
+function formatUnixMs(value: number, locale: string) {
   if (!Number.isFinite(value) || value <= 0) return "—"
-  return new Intl.DateTimeFormat("zh-CN", {
+  return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -137,62 +139,62 @@ function formatUnixMs(value: number) {
   }).format(new Date(value))
 }
 
-function formatIsoDate(value?: string) {
+function formatIsoDate(value: string | undefined, locale: string) {
   if (!value) return "—"
   const timestamp = Date.parse(value)
-  return Number.isFinite(timestamp) ? formatUnixMs(timestamp) : "—"
+  return Number.isFinite(timestamp) ? formatUnixMs(timestamp, locale) : "—"
 }
 
-function currentStateLabel(value: string) {
+function currentStateLabel(value: string, translate: (key: string) => string) {
   const normalized = value.toLowerCase()
-  if (normalized === "started" || normalized === "effective") return "已启动"
-  if (normalized === "stopped") return "已停止"
-  if (normalized === "removed") return "已移除"
-  if (normalized === "none" || !normalized) return "未生效"
+  if (normalized === "started" || normalized === "effective") return translate("deliveryDialog.states.started")
+  if (normalized === "stopped") return translate("deliveryDialog.states.stopped")
+  if (normalized === "removed") return translate("deliveryDialog.states.removed")
+  if (normalized === "none" || !normalized) return translate("deliveryDialog.states.notEffective")
   return value
 }
 
-function simpleStatusLabel(value: string) {
+function simpleStatusLabel(value: string, translate: (key: string) => string) {
   const normalized = value.toLowerCase()
   if (!normalized) return "—"
-  if (normalized === "success" || normalized === "succeeded" || normalized === "completed") return "成功"
-  if (normalized === "failed") return "失败"
-  if (normalized === "pending") return "等待中"
-  if (normalized === "accepted") return "已接收"
-  if (normalized === "running") return "运行中"
-  if (normalized === "published") return "已发布"
-  if (normalized === "publishing") return "发布中"
-  if (normalized === "canceled" || normalized === "cancelled") return "已取消"
-  if (normalized === "skipped") return "已跳过"
-  if (normalized === "unknown" || normalized === "uncertain") return "状态不确定"
+  if (normalized === "success" || normalized === "succeeded" || normalized === "completed") return translate("deliveryDialog.statuses.success")
+  if (normalized === "failed") return translate("deliveryDialog.statuses.failed")
+  if (normalized === "pending") return translate("deliveryDialog.statuses.pending")
+  if (normalized === "accepted") return translate("deliveryDialog.statuses.accepted")
+  if (normalized === "running") return translate("deliveryDialog.statuses.running")
+  if (normalized === "published") return translate("deliveryDialog.statuses.published")
+  if (normalized === "publishing") return translate("deliveryDialog.statuses.publishing")
+  if (normalized === "canceled" || normalized === "cancelled") return translate("deliveryDialog.statuses.canceled")
+  if (normalized === "skipped") return translate("deliveryDialog.statuses.skipped")
+  if (normalized === "unknown" || normalized === "uncertain") return translate("deliveryDialog.statuses.uncertain")
   return value
 }
 
-function operationResult(operation: ControlObjectOperationSnapshot) {
+function operationResult(operation: ControlObjectOperationSnapshot, translate: (key: string) => string) {
   if (
     operation.pendingCount + operation.runningCount > 0
     || ["created", "pending", "planning", "materializing", "running"].includes(operation.status)
     || ["pending", "planning", "materializing"].includes(operation.planningStatus)
   ) {
-    return { label: "进行中", status: "running" as const }
+    return { label: translate("deliveryDialog.statuses.inProgress"), status: "running" as const }
   }
   if (operation.uncertainCount > 0) {
-    return { label: "状态不确定", status: "unknown" as const }
+    return { label: translate("deliveryDialog.statuses.uncertain"), status: "unknown" as const }
   }
   if (operation.failedCount > 0 && operation.successCount > 0) {
-    return { label: "部分失败", status: "failed" as const }
+    return { label: translate("deliveryDialog.statuses.partiallyFailed"), status: "failed" as const }
   }
-  if (operation.failedCount > 0) return { label: "失败", status: "failed" as const }
+  if (operation.failedCount > 0) return { label: translate("deliveryDialog.statuses.failed"), status: "failed" as const }
   if (operation.canceledCount > 0 && operation.successCount === 0) {
-    return { label: "已取消", status: "canceled" as const }
+    return { label: translate("deliveryDialog.statuses.canceled"), status: "canceled" as const }
   }
   if (operation.totalCount > 0 && operation.successCount + operation.skippedCount >= operation.totalCount) {
-    return { label: operation.successCount > 0 ? "成功" : "已跳过", status: operation.successCount > 0 ? "success" as const : "skipped" as const }
+    return { label: translate(operation.successCount > 0 ? "deliveryDialog.statuses.success" : "deliveryDialog.statuses.skipped"), status: operation.successCount > 0 ? "success" as const : "skipped" as const }
   }
-  if (["no_target", "empty"].includes(operation.outcome)) return { label: "无目标", status: "skipped" as const }
-  if (["no_action", "skipped"].includes(operation.outcome)) return { label: "无需执行", status: "skipped" as const }
-  if (operation.outcome === "partial") return { label: "部分成功", status: "unknown" as const }
-  return { label: simpleStatusLabel(operation.outcome || operation.status), status: "unknown" as const }
+  if (["no_target", "empty"].includes(operation.outcome)) return { label: translate("deliveryDialog.statuses.noTargets"), status: "skipped" as const }
+  if (["no_action", "skipped"].includes(operation.outcome)) return { label: translate("deliveryDialog.statuses.noAction"), status: "skipped" as const }
+  if (operation.outcome === "partial") return { label: translate("deliveryDialog.statuses.partiallySucceeded"), status: "unknown" as const }
+  return { label: simpleStatusLabel(operation.outcome || operation.status, translate), status: "unknown" as const }
 }
 
 export function ControlObjectDeliveryDialog({
@@ -202,6 +204,7 @@ export function ControlObjectDeliveryDialog({
   definition: ControlObjectDefinition | null
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const [tab, setTab] = useState<"overview" | "history">("overview")
   const [overview, setOverview] = useState<ControlObjectAgentOverviewPage>(EMPTY_OVERVIEW)
   const [overviewPage, setOverviewPage] = useState(1)
@@ -263,11 +266,11 @@ export function ControlObjectDeliveryDialog({
     } catch (error) {
       if (sequence !== overviewSequence.current) return
       setOverview(EMPTY_OVERVIEW)
-      setOverviewError(deliveryErrorMessage(error))
+      setOverviewError(deliveryErrorMessage(error, (key) => t(key)))
     } finally {
       if (sequence === overviewSequence.current) setOverviewLoading(false)
     }
-  }, [definition, overviewPage])
+  }, [definition, overviewPage, t])
 
   const loadOperations = useCallback(async () => {
     if (!definition) return
@@ -280,11 +283,11 @@ export function ControlObjectDeliveryDialog({
     } catch (error) {
       if (sequence !== operationSequence.current) return
       setOperations(EMPTY_OPERATIONS)
-      setOperationError(deliveryErrorMessage(error))
+      setOperationError(deliveryErrorMessage(error, (key) => t(key)))
     } finally {
       if (sequence === operationSequence.current) setOperationLoading(false)
     }
-  }, [definition, operationPage])
+  }, [definition, operationPage, t])
 
   const loadExecutions = useCallback(async () => {
     if (!selectedOperation) return
@@ -300,11 +303,11 @@ export function ControlObjectDeliveryDialog({
       if (sequence !== executionSequence.current) return
       setExecutionItems([])
       setExecutionTotal(0)
-      setExecutionError(deliveryErrorMessage(error))
+      setExecutionError(deliveryErrorMessage(error, (key) => t(key)))
     } finally {
       if (sequence === executionSequence.current) setExecutionLoading(false)
     }
-  }, [executionPage, selectedOperation])
+  }, [executionPage, selectedOperation, t])
 
   useEffect(() => {
     if (definition && tab === "overview") void loadOverview()
@@ -337,12 +340,19 @@ export function ControlObjectDeliveryDialog({
     setExecutionError("")
   }
 
-  const overviewTabLabel = definition?.objectType === "command" ? "最近执行" : "当前应用"
+  const overviewTabLabel = definition?.objectType === "command"
+    ? t("deliveryDialog.tabs.recentExecutions")
+    : t("deliveryDialog.tabs.currentApplications")
+  const displayNameKey = definition ? controlObjectDisplayNameKey(definition) : null
+  const displayName = definition
+    ? (displayNameKey ? t(displayNameKey) : definition.displayName)
+    : ""
 
   return (
     <Dialog open={Boolean(definition)} onOpenChange={onOpenChange}>
       <DialogContent
         overlayClassName="bg-slate-950/45 backdrop-blur-[2px]"
+        closeLabel={t("common.close")}
         className={cn(
           "flex h-[calc(100dvh-2rem)] max-h-[820px] w-[calc(100vw-1.5rem)] max-w-[1180px] flex-col gap-0 overflow-hidden rounded-2xl border-slate-200 bg-white p-0 shadow-2xl sm:rounded-2xl",
           "[&>button]:right-4 [&>button]:top-3.5 [&>button]:z-20 [&>button]:flex [&>button]:h-8 [&>button]:w-8 [&>button]:items-center [&>button]:justify-center [&>button]:rounded-full [&>button]:border [&>button]:border-slate-200 [&>button]:bg-white [&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:shadow-sm [&>button]:hover:bg-slate-100 [&>button]:hover:text-slate-800 [&>button]:focus-visible:ring-2 [&>button]:focus-visible:ring-cyan-500",
@@ -355,10 +365,12 @@ export function ControlObjectDeliveryDialog({
             </span>
             <div className="min-w-0 flex-1">
               <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                应用情况
+                {t("deliveryDialog.title")}
               </DialogTitle>
               <DialogDescription className="sr-only">
-                {definition ? `${definition.displayName} · 当前版本 ${definition.version}` : "查看对象运行态和历史下发批次"}
+                {definition
+                  ? t("deliveryDialog.description", { name: displayName, version: definition.version })
+                  : t("deliveryDialog.descriptionFallback")}
               </DialogDescription>
             </div>
           </div>
@@ -380,7 +392,7 @@ export function ControlObjectDeliveryDialog({
               </TabsTrigger>
               <TabsTrigger value="history" className="h-7 gap-1.5 rounded-full px-3 text-xs data-[state=active]:text-cyan-700">
                 <History className="h-3.5 w-3.5 text-violet-600" aria-hidden="true" />
-                下发历史
+                {t("deliveryDialog.tabs.history")}
               </TabsTrigger>
             </TabsList>
 
@@ -400,7 +412,7 @@ export function ControlObjectDeliveryDialog({
                 "h-3.5 w-3.5 text-cyan-600",
                 (overviewLoading || operationLoading || executionLoading) && "animate-spin",
               )} aria-hidden="true" />
-              刷新
+              {t("common.refresh")}
             </Button>
           </div>
 
@@ -464,7 +476,8 @@ function OverviewPanel({
   onPageChange: (page: number) => void
   onRetry: () => void
 }) {
-  if (loading && result.items.length === 0) return <LoadingState label="正在读取对象运行态…" />
+  const t = useTranslations("pages.controlCenter")
+  if (loading && result.items.length === 0) return <LoadingState label={t("deliveryDialog.loadingOverview")} />
   if (error) return <ErrorState message={error} onRetry={onRetry} />
   if (!definition) return null
 
@@ -472,20 +485,20 @@ function OverviewPanel({
   const statistics = result.statistics
   const metrics = command
     ? [
-        { label: "执行主机", value: statistics.totalAgents, color: "text-blue-700" },
-        { label: "成功", value: statistics.successCount, color: "text-emerald-700" },
-        { label: "失败", value: statistics.failedCount, color: "text-rose-700" },
-        { label: "等待 / 运行", value: statistics.pendingCount + statistics.runningCount, color: "text-cyan-700" },
-        { label: "状态不确定", value: statistics.uncertainCount, color: "text-amber-700" },
-        { label: "跳过 / 取消", value: statistics.skippedCount + statistics.canceledCount, color: "text-slate-700" },
+        { label: t("deliveryDialog.metrics.executionHosts"), value: statistics.totalAgents, color: "text-blue-700" },
+        { label: t("deliveryDialog.metrics.success"), value: statistics.successCount, color: "text-emerald-700" },
+        { label: t("deliveryDialog.metrics.failed"), value: statistics.failedCount, color: "text-rose-700" },
+        { label: t("deliveryDialog.metrics.pendingRunning"), value: statistics.pendingCount + statistics.runningCount, color: "text-cyan-700" },
+        { label: t("deliveryDialog.metrics.uncertain"), value: statistics.uncertainCount, color: "text-amber-700" },
+        { label: t("deliveryDialog.metrics.skippedCanceled"), value: statistics.skippedCount + statistics.canceledCount, color: "text-slate-700" },
       ]
     : [
-        { label: "关联主机", value: statistics.totalAgents, color: "text-blue-700" },
-        { label: "已生效", value: statistics.effectiveCount, color: "text-emerald-700" },
-        { label: "已启动", value: statistics.startedCount, color: "text-cyan-700" },
-        { label: "已停止", value: statistics.stoppedCount, color: "text-slate-700" },
-        { label: "变更中", value: statistics.pendingCount + statistics.runningCount, color: "text-violet-700" },
-        { label: "状态不确定", value: statistics.uncertainCount, color: "text-amber-700" },
+        { label: t("deliveryDialog.metrics.associatedHosts"), value: statistics.totalAgents, color: "text-blue-700" },
+        { label: t("deliveryDialog.metrics.effective"), value: statistics.effectiveCount, color: "text-emerald-700" },
+        { label: t("deliveryDialog.metrics.started"), value: statistics.startedCount, color: "text-cyan-700" },
+        { label: t("deliveryDialog.metrics.stopped"), value: statistics.stoppedCount, color: "text-slate-700" },
+        { label: t("deliveryDialog.metrics.changing"), value: statistics.pendingCount + statistics.runningCount, color: "text-violet-700" },
+        { label: t("deliveryDialog.metrics.uncertain"), value: statistics.uncertainCount, color: "text-amber-700" },
       ]
 
   return (
@@ -500,11 +513,11 @@ function OverviewPanel({
         {loading && (
           <div className="absolute right-3 top-2.5 z-20 flex items-center gap-1.5 text-xs text-slate-500" role="status">
             <LoaderCircle className="h-3.5 w-3.5 animate-spin text-cyan-600" aria-hidden="true" />
-            正在刷新
+            {t("common.refreshing")}
           </div>
         )}
         {result.items.length === 0 ? (
-          <EmptyState label={command ? "这个命令还没有执行记录" : "这个对象尚未关联或应用到主机"} />
+          <EmptyState label={command ? t("deliveryDialog.empty.commandOverview") : t("deliveryDialog.empty.effectOverview")} />
         ) : (
           <>
             <div className="min-h-0 flex-1 overflow-auto">
@@ -525,6 +538,8 @@ function OverviewPanel({
 }
 
 function EffectOverviewTable({ items }: { items: ControlObjectAgentOverview[] }) {
+  const t = useTranslations("pages.controlCenter")
+  const locale = useLocale()
   return (
     <table className="w-full min-w-[980px] table-fixed text-left text-xs">
       <colgroup>
@@ -536,7 +551,15 @@ function EffectOverviewTable({ items }: { items: ControlObjectAgentOverview[] })
         <col className="w-[13%]" />
         <col className="w-[19%]" />
       </colgroup>
-      <TableHeader labels={["Agent ID", "当前版本", "当前效果", "目标版本", "变更操作", "执行状态", "最后上报"]} />
+      <TableHeader labels={[
+        "Agent ID",
+        t("deliveryDialog.columns.currentVersion"),
+        t("deliveryDialog.columns.currentEffect"),
+        t("deliveryDialog.columns.targetVersion"),
+        t("deliveryDialog.columns.changeOperation"),
+        t("deliveryDialog.columns.executionStatus"),
+        t("deliveryDialog.columns.lastReported"),
+      ]} />
       <tbody className="divide-y divide-slate-100">
         {items.map((item) => {
           const change = item.activeChange
@@ -548,15 +571,15 @@ function EffectOverviewTable({ items }: { items: ControlObjectAgentOverview[] })
             <tr key={item.agentId} className="hover:bg-cyan-50/30">
               <MonoCell value={item.agentId} />
               <MonoCell value={item.currentEffect?.objectVersion || item.objectVersion || "—"} />
-              <td className="px-3 py-3 text-slate-700">{currentStateLabel(item.currentEffect?.currentState || "")}</td>
+              <td className="px-3 py-3 text-slate-700">{currentStateLabel(item.currentEffect?.currentState || "", (key) => t(key))}</td>
               <MonoCell value={change?.targetObjectVersion || "—"} />
-              <td className="px-3 py-3 text-slate-700">{change ? OPERATION_LABELS[change.operation] : "—"}</td>
+              <td className="px-3 py-3 text-slate-700">{change ? t(OPERATION_LABEL_KEYS[change.operation]) : "—"}</td>
               <td className="px-3 py-3">
                 {change
                   ? <ExecutionStatus status={change.executionStatus} />
-                  : <span className="text-slate-600">{simpleStatusLabel(item.currentEffect?.applyState || "")}</span>}
+                  : <span className="text-slate-600">{simpleStatusLabel(item.currentEffect?.applyState || "", (key) => t(key))}</span>}
               </td>
-              <TimeCell value={formatUnixMs(lastReportAt)} />
+              <TimeCell value={formatUnixMs(lastReportAt, locale)} />
             </tr>
           )
         })}
@@ -566,6 +589,8 @@ function EffectOverviewTable({ items }: { items: ControlObjectAgentOverview[] })
 }
 
 function CommandOverviewTable({ items }: { items: ControlObjectAgentOverview[] }) {
+  const t = useTranslations("pages.controlCenter")
+  const locale = useLocale()
   return (
     <table className="w-full min-w-[1020px] table-fixed text-left text-xs">
       <colgroup>
@@ -577,7 +602,15 @@ function CommandOverviewTable({ items }: { items: ControlObjectAgentOverview[] }
         <col className="w-[18%]" />
         <col className="w-[15%]" />
       </colgroup>
-      <TableHeader labels={["Agent ID", "最近版本", "执行状态", "执行次数", "错误码", "错误信息", "最后上报"]} />
+      <TableHeader labels={[
+        "Agent ID",
+        t("deliveryDialog.columns.latestVersion"),
+        t("deliveryDialog.columns.executionStatus"),
+        t("deliveryDialog.columns.executionCount"),
+        t("deliveryDialog.columns.errorCode"),
+        t("deliveryDialog.columns.errorMessage"),
+        t("deliveryDialog.columns.lastReported"),
+      ]} />
       <tbody className="divide-y divide-slate-100">
         {items.map((item) => {
           const execution = item.latestExecution
@@ -592,7 +625,7 @@ function CommandOverviewTable({ items }: { items: ControlObjectAgentOverview[] }
               <td className="px-3 py-3 text-center font-mono tabular-nums text-slate-700">{item.executionCount}</td>
               <td className="px-3 py-3"><div className="truncate font-mono text-[11px] text-slate-600" title={execution?.errorCode || "—"}>{execution?.errorCode || "—"}</div></td>
               <td className="px-3 py-3"><div className="truncate text-slate-600" title={error}>{error}</div></td>
-              <TimeCell value={formatUnixMs(execution?.lastReportAtUnixMs || execution?.updatedAtUnixMs || 0)} />
+              <TimeCell value={formatUnixMs(execution?.lastReportAtUnixMs || execution?.updatedAtUnixMs || 0, locale)} />
             </tr>
           )
         })}
@@ -618,9 +651,11 @@ function OperationHistoryPanel({
   onSelect: (operation: ControlObjectOperationSnapshot) => void
   onRetry: () => void
 }) {
-  if (loading && result.items.length === 0) return <LoadingState label="正在读取下发历史…" />
+  const t = useTranslations("pages.controlCenter")
+  const locale = useLocale()
+  if (loading && result.items.length === 0) return <LoadingState label={t("deliveryDialog.loadingHistory")} />
   if (error) return <ErrorState message={error} onRetry={onRetry} />
-  if (result.items.length === 0) return <EmptyState label="这个对象还没有下发或执行记录" />
+  if (result.items.length === 0) return <EmptyState label={t("deliveryDialog.empty.history")} />
 
   return (
     <div className="flex h-full min-h-0 flex-col p-4 sm:px-5">
@@ -628,7 +663,7 @@ function OperationHistoryPanel({
         {loading && (
           <div className="absolute right-3 top-2.5 z-20 flex items-center gap-1.5 text-xs text-slate-500" role="status">
             <LoaderCircle className="h-3.5 w-3.5 animate-spin text-cyan-600" aria-hidden="true" />
-            正在刷新
+            {t("common.refreshing")}
           </div>
         )}
         <div className="min-h-0 flex-1 overflow-auto">
@@ -648,14 +683,28 @@ function OperationHistoryPanel({
               <col className="w-[94px]" />
               <col className="w-[72px]" />
             </colgroup>
-            <TableHeader labels={["时间", "操作", "对象版本", "目标", "等待", "运行", "成功", "失败", "不确定", "跳过", "取消", "结果", "明细"]} centeredFrom={3} />
+            <TableHeader labels={[
+              t("deliveryDialog.columns.time"),
+              t("deliveryDialog.columns.operation"),
+              t("deliveryDialog.columns.objectVersion"),
+              t("deliveryDialog.columns.targets"),
+              t("deliveryDialog.columns.pending"),
+              t("deliveryDialog.columns.running"),
+              t("deliveryDialog.columns.success"),
+              t("deliveryDialog.columns.failed"),
+              t("deliveryDialog.columns.uncertain"),
+              t("deliveryDialog.columns.skipped"),
+              t("deliveryDialog.columns.canceled"),
+              t("deliveryDialog.columns.result"),
+              t("deliveryDialog.columns.details"),
+            ]} centeredFrom={3} />
             <tbody className="divide-y divide-slate-100">
               {result.items.map((operation) => {
-                const presentation = operationResult(operation)
+                const presentation = operationResult(operation, (key) => t(key))
                 return (
                   <tr key={operation.operationId} className="hover:bg-cyan-50/30">
-                    <TimeCell value={formatUnixMs(operation.createdAtUnixMs)} />
-                    <td className="px-2 py-3 font-medium text-slate-700">{OPERATION_LABELS[operation.operation]}</td>
+                    <TimeCell value={formatUnixMs(operation.createdAtUnixMs, locale)} />
+                    <td className="px-2 py-3 font-medium text-slate-700">{t(OPERATION_LABEL_KEYS[operation.operation])}</td>
                     <MonoCell value={operation.objectVersion || "—"} compact />
                     <CountCell value={operation.totalCount} />
                     <CountCell value={operation.pendingCount} />
@@ -674,7 +723,7 @@ function OperationHistoryPanel({
                         onClick={() => onSelect(operation)}
                         className="h-7 rounded-full px-2 text-xs text-cyan-700 hover:bg-cyan-50 hover:text-cyan-800"
                       >
-                        查看
+                        {t("common.view")}
                       </Button>
                     </td>
                   </tr>
@@ -710,35 +759,41 @@ function ExecutionDetailPanel({
   onPageChange: (page: number) => void
   onRetry: () => void
 }) {
-  const result = useMemo(() => operationResult(operation), [operation])
+  const t = useTranslations("pages.controlCenter")
+  const result = useMemo(() => operationResult(operation, (key) => t(key)), [operation, t])
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 p-4 sm:px-5">
       <div className="flex shrink-0 flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <Button type="button" variant="outline" size="icon" onClick={onBack} aria-label="返回下发历史" className="h-8 w-8 shrink-0 rounded-full border-slate-200">
+          <Button type="button" variant="outline" size="icon" onClick={onBack} aria-label={t("deliveryDialog.backToHistory")} className="h-8 w-8 shrink-0 rounded-full border-slate-200">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Button>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900">{OPERATION_LABELS[operation.operation]}批次 · {result.label}</p>
+            <p className="truncate text-sm font-semibold text-slate-900">
+              {t("deliveryDialog.batchTitle", {
+                operation: t(OPERATION_LABEL_KEYS[operation.operation]),
+                result: result.label,
+              })}
+            </p>
             <p className="truncate font-mono text-[10px] text-slate-400" title={operation.operationId}>{operation.operationId}</p>
           </div>
         </div>
         <div className="grid grid-cols-4 gap-2 lg:w-[440px]">
-          <MiniMetric label="目标" value={operation.totalCount} />
-          <MiniMetric label="成功" value={operation.successCount} className="text-emerald-700" />
-          <MiniMetric label="失败" value={operation.failedCount} className="text-rose-700" />
-          <MiniMetric label="未完成" value={operation.pendingCount + operation.runningCount + operation.uncertainCount} className="text-amber-700" />
+          <MiniMetric label={t("deliveryDialog.metrics.targets")} value={operation.totalCount} />
+          <MiniMetric label={t("deliveryDialog.metrics.success")} value={operation.successCount} className="text-emerald-700" />
+          <MiniMetric label={t("deliveryDialog.metrics.failed")} value={operation.failedCount} className="text-rose-700" />
+          <MiniMetric label={t("deliveryDialog.metrics.incomplete")} value={operation.pendingCount + operation.runningCount + operation.uncertainCount} className="text-amber-700" />
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200">
         {loading && items.length === 0 ? (
-          <LoadingState label="正在读取 Agent 执行明细…" />
+          <LoadingState label={t("deliveryDialog.loadingExecutionDetails")} />
         ) : error ? (
           <ErrorState message={error} onRetry={onRetry} />
         ) : items.length === 0 ? (
-          <EmptyState label="这个批次没有 Agent 执行明细" />
+          <EmptyState label={t("deliveryDialog.empty.executionDetails")} />
         ) : (
           <>
             <div className="min-h-0 flex-1 overflow-auto">
@@ -753,7 +808,16 @@ function ExecutionDetailPanel({
                   <col className="w-[100px]" />
                   <col className="w-[260px]" />
                 </colgroup>
-                <TableHeader labels={["Agent ID", "发布状态", "执行状态", "失败确定性", "最后上报", "完成时间", "错误码", "错误说明"]} />
+                <TableHeader labels={[
+                  "Agent ID",
+                  t("deliveryDialog.columns.publishStatus"),
+                  t("deliveryDialog.columns.executionStatus"),
+                  t("deliveryDialog.columns.failureCertainty"),
+                  t("deliveryDialog.columns.lastReported"),
+                  t("deliveryDialog.columns.finishedAt"),
+                  t("deliveryDialog.columns.errorCode"),
+                  t("deliveryDialog.columns.errorDescription"),
+                ]} />
                 <tbody className="divide-y divide-slate-100">
                   {items.map((item) => (
                     <ExecutionDetailRow key={item.id} item={item} />
@@ -770,12 +834,14 @@ function ExecutionDetailPanel({
 }
 
 function ExecutionDetailRow({ item }: { item: DispatchExecutionResult }) {
+  const t = useTranslations("pages.controlCenter")
+  const locale = useLocale()
   const certainty = item.executionStatus !== "failed"
     ? "—"
     : item.failureCertainty === "definitive"
-      ? "确定失败"
+      ? t("deliveryDialog.certainty.definitive")
       : item.failureCertainty === "uncertain"
-        ? "状态不确定"
+        ? t("deliveryDialog.statuses.uncertain")
         : "—"
   const errorCode = item.errorCode || item.reasonCode || "—"
   const errorMessage = item.errorMessage || item.reasonMessage || "—"
@@ -783,11 +849,11 @@ function ExecutionDetailRow({ item }: { item: DispatchExecutionResult }) {
   return (
     <tr className="hover:bg-cyan-50/30">
       <MonoCell value={item.agentId || "—"} />
-      <td className="px-3 py-3 text-slate-700">{simpleStatusLabel(item.publishStatus)}</td>
+      <td className="px-3 py-3 text-slate-700">{simpleStatusLabel(item.publishStatus, (key) => t(key))}</td>
       <td className="px-3 py-3"><AuditExecutionStatus status={item.executionStatus} /></td>
       <td className="px-3 py-3 text-slate-600">{certainty}</td>
-      <TimeCell value={formatIsoDate(item.lastReportAt || item.updatedAt)} />
-      <TimeCell value={formatIsoDate(item.finishedAt)} />
+      <TimeCell value={formatIsoDate(item.lastReportAt || item.updatedAt, locale)} />
+      <TimeCell value={formatIsoDate(item.finishedAt, locale)} />
       <td className="px-3 py-3"><div className="truncate font-mono text-[11px] text-slate-600" title={errorCode}>{errorCode}</div></td>
       <td className="px-3 py-3"><div className="truncate text-slate-600" title={errorMessage}>{errorMessage}</div></td>
     </tr>
@@ -795,9 +861,10 @@ function ExecutionDetailRow({ item }: { item: DispatchExecutionResult }) {
 }
 
 function MetricCard({ label, value, color }: { label: string; value: number; color: string }) {
+  const locale = useLocale()
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-center">
-      <p className={cn("text-lg font-semibold tabular-nums", color)}>{value.toLocaleString("zh-CN")}</p>
+      <p className={cn("text-lg font-semibold tabular-nums", color)}>{value.toLocaleString(locale)}</p>
       <p className="mt-0.5 text-[11px] text-slate-500">{label}</p>
     </div>
   )
@@ -841,23 +908,25 @@ function CountCell({ value, className }: { value: number; className?: string }) 
 }
 
 function ExecutionStatus({ status, label }: { status: ControlObjectExecutionStatus; label?: string }) {
+  const t = useTranslations("pages.controlCenter")
   const presentation = EXECUTION_PRESENTATION[status]
   const Icon = presentation.icon
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-slate-700">
       <Icon className={cn("h-3.5 w-3.5 shrink-0", presentation.iconClassName, status === "running" && "animate-spin")} aria-hidden="true" />
-      {label || presentation.label}
+      {label || t(presentation.labelKey)}
     </span>
   )
 }
 
 function AuditExecutionStatus({ status }: { status: DispatchExecutionStatus }) {
+  const t = useTranslations("pages.controlCenter")
   const presentation = AUDIT_EXECUTION_PRESENTATION[status]
   const Icon = presentation.icon
   return (
     <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-slate-700">
       <Icon className={cn("h-3.5 w-3.5 shrink-0", presentation.iconClassName, status === "running" && "animate-spin")} aria-hidden="true" />
-      {presentation.label}
+      {t(presentation.labelKey)}
     </span>
   )
 }
@@ -875,6 +944,7 @@ function Pagination({
   loading: boolean
   onPageChange: (page: number) => void
 }) {
+  const t = useTranslations("pages.controlCenter")
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   if (totalPages <= 1) return null
   const start = (page - 1) * pageSize + 1
@@ -884,11 +954,11 @@ function Pagination({
     <div className="flex shrink-0 items-center justify-between gap-3 border-t border-slate-200 bg-white px-3 py-2">
       <span className="text-[11px] text-slate-500">{start}–{end} / {total}</span>
       <div className="flex items-center gap-1.5">
-        <Button type="button" variant="outline" size="icon" aria-label="上一页" disabled={loading || page <= 1} onClick={() => onPageChange(page - 1)} className="h-7 w-7 rounded-full border-slate-200">
+        <Button type="button" variant="outline" size="icon" aria-label={t("pagination.previous")} disabled={loading || page <= 1} onClick={() => onPageChange(page - 1)} className="h-7 w-7 rounded-full border-slate-200">
           <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
         <span className="min-w-14 text-center text-[11px] tabular-nums text-slate-500">{page} / {totalPages}</span>
-        <Button type="button" variant="outline" size="icon" aria-label="下一页" disabled={loading || page >= totalPages} onClick={() => onPageChange(page + 1)} className="h-7 w-7 rounded-full border-slate-200">
+        <Button type="button" variant="outline" size="icon" aria-label={t("pagination.next")} disabled={loading || page >= totalPages} onClick={() => onPageChange(page + 1)} className="h-7 w-7 rounded-full border-slate-200">
           <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
         </Button>
       </div>
@@ -911,17 +981,18 @@ function LoadingState({ label }: { label: string }) {
 }
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const t = useTranslations("pages.controlCenter")
   return (
     <div className="flex h-full min-h-64 items-center justify-center p-6 text-center" role="alert">
       <div className="max-w-md">
         <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600">
           <CircleAlert className="h-5 w-5" aria-hidden="true" />
         </span>
-        <p className="mt-3 text-sm font-medium text-slate-900">下发情况加载失败</p>
+        <p className="mt-3 text-sm font-medium text-slate-900">{t("deliveryDialog.loadFailedTitle")}</p>
         <p className="mt-1.5 text-xs leading-5 text-slate-500">{message}</p>
         <Button type="button" variant="outline" size="sm" onClick={onRetry} className="mt-4 h-8 rounded-full border-slate-200 px-3 text-xs">
           <RefreshCw className="h-3.5 w-3.5 text-cyan-600" aria-hidden="true" />
-          重试
+          {t("common.retry")}
         </Button>
       </div>
     </div>

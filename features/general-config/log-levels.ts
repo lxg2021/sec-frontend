@@ -1,11 +1,11 @@
 export const GENERAL_CONFIG_LOG_LEVEL_OPTIONS = [
-  { value: 0, label: "Trace（全部）" },
-  { value: 1, label: "Debug（调试）" },
-  { value: 2, label: "Info（信息）" },
-  { value: 3, label: "Warn（警告）" },
-  { value: 4, label: "Error（错误）" },
-  { value: 5, label: "Alarm（告警）" },
-  { value: 6, label: "Fatal（致命）" },
+  { value: 0, labelKey: "generalConfig.logLevels.trace" },
+  { value: 1, labelKey: "generalConfig.logLevels.debug" },
+  { value: 2, labelKey: "generalConfig.logLevels.info" },
+  { value: 3, labelKey: "generalConfig.logLevels.warn" },
+  { value: 4, labelKey: "generalConfig.logLevels.error" },
+  { value: 5, labelKey: "generalConfig.logLevels.alarm" },
+  { value: 6, labelKey: "generalConfig.logLevels.fatal" },
 ] as const
 
 export type GeneralConfigLogLevel =

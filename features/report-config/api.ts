@@ -16,9 +16,9 @@ export const REPORT_CONFIG_DEFAULTS = {
 export type ReportCompressType = 2 | 3
 
 export const REPORT_COMPRESS_OPTIONS = [
-  { value: 3, label: "不压缩" },
-  { value: 2, label: "LZ4" },
-] as const satisfies ReadonlyArray<{ value: ReportCompressType; label: string }>
+  { value: 3, labelKey: "reportConfig.compressOptions.none" },
+  { value: 2, labelKey: "reportConfig.compressOptions.lz4" },
+] as const satisfies ReadonlyArray<{ value: ReportCompressType; labelKey: string }>
 
 const VERSION_PATTERN = /^\d+\.\d+\.\d+$/
 

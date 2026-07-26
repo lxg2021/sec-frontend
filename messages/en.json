@@ -5362,6 +5362,8 @@
         "networkPolicyBasicInfo": "Network Policy Basic Information",
         "generatePolicy": "Generate Policy",
         "reset": "Reset",
+        "refresh": "Refresh",
+        "refreshing": "Refreshing",
         "policyDetails": "Policy Details",
         "selectTargetHosts": "Select Target Hosts",
         "noHostsSelected": "No hosts selected",
@@ -5857,6 +5859,1060 @@
         "success": "Success",
         "failed": "Failed",
         "pending": "Pending"
+      }
+    },
+    "controlCenter": {
+      "page": {
+        "title": "Management Center",
+        "description": "Centrally manage built-in configurations, policies, and commands",
+        "refresh": "Refresh control objects",
+        "syncing": "Syncing…",
+        "objectCount": "{count, plural, one {# object} other {# objects}}"
+      },
+      "common": {
+        "cancel": "Cancel",
+        "close": "Close",
+        "reset": "Reset",
+        "retry": "Retry",
+        "refresh": "Refresh",
+        "view": "View",
+        "edit": "Edit",
+        "save": "Save",
+        "saving": "Saving",
+        "loading": "Loading…",
+        "unavailable": "Unavailable",
+        "unsupported": "Unsupported",
+        "notAvailable": "—",
+        "listSeparator": ", ",
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "objectTypes": {
+        "all": "All",
+        "config": "Configuration",
+        "policy": "Policy",
+        "command": "Command",
+        "object": "Object"
+      },
+      "builtinObjects": {
+        "baselineScanPolicy": "Baseline Scan Policy",
+        "patchScanPolicy": "Vulnerability Scan Policy",
+        "generalConfig": "General Configuration",
+        "reportConfig": "Reporting Configuration",
+        "sensorConfig": "Sensor Configuration",
+        "patchImmediateScan": "Immediate Vulnerability Scan",
+        "baselineImmediateScan": "Immediate Baseline Scan"
+      },
+      "sources": {
+        "builtin": "Built-in",
+        "manual": "Manually Created",
+        "remediation": "Remediation Orchestration",
+        "mitigation": "Direct Mitigation",
+        "unknown": "Unspecified"
+      },
+      "states": {
+        "active": "Available"
+      },
+      "capabilities": {
+        "update": "Updatable",
+        "apply": "Deployable",
+        "execute": "Executable",
+        "stop": "Stoppable",
+        "remove": "Removable"
+      },
+      "operations": {
+        "selectDelivery": "Select Targets",
+        "selectExecution": "Select and Execute",
+        "stop": "Stop",
+        "remove": "Remove"
+      },
+      "tabs": {
+        "ariaLabel": "Control object type"
+      },
+      "filters": {
+        "ariaLabel": "Object filters",
+        "searchPlaceholder": "Search by object name, internal name, or ID",
+        "searchAriaLabel": "Search control objects",
+        "sourceAriaLabel": "Filter by source",
+        "allSources": "All sources",
+        "capabilityAriaLabel": "Filter by capability",
+        "allCapabilities": "All capabilities",
+        "clear": "Clear filters"
+      },
+      "table": {
+        "type": "Category",
+        "displayName": "Display Name",
+        "internalName": "Internal Name",
+        "id": "ID",
+        "subType": "Type",
+        "version": "Current Version",
+        "source": "Source",
+        "state": "Status",
+        "delivery": "Deployment",
+        "actions": "Actions"
+      },
+      "list": {
+        "ariaLabel": "Control object list",
+        "loadingAriaLabel": "Loading control objects"
+      },
+      "delivery": {
+        "viewDelivery": "View Deployments"
+      },
+      "deliveryDialog": {
+        "title": "Deployment Status",
+        "description": "{name} · Current version {version}",
+        "descriptionFallback": "View current runtime state and historical deployment batches",
+        "tabs": {
+          "recentExecutions": "Recent Executions",
+          "currentApplications": "Current Deployments",
+          "history": "Deployment History"
+        },
+        "operations": {
+          "apply": "Apply",
+          "stop": "Stop",
+          "remove": "Remove",
+          "execute": "Execute"
+        },
+        "statuses": {
+          "pending": "Pending",
+          "accepted": "Accepted",
+          "running": "Running",
+          "success": "Succeeded",
+          "failed": "Failed",
+          "skipped": "Skipped",
+          "canceled": "Canceled",
+          "unknown": "Unknown",
+          "published": "Published",
+          "publishing": "Publishing",
+          "uncertain": "Uncertain",
+          "inProgress": "In Progress",
+          "partiallyFailed": "Partially Failed",
+          "noTargets": "No Targets",
+          "noAction": "No Action Needed",
+          "partiallySucceeded": "Partially Succeeded"
+        },
+        "states": {
+          "started": "Started",
+          "stopped": "Stopped",
+          "removed": "Removed",
+          "notEffective": "Not Effective"
+        },
+        "metrics": {
+          "executionHosts": "Execution Hosts",
+          "success": "Succeeded",
+          "failed": "Failed",
+          "pendingRunning": "Pending / Running",
+          "uncertain": "Uncertain",
+          "skippedCanceled": "Skipped / Canceled",
+          "associatedHosts": "Associated Hosts",
+          "effective": "Effective",
+          "started": "Started",
+          "stopped": "Stopped",
+          "changing": "Changing",
+          "targets": "Targets",
+          "incomplete": "Incomplete"
+        },
+        "columns": {
+          "currentVersion": "Current Version",
+          "currentEffect": "Current Effect",
+          "targetVersion": "Target Version",
+          "changeOperation": "Change Operation",
+          "executionStatus": "Execution Status",
+          "lastReported": "Last Reported",
+          "latestVersion": "Latest Version",
+          "executionCount": "Executions",
+          "errorCode": "Error Code",
+          "errorMessage": "Error Message",
+          "time": "Time",
+          "operation": "Operation",
+          "objectVersion": "Object Version",
+          "targets": "Targets",
+          "pending": "Pending",
+          "running": "Running",
+          "success": "Succeeded",
+          "failed": "Failed",
+          "uncertain": "Uncertain",
+          "skipped": "Skipped",
+          "canceled": "Canceled",
+          "result": "Result",
+          "details": "Details",
+          "publishStatus": "Publish Status",
+          "failureCertainty": "Failure Certainty",
+          "finishedAt": "Finished At",
+          "errorDescription": "Error Description"
+        },
+        "certainty": {
+          "definitive": "Definitive Failure"
+        },
+        "loadingOverview": "Loading current object state…",
+        "loadingHistory": "Loading deployment history…",
+        "loadingExecutionDetails": "Loading Agent execution details…",
+        "loadFailedTitle": "Failed to Load Deployment Status",
+        "backToHistory": "Back to deployment history",
+        "batchTitle": "{operation} Batch · {result}",
+        "empty": {
+          "commandOverview": "This command has no execution records yet",
+          "effectOverview": "This object has not been associated with or deployed to any host",
+          "history": "This object has no deployment or execution records yet",
+          "executionDetails": "This batch has no Agent execution details"
+        },
+        "errors": {
+          "agentMismatch": "The host state returned by the backend does not match the current object. Display was stopped.",
+          "agentListInvalid": "The host-state list returned by the backend is incomplete.",
+          "statisticsInvalid": "The host statistics returned by the backend do not match the paginated total.",
+          "operationMismatch": "The backend returned a deployment batch that does not belong to the current object. Display was stopped.",
+          "operationListInvalid": "The deployment-history list returned by the backend is incomplete.",
+          "loadFailed": "Failed to load data. Try again later."
+        }
+      },
+      "detail": {
+        "title": "Complete Object JSON",
+        "description": "Complete definition retrieved from the single-object details API",
+        "loading": "Loading the complete object…",
+        "loadFailedTitle": "Failed to load object content",
+        "jsonAriaLabel": "Complete JSON for {name}",
+        "copySuccess": "Complete JSON copied",
+        "copyFailed": "Copy failed. Check the browser's clipboard permission.",
+        "copyHint": "Valid JSON in context is expanded for display; the original response is not modified",
+        "copied": "Copied",
+        "copyJson": "Copy JSON",
+        "errors": {
+          "invalid": "The backend did not return a complete object definition. Check the single-object details API.",
+          "mismatch": "The object identity or version returned by the backend does not match the selected object. Display was stopped.",
+          "definitionInvalid": "The object definition returned by the backend is missing its type, ID, name, or version.",
+          "loadFailed": "Failed to load the complete object content. Try again later."
+        }
+      },
+      "deleteDialog": {
+        "title": "Delete Object",
+        "removeEffectsTitle": "Remove Host Effects and Delete",
+        "description": "This object will be removed from the active Catalog. Historical command executions will not be rolled back.",
+        "removeEffectsDescription": "The backend will find hosts where this object is still effective and create a REMOVE operation. The Catalog deletion will finish after all effects are removed.",
+        "warning": "This is a Catalog lifecycle action, not a per-host Remove action. Track the outcome in execution records after submitting.",
+        "stateVersionMissing": "The current list data does not contain a valid state_version. Close this dialog, refresh the list, and try again.",
+        "submitting": "Submitting…",
+        "confirm": "Confirm Delete",
+        "toast": {
+          "flowCreated": "Deletion Workflow Created",
+          "deleted": "Object Deleted",
+          "removeEffects": "The backend will remove host effects first. Operation ID: {operationId}",
+          "removed": "“{name}” was removed from the Management Center.",
+          "failed": "Failed to Delete Object"
+        },
+        "errors": {
+          "notActive": "The object is not in the active state and cannot be deleted.",
+          "notAllowed": "The backend capability contract does not allow this object to be deleted.",
+          "stateVersionInvalid": "The list did not return a valid state_version. Refresh and try again.",
+          "responseInvalid": "The backend responded but did not return the object's state after deletion.",
+          "responseMismatch": "The object returned by the backend does not match the object being deleted. Processing was stopped.",
+          "failed": "The delete request failed. Try again later."
+        }
+      },
+      "operationDialog": {
+        "titles": {
+          "deployConfig": "Deploy Configuration",
+          "applyPolicy": "Apply Policy",
+          "stopPolicy": "Stop Policy",
+          "removeConfig": "Remove Configuration",
+          "removePolicy": "Remove Policy",
+          "executeCommand": "Execute Command"
+        },
+        "descriptions": {
+          "apply": "The backend creates an independent Dispatch for each selected host and deploys the current object version.",
+          "stop": "Only hosts where this policy is effective and no change is in progress are shown. Stopping does not delete the Catalog object.",
+          "remove": "Only hosts with a current policy or configuration effect and no change in progress are shown. Removing does not delete the Catalog object.",
+          "execute": "The command runs independently on each selected host. Confirm the target scope before submitting."
+        },
+        "operations": {
+          "apply": "Apply",
+          "stop": "Stop",
+          "remove": "Remove",
+          "execute": "Execute",
+          "operation": "Operation",
+          "creating": "Creating task…",
+          "creatingApply": "Creating apply task…",
+          "creatingStop": "Creating stop task…",
+          "creatingRemove": "Creating remove task…",
+          "creatingExecute": "Creating execution task…"
+        },
+        "hosts": {
+          "title": "Select Target Hosts",
+          "searchPlaceholder": "Search by host name, IP, Agent ID, MAC, or operating system",
+          "selectAll": "Select All",
+          "clear": "Clear",
+          "searchResults": "{count} nodes match “{term}”",
+          "clearSearch": "Clear search",
+          "selectedSummary": "{hostCount} hosts selected ({total} nodes total)",
+          "selectedSummaryWithGroups": "{hostCount} hosts selected across {groupTotal} organization nodes ({total} nodes total)",
+          "selectedCount": "<strong>{count}</strong> hosts selected",
+          "emptyStop": "No hosts can be stopped. A host must have an effective policy and no change in progress.",
+          "emptyRemove": "No hosts can be removed. A host must have an effective policy or configuration and no change in progress.",
+          "empty": "No hosts are available for selection.",
+          "loadFailed": "Failed to load target hosts"
+        },
+        "confirm": "Confirm {operation}",
+        "toast": {
+          "created": "{operation} Task Created",
+          "createdDescription": "{count} hosts, Operation ID: {operationId}",
+          "failed": "Failed to Create {operation} Task"
+        },
+        "errors": {
+          "notActive": "The object is not in the active state, so an Agent operation cannot be created.",
+          "notAllowed": "The backend capability contract does not allow this operation on the object.",
+          "targetsInvalid": "Select at least one host and no more than 10,000 hosts at a time.",
+          "responseInvalid": "The backend responded but did not return a valid operation_id.",
+          "agentInvalid": "The backend returned an invalid host associated with the object.",
+          "agentListInvalid": "The backend returned an invalid associated-host list.",
+          "agentListTruncated": "The associated-host count exceeds the safe loading limit, so the operation cannot be created.",
+          "failed": "Failed to create the Agent operation. Try again later."
+        }
+      },
+      "genericEditor": {
+        "title": "Edit {type}",
+        "baselineTitle": "Edit Baseline Scan Policy",
+        "description": "{name} · Updating creates a new version without deploying it automatically",
+        "loadingDefinition": "Loading object definition",
+        "loading": "Loading the current object version…",
+        "loadFailedTitle": "Failed to Load Object Content",
+        "basicInfo": "Basic Information",
+        "identityLocked": "Object identity fields are locked",
+        "name": "Name",
+        "newVersion": "New Version",
+        "currentVersion": "Current version: {version}",
+        "objectType": "Object Type",
+        "subType": "Type",
+        "objectId": "Object ID",
+        "downloadInfo": "Configuration download information",
+        "downloadUrl": "Download URL",
+        "optional": "Optional",
+        "md5Placeholder": "Optional, 32 hexadecimal characters",
+        "baselineSchedule": "Baseline Scan Schedule",
+        "baselineScheduleDescription": "Uses the same settings as the baseline scan dispatch page. Saving creates a new version without deploying it automatically.",
+        "objectContent": "Object Content",
+        "contentHint": "Content is written to context unchanged and may be JSON or plain text.",
+        "characterCount": "{count, plural, one {# character} other {# characters}}",
+        "creatingVersion": "Creating a new version…",
+        "changedHint": "Modified. Select target hosts manually after saving.",
+        "baselineUnchangedHint": "Change the name or scan schedule to save",
+        "unchangedHint": "Change the name or content to save",
+        "saveVersion": "Save New Version",
+        "toast": {
+          "updated": "{type} Updated",
+          "updatedDescription": "Version {version} of “{name}” was created and has not been deployed to hosts automatically."
+        },
+        "schedule": {
+          "modeLabel": "Schedule Mode",
+          "modePlaceholder": "Select a schedule mode",
+          "modeInterval": "Fixed Interval",
+          "intervalLabel": "Interval",
+          "hours": "{count, plural, one {# hour} other {# hours}}",
+          "fixedTimeLabel": "Fixed Execution Time",
+          "randomDelayLabel": "Random Delay",
+          "minutes": "{count, plural, one {# minute} other {# minutes}}",
+          "retryCountLabel": "Retry Count",
+          "retryIntervalLabel": "Retry Interval",
+          "retryNone": "No Retry",
+          "retryTimes": "{count, plural, one {# time} other {# times}}",
+          "minutesUnit": "minutes",
+          "startupTitle": "Scan When Agent Starts",
+          "startupDescription": "Run one catch-up scan immediately after startup",
+          "startupInlineLabel": "Scan at startup"
+        },
+        "validation": {
+          "nameRequired": "Enter an object name.",
+          "nameTooLong": "The object name cannot exceed 255 characters.",
+          "versionFormat": "Use the MAJOR.MINOR.PATCH version format, for example 1.1.0.",
+          "versionNotGreater": "The new version must be greater than the current version {version}.",
+          "contextRequired": "Object content is required.",
+          "baselineScheduleInvalid": "The baseline scan policy does not contain a complete, valid scan schedule and cannot be saved safely.",
+          "baselineScheduleUpdateInvalid": "The baseline scan schedule is invalid and cannot be updated.",
+          "unchanged": "The object name and content have not changed, so a new version is not needed.",
+          "urlTooLong": "The download URL cannot exceed 512 characters.",
+          "md5Invalid": "MD5 must contain 32 hexadecimal characters or be left blank."
+        },
+        "discard": {
+          "title": "Discard Unsaved Changes?",
+          "description": "The current changes have not been saved as a new version and cannot be recovered after closing.",
+          "continue": "Continue Editing",
+          "confirm": "Discard Changes"
+        },
+        "errors": {
+          "detailInvalid": "The backend did not return a complete object definition. Refresh the list and try again.",
+          "detailMismatch": "The object identity or version returned by the backend does not match the current list. Refresh and try again.",
+          "editableContentInvalid": "The object is missing its name, type, version, or context and cannot be edited safely.",
+          "baselineContextInvalid": "The baseline scan policy returned by the backend does not contain a complete, valid scan schedule and cannot be edited safely.",
+          "typeUnsupported": "The backend allows policies and configurations to be updated; commands cannot be edited.",
+          "notAllowed": "The backend capability contract does not allow this object to be updated.",
+          "notActive": "The object is not in the active state and cannot be updated.",
+          "nameInvalid": "The object name is empty or exceeds the length limit.",
+          "versionInvalid": "The new version format is invalid or is lower than the current version.",
+          "contextInvalid": "Object content is required.",
+          "urlInvalid": "The configuration download URL exceeds the length limit.",
+          "md5Invalid": "MD5 must contain 32 hexadecimal characters.",
+          "responseInvalid": "The backend responded but did not return the updated object definition.",
+          "responseMismatch": "The object identity, type, subtype, or version returned by the backend does not match this update.",
+          "versionMustIncrease": "The new version must be greater than the current version.",
+          "versionExists": "This version already exists with different content. Increase the version and try again.",
+          "subtypeLocked": "The object subtype is a fixed identity field and cannot be changed.",
+          "executionBlocked": "This object still has an active or uncertain deployment and cannot be updated yet.",
+          "updateFailed": "Failed to update the object. Try again later."
+        }
+      },
+      "accessPolicyEditor": {
+        "policy": "Access Control Policy",
+        "title": "Edit {type}",
+        "description": "{id} · Current version {version}",
+        "loadingDescription": "Loading policy content",
+        "loading": "Loading the complete policy content…",
+        "loadFailedTitle": "Policy Content Cannot Be Loaded Safely",
+        "reload": "Reload",
+        "saveHint": "Saving creates a new version under the same Object ID without deploying it automatically.",
+        "discardDescription": "The current access-control policy changes have not been saved and cannot be recovered after closing.",
+        "toast": {
+          "updated": "Access Control Policy Updated",
+          "updatedDescription": "Version {version} was created and has not been deployed automatically."
+        },
+        "validation": {
+          "versionFormat": "Use the MAJOR.MINOR.PATCH version format, for example 1.1.0.",
+          "versionNotGreater": "The new version must be greater than the current version {version}.",
+          "policyFields": "Complete the policy name, version, and priority from 0 to 255.",
+          "networkFields": "Check the network direction, protocol, ports, addresses, program path, and MD5.",
+          "ruleFields": "Complete the subject, access object, and at least one valid rule.",
+          "unchanged": "The policy name and content have not changed, so a new version is not needed."
+        },
+        "errors": {
+          "contextInvalid": "The policy content is not valid JSON and cannot be edited safely.",
+          "identityMismatch": "The ID, type, name, or version in the policy content does not match the object record. Editing was blocked.",
+          "typeMismatch": "The access-object type in the policy content does not match this policy type. Editing was blocked.",
+          "contextUnsupported": "The policy content does not satisfy the current file, registry, process, or network policy contract and cannot be populated completely.",
+          "typeChangeForbidden": "The policy type cannot be changed while editing an existing policy.",
+          "editableContentInvalid": "The policy content returned by the backend is incomplete and cannot be edited safely.",
+          "detailInvalid": "The backend did not return policy details.",
+          "detailMismatch": "The policy details returned by the backend do not match the current object.",
+          "notAllowed": "The backend capability contract does not allow this policy to be updated.",
+          "notActive": "Only policies in the active state can be updated.",
+          "versionInvalid": "The new version must use MAJOR.MINOR.PATCH format and cannot be lower than the current version.",
+          "responseInvalid": "The backend did not return the updated policy.",
+          "responseMismatch": "The update returned by the backend does not match the current policy. Refresh and check again.",
+          "loadFailed": "Failed to load the access-control policy. Try again later."
+        }
+      },
+      "commandEditors": {
+        "description": "Edit command parameters and save the current content as a new immutable command",
+        "loading": "Loading the current command content…",
+        "loadFailedTitle": "Failed to Load Command Content",
+        "basicInfo": "Basic Information",
+        "currentCommandId": "Current Command ID",
+        "currentVersion": "Current Version",
+        "type": "Type",
+        "subType": "Subtype",
+        "creating": "Creating a new version 1.0.0 command…",
+        "creatingShort": "Creating",
+        "changedHint": "Saving creates a new command. The current command remains unchanged and is not deployed automatically.",
+        "saveAsNew": "Save as New Command",
+        "toast": {
+          "created": "New Command Created",
+          "createdDescription": "Saved as {id}. The current command remains unchanged and has not been deployed to hosts."
+        },
+        "errors": {
+          "detailInvalid": "The backend did not return a complete command definition. Refresh the list and try again.",
+          "detailMismatch": "The command identity or version returned by the backend does not match the current list. Refresh and try again.",
+          "contentIncomplete": "The command is missing its name, type, version, or context and cannot be edited safely.",
+          "objectIdInvalid": "A valid new command ID could not be generated. Try again.",
+          "nameInvalid": "The command name is invalid.",
+          "categoryInvalid": "The command category is invalid.",
+          "subTypeInvalid": "The command subtype is invalid.",
+          "contextRequired": "Command content is required.",
+          "responseInvalid": "The backend responded but did not return the new command definition.",
+          "responseMismatch": "The new command returned by the backend does not match the saved content. Refresh and verify it.",
+          "uuidUnavailable": "This browser cannot generate a new command ID securely. Use a different browser and try again.",
+          "idExists": "The new command ID already exists. Save again to generate another ID.",
+          "createFailed": "Failed to create the new command. Try again later."
+        }
+      },
+      "baselineRepairCommand": {
+        "title": "Edit Baseline One-Click Repair Command",
+        "subTypeValue": "102 / Baseline One-Click Repair",
+        "repairMode": "Repair Mode",
+        "repairModeValue": "One-Click Repair (HailMary)",
+        "baselineFileName": "Baseline File Name",
+        "baselineUuid": "Baseline UUID",
+        "parameters": "Repair Parameters",
+        "sourceType": "Repair Source Type",
+        "sourceDescription": "Select the configuration repair source used by the client.",
+        "backup": "Back Up Before Repair",
+        "backupDescription": "Back up the current configuration before repairing to support recovery.",
+        "rescan": "Rescan After Repair",
+        "rescanDescription": "Automatically trigger a baseline scan on the Agent after repair.",
+        "skipRestorePoint": "Skip System Restore Point",
+        "skipRestorePointDescription": "Do not create a system restore point during repair. This reduces recovery protection.",
+        "unchangedHint": "Change a repair parameter to save it as a new command.",
+        "discardDescription": "The current repair parameters have not been saved as a new command and cannot be recovered after closing.",
+        "warnings": {
+          "backupDisabled": "Backup before repair is disabled, reducing rollback capability if a problem occurs.",
+          "restorePointSkipped": "The system restore point will be skipped, increasing system-level recovery risk."
+        },
+        "errors": {
+          "contextInvalid": "The command content is not a complete, valid baseline one-click repair structure. Editing was stopped to protect business data."
+        }
+      },
+      "patchCommand": {
+        "installTitle": "Edit Patch Installation Task Command",
+        "repairTitle": "Edit Patch One-Click Repair Command",
+        "typeValue": "Patch Command",
+        "commandContent": "Command Content",
+        "installTask": "Patch Installation Task",
+        "oneClickRepair": "Patch One-Click Repair",
+        "operatingSystem": "Operating System",
+        "unspecified": "Unspecified",
+        "targetScope": "Target Scope",
+        "hostCount": "{count, plural, one {# host} other {# hosts}}",
+        "allRepairHosts": "All Hosts Requiring Repair",
+        "patchCountLabel": "Patch Count",
+        "patchScope": "Patch Scope",
+        "patchCount": "{count, plural, one {# patch} other {# patches}}",
+        "allMissingPatches": "All Missing Patches",
+        "targetsTitle": "Target Patches and Hosts",
+        "targetsLocked": "Target mapping remains unchanged",
+        "patchGuidCount": "Patch GUIDs ({count})",
+        "parameters": "Command Parameters",
+        "taskName": "Task Name",
+        "executionMode": "Execution Mode",
+        "immediate": "Execute Immediately",
+        "scheduled": "Scheduled Execution",
+        "scheduledTime": "Scheduled Time",
+        "randomDelay": "Random Delay",
+        "minutes": "minutes",
+        "rebootAfterInstall": "Reboot After Installation",
+        "backupBeforeInstall": "Back Up Before Installation",
+        "rescanAfterRepair": "Rescan After Repair",
+        "unchangedHint": "Change a parameter to save it as a new command.",
+        "discardDescription": "The current command parameters have not been saved as a new command and cannot be recovered after closing.",
+        "warnings": {
+          "reboot": "Reboot after installation is enabled. Confirm that the maintenance window permits host reboots.",
+          "backupDisabled": "Backup before installation is disabled, reducing rollback capability if a problem occurs."
+        },
+        "validation": {
+          "taskNameRequired": "Enter a task name",
+          "taskNameTooLong": "The task name cannot exceed 128 characters",
+          "osInvalid": "The operating system is invalid",
+          "executionModeInvalid": "The execution mode is invalid",
+          "randomDelayInvalid": "Random delay must be an integer from 0 to 120",
+          "scheduledTimeInvalid": "Select a valid scheduled execution time",
+          "installOptionsInvalid": "The installation options are invalid"
+        },
+        "errors": {
+          "contextInvalid": "The command content is not a complete, valid patch command structure. Editing was stopped to protect business data."
+        }
+      },
+      "sensorConfig": {
+        "title": "Edit Sensor Configuration",
+        "description": "Edit the sensor configuration and create a new version.",
+        "createVersion": "Create New Version",
+        "defaultName": "Default Sensor Configuration",
+        "configName": "Configuration Name",
+        "namePlaceholder": "Enter a configuration name",
+        "baseVersion": "Base Version",
+        "versionPlaceholder": "For example, 1.1.0",
+        "versionStatus": {
+          "required": "Enter a version in x.y.z format",
+          "invalid": "The version must use x.y.z format",
+          "duplicate": "This name and version already exist",
+          "available": "Version is available"
+        },
+        "categoriesTitle": "Configuration Categories",
+        "categoryCount": "{count, plural, one {# category} other {# categories}}",
+        "allConfigurations": "All Configurations",
+        "toggleAll": "Toggle All Configuration Items",
+        "toggleCategory": "Toggle Category",
+        "restoreDefaults": "Restore Built-in Defaults",
+        "searchPlaceholder": "Search by name, description, or event key",
+        "onlyModified": "Modified Only",
+        "onlyModifiedAriaLabel": "Show modified configurations only",
+        "visibleCount": "Showing {count}",
+        "itemCount": "{count, plural, one {# item} other {# items}}",
+        "itemStateAriaLabel": "{name}: {state}",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "enable": "Enable",
+        "disable": "Disable",
+        "modified": "Modified",
+        "noDescription": "No description",
+        "empty": {
+          "title": "No Matching Configuration Items",
+          "description": "Adjust the search term, category, or modified-only filter."
+        },
+        "summary": {
+          "title": "Configuration Summary",
+          "enabled": " / {total} enabled"
+        },
+        "changes": {
+          "title": "Changes from Built-in Version",
+          "count": "{count, plural, one {# change} other {# changes}}",
+          "enabled": "Newly Enabled",
+          "disabled": "Disabled",
+          "more": "{count} more changes",
+          "none": "Configuration items match the current base version."
+        },
+        "deploymentNote": {
+          "title": "Versioning and Deployment Are Independent",
+          "description": "Creating saves a new control-object version without deploying it. Select target hosts from the Management Center afterward."
+        },
+        "unsavedCount": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
+        "unsaved": "There are unsaved changes",
+        "noUnsaved": "No unsaved changes",
+        "validateAndCreate": "Validate and Create Version",
+        "discardDescription": "The current changes have not been saved as a formal configuration version and will be lost if discarded.",
+        "toast": {
+          "created": "New Version Created",
+          "createdDescription": "{name} {version} was created. The built-in Agent version {baseVersion} was not overwritten."
+        },
+        "validation": {
+          "nameRequired": "Configuration name is required",
+          "versionRequired": "New version is required",
+          "versionFormat": "The new version must use x.y.z format, for example 1.1.0",
+          "itemRequired": "Enable at least one configuration item",
+          "duplicate": "A configuration with the same name and version already exists. Change the new version.",
+          "createFailed": "Failed to create the new version. Try again."
+        },
+        "preflight": {
+          "title": "Preflight Validation",
+          "configName": "Configuration Name",
+          "completed": "Completed",
+          "pending": "Required",
+          "versionFormat": "Version Format",
+          "correct": "Valid",
+          "fixRequired": "Fix Required",
+          "versionUnique": "Version Uniqueness",
+          "exists": "Already Exists",
+          "canCreate": "Available",
+          "enabledItems": "Enabled Items",
+          "enableOne": "Enable at least one"
+        },
+        "categories": {
+          "process": "Processes",
+          "network": "Network",
+          "service": "Services",
+          "device": "Device Changes",
+          "image": "Image Loading",
+          "scheduledTask": "Scheduled Tasks",
+          "wmi": "WMI",
+          "bits": "BITS",
+          "windowsMessage": "Windows Messages",
+          "encryption": "Encryption and Decryption",
+          "tokenPrivilege": "Tokens and Privileges",
+          "credential": "Credentials",
+          "file": "Files",
+          "powershell": "PowerShell",
+          "registry": "Registry",
+          "namedObject": "Named Objects",
+          "boot": "Boot Records",
+          "performance": "Performance Monitoring",
+          "account": "Accounts"
+        },
+        "items": {
+          "ProcessAccess": {"label": "Cross-Process Access", "description": "Monitor operations against critical or selected processes, such as access to lsass, and record the initiating process."},
+          "RemoteThread": {"label": "Remote Threads", "description": "Monitor remote-thread injection and cross-process remote-thread creation events."},
+          "ProcessCreate": {"label": "Process Creation", "description": "Monitor process creation and record new-process information and parent-child relationships."},
+          "ProcessExit": {"label": "Process Exit", "description": "Build complete process lifecycles by tracking normal exits and forced termination by other processes."},
+          "CrossMemoryExecute": {"label": "Cross-Process Executable Memory", "description": "Monitor executable-memory writes across processes to detect behavior such as shellcode injection."},
+          "DNS": {"label": "DNS Requests", "description": "Monitor DNS requests to analyze name resolution and potentially suspicious communications."},
+          "NetComunicate": {"label": "Network Connections", "description": "Monitor network connections to analyze communication between processes and remote hosts."},
+          "Url": {"label": "URL Access", "description": "Monitor URL requests to analyze network activity and potentially suspicious access."},
+          "ServiceCreate": {"label": "Create System Service", "description": "Record system service creation events."},
+          "ServiceStart": {"label": "Start System Service", "description": "Record system service start events."},
+          "ServiceDelete": {"label": "Delete System Service", "description": "Record system service deletion events."},
+          "ServiceStop": {"label": "Stop System Service", "description": "Record system service stop events."},
+          "ServiceConfig": {"label": "Modify Service Configuration", "description": "Monitor system-service configuration changes to detect service hijacking."},
+          "ServicePause": {"label": "Pause or Resume Service", "description": "Record system service pause and resume events."},
+          "DeviceChange": {"label": "Device Changes", "description": "Monitor insertion, ejection, and operation events for removable devices such as USB drives and optical discs."},
+          "DriverImageLoad": {"label": "Driver Image Load", "description": "Monitor driver image load events."},
+          "DllImageLoad": {"label": "DLL Image Load", "description": "Monitor DLL image load events."},
+          "TaskCreate": {"label": "Create Scheduled Task", "description": "Monitor scheduled-task creation, which software may use for normal scheduling or malware may abuse for persistence."},
+          "TaskDelete": {"label": "Delete Scheduled Task", "description": "Monitor scheduled-task deletion, including attempts to remove traces or disrupt system tasks."},
+          "WmiQuery": {"label": "WMI Query", "description": "Monitor WMI queries that may be used for remote discovery or information theft."},
+          "WmiCreateClass": {"label": "Create WMI Class", "description": "Monitor fileless attacks, including Base64-obfuscated code."},
+          "WmiFilter": {"label": "WMI Filter", "description": "Monitor WMI persistence operations that trigger execution."},
+          "WmiConsumer": {"label": "WMI Consumer", "description": "Monitor WMI persistence scripts across all Microsoft Consumer types."},
+          "WmiBinding": {"label": "WMI Binding", "description": "Monitor binding events between WMI Filters and Consumers."},
+          "WmiExecute": {"label": "WMI Execution", "description": "Monitor delegated or remote execution, recording executables and command lines used to evade monitoring."},
+          "BitsCreateJob": {"label": "Create BITS Job", "description": "Monitor BITS background-transfer job creation that attackers may abuse to download or upload data."},
+          "BitsJobAddFile": {"label": "Add File to BITS Job", "description": "Monitor files added to BITS jobs for download or upload, including retrieval of remote malicious files."},
+          "BitsJobChangeState": {"label": "BITS Job State Change", "description": "Track BITS job state notifications such as completion, suspension, or failure."},
+          "WindowsMessageHook": {"label": "Windows Hook Messages", "description": "Monitor Windows message hooks used for input capture, inter-process monitoring, or process injection."},
+          "EncryptDecrypt": {"label": "Credential Encryption and Decryption", "description": "Monitor encryption and decryption operations associated with credential theft or ransomware."},
+          "AdjustPrivilege": {"label": "Privilege Adjustment", "description": "Record privilege changes within or across processes, such as enabling SE_BACKUP_PRIVILEGE."},
+          "TokenImpersonation": {"label": "Token Impersonation", "description": "Monitor token operations and record initiating and target process information."},
+          "CreateProcessSetToken": {"label": "Set Token During Process Creation", "description": "Record new-token assignment during process creation, including target-process details."},
+          "StealingCredentials": {"label": "Credential Theft", "description": "Monitor theft of system and application credentials across more than ten credential types."},
+          "FileCreate": {"label": "File Creation", "description": "Monitor file creation with format, packer, SDB shim attack, and OLE attack detection."},
+          "FileDelete": {"label": "File Deletion", "description": "Record file deletion events."},
+          "FileChangeAttributes": {"label": "File Attribute Changes", "description": "Monitor changes such as hiding files, removing read-only flags, and modifying creation times."},
+          "FileRename": {"label": "File Rename", "description": "Record file rename events."},
+          "FileMove": {"label": "File Move", "description": "Record file move events."},
+          "FileRead": {"label": "File Read", "description": "Monitor reads of critical files such as credential stores, private files, and business configuration files."},
+          "FileWrite": {"label": "File Write", "description": "Monitor writes to critical files such as credential stores, private files, login scripts, and business configurations."},
+          "FileSetEa": {"label": "File EA Write", "description": "Detect scripts, obfuscated code, or binaries hidden in extended attributes."},
+          "FileStreamCreate": {"label": "File Stream Creation", "description": "Detect scripts, obfuscated code, binaries, or browser downloads written into file streams."},
+          "FileStreamDelete": {"label": "File Stream Deletion", "description": "Record file stream deletion events."},
+          "AccessVolume": {"label": "Volume Access", "description": "Record direct volume access events."},
+          "Powershell": {"label": "PowerShell Execution", "description": "Monitor PowerShell execution and record commands, script content, and initiating process information."},
+          "RegKeyCreate": {"label": "Create Registry Key", "description": "Record registry-key creation events."},
+          "RegKeyRename": {"label": "Rename Registry Key", "description": "Record registry-key rename events."},
+          "RegKeyDelete": {"label": "Delete Registry Key", "description": "Record registry-key deletion events."},
+          "RegValueSet": {"label": "Set Registry Value", "description": "Record registry-value set events."},
+          "RegValueDelete": {"label": "Delete Registry Value", "description": "Record registry-value deletion events."},
+          "RegValueQuery": {"label": "Query Critical Registry Value", "description": "Monitor queries of critical registry values, such as secret or key lookups."},
+          "PipeCreate": {"label": "Create Pipe", "description": "Create or open a named Pipe."},
+          "PipeConnect": {"label": "Connect Pipe", "description": "Connect to a named Pipe."},
+          "FileMappingCreate": {"label": "Create File Mapping", "description": "Create or open a named FileMapping."},
+          "FileMappingConnect": {"label": "Connect File Mapping", "description": "Connect to a named FileMapping."},
+          "MailSlotCreate": {"label": "Create Mail Slot", "description": "Create or open a named MailSlot."},
+          "MailSlotConnect": {"label": "Connect Mail Slot", "description": "Connect to a named MailSlot."},
+          "EventCreate": {"label": "Create Event", "description": "Create a named Event."},
+          "EventOpen": {"label": "Open Event", "description": "Open a named Event."},
+          "MBR": {"label": "Master Boot Record", "description": "Monitor MBR reads, writes, and modifications to detect potential boot-sector attacks."},
+          "CBR": {"label": "Volume Boot Record", "description": "Monitor CBR reads, writes, and modifications to detect potential volume-boot attacks."},
+          "PerfMonitor": {"label": "System Performance Monitoring", "description": "Monitor CPU, memory, disk, and other system-resource usage."},
+          "CreateAccount": {"label": "Create Account", "description": "Record account creation events."},
+          "EnableAccount": {"label": "Enable Account", "description": "Record account enablement events."},
+          "ResetAccountPassword": {"label": "Reset Account Password", "description": "Record account password reset events."},
+          "DisableAccount": {"label": "Disable Account", "description": "Record account disablement events."},
+          "DeleteAccount": {"label": "Delete Account", "description": "Record account deletion events."},
+          "ModifyAccount": {"label": "Modify Account", "description": "Record account information changes."},
+          "AddAccountToGroup": {"label": "Add Account to Group", "description": "Record accounts added to local groups."},
+          "DeleteAccountFromGroup": {"label": "Remove Account from Group", "description": "Record accounts removed from local groups."},
+          "CreateGroup": {"label": "Create Local Group", "description": "Record local-group creation or enablement events."},
+          "DeleteGroup": {"label": "Delete Local Group", "description": "Record local-group deletion events."}
+        }
+      },
+      "generalConfig": {
+        "title": "Edit General Configuration",
+        "description": "Load and edit the Agent's general configuration, then validate and create a new version for later deployment.",
+        "closeAriaLabel": "Close general configuration",
+        "loadFailedTitle": "Failed to Load General Configuration",
+        "reload": "Reload",
+        "configName": "Configuration Name",
+        "internalInfoAriaLabel": "View internal configuration information",
+        "internalName": "Internal name: {name}",
+        "module": "Module: {module}",
+        "runtimeParameters": "Runtime Parameters",
+        "heartInterval": "Heartbeat Reporting Interval",
+        "seconds": "seconds",
+        "logLevel": "Agent Log Level",
+        "logLevelPlaceholder": "Select a log level",
+        "notAllowedDescription": "The server has not granted update capability for this built-in object, so a new version cannot be created.",
+        "loading": "Loading current configuration",
+        "loadingAriaLabel": "Loading general configuration",
+        "modifiedCount": "{count, plural, one {# field has} other {# fields have}} been modified but not created",
+        "waiting": "Waiting to load configuration",
+        "restoreDefaults": "Restore Built-in Values",
+        "creating": "Creating",
+        "logLevels": {
+          "trace": "Trace (All)",
+          "debug": "Debug",
+          "info": "Info",
+          "warn": "Warn",
+          "error": "Error",
+          "alarm": "Alarm",
+          "fatal": "Fatal"
+        },
+        "validation": {
+          "versionFormat": "The new version must use x.y.z format, for example 1.1.0",
+          "versionNotGreater": "The new version must be greater than the current version {version}",
+          "heartInterval": "The heartbeat reporting interval must be an integer greater than 0",
+          "logLevel": "Select a valid Agent log level"
+        },
+        "toast": {
+          "created": "New General Configuration Version Created",
+          "createdDescription": "Version {version} was created and has not been assigned to hosts or deployed.",
+          "failed": "Failed to Update General Configuration"
+        },
+        "discard": {
+          "title": "Discard Uncreated Changes?",
+          "description": "The general configuration has changes that have not been created and will be lost after closing."
+        },
+        "errors": {
+          "versionSuggestion": "A valid new-version suggestion cannot be generated from the current configuration version",
+          "loadFailed": "Failed to load the general configuration. Try again later.",
+          "notAllowed": "The server has not authorized this general configuration to be updated",
+          "createFailed": "Failed to create a new general configuration version. Try again later."
+        }
+      },
+      "reportConfig": {
+        "title": "Edit Data Reporting Configuration",
+        "description": "Load and edit the Agent's data reporting configuration, then validate and create a new version for later deployment.",
+        "closeAriaLabel": "Close data reporting configuration",
+        "loadFailedTitle": "Failed to Load Reporting Configuration",
+        "reload": "Reload",
+        "configName": "Configuration Name",
+        "internalInfoAriaLabel": "View internal configuration name",
+        "internalName": "Internal name: {name}",
+        "parameters": "Reporting Parameters",
+        "intervalTime": "Reporting Interval",
+        "milliseconds": "ms",
+        "reportThread": "Reporting Threads",
+        "threadInfoAriaLabel": "View when reporting-thread changes take effect",
+        "threadInfo": "Changes take effect the next time the Agent reporting module starts; the currently running thread pool is not rebuilt immediately.",
+        "reportUnit": "Events per Batch",
+        "tryCount": "Retry Attempts",
+        "compressType": "Compression",
+        "compressPlaceholder": "Select compression",
+        "compressOptions": {
+          "none": "None",
+          "lz4": "LZ4"
+        },
+        "notAllowedDescription": "The server has not granted update capability for this built-in object, so a new version cannot be created.",
+        "loading": "Loading current configuration",
+        "loadingAriaLabel": "Loading reporting configuration",
+        "modifiedCount": "{count, plural, one {# field has} other {# fields have}} been modified but not created",
+        "waiting": "Waiting to load configuration",
+        "restoreDefaults": "Restore Built-in Values",
+        "creating": "Creating",
+        "createVersionShort": "Create Version",
+        "createVersion": "Validate and Create Version",
+        "validation": {
+          "versionFormat": "The new version must use x.y.z format, for example 1.1.0",
+          "versionNotGreater": "The new version must be greater than the current version {version}",
+          "intervalTime": "The reporting interval must be an integer greater than 0 milliseconds",
+          "reportThread": "The reporting thread count must be an integer greater than 0",
+          "reportUnit": "The event count per batch must be an integer greater than 0",
+          "tryCount": "The retry count must be an integer greater than 0",
+          "compressType": "Select a compression method supported by the Agent"
+        },
+        "toast": {
+          "created": "New Reporting Configuration Version Created",
+          "createdDescription": "Version {version} was created and has not been assigned to hosts or deployed.",
+          "failed": "Failed to Update Reporting Configuration"
+        },
+        "discard": {
+          "title": "Discard Uncreated Changes?",
+          "description": "The reporting configuration has changes that have not been created and will be lost after closing."
+        },
+        "errors": {
+          "versionSuggestion": "A valid new-version suggestion cannot be generated from the current configuration version",
+          "loadFailed": "Failed to load the reporting configuration. Try again later.",
+          "notAllowed": "The server has not authorized this reporting configuration to be updated",
+          "createFailed": "Failed to create a new reporting configuration version. Try again later."
+        }
+      },
+      "patchScanPolicy": {
+        "title": "Create Vulnerability Scan Policy",
+        "description": "Edit the vulnerability scan schedule, vulnerability server URL, update classifications, and download priority, then create a new policy version for later deployment.",
+        "basedOnBuiltIn": "Based on Built-in Policy",
+        "closeAriaLabel": "Close vulnerability scan policy configuration",
+        "basicInfoAriaLabel": "Vulnerability scan policy basic information",
+        "defaultName": "Default Vulnerability Scan Policy",
+        "policyName": "Policy Name",
+        "policyNamePlaceholder": "Enter a policy name",
+        "requestFailedTitle": "Creation failed. Review the configuration and try again.",
+        "categoriesTitle": "Windows Update Classifications",
+        "enabledCategories": "{enabled} of {total} enabled",
+        "restoreCategoryDefaults": "Restore Built-in Defaults",
+        "categoryStateAriaLabel": "{category}: {state}",
+        "categoryInfoAriaLabel": "View information about {category}",
+        "modifiedCount": "{count, plural, one {# setting has} other {# settings have}} been modified but not created",
+        "builtInDefaults": "Currently using backend built-in defaults",
+        "creating": "Creating",
+        "validateAndCreate": "Validate and Create Policy",
+        "units": {
+          "hours": "hours",
+          "minutes": "minutes",
+          "times": "times"
+        },
+        "schedule": {
+          "title": "Scan Schedule",
+          "periodic": "Periodic Scan",
+          "mode": "Schedule Mode",
+          "periodicWithValue": "Periodic scan (interval)",
+          "interval": "Scan Interval",
+          "specificTime": "Scheduled Time",
+          "randomDelay": "Random Delay",
+          "retryLimit": "Retry Attempts",
+          "retryInterval": "Retry Interval",
+          "scanOnStartup": "Scan After Startup",
+          "scanOnStartupDescription": "Run one vulnerability scan after the Agent starts",
+          "scanOnStartupAriaLabel": "Scan immediately after startup"
+        },
+        "service": {
+          "title": "Scan Service and Controls",
+          "infoAriaLabel": "View scan service and control information",
+          "info": "The vulnerability server URL is saved with the policy; scan scope and automatic installation are fixed by the backend.",
+          "downloadPriority": "Download Priority",
+          "priorityPlaceholder": "Select a priority",
+          "priorityOption": "Priority {priority}{builtIn}",
+          "builtInSuffix": " (Built-in default)",
+          "serverUrl": "Vulnerability Server URL",
+          "serverUrlPlaceholder": "For example, http://192.168.1.100:8530",
+          "scanScope": "Scan Scope",
+          "scanScopeValue": "Updates that are not installed or hidden",
+          "autoInstall": "Automatic Installation"
+        },
+        "categories": {
+          "application": {
+            "label": "Applications",
+            "officialName": "Applications",
+            "description": "Updates released for application products. This WSUS classification is not limited to Windows operating-system components."
+          },
+          "connectors": {
+            "label": "Connectors",
+            "officialName": "Connectors",
+            "description": "Updates released for connector components in the WSUS classification catalog."
+          },
+          "criticalupdates": {
+            "label": "Critical Updates",
+            "officialName": "Critical Updates",
+            "description": "Broadly released fixes for critical, non-security-related issues."
+          },
+          "definitionupdates": {
+            "label": "Definition Updates",
+            "officialName": "Definition Updates",
+            "description": "Frequent updates that add to product definition databases, such as malware, phishing-site, or junk-mail definitions."
+          },
+          "developerkits": {
+            "label": "Developer Kits",
+            "officialName": "Developer Kits",
+            "description": "Updates released for software development kits (SDKs) and related development components in the WSUS classification catalog."
+          },
+          "featurepacks": {
+            "label": "Feature Packs",
+            "officialName": "Feature Packs",
+            "description": "New functionality distributed outside a product release and typically included in the next full product release."
+          },
+          "guidance": {
+            "label": "Guidance",
+            "officialName": "Guidance",
+            "description": "Guidance related to product use, deployment, or security in the WSUS classification catalog."
+          },
+          "securityupdates": {
+            "label": "Security Updates",
+            "officialName": "Security Updates",
+            "description": "Broadly released fixes for product-specific security vulnerabilities."
+          },
+          "servicepacks": {
+            "label": "Service Packs",
+            "officialName": "Service Packs",
+            "description": "Tested cumulative collections that may include security updates, critical updates, other updates, and limited feature changes."
+          },
+          "tools": {
+            "label": "Tools",
+            "officialName": "Tools",
+            "description": "Utilities or features that help complete one or more tasks."
+          },
+          "updaterollups": {
+            "label": "Update Rollups",
+            "officialName": "Update Rollups",
+            "description": "Tested cumulative sets of fixes and updates packaged together for easier deployment."
+          },
+          "updates": {
+            "label": "Updates",
+            "officialName": "Updates",
+            "description": "Broadly released fixes for specific non-critical, non-security-related issues."
+          }
+        },
+        "validation": {
+          "nameRequired": "The policy name is required",
+          "versionFormat": "The new version must use x.y.z format, for example 1.1.0",
+          "intervalHours": "The scan interval must be an integer greater than or equal to 1",
+          "specificTime": "The scheduled time must use HH:mm format",
+          "randomDelayMinutes": "The random delay must be an integer from 0 to 120 minutes",
+          "retryLimit": "The retry count must be an integer from 0 to 10",
+          "retryIntervalMinutes": "The retry interval must be an integer greater than or equal to 1",
+          "downloadPriority": "The download priority must be from 1 to 5",
+          "wsusUrlRequired": "The vulnerability server URL is required",
+          "wsusUrlInvalid": "The vulnerability server URL must be a valid HTTP or HTTPS URL"
+        },
+        "toast": {
+          "created": "Vulnerability Scan Policy Created",
+          "createdDescription": "The policy has not been deployed. Select hosts in Management Center to apply it.",
+          "failed": "Failed to Create Vulnerability Scan Policy"
+        },
+        "discard": {
+          "title": "Discard Uncreated Changes?",
+          "description": "The vulnerability scan policy has changes that have not been created and will be lost after closing."
+        },
+        "errors": {
+          "createFailed": "Creation failed. Review the configuration and try again."
+        }
+      },
+      "baselineScanPolicy": {
+        "title": "Create Baseline Scan Policy",
+        "description": "Edit one universal scan schedule shared by all baseline templates, then create a new policy version for later deployment.",
+        "basedOnBuiltIn": "Based on Built-in Policy",
+        "closeAriaLabel": "Close baseline scan policy configuration",
+        "basicInfoAriaLabel": "Baseline scan policy basic information",
+        "defaultName": "Default Baseline Scan Policy",
+        "policyName": "Policy Name",
+        "policyNamePlaceholder": "Enter a policy name",
+        "requestFailedTitle": "Creation failed. Correct the configuration and try again.",
+        "restoreDefaults": "Restore Built-in Defaults",
+        "modifiedCount": "{count, plural, one {# setting has} other {# settings have}} been modified but not created",
+        "builtInDefaults": "Currently using backend built-in defaults",
+        "creating": "Creating",
+        "validateAndCreate": "Validate and Create Policy",
+        "schedule": {
+          "title": "Universal Scan Schedule",
+          "sharedByAll": "Shared by All Baselines",
+          "intervalLabel": "Execution Interval",
+          "retryCountLabel": "Retry Attempts",
+          "startupTitle": "Run When Agent Starts",
+          "startupDescription": "Run one additional baseline scan after the Agent starts"
+        },
+        "validation": {
+          "nameRequired": "The policy name is required",
+          "versionFormat": "The new version must use x.y.z format, for example 1.1.0",
+          "modeUnsupported": "Only fixed-interval scheduling is currently supported",
+          "intervalHours": "The execution interval must be an integer from 1 to 24 hours",
+          "specificTime": "The fixed execution time must use HH:mm format",
+          "randomDelayMinutes": "The random delay must be an integer from 0 to 120 minutes",
+          "retryLimit": "The retry count must be an integer from 0 to 10",
+          "retryIntervalMinutes": "The retry interval must be an integer greater than or equal to 1"
+        },
+        "toast": {
+          "created": "Baseline Scan Policy Created",
+          "createdDescription": "This policy applies to all baseline templates and has not been assigned to hosts or deployed.",
+          "failed": "Failed to Create Baseline Scan Policy"
+        },
+        "discard": {
+          "title": "Discard Uncreated Changes?",
+          "description": "The baseline scan policy has changes that have not been created and will be lost after closing."
+        },
+        "errors": {
+          "createFailed": "Creation failed. Review the scan schedule and try again."
+        }
+      },
+      "actions": {
+        "openMenu": "Open actions for “{name}”",
+        "viewJson": "View JSON",
+        "noAgentOperations": "No Agent actions available",
+        "updateForbidden": "The backend capability contract does not allow this object to be updated",
+        "updateUnsupportedType": "The backend update API supports policies and configurations only",
+        "deleteForbidden": "The backend capability contract does not allow this object to be deleted",
+        "deleteActiveOnly": "Only objects in the active state can be deleted",
+        "deleteStateVersionMissing": "The backend did not return a valid state_version. Refresh and try again"
+      },
+      "deleteModes": {
+        "forbidden": "Deletion Disabled",
+        "metadataOnly": "Delete Metadata",
+        "removeEffects": "Remove Effects and Delete",
+        "unknown": "Unspecified"
+      },
+      "empty": {
+        "filteredTitle": "No control objects match the filters",
+        "title": "No control objects available",
+        "filteredDescription": "Adjust the search term or filters and try again.",
+        "description": "PMC Catalog did not return any active configurations, policies, or commands."
+      },
+      "pagination": {
+        "summary": "Showing {start}–{end} of {total}",
+        "previous": "Previous page",
+        "next": "Next page"
+      },
+      "errors": {
+        "catalogLoadTitle": "Failed to load control objects",
+        "catalogDataInvalid": "The backend returned incomplete control-object data. Check the PMC Catalog API.",
+        "catalogTruncated": "The control-object count exceeds the safe pagination limit. Narrow the backend result set and try again.",
+        "catalogLoadFailed": "Failed to load control objects. Try again later."
       }
     },
     "sensorConfig": {
