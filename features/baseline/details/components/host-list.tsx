@@ -77,7 +77,7 @@ function HeaderLabel({
 
 function LoadingRows() {
   return (
-    <div className="space-y-4 border-t border-slate-200 p-6">
+    <div className="flex-1 space-y-4 border-t border-slate-200 p-6">
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
@@ -154,7 +154,7 @@ export default function HostList({
   const failedCount = filteredData.filter((host) => host.status !== "passed").length
 
   return (
-    <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+    <section className="flex min-h-[22rem] flex-1 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="flex size-12 items-center justify-center rounded-2xl bg-sky-50 text-sky-700">
@@ -258,7 +258,7 @@ export default function HostList({
       </div>
 
       {error ? (
-        <div className="flex min-h-[260px] flex-col items-center justify-center border-t border-slate-200 px-6 py-12 text-center">
+        <div className="flex min-h-[260px] flex-1 flex-col items-center justify-center border-t border-slate-200 px-6 py-12 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-500">
             <Package className="h-6 w-6" />
           </div>
@@ -272,7 +272,7 @@ export default function HostList({
       ) : isLoading ? (
         <LoadingRows />
       ) : filteredData.length === 0 ? (
-        <div className="flex min-h-[260px] flex-col items-center justify-center border-t border-slate-200 px-6 py-12 text-center">
+        <div className="flex min-h-[260px] flex-1 flex-col items-center justify-center border-t border-slate-200 px-6 py-12 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
             <Search className="h-6 w-6" />
           </div>
@@ -340,7 +340,7 @@ export default function HostList({
         </Table>
       )}
 
-      <div className="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mt-auto flex flex-col gap-3 border-t border-slate-200 px-6 py-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
         <div>
           {t("totalHosts", { count: pagination.total_count })}
           {pagination.total_count > 0 ? `, ${t("currentRange", { start: shownStart, end: shownEnd })}` : ""}

@@ -107,8 +107,8 @@ function SkeletonRow() {
 
 function SkeletonCard() {
   return (
-    <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-      <CardContent className="space-y-5 p-5">
+    <Card className="flex min-h-0 shrink flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <CardContent className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <div className="h-5 w-40 animate-pulse rounded bg-muted" />
@@ -139,7 +139,7 @@ function SkeletonCard() {
 
 function EmptyState({ label }: { label: string }) {
   return (
-    <Card className="rounded-[24px] border-dashed bg-background shadow-sm">
+    <Card className="min-h-0 shrink rounded-[24px] border-dashed bg-background shadow-sm">
       <CardContent className="py-12 text-center text-sm text-muted-foreground">{label}</CardContent>
     </Card>
   )
@@ -464,7 +464,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
 
   return (
     <TooltipProvider delayDuration={200}>
-      <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+      <Card className="flex min-h-0 shrink flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
         <div className="border-b border-slate-200 px-5 py-5">
           <div className="flex items-start justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
@@ -490,7 +490,7 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
         </div>
 
         {!collapsed && (
-          <CardContent className="space-y-5 p-5">
+          <CardContent className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
             {description && (
               <div className="rounded-2xl border-l-4 border-blue-500 bg-blue-50/50 px-4 py-3 text-sm leading-7 text-slate-700">
                 {description}

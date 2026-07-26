@@ -205,8 +205,8 @@ export default function BaselineDetailsPage() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="space-y-6 p-4 sm:p-6">
+    <div className="h-full overflow-hidden bg-slate-50">
+      <div className="flex h-full min-h-0 flex-col gap-4 p-4 sm:p-6">
         <BaselineDetailHeader
           item={detail}
           statistics={statistics}

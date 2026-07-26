@@ -139,7 +139,7 @@ export function BaselineDetailHeader({
   const severityMeta = getSeverityMeta(item?.severity)
 
   return (
-    <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-white via-white to-slate-50 px-5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_16px_34px_rgba(15,23,42,0.10)]">
+    <section className="shrink-0 rounded-[28px] border border-slate-200/80 bg-gradient-to-b from-white via-white to-slate-50 px-5 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_16px_34px_rgba(15,23,42,0.10)]">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-50 via-sky-50 to-cyan-100 text-blue-600">

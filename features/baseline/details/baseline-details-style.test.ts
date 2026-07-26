@@ -8,6 +8,7 @@ function readSource(file: string) {
 
 describe("baseline item details visual hierarchy", () => {
   it("uses the IOC-standard radius hierarchy without rounding the table header", () => {
+    const pageSource = readSource("app/frame/baseline/details/page.tsx")
     const headerSource = readSource(
       "features/baseline/details/components/baseline-detail-header.tsx",
     )
@@ -25,6 +26,18 @@ describe("baseline item details visual hierarchy", () => {
     expect(hostListSource).toContain(
       "rounded-[24px] border border-slate-200 bg-white",
     )
+    expect(pageSource).toContain("h-full overflow-hidden bg-slate-50")
+    expect(pageSource).toContain("flex h-full min-h-0 flex-col gap-4")
+    expect(hostListSource).toContain(
+      "flex min-h-[22rem] flex-1 flex-col overflow-hidden",
+    )
+    expect(hostListSource).toContain(
+      "mt-auto flex flex-col gap-3 border-t border-slate-200",
+    )
+    expect(detailSource).toContain(
+      "flex min-h-0 shrink flex-col overflow-hidden",
+    )
+    expect(detailSource).toContain("min-h-0 flex-1 space-y-5 overflow-y-auto")
     expect(detailSource).toContain("rounded-2xl border border-slate-200")
     expect(hostListSource).toContain('<TableHeader className="bg-slate-100">')
     expect(hostListSource).not.toContain("<TableHeader className=\"rounded")
