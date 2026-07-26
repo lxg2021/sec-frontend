@@ -21,6 +21,7 @@ interface PercentageTrendCardLabels {
 }
 
 interface PercentageTrendCardProps {
+  appearance?: "default" | "dashboard"
   className?: string
   data: PercentageTrendPoint[]
   loading?: boolean
@@ -42,6 +43,7 @@ function formatMetric(value: number, suffix: string) {
 }
 
 export function PercentageTrendCard({
+  appearance = "default",
   className,
   data,
   loading = false,
@@ -54,6 +56,7 @@ export function PercentageTrendCard({
   summaryMode = "highest-average-change",
   labels,
 }: PercentageTrendCardProps) {
+  const isDashboardAppearance = appearance === "dashboard"
   const gradientId = useId().replace(/:/g, "")
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null)
   const [isAnimated, setIsAnimated] = useState(false)
@@ -127,21 +130,63 @@ export function PercentageTrendCard({
 
   return (
     <>
-      <Card className={cn("border-0 shadow-lg", className)}>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card
+        className={cn(
+          "border-0 shadow-lg",
+          isDashboardAppearance &&
+            "rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
+          className,
+        )}
+      >
+        <CardHeader
+          className={cn(
+            "flex flex-row items-center justify-between",
+            isDashboardAppearance && "px-5 pb-3 pt-5",
+          )}
+        >
           <div className="flex items-center space-x-3">
-            {icon ? <div className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 p-2">{icon}</div> : null}
+            {icon ? (
+              <div
+                className={cn(
+                  "bg-gradient-to-br from-blue-500 to-blue-600",
+                  isDashboardAppearance
+                    ? "flex size-10 shrink-0 items-center justify-center rounded-xl"
+                    : "rounded-lg p-2",
+                )}
+              >
+                {icon}
+              </div>
+            ) : null}
             <div>
-              <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{title}</CardTitle>
-              {description ? <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{description}</p> : null}
+              <CardTitle
+                className={cn(
+                  "text-lg font-semibold text-slate-800 dark:text-white",
+                  isDashboardAppearance && "text-base font-medium text-slate-950",
+                )}
+              >
+                {title}
+              </CardTitle>
+              {description ? (
+                <p
+                  className={cn(
+                    "mt-1 text-sm text-slate-600 dark:text-slate-300",
+                    isDashboardAppearance && "text-xs leading-5 text-slate-500",
+                  )}
+                >
+                  {description}
+                </p>
+              ) : null}
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={cn(isDashboardAppearance && "px-5 pb-5")}>
           <div className="space-y-4">
             <div
               ref={containerRef}
-              className="relative w-full overflow-hidden rounded-lg bg-gradient-to-t from-blue-50 to-transparent p-4 dark:from-blue-900/20"
+              className={cn(
+                "relative w-full overflow-hidden rounded-lg bg-gradient-to-t from-blue-50 to-transparent p-4 dark:from-blue-900/20",
+                isDashboardAppearance && "rounded-2xl",
+              )}
             >
               {loading ? (
                 <div className="flex h-48 items-center justify-center text-sm text-slate-500">{labels.loading}</div>

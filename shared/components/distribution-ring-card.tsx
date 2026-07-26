@@ -13,6 +13,7 @@ export interface DistributionRingItem {
 }
 
 interface DistributionRingCardProps {
+  appearance?: "default" | "dashboard"
   className?: string
   title: string
   description?: string
@@ -31,6 +32,7 @@ function percentage(value: number, total: number) {
 }
 
 export function DistributionRingCard({
+  appearance = "default",
   className,
   title,
   description,
@@ -42,6 +44,7 @@ export function DistributionRingCard({
   emptyText,
   formatValue,
 }: DistributionRingCardProps) {
+  const isDashboardAppearance = appearance === "dashboard"
   const [animationProgress, setAnimationProgress] = useState(0)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
 
@@ -125,22 +128,61 @@ export function DistributionRingCard({
   }
 
   const renderHeader = () => (
-    <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <CardHeader
+      className={cn(
+        "flex flex-row items-center justify-between pb-2",
+        isDashboardAppearance && "px-5 pb-3 pt-5",
+      )}
+    >
       <div className="flex items-center space-x-3">
-        {icon ? <div className="rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 p-2">{icon}</div> : null}
+        {icon ? (
+          <div
+            className={cn(
+              "bg-gradient-to-br from-purple-500 to-purple-600",
+              isDashboardAppearance
+                ? "flex size-10 shrink-0 items-center justify-center rounded-xl"
+                : "rounded-lg p-2",
+            )}
+          >
+            {icon}
+          </div>
+        ) : null}
         <div>
-          <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">{title}</CardTitle>
-          {description ? <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{description}</p> : null}
+          <CardTitle
+            className={cn(
+              "text-lg font-semibold text-slate-800 dark:text-white",
+              isDashboardAppearance && "text-base font-medium text-slate-950",
+            )}
+          >
+            {title}
+          </CardTitle>
+          {description ? (
+            <p
+              className={cn(
+                "mt-1 text-sm text-slate-600 dark:text-slate-300",
+                isDashboardAppearance && "text-xs leading-5 text-slate-500",
+              )}
+            >
+              {description}
+            </p>
+          ) : null}
         </div>
       </div>
     </CardHeader>
   )
 
+  const cardClassName = cn(
+    "h-full border-0 shadow-lg",
+    isDashboardAppearance &&
+      "rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
+    className,
+  )
+
   if (!loading && resolvedTotal === 0 && emptyText) {
     return (
-      <Card className={cn("h-full border-0 shadow-lg", className)}>
+      <Card className={cardClassName}>
         {renderHeader()}
-        <CardContent className="flex h-64 items-center justify-center">
+        <CardContent className={cn("flex h-64 items-center justify-center", isDashboardAppearance && "px-5 pb-5")}>
           <p className="text-sm text-muted-foreground">{emptyText}</p>
         </CardContent>
       </Card>
@@ -150,10 +192,15 @@ export function DistributionRingCard({
   let offset = 0
 
   return (
-    <Card className={cn("h-full border-0 shadow-lg", className)}>
+    <Card className={cardClassName}>
       {renderHeader()}
-      <CardContent className="flex flex-1 flex-col">
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 lg:flex-row">
+      <CardContent className={cn("flex flex-1 flex-col", isDashboardAppearance && "px-5 pb-5")}>
+        <div
+          className={cn(
+            "flex flex-1 flex-col items-center justify-center gap-6 lg:flex-row",
+            isDashboardAppearance && "lg:flex-col xl:flex-row",
+          )}
+        >
           <div className="relative flex items-center justify-center">
             <div
               className="relative h-56 w-56 sm:h-64 sm:w-64"
@@ -234,15 +281,22 @@ export function DistributionRingCard({
             </div>
           </div>
 
-          <div className="w-full space-y-3 lg:min-w-[220px] lg:w-auto">
+          <div
+            className={cn(
+              "w-full space-y-3 lg:min-w-[220px] lg:w-auto",
+              isDashboardAppearance && "lg:w-full xl:w-auto",
+            )}
+          >
             {chartData.map((item, index) => {
               const isHovered = hoveredIndex === index
               return (
                 <div
                   key={item.key}
-                  className={`flex cursor-pointer items-center justify-between rounded-lg p-3 transition-colors duration-200 ${
-                    isHovered ? "bg-slate-100 dark:bg-slate-700" : "bg-slate-50 dark:bg-slate-800/50"
-                  }`}
+                  className={cn(
+                    "flex cursor-pointer items-center justify-between rounded-lg p-3 transition-colors duration-200",
+                    isDashboardAppearance && "rounded-2xl",
+                    isHovered ? "bg-slate-100 dark:bg-slate-700" : "bg-slate-50 dark:bg-slate-800/50",
+                  )}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
                 >
