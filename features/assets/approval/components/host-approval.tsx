@@ -147,7 +147,7 @@ export function HostApproval({
         />
       </Card>
 
-      <Card className="overflow-hidden rounded-[20px] border-slate-200 bg-white shadow-none">
+      <Card className="overflow-hidden rounded-none border-0 bg-white shadow-none">
         <HostTable
           hosts={displayedHosts}
           onEditHost={handleEditHost}

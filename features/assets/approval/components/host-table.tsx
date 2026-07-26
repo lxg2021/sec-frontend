@@ -134,7 +134,7 @@ export function HostTable({
     <div>
       <div className="overflow-x-auto">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted">
             <TableRow className="border-border hover:bg-transparent">
               <SortableHeader field="hostname">
                 <HeaderLabel icon={Monitor}>{t("hostname")}</HeaderLabel>

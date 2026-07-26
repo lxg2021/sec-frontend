@@ -457,10 +457,10 @@ export function CollectionApproval({ onTotalChange, refreshRequestVersion = 0 }:
           <CollectionStatCard icon={Ban} label={t("statRejected")} value={rejectedCount} tone="slate" />
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-[20px] border border-slate-200 bg-white">
+        <div className="mt-4 overflow-hidden bg-white">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-muted">
                 <TableRow>
                   <TableHead>
                     <TableHeaderLabel icon={FileText}>{t("submissionId")}</TableHeaderLabel>
