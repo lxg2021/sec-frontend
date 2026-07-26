@@ -88,8 +88,11 @@ describe("hardware assets page", () => {
       "utf8",
     )
 
-    expect(summarySource).toContain("rounded-[24px] border border-slate-200 bg-white")
-    expect(summarySource).toContain("size-12 shrink-0 items-center justify-center rounded-2xl")
+    expect(summarySource.match(/group relative overflow-hidden border-0 shadow-lg/g)).toHaveLength(2)
+    expect(summarySource.match(/hover:shadow-xl/g)).toHaveLength(2)
+    expect(summarySource).toContain("from-amber-500 to-orange-600 opacity-10")
+    expect(summarySource).toContain("from-slate-500 to-slate-600 opacity-10")
+    expect(summarySource).toContain("h-5 w-5 text-white")
     expect(tableSource).toContain("rounded-[24px] border border-slate-200 bg-white")
     expect(tableSource).toContain('TableHeader className="sticky top-0 z-10 bg-muted"')
     expect(tableSource).toContain("text-base font-medium text-slate-950")

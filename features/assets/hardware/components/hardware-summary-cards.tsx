@@ -61,17 +61,17 @@ function OverviewCard({ summary, isLoading = false }: HardwareSummaryCardsProps)
   const t = useTranslations("pages.assets.hardware.inventory")
 
   return (
-    <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-      <CardHeader className="flex flex-row items-center gap-3 pb-4">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
-          <PackageSearch className="size-6" aria-hidden="true" />
-        </div>
-        <div className="min-w-0">
-          <h3 className="text-base font-medium text-slate-950">{t("summary.overviewTitle")}</h3>
-          <p className="mt-1 text-xs leading-5 text-slate-500">{t("summary.overviewDescription")}</p>
+    <Card className="group relative overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 opacity-10 transition-opacity group-hover:opacity-20" />
+      <CardHeader className="relative flex flex-row items-center justify-between pb-3">
+        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          {t("summary.overviewTitle")}
+        </h3>
+        <div className="rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 p-2">
+          <PackageSearch className="h-5 w-5 text-white" aria-hidden="true" />
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
         <div className="grid gap-8 md:grid-cols-3">
           <MetricItem
             title={t("summary.modelCount")}
@@ -92,6 +92,9 @@ function OverviewCard({ summary, isLoading = false }: HardwareSummaryCardsProps)
             isLoading={isLoading}
           />
         </div>
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+          {t("summary.overviewDescription")}
+        </p>
       </CardContent>
     </Card>
   )
@@ -103,18 +106,18 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
   const byCategory = new Map(summary.categories.map((item) => [item.category, item]))
 
   return (
-    <Card className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
-      <CardHeader className="flex flex-row items-center gap-3 pb-4">
-        <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700">
-          <Database className="size-6" aria-hidden="true" />
-        </div>
-        <div className="min-w-0">
-          <h3 className="text-base font-medium text-slate-950">{t("summary.distributionTitle")}</h3>
-          <p className="mt-1 text-xs leading-5 text-slate-500">{t("summary.distributionDescription")}</p>
+    <Card className="group relative overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-500 to-slate-600 opacity-10 transition-opacity group-hover:opacity-20" />
+      <CardHeader className="relative flex flex-row items-center justify-between pb-3">
+        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          {t("summary.distributionTitle")}
+        </h3>
+        <div className="rounded-lg bg-gradient-to-br from-zinc-500 to-zinc-700 p-2">
+          <Database className="h-5 w-5 text-white" aria-hidden="true" />
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="relative">
         <div className="grid gap-x-8 gap-y-4 2xl:grid-cols-2">
           {isLoading
             ? Array.from({ length: 6 }).map((_, index) => (
@@ -159,6 +162,9 @@ function DistributionCard({ summary, isLoading = false }: HardwareSummaryCardsPr
                 )
               })}
         </div>
+        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+          {t("summary.distributionDescription")}
+        </p>
       </CardContent>
     </Card>
   )
