@@ -301,10 +301,10 @@ export function SensorConfigDialog({
           <div className="flex min-h-full flex-col bg-slate-50 lg:h-full lg:min-h-0">
             <DialogHeader className="sticky top-0 z-20 shrink-0 space-y-2 border-b border-slate-200 bg-white px-5 py-4 sm:px-7 sm:py-5 lg:static">
               <div className="flex w-full flex-wrap items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
-                  <Settings2 className="h-4 w-4" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
+                  <Settings2 className="h-4 w-4 shrink-0" />
                 </div>
-                <DialogTitle className="text-lg text-slate-950 sm:text-xl">编辑传感器配置</DialogTitle>
+                <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">编辑传感器配置</DialogTitle>
                 <Badge className="px-2 py-0 text-[11px] border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-50">创建新版本</Badge>
                 <Button
                   type="button"
@@ -315,7 +315,7 @@ export function SensorConfigDialog({
                   aria-label="关闭"
                   title="关闭"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
               <DialogDescription className="sr-only">编辑传感器配置并创建新版本。</DialogDescription>

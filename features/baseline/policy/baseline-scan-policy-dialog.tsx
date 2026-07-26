@@ -254,10 +254,10 @@ export function BaselineScanPolicyDialog({
             <DialogHeader className="shrink-0 space-y-0 border-b border-slate-200 bg-white px-4 py-3.5 sm:px-6 sm:py-4">
               <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
-                  <ListChecks className="h-4 w-4" />
+                  <ListChecks className="h-4 w-4 shrink-0" />
                 </div>
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <DialogTitle className="text-lg leading-6 text-slate-950 sm:text-xl">
+                  <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
                     创建基线扫描策略
                   </DialogTitle>
                   <Badge
@@ -277,7 +277,7 @@ export function BaselineScanPolicyDialog({
                   aria-label="关闭基线扫描策略配置"
                   title="关闭"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
               <DialogDescription className="sr-only">

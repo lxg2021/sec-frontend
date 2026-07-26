@@ -302,13 +302,13 @@ export function AccessControlPolicyEditorDialog({
           <DialogHeader className="shrink-0 space-y-0 border-b border-slate-200 bg-slate-50/80 px-5 py-3 pr-16 text-left">
             <div className="flex min-w-0 items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-cyan-100 bg-cyan-50 text-cyan-600">
-                <PolicyIcon className="h-4 w-4" aria-hidden="true" />
+                <PolicyIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
                   编辑{typeTitle}
                 </DialogTitle>
-                <DialogDescription className="mt-0.5 truncate text-xs text-slate-500">
+                <DialogDescription className="sr-only">
                   {definition ? `${definition.objectId} · 当前版本 ${definition.version}` : "加载策略内容"}
                 </DialogDescription>
               </div>

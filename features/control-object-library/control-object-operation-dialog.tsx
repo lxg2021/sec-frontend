@@ -261,13 +261,13 @@ export function ControlObjectOperationDialog({
         <DialogHeader className="shrink-0 border-b border-slate-200 bg-slate-50/80 px-5 py-3 pr-16 text-left">
           <div className="flex min-w-0 items-center gap-2.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
-              <OperationIcon className={cn("h-4 w-4", presentation?.iconClassName)} aria-hidden="true" />
+              <OperationIcon className={cn("h-4 w-4 shrink-0", presentation?.iconClassName)} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <DialogTitle className="truncate text-sm font-semibold text-slate-950">
+              <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
                 {target ? operationTitle(target) : "选择目标主机"}
               </DialogTitle>
-              <DialogDescription className="mt-0.5 truncate text-xs text-slate-500">
+              <DialogDescription className="sr-only">
                 {target ? `${target.definition.displayName} · v${target.definition.version}` : ""}
               </DialogDescription>
             </div>

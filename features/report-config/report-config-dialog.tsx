@@ -328,10 +328,10 @@ export function ReportConfigDialog({
             <DialogHeader className="shrink-0 space-y-0 border-b border-slate-200 px-4 py-3.5 sm:px-6 sm:py-4">
               <div className="grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
-                  <RadioTower className="h-4 w-4" />
+                  <RadioTower className="h-4 w-4 shrink-0" />
                 </div>
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
-                  <DialogTitle className="text-lg leading-6 text-slate-950 sm:text-xl">
+                  <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
                     编辑数据上报配置
                   </DialogTitle>
                   <Badge
@@ -351,7 +351,7 @@ export function ReportConfigDialog({
                   aria-label="关闭数据上报配置"
                   title="关闭"
                 >
-                  <X className="h-3.5 w-3.5" />
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
               <DialogDescription className="sr-only">

@@ -85,16 +85,16 @@ export function ControlObjectDeleteDialog({
           <div className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-700">
               {removesEffects ? (
-                <Unplug className="h-4 w-4" aria-hidden="true" />
+                <Unplug className="h-4 w-4 shrink-0" aria-hidden="true" />
               ) : (
-                <Trash2 className="h-4 w-4" aria-hidden="true" />
+                <Trash2 className="h-4 w-4 shrink-0" aria-hidden="true" />
               )}
             </span>
             <div className="min-w-0">
-              <DialogTitle className="truncate text-sm font-semibold text-slate-950">
+              <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
                 {removesEffects ? "移除主机效果并删除" : "删除对象"}
               </DialogTitle>
-              <DialogDescription className="mt-0.5 truncate text-xs text-slate-500">
+              <DialogDescription className="sr-only">
                 {definition?.displayName || ""}
               </DialogDescription>
             </div>

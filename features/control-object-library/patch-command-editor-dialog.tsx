@@ -269,13 +269,13 @@ export function PatchCommandEditorDialog({
           <DialogHeader className="shrink-0 space-y-0 border-b border-slate-200 bg-slate-50/80 px-4 py-3 pr-14 text-left sm:px-5 sm:pr-16">
             <div className="flex min-w-0 items-center gap-2.5">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-700">
-                <HardDriveDownload className="h-4 w-4" aria-hidden="true" />
+                <HardDriveDownload className="h-4 w-4 shrink-0" aria-hidden="true" />
               </span>
               <div className="min-w-0 flex-1">
                 <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
                   {title}
                 </DialogTitle>
-                <DialogDescription className="mt-0.5 truncate text-xs text-slate-500">
+                <DialogDescription className="sr-only">
                   修改命令参数，并基于当前内容另存为新的不可变命令
                 </DialogDescription>
               </div>
