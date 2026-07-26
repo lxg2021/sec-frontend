@@ -73,7 +73,7 @@ export function IocPositioningGraphPanel({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 rounded-md border-slate-200 bg-white text-xs"
+                className="h-8 rounded-full border-slate-200 bg-white text-xs"
                 onClick={onResetPositions}
               >
                 <RotateCcw className="h-3.5 w-3.5" />

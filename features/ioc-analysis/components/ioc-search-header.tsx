@@ -5,7 +5,6 @@ import { Globe2, Loader2, Search } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import type { IocVerificationType } from "@/features/ioc-analysis/types"
-import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 import { Input } from "@/shared/ui/input"
 import {
@@ -57,8 +56,8 @@ export function IocSearchHeader({
   }
 
   return (
-    <header className="w-full shrink-0 rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
-      <div className="grid gap-4 lg:grid-cols-[minmax(180px,1fr)_minmax(560px,760px)_minmax(140px,1fr)] lg:items-center xl:grid-cols-[minmax(190px,1fr)_minmax(860px,1040px)_minmax(150px,1fr)] 2xl:grid-cols-[minmax(220px,1fr)_minmax(980px,1180px)_minmax(170px,1fr)]">
+    <header className="flex min-h-[92px] w-full shrink-0 items-center rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
+      <div className="grid w-full min-w-0 gap-4 xl:grid-cols-[minmax(220px,1fr)_minmax(560px,760px)_minmax(220px,1fr)] xl:items-center">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 text-teal-600">
             <Globe2 className="h-5 w-5" aria-hidden="true" />
@@ -78,12 +77,7 @@ export function IocSearchHeader({
 
         <form
           onSubmit={handleSubmit}
-          className={cn(
-            "flex h-14 w-full min-w-0 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 transition-[border-color,background-color,box-shadow] duration-200 ease-out lg:justify-self-center",
-            "hover:border-slate-300 hover:bg-white hover:shadow-sm",
-            "focus-within:border-blue-400 focus-within:bg-white focus-within:shadow-sm",
-            loading && "animate-pulse"
-          )}
+          className="flex h-11 w-full min-w-0 items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50/80 px-1 shadow-inner shadow-slate-100/70 transition-[border-color,background-color,box-shadow] duration-200 ease-out hover:border-slate-300 hover:bg-white focus-within:border-blue-400 focus-within:bg-white focus-within:shadow-sm xl:justify-self-center"
         >
           <Select
             value={queryType}
@@ -92,7 +86,7 @@ export function IocSearchHeader({
           >
             <SelectTrigger
               aria-label={t("typeLabel")}
-              className="h-10 w-[112px] shrink-0 rounded-full border-slate-200 bg-white pl-4 pr-3 text-xs font-semibold text-slate-800 shadow-none transition-colors hover:border-slate-300 hover:bg-white focus:ring-0 focus:ring-offset-0 data-[placeholder]:text-slate-500 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-slate-500 [&>svg]:opacity-100"
+              className="h-9 w-[108px] shrink-0 rounded-full border-slate-200 bg-white pl-4 pr-3 text-xs font-semibold text-slate-800 shadow-none transition-colors hover:border-slate-300 hover:bg-white focus:ring-0 focus:ring-offset-0 data-[placeholder]:text-slate-500 [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-slate-500 [&>svg]:opacity-100"
             >
               <SelectValue />
             </SelectTrigger>
@@ -122,13 +116,14 @@ export function IocSearchHeader({
               }
             }}
             placeholder={t("placeholder")}
-            className="h-11 min-w-0 flex-1 rounded-none border-0 bg-transparent px-3 font-mono text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            aria-label={t("placeholder")}
+            className="h-9 min-w-0 flex-1 rounded-none border-0 bg-transparent px-3 font-mono text-sm shadow-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
             disabled={loading}
           />
 
           <Button
             type="submit"
-            className="h-10 shrink-0 rounded-full bg-blue-600 px-5 text-white hover:bg-blue-700"
+            className="h-9 shrink-0 cursor-pointer rounded-full bg-blue-600 px-4 text-white hover:bg-blue-700"
             disabled={loading || !canSearch}
           >
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -136,7 +131,7 @@ export function IocSearchHeader({
           </Button>
         </form>
 
-        <div className="hidden lg:block" aria-hidden="true" />
+        <div className="hidden xl:block" aria-hidden="true" />
       </div>
     </header>
   )

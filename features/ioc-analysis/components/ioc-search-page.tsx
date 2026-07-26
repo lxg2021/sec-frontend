@@ -541,7 +541,7 @@ function IocSearchEmptyState() {
   const t = useTranslations("pages.iocAnalysis.search.emptyState")
 
   return (
-    <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+    <section className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-[24px] border border-slate-200 bg-white px-6 py-10 text-center shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <IocPanelEmptyState
         title={t("title")}
         description={t("description")}
@@ -1032,8 +1032,8 @@ export function IocSearchPage() {
   }, [graphNodeDrillStateByKey, graphResponse, graphScope, t])
 
   return (
-    <main className="h-full overflow-hidden bg-gray-50 text-slate-950">
-      <div className="flex h-full min-h-0 flex-col gap-4 p-6">
+    <main className="h-full min-w-0 overflow-hidden bg-slate-50 text-slate-950">
+      <div className="flex h-full min-h-0 min-w-0 flex-col gap-4 p-3 sm:p-4 xl:p-5 2xl:p-6">
         <IocSearchHeader
           queryType={queryType}
           queryValue={queryValue}
@@ -1057,7 +1057,7 @@ export function IocSearchPage() {
         )}
 
         {status === "error" ? (
-          <section className="mx-auto max-w-5xl shrink-0 rounded-lg border border-rose-200 bg-rose-50 p-4 text-rose-700">
+          <section className="mx-auto w-full max-w-5xl shrink-0 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
             <div className="flex items-start gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
               <div>
@@ -1070,16 +1070,16 @@ export function IocSearchPage() {
 
         {displayItemForPage ? (
           <section className="min-h-0 flex-1 overflow-hidden">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
               <div className="shrink-0 border-b border-slate-100 px-4 py-3">
-                <TabsList className="h-10 rounded-md bg-slate-100 p-1">
-                  <TabsTrigger value="detail" className="rounded px-4 data-[state=active]:bg-white">
+                <TabsList className="h-10 rounded-full bg-slate-100 p-1">
+                  <TabsTrigger value="detail" className="cursor-pointer rounded-full px-4 data-[state=active]:bg-white">
                     {t("tabs.detail")}
                   </TabsTrigger>
-                  <TabsTrigger value="local" className="rounded px-4 data-[state=active]:bg-white">
+                  <TabsTrigger value="local" className="cursor-pointer rounded-full px-4 data-[state=active]:bg-white">
                     {t("tabs.local")}
                   </TabsTrigger>
-                  <TabsTrigger value="graph" className="rounded px-4 data-[state=active]:bg-white">
+                  <TabsTrigger value="graph" className="cursor-pointer rounded-full px-4 data-[state=active]:bg-white">
                     {t("tabs.graph")}
                   </TabsTrigger>
                 </TabsList>
@@ -1087,7 +1087,7 @@ export function IocSearchPage() {
 
               <TabsContent value="detail" className="m-0 min-h-0 flex-1 p-4 data-[state=inactive]:hidden">
                 <IocVerificationDetailPanel
-                  className="h-full rounded-lg"
+                  className="h-full"
                   item={displayItemForPage}
                   loading={status === "loading"}
                   onCopy={copyValue}

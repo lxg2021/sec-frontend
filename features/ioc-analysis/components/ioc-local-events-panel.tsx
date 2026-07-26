@@ -462,7 +462,7 @@ export function IocLocalEventsPanel({
                   <col className="w-[6%]" />
                   <col className="w-[6%]" />
                 </colgroup>
-                <TableHeader className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur">
+                <TableHeader className="sticky top-0 z-10 bg-slate-100">
                   <TableRow className="border-slate-200 hover:bg-transparent">
                     <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.time")}</TableHead>
                     <TableHead className="h-10 px-3 text-xs font-semibold text-slate-500">{t("columns.endpoint")}</TableHead>
@@ -495,7 +495,7 @@ export function IocLocalEventsPanel({
                         key={key}
                         className={cn(
                           "group border-slate-100 transition-colors hover:bg-blue-50/40",
-                          selected && "bg-blue-50/70 hover:bg-blue-50/80"
+                          selected && "bg-blue-50/70 shadow-[inset_4px_0_0_#0284c7] hover:bg-blue-50/80"
                         )}
                       >
                         <TableCell className="px-3 py-2.5">

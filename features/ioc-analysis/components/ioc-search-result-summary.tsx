@@ -175,25 +175,24 @@ export function IocSearchResultSummary({
   }
 
   return (
-    <article className="relative mx-auto w-full shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-950 shadow-sm">
+    <article className="relative mx-auto w-full shrink-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white text-slate-950 shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
       <span className={cn("absolute inset-y-4 left-0 z-10 w-1 rounded-full", tone.accent)} aria-hidden="true" />
-      <span className={cn("absolute inset-y-4 right-0 z-10 w-1 rounded-full", tone.accent)} aria-hidden="true" />
       <div className="flex flex-col items-stretch 2xl:flex-row 2xl:items-center">
         <div className="relative flex min-w-0 flex-1 items-center gap-4 p-5 pl-6">
-          <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl", bugTone.iconBox)}>
+          <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl", bugTone.iconBox)}>
             {bugTone.icon}
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <code className="truncate font-mono text-lg font-semibold tracking-tight text-slate-950">
+              <code className="truncate font-mono text-base font-medium leading-6 text-slate-950">
                 {item.value}
               </code>
               <button
                 type="button"
                 onClick={handleCopy}
                 aria-label={t("actions.copyIoc")}
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                className="inline-flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-blue-50 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-blue-600" aria-hidden="true" />
@@ -204,10 +203,10 @@ export function IocSearchResultSummary({
             </div>
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className={cn("inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold uppercase", typePillClass(item.type))}>
+              <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase", typePillClass(item.type))}>
                 {item.type}
               </span>
-              <span className={cn("inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold", tone.badge)}>
+              <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold", tone.badge)}>
                 <ShieldAlert className="h-3 w-3" aria-hidden="true" />
                 {t(verdictLabelKey(item))}
               </span>
