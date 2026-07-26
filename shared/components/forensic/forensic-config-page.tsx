@@ -590,7 +590,6 @@ function MetricCard({
   value,
   description,
   tone,
-  glow,
   valueClassName,
 }: {
   icon: LucideIcon
@@ -598,33 +597,23 @@ function MetricCard({
   value: number | string
   description: string
   tone: string
-  glow: string
   valueClassName?: string
 }) {
   return (
-    <div className="group relative isolate min-h-[112px] min-w-0 transform-gpu overflow-hidden rounded-2xl border border-white/80 bg-[linear-gradient(145deg,#ffffff_0%,#ffffff_58%,#f8fafc_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.96),0_18px_34px_rgba(15,23,42,0.10),0_4px_10px_rgba(15,23,42,0.06)] ring-1 ring-slate-950/[0.03] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.98),0_24px_44px_rgba(15,23,42,0.13),0_8px_16px_rgba(15,23,42,0.08)] dark:border-slate-800 dark:bg-[linear-gradient(145deg,#0f172a_0%,#020617_100%)] dark:ring-white/[0.04] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_34px_rgba(0,0,0,0.34)] dark:hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_24px_44px_rgba(0,0,0,0.42)]">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.92),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0.68),rgba(255,255,255,0)_48%)] opacity-90 dark:bg-[radial-gradient(circle_at_0%_0%,rgba(255,255,255,0.08),transparent_38%)] dark:opacity-100" aria-hidden />
-      <div className="pointer-events-none absolute inset-x-5 bottom-0 -z-10 h-px bg-slate-200/70 dark:bg-white/10" aria-hidden />
-      <div
-        className={cn(
-          "absolute -left-10 -top-10 h-36 w-36 rounded-full opacity-[0.06] blur-3xl transition-opacity duration-500 group-hover:opacity-[0.12]",
-          glow,
-        )}
-        aria-hidden
-      />
-      <div className="relative flex min-h-[112px] items-center justify-between gap-3 px-5 py-5">
+    <div className="min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex min-h-[104px] items-center justify-between gap-3 px-5 py-4">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={cn("inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.32),0_12px_18px_rgba(15,23,42,0.18)] ring-1 ring-white/30 transition-transform duration-300 group-hover:scale-[1.03]", tone)}>
-            <Icon className="size-[18px]" strokeWidth={2} aria-hidden />
+          <span className={cn("inline-flex size-10 shrink-0 items-center justify-center rounded-xl text-white shadow-sm", tone)}>
+            <Icon className="size-5" strokeWidth={2} aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[13px] font-medium leading-5 text-slate-700 dark:text-slate-300">{label}</p>
-            <p className="mt-2 truncate text-xs leading-5 text-slate-400 dark:text-slate-500">{description}</p>
+            <p className="truncate text-base font-medium leading-6 text-slate-950 dark:text-slate-100">{label}</p>
+            <p className="mt-1 truncate text-xs leading-5 text-slate-500 dark:text-slate-400">{description}</p>
           </div>
         </div>
         <p
           className={cn(
-            "ml-auto max-w-[50%] shrink-0 truncate text-right text-[32px] font-bold leading-none tabular-nums text-slate-900 dark:text-white",
+            "ml-auto max-w-[50%] shrink-0 truncate text-right text-2xl font-semibold leading-none tabular-nums text-slate-950 dark:text-white",
             valueClassName,
           )}
         >
@@ -641,7 +630,7 @@ function JsonBlock({ value, emptyText }: { value: unknown; emptyText: string }) 
     return <p className="text-sm text-muted-foreground">{emptyText}</p>
   }
   return (
-    <pre className="max-h-64 overflow-auto rounded-lg border border-slate-800 bg-slate-950 p-3 text-xs leading-5 text-slate-100 shadow-inner">
+    <pre className="max-h-64 overflow-auto rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs leading-5 text-slate-100 shadow-inner">
       {text}
     </pre>
   )
@@ -1062,8 +1051,8 @@ export function ForensicConfigPage() {
   }
 
   return (
-    <main className="bg-gray-50">
-      <div className="flex h-[calc(100vh-3rem)] min-h-0 flex-col gap-6 overflow-hidden p-6">
+    <main className="min-h-dvh min-w-0 overflow-x-hidden bg-slate-50">
+      <div className="flex min-h-[calc(100dvh-3rem)] min-w-0 flex-col gap-6 p-6 xl:h-[calc(100dvh-3rem)] xl:overflow-hidden">
         <header className="w-full rounded-[28px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_12px_34px_rgba(15,23,42,0.08)]">
           <div className="flex flex-col gap-4 2xl:flex-row 2xl:items-center">
             <div className="flex min-w-0 flex-1 items-center gap-4">
@@ -1183,53 +1172,46 @@ export function ForensicConfigPage() {
           </div>
         </header>
 
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
             icon={Boxes}
             label={t("summary.total")}
             value={summary.total}
             description={t("summary.totalHint")}
-            tone="bg-gradient-to-br from-sky-500 to-cyan-600 shadow-sky-200/70"
-            glow="bg-blue-500"
-            valueClassName="text-sky-600 dark:text-sky-400"
+            tone="bg-gradient-to-br from-sky-500 to-cyan-600"
           />
           <MetricCard
             icon={ClipboardCheck}
             label={t("summary.enabled")}
             value={summary.enabled}
             description={t("summary.enabledHint")}
-            tone="bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-200/70"
-            glow="bg-emerald-500"
-            valueClassName="text-emerald-600 dark:text-emerald-400"
+            tone="bg-gradient-to-br from-emerald-500 to-teal-600"
           />
           <MetricCard
             icon={Layers3}
             label={t("summary.categories")}
             value={summary.categories}
             description={t("summary.categoriesHint")}
-            tone="bg-gradient-to-br from-orange-500 to-amber-500 shadow-orange-200/70"
-            glow="bg-orange-500"
-            valueClassName="text-orange-500 dark:text-orange-400"
+            tone="bg-gradient-to-br from-orange-500 to-amber-500"
           />
           <MetricCard
             icon={Monitor}
             label={t("summary.platform")}
             value={currentPlatformLabel}
             description={t("summary.platformHint")}
-            tone="bg-gradient-to-br from-violet-500 to-purple-600 shadow-violet-200/70"
-            glow="bg-purple-500"
-            valueClassName="max-w-[38%] text-[21px] text-violet-600 dark:text-violet-400"
+            tone="bg-gradient-to-br from-violet-500 to-purple-600"
+            valueClassName="max-w-[42%] text-base leading-5"
           />
         </div>
 
-        <section className="grid min-h-0 flex-1 gap-6 xl:grid-cols-[312px_minmax(360px,0.8fr)_minmax(420px,1.2fr)]">
-          <aside className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+        <section className="grid min-h-0 min-w-0 flex-1 gap-4 xl:grid-cols-[312px_minmax(360px,0.8fr)_minmax(420px,1.2fr)]">
+          <aside className="flex min-h-[420px] min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-950 xl:min-h-0">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 text-white shadow-sm shadow-blue-100 dark:bg-blue-500 dark:shadow-blue-950/40">
                   <ListFilter className="size-5" aria-hidden />
                 </span>
-                <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("filters.title")}</h2>
+                <h2 className="text-base font-medium leading-6 text-slate-950 dark:text-white">{t("filters.title")}</h2>
               </div>
               <span className="font-mono text-xs text-slate-500">{summary.total}</span>
             </div>
@@ -1240,7 +1222,7 @@ export function ForensicConfigPage() {
                 type="button"
                 onClick={() => setCategory(ALL_VALUE)}
                 className={cn(
-                  "flex h-10 w-full transform-gpu items-center justify-between rounded-lg border px-3 text-left text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
+                  "flex h-10 w-full items-center justify-between rounded-xl border px-3 text-left text-sm transition-colors duration-200",
                   category === ALL_VALUE
                     ? "border-blue-300 bg-blue-50 text-blue-800 shadow-[0_10px_20px_rgba(37,99,235,0.14)] dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200"
                     : "border-transparent bg-slate-100/70 text-slate-600 hover:border-slate-200 hover:bg-white dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900",
@@ -1262,14 +1244,14 @@ export function ForensicConfigPage() {
                     type="button"
                     onClick={() => setCategory(key)}
                     className={cn(
-                      "flex h-10 w-full transform-gpu items-center justify-between rounded-lg border px-3 text-left text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md",
+                      "flex h-10 w-full items-center justify-between rounded-xl border px-3 text-left text-sm transition-colors duration-200",
                       category === key
                         ? cn("shadow-[0_10px_20px_rgba(15,23,42,0.10)] dark:border-slate-700 dark:bg-slate-900 dark:text-white", visual.activeClass)
                         : "border-transparent bg-slate-100/70 text-slate-600 hover:border-slate-200 hover:bg-white dark:bg-slate-900/60 dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-900",
                     )}
                   >
                     <span className="flex min-w-0 items-center gap-2">
-                      <span className={cn("size-7 shrink-0 rounded-lg", visual.dotClass)} />
+                      <CategoryIcon category={key} size="xs" />
                       <span className="truncate">{categoryLabel(key)}</span>
                     </span>
                     <span className="font-mono text-xs">{count}</span>
@@ -1311,15 +1293,15 @@ export function ForensicConfigPage() {
             </div>
           </aside>
 
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+          <section className="flex min-h-[520px] min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-950 xl:min-h-0">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-500 text-white shadow-sm shadow-sky-100 dark:bg-sky-500 dark:shadow-sky-950/40">
                   <Boxes className="size-5" aria-hidden />
                 </span>
                 <div className="min-w-0">
-                  <h2 className="text-base font-semibold text-slate-950 dark:text-white">{t("list.title")}</h2>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  <h2 className="text-base font-medium leading-6 text-slate-950 dark:text-white">{t("list.title")}</h2>
+                  <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">
                     {t("list.count", { count: filteredItems.length })}
                   </p>
                 </div>
@@ -1370,8 +1352,8 @@ export function ForensicConfigPage() {
                         className={cn(
                           "group grid w-full grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-3 rounded-xl border px-4 py-3.5 text-left transition-all duration-200",
                           active
-                            ? "border-blue-300 bg-blue-50/80 shadow-[0_12px_24px_rgba(37,99,235,0.12)] dark:border-blue-900/60 dark:bg-blue-950/30"
-                            : "border-slate-200/80 bg-white shadow-sm hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900",
+                            ? "border-blue-300 bg-blue-50/80 shadow-[inset_4px_0_0_#0284c7] dark:border-blue-900/60 dark:bg-blue-950/30"
+                            : "border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900",
                         )}
                       >
                         <CategoryIcon category={item.category} size="xs" className="mt-2.5" />
@@ -1435,14 +1417,14 @@ export function ForensicConfigPage() {
             </div>
           </section>
 
-          <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-[0_14px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:bg-slate-950">
+          <section className="flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)] dark:border-slate-800 dark:bg-slate-950 xl:min-h-0">
             <div className="flex h-16 items-center justify-between gap-3 border-b border-slate-100 px-5 dark:border-slate-800">
               {selectedItem ? (
                 <>
                   <div className="flex min-w-0 items-center gap-3">
                     <CategoryIcon category={selectedItem.category} size="sm" />
                     <div className="min-w-0">
-                      <h2 className="truncate text-base font-semibold text-slate-950 dark:text-white">{selectedListDisplay.name}</h2>
+                      <h2 className="truncate text-base font-medium leading-6 text-slate-950 dark:text-white">{selectedListDisplay.name}</h2>
                     </div>
                   </div>
                   {loadingDetail && (
@@ -1455,15 +1437,15 @@ export function ForensicConfigPage() {
                     <FileSearch className="size-5" aria-hidden />
                   </span>
                   <div className="min-w-0">
-                    <h2 className="truncate text-base font-semibold text-slate-950 dark:text-white">{t("detail.emptyTitle")}</h2>
-                    <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">{t("detail.emptyDescription")}</p>
+                    <h2 className="truncate text-base font-medium leading-6 text-slate-950 dark:text-white">{t("detail.emptyTitle")}</h2>
+                    <p className="mt-0.5 truncate text-xs leading-5 text-slate-500 dark:text-slate-400">{t("detail.emptyDescription")}</p>
                   </div>
                 </div>
               )}
             </div>
             {!selectedKey ? (
               <div className="min-h-0 flex-1 p-4">
-                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-center dark:border-slate-800">
+                <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 text-center dark:border-slate-800">
                   <FileSearch className="size-10 text-slate-400" />
                   <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("detail.emptyTitle")}</p>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("detail.emptyDescription")}</p>
@@ -1471,7 +1453,7 @@ export function ForensicConfigPage() {
               </div>
             ) : detailError ? (
               <div className="min-h-0 flex-1 p-4">
-                <div className="flex h-full flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
+                <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 p-6 text-center dark:border-slate-800">
                   <TriangleAlert className="size-10 text-red-500" />
                   <p className="mt-3 text-sm font-medium text-slate-950 dark:text-white">{t("errors.detailLoadFailedTitle")}</p>
                   <p className="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">{detailError}</p>
@@ -1482,14 +1464,14 @@ export function ForensicConfigPage() {
                 <div className="space-y-4 p-4">
                   {loadingDetail && !detail ? (
                     <div className="space-y-4">
-                      <Skeleton className="h-24 w-full rounded-xl" />
-                      <Skeleton className="h-32 w-full rounded-xl" />
-                      <Skeleton className="h-48 w-full rounded-xl" />
+                      <Skeleton className="h-24 w-full rounded-2xl" />
+                      <Skeleton className="h-32 w-full rounded-2xl" />
+                      <Skeleton className="h-48 w-full rounded-2xl" />
                     </div>
                   ) : detail ? (
                     <>
-                      <section className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/40">
-                        <div className="grid grid-cols-4 gap-2">
+                      <section className="rounded-2xl bg-slate-50/70 p-4 dark:bg-slate-900/40">
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                           <div className="rounded-lg bg-white px-3 py-2 dark:bg-slate-950">
                             <p className="text-[11px] text-slate-500">{t("detail.meta.category")}</p>
                             <p className="mt-1 truncate text-sm font-medium text-slate-950 dark:text-white">{categoryLabel(detail.category)}</p>
@@ -1515,22 +1497,22 @@ export function ForensicConfigPage() {
                     )}
 
                     <Tabs key={detail.artifact_key} defaultValue="native" className="w-full">
-                      <TabsList className="grid h-10 w-full grid-cols-4 rounded-xl bg-slate-100 p-1 dark:bg-slate-900">
-                        <TabsTrigger value="native" className="rounded-lg text-xs">{t("tabs.native")}</TabsTrigger>
-                        <TabsTrigger value="params" className="rounded-lg text-xs">{t("tabs.params")}</TabsTrigger>
-                        <TabsTrigger value="output" className="rounded-lg text-xs">{t("tabs.output")}</TabsTrigger>
-                        <TabsTrigger value="examples" className="rounded-lg text-xs">{t("tabs.examples")}</TabsTrigger>
+                      <TabsList className="grid h-10 w-full grid-cols-4 rounded-full bg-slate-100 p-1 dark:bg-slate-900">
+                        <TabsTrigger value="native" className="rounded-full text-xs">{t("tabs.native")}</TabsTrigger>
+                        <TabsTrigger value="params" className="rounded-full text-xs">{t("tabs.params")}</TabsTrigger>
+                        <TabsTrigger value="output" className="rounded-full text-xs">{t("tabs.output")}</TabsTrigger>
+                        <TabsTrigger value="examples" className="rounded-full text-xs">{t("tabs.examples")}</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="native" className="space-y-3 pt-3">
-                        <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+                        <section className="rounded-2xl bg-slate-50/70 p-4 dark:bg-slate-900/40">
                           {nativeDescription && (
                             <section className="mb-3 rounded-xl border border-transparent bg-slate-50/70 p-4 dark:border-transparent dark:bg-slate-900/40">
                               <ArtifactDescriptionText text={nativeDescription} />
                             </section>
                           )}
                           {!nativeDescription && (
-                            <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
+                            <p className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
                               {t("detail.noNativeDefinition")}
                             </p>
                           )}
@@ -1539,7 +1521,7 @@ export function ForensicConfigPage() {
 
                       <TabsContent value="params" className="space-y-3 pt-3">
                         {nativeParams.length > 0 ? (
-                          <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+                          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
                             <div className="overflow-x-auto">
                               <table className="w-full min-w-[760px] border-separate border-spacing-0 font-mono text-xs text-slate-950 dark:text-slate-100">
                                 <colgroup>
@@ -1549,7 +1531,7 @@ export function ForensicConfigPage() {
                                   <col className="w-[30%]" />
                                 </colgroup>
                                 <thead>
-                                  <tr className="bg-slate-200 dark:bg-slate-800">
+                                  <tr className="bg-slate-100 dark:bg-slate-800">
                                     <th className="px-3 py-2 text-left font-semibold">{t("detail.paramColumns.name")}</th>
                                     <th className="px-3 py-2 text-left font-semibold">{t("detail.paramColumns.type")}</th>
                                     <th className="px-3 py-2 text-left font-semibold">{t("detail.paramColumns.default")}</th>
@@ -1583,7 +1565,7 @@ export function ForensicConfigPage() {
                             </div>
                           </section>
                         ) : (
-                          <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
+                          <p className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
                             {t("detail.noContent")}
                           </p>
                         )}
@@ -1591,11 +1573,11 @@ export function ForensicConfigPage() {
 
                       <TabsContent value="output" className="space-y-3 pt-3">
                         {outputDocs.value.length === 0 ? (
-                          <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
+                          <p className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
                             {t("detail.noContent")}
                           </p>
                         ) : (
-                          <section className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
+                          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
                             <div className="overflow-x-auto">
                               <table className="w-full min-w-[680px] border-separate border-spacing-0 font-mono text-xs text-slate-950 dark:text-slate-100">
                                 <colgroup>
@@ -1604,7 +1586,7 @@ export function ForensicConfigPage() {
                                   <col className="w-[48%]" />
                                 </colgroup>
                                 <thead>
-                                  <tr className="bg-slate-200 dark:bg-slate-800">
+                                  <tr className="bg-slate-100 dark:bg-slate-800">
                                     <th className="px-3 py-2 text-left font-semibold">{t("detail.outputColumns.field")}</th>
                                     <th className="px-3 py-2 text-left font-semibold">{t("detail.outputColumns.name")}</th>
                                     <th className="px-3 py-2 text-left font-semibold">{t("detail.outputColumns.description")}</th>
@@ -1629,12 +1611,12 @@ export function ForensicConfigPage() {
 
                       <TabsContent value="examples" className="space-y-3 pt-3">
                         {examples.value.length === 0 ? (
-                          <p className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
+                          <p className="rounded-2xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-800">
                             {t("detail.noContent")}
                           </p>
                         ) : (
                           examples.value.map((item, index) => (
-                            <div key={index} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                            <div key={index} className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950">
                               <h3 className="text-sm font-semibold text-slate-950 dark:text-white">
                                 {localizedText(item.title, locale) || t("detail.exampleTitle", { index: index + 1 })}
                               </h3>
