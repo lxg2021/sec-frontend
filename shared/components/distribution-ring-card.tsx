@@ -174,7 +174,7 @@ export function DistributionRingCard({
   const cardClassName = cn(
     "h-full border-0 shadow-lg",
     isDashboardAppearance &&
-      "rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
+      "min-w-0 rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]",
     className,
   )
 
