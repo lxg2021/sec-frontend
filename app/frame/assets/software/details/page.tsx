@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import type React from "react"
-import { AppWindow, BarChart3, Building2, Link2Off, Monitor, Package, RefreshCcw, ServerCog } from "lucide-react"
+import { AppWindow, Building2, Link2Off, Monitor, Package, RefreshCcw, ServerCog } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { getSoftwareDistributionPagination, getSoftwareSummary } from "@/features/assets/software/api"
@@ -10,6 +10,7 @@ import type { SoftwarePagination, SoftwareOverviewSummary, SoftwareSummary } fro
 import { SoftInventoryTable } from "@/features/assets/software/components/soft-inventory-table"
 import type { SoftItem } from "@/features/assets/software/types/software-aggregate"
 import { Button } from "@/shared/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
 import { Skeleton } from "@/shared/ui/skeleton"
 
 const TENANT_ID = "public"
@@ -54,53 +55,53 @@ function SummaryMetric({
 }) {
   const toneClassNames = {
     blue: {
-      border: "border-t-blue-500",
-      iconBg: "bg-blue-50",
-      text: "text-blue-600",
+      surface: "from-blue-500 to-blue-600",
+      icon: "from-blue-500 to-blue-600",
       value: "text-blue-600",
     },
     amber: {
-      border: "border-t-amber-500",
-      iconBg: "bg-amber-50",
-      text: "text-amber-600",
+      surface: "from-amber-500 to-orange-600",
+      icon: "from-amber-500 to-orange-600",
       value: "text-amber-600",
     },
     emerald: {
-      border: "border-t-emerald-500",
-      iconBg: "bg-emerald-50",
-      text: "text-emerald-600",
+      surface: "from-emerald-500 to-emerald-600",
+      icon: "from-emerald-500 to-emerald-600",
       value: "text-emerald-600",
     },
     rose: {
-      border: "border-t-rose-500",
-      iconBg: "bg-rose-50",
-      text: "text-rose-600",
+      surface: "from-rose-500 to-rose-600",
+      icon: "from-rose-500 to-rose-600",
       value: "text-rose-600",
     },
     slate: {
-      border: "border-t-slate-400",
-      iconBg: "bg-slate-100",
-      text: "text-slate-600",
+      surface: "from-slate-500 to-slate-600",
+      icon: "from-zinc-500 to-zinc-700",
       value: "text-slate-600",
     },
   }[tone]
 
   return (
-    <div className={`flex min-w-0 items-center gap-3 rounded-lg border border-t-2 border-slate-200 ${toneClassNames.border} bg-white px-4 py-3`}>
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${toneClassNames.iconBg} ${toneClassNames.text}`}>
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="min-w-0">
-        <div className="truncate text-xs font-medium text-slate-500">{label}</div>
+    <Card className="group relative min-w-0 overflow-hidden border-0 shadow-lg transition-all duration-300 hover:shadow-xl">
+      <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${toneClassNames.surface} opacity-10 transition-opacity group-hover:opacity-20`} />
+      <CardHeader className="relative flex flex-row items-center justify-between pb-3">
+        <span className="truncate text-sm font-medium text-slate-600 dark:text-slate-300">
+          {label}
+        </span>
+        <div className={`rounded-lg bg-gradient-to-br ${toneClassNames.icon} p-2`}>
+          <Icon className="h-5 w-5 text-white" aria-hidden="true" />
+        </div>
+      </CardHeader>
+      <CardContent className="relative">
         {isLoading ? (
-          <Skeleton className="mt-2 h-7 w-14" />
+          <Skeleton className="h-9 w-20" />
         ) : (
-          <div className={`mt-1 truncate text-2xl font-semibold leading-7 tabular-nums ${toneClassNames.value}`}>
+          <div className={`truncate text-3xl font-bold leading-none tabular-nums ${toneClassNames.value}`}>
             {value.toLocaleString()}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -176,82 +177,78 @@ export default function Home() {
   const overview = summary.overview || EMPTY_OVERVIEW
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="space-y-6 p-6">
-        <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <div className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="h-full min-h-0 overflow-auto bg-slate-50">
+      <div className="flex min-h-full flex-col gap-6 p-6">
+        {summaryError ? (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
+            {t("summaryLoadFailed")}: {summaryError}
+          </div>
+        ) : null}
+
+        <section className="grid shrink-0 gap-6 sm:grid-cols-2 xl:grid-cols-5">
+          <SummaryMetric
+            label={t("summarySoftware")}
+            value={Number(overview.software_count || 0)}
+            icon={AppWindow}
+            isLoading={summaryLoading}
+            tone="blue"
+          />
+          <SummaryMetric
+            label={t("summaryInstallations")}
+            value={Number(overview.installation_count || 0)}
+            icon={ServerCog}
+            isLoading={summaryLoading}
+            tone="amber"
+          />
+          <SummaryMetric
+            label={t("summaryHosts")}
+            value={Number(overview.host_count || 0)}
+            icon={Monitor}
+            isLoading={summaryLoading}
+            tone="emerald"
+          />
+          <SummaryMetric
+            label={t("summaryVendors")}
+            value={Number(overview.vendor_count || 0)}
+            icon={Building2}
+            isLoading={summaryLoading}
+            tone="rose"
+          />
+          <SummaryMetric
+            label={t("summaryMissingWebsite")}
+            value={Number(overview.missing_website_count || 0)}
+            icon={Link2Off}
+            isLoading={summaryLoading}
+            tone="slate"
+          />
+        </section>
+
+        <Card className="flex min-h-[420px] flex-1 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_10px_28px_rgba(15,23,42,0.05)]">
+          <CardHeader className="flex flex-col gap-4 border-b border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 ring-1 ring-blue-100">
-                <Package className="h-6 w-6" />
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
+                <Package className="size-6" aria-hidden="true" />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-slate-950">{t("softwareList")}</h2>
-                <p className="mt-1 text-sm text-slate-500">
+              <div className="min-w-0">
+                <CardTitle className="text-base font-medium text-slate-950">
+                  {t("softwareList")}
+                </CardTitle>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
                   {t("softwareListDescription")}
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={refreshPage} disabled={loading || summaryLoading}>
+            <Button
+              variant="outline"
+              onClick={refreshPage}
+              disabled={loading || summaryLoading}
+              className="h-10 rounded-2xl border-slate-200 bg-white px-4 shadow-none"
+            >
               <RefreshCcw className={`mr-2 h-4 w-4 ${loading || summaryLoading ? "animate-spin" : ""}`} />
               {t("refresh")}
             </Button>
-          </div>
-
-          <div className="space-y-6 p-6">
-            <div className="rounded-lg border border-slate-200 bg-white p-6">
-              <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-start gap-2">
-                  <BarChart3 className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-950">{t("summaryTitle")}</h3>
-                  </div>
-                </div>
-                {summaryError ? (
-                  <div className="text-sm text-rose-600" role="alert">
-                    {t("summaryLoadFailed")}: {summaryError}
-                  </div>
-                ) : null}
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                <SummaryMetric
-                  label={t("summarySoftware")}
-                  value={Number(overview.software_count || 0)}
-                  icon={AppWindow}
-                  isLoading={summaryLoading}
-                  tone="blue"
-                />
-                <SummaryMetric
-                  label={t("summaryInstallations")}
-                  value={Number(overview.installation_count || 0)}
-                  icon={ServerCog}
-                  isLoading={summaryLoading}
-                  tone="amber"
-                />
-                <SummaryMetric
-                  label={t("summaryHosts")}
-                  value={Number(overview.host_count || 0)}
-                  icon={Monitor}
-                  isLoading={summaryLoading}
-                  tone="emerald"
-                />
-                <SummaryMetric
-                  label={t("summaryVendors")}
-                  value={Number(overview.vendor_count || 0)}
-                  icon={Building2}
-                  isLoading={summaryLoading}
-                  tone="rose"
-                />
-                <SummaryMetric
-                  label={t("summaryMissingWebsite")}
-                  value={Number(overview.missing_website_count || 0)}
-                  icon={Link2Off}
-                  isLoading={summaryLoading}
-                  tone="slate"
-                />
-              </div>
-            </div>
-
+          </CardHeader>
+          <CardContent className="flex min-h-0 flex-1 flex-col p-0">
             <SoftInventoryTable
               data={software}
               isLoading={loading}
@@ -266,9 +263,8 @@ export default function Home() {
               onPageSizeChange={setPageSize}
               onRetry={() => void loadSoftware()}
             />
-          </div>
-        </section>
-
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

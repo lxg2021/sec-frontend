@@ -134,9 +134,9 @@ export function SoftInventoryTable({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-6">
-        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="shrink-0 border-b border-slate-200 px-6 py-5">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Filter className="h-5 w-5 text-muted-foreground" />
             <h3 className="text-lg font-semibold text-slate-950">{t("filterTitle")}</h3>
@@ -146,7 +146,7 @@ export function SoftInventoryTable({
               {t("displaySoftware", { shown: data.length, total: totalCount })}
             </span>
             {(searchTerm !== "" || vendorFilter !== "all") && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 text-muted-foreground">
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-8 rounded-2xl text-muted-foreground">
                 <X className="mr-1 h-4 w-4" />
                 {t("clearFilters")}
               </Button>
@@ -164,7 +164,7 @@ export function SoftInventoryTable({
                 onSearchTermChange(e.target.value)
                 onPageChange(1)
               }}
-              className="h-10 pl-9"
+              className="h-10 rounded-2xl border-slate-200 pl-9 shadow-none"
             />
           </div>
           <Select
@@ -174,7 +174,7 @@ export function SoftInventoryTable({
               onPageChange(1)
             }}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 rounded-2xl border-slate-200 bg-white shadow-none">
               <SelectValue placeholder={t("selectVendor")} />
             </SelectTrigger>
             <SelectContent>
@@ -189,10 +189,10 @@ export function SoftInventoryTable({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
           {isLoading ? (
             // Loading state
-            <div className="p-6 space-y-4">
+            <div className="min-h-64 flex-1 space-y-4 p-6">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex items-center space-x-4">
                   <Skeleton className="h-12 w-12 rounded-full" />
@@ -204,13 +204,13 @@ export function SoftInventoryTable({
               ))}
             </div>
           ) : error ? (
-            <div className="p-12 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-50">
+            <div className="min-h-64 flex-1 p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-50">
                 <Package className="h-6 w-6 text-rose-500" />
               </div>
               <h3 className="mt-4 text-lg font-semibold">{error}</h3>
               {onRetry ? (
-                <Button variant="outline" size="sm" onClick={onRetry} className="mt-4">
+                <Button variant="outline" size="sm" onClick={onRetry} className="mt-4 rounded-2xl border-slate-200 bg-white shadow-none">
                   <RefreshCcw className="mr-2 h-4 w-4" />
                   {t("retry")}
                 </Button>
@@ -218,8 +218,8 @@ export function SoftInventoryTable({
             </div>
           ) : data.length === 0 ? (
             // Empty state
-            <div className="p-12 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <div className="min-h-64 flex-1 p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
                 <Package className="h-6 w-6 text-muted-foreground" />
               </div>
               <h3 className="mt-4 text-lg font-semibold">{t("emptyTitle")}</h3>
@@ -228,9 +228,9 @@ export function SoftInventoryTable({
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="min-h-0 flex-1 overflow-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-10 bg-muted">
                 <TableRow className="border-border hover:bg-transparent">
                   <TableHead className="w-12"></TableHead>
                   <TableHead className="w-60">
@@ -438,7 +438,7 @@ export function SoftInventoryTable({
             </div>
           )}
 
-        <div className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50/60 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex shrink-0 flex-col gap-3 border-t border-slate-200 bg-slate-50/60 px-6 py-4 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-3">
             <span>
               {totalCount === 0
@@ -458,7 +458,7 @@ export function SoftInventoryTable({
                   onPageChange(1)
                 }}
               >
-                <SelectTrigger className="h-9 w-24">
+                <SelectTrigger className="h-9 w-24 rounded-2xl border-slate-200 bg-white shadow-none">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -476,6 +476,7 @@ export function SoftInventoryTable({
               <Button
                 variant="outline"
                 size="sm"
+                className="rounded-2xl border-slate-200 bg-white shadow-none"
                 onClick={() => onPageChange(1)}
                 disabled={currentPage === 1}
               >
@@ -484,6 +485,7 @@ export function SoftInventoryTable({
               <Button
                 variant="outline"
                 size="sm"
+                className="rounded-2xl border-slate-200 bg-white shadow-none"
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={!pagination.has_previous}
               >
@@ -499,7 +501,7 @@ export function SoftInventoryTable({
                       key={page}
                       variant={currentPage === page ? "default" : "outline"}
                       size="sm"
-                      className="h-8 w-8 p-0"
+                      className="h-8 w-8 rounded-2xl p-0"
                       onClick={() => onPageChange(page as number)}
                     >
                       {page}
@@ -511,6 +513,7 @@ export function SoftInventoryTable({
               <Button
                 variant="outline"
                 size="sm"
+                className="rounded-2xl border-slate-200 bg-white shadow-none"
                 onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 disabled={!pagination.has_next}
               >
@@ -519,6 +522,7 @@ export function SoftInventoryTable({
               <Button
                 variant="outline"
                 size="sm"
+                className="rounded-2xl border-slate-200 bg-white shadow-none"
                 onClick={() => onPageChange(totalPages)}
                 disabled={currentPage === totalPages}
               >
