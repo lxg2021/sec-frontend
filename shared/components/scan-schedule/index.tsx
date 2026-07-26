@@ -289,7 +289,7 @@ export function ScanScheduleForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 6 }, (_, index) => (
+                {Array.from({ length: 11 }, (_, index) => (
                   <SelectItem key={index} value={String(index)}>
                     {index === 0 ? mergedText.retryNone : mergedText.retryTimes(index)}
                   </SelectItem>

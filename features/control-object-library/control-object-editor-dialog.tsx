@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useMemo, useState } from "react"
 import {
+  CalendarClock,
   CircleAlert,
   FilePenLine,
   LoaderCircle,
@@ -17,6 +18,11 @@ import {
   type ControlObjectDetail,
 } from "./api"
 import {
+  isBaselineScanPolicyDefinition,
+  readBaselineScanPolicySchedule,
+  writeBaselineScanPolicyContext,
+} from "./baseline-scan-policy-editor"
+import {
   controlObjectEditorSignature,
   controlObjectUpdateInput,
   createControlObjectEditorForm,
@@ -25,6 +31,11 @@ import {
   type ControlObjectEditorField,
   type ControlObjectEditorForm,
 } from "./control-object-editor-model"
+import {
+  ScanScheduleForm,
+  type ScanSchedule,
+  type ScanScheduleFormText,
+} from "@/shared/components/scan-schedule"
 import { cn } from "@/shared/lib/utils"
 import { useToast } from "@/shared/hooks/use-toast"
 import {
@@ -56,12 +67,32 @@ const TYPE_LABELS = {
   command: "命令",
 } as const
 
+const BASELINE_SCAN_SCHEDULE_TEXT: ScanScheduleFormText = {
+  modeLabel: "调度模式",
+  modePlaceholder: "选择调度模式",
+  modeInterval: "固定间隔",
+  intervalLabel: "间隔",
+  intervalValue: (hours) => `${hours} 小时`,
+  fixedTimeLabel: "固定执行时间",
+  randomDelayLabel: "随机延迟",
+  randomDelayValue: (minutes) => `${minutes} 分钟`,
+  retryCountLabel: "重试次数",
+  retryIntervalLabel: "重试间隔",
+  retryNone: "不重试",
+  retryTimes: (count) => `${count} 次`,
+  minutesUnit: "分钟",
+  startupTitle: "Agent 启动时执行扫描",
+  startupDescription: "启动后立即补跑一次扫描任务",
+  startupInlineLabel: "启动时扫描",
+}
+
 function editorErrorMessage(error: unknown) {
   const message = error instanceof Error ? error.message.trim() : ""
   const messages: Record<string, string> = {
     PMC_OBJECT_DETAIL_INVALID: "后台没有返回完整的对象定义，请刷新列表后重试。",
     PMC_OBJECT_DETAIL_MISMATCH: "后台返回的对象身份或版本与当前列表不一致，请刷新后重试。",
     PMC_OBJECT_EDITABLE_CONTENT_INVALID: "对象内容缺少名称、类型、版本或 context，无法安全编辑。",
+    PMC_BASELINE_SCAN_POLICY_CONTEXT_INVALID: "后台返回的基线扫描策略缺少完整、有效的扫描计划，无法安全编辑。",
     PMC_UPDATE_TYPE_UNSUPPORTED: "后台只允许更新策略和配置，命令不能编辑。",
     PMC_UPDATE_NOT_ALLOWED: "后台能力合同不允许更新此对象。",
     PMC_OBJECT_NOT_ACTIVE: "对象当前不是 active 状态，不能更新。",
@@ -162,6 +193,15 @@ export function ControlObjectEditorDialog({
     && hasControlObjectDefinitionChanges(form, detail))
   const typeLabel = definition ? TYPE_LABELS[definition.objectType] : "对象"
   const canSubmit = Boolean(form && detail && hasDefinitionChanges && !loading && !submitting)
+  const isBaselineScanPolicy = Boolean(detail && isBaselineScanPolicyDefinition(detail.definition))
+  const baselineScanSchedule = useMemo(() => {
+    if (!isBaselineScanPolicy || !form) return null
+    try {
+      return readBaselineScanPolicySchedule(form.context)
+    } catch {
+      return null
+    }
+  }, [form, isBaselineScanPolicy])
 
   const fieldError = useMemo(() => {
     if (!formError || !form || !detail) return null
@@ -175,6 +215,21 @@ export function ControlObjectEditorDialog({
   ) => {
     setForm((current) => current ? { ...current, [field]: value } : current)
     setFormError("")
+  }
+
+  const updateBaselineScanSchedule = (schedule: ScanSchedule) => {
+    if (!detail || !form || !isBaselineScanPolicy) return
+    try {
+      updateField("context", writeBaselineScanPolicyContext({
+        context: form.context,
+        definition: detail.definition,
+        name: form.name,
+        version: form.version,
+        schedule,
+      }))
+    } catch {
+      setFormError("基线扫描计划内容无效，无法更新。")
+    }
   }
 
   const requestClose = () => {
@@ -200,7 +255,7 @@ export function ControlObjectEditorDialog({
     try {
       const updated = await updateControlObjectDefinition(
         detail.definition,
-        controlObjectUpdateInput(form, detail.definition.objectType),
+        controlObjectUpdateInput(form, detail.definition),
       )
       toast({
         title: `${typeLabel}已更新`,
@@ -238,7 +293,7 @@ export function ControlObjectEditorDialog({
               </span>
               <div className="min-w-0 flex-1">
                 <DialogTitle className="truncate text-sm font-semibold leading-5 text-slate-950">
-                  编辑{typeLabel}
+                  {isBaselineScanPolicy ? "编辑基线扫描策略" : `编辑${typeLabel}`}
                 </DialogTitle>
                 <DialogDescription className="mt-0.5 truncate text-xs text-slate-500">
                   {definition?.displayName || "读取对象定义中"} · 更新会追加新版本，不会自动下发
@@ -340,25 +395,55 @@ export function ControlObjectEditorDialog({
                   </section>
                 )}
 
-                <section aria-labelledby={`${fieldPrefix}-content-heading`}>
-                  <div className="mb-2 flex items-end justify-between gap-3">
-                    <div>
-                      <Label id={`${fieldPrefix}-content-heading`} htmlFor={`${fieldPrefix}-context`} className="text-xs text-slate-700">
-                        对象内容
-                      </Label>
-                      <p className="mt-1 text-[11px] text-slate-400">内容将原样写入 context，支持 JSON 或普通文本。</p>
-                    </div>
-                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-slate-400">{form.context.length} 字符</span>
-                  </div>
-                  <Textarea
+                {isBaselineScanPolicy && baselineScanSchedule ? (
+                  <section
                     id={`${fieldPrefix}-context`}
-                    value={form.context}
-                    spellCheck={false}
-                    aria-invalid={fieldError === "context"}
-                    onChange={(event) => updateField("context", event.target.value)}
-                    className="min-h-[250px] resize-y rounded-xl border-slate-200 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100 focus-visible:ring-cyan-500"
-                  />
-                </section>
+                    tabIndex={-1}
+                    aria-labelledby={`${fieldPrefix}-content-heading`}
+                    className="rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+                  >
+                    <div className="mb-2.5 flex items-start gap-2">
+                      <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-cyan-600" aria-hidden="true" />
+                      <div>
+                        <h3 id={`${fieldPrefix}-content-heading`} className="text-xs font-semibold text-slate-900">
+                          基线扫描计划
+                        </h3>
+                        <p className="mt-0.5 text-[11px] leading-5 text-slate-500">
+                          与基线扫描下发页面使用相同配置；保存仅创建新版本，不会自动下发。
+                        </p>
+                      </div>
+                    </div>
+                    <ScanScheduleForm
+                      value={baselineScanSchedule}
+                      onChange={updateBaselineScanSchedule}
+                      title={null}
+                      description={null}
+                      text={BASELINE_SCAN_SCHEDULE_TEXT}
+                      disabled={submitting}
+                      className="max-w-none rounded-xl border-slate-200 bg-white shadow-none [&>div]:space-y-4 [&>div]:p-3 sm:[&>div]:p-4"
+                    />
+                  </section>
+                ) : (
+                  <section aria-labelledby={`${fieldPrefix}-content-heading`}>
+                    <div className="mb-2 flex items-end justify-between gap-3">
+                      <div>
+                        <Label id={`${fieldPrefix}-content-heading`} htmlFor={`${fieldPrefix}-context`} className="text-xs text-slate-700">
+                          对象内容
+                        </Label>
+                        <p className="mt-1 text-[11px] text-slate-400">内容将原样写入 context，支持 JSON 或普通文本。</p>
+                      </div>
+                      <span className="shrink-0 font-mono text-[10px] tabular-nums text-slate-400">{form.context.length} 字符</span>
+                    </div>
+                    <Textarea
+                      id={`${fieldPrefix}-context`}
+                      value={form.context}
+                      spellCheck={false}
+                      aria-invalid={fieldError === "context"}
+                      onChange={(event) => updateField("context", event.target.value)}
+                      className="min-h-[250px] resize-y rounded-xl border-slate-200 bg-slate-950 p-3 font-mono text-xs leading-5 text-slate-100 focus-visible:ring-cyan-500"
+                    />
+                  </section>
+                )}
 
                 {formError && (
                   <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs leading-5 text-rose-700" role="alert">
@@ -376,7 +461,9 @@ export function ControlObjectEditorDialog({
                 ? "正在创建新版本…"
                 : hasDefinitionChanges
                   ? "已修改，保存后仍需手动选择主机下发"
-                  : "修改名称或内容后即可保存"}
+                  : isBaselineScanPolicy
+                    ? "修改名称或扫描计划后即可保存"
+                    : "修改名称或内容后即可保存"}
             </p>
             <div className="flex shrink-0 items-center gap-2">
               <Button type="button" variant="outline" size="sm" onClick={requestClose} disabled={submitting} className="h-8 rounded-full px-4">

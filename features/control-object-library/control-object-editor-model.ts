@@ -3,9 +3,13 @@ import {
   suggestNextControlObjectVersion,
   type ControlObjectDefinition,
   type ControlObjectDetail,
-  type ControlObjectType,
   type ControlObjectUpdateInput,
 } from "./api"
+import {
+  isBaselineScanPolicyDefinition,
+  readBaselineScanPolicySchedule,
+  writeBaselineScanPolicyContext,
+} from "./baseline-scan-policy-editor"
 
 export interface ControlObjectEditorForm {
   name: string
@@ -28,6 +32,10 @@ export function canEditControlObjectDefinition(definition: ControlObjectDefiniti
 
 export function createControlObjectEditorForm(detail: ControlObjectDetail): ControlObjectEditorForm {
   const { editableContent } = detail
+  if (isBaselineScanPolicyDefinition(detail.definition)) {
+    // Fail closed instead of inventing a schedule when historical content is incomplete.
+    readBaselineScanPolicySchedule(editableContent.context)
+  }
   return {
     name: editableContent.name,
     version: suggestNextControlObjectVersion(editableContent.version),
@@ -71,6 +79,13 @@ export function validateControlObjectEditorForm(
   }
 
   if (!form.context.trim()) return { field: "context", message: "对象内容不能为空。" }
+  if (isBaselineScanPolicyDefinition(detail.definition)) {
+    try {
+      readBaselineScanPolicySchedule(form.context)
+    } catch {
+      return { field: "context", message: "基线扫描策略缺少完整、有效的扫描计划，无法安全保存。" }
+    }
+  }
   if (!hasControlObjectDefinitionChanges(form, detail)) {
     return { field: "form", message: "对象名称或内容没有发生变化，无需创建新版本。" }
   }
@@ -90,13 +105,23 @@ export function validateControlObjectEditorForm(
 
 export function controlObjectUpdateInput(
   form: ControlObjectEditorForm,
-  objectType: ControlObjectType,
+  definition: Pick<ControlObjectDefinition, "objectId" | "objectType" | "subType">,
 ): ControlObjectUpdateInput {
+  const context = isBaselineScanPolicyDefinition(definition)
+    ? writeBaselineScanPolicyContext({
+        context: form.context,
+        definition,
+        name: form.name,
+        version: form.version,
+        schedule: readBaselineScanPolicySchedule(form.context),
+      })
+    : form.context
+
   return {
     name: form.name.trim(),
     version: form.version.trim(),
-    context: form.context,
-    ...(objectType === "config" ? {
+    context,
+    ...(definition.objectType === "config" ? {
       url: form.url.trim(),
       md5: form.md5.trim().toLowerCase(),
     } : {}),

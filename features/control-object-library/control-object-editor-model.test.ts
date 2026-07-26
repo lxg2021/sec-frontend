@@ -17,7 +17,7 @@ function detail(objectType: "policy" | "config" = "policy"): ControlObjectDetail
       objectTypeValue: objectType === "policy" ? 1 : 3,
       internalName: "Manual object",
       displayName: "Manual object",
-      subType: 60,
+      subType: 61,
       version: "1.0.0",
       source: "manual",
       state: "active",
@@ -90,7 +90,7 @@ describe("control object editor model", () => {
     expect(validateControlObjectEditorForm(form, current)).toMatchObject({ field: "md5" })
 
     const valid = { ...form, md5: "ABCDEF0123456789ABCDEF0123456789" }
-    expect(controlObjectUpdateInput(valid, "config")).toEqual({
+    expect(controlObjectUpdateInput(valid, current.definition)).toEqual({
       name: "Updated config",
       version: "1.1.0",
       context: "{\"enabled\":true}",
@@ -108,7 +108,7 @@ describe("control object editor model", () => {
       md5: "0123456789abcdef0123456789abcdef",
     }
 
-    expect(controlObjectUpdateInput(form, "policy")).toEqual({
+    expect(controlObjectUpdateInput(form, current.definition)).toEqual({
       name: "Updated policy",
       version: "1.1.0",
       context: "{\"enabled\":true}",
