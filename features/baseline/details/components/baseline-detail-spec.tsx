@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ReactNode } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { useLocale } from "next-intl"
 import {
   Check,
@@ -420,23 +420,6 @@ export function BaselineDetailSpec({ item, isLoading = false }: BaselineDetailSp
   const descriptionCn = item?.description?.trim() || ""
   const descriptionEn = item?.description_en?.trim() || ""
   const description = useZh ? descriptionCn || descriptionEn : descriptionEn
-  const chosenDescriptionSource = useZh ? (descriptionCn ? "description" : "description_en") : "description_en"
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === "production") return
-    console.log("[BaselineDetailSpec]", {
-      locale,
-      useZh,
-      hasDescriptionCn: Boolean(descriptionCn),
-      hasDescriptionEn: Boolean(descriptionEn),
-      chosenLanguage: useZh ? "zh" : "en",
-      chosenDescriptionSource,
-      chosenDescriptionLength: description.length,
-      itemId: item?.id,
-      titleCn: item?.name_zh || "",
-      titleEn: item?.name || "",
-    })
-  }, [chosenDescriptionSource, description.length, descriptionCn, descriptionEn, item?.id, item?.name, item?.name_zh, locale, useZh])
 
   if (isLoading) return <SkeletonCard />
   if (!item) return <EmptyState label={labels.empty} />

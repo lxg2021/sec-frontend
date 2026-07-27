@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 
 interface LoginAnimationProps {
   className?: string
@@ -35,9 +36,13 @@ export default function LoginAnimation({ className = "" }: LoginAnimationProps) 
       className={`pointer-events-none absolute inset-0 overflow-hidden bg-[#02060b] ${className}`}
       aria-hidden="true"
     >
-      <img
+      <Image
         src={backgroundSource}
         alt=""
+        fill
+        sizes="100vw"
+        priority
+        unoptimized
         className="h-full w-full select-none object-cover object-center"
         draggable={false}
       />

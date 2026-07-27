@@ -578,7 +578,6 @@ export function TreeLogicGroup({
 
     // 转换为TableLogicGroup
     const tableGroups = convertToTableLogicGroups(groups, tenantId, createdBy)
-    console.log("Converted TableLogicGroup data:", tableGroups)
 
     // 调用回调
     onSave?.(tableGroups)

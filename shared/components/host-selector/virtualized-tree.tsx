@@ -72,7 +72,14 @@ export const VirtualizedTree = memo(function VirtualizedTree({
   )
 
   return (
-    <List height={height} itemCount={nodes.length} itemSize={itemHeight} itemData={itemData} overscanCount={5}>
+    <List
+      width="100%"
+      height={height}
+      itemCount={nodes.length}
+      itemSize={itemHeight}
+      itemData={itemData}
+      overscanCount={5}
+    >
       {TreeItem}
     </List>
   )

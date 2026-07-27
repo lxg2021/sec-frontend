@@ -1,5 +1,7 @@
 # 前端目录结构改造方案
 
+> 2026-07-27 更新：本文档记录的是历史迁移方案。`doc/guacmole`、`doc/table`、`resources/docs`、`resources/samples/agent` 和 `resources/samples/org-event-card.rar` 已在确认不参与当前运行后删除；下文相关路径仅保留为历史记录，不代表当前目录结构。
+
 本文档基于当前工程 `sec-frontend` 的完整目录清点和关键入口阅读编写。目标不是为了“目录好看”而搬文件，而是把路由、业务模块、共享组件、mock 数据、类型和 API 边界分清楚，让后续功能开发、联调和重构都更稳。
 
 ## 1. 当前工程概况

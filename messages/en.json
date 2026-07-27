@@ -3212,8 +3212,6 @@
         "scanNowSuccessDescription": "The baseline immediate scan command has been dispatched to target hosts.",
         "scanNowFailedTitle": "Failed to start immediate scan",
         "repair": "One-click Repair",
-        "repairPendingTitle": "Repair is not connected yet",
-        "repairPendingDescription": "The repair API is not available yet, so this button is currently a UI placeholder.",
         "categoryTable": {
           "loading": "Loading category statistics...",
           "emptyTitle": "Select a category to view details",
@@ -3927,9 +3925,7 @@
           "scanSuccessDescription": "The patch immediate scan command has been dispatched to all hosts.",
           "scanFailedTitle": "Failed to start patch scan",
           "scanFailedDescription": "Unable to start the patch immediate scan.",
-          "repair": "One-click Repair",
-          "repairPendingTitle": "Repair action is not connected yet",
-          "repairPendingDescription": "The patch repair API is not available yet. This button is currently a UI placeholder."
+          "repair": "One-click Repair"
         },
         "trend": {
           "title": "Host install coverage trend",

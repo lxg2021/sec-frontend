@@ -86,5 +86,5 @@ export interface TaskDispatchReport {
   tags?: string[]
 
   /** 'TASK', 'CONFIG', 'POLICY' 详情，例如命令内容、策略参数等 */
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }

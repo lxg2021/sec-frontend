@@ -34,7 +34,7 @@ export interface BaseAudit {
   tags?: string[]
 
   /** 动作详情，例如文件、进程、网络连接等，可选 */
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 }
 
 /**

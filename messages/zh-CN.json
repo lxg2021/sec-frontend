@@ -3212,8 +3212,6 @@
         "scanNowSuccessDescription": "基线立即扫描命令已下发，目标主机将开始执行扫描。",
         "scanNowFailedTitle": "立即扫描失败",
         "repair": "一键修复",
-        "repairPendingTitle": "修复能力暂未接入",
-        "repairPendingDescription": "修复接口还未提供，当前先保留按钮样式和交互占位。",
         "categoryTable": {
           "loading": "加载分类统计中...",
           "emptyTitle": "选择分类查看详细信息",
@@ -3927,9 +3925,7 @@
           "scanSuccessDescription": "补丁立即扫描命令已下发，默认扫描所有主机。",
           "scanFailedTitle": "立即扫描失败",
           "scanFailedDescription": "暂时无法触发补丁立即扫描。",
-          "repair": "一键修复",
-          "repairPendingTitle": "修复能力暂未接入",
-          "repairPendingDescription": "补丁修复接口还未提供，当前先保留按钮样式和交互占位。"
+          "repair": "一键修复"
         },
         "trend": {
           "title": "主机安装覆盖率趋势",
