@@ -92,54 +92,67 @@ export function HostSoftwareTable({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
         <Package className="h-4 w-4" />
         <span>{t("count", { count: totalCount || softwareList.length })}</span>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="min-h-0 flex-1 overflow-hidden rounded-md border [&>div]:h-full [&>div]:overscroll-contain">
+        <Table className="min-w-[1690px] table-fixed">
+          <colgroup>
+            <col className="w-[220px]" />
+            <col className="w-[140px]" />
+            <col className="w-[112px]" />
+            <col className="w-[180px]" />
+            <col className="w-[200px]" />
+            <col className="w-[160px]" />
+            <col className="w-[140px]" />
+            <col className="w-[96px]" />
+            <col className="w-[170px]" />
+            <col className="w-[170px]" />
+            <col className="w-[100px]" />
+          </colgroup>
+          <TableHeader className="sticky top-0 z-10 bg-background shadow-[0_1px_0_hsl(var(--border))]">
             <TableRow>
-              <TableHead>{t("name")}</TableHead>
-              <TableHead>{t("description")}</TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
+              <TableHead className="whitespace-nowrap px-3">{t("name")}</TableHead>
+              <TableHead className="whitespace-nowrap px-3">{t("description")}</TableHead>
+              <TableHead className="whitespace-nowrap px-3">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 shrink-0" />
                   {t("installDate")}
                 </div>
               </TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4" />
+              <TableHead className="whitespace-nowrap px-3">
+                <div className="flex items-center gap-1.5">
+                  <FolderOpen className="h-4 w-4 shrink-0" />
                   {t("installPath")}
                 </div>
               </TableHead>
-              <TableHead>{t("internalName")}</TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2">
-                  <Archive className="h-4 w-4" />
+              <TableHead className="whitespace-nowrap px-3">{t("internalName")}</TableHead>
+              <TableHead className="whitespace-nowrap px-3">
+                <div className="flex items-center gap-1.5">
+                  <Archive className="h-4 w-4 shrink-0" />
                   {t("packageCache")}
                 </div>
               </TableHead>
-              <TableHead>{t("vendor")}</TableHead>
-              <TableHead>{t("version")}</TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2">
-                  <Trash2 className="h-4 w-4" />
+              <TableHead className="whitespace-nowrap px-3">{t("vendor")}</TableHead>
+              <TableHead className="whitespace-nowrap px-3">{t("version")}</TableHead>
+              <TableHead className="whitespace-nowrap px-3">
+                <div className="flex items-center gap-1.5">
+                  <Trash2 className="h-4 w-4 shrink-0" />
                   {t("uninstallCommand")}
                 </div>
               </TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2">
-                  <VolumeX className="h-4 w-4" />
+              <TableHead className="whitespace-nowrap px-3">
+                <div className="flex items-center gap-1.5">
+                  <VolumeX className="h-4 w-4 shrink-0" />
                   {t("quietUninstall")}
                 </div>
               </TableHead>
-              <TableHead>
-                <div className="flex items-center gap-2">
-                  <ExternalLink className="h-4 w-4" />
+              <TableHead className="whitespace-nowrap px-3">
+                <div className="flex items-center gap-1.5">
+                  <ExternalLink className="h-4 w-4 shrink-0" />
                   {t("infoUrl")}
                 </div>
               </TableHead>
@@ -157,46 +170,50 @@ export function HostSoftwareTable({
                 const infoUrl = getInfoUrl(sw.urlInfoAbout)
 
                 return (
-                  <TableRow key={`${sw.identifyingNumber || sw.name}-${index}`}>
-                    <TableCell>
-                      <div className="max-w-xs truncate font-medium" title={sw.displayName}>
+                  <TableRow key={`${sw.identifyingNumber || sw.name}-${index}`} className="h-14">
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
+                      <div className="truncate font-medium" title={sw.displayName}>
                         {sw.displayName}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate font-mono text-sm text-muted-foreground" title={sw.description}>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
+                      <div className="truncate font-mono text-sm text-muted-foreground" title={sw.description}>
                         {sw.description || "-"}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="font-mono text-sm">{sw.installDate || "-"}</span>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
+                      <span className="block truncate whitespace-nowrap font-mono text-sm">{sw.installDate || "-"}</span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
                       <TruncateCopyable value={sw.installLocation || ""} />
                     </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate font-mono text-sm" title={sw.name}>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
+                      <div className="truncate font-mono text-sm" title={sw.name}>
                         {sw.name || "-"}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
                       <TruncateCopyable value={sw.packageCache || ""} />
                     </TableCell>
-                    <TableCell className="font-mono text-sm">{sw.vendor || "-"}</TableCell>
-                    <TableCell className="font-mono text-sm">{sw.version || "-"}</TableCell>
-                    <TableCell>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2 font-mono text-sm">
+                      <div className="truncate" title={sw.vendor}>{sw.vendor || "-"}</div>
+                    </TableCell>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2 font-mono text-sm">
+                      <div className="truncate" title={sw.version}>{sw.version || "-"}</div>
+                    </TableCell>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
                       <TruncateCopyable value={sw.uninstallString || ""} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
                       <TruncateCopyable value={sw.quietUninstallString || ""} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="h-14 overflow-hidden px-3 py-2">
                       {infoUrl ? (
                         <a
                           href={infoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:text-blue-800"
+                          className="whitespace-nowrap text-xs text-blue-600 hover:text-blue-800"
                           title={infoUrl}
                         >
                           {t("details")}
@@ -214,7 +231,7 @@ export function HostSoftwareTable({
       </div>
 
       {pagination ? (
-        <div className="flex flex-col gap-3 border-t pt-4 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex shrink-0 flex-col gap-3 border-t pt-3 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
           <div>
             {totalCount > 0
               ? t("totalRange", { total: totalCount, start: rangeStart, end: rangeEnd })

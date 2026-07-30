@@ -52,8 +52,8 @@ export function HostDetailsTabs({
   const detailsT = useTranslations("pages.assets.hardware.host.details")
 
   return (
-    <Tabs value={activeTab} onValueChange={onTabChange} className="h-full flex flex-col">
-      <TabsList className="grid w-full grid-cols-3">
+    <Tabs value={activeTab} onValueChange={onTabChange} className="flex h-full min-h-0 flex-col">
+      <TabsList className="grid w-full shrink-0 grid-cols-3">
         <TabsTrigger value="basic" className="flex items-center gap-2">
           <Info className="w-4 h-4 text-gray-500" />
           {tabsT("basic")}
@@ -68,11 +68,11 @@ export function HostDetailsTabs({
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="basic" className="flex-1 overflow-auto mt-4">
+      <TabsContent value="basic" className="mt-4 min-h-0 flex-1 overflow-auto">
         <HostBaseInfoCard host={host} />
       </TabsContent>
 
-      <TabsContent value="hardware" className="flex-1 overflow-auto mt-4">
+      <TabsContent value="hardware" className="mt-4 min-h-0 flex-1 overflow-auto">
         {hardwareLoading ? (
           <Card>
             <CardContent className="flex items-center justify-center py-10 text-sm text-muted-foreground">
@@ -97,7 +97,7 @@ export function HostDetailsTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="software" className="flex-1 overflow-auto mt-4">
+      <TabsContent value="software" className="mt-4 min-h-0 flex-1 overflow-hidden">
         <HostSoftwareTable
           software={software}
           loading={softwareLoading}

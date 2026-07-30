@@ -111,14 +111,17 @@ export function HostDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent closeLabel={t("close")} className="w-[80vw] max-w-none overflow-y-auto p-0">
-        <DialogHeader className="px-6 pt-6">
+      <DialogContent
+        closeLabel={t("close")}
+        className="flex h-[calc(100dvh-32px)] max-h-[860px] w-[calc(100vw-32px)] max-w-none flex-col gap-0 overflow-hidden p-0 sm:w-[92vw] sm:max-w-[1800px]"
+      >
+        <DialogHeader className="shrink-0 px-6 pb-4 pt-6 pr-14">
           <DialogTitle>
             <Computer className="mr-2 inline-block h-5 w-5 text-blue-600" />
             {host.hostname}
           </DialogTitle>
         </DialogHeader>
-        <div className="px-6 pb-6">
+        <div className="min-h-0 flex-1 px-6 pb-6">
           <HostDetailsTabs
             host={host}
             hardware={hardware}
