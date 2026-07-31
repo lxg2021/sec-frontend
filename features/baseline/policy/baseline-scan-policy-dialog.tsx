@@ -18,6 +18,7 @@ import {
   createBaselineScanPolicy,
   type CreatedBaselineScanPolicy,
 } from "@/features/baseline/dispatch/api"
+import { getAllBaselines } from "@/features/baseline/custom/api"
 import {
   BASELINE_SCAN_POLICY_BASE_VERSION,
   countModifiedBaselineScanPolicyFields,
@@ -110,6 +111,8 @@ export function BaselineScanPolicyDialog({
   const [requestError, setRequestError] = useState("")
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [builtInBaselineUUID, setBuiltInBaselineUUID] = useState("")
+  const [baselineLoading, setBaselineLoading] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -122,6 +125,39 @@ export function BaselineScanPolicyDialog({
     setConfirmCloseOpen(false)
     setSubmitting(false)
   }, [createLocalizedDefaults, open])
+
+  useEffect(() => {
+    if (!open) return
+
+    let active = true
+    setBuiltInBaselineUUID("")
+    setBaselineLoading(true)
+    void getAllBaselines()
+      .then((baselines) => {
+        if (!active) return
+        const builtInBaseline = baselines.find(
+          (baseline) => baseline.baseline_type === "template" && baseline.uuid,
+        )
+        if (!builtInBaseline) {
+          setRequestError(t("baselineScanPolicy.errors.createFailed"))
+          return
+        }
+        setBuiltInBaselineUUID(builtInBaseline.uuid)
+      })
+      .catch((error) => {
+        if (!active) return
+        setRequestError(
+          requestErrorMessage(error, t("baselineScanPolicy.errors.createFailed")),
+        )
+      })
+      .finally(() => {
+        if (active) setBaselineLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [open, t])
 
   const hasUnsavedChanges = createBaselineScanPolicySignature(form) !== initialSignature
   const modifiedFieldCount = useMemo(
@@ -209,7 +245,11 @@ export function BaselineScanPolicyDialog({
   }
 
   const createPolicy = async () => {
-    if (submitting) return
+    if (submitting || baselineLoading) return
+    if (!builtInBaselineUUID) {
+      setRequestError(t("baselineScanPolicy.errors.createFailed"))
+      return
+    }
 
     const issue = validateBaselineScanPolicyForm(form)
     if (issue) {
@@ -226,6 +266,7 @@ export function BaselineScanPolicyDialog({
 
     try {
       const created = await createBaselineScanPolicy({
+        baselineUUID: builtInBaselineUUID,
         name: form.name.trim(),
         version: form.version.trim(),
         scanSchedule,
@@ -458,7 +499,7 @@ export function BaselineScanPolicyDialog({
                     type="button"
                     className="h-10 min-w-40 rounded-full bg-cyan-700 px-5 hover:bg-cyan-800"
                     onClick={createPolicy}
-                    disabled={submitting}
+                    disabled={submitting || baselineLoading || !builtInBaselineUUID}
                   >
                     {submitting ? (
                       <>

@@ -256,6 +256,7 @@ export function BaselineDispatchClient() {
 
     try {
       const result = await listBaselineScanPolicies({
+        baselineUUID: selectedTemplateUuid,
         limit: REUSABLE_POLICY_PAGE_SIZE,
         offset: (page - 1) * REUSABLE_POLICY_PAGE_SIZE,
       })
@@ -703,6 +704,7 @@ export function BaselineDispatchClient() {
 
     try {
       const created = await createBaselineScanPolicy({
+        baselineUUID: selectedTemplate.uuid,
         name: policyName.trim(),
         version: policyVersion.trim(),
         scanSchedule: nextSchedule,
@@ -726,6 +728,7 @@ export function BaselineDispatchClient() {
       if (isPolicyConflict(error)) {
         try {
           const latestPolicies = await listBaselineScanPolicies({
+            baselineUUID: selectedTemplate.uuid,
             limit: 100,
             offset: 0,
           })

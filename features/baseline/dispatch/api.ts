@@ -34,6 +34,7 @@ interface ListBaselineScanPoliciesResponseData {
     object_id?: string
     name?: string
     version?: string
+    baseline_uuid?: string
     scan_schedule?: Partial<ScanSchedule> | null
     created_at?: string
     updated_at?: string
@@ -59,6 +60,7 @@ interface OperatePMCObjectResponseData {
 }
 
 export interface CreateBaselineScanPolicyPayload {
+  baselineUUID: string
   name: string
   version: string
   scanSchedule: ScanSchedule
@@ -93,6 +95,7 @@ export interface BaselineScanPolicyOperation {
 }
 
 export interface ListBaselineScanPoliciesPayload {
+  baselineUUID?: string
   limit?: number
   offset?: number
 }
@@ -108,6 +111,7 @@ export interface BaselineScanPolicyPagination {
 
 export interface ReusableBaselineScanPolicy {
   id: string
+  baselineUUID: string
   name: string
   version: string
   scanSchedule: ScanSchedule
@@ -183,12 +187,14 @@ function getReusablePolicyKey(policy: Pick<ReusableBaselineScanPolicy, "id" | "v
 }
 
 export async function createBaselineScanPolicy({
+  baselineUUID,
   name,
   version,
   scanSchedule,
 }: CreateBaselineScanPolicyPayload): Promise<CreatedBaselineScanPolicy> {
   const result = (await http.post("baselineScanPolicy", {
     request_id: createRequestId(),
+    baseline_uuid: baselineUUID.trim(),
     name,
     version,
     scan_schedule: normalizeScanSchedule(scanSchedule),
@@ -206,11 +212,13 @@ export async function createBaselineScanPolicy({
 }
 
 export async function listBaselineScanPolicies({
+  baselineUUID,
   limit = 100,
   offset = 0,
 }: ListBaselineScanPoliciesPayload): Promise<BaselineScanPolicyListResult> {
   const result = (await http.post("listBaselineScanPolicies", {
     request_id: createRequestId(),
+    baseline_uuid: baselineUUID?.trim() || undefined,
     limit,
     offset,
   })) as ApiResult<ListBaselineScanPoliciesResponseData | null>
@@ -222,13 +230,15 @@ export async function listBaselineScanPolicies({
     .map((item) => {
       const id = stringValue(item?.object_id)
       const version = stringValue(item?.version)
+      const baselineUUID = stringValue(item?.baseline_uuid)
 
-      if (!id || !version) {
+      if (!id || !version || !baselineUUID) {
         return null
       }
 
       return {
         id,
+        baselineUUID,
         name: stringValue(item?.name) || id,
         version,
         scanSchedule: normalizeReturnedScanSchedule(item?.scan_schedule),

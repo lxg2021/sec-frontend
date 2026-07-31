@@ -101,6 +101,7 @@ describe("baseline scan policy API normalization", () => {
 
     await expect(
       createBaselineScanPolicy({
+        baselineUUID: "11111111-1111-1111-1111-111111111111",
         name: "Windows baseline",
         version: "1.0.0",
         scanSchedule: {
@@ -129,6 +130,7 @@ describe("baseline scan policy API normalization", () => {
     })
 
     await createBaselineScanPolicy({
+      baselineUUID: "11111111-1111-1111-1111-111111111111",
       name: "默认基线扫描策略",
       version: "1.1.0",
       scanSchedule: {
@@ -144,6 +146,7 @@ describe("baseline scan policy API normalization", () => {
 
     expect(postMock).toHaveBeenCalledWith("baselineScanPolicy", {
       request_id: expect.any(String),
+      baseline_uuid: "11111111-1111-1111-1111-111111111111",
       name: "默认基线扫描策略",
       version: "1.1.0",
       scan_schedule: {
@@ -173,6 +176,7 @@ describe("baseline scan policy API normalization", () => {
         items: [
           {
             object_id: "policy-object-id",
+            baseline_uuid: "11111111-1111-1111-1111-111111111111",
             name: "Windows baseline",
             version: "1.0.0",
             scan_schedule: {
@@ -190,18 +194,21 @@ describe("baseline scan policy API normalization", () => {
     })
 
     const result = await listBaselineScanPolicies({
+      baselineUUID: "11111111-1111-1111-1111-111111111111",
       limit: 8,
     })
 
     expect(result.items).toHaveLength(1)
     expect(result.items[0]).toMatchObject({
       id: "policy-object-id",
+      baselineUUID: "11111111-1111-1111-1111-111111111111",
       scanSchedule: {
         retry_limit: 0,
       },
     })
     expect(postMock).toHaveBeenCalledWith("listBaselineScanPolicies", {
       request_id: expect.any(String),
+      baseline_uuid: "11111111-1111-1111-1111-111111111111",
       limit: 8,
       offset: 0,
     })
