@@ -4320,7 +4320,8 @@
           "Unknown": "未知"
         },
         "errors": {
-          "installationDisabled": "联调保护已开启，终端未执行真实补丁安装"
+          "installationDisabled": "联调保护已开启，终端未执行真实补丁安装",
+          "assignmentChecksumMismatch": "终端校验任务内容失败，请重新下发任务"
         },
         "status": {
           "completed": "已完成",

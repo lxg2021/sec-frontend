@@ -4320,7 +4320,8 @@
           "Unknown": "Unknown"
         },
         "errors": {
-          "installationDisabled": "Integration protection is enabled; the Agent did not perform a real patch installation."
+          "installationDisabled": "Integration protection is enabled; the Agent did not perform a real patch installation.",
+          "assignmentChecksumMismatch": "The Agent could not verify the task content. Submit the task again."
         },
         "status": {
           "completed": "Completed",
