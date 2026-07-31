@@ -6969,6 +6969,11 @@
             "officialName": "Definition Updates",
             "description": "Frequent updates that add to product definition databases, such as malware, phishing-site, or junk-mail definitions."
           },
+          "drivers": {
+            "label": "Drivers",
+            "officialName": "Drivers",
+            "description": "Driver updates released for hardware devices, including optional vendor drivers."
+          },
           "developerkits": {
             "label": "Developer Kits",
             "officialName": "Developer Kits",
@@ -6998,6 +7003,11 @@
             "label": "Tools",
             "officialName": "Tools",
             "description": "Utilities or features that help complete one or more tasks."
+          },
+          "upgrades": {
+            "label": "Upgrades",
+            "officialName": "Upgrades",
+            "description": "Updates that upgrade Windows to a new feature release, such as a Windows 11 version upgrade."
           },
           "updaterollups": {
             "label": "Update Rollups",

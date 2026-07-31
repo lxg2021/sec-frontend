@@ -6969,6 +6969,11 @@
             "officialName": "Definition Updates",
             "description": "向产品定义数据库添加内容的频繁更新，例如恶意代码、网络钓鱼网站或垃圾邮件定义。"
           },
+          "drivers": {
+            "label": "驱动程序",
+            "officialName": "Drivers",
+            "description": "面向硬件设备发布的驱动程序更新，包括可选的厂商驱动。"
+          },
           "developerkits": {
             "label": "开发工具包",
             "officialName": "Developer Kits",
@@ -6998,6 +7003,11 @@
             "label": "工具",
             "officialName": "Tools",
             "description": "帮助完成一项或一组任务的实用工具或功能。"
+          },
+          "upgrades": {
+            "label": "功能升级",
+            "officialName": "Upgrades",
+            "description": "将 Windows 升级到新功能版本的更新，例如 Windows 11 版本升级。"
           },
           "updaterollups": {
             "label": "更新汇总",
