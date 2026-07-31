@@ -4252,6 +4252,7 @@
           "runningHostsLabel": "Running",
           "pendingHostsLabel": "Pending",
           "successHosts": "Successful hosts {success}/{total} · progress {progress}%",
+          "completedHosts": "Completed hosts {completed}/{total} · progress {progress}%",
           "expandHint": "Expand to load task details",
           "viewDetail": "View details"
         },

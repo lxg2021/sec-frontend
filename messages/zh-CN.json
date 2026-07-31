@@ -4252,6 +4252,7 @@
           "runningHostsLabel": "进行中",
           "pendingHostsLabel": "待执行",
           "successHosts": "成功主机 {success}/{total} · 进度 {progress}%",
+          "completedHosts": "已完成主机 {completed}/{total} · 进度 {progress}%",
           "expandHint": "展开后加载任务详情",
           "viewDetail": "查看详情"
         },
