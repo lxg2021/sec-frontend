@@ -4081,7 +4081,8 @@
             "critical": "Critical",
             "important": "Important",
             "moderate": "Moderate",
-            "low": "Low"
+            "low": "Low",
+            "unspecified": "Unspecified"
           },
           "coveragePlaceholder": "Coverage",
           "allCoverage": "All status",
@@ -4315,7 +4316,11 @@
           "Important": "Important",
           "Moderate": "Moderate",
           "Low": "Low",
+          "Unspecified": "Unspecified",
           "Unknown": "Unknown"
+        },
+        "errors": {
+          "installationDisabled": "Integration protection is enabled; the Agent did not perform a real patch installation."
         },
         "status": {
           "completed": "Completed",
@@ -4396,7 +4401,8 @@
           "Critical": "Critical",
           "Important": "Important",
           "Moderate": "Moderate",
-          "Low": "Low"
+          "Low": "Low",
+          "Unspecified": "Unspecified"
         },
         "status": {
           "required": "Required",
@@ -7012,7 +7018,7 @@
           "randomDelayMinutes": "The random delay must be an integer from 0 to 120 minutes",
           "retryLimit": "The retry count must be an integer from 0 to 10",
           "retryIntervalMinutes": "The retry interval must be an integer greater than or equal to 1",
-          "downloadPriority": "The download priority must be from 1 to 5",
+          "downloadPriority": "The download priority must be from 1 to 3",
           "wsusUrlRequired": "The vulnerability server URL is required",
           "wsusUrlInvalid": "The vulnerability server URL must be a valid HTTP or HTTPS URL"
         },
