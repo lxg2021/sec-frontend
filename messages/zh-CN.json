@@ -3729,7 +3729,7 @@
         },
         "permissions": {
           "invalidHosts": "存在不可下发主机。",
-          "createPolicyFirst": "请先创建策略对象。",
+          "createPolicyFirst": "请先点击“新建任务”，或选择一个已有任务后再下发。",
           "selectHostsFirst": "请先选择目标主机。"
         },
         "summary": {

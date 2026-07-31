@@ -3729,7 +3729,7 @@
         },
         "permissions": {
           "invalidHosts": "Invalid hosts exist for dispatch.",
-          "createPolicyFirst": "Create the strategy object first.",
+          "createPolicyFirst": "Create a task or select an existing task before dispatching.",
           "selectHostsFirst": "Select target hosts first."
         },
         "summary": {

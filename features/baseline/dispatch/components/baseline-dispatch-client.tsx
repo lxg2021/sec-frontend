@@ -521,7 +521,6 @@ export function BaselineDispatchClient() {
 
   const isPolicyVersionValid = POLICY_VERSION_PATTERN.test(policyVersion.trim())
   const canCreatePolicy = Boolean(selectedTemplate && policyName.trim() && isPolicyVersionValid)
-  const canOpenConfirm = Boolean(appliedPolicy && deduplicatedHosts.length > 0 && invalidHostCount === 0)
   const effectiveSchedule = appliedPolicy?.schedule ?? schedule
 
   const previewValidations = useMemo<DispatchValidation[]>(() => {
@@ -876,7 +875,7 @@ export function BaselineDispatchClient() {
               <Button
                 type="button"
                 onClick={handleOpenConfirm}
-                disabled={!canOpenConfirm || submitting}
+                disabled={submitting}
                 className="h-10 min-w-56 shrink-0 rounded-full bg-teal-600 px-5 text-white shadow-sm hover:bg-teal-700"
               >
                 {submitting ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
