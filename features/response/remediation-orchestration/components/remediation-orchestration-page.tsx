@@ -38,8 +38,12 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { useToast } from "@/shared/ui/use-toast";
-import type { RemediationOrder } from "@/features/attack/remediation-order";
-import { isLegacyCaseRemediationTitle } from "@/features/attack/remediation-order";
+import {
+  buildRemediationOrchestrationHref,
+  isLegacyCaseRemediationTitle,
+  queryRemediationOrderList,
+  type RemediationOrder,
+} from "@/features/attack/remediation-order";
 
 import type {
   RemediationActionInput,
@@ -183,6 +187,7 @@ export function RemediationOrchestrationPage({
   const [selectedActionCode, setSelectedActionCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [caseLookupLoading, setCaseLookupLoading] = useState(false);
   const [working, setWorking] = useState("");
   const [headerCaseInput, setHeaderCaseInput] = useState(
     context.case_id?.trim() || "",
@@ -330,7 +335,60 @@ export function RemediationOrchestrationPage({
     if (!nextLoading) setRefreshedAt(new Date());
   }, []);
 
-  function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
+  const openLatestOrderByCaseId = useCallback(
+    async (caseId: string) => {
+      setCaseLookupLoading(true);
+      try {
+        const result = await queryRemediationOrderList({
+          case_id: caseId,
+          page: 1,
+          page_size: 1,
+        });
+        const order = result.items[0];
+        if (!order?.order_id.trim()) {
+          toast({
+            title: t("page.notFound"),
+            description: caseId,
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        router.push(buildRemediationOrchestrationHref(order));
+        return true;
+      } catch (cause) {
+        toast({
+          title: t("page.loadFailed"),
+          description: cause instanceof Error ? cause.message : caseId,
+          variant: "destructive",
+        });
+        return false;
+      } finally {
+        setCaseLookupLoading(false);
+      }
+    },
+    [router, t, toast],
+  );
+
+  useEffect(() => {
+    if (
+      orderMode ||
+      !routeCaseId ||
+      routeWorkflowId ||
+      context.node_key?.trim()
+    ) {
+      return;
+    }
+    void openLatestOrderByCaseId(routeCaseId);
+  }, [
+    context.node_key,
+    openLatestOrderByCaseId,
+    orderMode,
+    routeCaseId,
+    routeWorkflowId,
+  ]);
+
+  async function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     if (orderMode) {
       setOrderRefreshKey((current) => current + 1);
@@ -340,7 +398,12 @@ export function RemediationOrchestrationPage({
     const current = routeCaseId;
 
     if (nextCaseId === current) {
-      void loadPage(true);
+      if (nextCaseId) {
+        const opened = await openLatestOrderByCaseId(nextCaseId);
+        if (!opened) void loadPage(true);
+      } else {
+        void loadPage(true);
+      }
       return;
     }
 
@@ -365,13 +428,7 @@ export function RemediationOrchestrationPage({
       setOrderRefreshKey((current) => current + 1);
       return;
     }
-    const nextCaseId = headerCaseInput.trim();
-    const current = routeCaseId;
-    if (nextCaseId !== current) {
-      submitHeaderCase();
-      return;
-    }
-    void loadPage(true);
+    void submitHeaderCase();
   }
 
   async function ensureCanonicalAction() {
@@ -525,7 +582,7 @@ export function RemediationOrchestrationPage({
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
                 <form
                   className="flex h-12 min-w-[260px] flex-1 basis-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:min-w-[320px] lg:basis-[420px] xl:min-w-[360px] xl:basis-auto 2xl:min-w-[520px]"
-                  onSubmit={submitHeaderCase}
+                  onSubmit={(event) => void submitHeaderCase(event)}
                 >
                   <Search
                     aria-hidden
@@ -537,7 +594,7 @@ export function RemediationOrchestrationPage({
                     value={headerCaseInput}
                     onChange={(event) => setHeaderCaseInput(event.target.value)}
                     placeholder={t("page.caseIdPlaceholder")}
-                    disabled={orderMode ? orderLoading : loading}
+                    disabled={orderMode ? orderLoading : loading || caseLookupLoading}
                     readOnly={orderMode}
                     className="min-w-0 flex-1 border-0 bg-transparent px-3 text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400 read-only:cursor-default disabled:cursor-not-allowed disabled:opacity-60"
                   />
@@ -570,14 +627,15 @@ export function RemediationOrchestrationPage({
                   variant="ghost"
                   size="icon"
                   onClick={refreshHeader}
-                  disabled={loading || refreshing || orderLoading}
+                  disabled={loading || refreshing || orderLoading || caseLookupLoading}
                   aria-label={t("page.refresh")}
                   className="h-10 w-10 shrink-0 rounded-full border-0 text-slate-400 shadow-none hover:bg-slate-100 hover:text-slate-600"
                 >
                   <RefreshCcw
                     className={cn(
                       "h-4 w-4",
-                    (loading || refreshing || orderLoading) && "animate-spin",
+                    (loading || refreshing || orderLoading || caseLookupLoading) &&
+                      "animate-spin",
                     )}
                   />
                   <span className="sr-only">{t("page.refresh")}</span>
