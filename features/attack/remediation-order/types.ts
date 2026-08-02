@@ -556,6 +556,7 @@ export type RemediationRegistryTargetKind =
 export interface RemediationRegistryTargetSnapshot {
   kind: RemediationRegistryTargetKind;
   hive: string;
+  user_sid: string;
   key_path: string;
   value_name: string;
   present?: boolean;

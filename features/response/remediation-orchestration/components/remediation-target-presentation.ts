@@ -174,10 +174,12 @@ function snapshotTargetPresentation(snapshot: RemediationTargetSnapshot) {
     if (displayName) {
       return {
         displayName,
-        detail:
+        detail: joinDetails(
+          registry.user_sid ? `SID: ${registry.user_sid}` : "",
           registry.present === undefined
             ? ""
             : `当前存在: ${registry.present ? "是" : "否"}`,
+        ),
       };
     }
   }

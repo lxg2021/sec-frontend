@@ -696,6 +696,7 @@ export function normalizeRemediationTargetSnapshot(
       ? compactOptional({
           kind: registryTargetKindValue(registry.kind),
           hive: stringValue(registry.hive),
+          user_sid: stringValue(registry.user_sid),
           key_path: stringValue(registry.key_path),
           value_name: stringValue(registry.value_name),
           present: optionalBoolean(registry, "present"),

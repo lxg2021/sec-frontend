@@ -589,6 +589,7 @@ export function targetSnapshotRows(
     }
   } else if (snapshot.registry) {
     add(t("snapshotFields.hive"), snapshot.registry.hive);
+    add(t("snapshotFields.sid"), snapshot.registry.user_sid, true);
     add(t("snapshotFields.keyPath"), snapshot.registry.key_path, true);
     add(t("snapshotFields.valueName"), snapshot.registry.value_name);
     if (snapshot.registry.present !== undefined) {
