@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { AttackGraphNodeModel } from "@/features/attack/dgraph/model/core/attack-graph-data";
 import { getAttackGraphNodePresentationKind } from "@/features/attack/dgraph/model/node/attack-graph-node-types";
+import { validateFileEAEditor } from "@/features/response/remediation-orchestration/remediation-order-model";
 
 import {
   deleteRemediationDraftItem,
@@ -78,6 +79,21 @@ function requestErrorMessage(error: unknown) {
   return error instanceof Error
     ? error.message
     : "Unknown remediation request error";
+}
+
+// File EA actions need their protobuf oneof branch from the moment they are
+// selected. The delete scope is completed in the graph panel before the Draft
+// is persisted, while restore gets all parameters from trusted history.
+export function initialRemediationActionInput(
+  actionCode: string,
+): RemediationActionInput {
+  switch (actionCode.trim()) {
+    case "file_ea.delete":
+    case "file_ea.restore":
+      return { file_ea: {} };
+    default:
+      return {};
+  }
 }
 
 function draftUpsertFailureMessage(
@@ -386,6 +402,27 @@ export function isRemediationTargetComplete(target: RemediationTargetDraft) {
     !isRemediationDecisionSelectable(decision, target.selectedAgentId)
   ) {
     return false;
+  }
+  if (target.selectedActionCode === "file_ea.delete") {
+    const input = target.actionInput.file_ea;
+    return !validateFileEAEditor({
+      mode: input?.delete_all
+        ? "all"
+        : Array.isArray(input?.ea_names)
+          ? "named"
+          : "",
+      eaNamesText: input?.ea_names?.join("\n") ?? "",
+      force: Boolean(input?.force),
+    });
+  }
+  if (target.selectedActionCode === "file_ea.restore") {
+    const input = target.actionInput.file_ea;
+    if (!input) return false;
+    return (
+      input.ea_names === undefined &&
+      input.delete_all === undefined &&
+      input.force === undefined
+    );
   }
   return true;
 }
@@ -717,7 +754,9 @@ export function useRemediationOrderWorkspace({
             selectedActionCode,
             // Parameter branches belong to their action. Never carry e.g.
             // file_quarantine settings into a file.restore Draft Item.
-            actionInput: actionChanged ? {} : pending.actionInput,
+            actionInput: actionChanged
+              ? initialRemediationActionInput(selectedActionCode)
+              : pending.actionInput,
             reverseSourceItemId,
             resolutionStatus,
             blockedReason,
@@ -871,7 +910,9 @@ export function useRemediationOrderWorkspace({
         ...target,
         selectedAgentId: agentId,
         selectedActionCode: selection.selectedActionCode,
-        actionInput: actionChanged ? {} : target.actionInput,
+        actionInput: actionChanged
+          ? initialRemediationActionInput(selection.selectedActionCode)
+          : target.actionInput,
         reverseSourceItemId: selection.reverseSourceItemId,
       });
       targetsRef.current = next;
@@ -898,7 +939,9 @@ export function useRemediationOrderWorkspace({
       next.set(key, {
         ...target,
         selectedActionCode: actionCode,
-        actionInput: actionChanged ? {} : target.actionInput,
+        actionInput: actionChanged
+          ? initialRemediationActionInput(actionCode)
+          : target.actionInput,
         reverseSourceItemId: selectRemediationReverseSourceItemId(
           contexts,
           target.reverseSourceItemId,
@@ -909,6 +952,29 @@ export function useRemediationOrderWorkspace({
     });
     setDirty(true);
   }, []);
+
+  const selectActionInput = useCallback(
+    (key: string, actionInput: RemediationActionInput) => {
+      if (!isDraftEditableOrder(orderRef.current)) return;
+      setTargetsByKey((current) => {
+        const target = current.get(key);
+        if (!target || target.selectedActionCode !== "file_ea.delete") {
+          return current;
+        }
+        const next = new Map(current);
+        next.set(key, {
+          ...target,
+          // File EA is a protobuf oneof branch. Keep the graph editor from
+          // accidentally carrying parameters belonging to another action.
+          actionInput: { file_ea: actionInput.file_ea ?? {} },
+        });
+        targetsRef.current = next;
+        return next;
+      });
+      setDirty(true);
+    },
+    [],
+  );
 
   const saveDraft = useCallback(
     async (options: { title?: string } = {}) => {
@@ -1095,6 +1161,7 @@ export function useRemediationOrderWorkspace({
     clearTargets,
     selectAgent,
     selectActionCode,
+    selectActionInput,
     saveDraft,
   };
 }

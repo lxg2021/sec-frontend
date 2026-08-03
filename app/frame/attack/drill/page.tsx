@@ -1190,6 +1190,7 @@ export default function App() {
                       onRetry={handleRemediationRetry}
                       onAgentChange={remediation.selectAgent}
                       onActionChange={remediation.selectActionCode}
+                      onActionInputChange={remediation.selectActionInput}
                       onOpenOrchestration={
                         handleOpenRemediationOrchestration
                       }

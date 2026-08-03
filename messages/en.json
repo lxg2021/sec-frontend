@@ -1708,6 +1708,15 @@
             "selectAgentAria": "Select an Agent for {target}",
             "selectActionAria": "Select an action for {target}",
             "selectHistoryAria": "Select a source execution to reverse for {target}",
+            "fileEA": {
+              "scopeAria": "Select the File EA deletion scope",
+              "selectScope": "Select EA deletion scope",
+              "named": "Delete by name",
+              "all": "Explicitly delete all EAs",
+              "namesAria": "EA names",
+              "namesPlaceholder": "Enter one EA name per line or comma-separate names",
+              "allWarning": "All EAs on this file are explicitly selected for deletion."
+            },
             "orchestrationDisabled": "Unavailable",
             "applicability": {
               "available": "Available",

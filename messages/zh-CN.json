@@ -1708,6 +1708,15 @@
             "selectAgentAria": "为 {target} 选择 Agent",
             "selectActionAria": "为 {target} 选择处置动作",
             "selectHistoryAria": "为 {target} 选择要回滚的来源执行记录",
+            "fileEA": {
+              "scopeAria": "选择文件 EA 删除范围",
+              "selectScope": "选择 EA 删除范围",
+              "named": "按名称删除",
+              "all": "明确删除全部 EA",
+              "namesAria": "EA 名称",
+              "namesPlaceholder": "每行或逗号分隔一个 EA 名称",
+              "allWarning": "已明确选择删除该文件的全部 EA。"
+            },
             "orchestrationDisabled": "不可编排",
             "applicability": {
               "available": "可用",

@@ -22,13 +22,14 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react"
-import { useTranslations } from "next-intl"
-import { useId, useState } from "react"
+import { useLocale, useTranslations } from "next-intl"
+import { useEffect, useId, useState } from "react"
 import { createPortal } from "react-dom"
 
 import type {
   RemediationOrder,
   RemediationOrderItem,
+  RemediationActionInput,
   RemediationTargetDraft,
 } from "@/features/attack/remediation-order"
 import {
@@ -37,6 +38,11 @@ import {
   getRemediationSelectableActions,
   getRemediationSelectableAgentIds,
 } from "@/features/attack/remediation-order"
+import {
+  fileEAInputFromEditor,
+  normalizeFileEANames,
+  validateFileEAEditor,
+} from "@/features/response/remediation-orchestration/remediation-order-model"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
 import {
@@ -46,6 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select"
+import { Textarea } from "@/shared/ui/textarea"
 import { getAttackGraphRemediationNodeConfig } from "../../model/node/attack-graph-remediation-config"
 import { getRemediationTargetPresentation } from "./attack-graph-remediation-target-presentation"
 
@@ -64,6 +71,10 @@ export interface AttackGraphRemediationTargetsProps {
   onRetry: (targetKey: string) => void | Promise<unknown>
   onAgentChange: (targetKey: string, agentId: string) => void
   onActionChange: (targetKey: string, actionCode: string) => void
+  onActionInputChange: (
+    targetKey: string,
+    actionInput: RemediationActionInput,
+  ) => void
   onOpenOrchestration: () => void | Promise<unknown>
   onViewOrchestration: () => void
 }
@@ -83,6 +94,7 @@ export function AttackGraphRemediationTargets({
   onRetry,
   onAgentChange,
   onActionChange,
+  onActionInputChange,
   onOpenOrchestration,
   onViewOrchestration,
 }: AttackGraphRemediationTargetsProps) {
@@ -186,6 +198,7 @@ export function AttackGraphRemediationTargets({
                   target={target}
                   disabled={!editable || busy}
                   onActionChange={onActionChange}
+                  onActionInputChange={onActionInputChange}
                   onAgentChange={onAgentChange}
                   onRemove={onRemove}
                   onRetry={onRetry}
@@ -254,6 +267,7 @@ function RemediationTargetRow({
   target,
   disabled,
   onActionChange,
+  onActionInputChange,
   onAgentChange,
   onRemove,
   onRetry,
@@ -261,6 +275,10 @@ function RemediationTargetRow({
   target: RemediationTargetDraft
   disabled: boolean
   onActionChange: (targetKey: string, actionCode: string) => void
+  onActionInputChange: (
+    targetKey: string,
+    actionInput: RemediationActionInput,
+  ) => void
   onAgentChange: (targetKey: string, agentId: string) => void
   onRemove: (targetKey: string) => void
   onRetry: (targetKey: string) => void | Promise<unknown>
@@ -407,6 +425,15 @@ function RemediationTargetRow({
             })}
           </SelectContent>
         </Select>
+        {target.selectedActionCode === "file_ea.delete" ? (
+          <FileEADeleteScopeEditor
+            actionInput={target.actionInput}
+            disabled={disabled}
+            onChange={(actionInput) =>
+              onActionInputChange(target.key, actionInput)
+            }
+          />
+        ) : null}
       </td>
       <td className="px-3 py-1.5">
         <RiskBadge risk={risk} />
@@ -454,6 +481,111 @@ function RemediationTargetRow({
         </Button>
       </td>
     </tr>
+  )
+}
+
+function FileEADeleteScopeEditor({
+  actionInput,
+  disabled,
+  onChange,
+}: {
+  actionInput: RemediationActionInput
+  disabled: boolean
+  onChange: (actionInput: RemediationActionInput) => void
+}) {
+  const t = useTranslations("pages.attack.drill.controlPanel")
+  const locale = useLocale()
+  const input = actionInput.file_ea ?? {}
+  const mode = input.delete_all
+    ? "all"
+    : Array.isArray(input.ea_names)
+      ? "named"
+      : ""
+  const persistedNames = input.ea_names?.join("\n") ?? ""
+  const [eaNamesText, setEANamesText] = useState(persistedNames)
+
+  useEffect(() => {
+    setEANamesText(persistedNames)
+  }, [persistedNames])
+
+  const editor = {
+    mode,
+    eaNamesText,
+    force: Boolean(input.force),
+  } as const
+  const error = validateFileEAEditor(editor, locale)
+
+  function updateNamedScope(value: string) {
+    setEANamesText(value)
+    onChange({
+      file_ea: fileEAInputFromEditor({
+        mode: "named",
+        eaNamesText: value,
+        force: Boolean(input.force),
+      }),
+    })
+  }
+
+  return (
+    <div className="mt-2 min-w-[230px] rounded-lg border border-slate-200 bg-slate-50 p-2">
+      <Select
+        disabled={disabled}
+        value={mode || undefined}
+        onValueChange={(value) => {
+          if (value === "all") {
+            onChange({
+              file_ea: fileEAInputFromEditor({
+                mode: "all",
+                eaNamesText: "",
+                force: Boolean(input.force),
+              }),
+            })
+            return
+          }
+          updateNamedScope(eaNamesText)
+        }}
+      >
+        <SelectTrigger
+          className="h-8 border-slate-300 bg-white text-[11px] focus:ring-slate-950"
+          aria-label={t("remediation.fileEA.scopeAria")}
+        >
+          <SelectValue placeholder={t("remediation.fileEA.selectScope")} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="named" className="text-xs">
+            {t("remediation.fileEA.named")}
+          </SelectItem>
+          <SelectItem value="all" className="text-xs">
+            {t("remediation.fileEA.all")}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      {mode === "named" ? (
+        <Textarea
+          aria-label={t("remediation.fileEA.namesAria")}
+          disabled={disabled}
+          value={eaNamesText}
+          placeholder={t("remediation.fileEA.namesPlaceholder")}
+          onChange={(event) => updateNamedScope(event.target.value)}
+          onBlur={() => {
+            const normalized = normalizeFileEANames(eaNamesText).join("\n")
+            setEANamesText(normalized)
+            updateNamedScope(normalized)
+          }}
+          className="mt-2 min-h-16 resize-y border-slate-300 bg-white font-mono text-[11px] leading-4 focus-visible:ring-slate-950"
+        />
+      ) : null}
+      {mode === "all" ? (
+        <p className="mt-1.5 text-[10px] leading-4 text-amber-700">
+          {t("remediation.fileEA.allWarning")}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="mt-1.5 text-[10px] leading-4 text-red-600" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </div>
   )
 }
 

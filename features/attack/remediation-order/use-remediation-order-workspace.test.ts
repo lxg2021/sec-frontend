@@ -15,6 +15,7 @@ import {
   getRemediationHistoryNodeStates,
   getRemediationSelectableActions,
   getRemediationSelectableAgentIds,
+  initialRemediationActionInput,
   isRemediationTargetComplete,
   remediationSelectionChanged,
   selectRemediationActionForAgent,
@@ -101,6 +102,21 @@ function target(
   };
 }
 
+describe("initialRemediationActionInput", () => {
+  it("persists the typed File EA branch before scope configuration", () => {
+    expect(initialRemediationActionInput("file_ea.delete")).toEqual({
+      file_ea: {},
+    });
+    expect(initialRemediationActionInput("file_ea.restore")).toEqual({
+      file_ea: {},
+    });
+  });
+
+  it("does not invent parameters for ordinary actions", () => {
+    expect(initialRemediationActionInput("file.quarantine")).toEqual({});
+  });
+});
+
 describe("isRemediationTargetComplete", () => {
   it("requires a resolved target, Agent and selected action", () => {
     expect(
@@ -175,7 +191,7 @@ describe("isRemediationTargetComplete", () => {
     ).toBe(true);
   });
 
-  it("allows available and configuration-required actions into the draft", () => {
+  it("allows available actions and requires explicit File EA configuration", () => {
     const restore = action({ action_code: "file.restore" });
     expect(
       isRemediationTargetComplete(
@@ -199,21 +215,55 @@ describe("isRemediationTargetComplete", () => {
     ).toBe(true);
 
     const fileEA = action({ action_code: "file_ea.delete" });
+    const fileEATarget = target({
+      actions: [fileEA],
+      selectedActionCode: "file_ea.delete",
+      actionInput: { file_ea: {} },
+      actionDecisions: [
+        decision(fileEA, [
+          agentDecision("agent-1", "requires_configuration", {
+            required_input_fields: ["file_ea.ea_names|file_ea.delete_all"],
+          }),
+        ]),
+      ],
+    });
+    expect(isRemediationTargetComplete(fileEATarget)).toBe(false);
     expect(
-      isRemediationTargetComplete(
-        target({
-          actions: [fileEA],
-          selectedActionCode: "file_ea.delete",
-          actionDecisions: [
-            decision(fileEA, [
-              agentDecision("agent-1", "requires_configuration", {
-                required_input_fields: ["file_ea.ea_names|file_ea.delete_all"],
-              }),
-            ]),
-          ],
-        }),
-      ),
+      isRemediationTargetComplete({
+        ...fileEATarget,
+        actionInput: { file_ea: { ea_names: ["Sensor.Test.One"] } },
+      }),
     ).toBe(true);
+    expect(
+      isRemediationTargetComplete({
+        ...fileEATarget,
+        actionInput: { file_ea: { delete_all: true } },
+      }),
+    ).toBe(true);
+  });
+
+  it("does not allow File EA restore to carry a delete scope", () => {
+    const restore = action({ action_code: "file_ea.restore" });
+    const restoreTarget = target({
+      actions: [restore],
+      selectedActionCode: restore.action_code,
+      actionInput: initialRemediationActionInput(restore.action_code),
+      actionDecisions: [decision(restore)],
+    });
+
+    expect(isRemediationTargetComplete(restoreTarget)).toBe(true);
+    expect(
+      isRemediationTargetComplete({
+        ...restoreTarget,
+        actionInput: { file_ea: { ea_names: ["Sensor.Test.One"] } },
+      }),
+    ).toBe(false);
+    expect(
+      isRemediationTargetComplete({
+        ...restoreTarget,
+        actionInput: { file_ea: { delete_all: true } },
+      }),
+    ).toBe(false);
   });
 
   it("fails closed when the selected action has no Agent decision", () => {
