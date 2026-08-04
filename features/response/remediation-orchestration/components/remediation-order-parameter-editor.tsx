@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
+  ShieldAlert,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import type {
@@ -28,6 +36,7 @@ import type {
 } from "../types";
 import {
   buildRemediationTemplateInput,
+  CONFIGURED_PASSWORD_MARKER,
   getRemediationPreviewTemplate,
   initialRemediationTemplateValues,
   remediationTemplateActionDisplayName,
@@ -237,6 +246,7 @@ function localizedFieldLabel(templateId: string, key: string, locale: string) {
     stop_before_delete: "Stop Service Before Deletion",
     force_logoff: "Force Logoff",
     new_password: "New Password",
+    confirm_password: "Confirm New Password",
     force_change_at_next_logon: "Require Password Change at Next Sign-in",
     unlock_account: "Unlock Account",
     stop_on_failure: "Stop on Failure",
@@ -397,6 +407,11 @@ export function validateRemediationOrderItemParameters({
   locale?: string;
   reverseSourceItemId: string;
 }) {
+  if (item.target_snapshot?.account?.protected_account === true) {
+    return locale.toLowerCase().startsWith("zh")
+      ? "该账号受终端安全策略保护，不能提交账号处置"
+      : "This account is protected by the endpoint safety policy and cannot be remediated";
+  }
   const applicabilityError = remediationActionApplicabilityError(
     decision,
     item.agent_id,
@@ -597,6 +612,26 @@ export function targetSnapshotRows(
       add(
         t("snapshotFields.lockedStatus"),
         t(snapshot.account.locked ? "values.locked" : "values.unlocked"),
+      );
+    }
+    if (snapshot.account.local_admin !== undefined) {
+      add(
+        t("snapshotFields.localAdminStatus"),
+        t(
+          snapshot.account.local_admin
+            ? "values.localAdministrator"
+            : "values.standardAccount",
+        ),
+      );
+    }
+    if (snapshot.account.protected_account !== undefined) {
+      add(
+        t("snapshotFields.protectedAccountStatus"),
+        t(
+          snapshot.account.protected_account
+            ? "values.protectedAccount"
+            : "values.unprotectedAccount",
+        ),
       );
     }
   } else if (snapshot.registry) {
@@ -820,6 +855,8 @@ export function RemediationOrderParameterPanel({
   const showTemplateControls = shouldShowRemediationWorkspaceTemplateControls(
     selectedAction.action_code,
   );
+  const protectedAccount =
+    item.target_snapshot?.account?.protected_account === true;
 
   function updateTemplateValues(values: RemediationTemplateValues) {
     setTemplateValues(values);
@@ -873,7 +910,8 @@ export function RemediationOrderParameterPanel({
         <div className="mt-4">
           <WorkspaceTemplateControls
             actionInput={actionInput}
-            disabled={disabled}
+            disabled={disabled || protectedAccount}
+            item={item}
             onActionInputChange={onActionInputChange}
             onValuesChange={updateTemplateValues}
             parametersExpanded={parametersExpanded}
@@ -897,6 +935,7 @@ export function shouldShowRemediationWorkspaceTemplateControls(
 function WorkspaceTemplateControls({
   actionInput,
   disabled,
+  item,
   onActionInputChange,
   onValuesChange,
   onParametersExpandedChange,
@@ -907,6 +946,7 @@ function WorkspaceTemplateControls({
 }: {
   actionInput: OrderActionInput;
   disabled: boolean;
+  item: RemediationOrderItem;
   onActionInputChange: (input: OrderActionInput) => void;
   onValuesChange: (values: RemediationTemplateValues) => void;
   onParametersExpandedChange: (expanded: boolean) => void;
@@ -928,6 +968,21 @@ function WorkspaceTemplateControls({
         onActionInputChange={onActionInputChange}
         onParametersExpandedChange={onParametersExpandedChange}
         parametersExpanded={parametersExpanded}
+      />
+    );
+  }
+
+  if (template.inputBranch === "account") {
+    return (
+      <AccountWorkspaceControls
+        actionCode={selectedAction.action_code}
+        disabled={disabled}
+        onParametersExpandedChange={onParametersExpandedChange}
+        onValuesChange={onValuesChange}
+        parametersExpanded={parametersExpanded}
+        snapshot={item.target_snapshot?.account ?? null}
+        template={template}
+        values={values}
       />
     );
   }
@@ -1064,6 +1119,271 @@ function WorkspaceTemplateControls({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function AccountWorkspaceControls({
+  actionCode,
+  disabled,
+  onParametersExpandedChange,
+  onValuesChange,
+  parametersExpanded,
+  snapshot,
+  template,
+  values,
+}: {
+  actionCode: string;
+  disabled: boolean;
+  onParametersExpandedChange: (expanded: boolean) => void;
+  onValuesChange: (values: RemediationTemplateValues) => void;
+  parametersExpanded: boolean;
+  snapshot: RemediationTargetSnapshot["account"];
+  template: RemediationPreviewTemplate;
+  values: RemediationTemplateValues;
+}) {
+  const t = useTranslations("pages.collection.orchestration.parameters");
+  const normalizedAction = actionCode.trim().toLowerCase();
+  const fields = Object.fromEntries(
+    template.parameters.map((field) => [field.key, field]),
+  ) as Record<string, TemplateField | undefined>;
+  const configuredPassword =
+    stringValue(values.parameterOverrides.new_password) ===
+    CONFIGURED_PASSWORD_MARKER;
+  const forceLogoff = Boolean(values.parameterOverrides.force_logoff);
+  const isDisableOrDelete =
+    normalizedAction === "account.disable" ||
+    normalizedAction === "account.delete";
+
+  function setField(field: TemplateField | undefined, value: unknown) {
+    if (!field) return;
+    onValuesChange({
+      ...values,
+      parameterOverrides: {
+        ...values.parameterOverrides,
+        [field.key]: value,
+      },
+    });
+  }
+
+  const hasParameters = template.parameters.length > 0;
+  return (
+    <div className="space-y-3">
+      {snapshot?.protected_account ? (
+        <div
+          className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs leading-5 text-red-800"
+          role="alert"
+        >
+          <ShieldAlert
+            aria-hidden="true"
+            className="mt-0.5 size-4 shrink-0"
+          />
+          <span>{t("accountProtectedWarning")}</span>
+        </div>
+      ) : null}
+
+      {snapshot?.local_admin && isDisableOrDelete ? (
+        <div
+          className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-800"
+          role="alert"
+        >
+          <AlertTriangle
+            aria-hidden="true"
+            className="mt-0.5 size-4 shrink-0"
+          />
+          <span>{t("localAdministratorWarning")}</span>
+        </div>
+      ) : null}
+
+      {hasParameters ? (
+        <div>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="text-xs font-semibold text-slate-700">
+              {t("accountParameters")}
+            </div>
+            <SectionCollapseButton
+              expanded={parametersExpanded}
+              onClick={() =>
+                onParametersExpandedChange(!parametersExpanded)
+              }
+              sectionName={t("accountParameters")}
+            />
+          </div>
+
+          {parametersExpanded ? (
+            <div className="space-y-3">
+              {normalizedAction === "account.reset_password" ? (
+                <>
+                  {configuredPassword ? (
+                    <div
+                      className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-800"
+                      role="status"
+                    >
+                      <CheckCircle2
+                        aria-hidden="true"
+                        className="mt-0.5 size-4 shrink-0"
+                      />
+                      <span>{t("passwordConfigured")}</span>
+                    </div>
+                  ) : null}
+                  <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+                    {fields.new_password ? (
+                      <AccountPasswordField
+                        configured={configuredPassword}
+                        disabled={disabled}
+                        field={fields.new_password}
+                        onChange={(value) =>
+                          setField(fields.new_password, value)
+                        }
+                        value={values.parameterOverrides.new_password}
+                      />
+                    ) : null}
+                    {fields.confirm_password ? (
+                      <AccountPasswordField
+                        configured={false}
+                        disabled={disabled}
+                        field={fields.confirm_password}
+                        onChange={(value) =>
+                          setField(fields.confirm_password, value)
+                        }
+                        value={
+                          configuredPassword
+                            ? ""
+                            : values.parameterOverrides.confirm_password
+                        }
+                      />
+                    ) : null}
+                    {fields.force_change_at_next_logon ? (
+                      <WorkspaceParameterField
+                        disabled={disabled}
+                        field={fields.force_change_at_next_logon}
+                        onChange={(value) =>
+                          setField(fields.force_change_at_next_logon, value)
+                        }
+                        value={fieldValue(
+                          fields.force_change_at_next_logon,
+                          values,
+                        )}
+                      />
+                    ) : null}
+                    {fields.unlock_account ? (
+                      <WorkspaceParameterField
+                        disabled={disabled}
+                        field={fields.unlock_account}
+                        onChange={(value) =>
+                          setField(fields.unlock_account, value)
+                        }
+                        value={fieldValue(fields.unlock_account, values)}
+                      />
+                    ) : null}
+                  </div>
+                  <p className="text-[11px] leading-5 text-slate-500">
+                    {t("passwordRequirement")}
+                  </p>
+                </>
+              ) : (
+                <div className="grid gap-px overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
+                  {template.parameters.map((field) => (
+                    <WorkspaceParameterField
+                      disabled={disabled}
+                      field={field}
+                      key={field.key}
+                      onChange={(value) => setField(field, value)}
+                      value={fieldValue(field, values)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {isDisableOrDelete && forceLogoff ? (
+        <div
+          className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800"
+          role="alert"
+        >
+          <AlertTriangle
+            aria-hidden="true"
+            className="mt-0.5 size-4 shrink-0"
+          />
+          <span>{t("forceLogoffRisk")}</span>
+        </div>
+      ) : null}
+
+      {normalizedAction === "account.delete" ? (
+        <div
+          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs leading-5 text-red-800"
+          role="alert"
+        >
+          <div className="flex items-start gap-2 font-semibold">
+            <AlertTriangle
+              aria-hidden="true"
+              className="mt-0.5 size-4 shrink-0"
+            />
+            <span>{t("deleteAccountWarning")}</span>
+          </div>
+          <p className="mt-1 pl-6 text-[11px] font-normal text-red-700">
+            {t("deleteAccountBoundary")}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function AccountPasswordField({
+  configured,
+  disabled,
+  field,
+  onChange,
+  value,
+}: {
+  configured: boolean;
+  disabled: boolean;
+  field: TemplateField;
+  onChange: (value: string) => void;
+  value: unknown;
+}) {
+  const t = useTranslations("pages.collection.orchestration.parameters");
+  const [visible, setVisible] = useState(false);
+  const displayValue = configured ? "" : stringValue(value);
+  const visibilityLabel = visible ? t("hidePassword") : t("showPassword");
+
+  return (
+    <label className="block min-w-0 bg-slate-50 px-4 py-2.5 sm:col-span-2">
+      <span className="text-[11px] font-medium text-slate-500">
+        {field.label}
+        <span className="ml-1 text-red-500">*</span>
+      </span>
+      <span className="relative mt-1 block">
+        <Input
+          aria-label={field.label}
+          autoComplete="new-password"
+          className="h-10 rounded-lg border-slate-200 bg-white px-3 pr-11 text-xs shadow-none focus-visible:ring-2 focus-visible:ring-teal-100 focus-visible:ring-offset-0"
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={
+            configured ? t("configuredPasswordPlaceholder") : field.placeholder
+          }
+          type={visible ? "text" : "password"}
+          value={displayValue}
+        />
+        <button
+          aria-label={visibilityLabel}
+          className="absolute inset-y-0 right-0 inline-flex w-10 items-center justify-center rounded-r-lg text-slate-400 transition-colors hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-300 disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={disabled}
+          onClick={() => setVisible((current) => !current)}
+          type="button"
+        >
+          {visible ? (
+            <EyeOff aria-hidden="true" className="size-4" />
+          ) : (
+            <Eye aria-hidden="true" className="size-4" />
+          )}
+        </button>
+      </span>
+    </label>
   );
 }
 

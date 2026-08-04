@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import type { RemediationActionInput, RemediationActionOption } from "../types";
+import type { RemediationOrderItem } from "@/features/attack/remediation-order";
+import { validateRemediationOrderItemParameters } from "./remediation-order-parameter-editor";
 import {
   buildRemediationTemplateInput,
+  CONFIGURED_PASSWORD_MARKER,
   getRemediationPreviewTemplate,
   initialRemediationTemplateValues,
   validateRemediationTemplateValues,
@@ -229,6 +232,132 @@ describe("remediation parameter family contract", () => {
     );
     expect(getRemediationPreviewTemplate(action("service.disable")).title).toBe(
       "禁用服务",
+    );
+  });
+
+  it("keeps an existing configured account password without exposing or reconfirming it", () => {
+    const selectedAction = action("account.reset_password");
+    const template = getRemediationPreviewTemplate(selectedAction);
+    const baseInput: RemediationActionInput = {
+      account: { new_password: CONFIGURED_PASSWORD_MARKER },
+    };
+    const values = initialRemediationTemplateValues(baseInput, template);
+
+    expect(
+      validateRemediationTemplateValues({
+        locale: "en",
+        selectedAction,
+        template,
+        values,
+      }),
+    ).toBe("");
+    expect(
+      buildRemediationTemplateInput({
+        baseInput,
+        selectedAction,
+        template,
+        values,
+      }),
+    ).toEqual({
+      account: {
+        new_password: CONFIGURED_PASSWORD_MARKER,
+        force_change_at_next_logon: true,
+        unlock_account: true,
+      },
+    });
+  });
+
+  it("validates account password length and confirmation", () => {
+    const selectedAction = action("account.reset_password");
+    const template = getRemediationPreviewTemplate(selectedAction);
+
+    expect(
+      validateRemediationTemplateValues({
+        locale: "en",
+        selectedAction,
+        template,
+        values: {
+          includeChildProcesses: true,
+          parameterOverrides: {
+            new_password: "too-short",
+            confirm_password: "too-short",
+          },
+        },
+      }),
+    ).toContain("12–256");
+    expect(
+      validateRemediationTemplateValues({
+        locale: "en",
+        selectedAction,
+        template,
+        values: {
+          includeChildProcesses: true,
+          parameterOverrides: {
+            new_password: "LocalOnly!Account#2026",
+            confirm_password: "Different!Account#2026",
+          },
+        },
+      }),
+    ).toBe("The new password and confirmation do not match");
+  });
+
+  it("strips the UI-only account password confirmation from backend input", () => {
+    const selectedAction = action("account.reset_password");
+    const template = getRemediationPreviewTemplate(selectedAction);
+    const password = "LocalOnly!Account#2026";
+    const values = {
+      includeChildProcesses: true,
+      parameterOverrides: {
+        new_password: password,
+        confirm_password: password,
+        force_change_at_next_logon: false,
+        unlock_account: true,
+      },
+    };
+
+    expect(
+      validateRemediationTemplateValues({
+        locale: "en",
+        selectedAction,
+        template,
+        values,
+      }),
+    ).toBe("");
+    expect(
+      buildRemediationTemplateInput({
+        baseInput: undefined,
+        selectedAction,
+        template,
+        values,
+      }),
+    ).toEqual({
+      account: {
+        new_password: password,
+        force_change_at_next_logon: false,
+        unlock_account: true,
+      },
+    });
+  });
+
+  it("blocks submission when the account snapshot is protected", () => {
+    const item = {
+      action_code: "account.disable",
+      agent_id: "agent-1",
+      entity_type: "Account",
+      target_snapshot: {
+        account: { protected_account: true },
+      },
+    } as RemediationOrderItem;
+
+    expect(
+      validateRemediationOrderItemParameters({
+        actionInput: {},
+        item,
+        locale: "en",
+        reverseSourceItemId: "",
+      }),
+    ).toBe(
+      "This account is protected by the endpoint safety policy and cannot be remediated",
     );
   });
 

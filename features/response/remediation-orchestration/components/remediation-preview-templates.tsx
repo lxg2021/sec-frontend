@@ -21,6 +21,8 @@ type InputBranch = keyof RemediationActionInput;
 type SnapshotBranch = keyof RemediationTargetSnapshot;
 type ParameterKind = "boolean" | "text" | "password" | "select";
 
+export const CONFIGURED_PASSWORD_MARKER = "[configured]";
+
 export interface RemediationTemplateValues {
   includeChildProcesses: boolean;
   parameterOverrides: Record<string, unknown>;
@@ -239,7 +241,14 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
         key: "new_password",
         label: "新密码",
         kind: "password",
-        placeholder: "输入新密码",
+        placeholder: "输入 12–256 个字符的新密码",
+        required: true,
+      },
+      {
+        key: "confirm_password",
+        label: "确认新密码",
+        kind: "password",
+        placeholder: "再次输入新密码",
         required: true,
       },
       {
@@ -534,19 +543,24 @@ export function buildRemediationTemplateInput({
     ...objectValue(baseInput?.[template.inputBranch]),
     ...values.parameterOverrides,
   };
+  const backendTemplateInput = { ...templateInput };
+  if (template.inputBranch === "account") {
+    // confirm_password is UI-only and must never cross the protobuf boundary.
+    delete backendTemplateInput.confirm_password;
+  }
 
   return {
     ...baseInput,
     [template.inputBranch]: template.isProcessTerminate
       ? {
-          ...templateInput,
+          ...backendTemplateInput,
           include_self: boolValue(
             values.parameterOverrides.include_self,
             true,
           ),
           include_children: values.includeChildProcesses,
         }
-      : templateInput,
+      : backendTemplateInput,
   };
 }
 
@@ -577,16 +591,44 @@ export function validateRemediationTemplateValues({
       ? "请至少选择终止目标进程或子进程中的一项"
       : "Select the target process, child processes, or both";
   }
+  const configuredPassword =
+    template.id === "account-reset-password" &&
+    stringValue(values.parameterOverrides.new_password) ===
+      CONFIGURED_PASSWORD_MARKER;
   const missing = template.parameters.find(
     (field) =>
       field.required &&
+      !(configuredPassword && field.key === "confirm_password") &&
       stringValue(values.parameterOverrides[field.key]).trim() === "",
   );
-  return missing
-    ? locale.toLowerCase().startsWith("zh")
+  if (missing) {
+    return locale.toLowerCase().startsWith("zh")
       ? `请输入${missing.label}`
-      : `Enter ${missing.label}`
-    : "";
+      : `Enter ${missing.label}`;
+  }
+  if (template.id !== "account-reset-password" || configuredPassword) {
+    return "";
+  }
+
+  const password = stringValue(values.parameterOverrides.new_password);
+  const passwordLength = Array.from(password).length;
+  if (
+    passwordLength < 12 ||
+    passwordLength > 256 ||
+    password.includes("\0")
+  ) {
+    return locale.toLowerCase().startsWith("zh")
+      ? "新密码必须为 12–256 个字符，且不能包含空字符"
+      : "The new password must contain 12–256 characters and no NUL character";
+  }
+  if (
+    password !== stringValue(values.parameterOverrides.confirm_password)
+  ) {
+    return locale.toLowerCase().startsWith("zh")
+      ? "两次输入的新密码不一致"
+      : "The new password and confirmation do not match";
+  }
+  return "";
 }
 
 export function remediationTemplateActionDisplayName(
@@ -764,6 +806,9 @@ function parameterValues(
         (record[field.key] === undefined
           ? field.defaultValue
           : record[field.key]);
+      const configured =
+        field.kind === "password" &&
+        rawValue === CONFIGURED_PASSWORD_MARKER;
       if (field.kind === "boolean") {
         return {
           key: field.key,
@@ -779,9 +824,12 @@ function parameterValues(
         label: field.label,
         editable: field.editable,
         options: field.options,
-        placeholder: field.placeholder,
+        placeholder: configured
+          ? "密码已安全设置；输入新密码可替换"
+          : field.placeholder,
         required: field.required,
-        rawValue,
+        rawValue: configured ? "" : rawValue,
+        configured,
         span: field.span,
         value: shortValue(
           displayParameterValue(field.key, stringValue(rawValue)),
@@ -923,6 +971,9 @@ function TemplateParameterControl({
         </span>
         <Input
           type={item.kind === "password" ? "password" : "text"}
+          autoComplete={
+            item.kind === "password" ? "new-password" : undefined
+          }
           value={stringValue(item.rawValue)}
           disabled={disabled}
           placeholder={item.placeholder || item.label}

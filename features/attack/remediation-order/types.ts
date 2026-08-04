@@ -546,6 +546,8 @@ export interface RemediationAccountTargetSnapshot {
   sid: string;
   enabled?: boolean;
   locked?: boolean;
+  local_admin?: boolean;
+  protected_account?: boolean;
 }
 
 export type RemediationRegistryTargetKind =

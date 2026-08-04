@@ -690,6 +690,8 @@ export function normalizeRemediationTargetSnapshot(
           sid: stringValue(account.sid),
           enabled: optionalBoolean(account, "enabled"),
           locked: optionalBoolean(account, "locked"),
+          local_admin: optionalBoolean(account, "local_admin"),
+          protected_account: optionalBoolean(account, "protected_account"),
         })
       : null,
     registry: hasObject(snapshot, "registry")

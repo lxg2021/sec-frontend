@@ -530,6 +530,37 @@ describe("remediation order normalizers", () => {
     });
   });
 
+  it("normalizes account administrator and protection snapshot flags", () => {
+    const result = normalizeRemediationOrder({
+      items: [
+        {
+          target_snapshot: {
+            status: 1,
+            account: {
+              account_name: "wp-remediation-test",
+              domain: "local",
+              sid: "S-1-5-21-1-2-3-1001",
+              enabled: true,
+              locked: false,
+              local_admin: 1,
+              protected_account: "true",
+            },
+          },
+        },
+      ],
+    });
+
+    expect(result.items[0].target_snapshot?.account).toEqual({
+      account_name: "wp-remediation-test",
+      domain: "local",
+      sid: "S-1-5-21-1-2-3-1001",
+      enabled: true,
+      locked: false,
+      local_admin: true,
+      protected_account: true,
+    });
+  });
+
   it("normalizes typed target snapshots without accepting raw target JSON", () => {
     const result = normalizeRemediationOrder({
       items: [
