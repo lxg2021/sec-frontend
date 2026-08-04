@@ -52,6 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select"
+import { Switch } from "@/shared/ui/switch"
 import { Textarea } from "@/shared/ui/textarea"
 import { getAttackGraphRemediationNodeConfig } from "../../model/node/attack-graph-remediation-config"
 import { getRemediationTargetPresentation } from "./attack-graph-remediation-target-presentation"
@@ -434,6 +435,15 @@ function RemediationTargetRow({
             }
           />
         ) : null}
+        {target.selectedActionCode === "process.terminate" ? (
+          <ProcessTerminationEditor
+            actionInput={target.actionInput}
+            disabled={disabled}
+            onChange={(actionInput) =>
+              onActionInputChange(target.key, actionInput)
+            }
+          />
+        ) : null}
       </td>
       <td className="px-3 py-1.5">
         <RiskBadge risk={risk} />
@@ -481,6 +491,85 @@ function RemediationTargetRow({
         </Button>
       </td>
     </tr>
+  )
+}
+
+function ProcessTerminationEditor({
+  actionInput,
+  disabled,
+  onChange,
+}: {
+  actionInput: RemediationActionInput
+  disabled: boolean
+  onChange: (actionInput: RemediationActionInput) => void
+}) {
+  const t = useTranslations("pages.attack.drill.controlPanel")
+  const input = actionInput.process_terminate ?? {}
+  const includeSelf = input.include_self ?? true
+  const includeChildren = input.include_children ?? true
+  const force = input.force ?? false
+
+  function update(
+    patch: Partial<NonNullable<RemediationActionInput["process_terminate"]>>,
+  ) {
+    onChange({
+      process_terminate: {
+        include_self: includeSelf,
+        include_children: includeChildren,
+        force,
+        ...patch,
+      },
+    })
+  }
+
+  const options = [
+    {
+      key: "include_self",
+      checked: includeSelf,
+      label: t("remediation.processTerminate.includeSelf"),
+    },
+    {
+      key: "include_children",
+      checked: includeChildren,
+      label: t("remediation.processTerminate.includeChildren"),
+    },
+    {
+      key: "force",
+      checked: force,
+      label: t("remediation.processTerminate.force"),
+    },
+  ] as const
+
+  return (
+    <div className="mt-2 min-w-[230px] rounded-lg border border-slate-200 bg-slate-50 p-2">
+      <div className="space-y-1.5">
+        {options.map((option) => (
+          <label
+            key={option.key}
+            className="flex min-h-8 items-center justify-between gap-3 rounded-md bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700 ring-1 ring-inset ring-slate-200"
+          >
+            <span>{option.label}</span>
+            <Switch
+              aria-label={option.label}
+              checked={option.checked}
+              disabled={disabled}
+              onCheckedChange={(checked) => update({ [option.key]: checked })}
+              className="data-[state=checked]:bg-slate-900"
+            />
+          </label>
+        ))}
+      </div>
+      {!includeSelf && !includeChildren ? (
+        <p className="mt-1.5 text-[10px] leading-4 text-red-600" role="alert">
+          {t("remediation.processTerminate.scopeRequired")}
+        </p>
+      ) : null}
+      {force ? (
+        <p className="mt-1.5 text-[10px] leading-4 text-amber-700">
+          {t("remediation.processTerminate.forceWarning")}
+        </p>
+      ) : null}
+    </div>
   )
 }
 

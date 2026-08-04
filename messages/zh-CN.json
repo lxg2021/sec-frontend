@@ -1708,6 +1708,13 @@
             "selectAgentAria": "为 {target} 选择 Agent",
             "selectActionAria": "为 {target} 选择处置动作",
             "selectHistoryAria": "为 {target} 选择要回滚的来源执行记录",
+            "processTerminate": {
+              "includeSelf": "终止目标进程",
+              "includeChildren": "终止子进程",
+              "force": "强制结束",
+              "scopeRequired": "请至少选择目标进程或子进程中的一项。",
+              "forceWarning": "强制结束可能导致未保存数据丢失，请在确认普通结束不适用后使用。"
+            },
             "fileEA": {
               "scopeAria": "选择文件 EA 删除范围",
               "selectScope": "选择 EA 删除范围",

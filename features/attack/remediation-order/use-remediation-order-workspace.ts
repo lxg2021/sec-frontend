@@ -81,13 +81,20 @@ function requestErrorMessage(error: unknown) {
     : "Unknown remediation request error";
 }
 
-// File EA actions need their protobuf oneof branch from the moment they are
-// selected. The delete scope is completed in the graph panel before the Draft
-// is persisted, while restore gets all parameters from trusted history.
+// Parameterized actions need their protobuf oneof branch from the moment they
+// are selected so a Draft cannot silently depend on transport defaults.
 export function initialRemediationActionInput(
   actionCode: string,
 ): RemediationActionInput {
   switch (actionCode.trim()) {
+    case "process.terminate":
+      return {
+        process_terminate: {
+          include_self: true,
+          include_children: true,
+          force: false,
+        },
+      };
     case "file_ea.delete":
     case "file_ea.restore":
       return { file_ea: {} };
@@ -423,6 +430,12 @@ export function isRemediationTargetComplete(target: RemediationTargetDraft) {
       input.delete_all === undefined &&
       input.force === undefined
     );
+  }
+  if (target.selectedActionCode === "process.terminate") {
+    const input = target.actionInput.process_terminate;
+    const includeSelf = input?.include_self ?? true;
+    const includeChildren = input?.include_children ?? true;
+    return includeSelf || includeChildren;
   }
   return true;
 }
@@ -958,15 +971,30 @@ export function useRemediationOrderWorkspace({
       if (!isDraftEditableOrder(orderRef.current)) return;
       setTargetsByKey((current) => {
         const target = current.get(key);
-        if (!target || target.selectedActionCode !== "file_ea.delete") {
+        if (!target) {
+          return current;
+        }
+        let scopedInput: RemediationActionInput;
+        if (target.selectedActionCode === "file_ea.delete") {
+          scopedInput = { file_ea: actionInput.file_ea ?? {} };
+        } else if (target.selectedActionCode === "process.terminate") {
+          const processInput = actionInput.process_terminate ?? {};
+          scopedInput = {
+            process_terminate: {
+              include_self: processInput.include_self ?? true,
+              include_children: processInput.include_children ?? true,
+              force: processInput.force ?? false,
+            },
+          };
+        } else {
           return current;
         }
         const next = new Map(current);
         next.set(key, {
           ...target,
-          // File EA is a protobuf oneof branch. Keep the graph editor from
-          // accidentally carrying parameters belonging to another action.
-          actionInput: { file_ea: actionInput.file_ea ?? {} },
+          // Parameters are protobuf oneof branches. Keep the graph editor
+          // from carrying settings that belong to a different action.
+          actionInput: scopedInput,
         });
         targetsRef.current = next;
         return next;

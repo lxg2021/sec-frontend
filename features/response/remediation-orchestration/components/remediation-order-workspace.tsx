@@ -45,6 +45,7 @@ import {
   getRemediationOrderHistoricalItems,
   remediationOrderLifecycleActions,
 } from "../remediation-order-model";
+import { confirmRemediationOrderWithImmediateDialogClose } from "../remediation-order-confirmation";
 
 import {
   RemediationOrderParameterPanel,
@@ -652,16 +653,21 @@ export function RemediationOrderWorkspace({
     if (!order || !lifecycle.confirm || working) return;
     setWorking("confirm");
     try {
-      const nextOrder = await confirmRemediationOrder({
-        request_id: mutationRequestId("confirm"),
-        order_id: order.order_id,
-        revision: order.revision,
-        prepared_fingerprint_version: order.prepared_fingerprint_version,
-        prepared_fingerprint: order.prepared_fingerprint,
-      });
+      const nextOrder =
+        await confirmRemediationOrderWithImmediateDialogClose(
+          () =>
+            confirmRemediationOrder({
+              request_id: mutationRequestId("confirm"),
+              order_id: order.order_id,
+              revision: order.revision,
+              prepared_fingerprint_version:
+                order.prepared_fingerprint_version,
+              prepared_fingerprint: order.prepared_fingerprint,
+            }),
+          setConfirmDialogOpen,
+        );
       applyOrder(nextOrder);
       clearMutationRequestId("confirm");
-      setConfirmDialogOpen(false);
       toast({
         title:
           nextOrder.status === "completed"

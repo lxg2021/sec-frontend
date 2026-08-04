@@ -120,9 +120,20 @@ function actionInputFor(
     case "file.quarantine":
       return { file_quarantine: { delete_original: true, encrypt: true } };
     case "process.terminate":
+      return {
+        process_terminate: {
+          include_self: true,
+          include_children: true,
+          force: false,
+        },
+      };
     case "process.force_terminate":
       return {
-        process_terminate: { include_self: true, include_children: true },
+        process_terminate: {
+          include_self: true,
+          include_children: true,
+          force: true,
+        },
       };
     case "process.block_execute":
     case "process.bypass_execute":

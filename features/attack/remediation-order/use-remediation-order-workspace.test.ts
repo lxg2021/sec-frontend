@@ -103,6 +103,16 @@ function target(
 }
 
 describe("initialRemediationActionInput", () => {
+  it("persists explicit process termination defaults", () => {
+    expect(initialRemediationActionInput("process.terminate")).toEqual({
+      process_terminate: {
+        include_self: true,
+        include_children: true,
+        force: false,
+      },
+    });
+  });
+
   it("persists the typed File EA branch before scope configuration", () => {
     expect(initialRemediationActionInput("file_ea.delete")).toEqual({
       file_ea: {},
@@ -264,6 +274,36 @@ describe("isRemediationTargetComplete", () => {
         actionInput: { file_ea: { delete_all: true } },
       }),
     ).toBe(false);
+  });
+
+  it("requires a non-empty process termination scope and preserves explicit false values", () => {
+    const terminate = action({ action_code: "process.terminate" });
+    const terminateTarget = target({
+      actions: [terminate],
+      selectedActionCode: terminate.action_code,
+      actionInput: {
+        process_terminate: {
+          include_self: false,
+          include_children: false,
+          force: true,
+        },
+      },
+      actionDecisions: [decision(terminate)],
+    });
+
+    expect(isRemediationTargetComplete(terminateTarget)).toBe(false);
+    expect(
+      isRemediationTargetComplete({
+        ...terminateTarget,
+        actionInput: {
+          process_terminate: {
+            include_self: false,
+            include_children: true,
+            force: true,
+          },
+        },
+      }),
+    ).toBe(true);
   });
 
   it("fails closed when the selected action has no Agent decision", () => {

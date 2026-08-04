@@ -89,10 +89,7 @@ export function RemediationOrderLifecycleDialogs({
             <AlertDialogAction
               className="bg-teal-600 text-white hover:bg-teal-700"
               disabled={working === "confirm"}
-              onClick={(event) => {
-                event.preventDefault()
-                onConfirm()
-              }}
+              onClick={onConfirm}
             >
               {working === "confirm" ? <Loader2 className="animate-spin" /> : <Play />}
               {t("dialogs.confirmExecute")}

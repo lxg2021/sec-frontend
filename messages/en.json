@@ -1708,6 +1708,13 @@
             "selectAgentAria": "Select an Agent for {target}",
             "selectActionAria": "Select an action for {target}",
             "selectHistoryAria": "Select a source execution to reverse for {target}",
+            "processTerminate": {
+              "includeSelf": "Terminate target process",
+              "includeChildren": "Terminate child processes",
+              "force": "Force termination",
+              "scopeRequired": "Select the target process, child processes, or both.",
+              "forceWarning": "Force termination can discard unsaved data. Use it after normal termination has been reviewed."
+            },
             "fileEA": {
               "scopeAria": "Select the File EA deletion scope",
               "selectScope": "Select EA deletion scope",

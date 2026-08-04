@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import type {
@@ -125,9 +125,12 @@ function englishActionLabel(actionCode: string) {
 
 type ParameterTextKey =
   | "processTermination"
+  | "terminateTarget"
+  | "terminateTargetDescription"
   | "terminateChildren"
   | "terminateChildrenDescription"
   | "forceTerminateDescription"
+  | "forceTerminateRisk"
   | "deleteScope"
   | "selectDeleteScope"
   | "deleteNamedEa"
@@ -151,6 +154,11 @@ type ParameterTextKey =
 function parameterText(locale: string, key: ParameterTextKey) {
   const zh = locale.toLowerCase().startsWith("zh");
   const values: Record<ParameterTextKey, [string, string]> = {
+    terminateTarget: ["终止目标进程", "Terminate Target Process"],
+    terminateTargetDescription: [
+      "结束由可信 PID、Process GUID 和路径共同标识的目标进程",
+      "Terminate the target identified by its trusted PID, Process GUID, and path",
+    ],
     processTermination: ["进程结束行为", "Process Termination Behavior"],
     terminateChildren: ["终止子进程", "Terminate Child Processes"],
     terminateChildrenDescription: [
@@ -160,6 +168,10 @@ function parameterText(locale: string, key: ParameterTextKey) {
     forceTerminateDescription: [
       "使用强制方式结束目标进程",
       "Use forceful termination for the target process",
+    ],
+    forceTerminateRisk: [
+      "强制结束会立即终止进程，未保存的数据可能丢失；请仅在普通结束无法满足处置目标时使用。",
+      "Force termination stops the process immediately and may discard unsaved data. Use it only when normal termination cannot meet the response objective.",
     ],
     deleteScope: ["删除范围", "Deletion Scope"],
     selectDeleteScope: ["请选择删除范围", "Select a deletion scope"],
@@ -935,12 +947,33 @@ function WorkspaceTemplateControls({
     const forceField = template.parameters.find(
       (field) => field.key === "force",
     );
+    const forceChecked = forceField
+      ? booleanValue(fieldValue(forceField, values), false)
+      : false;
     return (
       <div>
         <div className="mb-2 text-xs font-semibold text-slate-700">
           {parameterText(locale, "processTermination")}
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <BooleanParameterCard
+            checked={booleanValue(
+              values.parameterOverrides.include_self,
+              true,
+            )}
+            description={parameterText(locale, "terminateTargetDescription")}
+            disabled={disabled}
+            label={parameterText(locale, "terminateTarget")}
+            onCheckedChange={(checked) =>
+              onValuesChange({
+                ...values,
+                parameterOverrides: {
+                  ...values.parameterOverrides,
+                  include_self: checked,
+                },
+              })
+            }
+          />
           <BooleanParameterCard
             checked={values.includeChildProcesses}
             description={parameterText(locale, "terminateChildrenDescription")}
@@ -952,7 +985,7 @@ function WorkspaceTemplateControls({
           />
           {forceField ? (
             <BooleanParameterCard
-              checked={booleanValue(fieldValue(forceField, values), false)}
+              checked={forceChecked}
               description={parameterText(locale, "forceTerminateDescription")}
               disabled={disabled}
               label={forceField.label}
@@ -968,6 +1001,18 @@ function WorkspaceTemplateControls({
             />
           ) : null}
         </div>
+        {forceChecked ? (
+          <div
+            className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800"
+            role="alert"
+          >
+            <AlertTriangle
+              aria-hidden="true"
+              className="mt-0.5 h-4 w-4 shrink-0"
+            />
+            <span>{parameterText(locale, "forceTerminateRisk")}</span>
+          </div>
+        ) : null}
       </div>
     );
   }

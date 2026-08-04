@@ -5,6 +5,7 @@ import {
   buildRemediationTemplateInput,
   getRemediationPreviewTemplate,
   initialRemediationTemplateValues,
+  validateRemediationTemplateValues,
 } from "./remediation-preview-templates";
 
 interface ParameterFamilyCase {
@@ -133,6 +134,42 @@ const PARAMETER_FAMILIES: readonly ParameterFamilyCase[] = [
 ];
 
 describe("remediation parameter family contract", () => {
+  it("preserves all process termination parameters and rejects an empty scope", () => {
+    const selectedAction = action("process.terminate");
+    const template = getRemediationPreviewTemplate(selectedAction);
+    const baseInput: RemediationActionInput = {
+      process_terminate: {
+        include_self: false,
+        include_children: true,
+        force: true,
+      },
+    };
+    const values = initialRemediationTemplateValues(baseInput, template);
+
+    expect(values.includeChildProcesses).toBe(true);
+    expect(values.parameterOverrides.include_self).toBe(false);
+    expect(
+      buildRemediationTemplateInput({
+        baseInput,
+        selectedAction,
+        template,
+        values,
+      }),
+    ).toEqual(baseInput);
+
+    expect(
+      validateRemediationTemplateValues({
+        locale: "en",
+        selectedAction,
+        template,
+        values: {
+          includeChildProcesses: false,
+          parameterOverrides: { ...values.parameterOverrides, include_self: false },
+        },
+      }),
+    ).toBe("Select the target process, child processes, or both");
+  });
+
   for (const testCase of PARAMETER_FAMILIES) {
     it(`builds backend-aligned defaults for ${testCase.name}`, () => {
       const selectedAction = action(testCase.actionCode);

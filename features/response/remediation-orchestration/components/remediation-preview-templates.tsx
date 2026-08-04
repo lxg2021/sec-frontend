@@ -58,6 +58,12 @@ export const REMEDIATION_PREVIEW_TEMPLATES: RemediationPreviewTemplate[] = [
     isProcessTerminate: true,
     parameters: [
       {
+        key: "include_self",
+        label: "终止目标进程",
+        kind: "boolean",
+        defaultValue: true,
+      },
+      {
         key: "include_children",
         label: "终止子进程",
         kind: "boolean",
@@ -534,7 +540,10 @@ export function buildRemediationTemplateInput({
     [template.inputBranch]: template.isProcessTerminate
       ? {
           ...templateInput,
-          include_self: true,
+          include_self: boolValue(
+            values.parameterOverrides.include_self,
+            true,
+          ),
           include_children: values.includeChildProcesses,
         }
       : templateInput,
@@ -558,6 +567,15 @@ export function validateRemediationTemplateValues({
     template.id === "generic"
   ) {
     return "";
+  }
+  if (
+    template.isProcessTerminate &&
+    !boolValue(values.parameterOverrides.include_self, true) &&
+    !values.includeChildProcesses
+  ) {
+    return locale.toLowerCase().startsWith("zh")
+      ? "请至少选择终止目标进程或子进程中的一项"
+      : "Select the target process, child processes, or both";
   }
   const missing = template.parameters.find(
     (field) =>
@@ -630,10 +648,32 @@ export function RemediationTemplateParameterControls({
   }
   if (template.isProcessTerminate) {
     return (
-      <div className="grid w-full grid-cols-2 overflow-hidden rounded-xl bg-slate-50">
+      <div className="grid w-full grid-cols-3 overflow-hidden rounded-xl bg-slate-50">
         <label
           className={cn(
             "inline-flex min-h-10 cursor-pointer items-center gap-2 px-3 py-2 text-xs text-slate-700 transition-colors hover:bg-white/70",
+            disabled ? "cursor-not-allowed opacity-60" : "",
+          )}
+        >
+          <Checkbox
+            checked={boolValue(values.parameterOverrides.include_self, true)}
+            disabled={disabled}
+            onCheckedChange={(checked) =>
+              onValuesChange({
+                ...values,
+                parameterOverrides: {
+                  ...values.parameterOverrides,
+                  include_self: checked === true,
+                },
+              })
+            }
+            className="size-4 rounded border-slate-300 data-[state=checked]:border-slate-950 data-[state=checked]:bg-slate-950"
+          />
+          <span className="font-medium leading-none">终止目标进程</span>
+        </label>
+        <label
+          className={cn(
+            "inline-flex min-h-10 cursor-pointer items-center gap-2 border-l border-slate-100 px-3 py-2 text-xs text-slate-700 transition-colors hover:bg-white/70",
             disabled ? "cursor-not-allowed opacity-60" : "",
           )}
         >
