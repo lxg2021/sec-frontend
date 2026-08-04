@@ -313,8 +313,9 @@
           "title": "处置编排",
           "description": "预览、下发、跟踪处置动作",
           "back": "返回",
-          "caseId": "案件 ID",
-          "caseIdPlaceholder": "请输入案件 ID",
+          "caseId": "案件 ID 或处置单 ID",
+          "caseIdPlaceholder": "请输入案件 ID 或处置单 ID",
+          "lookup": "查询案件或处置单",
           "order": "处置单",
           "orderLoading": "正在加载处置单名称…",
           "editOrderTitle": "修改处置单名称",
@@ -323,7 +324,7 @@
           "orderMode": "Order 模式",
           "loading": "正在加载处置编排上下文",
           "loadFailed": "处置编排数据加载失败",
-          "notFound": "未找到对应的处置工作流"
+          "notFound": "未找到对应的案件或处置单"
         },
         "status": {
           "detected": "已发现",

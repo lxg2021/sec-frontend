@@ -41,6 +41,7 @@ import { useToast } from "@/shared/ui/use-toast";
 import {
   buildRemediationOrchestrationHref,
   isLegacyCaseRemediationTitle,
+  queryRemediationOrderById,
   queryRemediationOrderList,
   type RemediationOrder,
 } from "@/features/attack/remediation-order";
@@ -51,6 +52,7 @@ import type {
   RemediationCandidateNode,
   RemediationOrchestrationContext,
 } from "../types";
+import { resolveRemediationOrchestrationLookup } from "../remediation-orchestration-lookup";
 import { CreateRemediationPreviewDialog } from "./create-remediation-preview-dialog";
 import { RemediationOrderWorkspace } from "./remediation-order-workspace";
 
@@ -200,8 +202,8 @@ export function RemediationOrchestrationPage({
   const [refreshing, setRefreshing] = useState(false);
   const [caseLookupLoading, setCaseLookupLoading] = useState(false);
   const [working, setWorking] = useState("");
-  const [headerCaseInput, setHeaderCaseInput] = useState(
-    context.case_id?.trim() || "",
+  const [headerIdentifierInput, setHeaderIdentifierInput] = useState(
+    context.order_id?.trim() || context.case_id?.trim() || "",
   );
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
   const [createPreviewOpen, setCreatePreviewOpen] = useState(false);
@@ -319,8 +321,8 @@ export function RemediationOrchestrationPage({
   }, [hasLookupContext, loadPage, orderMode]);
 
   useEffect(() => {
-    setHeaderCaseInput(routeCaseId || loadedOrderCaseId);
-  }, [loadedOrderCaseId, routeCaseId]);
+    setHeaderIdentifierInput(routeOrderId || routeCaseId || loadedOrderCaseId);
+  }, [loadedOrderCaseId, routeCaseId, routeOrderId]);
 
   const handleOrderLoaded = useCallback(
     (nextOrder: RemediationOrder) => {
@@ -399,18 +401,18 @@ export function RemediationOrchestrationPage({
     routeWorkflowId,
   ]);
 
-  async function submitHeaderCase(event?: FormEvent<HTMLFormElement>) {
+  async function submitHeaderLookup(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault();
     if (orderMode) {
       setOrderRefreshKey((current) => current + 1);
       return;
     }
-    const nextCaseId = headerCaseInput.trim();
+    const nextIdentifier = headerIdentifierInput.trim();
     const current = routeCaseId;
 
-    if (nextCaseId === current) {
-      if (nextCaseId) {
-        const opened = await openLatestOrderByCaseId(nextCaseId);
+    if (nextIdentifier === current) {
+      if (nextIdentifier) {
+        const opened = await openLatestOrderByCaseId(nextIdentifier);
         if (!opened) void loadPage(true);
       } else {
         void loadPage(true);
@@ -418,20 +420,40 @@ export function RemediationOrchestrationPage({
       return;
     }
 
-    const params = new URLSearchParams(window.location.search);
-    if (nextCaseId) {
-      params.set("case_id", nextCaseId);
-      params.set("scope_type", "case");
-      params.set("scope_id", nextCaseId);
-    } else {
-      params.delete("case_id");
-      params.delete("scope_id");
-    }
-    params.delete("workflow_id");
-    params.delete("workflow_action_id");
+    setCaseLookupLoading(true);
+    try {
+      const lookup = await resolveRemediationOrchestrationLookup(
+        nextIdentifier,
+        async (orderId) => {
+          const order = await queryRemediationOrderById({ order_id: orderId });
+          return order.order_id;
+        },
+      );
+      if (lookup.kind === "order") {
+        router.push(
+          buildRemediationOrchestrationHref({ order_id: lookup.orderId }),
+        );
+        return;
+      }
 
-    const query = params.toString();
-    router.push(`${window.location.pathname}${query ? `?${query}` : ""}`);
+      const params = new URLSearchParams(window.location.search);
+      if (lookup.kind === "case") {
+        params.set("case_id", lookup.caseId);
+        params.set("scope_type", "case");
+        params.set("scope_id", lookup.caseId);
+      } else {
+        params.delete("case_id");
+        params.delete("scope_id");
+      }
+      params.delete("order_id");
+      params.delete("workflow_id");
+      params.delete("workflow_action_id");
+
+      const query = params.toString();
+      router.push(`${window.location.pathname}${query ? `?${query}` : ""}`);
+    } finally {
+      setCaseLookupLoading(false);
+    }
   }
 
   function refreshHeader() {
@@ -439,7 +461,7 @@ export function RemediationOrchestrationPage({
       setOrderRefreshKey((current) => current + 1);
       return;
     }
-    void submitHeaderCase();
+    void submitHeaderLookup();
   }
 
   async function ensureCanonicalAction() {
@@ -593,17 +615,27 @@ export function RemediationOrchestrationPage({
               <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3 xl:flex-nowrap xl:justify-end">
                 <form
                   className="flex h-12 min-w-[260px] flex-1 basis-full items-center overflow-hidden rounded-full border border-slate-200 bg-slate-50 px-4 shadow-inner shadow-slate-200/20 sm:min-w-[320px] lg:basis-[420px] xl:min-w-[360px] xl:basis-auto 2xl:min-w-[520px]"
-                  onSubmit={(event) => void submitHeaderCase(event)}
+                  onSubmit={(event) => void submitHeaderLookup(event)}
                 >
-                  <Search
-                    aria-hidden
-                    className="h-4 w-4 shrink-0 text-slate-400"
-                  />
+                  <button
+                    type="submit"
+                    aria-label={t("page.lookup")}
+                    disabled={orderMode || loading || caseLookupLoading}
+                    className="-ml-3 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-white hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {caseLookupLoading ? (
+                      <Loader2 aria-hidden className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search aria-hidden className="h-4 w-4" />
+                    )}
+                  </button>
                   <input
                     type="search"
                     aria-label={t("page.caseId")}
-                    value={headerCaseInput}
-                    onChange={(event) => setHeaderCaseInput(event.target.value)}
+                    value={headerIdentifierInput}
+                    onChange={(event) =>
+                      setHeaderIdentifierInput(event.target.value)
+                    }
                     placeholder={t("page.caseIdPlaceholder")}
                     disabled={orderMode ? orderLoading : loading || caseLookupLoading}
                     readOnly={orderMode}

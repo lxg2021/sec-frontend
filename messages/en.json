@@ -313,8 +313,9 @@
           "title": "Remediation Orchestration",
           "description": "Preview, dispatch, and track remediation actions",
           "back": "Back",
-          "caseId": "Case ID",
-          "caseIdPlaceholder": "Enter a case ID",
+          "caseId": "Case ID or remediation order ID",
+          "caseIdPlaceholder": "Enter a case ID or remediation order ID",
+          "lookup": "Find case or remediation order",
           "order": "Remediation Order",
           "orderLoading": "Loading remediation order name…",
           "editOrderTitle": "Edit remediation order name",
@@ -323,7 +324,7 @@
           "orderMode": "Order mode",
           "loading": "Loading remediation orchestration context",
           "loadFailed": "Failed to load remediation orchestration data",
-          "notFound": "No remediation workflow was found for this context"
+          "notFound": "No matching case or remediation order was found"
         },
         "status": {
           "detected": "Detected",
