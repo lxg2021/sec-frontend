@@ -191,6 +191,358 @@ function localized(locale: string, zh: string, en: string) {
   return locale.toLowerCase().startsWith("zh") ? zh : en;
 }
 
+type ExecutionTextValues = Record<string, string | number>;
+
+/**
+ * The execution table is also exercised as a pure presentation helper in
+ * unit tests, so the translator is optional.  The live table supplies the
+ * next-intl translator while the fallback keeps the helper deterministic for
+ * callers that only have a locale string.
+ */
+export type ExecutionTextTranslator = (
+  key: string,
+  values?: ExecutionTextValues,
+) => string;
+
+function interpolateExecutionText(
+  template: string,
+  values?: ExecutionTextValues,
+) {
+  if (!values) return template;
+  return template.replace(/\{(\w+)\}/g, (_, key: string) =>
+    String(values[key] ?? `{${key}}`),
+  );
+}
+
+function executionText(
+  locale: string,
+  key: string,
+  zh: string,
+  en: string,
+  translate?: ExecutionTextTranslator,
+  values?: ExecutionTextValues,
+) {
+  if (translate) return translate(key, values);
+  return interpolateExecutionText(
+    localized(locale, zh, en),
+    values,
+  );
+}
+
+function itemReasonCode(item: RemediationOrderItem) {
+  const execution = executionForItem(item);
+  return [
+    execution?.reason_code,
+    item.reason_code,
+    execution?.error_code,
+    item.error_code,
+  ]
+    .map((value) => value?.trim().toUpperCase() ?? "")
+    .find(Boolean) ?? "";
+}
+
+function windowsErrorDetail(
+  locale: string,
+  win32Error: string,
+  detail: string,
+  translate?: ExecutionTextTranslator,
+) {
+  const normalizedDetail = detail.trim();
+  const numericError = Number(win32Error);
+  if (
+    numericError === 2147943706 ||
+    numericError === 1306 ||
+    normalizedDetail.includes("两个修订级别是不兼容的") ||
+    normalizedDetail.toLowerCase().includes("two revision levels are incompatible")
+  ) {
+    return executionText(
+      locale,
+      "reasons.windowsRevisionMismatch",
+      "两个修订级别不兼容。",
+      "The two revision levels are incompatible.",
+      translate,
+    );
+  }
+  return normalizedDetail;
+}
+
+function technicalErrorPresentation(
+  locale: string,
+  win32Error: string,
+  detail: string,
+  translate?: ExecutionTextTranslator,
+) {
+  const normalizedError = win32Error.trim();
+  const normalizedDetail = windowsErrorDetail(
+    locale,
+    normalizedError,
+    detail,
+    translate,
+  );
+  if (!normalizedError && !normalizedDetail) return "";
+  return executionText(
+    locale,
+    "reasons.technicalError",
+    "Win32 错误 {win32Error}：{detail}",
+    "Win32 error {win32Error}: {detail}",
+    translate,
+    { win32Error: normalizedError || "-", detail: normalizedDetail || "-" },
+  );
+}
+
+function knownExecutionMessagePresentation(
+  locale: string,
+  value: string,
+  translate?: ExecutionTextTranslator,
+) {
+  const normalized = value.trim();
+  if (!normalized) return "";
+  const lower = normalized.toLowerCase();
+
+  if (
+    lower === "authoritative report confirmed the remediation effect"
+  ) {
+    return executionText(
+      locale,
+      "reasons.authoritativeSuccess",
+      "终端权威回执已确认处置生效。",
+      "Authoritative report confirmed that the remediation effect was applied.",
+      translate,
+    );
+  }
+  if (
+    lower === "authoritative report skipped the remediation execution"
+  ) {
+    return executionText(
+      locale,
+      "reasons.authoritativeSkipped",
+      "终端权威回执确认本次未执行处置。",
+      "Authoritative endpoint report confirmed that the remediation was skipped.",
+      translate,
+    );
+  }
+  if (
+    lower === "authoritative report confirmed a definitive failure" ||
+    lower === "authoritative report returned failure"
+  ) {
+    return executionText(
+      locale,
+      "reasons.authoritativeFailed",
+      "终端权威回执确认处置明确失败。",
+      "Authoritative endpoint report confirmed a definitive remediation failure.",
+      translate,
+    );
+  }
+
+  const windowsError = normalized.match(
+    /^(.*?),\s*win32_error=(\d+)(?:,\s*detail=(.*))?$/i,
+  );
+  const operation = (windowsError?.[1] ?? normalized).trim();
+  const operationLower = operation.toLowerCase();
+  const win32Error = windowsError?.[2] ?? "";
+  const detail = windowsError?.[3] ?? "";
+  const technical = technicalErrorPresentation(
+    locale,
+    win32Error,
+    detail,
+    translate,
+  );
+  const appendTechnical = (message: string) =>
+    technical ? `${message}${localized(locale, "，", "; ")}${technical}` : message;
+
+  const operationKeys: Array<{
+    matches: (operation: string) => boolean;
+    key: string;
+    zh: string;
+    en: string;
+  }> = [
+    {
+      matches: (candidate) =>
+        candidate === "restore wmi subscription backup failed",
+      key: "reasons.wmiSubscriptionRestoreFailed",
+      zh: "恢复 WMI 订阅备份失败",
+      en: "Failed to restore the WMI subscription backup",
+    },
+    {
+      matches: (candidate) =>
+        candidate === "restored wmi subscription state cannot be verified",
+      key: "reasons.wmiSubscriptionVerificationFailed",
+      zh: "恢复后的 WMI 订阅状态无法验证",
+      en: "The restored WMI subscription state could not be verified",
+    },
+    {
+      matches: (candidate) => candidate === "delete wmi subscription failed",
+      key: "reasons.wmiSubscriptionDeleteFailed",
+      zh: "删除 WMI 订阅失败",
+      en: "Failed to delete the WMI subscription",
+    },
+    {
+      matches: (candidate) =>
+        candidate === "capture wmi subscription before delete failed",
+      key: "reasons.wmiSubscriptionCaptureFailed",
+      zh: "删除前捕获 WMI 订阅失败",
+      en: "Failed to capture the WMI subscription before deletion",
+    },
+    {
+      matches: (candidate) =>
+        candidate === "inspect wmi subscription before delete failed",
+      key: "reasons.wmiSubscriptionInspectFailed",
+      zh: "删除前检查 WMI 订阅失败",
+      en: "Failed to inspect the WMI subscription before deletion",
+    },
+    {
+      matches: (candidate) => candidate === "restore wmi class backup failed",
+      key: "reasons.wmiClassRestoreFailed",
+      zh: "恢复 WMI 类备份失败",
+      en: "Failed to restore the WMI class backup",
+    },
+    {
+      matches: (candidate) =>
+        candidate === "restored wmi class state cannot be verified",
+      key: "reasons.wmiClassVerificationFailed",
+      zh: "恢复后的 WMI 类状态无法验证",
+      en: "The restored WMI class state could not be verified",
+    },
+    {
+      matches: (candidate) => candidate === "delete wmi class failed",
+      key: "reasons.wmiClassDeleteFailed",
+      zh: "删除 WMI 类失败",
+      en: "Failed to delete the WMI class",
+    },
+  ];
+  const operationTranslation = operationKeys.find((entry) =>
+    entry.matches(operationLower),
+  );
+  if (operationTranslation) {
+    return appendTechnical(
+      executionText(
+        locale,
+        operationTranslation.key,
+        operationTranslation.zh,
+        operationTranslation.en,
+        translate,
+      ),
+    );
+  }
+
+  // Normalize a standalone Windows error detail even if the operation prefix
+  // is not known to the UI.  Unknown prefixes remain as a lossless fallback.
+  if (!windowsError && (normalized.includes("两个修订级别是不兼容的") || lower.includes("two revision levels are incompatible"))) {
+    return windowsErrorDetail(locale, "", normalized, translate);
+  }
+  return normalized;
+}
+
+function localizedExecutionReason(
+  item: RemediationOrderItem,
+  locale: string,
+  translate?: ExecutionTextTranslator,
+) {
+  const execution = executionForItem(item);
+  const reasonCode = itemReasonCode(item);
+  const rawReason =
+    execution?.reason_message.trim() ||
+    item.reason_message.trim() ||
+    execution?.error_message.trim() ||
+    item.error_message.trim();
+
+  switch (reasonCode) {
+    case "AUTHORITATIVE_SUCCESS":
+      return executionText(
+        locale,
+        "reasons.authoritativeSuccess",
+        "终端权威回执已确认处置生效。",
+        "Authoritative report confirmed that the remediation effect was applied.",
+        translate,
+      );
+    case "AUTHORITATIVE_SKIPPED":
+      return executionText(
+        locale,
+        "reasons.authoritativeSkipped",
+        "终端权威回执确认本次未执行处置。",
+        "Authoritative endpoint report confirmed that the remediation was skipped.",
+        translate,
+      );
+    case "AUTHORITATIVE_FAILED":
+      return executionText(
+        locale,
+        "reasons.authoritativeFailed",
+        "终端权威回执确认处置明确失败。",
+        "Authoritative endpoint report confirmed a definitive remediation failure.",
+        translate,
+      );
+    case "MITIGATION_ERROR_13100":
+      return executionText(
+        locale,
+        "reasons.invalidCommand",
+        "处置命令无效，未执行处置。",
+        "The remediation command was invalid and was not executed.",
+        translate,
+      );
+    case "MITIGATION_ERROR_13101":
+      return executionText(
+        locale,
+        "reasons.targetUnavailable",
+        "处置目标不可用，未完成处置。",
+        "The remediation target was unavailable; the remediation was not completed.",
+        translate,
+      ) +
+        (rawReason
+          ? `${localized(locale, "技术详情：", " Technical detail: ")}${knownExecutionMessagePresentation(locale, rawReason, translate)}`
+          : "");
+    case "MITIGATION_ERROR_13102":
+      return executionText(
+        locale,
+        "reasons.backupStorage",
+        "处置备份存储失败。",
+        "The remediation backup storage operation failed.",
+        translate,
+      );
+    case "MITIGATION_ERROR_13103":
+      return executionText(
+        locale,
+        "reasons.backupDatabase",
+        "处置备份数据库操作失败。",
+        "The remediation backup database operation failed.",
+        translate,
+      );
+    case "MITIGATION_ERROR_13104":
+      return executionText(
+        locale,
+        "reasons.deleteFailed",
+        "删除处置目标失败。",
+        "The remediation target could not be deleted.",
+        translate,
+      );
+    case "MITIGATION_ERROR_13105":
+      return executionText(
+        locale,
+        "reasons.restoreConflict",
+        "恢复目标与当前状态冲突。",
+        "The restore target conflicts with its current state.",
+        translate,
+      );
+    case "MITIGATION_ERROR_13106":
+      return executionText(
+        locale,
+        "reasons.backupCorrupt",
+        "处置备份已损坏或无法校验。",
+        "The remediation backup is corrupt or could not be verified.",
+        translate,
+      );
+    case "MITIGATION_ERROR_13107":
+      return executionText(
+        locale,
+        "reasons.protectedTarget",
+        "处置目标受保护，操作被阻止。",
+        "The remediation target is protected and the operation was blocked.",
+        translate,
+      );
+    default:
+      return knownExecutionMessagePresentation(locale, rawReason, translate);
+  }
+}
+
 export function itemStatusPresentation(
   item: RemediationOrderItem,
   locale: string,
@@ -414,7 +766,11 @@ function executionTimePresentation(item: RemediationOrderItem, locale: string) {
   return { primary: localized(locale, "尚未开始", "Not Started") };
 }
 
-export function resultPresentation(item: RemediationOrderItem, locale: string) {
+export function resultPresentation(
+  item: RemediationOrderItem,
+  locale: string,
+  translate?: ExecutionTextTranslator,
+) {
   const execution = executionForItem(item);
   const errorCode = execution?.error_code.trim() || item.error_code.trim();
   const errorMessage =
@@ -449,8 +805,7 @@ export function resultPresentation(item: RemediationOrderItem, locale: string) {
       code: "",
       result: localized(locale, "等待人工确认", "Awaiting Manual Confirmation"),
       reason:
-        reason ||
-        errorMessage ||
+        localizedExecutionReason(item, locale, translate) ||
         localized(
           locale,
           "结果尚未被权威确认",
@@ -483,8 +838,15 @@ export function resultPresentation(item: RemediationOrderItem, locale: string) {
   if (errorCode || errorMessage) {
     return {
       code: errorCode,
-      result: errorMessage || errorCode,
-      reason,
+      result:
+        status === "blocked"
+          ? localized(locale, "当前无法执行", "Cannot Execute Now")
+          : localized(locale, "执行失败", "Execution Failed"),
+      reason:
+        localizedExecutionReason(item, locale, translate) ||
+        knownExecutionMessagePresentation(locale, errorMessage, translate) ||
+        errorMessage ||
+        errorCode,
     };
   }
   if (status === "success") {
@@ -492,7 +854,7 @@ export function resultPresentation(item: RemediationOrderItem, locale: string) {
       code: "",
       result: localized(locale, "执行结果已确认", "Execution Result Confirmed"),
       reason:
-        reason ||
+        localizedExecutionReason(item, locale, translate) ||
         localized(
           locale,
           "终端已确认处置结果",
@@ -505,7 +867,7 @@ export function resultPresentation(item: RemediationOrderItem, locale: string) {
       code: "",
       result: localized(locale, "需人工对账", "Manual Reconciliation Required"),
       reason:
-        reason ||
+        localizedExecutionReason(item, locale, translate) ||
         localized(
           locale,
           "结果未能被权威确认",
@@ -520,7 +882,7 @@ export function resultPresentation(item: RemediationOrderItem, locale: string) {
         status === "failed"
           ? localized(locale, "执行失败", "Execution Failed")
           : localized(locale, "当前无法执行", "Cannot Execute Now"),
-      reason: reason || "-",
+      reason: localizedExecutionReason(item, locale, translate) || reason || "-",
     };
   }
   if (itemIsActive(item)) {
@@ -528,14 +890,14 @@ export function resultPresentation(item: RemediationOrderItem, locale: string) {
       code: "",
       result: localized(locale, "执行中", "Running"),
       reason:
-        reason ||
+        localizedExecutionReason(item, locale, translate) ||
         localized(locale, "等待 Agent 回执", "Waiting for the Agent report."),
     };
   }
   return {
     code: "",
     result: localized(locale, "尚未进入执行阶段", "Execution Has Not Started"),
-    reason: reason || "-",
+    reason: localizedExecutionReason(item, locale, translate) || reason || "-",
   };
 }
 
@@ -1082,14 +1444,16 @@ function FilterButton({
 function ExecutionItemRow({
   item,
   locale,
+  translate,
 }: {
   item: RemediationOrderItem;
   locale: string;
+  translate?: ExecutionTextTranslator;
 }) {
   const Icon = remediationActionIcon(item.action_code);
   const status = itemStatusPresentation(item, locale);
   const time = executionTimePresentation(item, locale);
-  const result = resultPresentation(item, locale);
+  const result = resultPresentation(item, locale, translate);
   const target = remediationTargetPresentation(item);
   const agent = item.agent_snapshot;
   const hostID = item.agent_id.trim() || "-";
@@ -1151,14 +1515,9 @@ function ExecutionItemRow({
       </div>
       <div className="min-w-0 text-[11px] leading-5">
         <div className="flex min-w-0 items-center justify-center gap-2">
-          {result.code ? (
-            <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 font-mono text-[10px] font-bold text-rose-700">
-              {result.code}
-            </span>
-          ) : null}
           <span
             className="truncate font-medium text-slate-700"
-            title={result.result}
+            title={result.code ? `${result.result} (${result.code})` : result.result}
           >
             {result.result}
           </span>
@@ -1184,6 +1543,10 @@ export function RemediationExecutionItemsTable({
 }) {
   const locale = useLocale();
   const t = useTranslations("pages.collection.orchestration");
+  const translateExecutionText: ExecutionTextTranslator = (key, values) =>
+    values
+      ? t(`execution.presentation.${key}`, values)
+      : t(`execution.presentation.${key}`);
 
   return (
     <div className="overflow-x-auto">
@@ -1202,7 +1565,12 @@ export function RemediationExecutionItemsTable({
         </div>
         {items.length ? (
           items.map((item) => (
-            <ExecutionItemRow key={item.item_id} item={item} locale={locale} />
+            <ExecutionItemRow
+              key={item.item_id}
+              item={item}
+              locale={locale}
+              translate={translateExecutionText}
+            />
           ))
         ) : (
           <div className="px-5 py-9 text-center text-xs text-slate-500">

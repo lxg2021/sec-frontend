@@ -633,7 +633,32 @@
           "noItems": "This remediation order has no target execution records to display yet.",
           "noFilteredItems": "No targets match the current status filter.",
           "noOrders": "No remediation order has been created for this {source}.",
-          "orderFallback": "Remediation Order · {time}"
+          "orderFallback": "Remediation Order · {time}",
+          "presentation": {
+            "reasons": {
+              "authoritativeSuccess": "Authoritative report confirmed that the remediation effect was applied.",
+              "authoritativeSkipped": "Authoritative endpoint report confirmed that the remediation was skipped.",
+              "authoritativeFailed": "Authoritative endpoint report confirmed a definitive remediation failure.",
+              "invalidCommand": "The remediation command was invalid and was not executed.",
+              "targetUnavailable": "The remediation target was unavailable; the remediation was not completed.",
+              "backupStorage": "The remediation backup storage operation failed.",
+              "backupDatabase": "The remediation backup database operation failed.",
+              "deleteFailed": "The remediation target could not be deleted.",
+              "restoreConflict": "The restore target conflicts with its current state.",
+              "backupCorrupt": "The remediation backup is corrupt or could not be verified.",
+              "protectedTarget": "The remediation target is protected and the operation was blocked.",
+              "technicalError": "Win32 error {win32Error}: {detail}",
+              "windowsRevisionMismatch": "The two revision levels are incompatible.",
+              "wmiSubscriptionRestoreFailed": "Failed to restore the WMI subscription backup",
+              "wmiSubscriptionVerificationFailed": "The restored WMI subscription state could not be verified",
+              "wmiSubscriptionDeleteFailed": "Failed to delete the WMI subscription",
+              "wmiSubscriptionCaptureFailed": "Failed to capture the WMI subscription before deletion",
+              "wmiSubscriptionInspectFailed": "Failed to inspect the WMI subscription before deletion",
+              "wmiClassRestoreFailed": "Failed to restore the WMI class backup",
+              "wmiClassVerificationFailed": "The restored WMI class state could not be verified",
+              "wmiClassDeleteFailed": "Failed to delete the WMI class"
+            }
+          }
         }
       }
     },

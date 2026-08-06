@@ -112,3 +112,72 @@ describe("itemStatusPresentation", () => {
     });
   });
 });
+
+describe("resultPresentation localization", () => {
+  it("localizes the authoritative success reason in both languages", () => {
+    const successItem = {
+      status: "success",
+      reason_code: "AUTHORITATIVE_SUCCESS",
+      reason_message: "Authoritative Report confirmed the remediation effect",
+      error_code: "",
+      error_message: "",
+      uncertainty_since_at: "",
+      execution: null,
+    } as RemediationOrderItem;
+
+    expect(resultPresentation(successItem, "zh-CN")).toMatchObject({
+      result: "执行结果已确认",
+      reason: "终端权威回执已确认处置生效。",
+    });
+    expect(resultPresentation(successItem, "en")).toMatchObject({
+      result: "Execution Result Confirmed",
+      reason:
+        "Authoritative report confirmed that the remediation effect was applied.",
+    });
+  });
+
+  it("keeps the mitigation error code while localizing the WMI restore failure", () => {
+    const failedItem = {
+      status: "failed",
+      reason_code: "MITIGATION_ERROR_13101",
+      reason_message:
+        "restore WMI subscription backup failed, win32_error=2147943706, detail=表明两个修订级别是不兼容的。",
+      error_code: "MITIGATION_ERROR_13101",
+      error_message:
+        "restore WMI subscription backup failed, win32_error=2147943706, detail=表明两个修订级别是不兼容的。",
+      uncertainty_since_at: "",
+      execution: null,
+    } as RemediationOrderItem;
+
+    expect(resultPresentation(failedItem, "zh-CN")).toMatchObject({
+      code: "MITIGATION_ERROR_13101",
+      result: "执行失败",
+      reason:
+        "处置目标不可用，未完成处置。技术详情：恢复 WMI 订阅备份失败，Win32 错误 2147943706：两个修订级别不兼容。",
+    });
+    expect(resultPresentation(failedItem, "en")).toMatchObject({
+      code: "MITIGATION_ERROR_13101",
+      result: "Execution Failed",
+      reason:
+        "The remediation target was unavailable; the remediation was not completed. Technical detail: Failed to restore the WMI subscription backup; Win32 error 2147943706: The two revision levels are incompatible.",
+    });
+  });
+
+  it("falls back to an unknown backend reason without dropping its details", () => {
+    const unknownItem = {
+      status: "failed",
+      reason_code: "MITIGATION_ERROR_19999",
+      reason_message: "vendor-specific diagnostic detail",
+      error_code: "MITIGATION_ERROR_19999",
+      error_message: "vendor-specific diagnostic detail",
+      uncertainty_since_at: "",
+      execution: null,
+    } as RemediationOrderItem;
+
+    expect(resultPresentation(unknownItem, "en")).toMatchObject({
+      code: "MITIGATION_ERROR_19999",
+      result: "Execution Failed",
+      reason: "vendor-specific diagnostic detail",
+    });
+  });
+});

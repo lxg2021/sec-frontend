@@ -633,7 +633,32 @@
           "noItems": "当前处置单暂无可展示的目标执行记录。",
           "noFilteredItems": "没有符合当前状态筛选的目标。",
           "noOrders": "当前 {source} 尚未创建处置单。",
-          "orderFallback": "处置单 · {time}"
+          "orderFallback": "处置单 · {time}",
+          "presentation": {
+            "reasons": {
+              "authoritativeSuccess": "终端权威回执已确认处置生效。",
+              "authoritativeSkipped": "终端权威回执确认本次未执行处置。",
+              "authoritativeFailed": "终端权威回执确认处置明确失败。",
+              "invalidCommand": "处置命令无效，未执行处置。",
+              "targetUnavailable": "处置目标不可用，未完成处置。",
+              "backupStorage": "处置备份存储失败。",
+              "backupDatabase": "处置备份数据库操作失败。",
+              "deleteFailed": "删除处置目标失败。",
+              "restoreConflict": "恢复目标与当前状态冲突。",
+              "backupCorrupt": "处置备份已损坏或无法校验。",
+              "protectedTarget": "处置目标受保护，操作被阻止。",
+              "technicalError": "Win32 错误 {win32Error}：{detail}",
+              "windowsRevisionMismatch": "两个修订级别不兼容。",
+              "wmiSubscriptionRestoreFailed": "恢复 WMI 订阅备份失败",
+              "wmiSubscriptionVerificationFailed": "恢复后的 WMI 订阅状态无法验证",
+              "wmiSubscriptionDeleteFailed": "删除 WMI 订阅失败",
+              "wmiSubscriptionCaptureFailed": "删除前捕获 WMI 订阅失败",
+              "wmiSubscriptionInspectFailed": "删除前检查 WMI 订阅失败",
+              "wmiClassRestoreFailed": "恢复 WMI 类备份失败",
+              "wmiClassVerificationFailed": "恢复后的 WMI 类状态无法验证",
+              "wmiClassDeleteFailed": "删除 WMI 类失败"
+            }
+          }
         }
       }
     },
