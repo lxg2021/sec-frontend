@@ -3,6 +3,7 @@ export type AccessPolicyType = "file" | "registry" | "process" | "network"
 export type AccessSubjectType = "windowsuser" | "windowsgroup" | "process"
 export type AccessHashAlgorithm = "md5" | "sha1" | "sha256"
 export type AccessRuleEffect = "allow" | "block" | "prompt"
+export type RegistryTargetKind = "key" | "value"
 
 export type FileAccessAction =
   | "new"
@@ -82,6 +83,8 @@ export interface AccessControlPolicyDraft {
   exceptions: AccessSubjectDraft[]
   objectPaths: string[]
   objectHashes: AccessHash[]
+  registryTargetKind: RegistryTargetKind
+  registryValueNames: string[]
   rules: AccessRuleDraft[]
   network: NetworkPolicyDraft
 }

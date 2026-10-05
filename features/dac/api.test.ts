@@ -49,6 +49,8 @@ function baseDraft(type: AccessControlPolicyDraft["type"]): AccessControlPolicyD
     ],
     objectPaths: [" C:\\Confidential\\*.docx "],
     objectHashes: [],
+    registryTargetKind: "key",
+    registryValueNames: [],
     rules: [{ id: "rule-1", action: "write", effect: "block", audit: true }],
     network: {
       direction: "out",
@@ -76,6 +78,8 @@ function editableDraft(type: AccessPolicyType) {
   const draft = baseDraft(type)
   if (type === "registry") {
     draft.objectPaths = ["HKEY_LOCAL_MACHINE\\Software\\WatchPoint"]
+    draft.registryTargetKind = "value"
+    draft.registryValueNames = ["", "Secret*", "Build#", "literal\\*"]
     draft.rules = [{ id: "rule-registry", action: "query", effect: "allow", audit: true }]
   } else if (type === "process") {
     draft.objectPaths = ["C:\\Windows\\System32\\target.exe"]
@@ -148,12 +152,16 @@ describe("access control request mapping", () => {
   it("maps registry actions and object type without legacy action codes", () => {
     const draft = baseDraft("registry")
     draft.objectPaths = ["HKEY_LOCAL_MACHINE\\Software\\WatchPoint"]
+    draft.registryTargetKind = "value"
+    draft.registryValueNames = ["", "Secret*", "literal\\*"]
     draft.rules = [{ id: "rule-1", action: "query", effect: "allow", audit: true }]
 
     const request = buildCreateAccessControlPolicyRequest(draft, "request-2")
     expect("policy_info" in request && request.policy_info.object).toEqual({
       type: "registry",
       path: ["HKEY_LOCAL_MACHINE\\Software\\WatchPoint"],
+      registry_target_kind: "value",
+      value_name: ["", "Secret*", "literal\\*"],
     })
     expect("policy_info" in request && request.policy_info.rules[0].action).toBe("query")
   })
@@ -206,6 +214,29 @@ describe("access control request mapping", () => {
 
     networkDraft.network.remotePort = "0"
     expect(validateAccessControlDraft(networkDraft)).toContain("NETWORK_PORT_INVALID")
+  })
+
+  it("validates registry target/action/value-name combinations", () => {
+    const keyDraft = editableDraft("registry")
+    keyDraft.registryTargetKind = "key"
+    expect(validateAccessControlDraft(keyDraft)).toEqual(expect.arrayContaining([
+      "REGISTRY_KEY_VALUE_NAME_FORBIDDEN",
+    ]))
+
+    const valueDraft = editableDraft("registry")
+    valueDraft.rules = [{ id: "rule-enum", action: "enum", effect: "allow", audit: true }]
+    expect(validateAccessControlDraft(valueDraft)).toContain("REGISTRY_ENUM_VALUE_NAME_FORBIDDEN")
+
+    valueDraft.rules = [{ id: "rule-open", action: "open", effect: "allow", audit: true }]
+    valueDraft.registryValueNames = []
+    expect(validateAccessControlDraft(valueDraft)).toContain("RULE_INVALID")
+
+    valueDraft.rules = [{ id: "rule-query", action: "query", effect: "allow", audit: true }]
+    valueDraft.registryValueNames = ["bad\\x"]
+    expect(validateAccessControlDraft(valueDraft)).toContain("REGISTRY_VALUE_NAME_INVALID")
+
+    valueDraft.registryValueNames = [""]
+    expect(validateAccessControlDraft(valueDraft)).not.toContain("REGISTRY_VALUE_NAME_INVALID")
   })
 
   it("rejects malformed paths, addresses, hashes, SIDs, and versions before calling the API", () => {
@@ -421,6 +452,28 @@ describe("access control request mapping", () => {
       objectPaths: ["C:\\Confidential\\*.docx"],
       rules: [{ action: "write", effect: "block", audit: true }],
     })
+  })
+
+  it("rejects registry development data without registry_target_kind", () => {
+    const policy = existingPolicy(editableDraft("registry"))
+    const context = JSON.parse(policy.context)
+    delete context.policy.body.object.registry_target_kind
+
+    expect(() => buildAccessControlDraftFromExistingPolicy({
+      ...policy,
+      context: JSON.stringify(context),
+    })).toThrow("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+  })
+
+  it("rejects registry development data with unknown object fields", () => {
+    const policy = existingPolicy(editableDraft("registry"))
+    const context = JSON.parse(policy.context)
+    context.policy.body.object.legacy_target = "value"
+
+    expect(() => buildAccessControlDraftFromExistingPolicy({
+      ...policy,
+      context: JSON.stringify(context),
+    })).toThrow("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
   })
 
   it.each(["file", "registry", "process", "network"] as const)(

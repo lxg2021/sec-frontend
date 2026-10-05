@@ -30,7 +30,7 @@ import {
   validateAccessControlDraft,
 } from "../api"
 import { getAccessControlCopy, type AccessControlCopy } from "../access-control-copy"
-import { createEmptySubject, createInitialAccessControlDraft } from "../access-control-options"
+import { createEmptySubject, createInitialAccessControlDraft, getAccessActions } from "../access-control-options"
 import type {
   AccessControlOperation,
   AccessControlPolicyDraft,
@@ -43,6 +43,7 @@ import { MultiValueInput } from "./multi-value-input"
 import { NetworkEditor } from "./network-editor"
 import { PolicySelectorDialog } from "./policy-selector-dialog"
 import { RuleEditor } from "./rule-editor"
+import { RegistryValueNameInput } from "./registry-value-name-input"
 import { SubjectEditor } from "./subject-editor"
 import HostSelector from "@/shared/components/host-selector"
 import { getHostSelectorTree } from "@/shared/components/host-selector/api"
@@ -216,13 +217,21 @@ export function AccessControlWizard() {
     const hasUnsavedContent = !selectedPolicy && (isAccessControlDraftDirty(draft) || Boolean(createdPolicy))
     if (hasUnsavedContent && !window.confirm(copy.resetConfirm)) return false
 
+    let restoredDraft: AccessControlPolicyDraft
+    try {
+      restoredDraft = buildAccessControlDraftFromExistingPolicy(policy)
+    } catch {
+      toast.error(copy.validationFailed, { description: copy.registry.contractInvalid })
+      return false
+    }
+
     setSelectedPolicy(policy)
-    setDraft(buildAccessControlDraftFromExistingPolicy(policy))
+    setDraft(restoredDraft)
     setCreatedPolicy(null)
     setCreatedDraftFingerprint("")
     setOperation(null)
     return true
-  }, [copy.resetConfirm, createdPolicy, draft, selectedPolicy])
+  }, [copy, createdPolicy, draft, selectedPolicy])
 
   return (
     <div className="h-full min-h-0 overflow-hidden bg-slate-100 p-4">
@@ -365,7 +374,15 @@ export function PolicyConfigurationPanel({
                 copy={copy}
                 type={draft.type}
                 rules={draft.rules}
-                onChange={(rules) => onChange({ rules })}
+                actions={getAccessActions(draft.type, draft.registryTargetKind)}
+                onChange={(rules) => onChange({
+                  rules,
+                  ...(draft.type === "registry"
+                    && draft.registryTargetKind === "value"
+                    && rules.some((rule) => rule.action === "enum")
+                    ? { registryValueNames: [] }
+                    : {}),
+                })}
               />
             </section>
           </div>
@@ -591,6 +608,40 @@ function ObjectPanel({
         title={copy.object}
       />
       <div className="min-h-[142px] rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+        {draft.type === "registry" ? (
+          <div className="mb-3 space-y-1.5">
+            <Label className="block text-xs text-slate-600">{copy.registry.targetKind}</Label>
+            <div className="grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1">
+              {(["key", "value"] as const).map((targetKind) => (
+                <button
+                  key={targetKind}
+                  type="button"
+                  aria-pressed={draft.registryTargetKind === targetKind}
+                  onClick={() => {
+                    const allowed = new Set(getAccessActions("registry", targetKind))
+                    onChange({
+                      registryTargetKind: targetKind,
+                      registryValueNames: [],
+                      rules: draft.rules.filter((rule) => allowed.has(rule.action)),
+                    })
+                  }}
+                  className={`h-8 rounded-md text-xs font-medium transition-colors ${
+                    draft.registryTargetKind === targetKind
+                      ? "bg-white text-violet-700 shadow-sm"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  {targetKind === "key" ? copy.registry.key : copy.registry.value}
+                </button>
+              ))}
+            </div>
+            {draft.registryTargetKind === "key" ? (
+              <p className="rounded-md bg-amber-50 px-2.5 py-2 text-[11px] leading-5 text-amber-800">
+                {copy.registry.openHint}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <div className="space-y-1.5">
           <Label className="block text-xs text-slate-600">{copy.objectLabels[draft.type]}</Label>
           <MultiValueInput
@@ -599,6 +650,16 @@ function ObjectPanel({
             placeholder={copy.objectPlaceholders[draft.type]}
           />
         </div>
+        {draft.type === "registry" && draft.registryTargetKind === "value" ? (
+          <div className="mt-3">
+            <RegistryValueNameInput
+              copy={copy}
+              value={draft.registryValueNames}
+              disabled={draft.rules.some((rule) => rule.action === "enum")}
+              onChange={(registryValueNames) => onChange({ registryValueNames })}
+            />
+          </div>
+        ) : null}
         {draft.type === "process" ? (
           <details className="mt-3 rounded-lg border border-dashed border-slate-200 bg-white/70 px-3 py-2">
             <summary className="cursor-pointer list-none text-xs font-medium text-slate-600">

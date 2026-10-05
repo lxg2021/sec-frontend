@@ -3,7 +3,7 @@
 import { http } from "@/shared/lib/http/client"
 import { createUuidRequestId } from "@/shared/lib/utils"
 
-import { ACCESS_ACTIONS, createInitialAccessControlDraft } from "./access-control-options"
+import { createInitialAccessControlDraft, getAccessActions } from "./access-control-options"
 import type {
   AccessAccount,
   AccessControlOperation,
@@ -14,6 +14,7 @@ import type {
   AccessSubjectDraft,
   CreatedAccessControlPolicy,
   ExistingAccessControlPolicy,
+  RegistryTargetKind,
 } from "./access-control-types"
 
 const PMC_OBJECT_TYPE_POLICY = 1
@@ -33,7 +34,7 @@ const HASH_PATTERNS: Record<AccessHash["algo"], RegExp> = {
   sha256: /^[a-fA-F0-9]{64}$/,
 }
 const SID_PATTERN = /^S-\d-\d+(?:-\d+)+$/i
-const REGISTRY_PATH_PATTERN = /^(?:HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER|HKEY_CLASSES_ROOT|HKEY_USERS|HKEY_CURRENT_CONFIG|HKLM|HKCU|HKCR|HKU|HKCC)(?:\\.*)?$/i
+const REGISTRY_PATH_PATTERN = /^(?:HKEY_LOCAL_MACHINE|HKEY_CURRENT_USER|HKEY_USERS|HKLM|HKCU|HKU)(?:\\.*)?$/i
 
 interface ApiResult<T> {
   data: T
@@ -118,7 +119,21 @@ export type CreateAccessControlPolicyRequest =
       policy_info: {
         except: ProtoAccessSubject[]
         subject: ProtoAccessSubject[]
-        object: { type: "file" | "registry"; path: string[] }
+        object: { type: "file"; path: string[] }
+        rules: ProtoAccessRule[]
+        priority: number
+      }
+    })
+  | (CommonCreateRequest & {
+      policy_info: {
+        except: ProtoAccessSubject[]
+        subject: ProtoAccessSubject[]
+        object: {
+          type: "registry"
+          path: string[]
+          registry_target_kind: RegistryTargetKind
+          value_name: string[]
+        }
         rules: ProtoAccessRule[]
         priority: number
       }
@@ -228,8 +243,21 @@ export function isValidWindowsPathPattern(value: string) {
 }
 
 export function isValidRegistryPath(value: string) {
-  const normalized = value.trim()
-  return normalized.length > 0 && normalized.length <= 4096 && !/[\u0000-\u001f]/.test(normalized) && REGISTRY_PATH_PATTERN.test(normalized)
+  return value.length > 0
+    && value === value.trim()
+    && value.length <= 4096
+    && !/[\u0000-\u001f]/.test(value)
+    && REGISTRY_PATH_PATTERN.test(value)
+}
+
+export function isValidRegistryValueNamePattern(value: string) {
+  if (value.length > 16383 || value.includes("\u0000")) return false
+  for (let index = 0; index < value.length; index += 1) {
+    if (value[index] !== "\\") continue
+    index += 1
+    if (index >= value.length || !["*", "?", "#", "\\"].includes(value[index])) return false
+  }
+  return true
 }
 
 function isValidAccessHash(hash: AccessHash) {
@@ -327,12 +355,26 @@ export function validateAccessControlDraft(draft: AccessControlPolicyDraft) {
   else if (!objectPaths.every(objectPathValid)) errors.push("OBJECT_PATH_INVALID")
   if (!draft.objectHashes.every(isValidAccessHash)) errors.push("OBJECT_HASH_INVALID")
 
-  const allowedActions = new Set(ACCESS_ACTIONS[draft.type])
+  const allowedActions = new Set(getAccessActions(draft.type, draft.registryTargetKind))
   if (draft.rules.length === 0 || draft.rules.some((rule) => !allowedActions.has(rule.action))) {
     errors.push("RULE_INVALID")
   }
   if (new Set(draft.rules.map((rule) => rule.action)).size !== draft.rules.length) {
     errors.push("RULE_ACTION_DUPLICATED")
+  }
+  if (draft.type === "registry") {
+    if (draft.registryTargetKind === "key" && draft.registryValueNames.length > 0) {
+      errors.push("REGISTRY_KEY_VALUE_NAME_FORBIDDEN")
+    }
+    if (draft.registryValueNames.length > 256
+      || !draft.registryValueNames.every(isValidRegistryValueNamePattern)) {
+      errors.push("REGISTRY_VALUE_NAME_INVALID")
+    }
+    if (draft.registryTargetKind === "value"
+      && draft.rules.some((rule) => rule.action === "enum")
+      && draft.registryValueNames.length > 0) {
+      errors.push("REGISTRY_ENUM_VALUE_NAME_FORBIDDEN")
+    }
   }
 
   return errors
@@ -406,6 +448,21 @@ export function buildCreateAccessControlPolicyRequest(
     }
   }
 
+  if (draft.type === "registry") {
+    return {
+      ...common,
+      policy_info: {
+        ...commonPolicyInfo,
+        object: {
+          type: "registry",
+          path: uniqueStrings(draft.objectPaths),
+          registry_target_kind: draft.registryTargetKind,
+          value_name: [...draft.registryValueNames],
+        },
+      },
+    }
+  }
+
   return {
     ...common,
     policy_info: {
@@ -432,6 +489,8 @@ export function getAccessControlDraftFingerprint(draft: AccessControlPolicyDraft
     "type",
     "path",
     "hash",
+    "registry_target_kind",
+    "value_name",
     "accounts",
     "algo",
     "value",
@@ -569,6 +628,51 @@ function buildAccessControlDraftFromBody(
 
   const object = recordValue(body.object)
   const subjects = normalizeStoredSubjects(body.subject)
+  let registryTargetKind: RegistryTargetKind = "key"
+  let registryValueNames: string[] = []
+  let registryObjectPaths: string[] | null = null
+  if (policyType === "registry") {
+    const allowedObjectFields = new Set(["type", "path", "registry_target_kind", "value_name"])
+    if (Object.keys(object).some((field) => !allowedObjectFields.has(field))
+      || object.type !== "registry") {
+      throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+    }
+    if (!Array.isArray(object.path)
+      || object.path.length === 0
+      || object.path.length > 256
+      || object.path.some((path) => typeof path !== "string" || !isValidRegistryPath(path))) {
+      throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+    }
+    registryObjectPaths = [...object.path]
+    const storedTargetKind = stringValue(object.registry_target_kind)
+    if (storedTargetKind !== "key" && storedTargetKind !== "value") {
+      throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+    }
+    registryTargetKind = storedTargetKind
+    registryValueNames = registryValueNameArray(object.value_name)
+    if (registryValueNames.length > 256
+      || !registryValueNames.every(isValidRegistryValueNamePattern)
+      || (registryTargetKind === "key" && registryValueNames.length > 0)) {
+      throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+    }
+
+    const storedRules = body.rules
+    const allowedActions = new Set(getAccessActions("registry", registryTargetKind))
+    if (!Array.isArray(storedRules)
+      || storedRules.length === 0
+      || storedRules.length > 64
+      || storedRules.some((entry) => {
+        const rule = recordValue(entry)
+        return !allowedActions.has(stringValue(rule.action))
+          || !["allow", "block", "prompt"].includes(stringValue(rule.effect))
+          || typeof rule.audit !== "boolean"
+      })
+      || (registryTargetKind === "value"
+        && registryValueNames.length > 0
+        && storedRules.some((entry) => recordValue(entry).action === "enum"))) {
+      throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+    }
+  }
 
   return {
     ...initial,
@@ -578,9 +682,11 @@ function buildAccessControlDraftFromBody(
     priority,
     subjects: subjects.length > 0 ? subjects : initial.subjects,
     exceptions: normalizeStoredSubjects(body.except),
-    objectPaths: stringArray(object.path),
+    objectPaths: registryObjectPaths ?? stringArray(object.path),
     objectHashes: normalizeStoredHashes(object.hash),
-    rules: normalizeStoredRules(body.rules, policyType),
+    registryTargetKind,
+    registryValueNames,
+    rules: normalizeStoredRules(body.rules, policyType, registryTargetKind),
   }
 }
 
@@ -704,6 +810,14 @@ function stringArray(value: unknown) {
   return arrayValue(value).map(stringValue).filter(Boolean)
 }
 
+function registryValueNameArray(value: unknown) {
+  if (value === undefined || value === null) return []
+  if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) {
+    throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+  }
+  return [...value]
+}
+
 function normalizeStoredHashes(value: unknown): AccessHash[] {
   return arrayValue(value).flatMap((entry) => {
     const hash = recordValue(entry)
@@ -736,8 +850,12 @@ function normalizeStoredSubjects(value: unknown): AccessSubjectDraft[] {
   })
 }
 
-function normalizeStoredRules(value: unknown, type: Exclude<AccessPolicyType, "network">): AccessRuleDraft[] {
-  const allowedActions = new Set<string>(ACCESS_ACTIONS[type])
+function normalizeStoredRules(
+  value: unknown,
+  type: Exclude<AccessPolicyType, "network">,
+  registryTargetKind: RegistryTargetKind,
+): AccessRuleDraft[] {
+  const allowedActions = new Set<string>(getAccessActions(type, registryTargetKind))
   return arrayValue(value).flatMap((entry) => {
     const rule = recordValue(entry)
     const action = stringValue(rule.action)

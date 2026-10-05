@@ -35,6 +35,7 @@ interface RuleEditorProps {
   type: Exclude<AccessPolicyType, "network">
   rules: AccessRuleDraft[]
   onChange: (rules: AccessRuleDraft[]) => void
+  actions?: AccessAction[]
 }
 
 const EFFECTS = ["allow", "block", "prompt"] as const
@@ -82,8 +83,8 @@ const ACTION_ICON_COLORS: Partial<Record<AccessAction, string>> = {
   read: "text-cyan-700",
 }
 
-export function RuleEditor({ copy, type, rules, onChange }: RuleEditorProps) {
-  const actions = ACCESS_ACTIONS[type]
+export function RuleEditor({ copy, type, rules, onChange, actions: actionOverride }: RuleEditorProps) {
+  const actions = actionOverride ?? ACCESS_ACTIONS[type]
   const usedActions = new Set(rules.map((rule) => rule.action))
   const nextAction = actions.find((action) => !usedActions.has(action))
 
