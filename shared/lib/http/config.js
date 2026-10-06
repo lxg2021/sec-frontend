@@ -78,7 +78,7 @@ const FALLBACK_CONFIG = {
       listPMCAuditEvents: "/sensor/control/pmc/audit-events/list",
       operatePMCObject: "/sensor/control/pmc/objects/operate",
       queryPMCAgentsByObjectID: "/sensor/control/pmc/agents/query-by-object-id",
-      createNetworkAccessPolicy: "/sensor/control/network/policy",
+      createNetworkAccessPolicy: "/sensor/control/networkaccess/policy",
       createFileAccessPolicy: "/sensor/control/fileaccess/policy",
       createRegistryAccessPolicy: "/sensor/control/registryaccess/policy",
       createProcessAccessPolicy: "/sensor/control/processaccess/policy",

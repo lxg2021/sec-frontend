@@ -72,6 +72,7 @@
       "listPMCAuditEvents": "/sensor/control/pmc/audit-events/list",
       "operatePMCObject": "/sensor/control/pmc/objects/operate",
       "queryPMCAgentsByObjectID": "/sensor/control/pmc/agents/query-by-object-id",
+      "createNetworkAccessPolicy": "/sensor/control/networkaccess/policy",
       "patchImmediateScan": "/sensor/control/patch/immediatescan",
       "patchOneClickRepair": "/sensor/control/patch/oneclickrepair",
       "baselineOneClickRepair": "/sensor/control/baseline/oneclickrepair",
