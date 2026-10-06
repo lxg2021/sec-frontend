@@ -17,10 +17,11 @@ export interface AccessActionOption {
   label: string
 }
 
-export const ACCESS_ACTIONS: Record<Exclude<AccessPolicyType, "network">, AccessAction[]> = {
+export const ACCESS_ACTIONS: Record<AccessPolicyType, AccessAction[]> = {
   file: ["new", "delete", "rename", "move", "write", "set", "open", "read", "execute"],
   registry: ["new", "delete", "set", "open", "query", "rename", "enum"],
   process: ["create", "terminate", "open", "allocate", "write", "protect"],
+  network: ["connect", "accept"],
 }
 
 export const REGISTRY_ACTIONS: Record<RegistryTargetKind, AccessAction[]> = {
@@ -29,7 +30,7 @@ export const REGISTRY_ACTIONS: Record<RegistryTargetKind, AccessAction[]> = {
 }
 
 export function getAccessActions(
-  type: Exclude<AccessPolicyType, "network">,
+  type: AccessPolicyType,
   registryTargetKind: RegistryTargetKind,
 ) {
   return type === "registry" ? REGISTRY_ACTIONS[registryTargetKind] : ACCESS_ACTIONS[type]
@@ -59,16 +60,12 @@ export function createInitialAccessControlDraft(): AccessControlPolicyDraft {
     registryValueNames: [],
     rules: [],
     network: {
-      direction: "in",
-      action: "block",
       profile: "any",
       protocol: "tcp",
       localPort: "any",
       remotePort: "any",
       localAddress: "any",
       remoteAddress: "any",
-      programPath: "*",
-      programMd5: "",
     },
   }
 }

@@ -21,13 +21,12 @@ const PMC_OBJECT_TYPE_POLICY = 1
 const PMC_OPERATION_APPLY = 1
 const PMC_LIST_PAGE_SIZE = 100
 const ACCESS_POLICY_TYPE_BY_SUB_TYPE: Record<number, AccessPolicyType> = {
-  20: "network",
   90: "file",
   91: "process",
   92: "registry",
+  93: "network",
 }
 const POLICY_VERSION_PATTERN = /^\d+\.\d+\.\d+$/
-const MD5_PATTERN = /^[a-fA-F0-9]{32}$/
 const HASH_PATTERNS: Record<AccessHash["algo"], RegExp> = {
   md5: /^[a-fA-F0-9]{32}$/,
   sha1: /^[a-fA-F0-9]{40}$/,
@@ -148,19 +147,20 @@ export type CreateAccessControlPolicyRequest =
       }
     })
   | (CommonCreateRequest & {
-      network_info: {
-        rule: {
-          direction: "in" | "out"
-          action: "allow" | "block" | "bypass"
+      policy_info: {
+        schema_version: 1
+        except: ProtoAccessSubject[]
+        subject: ProtoAccessSubject[]
+        object: {
+          type: "network"
           profile: "domain" | "private" | "public" | "any"
+          protocol: "tcp" | "udp" | "icmp" | "any"
+          local_address: string
+          remote_address: string
+          local_port: string
+          remote_port: string
         }
-        protocol: {
-          type: "tcp" | "udp" | "icmp" | "any"
-          localport: string
-          remoteport: string
-        }
-        address: { local: string; remote: string }
-        program: { path: string; md5?: string }
+        rules: ProtoAccessRule[]
         priority: number
       }
     })
@@ -176,7 +176,7 @@ const CREATE_ENDPOINT_PATHS: Record<AccessPolicyType, string> = {
   file: "/api/v1/sensor/control/fileaccess/policy",
   registry: "/api/v1/sensor/control/registryaccess/policy",
   process: "/api/v1/sensor/control/processaccess/policy",
-  network: "/api/v1/sensor/control/network/policy",
+  network: "/api/v1/sensor/control/networkaccess/policy",
 }
 
 export function getAccessPolicyTypeBySubType(subType: number): AccessPolicyType | null {
@@ -330,30 +330,10 @@ export function validateAccessControlDraft(draft: AccessControlPolicyDraft) {
     errors.push("POLICY_PRIORITY_INVALID")
   }
 
-  if (draft.type === "network") {
-    const network = draft.network
-    if (!validatePortExpression(network.localPort) || !validatePortExpression(network.remotePort)) {
-      errors.push("NETWORK_PORT_INVALID")
-    }
-    if (!isValidNetworkAddress(network.localAddress) || !isValidNetworkAddress(network.remoteAddress)) {
-      errors.push("NETWORK_ADDRESS_INVALID")
-    }
-    if (!isValidWindowsPathPattern(network.programPath)) errors.push("NETWORK_PROGRAM_INVALID")
-    if (network.programMd5.trim() && !MD5_PATTERN.test(network.programMd5.trim())) {
-      errors.push("NETWORK_PROGRAM_MD5_INVALID")
-    }
-    return errors
-  }
-
   if (draft.subjects.length === 0 || !draft.subjects.every(validateSubject)) {
     errors.push("SUBJECT_INVALID")
   }
   if (!draft.exceptions.every(validateSubject)) errors.push("EXCEPTION_INVALID")
-  const objectPaths = uniqueStrings(draft.objectPaths)
-  const objectPathValid = draft.type === "registry" ? isValidRegistryPath : isValidWindowsPathPattern
-  if (objectPaths.length === 0) errors.push("OBJECT_PATH_REQUIRED")
-  else if (!objectPaths.every(objectPathValid)) errors.push("OBJECT_PATH_INVALID")
-  if (!draft.objectHashes.every(isValidAccessHash)) errors.push("OBJECT_HASH_INVALID")
 
   const allowedActions = new Set(getAccessActions(draft.type, draft.registryTargetKind))
   if (draft.rules.length === 0 || draft.rules.some((rule) => !allowedActions.has(rule.action))) {
@@ -362,6 +342,30 @@ export function validateAccessControlDraft(draft: AccessControlPolicyDraft) {
   if (new Set(draft.rules.map((rule) => rule.action)).size !== draft.rules.length) {
     errors.push("RULE_ACTION_DUPLICATED")
   }
+
+  if (draft.type === "network") {
+    const network = draft.network
+    if (!validatePortExpression(network.localPort) || !validatePortExpression(network.remotePort)) {
+      errors.push("NETWORK_PORT_INVALID")
+    }
+    if (!isValidNetworkAddress(network.localAddress) || !isValidNetworkAddress(network.remoteAddress)) {
+      errors.push("NETWORK_ADDRESS_INVALID")
+    }
+    if ((network.protocol === "icmp" || network.protocol === "any")
+      && (network.localPort.trim().toLowerCase() !== "any"
+        || network.remotePort.trim().toLowerCase() !== "any")) {
+      errors.push("NETWORK_PROTOCOL_PORT_INVALID")
+    }
+    if (draft.rules.length > 2) errors.push("NETWORK_RULE_COUNT_INVALID")
+    return errors
+  }
+
+  const objectPaths = uniqueStrings(draft.objectPaths)
+  const objectPathValid = draft.type === "registry" ? isValidRegistryPath : isValidWindowsPathPattern
+  if (objectPaths.length === 0) errors.push("OBJECT_PATH_REQUIRED")
+  else if (!objectPaths.every(objectPathValid)) errors.push("OBJECT_PATH_INVALID")
+  if (!draft.objectHashes.every(isValidAccessHash)) errors.push("OBJECT_HASH_INVALID")
+
   if (draft.type === "registry") {
     if (draft.registryTargetKind === "key" && draft.registryValueNames.length > 0) {
       errors.push("REGISTRY_KEY_VALUE_NAME_FORBIDDEN")
@@ -395,34 +399,6 @@ export function buildCreateAccessControlPolicyRequest(
     version: draft.version.trim(),
   }
 
-  if (draft.type === "network") {
-    const network = draft.network
-    return {
-      ...common,
-      network_info: {
-        rule: {
-          direction: network.direction,
-          action: network.action,
-          profile: network.profile,
-        },
-        protocol: {
-          type: network.protocol,
-          localport: network.localPort.trim().toLowerCase(),
-          remoteport: network.remotePort.trim().toLowerCase(),
-        },
-        address: {
-          local: network.localAddress.trim(),
-          remote: network.remoteAddress.trim(),
-        },
-        program: {
-          path: network.programPath.trim(),
-          ...(network.programMd5.trim() ? { md5: network.programMd5.trim().toLowerCase() } : {}),
-        },
-        priority: draft.priority,
-      },
-    }
-  }
-
   const commonPolicyInfo = {
     except: draft.exceptions.map(normalizeSubject),
     subject: draft.subjects.map(normalizeSubject),
@@ -432,6 +408,26 @@ export function buildCreateAccessControlPolicyRequest(
       audit: rule.audit,
     })),
     priority: draft.priority,
+  }
+
+  if (draft.type === "network") {
+    const network = draft.network
+    return {
+      ...common,
+      policy_info: {
+        schema_version: 1,
+        ...commonPolicyInfo,
+        object: {
+          type: "network",
+          profile: network.profile,
+          protocol: network.protocol,
+          local_address: network.localAddress.trim().toLowerCase(),
+          remote_address: network.remoteAddress.trim().toLowerCase(),
+          local_port: network.localPort.trim().toLowerCase(),
+          remote_port: network.remotePort.trim().toLowerCase(),
+        },
+      },
+    }
   }
 
   if (draft.type === "process") {
@@ -480,7 +476,7 @@ export function getAccessControlDraftFingerprint(draft: AccessControlPolicyDraft
     "name",
     "version",
     "policy_info",
-    "network_info",
+    "schema_version",
     "except",
     "subject",
     "object",
@@ -500,17 +496,12 @@ export function getAccessControlDraftFingerprint(draft: AccessControlPolicyDraft
     "action",
     "effect",
     "audit",
-    "rule",
     "profile",
-    "direction",
     "protocol",
-    "localport",
-    "remoteport",
-    "address",
-    "local",
-    "remote",
-    "program",
-    "md5",
+    "local_address",
+    "remote_address",
+    "local_port",
+    "remote_port",
   ])
 }
 
@@ -600,10 +591,34 @@ function buildAccessControlDraftFromBody(
   const policyType = policy.policyType
   const priority = numberValue(body.priority, initial.priority)
   if (policyType === "network") {
-    const rule = recordValue(body.rule)
-    const protocol = recordValue(body.protocol)
-    const address = recordValue(body.address)
-    const program = recordValue(body.program)
+    const object = recordValue(body.object)
+    const allowedObjectFields = new Set([
+      "type", "profile", "protocol", "local_address",
+      "remote_address", "local_port", "remote_port",
+    ])
+    if (numberValue(body.schema_version) !== 1
+      || object.type !== "network"
+      || Object.keys(object).some((field) => !allowedObjectFields.has(field))) {
+      throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+    }
+    const profile = stringValue(object.profile)
+    const protocol = stringValue(object.protocol)
+    const localAddress = stringValue(object.local_address)
+    const remoteAddress = stringValue(object.remote_address)
+    const localPort = stringValue(object.local_port)
+    const remotePort = stringValue(object.remote_port)
+    const subjects = normalizeStoredSubjects(body.subject)
+    const exceptions = normalizeStoredSubjects(body.except)
+    const rules = normalizeStoredRules(body.rules, "network", "key")
+    if (subjects.length === 0 || rules.length === 0 || rules.length > 2
+      || !["domain", "private", "public", "any"].includes(profile)
+      || !["tcp", "udp", "icmp", "any"].includes(protocol)
+      || !isValidNetworkAddress(localAddress)
+      || !isValidNetworkAddress(remoteAddress)
+      || !validatePortExpression(localPort)
+      || !validatePortExpression(remotePort)) {
+      throw new Error("ACCESS_POLICY_CONTEXT_UNSUPPORTED")
+    }
 
     return {
       ...initial,
@@ -611,17 +626,16 @@ function buildAccessControlDraftFromBody(
       name: policy.name,
       version: policy.version,
       priority,
+      subjects,
+      exceptions,
+      rules,
       network: {
-        direction: oneOf(stringValue(rule.direction), ["in", "out"], initial.network.direction),
-        action: oneOf(stringValue(rule.action), ["allow", "block", "bypass"], initial.network.action),
-        profile: oneOf(stringValue(rule.profile), ["domain", "private", "public", "any"], initial.network.profile),
-        protocol: oneOf(stringValue(protocol.type), ["tcp", "udp", "icmp", "any"], initial.network.protocol),
-        localPort: stringValue(protocol.localport) || initial.network.localPort,
-        remotePort: stringValue(protocol.remoteport) || initial.network.remotePort,
-        localAddress: stringValue(address.local) || initial.network.localAddress,
-        remoteAddress: stringValue(address.remote) || initial.network.remoteAddress,
-        programPath: stringValue(program.path),
-        programMd5: stringValue(program.md5),
+        profile: oneOf(profile, ["domain", "private", "public", "any"], initial.network.profile),
+        protocol: oneOf(protocol, ["tcp", "udp", "icmp", "any"], initial.network.protocol),
+        localPort,
+        remotePort,
+        localAddress,
+        remoteAddress,
       },
     }
   }
@@ -657,7 +671,7 @@ function buildAccessControlDraftFromBody(
     }
 
     const storedRules = body.rules
-    const allowedActions = new Set(getAccessActions("registry", registryTargetKind))
+    const allowedActions = new Set<string>(getAccessActions("registry", registryTargetKind))
     if (!Array.isArray(storedRules)
       || storedRules.length === 0
       || storedRules.length > 64
@@ -783,7 +797,7 @@ export function buildUpdatedAccessControlPolicyContext(
 
   const { envelope, policyNode, head, body } = parseEditableAccessControlPolicyContext(policy)
   const request = buildCreateAccessControlPolicyRequest(draft, "")
-  const updatedBody = "network_info" in request ? request.network_info : request.policy_info
+  const updatedBody = request.policy_info
 
   return JSON.stringify({
     ...envelope,
@@ -852,7 +866,7 @@ function normalizeStoredSubjects(value: unknown): AccessSubjectDraft[] {
 
 function normalizeStoredRules(
   value: unknown,
-  type: Exclude<AccessPolicyType, "network">,
+  type: AccessPolicyType,
   registryTargetKind: RegistryTargetKind,
 ): AccessRuleDraft[] {
   const allowedActions = new Set<string>(getAccessActions(type, registryTargetKind))

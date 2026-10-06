@@ -51,24 +51,22 @@ function baseDraft(type: AccessControlPolicyDraft["type"]): AccessControlPolicyD
     objectHashes: [],
     registryTargetKind: "key",
     registryValueNames: [],
-    rules: [{ id: "rule-1", action: "write", effect: "block", audit: true }],
+    rules: type === "network"
+      ? [{ id: "rule-1", action: "connect", effect: "block", audit: true }]
+      : [{ id: "rule-1", action: "write", effect: "block", audit: true }],
     network: {
-      direction: "out",
-      action: "block",
       profile: "any",
       protocol: "tcp",
       localPort: "any",
       remotePort: "80,443",
       localAddress: "any",
       remoteAddress: "192.168.0.0/16",
-      programPath: "C:\\Program Files\\App\\app.exe",
-      programMd5: "0123456789abcdef0123456789abcdef",
     },
   }
 }
 
 const ACCESS_POLICY_SUB_TYPES: Record<AccessPolicyType, number> = {
-  network: 20,
+  network: 93,
   file: 90,
   process: 91,
   registry: 92,
@@ -93,7 +91,7 @@ function existingPolicy(draft: AccessControlPolicyDraft): ExistingAccessControlP
   const request = buildCreateAccessControlPolicyRequest(draft, "request-existing")
   const subType = ACCESS_POLICY_SUB_TYPES[draft.type]
   const objectId = `${draft.type}-policy-id`
-  const body = "network_info" in request ? request.network_info : request.policy_info
+  const body = request.policy_info
   return {
     objectId,
     objectType: 1,
@@ -109,7 +107,7 @@ function existingPolicy(draft: AccessControlPolicyDraft): ExistingAccessControlP
           id: objectId,
           type: 1,
           subtype: subType,
-          module: draft.type === "network" ? "NetworkFirewall" : "DacAccessModule",
+          module: "DacAccessModule",
           name: draft.name,
           version: draft.version,
           future_head_field: true,
@@ -183,21 +181,34 @@ describe("access control request mapping", () => {
     ])
   })
 
-  it("maps a network policy to network_info", () => {
+  it("maps a network policy to the subtype 93 DAC contract", () => {
     const request = buildCreateAccessControlPolicyRequest(baseDraft("network"), "request-4")
 
     expect(request).toEqual({
       request_id: "request-4",
       name: "Access policy",
       version: "1.0.0",
-      network_info: {
-        rule: { direction: "out", action: "block", profile: "any" },
-        protocol: { type: "tcp", localport: "any", remoteport: "80,443" },
-        address: { local: "any", remote: "192.168.0.0/16" },
-        program: {
-          path: "C:\\Program Files\\App\\app.exe",
-          md5: "0123456789abcdef0123456789abcdef",
+      policy_info: {
+        schema_version: 1,
+        except: [{
+          type: "windowsuser",
+          accounts: [{ user_name: "Administrator", sid: "S-1-5-21-1000" }],
+        }],
+        subject: [{
+          type: "process",
+          path: ["C:\\Program Files\\Office\\*.exe"],
+          hash: [],
+        }],
+        object: {
+          type: "network",
+          profile: "any",
+          protocol: "tcp",
+          local_address: "any",
+          remote_address: "192.168.0.0/16",
+          local_port: "any",
+          remote_port: "80,443",
         },
+        rules: [{ action: "connect", effect: "block", audit: true }],
         priority: 150,
       },
     })
@@ -264,11 +275,7 @@ describe("access control request mapping", () => {
 
     const networkDraft = baseDraft("network")
     networkDraft.network.remoteAddress = "999.1.1.1/33"
-    networkDraft.network.programPath = "app.exe"
-    expect(validateAccessControlDraft(networkDraft)).toEqual(expect.arrayContaining([
-      "NETWORK_ADDRESS_INVALID",
-      "NETWORK_PROGRAM_INVALID",
-    ]))
+    expect(validateAccessControlDraft(networkDraft)).toContain("NETWORK_ADDRESS_INVALID")
   })
 
   it("uses the exact v1 endpoint key and normalizes the created Policy Object", async () => {
@@ -377,7 +384,7 @@ describe("access control request mapping", () => {
             object_version: "2.0.0",
             object_state: "active",
             Content: {
-              policy: { name: "Outbound control", sub_type: 20, version: "2.0.0", context: "{}" },
+              policy: { name: "Outbound control", sub_type: 93, version: "2.0.0", context: "{}" },
             },
           },
         ],
@@ -414,7 +421,7 @@ describe("access control request mapping", () => {
         name: "Outbound control",
         version: "2.0.0",
         policyType: "network",
-        subType: 20,
+        subType: 93,
         context: "{}",
         objectState: "active",
       },
@@ -504,7 +511,7 @@ describe("access control request mapping", () => {
             id: policy.objectId,
             type: 1,
             subtype: policy.subType,
-            module: type === "network" ? "NetworkFirewall" : "DacAccessModule",
+            module: "DacAccessModule",
             name: "Access policy updated",
             version: "1.1.0",
             future_head_field: true,

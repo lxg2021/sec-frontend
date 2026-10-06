@@ -33,7 +33,9 @@ export type ProcessAccessAction =
   | "write"
   | "protect"
 
-export type AccessAction = FileAccessAction | RegistryAccessAction | ProcessAccessAction
+export type NetworkAccessAction = "connect" | "accept"
+
+export type AccessAction = FileAccessAction | RegistryAccessAction | ProcessAccessAction | NetworkAccessAction
 
 export interface AccessHash {
   algo: AccessHashAlgorithm
@@ -62,16 +64,12 @@ export interface AccessRuleDraft {
 }
 
 export interface NetworkPolicyDraft {
-  direction: "in" | "out"
-  action: "allow" | "block" | "bypass"
   profile: "domain" | "private" | "public" | "any"
   protocol: "tcp" | "udp" | "icmp" | "any"
   localPort: string
   remotePort: string
   localAddress: string
   remoteAddress: string
-  programPath: string
-  programMd5: string
 }
 
 export interface AccessControlPolicyDraft {

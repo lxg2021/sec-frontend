@@ -14,7 +14,7 @@ describe("RegistryValueNameInput", () => {
 
     expect(html).toContain(copy.registry.allValues)
     expect(html).toContain(copy.registry.valueNameHint)
-    expect(html).toContain(`maxlength="16383"`)
+    expect(html).toContain(`maxLength="16383"`)
     expect(html).not.toContain(`${copy.remove} ${copy.registry.defaultValue}`)
   })
 

@@ -16,11 +16,13 @@ import {
   Pencil,
   Play,
   Plus,
+  RadioTower,
   Search,
   Settings2,
   ShieldCheck,
   Trash2,
   type LucideIcon,
+  Wifi,
 } from "lucide-react"
 
 import type { AccessControlCopy } from "../access-control-copy"
@@ -32,7 +34,7 @@ import { Switch } from "@/shared/ui/switch"
 
 interface RuleEditorProps {
   copy: AccessControlCopy
-  type: Exclude<AccessPolicyType, "network">
+  type: AccessPolicyType
   rules: AccessRuleDraft[]
   onChange: (rules: AccessRuleDraft[]) => void
   actions?: AccessAction[]
@@ -68,6 +70,8 @@ const ACTION_ICONS: Record<AccessAction, LucideIcon> = {
   terminate: CircleStop,
   allocate: Boxes,
   protect: ShieldCheck,
+  connect: Wifi,
+  accept: RadioTower,
 }
 
 const ACTION_ICON_COLORS: Partial<Record<AccessAction, string>> = {
@@ -79,6 +83,8 @@ const ACTION_ICON_COLORS: Partial<Record<AccessAction, string>> = {
   set: "text-amber-600",
   execute: "text-violet-600",
   protect: "text-teal-600",
+  connect: "text-teal-600",
+  accept: "text-cyan-700",
   query: "text-cyan-700",
   read: "text-cyan-700",
 }

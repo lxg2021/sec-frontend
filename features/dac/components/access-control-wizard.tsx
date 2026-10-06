@@ -355,38 +355,36 @@ export function PolicyConfigurationPanel({
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {draft.type === "network" ? (
-          <div className="p-5">
-            <NetworkEditor copy={copy} value={draft.network} onChange={(network) => onChange({ network })} />
-          </div>
-        ) : (
-          <div className="flex min-h-full flex-col">
-            <div className="grid lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
-              <SubjectPanel copy={copy} draft={draft} onChange={onChange} />
+        <div className="flex min-h-full flex-col">
+          <div className="grid lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
+            <SubjectPanel copy={copy} draft={draft} onChange={onChange} />
+            {draft.type === "network" ? (
+              <section className="min-w-0 p-5">
+                <ConfigurationSectionHeader icon={ShieldCheck} title={copy.object} />
+                <NetworkEditor copy={copy} value={draft.network} onChange={(network) => onChange({ network })} />
+              </section>
+            ) : (
               <ObjectPanel copy={copy} draft={draft} onChange={onChange} />
-            </div>
-            <section className="flex min-h-[260px] flex-1 flex-col border-t border-slate-200 p-5">
-              <ConfigurationSectionHeader
-                icon={FileSliders}
-                title={copy.rules}
-              />
-              <RuleEditor
-                copy={copy}
-                type={draft.type}
-                rules={draft.rules}
-                actions={getAccessActions(draft.type, draft.registryTargetKind)}
-                onChange={(rules) => onChange({
-                  rules,
-                  ...(draft.type === "registry"
-                    && draft.registryTargetKind === "value"
-                    && rules.some((rule) => rule.action === "enum")
-                    ? { registryValueNames: [] }
-                    : {}),
-                })}
-              />
-            </section>
+            )}
           </div>
-        )}
+          <section className="flex min-h-[260px] flex-1 flex-col border-t border-slate-200 p-5">
+            <ConfigurationSectionHeader icon={FileSliders} title={copy.rules} />
+            <RuleEditor
+              copy={copy}
+              type={draft.type}
+              rules={draft.rules}
+              actions={getAccessActions(draft.type, draft.registryTargetKind)}
+              onChange={(rules) => onChange({
+                rules,
+                ...(draft.type === "registry"
+                  && draft.registryTargetKind === "value"
+                  && rules.some((rule) => rule.action === "enum")
+                  ? { registryValueNames: [] }
+                  : {}),
+              })}
+            />
+          </section>
+        </div>
       </div>
     </fieldset>
   )
@@ -849,15 +847,11 @@ function isAccessControlDraftDirty(draft: AccessControlPolicyDraft) {
     draft.objectPaths.length > 0 ||
     draft.objectHashes.length > 0 ||
     draft.rules.length > 0 ||
-    network.direction !== "in" ||
-    network.action !== "block" ||
     network.profile !== "any" ||
     network.protocol !== "tcp" ||
     network.localPort !== "any" ||
     network.remotePort !== "any" ||
     network.localAddress !== "any" ||
-    network.remoteAddress !== "any" ||
-    network.programPath.trim() ||
-    network.programMd5.trim()
+    network.remoteAddress !== "any"
   )
 }
